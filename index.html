@@ -549,9 +549,18 @@ function renderType(){
   let html='';
   for(let i=0;i<typeText.length;i++){
     const ch = esc(typeText[i]);
-    if(i<typeInput.length)      html+=`<span class="${typeInput[i]===typeText[i]?'char-correct':'char-wrong'}">${ch}</span>`;
-    else if(i===typeInput.length) html+=`<span class="char-cursor">${ch}</span>`;
-    else                          html+=`<span>${ch}</span>`;
+    if(i<typeInput.length){
+      if(typeInput[i]===typeText[i]){
+        html+=`<span class="char-correct">${ch}</span>`;
+      } else {
+        const wrongCh = esc(typeInput[i]||'?');
+        html+=`<span class="char-wrong" title="應為：${ch}">${wrongCh}</span>`;
+      }
+    } else if(i===typeInput.length){
+      html+=`<span class="char-cursor">${ch}</span>`;
+    } else {
+      html+=`<span>${ch}</span>`;
+    }
   }
   if(typeInput.length>=typeText.length) html+='<span class="char-cursor"> </span>';
   html += `<span class="typing-hint">${typeFocused?'輸入中…':'點擊後開始輸入'}</span>`;
