@@ -1,0 +1,485 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoFa Engine — 國考法條備考系統</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #1A1A2E;
+  --card:    #22223a;
+  --card2:   #2a2a42;
+  --accent:  #E5B3B3;
+  --accent2: #9EB3C2;
+  --text:    #F0EDE8;
+  --muted:   #a8a8b8;
+  --border:  rgba(229,179,179,0.12);
+  --mono:    'JetBrains Mono', monospace;
+  --serif:   'Noto Serif TC', serif;
+  --sans:    'Noto Sans TC', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: var(--sans); font-weight: 300;
+  line-height: 1.75; overflow-x: hidden;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 80% 50% at 15% 5%,  rgba(229,179,179,0.05) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 70% at 85% 95%, rgba(158,179,194,0.04) 0%, transparent 55%);
+  pointer-events: none; z-index: 0;
+}
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 1.1rem 2.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(26,26,46,0.88); backdrop-filter: blur(18px);
+  border-bottom: 1px solid var(--border);
+}
+.nav-brand { font-family: var(--mono); font-size: 0.9rem; letter-spacing: 0.14em; color: var(--accent); text-decoration: none; }
+.nav-links { display: flex; gap: 2rem; list-style: none; }
+.nav-links a { font-size: 0.8rem; letter-spacing: 0.08em; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+.nav-links a:hover { color: var(--text); }
+
+/* LAYOUT */
+.container { max-width: 1080px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 1; }
+section { padding: 6rem 0; }
+
+/* ANIMATIONS */
+@keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+@keyframes blink  { 0%,100%{opacity:1;} 50%{opacity:0;} }
+@keyframes dot    { 0%,80%,100%{opacity:.2;transform:scale(.8);} 40%{opacity:1;transform:scale(1);} }
+
+/* HERO */
+#hero { min-height: 100vh; display: flex; align-items: center; padding-top: 5rem; }
+.hero-label { font-family: var(--mono); font-size: 0.7rem; letter-spacing: 0.28em; color: var(--accent); text-transform: uppercase; margin-bottom: 1.8rem; opacity:0; animation: fadeUp .8s .2s ease forwards; }
+.hero-title { font-family: var(--serif); font-size: clamp(2.2rem,4.5vw,3.8rem); font-weight: 700; line-height: 1.3; color: var(--text); opacity:0; animation: fadeUp .8s .4s ease forwards; }
+.hero-title .hi { color: var(--accent); }
+.hero-sub { margin-top: 1.6rem; font-size: 0.9rem; color: var(--muted); letter-spacing: 0.1em; opacity:0; animation: fadeUp .8s .6s ease forwards; }
+.hero-sub .sep { margin: 0 0.6rem; opacity: .3; }
+.hero-cta { margin-top: 2.8rem; display: flex; gap: 1rem; flex-wrap: wrap; opacity:0; animation: fadeUp .8s .8s ease forwards; }
+.btn-primary { display:inline-flex; align-items:center; gap:.5rem; padding:.85rem 1.8rem; background:var(--accent); color:#1A1A2E; font-family:var(--sans); font-size:.86rem; font-weight:500; letter-spacing:.06em; border:none; cursor:pointer; text-decoration:none; transition:opacity .2s,transform .15s; }
+.btn-primary:hover { opacity:.85; transform:translateY(-2px); }
+.btn-ghost { display:inline-flex; align-items:center; gap:.5rem; padding:.85rem 1.8rem; background:transparent; color:var(--muted); font-family:var(--sans); font-size:.86rem; letter-spacing:.06em; border:1px solid var(--border); cursor:pointer; text-decoration:none; transition:border-color .2s,color .2s; }
+.btn-ghost:hover { border-color:var(--accent2); color:var(--text); }
+
+/* STATS */
+#stats { padding: 3.5rem 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); }
+.stats-grid { display: grid; grid-template-columns: repeat(3,1fr); }
+.stat-item { padding: 1.5rem 2rem; text-align: center; border-right: 1px solid var(--border); }
+.stat-item:last-child { border-right: none; }
+.stat-num { font-family: var(--mono); font-size: clamp(2rem,3.5vw,3rem); font-weight: 500; color: var(--accent); display: block; line-height: 1; }
+.stat-label { display: block; margin-top: .5rem; font-size: .78rem; letter-spacing: .12em; color: var(--muted); }
+
+/* SECTION HEADER */
+.section-label { font-family: var(--mono); font-size: .68rem; letter-spacing: .25em; color: var(--accent2); text-transform: uppercase; margin-bottom: 1rem; }
+.section-title { font-family: var(--serif); font-size: clamp(1.6rem,3vw,2.2rem); font-weight: 600; color: var(--text); margin-bottom: 1rem; }
+.section-desc { font-size: .9rem; color: var(--muted); max-width: 520px; }
+
+/* FEATURES */
+.features-grid { margin-top: 3.5rem; display: grid; grid-template-columns: repeat(2,1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+.feature-card { background: var(--card); padding: 2.2rem 2rem; transition: background .25s; }
+.feature-card:hover { background: var(--card2); }
+.feature-icon { font-family: var(--mono); font-size: .72rem; letter-spacing: .18em; color: var(--accent); margin-bottom: 1.2rem; display: block; }
+.feature-name { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: .6rem; }
+.feature-desc { font-size: .84rem; color: var(--muted); line-height: 1.7; }
+
+/* HOW TO */
+.steps { margin-top: 3rem; display: flex; flex-direction: column; }
+.step { display: grid; grid-template-columns: 80px 1fr; border-top: 1px solid var(--border); padding: 2rem 0; align-items: start; }
+.step:last-child { border-bottom: 1px solid var(--border); }
+.step-num { font-family: var(--mono); font-size: 2.5rem; font-weight: 500; color: rgba(229,179,179,.2); line-height: 1; }
+.step-title { font-family: var(--serif); font-size: 1.05rem; font-weight: 600; color: var(--text); margin-bottom: .4rem; }
+.step-desc { font-size: .84rem; color: var(--muted); }
+
+/* DEMO */
+.demo-box { margin-top: 3rem; background: var(--card); border: 1px solid var(--border); padding: 2rem; }
+.demo-tabs { display: flex; gap: 0; margin-bottom: 2rem; border-bottom: 1px solid var(--border); }
+.demo-tab { padding: .6rem 1.4rem; font-size: .8rem; letter-spacing: .08em; color: var(--muted); background: none; border: none; cursor: pointer; border-bottom: 2px solid transparent; transition: color .2s,border-color .2s; margin-bottom: -1px; }
+.demo-tab.active { color: var(--accent); border-bottom-color: var(--accent); }
+.demo-panel { display: none; }
+.demo-panel.active { display: block; }
+
+/* SEARCH */
+.search-row { display: flex; gap: .8rem; margin-bottom: 1.5rem; }
+.law-select, .art-input { background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: var(--sans); font-size: .84rem; padding: .65rem 1rem; outline: none; transition: border-color .2s; }
+.law-select { flex: 2; } .art-input { flex: 1; }
+.law-select:focus, .art-input:focus { border-color: var(--accent2); }
+.search-btn { padding: .65rem 1.4rem; background: var(--accent); color: #1A1A2E; border: none; font-size: .82rem; font-weight: 500; cursor: pointer; letter-spacing: .06em; transition: opacity .2s; }
+.search-btn:hover { opacity: .85; }
+.result-box { background: var(--bg); border: 1px solid var(--border); padding: 1.5rem; min-height: 120px; font-size: .84rem; color: var(--muted); display: flex; align-items: center; justify-content: center; }
+.result-box.has-content { display: block; color: var(--text); }
+.result-title { font-family: var(--mono); font-size: .72rem; letter-spacing: .18em; color: var(--accent); margin-bottom: .8rem; }
+.result-text { line-height: 1.9; font-size: .84rem; white-space: pre-wrap; }
+
+/* TYPING */
+.typing-meta { display: flex; justify-content: space-between; font-family: var(--mono); font-size: .72rem; color: var(--muted); margin-bottom: 1rem; }
+.typing-stats { display: flex; gap: 1.5rem; }
+.typing-prompt { background: var(--bg); border: 1px solid var(--border); padding: 1.2rem 1.5rem; font-size: .84rem; line-height: 2; min-height: 80px; cursor: text; }
+.correct { color: var(--text); } .wrong { color: #e88; text-decoration: underline; } .cursor { border-right: 2px solid var(--accent); animation: blink 1s infinite; }
+
+/* FILL */
+.fill-text { background: var(--bg); border: 1px solid var(--border); padding: 1.5rem; font-size: .88rem; line-height: 2.4; margin-bottom: 1rem; }
+.fill-blank { display: inline-block; border-bottom: 2px solid var(--accent); margin: 0 2px; }
+.fill-blank input { background: none; border: none; color: var(--accent); font-family: var(--mono); font-size: .88rem; min-width: 60px; text-align: center; outline: none; }
+.fill-actions { display: flex; gap: .8rem; }
+.fill-btn { padding: .55rem 1.2rem; font-size: .8rem; letter-spacing: .08em; cursor: pointer; transition: opacity .2s; }
+.fill-btn:hover { opacity: .8; }
+.fill-btn-check { background: var(--accent); color: #1A1A2E; border: none; }
+.fill-btn-next  { background: none; border: 1px solid var(--border); color: var(--muted); }
+
+/* QUIZ */
+.quiz-question { font-family: var(--serif); font-size: .96rem; color: var(--text); margin-bottom: 1.5rem; line-height: 1.8; }
+.quiz-options { display: flex; flex-direction: column; gap: .6rem; margin-bottom: 1.5rem; }
+.quiz-option { display: flex; align-items: flex-start; gap: .8rem; background: var(--bg); border: 1px solid var(--border); padding: .9rem 1.2rem; cursor: pointer; transition: border-color .2s,background .2s; font-size: .83rem; color: var(--muted); text-align: left; width: 100%; }
+.quiz-option:hover { border-color: var(--accent2); color: var(--text); }
+.quiz-option.correct { border-color: #88c8a0; background: rgba(136,200,160,.06); color: #88c8a0; }
+.quiz-option.wrong   { border-color: #e88; background: rgba(238,136,136,.06); color: #e88; }
+.quiz-opt-label { font-family: var(--mono); font-size: .72rem; letter-spacing: .1em; color: var(--accent2); flex-shrink: 0; margin-top: 2px; }
+
+/* LOADING */
+.loading { display: inline-flex; gap: 4px; align-items: center; }
+.loading span { width: 4px; height: 4px; background: var(--accent); border-radius: 50%; animation: dot 1.2s infinite; }
+.loading span:nth-child(2){animation-delay:.2s;} .loading span:nth-child(3){animation-delay:.4s;}
+
+/* FOOTER */
+footer { border-top: 1px solid var(--border); padding: 3rem 0; text-align: center; }
+.footer-brand { font-family: var(--mono); font-size: .9rem; letter-spacing: .14em; color: var(--accent); margin-bottom: .6rem; display: block; }
+.footer-sub { font-size: .75rem; color: var(--muted); letter-spacing: .1em; margin-bottom: 1.5rem; }
+.footer-links { display: flex; justify-content: center; gap: 2rem; }
+.footer-links a { font-size: .78rem; color: var(--muted); text-decoration: none; letter-spacing: .08em; transition: color .2s; }
+.footer-links a:hover { color: var(--accent); }
+
+@media(max-width:680px){
+  nav { padding: 1rem 1.2rem; } .nav-links { display: none; }
+  .stats-grid { grid-template-columns: 1fr; }
+  .stat-item { border-right: none; border-bottom: 1px solid var(--border); }
+  .features-grid { grid-template-columns: 1fr; }
+  .search-row { flex-direction: column; }
+  .step { grid-template-columns: 50px 1fr; } .step-num { font-size: 1.8rem; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="#">SoFa Engine</a>
+  <ul class="nav-links">
+    <li><a href="#features">功能</a></li>
+    <li><a href="#demo">試用</a></li>
+    <li><a href="#howto">使用方式</a></li>
+    <li><a href="https://line.me/R/ti/p/@sofa" target="_blank">加入 LINE Bot ↗</a></li>
+  </ul>
+</nav>
+
+<section id="hero">
+  <div class="container">
+    <p class="hero-label">SoFa Engine — 國考法條備考系統</p>
+    <h1 class="hero-title">國考法條，<br><span class="hi">查得到、讀得進、記得住。</span></h1>
+    <p class="hero-sub">
+      <span>33 部法規</span><span class="sep">|</span>
+      <span>2,138 條</span><span class="sep">|</span>
+      <span>每日推播</span>
+    </p>
+    <div class="hero-cta">
+      <a class="btn-primary" href="https://line.me/R/ti/p/@sofa" target="_blank">加入 LINE Bot 免費試用</a>
+      <a class="btn-ghost" href="#demo">線上試用 →</a>
+    </div>
+  </div>
+</section>
+
+<div id="stats">
+  <div class="container">
+    <div class="stats-grid">
+      <div class="stat-item"><span class="stat-num">33</span><span class="stat-label">部法規</span></div>
+      <div class="stat-item"><span class="stat-num">2,138</span><span class="stat-label">條條文</span></div>
+      <div class="stat-item"><span class="stat-num" id="countdown">—</span><span class="stat-label">距 2026 年記帳士考試</span></div>
+    </div>
+  </div>
+</div>
+
+<section id="features">
+  <div class="container">
+    <p class="section-label">Features</p>
+    <h2 class="section-title">四個工具，一套系統</h2>
+    <p class="section-desc">從查詢到記憶，每個環節都有對應的練習方式。</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <span class="feature-icon">01 / SEARCH</span>
+        <div class="feature-name">法條速查</div>
+        <p class="feature-desc">輸入法規名稱與條號，秒回原文與六段解析：條文解析、考點整理、記憶技巧、相關條文、實務應用、常見錯誤。</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">02 / PUSH</span>
+        <div class="feature-name">每日推播</div>
+        <p class="feature-desc">每天早上 8:00，LINE Bot 自動推送當日法條。不用打開 App，打開手機就看到。</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">03 / TYPE</span>
+        <div class="feature-name">打字練習</div>
+        <p class="feature-desc">逐字輸入法條原文，錯字即時標紅。用打字建立肌肉記憶，讓條文不只是「看過」。</p>
+      </div>
+      <div class="feature-card">
+        <span class="feature-icon">04 / QUIZ</span>
+        <div class="feature-name">選擇題 & 填空</div>
+        <p class="feature-desc">從資料庫自動產生選擇題與填空題。數字、金額、期限，這些最容易混淆的地方重點練習。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="demo">
+  <div class="container">
+    <p class="section-label">Try It</p>
+    <h2 class="section-title">直接試用</h2>
+    <p class="section-desc">不需登入，直接查。</p>
+    <div class="demo-box">
+      <div class="demo-tabs">
+        <button class="demo-tab active" data-tab="search">查法條</button>
+        <button class="demo-tab" data-tab="type">打字練習</button>
+        <button class="demo-tab" data-tab="fill">填空題</button>
+        <button class="demo-tab" data-tab="quiz">選擇題</button>
+      </div>
+
+      <div class="demo-panel active" id="panel-search">
+        <div class="search-row">
+          <select class="law-select" id="lawSelect"><option value="">載入中…</option></select>
+          <input class="art-input" id="artInput" type="text" placeholder="條號 (e.g. 14)">
+          <button class="search-btn" id="searchBtn">查詢</button>
+        </div>
+        <div class="result-box" id="searchResult"><span style="font-size:.8rem">選擇法規與條號後按查詢</span></div>
+      </div>
+
+      <div class="demo-panel" id="panel-type">
+        <div class="typing-meta">
+          <span id="typeTitle" style="color:var(--accent2)">—</span>
+          <div class="typing-stats">
+            <span>正確率 <b id="typeAcc" style="color:var(--accent)">—</b></span>
+            <span>進度 <b id="typeProgress" style="color:var(--accent)">0%</b></span>
+          </div>
+        </div>
+        <div class="typing-prompt" id="typingPrompt"><span style="font-size:.8rem;color:var(--muted)">點擊「換一條」開始練習</span></div>
+        <div style="margin-top:1rem;display:flex;gap:.8rem">
+          <button class="fill-btn fill-btn-check" id="typeNew">換一條</button>
+          <button class="fill-btn fill-btn-next" id="typeReset">重來</button>
+        </div>
+      </div>
+
+      <div class="demo-panel" id="panel-fill">
+        <div class="fill-text" id="fillText"><span style="font-size:.8rem;color:var(--muted)">點擊「新題目」開始</span></div>
+        <div class="fill-actions">
+          <button class="fill-btn fill-btn-check" id="fillCheck">對答案</button>
+          <button class="fill-btn fill-btn-next" id="fillNext">新題目</button>
+        </div>
+        <div id="fillResult" style="margin-top:1rem;font-size:.82rem;color:var(--muted)"></div>
+      </div>
+
+      <div class="demo-panel" id="panel-quiz">
+        <div class="quiz-question" id="quizQuestion">點擊「出題」開始</div>
+        <div class="quiz-options" id="quizOptions"></div>
+        <div><button class="fill-btn fill-btn-check" id="quizNew">出題</button></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="howto">
+  <div class="container">
+    <p class="section-label">How To</p>
+    <h2 class="section-title">三步驟開始</h2>
+    <div class="steps">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-content">
+          <div class="step-title">加入 LINE Bot</div>
+          <p class="step-desc">搜尋「SoFa 索法」或掃描 QR Code，免費加入。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-content">
+          <div class="step-title">輸入條號查詢</div>
+          <p class="step-desc">直接傳「記帳士 14」或「查 14」，秒回原文與六段解析。</p>
+        </div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-content">
+          <div class="step-title">每天 8:00 收推播</div>
+          <p class="step-desc">自動推送當日法條，不用主動開啟。長期累積，自然熟悉。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <span class="footer-brand">SoFa Engine</span>
+    <p class="footer-sub">@sofa.engine</p>
+    <div class="footer-links">
+      <a href="https://line.me/R/ti/p/@sofa" target="_blank">LINE Bot</a>
+      <a href="https://www.instagram.com/sofa.engine" target="_blank">Instagram</a>
+      <a href="https://www.threads.net/@sofa.engine" target="_blank">Threads</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// ★ 部署後換成你的 Render API 網址
+const API = 'https://sofa-engine-api.onrender.com';
+
+// 倒數
+(()=>{
+  const d = Math.ceil((new Date('2026-11-14') - new Date()) / 86400000);
+  const el = document.getElementById('countdown');
+  if(el) el.textContent = d > 0 ? d+' 天' : '考試到了！';
+})();
+
+// Tab
+document.querySelectorAll('.demo-tab').forEach(t=>{
+  t.addEventListener('click',()=>{
+    document.querySelectorAll('.demo-tab').forEach(x=>x.classList.remove('active'));
+    document.querySelectorAll('.demo-panel').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.getElementById('panel-'+t.dataset.tab).classList.add('active');
+  });
+});
+
+// 載入法規清單
+async function loadLaws(){
+  const sel=document.getElementById('lawSelect');
+  try{
+    const r=await fetch(`${API}/api/laws`); const d=await r.json();
+    sel.innerHTML='<option value="">選擇法規</option>';
+    (d.laws||[]).forEach(l=>{ const o=document.createElement('option'); o.value=l.name; o.textContent=l.name; sel.appendChild(o); });
+  }catch{ sel.innerHTML='<option value="">（後端未連線）</option>'; }
+}
+loadLaws();
+
+// 查法條
+document.getElementById('searchBtn').addEventListener('click',async()=>{
+  const law=document.getElementById('lawSelect').value;
+  const art=document.getElementById('artInput').value.trim();
+  const box=document.getElementById('searchResult');
+  if(!law){ box.innerHTML='<span style="font-size:.8rem">請先選擇法規</span>'; return; }
+  box.classList.remove('has-content');
+  box.innerHTML='<div class="loading"><span></span><span></span><span></span></div>';
+  try{
+    const r=await fetch(`${API}/api/articles?law=${encodeURIComponent(law)}`); const d=await r.json();
+    const articles=d.articles||[];
+    let found=art ? articles.find(a=>(a.title||'').includes('§ '+art)||(a.title||'').includes('§'+art)) : articles[0];
+    if(!found){ box.innerHTML=`<span style="font-size:.8rem">找不到條文「${esc(art)}」</span>`; return; }
+    const r2=await fetch(`${API}/api/article/${found.id}`); const a=await r2.json();
+    box.classList.add('has-content');
+    let html=`<div class="result-title">${esc(a.title||'')}</div><div class="result-text">${esc(a.original_text||'（無原文）')}</div>`;
+    ['條文解析','考點整理','記憶技巧','相關條文','實務應用','常見錯誤'].forEach(n=>{
+      if(a.sections&&a.sections[n]) html+=`<div style="margin-top:1.2rem"><div class="result-title">${n}</div><div class="result-text">${esc(a.sections[n])}</div></div>`;
+    });
+    box.innerHTML=html;
+  }catch{ box.innerHTML='<span style="font-size:.8rem">查詢失敗，請確認後端服務已啟動</span>'; }
+});
+
+// 打字練習
+let typeText='',typeInput='';
+async function loadType(){
+  const prompt=document.getElementById('typingPrompt');
+  prompt.innerHTML='<div class="loading"><span></span><span></span><span></span></div>';
+  typeInput=''; const ta=document.getElementById('_ta'); if(ta)ta.value='';
+  try{
+    const r=await fetch(`${API}/api/random`); const d=await r.json();
+    typeText=d.original_text||''; document.getElementById('typeTitle').textContent=d.title||''; renderType();
+  }catch{ prompt.textContent='無法載入條文'; }
+}
+function renderType(){
+  const prompt=document.getElementById('typingPrompt'); if(!typeText) return;
+  let html='';
+  for(let i=0;i<typeText.length;i++){
+    const ch=esc(typeText[i]);
+    if(i<typeInput.length) html+=`<span class="${typeInput[i]===typeText[i]?'correct':'wrong'}">${ch}</span>`;
+    else if(i===typeInput.length) html+=`<span class="cursor">${ch}</span>`;
+    else html+=`<span>${ch}</span>`;
+  }
+  prompt.innerHTML=html;
+  const cor=typeInput.split('').filter((c,i)=>c===typeText[i]).length;
+  document.getElementById('typeAcc').textContent=(typeInput.length?Math.round(cor/typeInput.length*100):100)+'%';
+  document.getElementById('typeProgress').textContent=Math.min(typeText.length?Math.round(typeInput.length/typeText.length*100):0,100)+'%';
+}
+document.getElementById('typingPrompt').addEventListener('click',()=>{
+  let ta=document.getElementById('_ta');
+  if(!ta){
+    ta=document.createElement('textarea'); ta.id='_ta';
+    ta.style.cssText='position:fixed;opacity:0;top:0;left:0;width:1px;height:1px;';
+    document.body.appendChild(ta);
+    ta.addEventListener('input',()=>{ typeInput=ta.value; renderType(); });
+    ta.addEventListener('keydown',e=>{ if(e.key==='Backspace'&&typeInput.length){ typeInput=typeInput.slice(0,-1); ta.value=typeInput; renderType(); e.preventDefault(); } });
+  }
+  ta.focus();
+});
+document.getElementById('typeNew').addEventListener('click',loadType);
+document.getElementById('typeReset').addEventListener('click',()=>{ typeInput=''; const ta=document.getElementById('_ta'); if(ta)ta.value=''; renderType(); });
+
+// 填空
+let fillData=null;
+async function loadFill(){
+  const box=document.getElementById('fillText'); const res2=document.getElementById('fillResult');
+  box.innerHTML='<div class="loading"><span></span><span></span><span></span></div>'; res2.textContent='';
+  try{ const r=await fetch(`${API}/api/fill`); fillData=await r.json(); renderFill(); }
+  catch{ box.textContent='無法載入題目'; }
+}
+function renderFill(){
+  if(!fillData) return;
+  const box=document.getElementById('fillText');
+  const text=fillData.masked_text||''; let html='',i=0,idx=0;
+  while(i<text.length){
+    if(text[i]==='＿'){
+      let b=''; while(i<text.length&&text[i]==='＿'){b+=text[i];i++;}
+      html+=`<span class="fill-blank"><input type="text" data-idx="${idx}" style="width:${Math.max(b.length*1.2,3)}em"></span>`;
+      idx++;
+    }else{ html+=esc(text[i]); i++; }
+  }
+  box.innerHTML=`<div style="margin-bottom:.6rem;font-family:var(--mono);font-size:.7rem;color:var(--accent)">${esc(fillData.title||'')}</div>`+html;
+}
+document.getElementById('fillCheck').addEventListener('click',()=>{
+  if(!fillData) return;
+  const inputs=document.querySelectorAll('#fillText input'); let cor=0;
+  inputs.forEach((inp,i)=>{ const ans=(fillData.answers||[])[i]||''; if(inp.value.trim()===ans){inp.style.color='#88c8a0';cor++;}else{inp.style.color='#e88';inp.placeholder=ans;} });
+  const r=document.getElementById('fillResult');
+  r.textContent=`${cor} / ${inputs.length} 正確`; r.style.color=cor===inputs.length?'#88c8a0':'var(--muted)';
+});
+document.getElementById('fillNext').addEventListener('click',loadFill);
+
+// 選擇題
+let quizAnswered=false;
+async function loadQuiz(){
+  const qbox=document.getElementById('quizQuestion'); const obox=document.getElementById('quizOptions');
+  qbox.textContent='出題中…'; obox.innerHTML='<div class="loading"><span></span><span></span><span></span></div>'; quizAnswered=false;
+  try{
+    const r=await fetch(`${API}/api/quiz`); const data=await r.json();
+    qbox.textContent=data.question||'出題失敗'; obox.innerHTML='';
+    const labels=['A','B','C','D'];
+    (data.options||[]).forEach((opt,i)=>{
+      const btn=document.createElement('button'); btn.className='quiz-option';
+      btn.innerHTML=`<span class="quiz-opt-label">${labels[i]}</span>${esc(opt.snippet||'')}`;
+      btn.addEventListener('click',()=>{
+        if(quizAnswered) return; quizAnswered=true;
+        document.querySelectorAll('.quiz-option').forEach((b,j)=>{ if((data.options[j]||{}).is_correct) b.classList.add('correct'); });
+        if(!opt.is_correct) btn.classList.add('wrong');
+      });
+      obox.appendChild(btn);
+    });
+  }catch{ qbox.textContent='出題失敗，請確認後端服務已啟動'; obox.innerHTML=''; }
+}
+document.getElementById('quizNew').addEventListener('click',loadQuiz);
+
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+</script>
+</body>
+</html>
