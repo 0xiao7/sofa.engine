@@ -454,13 +454,20 @@ loadLaws();
 async function loadStarred(){
   const grid = document.getElementById('starredGrid');
   try{
-    // 先取所有法條，filter importance = ★★★★★
-    // API 目前沒有直接的 importance filter，先取 random 100 條示意，之後可擴充 endpoint
-    const r = await fetch(`${API}/api/laws`);
+    const r = await fetch(`${API}/api/starred?limit=24`);
     const d = await r.json();
-    if(!d.laws||!d.laws.length){ grid.innerHTML='<div class="starred-loading" style="color:var(--muted);font-size:.8rem">暫無資料</div>'; return; }
-    // 取前幾部法規各一條做示意，實際五星需後端 endpoint 支援
-    grid.innerHTML = '<div class="starred-loading" style="color:var(--muted);font-size:.8rem">五星法條功能開發中，API endpoint 擴充後自動更新</div>';
+    const items = d.starred || [];
+    if(!items.length){
+      grid.innerHTML='<div class="starred-loading">目前無五星法條資料</div>';
+      return;
+    }
+    grid.innerHTML = items.map(item=>`
+      <div class="starred-card" data-id="${item.id}" data-law="${esc(item.law)}" data-title="${esc(item.title)}">
+        <div class="starred-law">${esc(item.law)}</div>
+        <div class="starred-title">${esc(item.title)}</div>
+        <div class="starred-stars">★★★★★</div>
+      </div>
+    `).join('');
   }catch{
     grid.innerHTML='<div class="starred-loading" style="color:var(--muted);font-size:.8rem">（後端未連線）</div>';
   }
@@ -653,14 +660,23 @@ document.getElementById('starredGrid').addEventListener('click', e=>{
   const card = e.target.closest('.starred-card');
   if(!card) return;
   const law = card.dataset.law;
-  const art = card.dataset.art;
-  if(law&&art){
-    document.getElementById('lawSelect').value=law;
-    document.getElementById('artInput').value=art;
-    document.querySelector('[data-tab="search"]').click();
-    document.getElementById('demo').scrollIntoView({behavior:'smooth'});
-    setTimeout(()=>document.getElementById('searchBtn').click(), 500);
-  }
+  const pageId = card.dataset.id;
+  const title = card.dataset.title;
+  if(!pageId) return;
+  // 切到查法條 tab，直接用 page_id 查
+  document.querySelector('[data-tab="search"]').click();
+  const box = document.getElementById('searchResult');
+  box.classList.remove('has-content');
+  box.innerHTML='<div class="loading"><span></span><span></span><span></span></div>';
+  document.getElementById('demo').scrollIntoView({behavior:'smooth'});
+  fetch(`${API}/api/article/${pageId}`).then(r=>r.json()).then(a=>{
+    box.classList.add('has-content');
+    let html=`<div class="result-title">${esc(a.title||'')}</div><div class="result-text">${esc(a.original_text||'（無原文）')}</div>`;
+    ['條文解析','考點整理','記憶技巧','相關條文','實務應用','常見錯誤'].forEach(n=>{
+      if(a.sections&&a.sections[n]) html+=`<div class="section-divider"><div class="result-title">${n}</div><div class="result-text">${esc(a.sections[n])}</div></div>`;
+    });
+    box.innerHTML=html;
+  }).catch(()=>{ box.innerHTML='<span style="font-size:.8rem">查詢失敗</span>'; });
 });
 
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
