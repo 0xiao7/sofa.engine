@@ -494,7 +494,7 @@ document.getElementById('searchBtn').addEventListener('click', async()=>{
     const a = await r2.json();
     box.classList.add('has-content');
     let html = `<div class="result-title">${esc(a.title||'')}</div><div class="result-text">${esc(a.original_text||'（此條文無原文）')}</div>`;
-    const secs = ['條文解析','考點整理','記憶技巧','相關條文','實務應用','常見錯誤'];
+    const secs = ['章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示','核心摘要與記憶策略','修法與聯覺備註','相關法規及注意事項'];
     secs.forEach(n=>{
       if(a.sections&&a.sections[n])
         html+=`<div class="section-divider"><div class="result-title">${n}</div><div class="result-text">${esc(a.sections[n])}</div></div>`;
@@ -672,7 +672,8 @@ document.getElementById('starredGrid').addEventListener('click', e=>{
   fetch(`${API}/api/article/${pageId}`).then(r=>r.json()).then(a=>{
     box.classList.add('has-content');
     let html=`<div class="result-title">${esc(a.title||'')}</div><div class="result-text">${esc(a.original_text||'（無原文）')}</div>`;
-    ['條文解析','考點整理','記憶技巧','相關條文','實務應用','常見錯誤'].forEach(n=>{
+    const secs = ['章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示','核心摘要與記憶策略','修法與聯覺備註','相關法規及注意事項'];
+    secs.forEach(n=>{
       if(a.sections&&a.sections[n]) html+=`<div class="section-divider"><div class="result-title">${n}</div><div class="result-text">${esc(a.sections[n])}</div></div>`;
     });
     box.innerHTML=html;
