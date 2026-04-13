@@ -129,11 +129,11 @@ section { padding: 6rem 0; }
 .practice-law-row { margin-bottom: 1rem; }
 .typing-meta { display: flex; justify-content: space-between; font-family: var(--mono); font-size: .72rem; color: var(--muted); margin-bottom: .8rem; flex-wrap: wrap; gap: .5rem; }
 .typing-stats { display: flex; gap: 1.5rem; }
-.typing-prompt { background: var(--bg); border: 1px solid var(--border); padding: 1.2rem 1.5rem; font-size: .88rem; line-height: 2; min-height: 100px; cursor: text; position: relative; }
+.typing-prompt { background: var(--bg); border: 1px solid var(--border); padding: 1.2rem 1.5rem; font-size: .88rem; line-height: 2; min-height: 100px; cursor: text; position: relative; color: #4a4a6a; }
 .typing-prompt.focused { border-color: var(--accent2); }
 .typing-hint { position: absolute; bottom: .6rem; right: .8rem; font-family: var(--mono); font-size: .65rem; color: var(--muted); opacity: .6; }
-.char-correct { color: #9EB3C2; }
-.char-wrong   { color: #E5B3B3; text-decoration: underline; }
+.char-correct { color: var(--text); }
+.char-wrong   { color: #E5B3B3; text-decoration: underline wavy; }
 .char-cursor  { border-right: 2px solid var(--accent); animation: blink 1s infinite; }
 
 /* FILL */
@@ -492,6 +492,10 @@ document.getElementById('searchBtn').addEventListener('click', async()=>{
     if(!found){ box.innerHTML=`<span style="font-size:.8rem">找不到條文「${esc(art)}」，請確認條號格式（例：14）</span>`; return; }
     const r2 = await fetch(`${API}/api/article/${found.id}`);
     const a = await r2.json();
+    // 存起來供練習用
+    currentArticleId = found.id;
+    currentArticleText = a.original_text || '';
+    currentArticleTitle = a.title || '';
     box.classList.add('has-content');
     let html = `<div class="result-title">${esc(a.title||'')}</div><div class="result-text">${esc(a.original_text||'（此條文無原文）')}</div>`;
     const secs = ['章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示','核心摘要與記憶策略','修法與聯覺備註','相關法規及注意事項'];
@@ -499,7 +503,14 @@ document.getElementById('searchBtn').addEventListener('click', async()=>{
       if(a.sections&&a.sections[n])
         html+=`<div class="section-divider"><div class="result-title">${n}</div><div class="result-text">${esc(a.sections[n])}</div></div>`;
     });
-    box.innerHTML = html;
+    box.innerHTML = html + `
+      <div style="margin-top:1.5rem;padding-top:1rem;border-top:1px solid var(--border);display:flex;gap:.6rem;flex-wrap:wrap">
+        <span style="font-size:.72rem;color:var(--muted);letter-spacing:.08em;align-self:center">用這條練習：</span>
+        <button onclick="practiceThis('type')" style="padding:.4rem .9rem;background:none;border:1px solid var(--border);color:var(--muted);font-size:.75rem;cursor:pointer;transition:border-color .2s,color .2s" onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">打字練習</button>
+        <button onclick="practiceThis('fill')" style="padding:.4rem .9rem;background:none;border:1px solid var(--border);color:var(--muted);font-size:.75rem;cursor:pointer;transition:border-color .2s,color .2s" onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">填空題</button>
+        <button onclick="practiceThis('quiz')" style="padding:.4rem .9rem;background:none;border:1px solid var(--border);color:var(--muted);font-size:.75rem;cursor:pointer;transition:border-color .2s,color .2s" onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">選擇題</button>
+      </div>
+    `;
   }catch(e){
     box.innerHTML='<span style="font-size:.8rem">查詢失敗，API 可能正在冷啟動，請稍後再試</span>';
   }
@@ -679,6 +690,30 @@ document.getElementById('starredGrid').addEventListener('click', e=>{
     box.innerHTML=html;
   }).catch(()=>{ box.innerHTML='<span style="font-size:.8rem">查詢失敗</span>'; });
 });
+
+// ── 針對查到的條文直接練習 ──
+let currentArticleId = null;
+let currentArticleText = null;
+let currentArticleTitle = null;
+
+function practiceThis(mode) {
+  if(!currentArticleId) return;
+  document.querySelector(`[data-tab="${mode}"]`).click();
+  document.getElementById('demo').scrollIntoView({behavior:'smooth'});
+  if(mode === 'type'){
+    typeText = currentArticleText || '';
+    typeInput = '';
+    document.getElementById('typeTitle').textContent = currentArticleTitle || '';
+    const ta = document.getElementById('_ta'); if(ta){ ta.value=''; }
+    renderType();
+  } else if(mode === 'fill'){
+    fetch(`${API}/api/fill?page_id=${currentArticleId}`)
+      .then(r=>r.json()).then(d=>{ fillData=d; renderFill(); })
+      .catch(()=>{});
+  } else if(mode === 'quiz'){
+    loadQuiz();
+  }
+}
 
 function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 </script>
