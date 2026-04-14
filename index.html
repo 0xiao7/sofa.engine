@@ -456,7 +456,7 @@ async function loadStarred(){
   try{
     const r = await fetch(`${API}/api/starred?limit=24`);
     const d = await r.json();
-    const items = d.starred || [];
+    const items = d.articles || [];
     if(!items.length){
       grid.innerHTML='<div class="starred-loading">目前無五星法條資料</div>';
       return;
@@ -487,7 +487,7 @@ document.getElementById('searchBtn').addEventListener('click', async()=>{
     const d = await r.json();
     const articles = d.articles||[];
     let found = art
-      ? articles.find(a=>(a.title||'').includes('§ '+art)||(a.title||'').includes('§'+art))
+      ? articles.find(a=>(a.number||'').includes('§ '+art)||(a.number||'').includes(art))
       : articles[0];
     if(!found){ box.innerHTML=`<span style="font-size:.8rem">找不到條文「${esc(art)}」，請確認條號格式（例：14）</span>`; return; }
     const r2 = await fetch(`${API}/api/article/${found.id}`);
