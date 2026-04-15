@@ -462,9 +462,9 @@ async function loadStarred(){
       return;
     }
     grid.innerHTML = items.map(item=>`
-      <div class="starred-card" data-id="${item.id}" data-law="${esc(item.law)}" data-title="${esc(item.title)}">
-        <div class="starred-law">${esc(item.law)}</div>
-        <div class="starred-title">${esc(item.title)}</div>
+      <div class="starred-card" data-id="${item.id}" data-law="${esc(item.number.split("｜")[0].replace("§ ","").trim())}" data-title="${esc(item.number)}">
+        <div class="starred-law">${esc(item.number.split("｜")[0].replace("§ ","").trim())}</div>
+        <div class="starred-title">${esc(item.number)}</div>
         <div class="starred-stars">★★★★★</div>
       </div>
     `).join('');
@@ -487,7 +487,7 @@ document.getElementById('searchBtn').addEventListener('click', async()=>{
     const d = await r.json();
     const articles = d.articles||[];
     let found = art
-      ? articles.find(a=>(a.number||'').includes('§ '+art)||(a.number||'').includes(art))
+      ? articles.find(a=>(a.title||'').includes('§ '+art)||(a.title||'').includes(art)||(a.title||'').replace('§ 0','§ ').includes('§ '+art))
       : articles[0];
     if(!found){ box.innerHTML=`<span style="font-size:.8rem">找不到條文「${esc(art)}」，請確認條號格式（例：14）</span>`; return; }
     const r2 = await fetch(`${API}/api/article/${found.id}`);
