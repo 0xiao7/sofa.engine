@@ -462,8 +462,8 @@ async function loadStarred(){
       return;
     }
     grid.innerHTML = items.map(item=>`
-      <div class="starred-card" data-id="${item.id}" data-law="${esc(item.number.split("｜")[0].replace("§ ","").trim())}" data-title="${esc(item.number)}">
-        <div class="starred-law">${esc(item.number.split("｜")[0].replace("§ ","").trim())}</div>
+      <div class="starred-card" data-id="${item.id}" data-law="${esc(item.law||'')}" data-title="${esc(item.number)}">
+        <div class="starred-law">${esc(item.law||'')}</div>
         <div class="starred-title">${esc(item.number)}</div>
         <div class="starred-stars">★★★★★</div>
       </div>
