@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: sofa-engine-bot
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn main:app
+    envVars:
+      - key: LINE_CHANNEL_ACCESS_TOKEN
+        sync: false
+      - key: LINE_CHANNEL_SECRET
+        sync: false
+      - key: LINE_USER_ID
+        sync: false
+      - key: NOTION_API_KEY
+        sync: false
+      - key: NOTION_LAW_DB_ID
+        sync: false
+      - key: NOTION_INDEX_DB_ID
+        sync: false
+      - key: NOTION_SCHEDULE_DB_ID
+        sync: false

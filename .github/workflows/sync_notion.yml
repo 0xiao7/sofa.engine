@@ -1,0 +1,36 @@
+name: Sync Notion → laws.json
+
+on:
+  schedule:
+    # 每天台灣時間 06:00（UTC 22:00 前一天）同步
+    - cron: '0 22 * * *'
+  workflow_dispatch:   # 允許手動觸發
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: pip install notion-client python-dotenv
+
+      - name: Run export script
+        env:
+          NOTION_API_KEY: ${{ secrets.NOTION_API_KEY }}
+          NOTION_LAW_DB_ID: ${{ secrets.NOTION_LAW_DB_ID }}
+        run: python export_laws.py
+
+      - name: Commit and push laws.json
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add laws.json
+          git diff --staged --quiet || git commit -m "chore: sync laws.json $(date -u +'%Y-%m-%d %H:%M UTC')"
+          git push
