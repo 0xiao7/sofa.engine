@@ -702,9 +702,15 @@ document.getElementById('starredGrid').addEventListener('click', e=>{
     box.classList.add('has-content');
     let html=`<div class="result-title">${esc(a.title||'')}</div><div class="result-text">${esc(a.original_text||'（無原文）')}</div>`;
     const secs = ['章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示','核心摘要與記憶策略','修法與聯覺備註','相關法規及注意事項'];
+    const knownSecs = new Set(secs);
     secs.forEach(n=>{
-      if(a.sections&&a.sections[n]) html+=`<div class="section-divider"><div class="result-title">${n}</div><div class="result-text">${esc(a.sections[n])}</div></div>`;
+      if(a.sections&&a.sections[n]) html+=`<div class="section-divider"><div class="result-title">${esc(n)}</div><div class="result-text">${esc(a.sections[n])}</div></div>`;
     });
+    if(a.sections){
+      Object.keys(a.sections).forEach(n=>{
+        if(!knownSecs.has(n)&&a.sections[n]) html+=`<div class="section-divider"><div class="result-title">${esc(n)}</div><div class="result-text">${esc(a.sections[n])}</div></div>`;
+      });
+    }
     box.innerHTML=html;
   }).catch(()=>{ box.innerHTML='<span style="font-size:.8rem">查詢失敗</span>'; });
 });
