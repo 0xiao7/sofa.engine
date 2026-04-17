@@ -400,27 +400,42 @@ footer { border-top: 1px solid var(--border); padding: 3rem 0; text-align: cente
     <p class="section-label">Feedback</p>
     <h2 class="section-title">回報與建議</h2>
     <p class="section-desc">發現錯誤或有想法？直接告訴我們。</p>
-    <div style="margin-top:2.5rem;max-width:640px;">
-      <div style="display:flex;gap:.6rem;margin-bottom:1rem;">
-        <button id="fb-type-report" onclick="setFbType('回報')"
-          style="flex:1;padding:10px;background:var(--accent);color:#1A1A2E;border:none;cursor:pointer;font-family:var(--sans);font-size:.84rem;font-weight:500;letter-spacing:.04em;transition:all .2s;">
-          問題回報
+    <div style="margin-top:3rem;display:grid;grid-template-columns:1fr 1fr;gap:4rem;border-top:1px solid var(--border);padding-top:2rem;">
+      <div>
+        <div style="display:flex;gap:.6rem;margin-bottom:1rem;">
+          <button id="fb-type-report" onclick="setFbType('回報')"
+            style="flex:1;padding:10px;background:var(--accent);color:#1A1A2E;border:none;cursor:pointer;font-family:var(--sans);font-size:.84rem;font-weight:500;letter-spacing:.04em;transition:all .2s;">
+            問題回報
+          </button>
+          <button id="fb-type-suggest" onclick="setFbType('建議')"
+            style="flex:1;padding:10px;background:transparent;color:var(--muted);border:1px solid var(--border);cursor:pointer;font-family:var(--sans);font-size:.84rem;letter-spacing:.04em;transition:all .2s;">
+            功能建議
+          </button>
+        </div>
+        <textarea id="fb-content" placeholder="輸入內容…"
+          style="width:100%;min-height:120px;padding:14px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:.88rem;resize:vertical;box-sizing:border-box;outline:none;"></textarea>
+        <button onclick="submitFeedback()"
+          style="margin-top:.8rem;width:100%;padding:12px;background:var(--accent);color:#1A1A2E;border:none;cursor:pointer;font-family:var(--sans);font-size:.86rem;font-weight:500;letter-spacing:.06em;transition:opacity .2s;">
+          送出
         </button>
-        <button id="fb-type-suggest" onclick="setFbType('建議')"
-          style="flex:1;padding:10px;background:transparent;color:var(--muted);border:1px solid var(--border);cursor:pointer;font-family:var(--sans);font-size:.84rem;letter-spacing:.04em;transition:all .2s;">
-          功能建議
-        </button>
+        <p id="fb-msg" style="margin-top:.7rem;font-size:.82rem;color:var(--muted);min-height:1.2em;"></p>
       </div>
-      <textarea id="fb-content" placeholder="輸入內容…"
-        style="width:100%;min-height:110px;padding:14px;background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:.88rem;resize:vertical;box-sizing:border-box;outline:none;"></textarea>
-      <button onclick="submitFeedback()"
-        style="margin-top:.8rem;width:100%;padding:12px;background:var(--accent);color:#1A1A2E;border:none;cursor:pointer;font-family:var(--sans);font-size:.86rem;font-weight:500;letter-spacing:.06em;transition:opacity .2s;">
-        送出
-      </button>
-      <p id="fb-msg" style="margin-top:.7rem;font-size:.82rem;color:var(--muted);min-height:1.2em;"></p>
+      <div style="padding-top:.5rem;">
+        <p style="font-size:.78rem;letter-spacing:.12em;color:var(--accent2);text-transform:uppercase;margin-bottom:1rem;">或透過 LINE</p>
+        <p style="font-size:.84rem;color:var(--muted);line-height:1.8;">在 LINE Bot 直接傳：<br>
+          <code style="color:var(--accent);font-family:var(--mono);">回報 你遇到的問題</code><br>
+          <code style="color:var(--accent);font-family:var(--mono);">建議 你的功能想法</code>
+        </p>
+        <p style="margin-top:1.5rem;font-size:.84rem;color:var(--muted);line-height:1.8;">我們通常在 1–2 個工作天內處理。</p>
+      </div>
     </div>
   </div>
 </section>
+<style>
+@media(max-width:640px){
+  #feedback .container > div[style*="grid"]{grid-template-columns:1fr !important;gap:2rem !important;}
+}
+</style>
 
 <footer>
   <div class="container">
