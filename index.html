@@ -304,7 +304,8 @@ footer { border-top: 1px solid var(--border); padding: 3rem 0; text-align: cente
       <!-- 查法條 -->
       <div class="demo-panel active" id="panel-search">
         <div class="search-row">
-          <select class="sofa-select" id="lawSelect"><option value="">載入中…</option></select>
+          <input class="sofa-input" id="lawSelect" list="lawDatalist" placeholder="輸入或選擇法規…" autocomplete="off" style="min-width:0;flex:2;">
+          <datalist id="lawDatalist"></datalist>
           <input class="sofa-input" id="artInput" type="text" placeholder="條號 (e.g. 14)">
           <button class="search-btn" id="searchBtn">查詢</button>
         </div>
@@ -399,7 +400,7 @@ footer { border-top: 1px solid var(--border); padding: 3rem 0; text-align: cente
     <p class="section-label">Feedback</p>
     <h2 class="section-title">回報與建議</h2>
     <p class="section-desc">發現錯誤或有想法？直接告訴我們。</p>
-    <div style="margin:2.5rem auto 0;max-width:520px;width:100%;">
+    <div style="margin-top:2.5rem;max-width:640px;">
       <div style="display:flex;gap:.6rem;margin-bottom:1rem;">
         <button id="fb-type-report" onclick="setFbType('回報')"
           style="flex:1;padding:10px;background:var(--accent);color:#1A1A2E;border:none;cursor:pointer;font-family:var(--sans);font-size:.84rem;font-weight:500;letter-spacing:.04em;transition:all .2s;">
@@ -468,19 +469,20 @@ async function loadLaws(){
     const d = await r.json();
     lawsCache = d.laws || [];
     // 主查詢
-    const sel = document.getElementById('lawSelect');
-    sel.innerHTML = '<option value="">選擇法規</option>';
-    // 練習用（附全部選項）
+    // 主查詢：填入 datalist
+    const dl = document.getElementById('lawDatalist');
+    dl.innerHTML = '';
+    // 練習用 select（附全部選項）
     ['typeLawSelect','fillLawSelect','quizLawSelect'].forEach(id=>{
       document.getElementById(id).innerHTML = '<option value="">全部法規（隨機）</option>';
     });
     lawsCache.forEach(l=>{
+      const opt = document.createElement('option'); opt.value = l.name; dl.appendChild(opt);
       const makeOpt = ()=>{ const o=document.createElement('option'); o.value=l.name; o.textContent=l.name; return o; };
-      sel.appendChild(makeOpt());
       ['typeLawSelect','fillLawSelect','quizLawSelect'].forEach(id=> document.getElementById(id).appendChild(makeOpt()));
     });
   }catch{
-    document.getElementById('lawSelect').innerHTML='<option value="">（後端未連線，請稍後再試）</option>';
+    document.getElementById('lawSelect').placeholder='後端未連線，請稍後再試';
   }
 }
 loadLaws();
@@ -510,11 +512,27 @@ async function loadStarred(){
 loadStarred();
 
 // ── 查法條 ──
+// 縮寫對照（與 LINE Bot 同步）
+const LAW_ALIAS = {'記帳士':'記帳士法','倫理':'記帳士職業倫理道德規範','道德':'中華民國記帳士職業道德規範',
+  '公司':'公司法','公司登記':'公司登記辦法','商登':'商業登記法','商業登記':'商業登記法',
+  '商會':'商業會計法','商業會計':'商業會計法','會計準則':'商業會計處理準則',
+  '行政':'行政程序法','稅稽':'稅捐稽徵法','稅捐':'稅捐稽徵法','納保':'納稅者權利保護法',
+  '所得':'所得稅法','所得稅':'所得稅法','基本稅額':'所得基本稅額條例',
+  '扣繳率':'各類所得扣繳率標準','查核準則':'營利事業所得稅查核準則',
+  '營業':'加值型及非加值型營業稅法','營業稅':'加值型及非加值型營業稅法',
+  '統一發票':'統一發票使用辦法','發票':'統一發票使用辦法',
+  '遺贈':'遺產及贈與稅法','遺產':'遺產及贈與稅法',
+  '特種':'特種貨物及勞務稅條例','特貨':'特種貨物及勞務稅條例'};
+function resolveLaw(raw){
+  return LAW_ALIAS[raw] || lawsCache.find(l=>l.name===raw||l.name.includes(raw))?.name || raw;
+}
+
 document.getElementById('searchBtn').addEventListener('click', async()=>{
-  const law = document.getElementById('lawSelect').value;
+  const raw = document.getElementById('lawSelect').value.trim();
+  const law = resolveLaw(raw);
   const art = document.getElementById('artInput').value.trim();
   const box = document.getElementById('searchResult');
-  if(!law){ box.classList.remove('has-content'); box.innerHTML='<span style="font-size:.8rem">請先選擇法規</span>'; return; }
+  if(!raw){ box.classList.remove('has-content'); box.innerHTML='<span style="font-size:.8rem">請先選擇或輸入法規</span>'; return; }
   box.classList.remove('has-content');
   box.innerHTML='<div class="loading"><span></span><span></span><span></span></div>';
   try{
