@@ -324,7 +324,7 @@ footer { border-top: 1px solid var(--border); padding: 3rem 0; text-align: cente
     <h2 class="section-title">重點法條</h2>
     <p class="section-desc">四星以上重要條文。無篩選時依法規分組顯示；選擇法規或星等後切換格子模式。</p>
     <div class="starred-filter-row">
-      <select class="sofa-select" id="starredLawFilter" style="max-width:280px">
+      <select class="sofa-select" id="starredLawFilter" style="max-width:220px">
         <option value="">全部法規</option>
       </select>
       <div class="star-btns">
@@ -332,6 +332,29 @@ footer { border-top: 1px solid var(--border); padding: 3rem 0; text-align: cente
         <button class="star-btn" data-stars="5">★★★★★</button>
         <button class="star-btn" data-stars="4">★★★★☆</button>
       </div>
+      <select class="sofa-select" id="starredPeriodFilter" style="max-width:160px">
+        <option value="">相對期限</option>
+        <option value="7日">7日</option>
+        <option value="10日">10日</option>
+        <option value="15日">15日</option>
+        <option value="20日">20日</option>
+        <option value="30日">30日</option>
+        <option value="45日">45日</option>
+        <option value="1個月">1個月</option>
+        <option value="2個月">2個月</option>
+        <option value="3個月">3個月</option>
+        <option value="6個月">6個月</option>
+        <option value="1年">1年</option>
+        <option value="2年">2年</option>
+        <option value="3年">3年</option>
+        <option value="5年">5年</option>
+        <option value="10年">10年</option>
+        <option value="固定期日">固定期日</option>
+        <option value="核課期間">核課期間</option>
+        <option value="徵收期間">徵收期間</option>
+        <option value="申報期限">申報期限</option>
+        <option value="時效">時效</option>
+      </select>
       <span id="starredCount" style="font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:.1em"></span>
     </div>
     <div id="starredContainer">
@@ -569,19 +592,21 @@ async function loadLaws(){
 loadLaws();
 
 // ── 重點法條 ────────────────────────────────────────────────
-let _starredLaw = '', _starredStars = 0;
+let _starredLaw = '', _starredStars = 0, _starredKeyword = '';
 
-async function loadStarred(law, stars){
-  if(law  !== undefined) _starredLaw   = law;
-  if(stars !== undefined) _starredStars = stars;
+async function loadStarred(law, stars, keyword){
+  if(law     !== undefined) _starredLaw     = law;
+  if(stars   !== undefined) _starredStars   = stars;
+  if(keyword !== undefined) _starredKeyword = keyword;
   const container = document.getElementById('starredContainer');
   const countEl   = document.getElementById('starredCount');
   container.innerHTML='<div class="starred-loading"><div class="loading"><span></span><span></span><span></span></div></div>';
 
-  const isFiltered = _starredLaw || _starredStars;
+  const isFiltered = _starredLaw || _starredStars || _starredKeyword;
   let url = `${API}/api/starred?limit=300`;
-  if(_starredLaw)   url += `&law=${encodeURIComponent(_starredLaw)}`;
-  if(_starredStars) url += `&min_stars=${_starredStars}`;
+  if(_starredLaw)     url += `&law=${encodeURIComponent(_starredLaw)}`;
+  if(_starredStars)   url += `&min_stars=${_starredStars}`;
+  if(_starredKeyword) url += `&keyword=${encodeURIComponent(_starredKeyword)}`;
 
   try{
     const r = await fetch(url);
@@ -642,8 +667,13 @@ function initStarredFilter(){
     const o=document.createElement('option'); o.value=l.name; o.textContent=l.name;
     sel.appendChild(o);
   });
-  sel.addEventListener('change', ()=> loadStarred(sel.value, undefined));
+  sel.addEventListener('change', ()=> loadStarred(sel.value, undefined, undefined));
 }
+
+// 相對期限篩選
+document.getElementById('starredPeriodFilter').addEventListener('change', function(){
+  loadStarred(undefined, undefined, this.value);
+});
 
 // 星等按鈕
 document.querySelectorAll('.star-btn').forEach(btn=>{
