@@ -75,16 +75,46 @@ section { padding: 6rem 0; }
 .feature-name { font-family: var(--serif); font-size: 1.1rem; font-weight: 600; color: var(--text); margin-bottom: .6rem; }
 .feature-desc { font-size: .84rem; color: var(--muted); line-height: 1.7; }
 
-/* STARRED 五星法條 */
+/* 重點法條 */
 #starred { background: linear-gradient(180deg, transparent, rgba(229,179,179,0.02), transparent); }
 .starred-filter-row { margin-top: 1.8rem; display: flex; align-items: center; gap: 1rem; flex-wrap: wrap; }
-.starred-grid { margin-top: 1.2rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); }
-.starred-card { background: var(--card); padding: 1.4rem 1.6rem; cursor: pointer; transition: background .2s; }
+.star-btns { display: flex; gap: 0; border: 1px solid var(--border); }
+.star-btn { padding: .5rem 1rem; font-size: .76rem; letter-spacing: .06em; background: none; color: var(--muted); border: none; border-right: 1px solid var(--border); cursor: pointer; transition: background .15s, color .15s; white-space: nowrap; }
+.star-btn:last-child { border-right: none; }
+.star-btn.active { background: var(--accent); color: #1A1A2E; }
+/* grid view */
+.starred-grid { margin-top: 1.2rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); }
+.starred-card { background: var(--card); padding: 1.2rem 1.4rem; cursor: pointer; transition: background .2s; }
 .starred-card:hover { background: var(--card2); }
-.starred-law { font-family: var(--mono); font-size: .65rem; letter-spacing: .14em; color: var(--accent2); margin-bottom: .4rem; }
-.starred-title { font-size: .88rem; color: var(--text); line-height: 1.5; margin-bottom: .5rem; }
-.starred-stars { color: var(--accent); font-size: .75rem; letter-spacing: .05em; }
+.starred-law { font-family: var(--mono); font-size: .62rem; letter-spacing: .14em; color: var(--accent2); margin-bottom: .3rem; }
+.starred-title { font-size: .86rem; color: var(--text); line-height: 1.5; margin-bottom: .4rem; }
+.starred-stars { font-size: .72rem; letter-spacing: .03em; color: var(--accent); }
 .starred-loading { padding: 2rem; text-align: center; color: var(--muted); font-size: .84rem; }
+/* kanban view */
+.kanban-board { margin-top: 1.2rem; display: flex; flex-direction: column; gap: 1px; }
+.kanban-group { border: 1px solid var(--border); }
+.kanban-group-hd { display: flex; justify-content: space-between; align-items: center; padding: .9rem 1.4rem; background: var(--card2); border-bottom: 1px solid var(--border); }
+.kanban-group-name { font-family: var(--serif); font-size: .92rem; font-weight: 600; color: var(--text); }
+.kanban-group-count { font-family: var(--mono); font-size: .66rem; color: var(--accent2); }
+.kanban-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1px; background: var(--border); }
+.kanban-card { background: var(--card); padding: 1rem 1.2rem; cursor: pointer; transition: background .2s; }
+.kanban-card:hover { background: var(--card2); }
+.kanban-title { font-size: .84rem; color: var(--text); line-height: 1.5; margin-bottom: .3rem; }
+.kanban-imp { font-size: .7rem; color: var(--accent); }
+/* CHANGELOG 更新公告 */
+#changelog { border-top: 1px solid var(--border); }
+.changelog-list { margin-top: 2.5rem; display: flex; flex-direction: column; gap: 1px; border: 1px solid var(--border); background: var(--border); }
+.changelog-item { background: var(--card); padding: 1.6rem 2rem; transition: background .2s; }
+.changelog-item:hover { background: var(--card2); }
+.changelog-date { font-family: var(--mono); font-size: .68rem; letter-spacing: .16em; color: var(--accent2); margin-bottom: .5rem; }
+.changelog-title { font-family: var(--serif); font-size: 1rem; font-weight: 600; color: var(--text); margin-bottom: .4rem; }
+.changelog-law { font-family: var(--mono); font-size: .68rem; color: var(--muted); margin-bottom: .5rem; }
+.changelog-desc { font-size: .84rem; color: var(--muted); line-height: 1.75; white-space: pre-wrap; }
+@media(max-width:680px){
+  .starred-filter-row { flex-direction: column; align-items: flex-start; }
+  .kanban-cards { grid-template-columns: 1fr 1fr; }
+  .changelog-item { padding: 1.2rem; }
+}
 /* CHANGELOG 更新公告 */
 #changelog { border-top: 1px solid var(--border); }
 .changelog-list { margin-top: 2.5rem; display: flex; flex-direction: column; gap: 1px; border: 1px solid var(--border); background: var(--border); }
@@ -287,19 +317,24 @@ footer { border-top: 1px solid var(--border); padding: 3rem 0; text-align: cente
   </div>
 </section>
 
-<!-- STARRED 五星法條 -->
+<!-- 重點法條 -->
 <section id="starred">
   <div class="container">
-    <p class="section-label">Must Know</p>
-    <h2 class="section-title">五星必考法條</h2>
-    <p class="section-desc">從資料庫標記為 ★★★★★ 的條文，考前必讀。點擊直接查看原文與解析。</p>
+    <p class="section-label">Key Articles</p>
+    <h2 class="section-title">重點法條</h2>
+    <p class="section-desc">四星以上重要條文。無篩選時依法規分組顯示；選擇法規或星等後切換格子模式。</p>
     <div class="starred-filter-row">
-      <select class="sofa-select" id="starredLawFilter" style="max-width:300px">
+      <select class="sofa-select" id="starredLawFilter" style="max-width:280px">
         <option value="">全部法規</option>
       </select>
+      <div class="star-btns">
+        <button class="star-btn active" data-stars="0">全部</button>
+        <button class="star-btn" data-stars="5">★★★★★</button>
+        <button class="star-btn" data-stars="4">★★★★☆</button>
+      </div>
       <span id="starredCount" style="font-family:var(--mono);font-size:.72rem;color:var(--muted);letter-spacing:.1em"></span>
     </div>
-    <div class="starred-grid" id="starredGrid">
+    <div id="starredContainer">
       <div class="starred-loading"><div class="loading"><span></span><span></span><span></span></div></div>
     </div>
   </div>
@@ -533,48 +568,91 @@ async function loadLaws(){
 }
 loadLaws();
 
-// 載入必考法條（五星）
-async function loadStarred(law=''){
-  const grid = document.getElementById('starredGrid');
-  const countEl = document.getElementById('starredCount');
-  grid.innerHTML='<div class="starred-loading"><div class="loading"><span></span><span></span><span></span></div></div>';
+// ── 重點法條 ────────────────────────────────────────────────
+let _starredLaw = '', _starredStars = 0;
+
+async function loadStarred(law, stars){
+  if(law  !== undefined) _starredLaw   = law;
+  if(stars !== undefined) _starredStars = stars;
+  const container = document.getElementById('starredContainer');
+  const countEl   = document.getElementById('starredCount');
+  container.innerHTML='<div class="starred-loading"><div class="loading"><span></span><span></span><span></span></div></div>';
+
+  const isFiltered = _starredLaw || _starredStars;
+  let url = `${API}/api/starred?limit=300`;
+  if(_starredLaw)   url += `&law=${encodeURIComponent(_starredLaw)}`;
+  if(_starredStars) url += `&min_stars=${_starredStars}`;
+
   try{
-    const url = law
-      ? `${API}/api/starred?limit=100&law=${encodeURIComponent(law)}`
-      : `${API}/api/starred?limit=80`;
     const r = await fetch(url);
     const d = await r.json();
     const items = d.articles || [];
     if(countEl) countEl.textContent = items.length ? `共 ${items.length} 條` : '';
     if(!items.length){
-      grid.innerHTML='<div class="starred-loading">此法規目前無五星標記法條</div>';
+      container.innerHTML='<div class="starred-loading">此條件無符合法條</div>';
       return;
     }
-    grid.innerHTML = items.map(item=>`
-      <div class="starred-card" data-id="${item.id}" data-law="${esc(item.law||'')}" data-title="${esc(item.number)}">
-        <div class="starred-law">${esc(item.law||'')}</div>
-        <div class="starred-title">${esc(item.number)}</div>
-        <div class="starred-stars">★★★★★</div>
-      </div>
-    `).join('');
+    if(isFiltered){
+      // 格子模式
+      container.innerHTML=`<div class="starred-grid">${
+        items.map(item=>`
+          <div class="starred-card" data-id="${item.id}" data-law="${esc(item.law||'')}" data-title="${esc(item.number)}">
+            <div class="starred-law">${esc(item.law||'')}</div>
+            <div class="starred-title">${esc(item.number)}</div>
+            <div class="starred-stars">${esc(item.importance||'★★★★★')}</div>
+          </div>`).join('')
+      }</div>`;
+    } else {
+      // 看板模式：按法規分組
+      const groups={};
+      items.forEach(item=>{
+        const k=item.law||'（未知法規）';
+        if(!groups[k]) groups[k]=[];
+        groups[k].push(item);
+      });
+      container.innerHTML=`<div class="kanban-board">${
+        Object.entries(groups).map(([lawName, cards])=>`
+          <div class="kanban-group">
+            <div class="kanban-group-hd">
+              <span class="kanban-group-name">${esc(lawName)}</span>
+              <span class="kanban-group-count">${cards.length} 條</span>
+            </div>
+            <div class="kanban-cards">${
+              cards.map(item=>`
+                <div class="kanban-card starred-card" data-id="${item.id}" data-law="${esc(item.law||'')}" data-title="${esc(item.number)}">
+                  <div class="kanban-title">${esc(item.number)}</div>
+                  <div class="kanban-imp">${esc(item.importance||'')}</div>
+                </div>`).join('')
+            }</div>
+          </div>`).join('')
+      }</div>`;
+    }
   }catch{
-    grid.innerHTML='<div class="starred-loading" style="color:var(--muted);font-size:.8rem">（後端未連線）</div>';
+    container.innerHTML='<div class="starred-loading" style="color:var(--muted);font-size:.8rem">（後端未連線）</div>';
   }
 }
-loadStarred();
+loadStarred('',0);
 
-// 必考法條篩選器：等法規清單載入後填入
+// 填入法規篩選器
 function initStarredFilter(){
   const sel = document.getElementById('starredLawFilter');
-  if(!sel || lawsCache.length === 0) return;
-  // 清空現有選項（保留「全部法規」）
-  while(sel.options.length > 1) sel.remove(1);
+  if(!sel || lawsCache.length===0) return;
+  while(sel.options.length>1) sel.remove(1);
   lawsCache.forEach(l=>{
-    const o = document.createElement('option'); o.value = l.name; o.textContent = l.name;
+    const o=document.createElement('option'); o.value=l.name; o.textContent=l.name;
     sel.appendChild(o);
   });
-  sel.addEventListener('change', ()=> loadStarred(sel.value));
+  sel.addEventListener('change', ()=> loadStarred(sel.value, undefined));
 }
+
+// 星等按鈕
+document.querySelectorAll('.star-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.star-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    loadStarred(undefined, parseInt(btn.dataset.stars||'0'));
+  });
+});
 
 // 載入公告
 async function loadChangelog(){
@@ -827,8 +905,8 @@ async function loadQuiz(){
 }
 document.getElementById('quizNew').addEventListener('click',loadQuiz);
 
-// ── 五星法條點擊 → 跳到查法條 ──
-document.getElementById('starredGrid').addEventListener('click', e=>{
+// ── 重點法條點擊 → 跳到查法條 ──
+document.getElementById('starredContainer').addEventListener('click', e=>{
   const card = e.target.closest('.starred-card');
   if(!card) return;
   const law = card.dataset.law;
