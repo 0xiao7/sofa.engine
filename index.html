@@ -247,7 +247,7 @@ footer { border-top: 1px solid var(--border); padding: 3rem 0; text-align: cente
   <a class="nav-brand" href="#">SoFa Engine</a>
   <ul class="nav-links">
     <li><a href="#features">功能</a></li>
-    <li><a href="#starred">五星法條</a></li>
+    <li><a href="#starred">重點法條</a></li>
     <li><a href="#demo">練習區</a></li>
     <li><a href="#howto">使用方式</a></li>
     <li><a href="#changelog">公告</a></li>
@@ -953,6 +953,10 @@ document.getElementById('starredContainer').addEventListener('click', e=>{
   box.innerHTML='<div class="loading"><span></span><span></span><span></span></div>';
   document.getElementById('demo').scrollIntoView({behavior:'smooth'});
   fetch(`${API}/api/article/${pageId}`).then(r=>r.json()).then(a=>{
+    // 設定 currentArticle 讓練習按鈕可用
+    currentArticleId    = pageId;
+    currentArticleText  = a.original_text || '';
+    currentArticleTitle = a.title || '';
     box.classList.add('has-content');
     let html=`<div class="result-title">${esc(a.title||'')}</div><div class="result-text">${esc(a.original_text||'（無原文）')}</div>`;
     const secs = ['章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示','核心摘要與記憶策略','修法與聯覺備註','相關法規及注意事項'];
@@ -965,6 +969,11 @@ document.getElementById('starredContainer').addEventListener('click', e=>{
         if(!knownSecs.has(n)&&a.sections[n]) html+=`<div class="section-divider"><div class="result-title">${esc(n)}</div><div class="result-text">${esc(a.sections[n])}</div></div>`;
       });
     }
+    html+=`<div style="margin-top:1.2rem;display:flex;gap:.6rem;flex-wrap:wrap">
+      <button onclick="practiceThis('type')" style="padding:.4rem .9rem;background:none;border:1px solid var(--border);color:var(--muted);font-size:.75rem;cursor:pointer;transition:border-color .2s,color .2s" onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">打字練習</button>
+      <button onclick="practiceThis('fill')" style="padding:.4rem .9rem;background:none;border:1px solid var(--border);color:var(--muted);font-size:.75rem;cursor:pointer;transition:border-color .2s,color .2s" onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">填空題</button>
+      <button onclick="practiceThis('quiz')" style="padding:.4rem .9rem;background:none;border:1px solid var(--border);color:var(--muted);font-size:.75rem;cursor:pointer;transition:border-color .2s,color .2s" onmouseover="this.style.borderColor='var(--accent2)';this.style.color='var(--text)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--muted)'">選擇題</button>
+    </div>`;
     box.innerHTML=html;
   }).catch(()=>{ box.innerHTML='<span style="font-size:.8rem">查詢失敗</span>'; });
 });
