@@ -722,7 +722,10 @@ const LAW_ALIAS = {'記帳士':'記帳士法','倫理':'記帳士職業倫理道
   '遺贈':'遺產及贈與稅法','遺產':'遺產及贈與稅法',
   '特種':'特種貨物及勞務稅條例','特貨':'特種貨物及勞務稅條例'};
 function resolveLaw(raw){
-  return LAW_ALIAS[raw] || lawsCache.find(l=>l.name===raw||l.name.includes(raw))?.name || raw;
+  return LAW_ALIAS[raw]
+    || lawsCache.find(l=>l.name===raw)?.name
+    || lawsCache.find(l=>l.name.includes(raw))?.name
+    || raw;
 }
 
 document.getElementById('searchBtn').addEventListener('click', async()=>{
