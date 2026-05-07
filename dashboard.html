@@ -328,17 +328,17 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
   <div class="section">
     <div class="section-label">備考工具</div>
     <div class="tools-grid">
-      <a href="https://sofaengine.org/practice" class="tool-item">
+      <a href="practice.html" class="tool-item">
         <span class="tool-icon">TYPE</span>
         <span class="tool-label">打字練習</span>
         <span class="tool-soon">COMING SOON</span>
       </a>
-      <a href="https://sofaengine.org/quiz" class="tool-item">
+      <a href="quiz.html" class="tool-item">
         <span class="tool-icon">QUIZ</span>
         <span class="tool-label">選擇題</span>
         <span class="tool-soon">COMING SOON</span>
       </a>
-      <a href="https://sofaengine.org/fill" class="tool-item">
+      <a href="fill.html" class="tool-item">
         <span class="tool-icon">FILL</span>
         <span class="tool-label">填空練習</span>
         <span class="tool-soon">COMING SOON</span>
@@ -443,8 +443,9 @@ function calcStreak(history) {
 
 /* ── Member Card ── */
 function planLabel(plan) {
-  if (plan === 'monthly')  return '月訂閱';
-  if (plan === 'lifetime') return '買斷終身';
+  if (plan === 'monthly'  || plan === '月費') return '月訂閱';
+  if (plan === 'lifetime' || plan === '買斷') return '買斷終身';
+  if (plan === '季費') return '季訂閱';
   return plan || '—';
 }
 function maskSerial(s) {
@@ -462,7 +463,7 @@ function daysUntil(dateStr) {
 function renderMemberCard(data, streak) {
   const plan      = planLabel(data.plan);
   const serial    = maskSerial(data.serial);
-  const isLife    = data.plan === 'lifetime' || (data.expire||'').startsWith('2099');
+  const isLife    = data.plan === 'lifetime' || data.plan === '買斷' || (data.expire||'').startsWith('2099');
   const days      = daysUntil(data.expire);
 
   let expireHtml, daysHtml = '';
