@@ -220,11 +220,19 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
 
+function getUID() { return localStorage.getItem('sofa_uid') || ''; }
+function apiFetch(path) {
+  const uid = getUID();
+  return fetch(`${API}${path}`, { headers: { 'X-Sofa-UID': uid } }).then(r => r.ok ? r.json() : Promise.reject(r.status));
+}
+
 async function init() {
+  if (!getUID()) { window.location.href = '/login.html'; return; }
+
   const [prog, bm, hist] = await Promise.allSettled([
-    fetch(`${API}/api/me/progress`,        { credentials: 'include' }).then(r => r.ok ? r.json() : Promise.reject(r.status)),
-    fetch(`${API}/api/me/bookmarks`,       { credentials: 'include' }).then(r => r.ok ? r.json() : Promise.reject(r.status)),
-    fetch(`${API}/api/me/history?limit=10`,{ credentials: 'include' }).then(r => r.ok ? r.json() : Promise.reject(r.status)),
+    apiFetch('/api/me/progress'),
+    apiFetch('/api/me/bookmarks'),
+    apiFetch('/api/me/history?limit=10'),
   ]);
 
   if ([prog, bm, hist].every(r => r.reason === 401)) {
@@ -307,7 +315,7 @@ function renderHistory(data) {
 }
 
 async function doLogout() {
-  await fetch(`${API}/api/logout`, { method: 'POST', credentials: 'include' });
+  localStorage.removeItem('sofa_uid');
   window.location.href = '/login.html';
 }
 
