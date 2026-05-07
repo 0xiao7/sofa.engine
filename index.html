@@ -642,29 +642,45 @@ async function loadStarred(law, stars, keyword){
           </div>`).join('')
       }</div>`;
     } else {
-      // 看板模式：按法規分組
+      // 看板模式：按法規分組（預設顯示前 3 組）
+      const INIT_SHOW = 3;
       const groups={};
       items.forEach(item=>{
         const k=item.law||'（未知法規）';
         if(!groups[k]) groups[k]=[];
         groups[k].push(item);
       });
-      container.innerHTML=`<div class="kanban-board">${
-        Object.entries(groups).map(([lawName, cards])=>`
-          <div class="kanban-group">
-            <div class="kanban-group-hd">
-              <span class="kanban-group-name">${esc(lawName)}</span>
-              <span class="kanban-group-count">${cards.length} 條</span>
-            </div>
-            <div class="kanban-cards">${
-              cards.map(item=>`
-                <div class="kanban-card starred-card" data-id="${item.id}" data-law="${esc(item.law||'')}" data-title="${esc(item.number)}">
-                  <div class="kanban-title">${esc(item.number)}</div>
-                  <div class="kanban-imp">${esc(item.importance||'')}</div>
-                </div>`).join('')
-            }</div>
-          </div>`).join('')
-      }</div>`;
+      const entries = Object.entries(groups);
+      const total   = entries.length;
+      const renderGroup = ([lawName, cards]) => `
+        <div class="kanban-group">
+          <div class="kanban-group-hd">
+            <span class="kanban-group-name">${esc(lawName)}</span>
+            <span class="kanban-group-count">${cards.length} 條</span>
+          </div>
+          <div class="kanban-cards">${
+            cards.map(item=>`
+              <div class="kanban-card starred-card" data-id="${item.id}" data-law="${esc(item.law||'')}" data-title="${esc(item.number)}">
+                <div class="kanban-title">${esc(item.number)}</div>
+                <div class="kanban-imp">${esc(item.importance||'')}</div>
+              </div>`).join('')
+          }</div>
+        </div>`;
+      const visibleHtml  = entries.slice(0, INIT_SHOW).map(renderGroup).join('');
+      const hiddenHtml   = total > INIT_SHOW ? entries.slice(INIT_SHOW).map(renderGroup).join('') : '';
+      const moreBtn      = total > INIT_SHOW
+        ? `<button id="starredShowMore" style="width:100%;margin-top:1px;padding:.85rem;background:var(--card2);border:none;border-top:1px solid var(--border);color:var(--muted);font-family:var(--mono);font-size:.72rem;letter-spacing:.1em;cursor:pointer;transition:color .2s" onmouseover="this.style.color='var(--text)'" onmouseout="this.style.color='var(--muted)'">顯示全部 ${total} 部法規 ▼</button>`
+        : '';
+      container.innerHTML = `<div class="kanban-board">
+        ${visibleHtml}
+        <div id="starredHidden" style="display:none">${hiddenHtml}</div>
+        ${moreBtn}
+      </div>`;
+      const moreEl = document.getElementById('starredShowMore');
+      if(moreEl) moreEl.addEventListener('click', ()=>{
+        document.getElementById('starredHidden').style.display='';
+        moreEl.remove();
+      });
     }
   }catch{
     container.innerHTML='<div class="starred-loading" style="color:var(--muted);font-size:.8rem">（後端未連線）</div>';
