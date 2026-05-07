@@ -223,7 +223,15 @@ const API = 'https://sofa-engine-api.onrender.com';
 function getUID() { return localStorage.getItem('sofa_uid') || ''; }
 function apiFetch(path) {
   const uid = getUID();
-  return fetch(`${API}${path}`, { headers: { 'X-Sofa-UID': uid } }).then(r => r.ok ? r.json() : Promise.reject(r.status));
+  const ctrl = new AbortController();
+  setTimeout(() => ctrl.abort(), 15000);
+  return fetch(`${API}${path}`, {
+    headers: { 'X-Sofa-UID': uid },
+    signal: ctrl.signal,
+  }).then(r => {
+    if (r.ok) return r.json();
+    return r.json().catch(() => ({})).then(body => Promise.reject({ status: r.status, detail: body.detail || '' }));
+  });
 }
 
 async function init() {
@@ -235,13 +243,29 @@ async function init() {
     apiFetch('/api/me/history?limit=10'),
   ]);
 
-  if ([prog, bm, hist].every(r => r.reason === 401)) {
-    window.location.href = '/login.html'; return;
-  }
+  console.log('[sofa] progress:', prog);
+  console.log('[sofa] bookmarks:', bm);
+  console.log('[sofa] history:', hist);
+
+  const all401 = [prog, bm, hist].every(r => r.status === 'rejected' && r.reason?.status === 401);
+  if (all401) { window.location.href = '/login.html'; return; }
 
   if (prog.status === 'fulfilled') renderProgress(prog.value);
+  else renderProgressError(prog.reason);
+
   if (bm.status === 'fulfilled')   renderBookmarks(bm.value);
+  else document.getElementById('bookmark-wrap').innerHTML = '<div class="card"><div class="empty">資料載入失敗，請重新整理。</div></div>';
+
   if (hist.status === 'fulfilled') renderHistory(hist.value);
+  else document.getElementById('history-wrap').innerHTML = '<div class="card"><div class="empty">資料載入失敗，請重新整理。</div></div>';
+}
+
+function renderProgressError(reason) {
+  const msg = reason?.detail || (reason?.status ? `錯誤 ${reason.status}` : '連線逾時');
+  document.getElementById('stat-arts').textContent = '—';
+  document.getElementById('stat-laws').textContent = '—';
+  document.getElementById('stat-bm').textContent = '—';
+  document.getElementById('progress-list').innerHTML = `<div class="empty">資料載入失敗：${msg}</div>`;
 }
 
 function animateCount(el, target, duration=900){
