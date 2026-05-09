@@ -733,7 +733,13 @@ async function init() {
   }
 }
 
-init();
+init().then(() => {
+  const params = new URLSearchParams(location.search);
+  const openId  = params.get('open');
+  const lawName = params.get('law') || '';
+  const artNo   = params.get('art') || '';
+  if (openId) openDrawer(openId, lawName, artNo);
+});
 </script>
 </body>
 </html>

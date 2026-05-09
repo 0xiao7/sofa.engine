@@ -58,6 +58,7 @@ h1{font-family:var(--serif);font-size:1.5rem;font-weight:600;color:var(--cream);
   </div>
   <div class="question-box" id="questionBox">選擇法規後點「出題」開始</div>
   <div class="options" id="optionsBox"></div>
+  <div id="sourceBox" style="display:none;font-family:var(--mono);font-size:.65rem;letter-spacing:.06em;color:rgba(245,240,234,.4);margin:.4rem 0 1rem"></div>
   <button class="btn-primary-sm" id="btnNew">出題</button>
 </main>
 <script>
@@ -88,8 +89,10 @@ function updateScore() {
 async function loadQuiz() {
   const qbox = document.getElementById('questionBox');
   const obox = document.getElementById('optionsBox');
+  const sbox = document.getElementById('sourceBox');
   qbox.innerHTML = '<div class="loading"><span></span><span></span><span></span></div>';
   obox.innerHTML = '';
+  sbox.style.display = 'none';
   answered = false;
   const law = document.getElementById('lawSelect').value;
   try {
@@ -111,6 +114,11 @@ async function loadQuiz() {
         });
         if (opt !== data.answer) { btn.classList.add('wrong'); wrong++; } else { right++; }
         updateScore();
+        if (data.law_name && data.title) {
+          const href = `dashboard.html?open=${encodeURIComponent(data.page_id)}&law=${encodeURIComponent(data.law_name)}&art=${encodeURIComponent(data.title)}`;
+          sbox.innerHTML = `出自 <a href="${href}" style="color:var(--peach);text-decoration:none">《${esc(data.law_name)}》${esc(data.title)}</a>`;
+          sbox.style.display = 'block';
+        }
       });
       obox.appendChild(btn);
     });
