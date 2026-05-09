@@ -327,6 +327,38 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
 .art-locked-label { font-family: var(--mono); font-size: .7rem; letter-spacing: .07em; color: rgba(245,240,234,.25); }
 .art-locked-icon { font-size: .8rem; opacity: .4; }
 
+/* ── SIDEBAR NAV ── */
+.side-nav { position: fixed; top: 58px; left: 0; bottom: 0; width: 148px; padding: 1.6rem 0 2rem; border-right: 1px solid var(--line-on-navy); background: rgba(13,28,40,.82); backdrop-filter: blur(14px); overflow-y: auto; z-index: 50; display: none; flex-direction: column; gap: 0; }
+.side-nav::-webkit-scrollbar { width: 2px; }
+.side-nav::-webkit-scrollbar-thumb { background: rgba(231,187,167,.12); }
+.sn-group-label { font-family: var(--mono); font-size: .52rem; letter-spacing: .22em; color: rgba(245,240,234,.18); text-transform: uppercase; padding: .8rem .9rem .3rem; margin-top: .4rem; }
+.sn-item { display: block; font-family: var(--mono); font-size: .64rem; letter-spacing: .08em; color: rgba(245,240,234,.32); padding: .48rem .9rem; border-left: 2px solid transparent; transition: color .15s, border-color .15s, background .15s; text-decoration: none; }
+.sn-item:hover { color: rgba(245,240,234,.75); background: rgba(245,240,234,.03); }
+.sn-item.active { color: var(--peach); border-left-color: var(--peach); background: rgba(231,187,167,.04); }
+.exam-box { margin: 1.2rem .7rem .4rem; padding: .7rem .75rem; border: 1px solid var(--line-on-navy); background: rgba(245,240,234,.03); }
+.exam-label { font-family: var(--mono); font-size: .54rem; letter-spacing: .14em; color: rgba(245,240,234,.28); text-transform: uppercase; margin-bottom: .3rem; }
+.exam-days { font-family: var(--mono); font-size: 1.3rem; color: var(--peach); line-height: 1; }
+.exam-sub { font-family: var(--mono); font-size: .56rem; color: rgba(245,240,234,.3); margin-top: .25rem; }
+.exam-input { background: none; border: none; border-bottom: 1px solid rgba(231,187,167,.25); color: var(--cream); font-family: var(--mono); font-size: .65rem; outline: none; width: 100%; margin-top: .5rem; padding: .2rem 0; }
+
+/* ── SEARCH SECTION ── */
+.sofa-select-sm { -webkit-appearance: none; appearance: none; background: var(--navy-2); border: 1px solid var(--line-on-navy); color: var(--cream); font-family: var(--sans); font-size: .82rem; padding: .5rem 2rem .5rem .8rem; outline: none; border-radius: 2px; transition: border-color .15s; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A8892' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; width: 100%; }
+.sofa-select-sm:focus { border-color: rgba(231,187,167,.4); }
+.sofa-select-sm option { background: var(--navy-2); }
+.art-search-row { display: flex; align-items: center; justify-content: space-between; padding: .48rem .7rem; cursor: pointer; border-radius: 3px; transition: background .12s; gap: .5rem; }
+.art-search-row:hover { background: rgba(231,187,167,.07); }
+.art-search-title { font-family: var(--mono); font-size: .72rem; color: rgba(245,240,234,.55); flex: 1; transition: color .12s; }
+.art-search-row:hover .art-search-title { color: var(--peach); }
+.bm-star { background: none; border: none; color: rgba(231,187,167,.25); font-size: .9rem; cursor: pointer; padding: .1rem .25rem; transition: color .15s, transform .15s; flex-shrink: 0; line-height: 1; }
+.bm-star:hover { color: var(--peach); transform: scale(1.2); }
+.bm-star.on { color: var(--peach); }
+
+/* ── DRAWER ACTIONS ── */
+.drawer-actions { display: flex; gap: .5rem; padding: .75rem 1.6rem; border-bottom: 1px solid var(--line-on-navy); flex-shrink: 0; flex-wrap: wrap; }
+.dr-act { font-family: var(--mono); font-size: .65rem; letter-spacing: .08em; color: rgba(245,240,234,.38); background: none; border: 1px solid var(--line-on-navy); padding: .3rem .8rem; cursor: pointer; transition: color .15s, border-color .15s, background .15s; border-radius: 2px; }
+.dr-act:hover { color: var(--cream); border-color: rgba(231,187,167,.28); }
+.dr-act.on { color: var(--peach); border-color: rgba(231,187,167,.5); background: rgba(231,187,167,.06); }
+
 /* ── RESPONSIVE ── */
 @media (max-width: 600px) {
   nav { padding: 1rem 1.2rem; }
@@ -337,24 +369,46 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
   .law-name { min-width: 90px; font-size: .7rem; }
   .mc-bottom { gap: 1.8rem; }
 }
+@media (min-width: 1150px) {
+  .side-nav { display: flex; }
+  main { margin-left: 148px; }
+}
 </style>
 </head>
 <body>
 
 <div class="warm-bar" id="warmBar">伺服器啟動中，資料即將出現（約 15–20 秒）…</div>
 <nav>
-  <a href="/" class="nav-brand">SOFA ENGINE</a>
+  <a href="dashboard.html" class="nav-brand">SOFA ENGINE</a>
   <div class="nav-right">
     <span class="nav-user" id="nav-user">—</span>
     <button class="nav-logout" onclick="doLogout()">登出</button>
   </div>
 </nav>
 
+<!-- 左側邊欄 -->
+<aside class="side-nav" id="sideNav">
+  <div class="exam-box" id="examBox">
+    <div class="exam-label">距考試</div>
+    <div class="exam-days" id="examDays">—</div>
+    <div class="exam-sub" id="examSub">點選設定考試日</div>
+    <input class="exam-input" type="date" id="examDateInput" onchange="saveExamDate()" title="設定考試日">
+  </div>
+  <div class="sn-group-label">導覽</div>
+  <a class="sn-item" href="#member-section">會員資訊</a>
+  <a class="sn-item" href="#progress-section">學習進度</a>
+  <a class="sn-item" href="#search-section">法條搜尋</a>
+  <a class="sn-item" href="#bookmark-section">我的收藏</a>
+  <a class="sn-item" href="#tools-section">備考工具</a>
+  <a class="sn-item" href="#law-browser-section">法規目錄</a>
+  <a class="sn-item" href="#history-section">最近查詢</a>
+</aside>
+
 <main>
 <div class="container">
 
   <!-- 會員資訊 -->
-  <div class="section">
+  <div class="section" id="member-section">
     <div class="section-label">會員資訊</div>
     <div class="member-card" id="member-card">
       <div class="loading">loading...</div>
@@ -362,7 +416,7 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
   </div>
 
   <!-- 學習進度 -->
-  <div class="section">
+  <div class="section" id="progress-section">
     <div class="section-label">學習進度</div>
     <div class="card">
       <div class="stats-row">
@@ -387,14 +441,28 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
     </div>
   </div>
 
+  <!-- 法條搜尋 -->
+  <div class="section" id="search-section">
+    <div class="section-label">直接查法條</div>
+    <div class="card" style="padding:1.4rem 1.6rem">
+      <div style="display:flex;gap:.7rem;margin-bottom:.8rem;flex-wrap:wrap">
+        <select class="sofa-select-sm" id="searchLawSel" onchange="onSearchLawChange()" style="flex:0 0 auto;width:auto;min-width:160px"></select>
+        <input class="bm-search" id="artSearchInput" type="text" placeholder="搜尋條號或關鍵字…" oninput="filterArtSearch()" style="flex:1;min-width:150px;margin-bottom:0" autocomplete="off">
+      </div>
+      <div id="artSearchResults" style="max-height:320px;overflow-y:auto;margin:0 -.3rem">
+        <div class="empty" style="padding:.8rem .3rem">選擇法規後搜尋條文，或直接點選法規目錄</div>
+      </div>
+    </div>
+  </div>
+
   <!-- 我的收藏 -->
-  <div class="section">
+  <div class="section" id="bookmark-section">
     <div class="section-label">我的收藏</div>
     <div id="bookmark-wrap"><div class="card"><div class="loading">loading...</div></div></div>
   </div>
 
   <!-- 備考工具 -->
-  <div class="section">
+  <div class="section" id="tools-section">
     <div class="section-label">備考工具</div>
     <div class="tools-grid">
       <a href="practice.html" class="tool-item">
@@ -423,7 +491,7 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
   </div>
 
   <!-- 最近查詢 -->
-  <div class="section">
+  <div class="section" id="history-section">
     <div class="section-label">最近查詢</div>
     <div id="history-wrap"><div class="card"><div class="loading">loading...</div></div></div>
   </div>
@@ -454,6 +522,11 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
     </div>
     <button class="drawer-close" onclick="closeDrawer()" aria-label="關閉">✕</button>
   </div>
+  <div class="drawer-actions" id="drawer-actions">
+    <button class="dr-act" id="drActBm"    onclick="drToggleBookmark()">☆ 收藏</button>
+    <button class="dr-act" id="drActMaster" onclick="drToggleMastered()">○ 已熟記</button>
+    <button class="dr-act" id="drActReview" onclick="drToggleReview()">◷ 待複習</button>
+  </div>
   <div class="drawer-body" id="drawer-content">
     <div class="loading">loading...</div>
   </div>
@@ -463,6 +536,12 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
 const API = 'https://sofa-engine-api.onrender.com';
 let _drawerOpen = false;
 let _userPlan = '免費';
+let _drawerPageId = '';
+let _drawerLaw = '';
+let _drawerArt = '';
+let _bmSet = new Set();
+let _masteredSet = new Set();
+let _reviewSet = new Set();
 
 /* ── 工具 ── */
 function getUID() { return localStorage.getItem('sofa_uid') || ''; }
@@ -574,12 +653,11 @@ function renderMemberCard(data, streak) {
     <div class="mc-top">
       <span class="mc-plan-badge">${escHtml(plan)}</span>
       <span class="mc-status">● ACTIVE</span>
-    </div>
-    <div class="mc-serial">${escHtml(serial)}</div>
-    <div class="nick-row">
+      <span style="flex:1"></span>
       <span class="nick-display" id="nickDisplay" onclick="startNickEdit()" title="點擊設定暱稱">${escHtml(localStorage.getItem('sofa_nickname') || '設定暱稱 ✎')}</span>
       <input class="nick-edit" id="nickEdit" maxlength="20" placeholder="輸入暱稱…" onblur="saveNick()" onkeydown="if(event.key==='Enter')saveNick();else if(event.key==='Escape')cancelNick();">
     </div>
+    <div class="mc-serial">${escHtml(serial)}</div>
     <div class="mc-bottom">
       <div>
         <div class="mc-col-label">到期日</div>
@@ -656,6 +734,7 @@ function renderBookmarks(data) {
     return;
   }
   _allBookmarks = data.bookmarks;
+  _bmSet = new Set(data.bookmarks.map(b => b.page_id).filter(Boolean));
   el.innerHTML = `
     <input class="bm-search" id="bmSearch" type="text" placeholder="搜尋法規名稱或條號…" oninput="filterBookmarks()" autocomplete="off">
     <div class="bm-grid" id="bm-grid-inner"></div>
@@ -696,6 +775,9 @@ function itemClick(el) {
 
 /* ── Drawer ── */
 function openDrawer(pageId, law, art) {
+  _drawerPageId = pageId;
+  _drawerLaw = law;
+  _drawerArt = art;
   document.getElementById('drawer-law').textContent = law;
   document.getElementById('drawer-art').textContent = `§${art}`;
   document.getElementById('drawer-content').innerHTML = '<div class="drawer-spinner"><div class="drawer-spinner-text">LOADING</div></div>';
@@ -703,12 +785,58 @@ function openDrawer(pageId, law, art) {
   document.getElementById('drawer').classList.add('open');
   document.body.style.overflow = 'hidden';
   _drawerOpen = true;
+  syncDrawerActions();
 
   apiFetch(`/api/article/${encodeURIComponent(pageId)}`)
     .then(renderArticle)
     .catch(() => {
       document.getElementById('drawer-content').innerHTML = '<div class="empty">載入失敗，請稍後再試。</div>';
     });
+}
+
+function syncDrawerActions() {
+  const pid = _drawerPageId;
+  document.getElementById('drActBm').classList.toggle('on', _bmSet.has(pid));
+  document.getElementById('drActBm').textContent = _bmSet.has(pid) ? '★ 已收藏' : '☆ 收藏';
+  document.getElementById('drActMaster').classList.toggle('on', _masteredSet.has(pid));
+  document.getElementById('drActMaster').textContent = _masteredSet.has(pid) ? '✓ 已熟記' : '○ 已熟記';
+  document.getElementById('drActReview').classList.toggle('on', _reviewSet.has(pid));
+  document.getElementById('drActReview').textContent = _reviewSet.has(pid) ? '◷ 待複習中' : '◷ 待複習';
+}
+
+async function drToggleBookmark() {
+  const pid = _drawerPageId;
+  if (!pid) return;
+  const adding = !_bmSet.has(pid);
+  try {
+    if (adding) {
+      await fetch(`${API}/api/me/bookmarks`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid}) });
+      _bmSet.add(pid);
+    } else {
+      await fetch(`${API}/api/me/bookmarks/${encodeURIComponent(pid)}`, { method:'DELETE', headers:{'X-Sofa-UID':getUID()} });
+      _bmSet.delete(pid);
+    }
+  } catch { if (adding) _bmSet.add(pid); else _bmSet.delete(pid); }
+  syncDrawerActions();
+  animateCount(document.getElementById('stat-bm'), _bmSet.size);
+}
+
+async function drToggleMastered() {
+  const pid = _drawerPageId; if (!pid) return;
+  const on = !_masteredSet.has(pid);
+  if (on) { _masteredSet.add(pid); _reviewSet.delete(pid); }
+  else _masteredSet.delete(pid);
+  syncDrawerActions();
+  try { await fetch(`${API}/api/me/mastery`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid, status: on ? 'mastered' : 'none'}) }); } catch {}
+}
+
+async function drToggleReview() {
+  const pid = _drawerPageId; if (!pid) return;
+  const on = !_reviewSet.has(pid);
+  if (on) { _reviewSet.add(pid); _masteredSet.delete(pid); }
+  else _reviewSet.delete(pid);
+  syncDrawerActions();
+  try { await fetch(`${API}/api/me/mastery`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid, status: on ? 'review' : 'none'}) }); } catch {}
 }
 
 function closeDrawer() {
@@ -769,6 +897,102 @@ function renderArticle(data) {
   document.getElementById('drawer-content').innerHTML = html;
 }
 
+/* ── 考試倒數 ── */
+function renderExamCountdown() {
+  const d = localStorage.getItem('sofa_exam_date');
+  const daysEl = document.getElementById('examDays');
+  const subEl  = document.getElementById('examSub');
+  const inp    = document.getElementById('examDateInput');
+  if (!daysEl) return;
+  if (d) {
+    const diff = Math.ceil((new Date(d) - new Date()) / 86400000);
+    daysEl.textContent = diff > 0 ? diff : 0;
+    subEl.textContent  = diff > 0 ? `天 · ${d}` : '考試日已到';
+    if (inp) inp.value = d;
+  } else {
+    daysEl.textContent = '—';
+    subEl.textContent  = '點選設定考試日';
+  }
+}
+function saveExamDate() {
+  const v = document.getElementById('examDateInput').value;
+  if (v) localStorage.setItem('sofa_exam_date', v);
+  renderExamCountdown();
+}
+
+/* ── 法條搜尋 ── */
+let _searchArts = [];
+let _searchLaw  = '';
+
+async function onSearchLawChange() {
+  const law = document.getElementById('searchLawSel').value;
+  document.getElementById('artSearchInput').value = '';
+  if (!law) {
+    _searchArts = []; _searchLaw = '';
+    document.getElementById('artSearchResults').innerHTML = '<div class="empty" style="padding:.8rem .3rem">選擇法規後搜尋條文</div>';
+    return;
+  }
+  _searchLaw = law;
+  document.getElementById('artSearchResults').innerHTML = '<div class="lbi-loading">載入中…</div>';
+  try {
+    const data = await apiFetch(`/api/articles?law=${encodeURIComponent(law)}`);
+    _searchArts = data.articles || [];
+    renderArtSearchResults(_searchArts);
+  } catch {
+    document.getElementById('artSearchResults').innerHTML = '<div class="lbi-loading">載入失敗，請再試。</div>';
+  }
+}
+
+function filterArtSearch() {
+  const q = (document.getElementById('artSearchInput').value || '').trim().toLowerCase();
+  renderArtSearchResults(q ? _searchArts.filter(a => a.title.toLowerCase().includes(q)) : _searchArts);
+}
+
+function renderArtSearchResults(arts) {
+  const el = document.getElementById('artSearchResults');
+  if (!arts.length) { el.innerHTML = '<div class="empty" style="padding:.8rem .3rem">沒有符合的條文</div>'; return; }
+  el.innerHTML = arts.map(a => {
+    const pid = escHtml(a.id), law = escHtml(_searchLaw), title = escHtml(a.title);
+    const starred = _bmSet.has(a.id) ? 'on' : '';
+    return `<div class="art-search-row">
+      <span class="art-search-title" onclick="openDrawer('${pid}','${law}','${title}')">${title}</span>
+      <button class="bm-star ${starred}" onclick="toggleSearchStar('${pid}','${law}','${title}',this)" title="收藏">★</button>
+    </div>`;
+  }).join('');
+}
+
+async function toggleSearchStar(pid, law, art, btn) {
+  const adding = !_bmSet.has(pid);
+  try {
+    if (adding) {
+      await fetch(`${API}/api/me/bookmarks`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid}) });
+      _bmSet.add(pid);
+    } else {
+      await fetch(`${API}/api/me/bookmarks/${encodeURIComponent(pid)}`, { method:'DELETE', headers:{'X-Sofa-UID':getUID()} });
+      _bmSet.delete(pid);
+    }
+  } catch { if (adding) _bmSet.add(pid); else _bmSet.delete(pid); }
+  btn.classList.toggle('on', _bmSet.has(pid));
+  animateCount(document.getElementById('stat-bm'), _bmSet.size);
+}
+
+/* ── Sidebar 捲動高亮 ── */
+function initSidebarHighlight() {
+  const sections = ['member-section','progress-section','search-section','bookmark-section','tools-section','law-browser-section','history-section'];
+  const items = document.querySelectorAll('.sn-item');
+  if (!items.length) return;
+  function onScroll() {
+    let cur = sections[0];
+    for (const id of sections) {
+      const el = document.getElementById(id);
+      if (el && el.getBoundingClientRect().top <= 100) cur = id;
+    }
+    items.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur));
+  }
+  window.addEventListener('scroll', onScroll, { passive:true });
+  onScroll();
+}
+
 /* ── 法規目錄 ── */
 /* ── 法規目錄 grid ── */
 async function loadLawBrowser() {
@@ -782,6 +1006,12 @@ async function loadLawBrowser() {
         <div class="law-card-count" id="lc-${escHtml(l.name)}">— 條</div>
       </div>`
     ).join('')}</div>`;
+    // 同步填入搜尋下拉
+    const sel = document.getElementById('searchLawSel');
+    if (sel) {
+      sel.innerHTML = '<option value="">選擇法規…</option>' +
+        laws.map(l => `<option value="${escHtml(l.name)}">${escHtml(l.name)}</option>`).join('');
+    }
   } catch {
     el.innerHTML = '<div class="empty">法規目錄載入失敗，請重新整理。</div>';
   }
@@ -861,6 +1091,8 @@ async function doLogout() {
 async function init() {
   if (!getUID()) { window.location.href = '/login.html'; return; }
   document.getElementById('nav-user').textContent = localStorage.getItem('sofa_nickname') || getUID();
+  renderExamCountdown();
+  initSidebarHighlight();
 
   const [prof, prog, bm, hist] = await Promise.allSettled([
     apiFetch('/api/me/profile'),
