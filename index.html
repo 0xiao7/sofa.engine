@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <title>SoFa Engine — 國考法條備考系統</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231A1A2E'/%3E%3Crect x='5' y='8' width='22' height='11' rx='3' fill='%23e7bba7'/%3E%3Crect x='4' y='13' width='5' height='10' rx='2.5' fill='%23d4a090'/%3E%3Crect x='23' y='13' width='5' height='10' rx='2.5' fill='%23d4a090'/%3E%3Crect x='9' y='18' width='14' height='5' rx='2' fill='%23c4907a'/%3E%3C/svg%3E">
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
 <script>
@@ -819,6 +820,39 @@
   }
   .final .right .btn-primary{margin-top:28px;width:100%;justify-content:center}
 
+  /* ---------- Query Widget ---------- */
+  .query-widget{background:var(--navy-3);padding:72px 0;border-top:1px solid var(--line-on-navy);border-bottom:1px solid var(--line-on-navy)}
+  .qw-inner{display:grid;grid-template-columns:1fr 1.4fr;gap:80px;align-items:center}
+  .qw-form{display:flex;gap:0;margin-bottom:20px;border:1px solid var(--line-on-navy)}
+  .qw-select{
+    flex:1;-webkit-appearance:none;appearance:none;background:var(--navy-2);
+    border:none;border-right:1px solid var(--line-on-navy);color:var(--cream);
+    font-family:var(--sans);font-size:15px;padding:14px 40px 14px 20px;outline:none;cursor:pointer;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A8892' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 14px center;
+  }
+  .qw-select option{background:var(--navy-2)}
+  .qw-input{
+    width:120px;background:var(--navy-2);border:none;border-right:1px solid var(--line-on-navy);
+    color:var(--cream);font-family:var(--mono);font-size:15px;padding:14px 16px;outline:none;
+  }
+  .qw-input::placeholder{color:rgba(245,240,234,.3)}
+  .qw-btn{
+    background:var(--peach);color:var(--navy-4);border:none;font-family:var(--sans);
+    font-size:15px;font-weight:500;padding:14px 28px;cursor:pointer;white-space:nowrap;
+    transition:opacity .2s;
+  }
+  .qw-btn:hover{opacity:.85}
+  .qw-practice{display:flex;align-items:center;gap:16px}
+  .qw-or{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:rgba(245,240,234,.35);text-transform:uppercase;white-space:nowrap}
+  .qw-links{display:flex;gap:10px}
+  .qw-tag{
+    font-family:var(--mono);font-size:12px;letter-spacing:.08em;
+    color:rgba(245,240,234,.55);border:1px solid var(--line-on-navy);
+    padding:7px 16px;text-decoration:none;transition:color .18s,border-color .18s;
+  }
+  .qw-tag:hover{color:var(--cream);border-color:rgba(231,187,167,.35)}
+
   /* ---------- Footer ---------- */
   footer{background:var(--navy-4);color:rgba(242,234,221,.6);padding:64px 0 32px}
   .ft-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:48px}
@@ -1082,7 +1116,7 @@
             </li>
           </ul>
           <div class="cta-row" style="margin-top:40px;">
-            <a class="btn btn-primary" href="#articles">瀏覽全部 33 部法規 <span class="arrow">→</span></a>
+            <a class="btn btn-primary" href="dashboard.html">瀏覽全部 33 部法規 <span class="arrow">→</span></a>
           </div>
         </div>
 
@@ -1169,6 +1203,36 @@
           <h4>練習區 + 重點法條</h4>
           <p>覺得手感差？打開練習區，挖空、選擇、是非三種題型輪流來。考前一週，重點法條一鍵集中複習。</p>
           <span class="tag">2,138 / 33 部</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ QUERY WIDGET ============ -->
+  <section class="query-widget" id="try" data-screen-label="Query">
+    <div class="container">
+      <div class="qw-inner">
+        <div>
+          <span class="sec-eyebrow">TRY — 即刻查法條</span>
+          <h2 class="sec-title" style="margin-top:18px;color:var(--cream);">選法規、填條號，<br/>直接跳進去。</h2>
+          <p style="margin-top:16px;color:rgba(245,240,234,.55);font-size:15px;line-height:1.7;">2,138 條任選，或開啟練習模式——<br/>打字、填空、選擇任你挑。</p>
+        </div>
+        <div>
+          <div class="qw-form">
+            <select id="qwLaw" class="qw-select">
+              <option value="">選擇法規...</option>
+            </select>
+            <input id="qwArt" class="qw-input" type="text" placeholder="條號">
+            <button id="qwBtn" class="qw-btn">查詢 →</button>
+          </div>
+          <div class="qw-practice">
+            <span class="qw-or">或前往練習</span>
+            <div class="qw-links">
+              <a href="practice.html" class="qw-tag">打字練習</a>
+              <a href="fill.html" class="qw-tag">填空題</a>
+              <a href="quiz.html" class="qw-tag">選擇題</a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -1288,5 +1352,30 @@
   </footer>
 
 </div>
+<script>
+(async () => {
+  const API = 'https://sofa-engine-api.onrender.com';
+  try {
+    const d = await fetch(`${API}/api/laws`).then(r => r.json());
+    const sel = document.getElementById('qwLaw');
+    if (sel) (d.laws || []).forEach(l => {
+      const o = document.createElement('option'); o.value = l.name; o.textContent = l.name; sel.appendChild(o);
+    });
+  } catch {}
+  const btn = document.getElementById('qwBtn');
+  if (btn) btn.addEventListener('click', () => {
+    const law = document.getElementById('qwLaw').value;
+    const art = document.getElementById('qwArt').value.trim();
+    if (!law) { document.getElementById('qwLaw').focus(); return; }
+    const params = new URLSearchParams();
+    if (law) params.set('law', law);
+    if (art) params.set('art', art);
+    window.location.href = `dashboard.html?${params.toString()}`;
+  });
+  document.getElementById('qwArt')?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') document.getElementById('qwBtn').click();
+  });
+})();
+</script>
 </body>
 </html>
