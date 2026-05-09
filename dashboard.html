@@ -270,6 +270,9 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
 .art-line { font-size: .8rem; color: var(--cream); line-height: 1.75; padding: .08rem 0; }
 .art-line.d1 { padding-left: 1.1rem; color: rgba(245,240,234,.55); font-size: .78rem; }
 .art-line.d2 { padding-left: 2.2rem; color: rgba(245,240,234,.45); font-size: .76rem; }
+.art-locked { border-bottom: 1px solid var(--line-on-navy); padding: .85rem 0; display: flex; align-items: center; gap: .6rem; }
+.art-locked-label { font-family: var(--mono); font-size: .7rem; letter-spacing: .07em; color: rgba(245,240,234,.25); }
+.art-locked-icon { font-size: .8rem; opacity: .4; }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 600px) {
@@ -389,6 +392,7 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
 let _drawerOpen = false;
+let _userPlan = '免費';
 
 /* ── 工具 ── */
 function getUID() { return localStorage.getItem('sofa_uid') || ''; }
@@ -647,10 +651,15 @@ function renderArticle(data) {
     html += `<div class="art-callout">${escHtml(data.original_text)}</div>`;
 
   const sections = data.sections || {};
+  const isPaid = _userPlan === '月費' || _userPlan === '月訂' || _userPlan === '季費' || _userPlan === '買斷' || _userPlan === 'monthly' || _userPlan === 'lifetime';
   SECTION_ORDER.forEach((key, i) => {
     const body = sections[key];
     if (!body) return;
     const label = `${i+1}．${key}`;
+    if (i >= 4 && !isPaid) {
+      html += `<div class="art-locked"><span class="art-locked-icon">🔒</span><span class="art-locked-label">${escHtml(label)}（付費功能）</span></div>`;
+      return;
+    }
     html += `
       <details class="art-section">
         <summary>${escHtml(label)}</summary>
@@ -686,9 +695,10 @@ async function init() {
   const streak = histData ? calcStreak(histData.history) : 0;
   animateCount(document.getElementById('stat-streak'), streak);
 
-  if (prof.status === 'fulfilled')
+  if (prof.status === 'fulfilled') {
+    _userPlan = prof.value.plan || '免費';
     renderMemberCard(prof.value, streak);
-  else
+  } else
     document.getElementById('member-card').innerHTML =
       '<div class="empty" style="padding:1rem 0">會員資料載入失敗。</div>';
 
