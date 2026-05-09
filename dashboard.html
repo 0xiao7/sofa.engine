@@ -302,6 +302,12 @@ main { padding-top: 6rem; padding-bottom: 6rem; }
   font-family: var(--serif); font-size: .88rem;
   line-height: 1.85; color: var(--cream);
 }
+.raw-line { font-size:.88rem; color:var(--cream); line-height:1.85; padding:.05rem 0; }
+.raw-line.d1 { padding-left:1.4rem; }
+.raw-line.d2 { padding-left:2.8rem; }
+.raw-blank  { height:.35rem; }
+.law-ref-link { color:var(--peach); text-decoration:underline; cursor:pointer; }
+.law-ref-link:hover { opacity:.75; }
 .art-section { border-bottom: 1px solid var(--line-on-navy); }
 .art-section summary {
   padding: .85rem 0;
@@ -723,6 +729,14 @@ main { padding-top: 6rem; padding-bottom: 6rem; }
   </div>
 </div>
 
+<footer style="padding:2rem 1.5rem 3rem;text-align:center;border-top:1px solid rgba(245,240,234,.08);margin-top:2rem;">
+  <p style="font-size:.7rem;color:rgba(245,240,234,.3);line-height:1.8;max-width:560px;margin:0 auto;">
+    本平台內容僅供備考學習參考，不構成任何法律意見或建議。<br>
+    法規條文以主管機關官方公告版本為準，如有疑義請以原始法規為據。<br>
+    © 2026 SoFa Engine &nbsp;·&nbsp; 版權所有，禁止轉載
+  </p>
+</footer>
+
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
 let _drawerOpen = false;
@@ -1122,14 +1136,53 @@ function formatContent(text) {
     const spaces = (l.match(/^(\s*)/) || ['',''])[1].length;
     const depth  = Math.min(Math.floor(spaces / 2), 2);
     const cls    = depth > 0 ? ` d${depth}` : '';
-    return `<div class="art-line${cls}">${escHtml(l.trim())}</div>`;
+    return `<div class="art-line${cls}">${linkifyRefs(l.trim())}</div>`;
   }).join('');
 }
 
+function formatRawText(text) {
+  return text.split('\n').map(l => {
+    if (!l.trim()) return '<div class="raw-blank"></div>';
+    const raw = l.replace(/\t/g, '  ');
+    const spaces = (raw.match(/^( *)/) || ['',''])[1].length;
+    let depth = 0;
+    if (spaces >= 4 || /^[\s　]*[（(]/.test(l)) depth = 2;
+    else if (spaces >= 2 || /^[\s　]*[一二三四五六七八九十]{1,2}、/.test(l)) depth = 1;
+    const cls = depth > 0 ? ` d${depth}` : '';
+    return `<div class="raw-line${cls}">${escHtml(l.trim())}</div>`;
+  }).join('');
+}
+
+function linkifyRefs(rawLine) {
+  const re = /《([^》]+)》第(\d+(?:-\d+)?)條/g;
+  let result = '', last = 0, m;
+  while ((m = re.exec(rawLine)) !== null) {
+    if (m.index > last) result += escHtml(rawLine.slice(last, m.index));
+    const law = m[1], art = `第${m[2]}條`;
+    result += `<a class="law-ref-link" href="javascript:void(0)" onclick="openDrawerByLawArt(${JSON.stringify(law)},${JSON.stringify(art)})">${escHtml(m[0])}</a>`;
+    last = m.index + m[0].length;
+  }
+  if (last < rawLine.length) result += escHtml(rawLine.slice(last));
+  return result;
+}
+
+function openDrawerByLawArt(lawName, artTitle) {
+  apiFetch(`/api/articles?law=${encodeURIComponent(lawName)}`)
+    .then(data => {
+      const arts = data.articles || [];
+      const norm = t => t.replace(/\s/g, '');
+      let target = arts.find(a => norm(a.title) === norm(artTitle));
+      if (!target) target = arts.find(a => norm(a.title).includes(norm(artTitle.replace('條', ''))));
+      if (target) openDrawer(target.id, lawName, target.title);
+    })
+    .catch(() => {});
+}
+
 function renderArticle(data) {
+  if (data.title) document.getElementById('drawer-art').textContent = data.title;
   let html = '';
   if (data.original_text)
-    html += `<div class="art-callout">${escHtml(data.original_text)}</div>`;
+    html += `<div class="art-callout">${formatRawText(data.original_text)}</div>`;
 
   const sections = data.sections || {};
   const TRIAL_END_ART = new Date('2026-06-01T00:00:00+08:00');
