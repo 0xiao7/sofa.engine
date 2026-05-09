@@ -954,7 +954,7 @@ async function drToggleBookmark() {
   const adding = !_bmSet.has(pid);
   try {
     if (adding) {
-      await fetch(`${API}/api/me/bookmarks`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid}) });
+      await fetch(`${API}/api/me/bookmarks`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid, law_name:_drawerLaw, article:_drawerArt}) });
       _bmSet.add(pid);
       _allBookmarks = [{page_id:pid, law_name:_drawerLaw, article:_drawerArt, bookmarked_at:new Date().toISOString()}, ..._allBookmarks.filter(b=>b.page_id!==pid)];
     } else {
@@ -981,7 +981,7 @@ async function drToggleMastered() {
     _masteredSet.delete(pid); _masteredItems = _masteredItems.filter(i => i.page_id !== pid);
   }
   syncDrawerActions(); renderMasteredSection(); renderReviewSection();
-  try { await fetch(`${API}/api/me/mastery`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid, status: on ? 'mastered' : 'none'}) }); } catch {}
+  try { await fetch(`${API}/api/me/mastery`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid, law_name:_drawerLaw, article:_drawerArt, status: on ? 'mastered' : 'none'}) }); } catch {}
 }
 
 async function drToggleReview() {
@@ -995,7 +995,7 @@ async function drToggleReview() {
     _reviewSet.delete(pid); _reviewItems = _reviewItems.filter(i => i.page_id !== pid);
   }
   syncDrawerActions(); renderReviewSection(); renderMasteredSection();
-  try { await fetch(`${API}/api/me/mastery`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid, status: on ? 'review' : 'none', review_days: on ? _reviewDays : 0}) }); } catch {}
+  try { await fetch(`${API}/api/me/mastery`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid, law_name:_drawerLaw, article:_drawerArt, status: on ? 'review' : 'none', review_days: on ? _reviewDays : 0}) }); } catch {}
 }
 
 function closeDrawer() {
@@ -1187,7 +1187,7 @@ async function toggleSearchStar(pid, law, art, btn) {
   const adding = !_bmSet.has(pid);
   try {
     if (adding) {
-      await fetch(`${API}/api/me/bookmarks`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid}) });
+      await fetch(`${API}/api/me/bookmarks`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid, law_name:_drawerLaw, article:_drawerArt}) });
       _bmSet.add(pid);
     } else {
       await fetch(`${API}/api/me/bookmarks/${encodeURIComponent(pid)}`, { method:'DELETE', headers:{'X-Sofa-UID':getUID()} });
