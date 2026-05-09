@@ -890,7 +890,7 @@
   <!-- ============ NAV ============ -->
   <nav class="top">
     <div class="nav-inner">
-      <a class="brand" href="#"><span class="dot"></span>SoFa Engine</a>
+      <a class="brand" href="/"><span class="dot"></span>SoFa Engine</a>
       <div class="nav-links">
         <a href="#features">功能</a>
         <a href="#articles">重點法條</a>
@@ -899,7 +899,8 @@
         <a href="#news">公告</a>
         <a href="#feedback">回報</a>
         <a href="https://lin.ee/zUeMwo4" target="_blank" rel="noopener" class="ext">加入 LINE Bot ↗</a>
-        <a href="login.html" class="nav-cta">會員中心</a>
+        <a id="navDashBtn" href="dashboard.html" class="nav-cta" style="display:none;background:transparent;border:1px solid rgba(231,187,167,.5);color:var(--peach)">儀表板 →</a>
+        <a id="navLoginBtn" href="login.html" class="nav-cta">會員中心</a>
       </div>
     </div>
   </nav>
@@ -1354,6 +1355,16 @@
 
 </div>
 <script>
+// 已登入：顯示「儀表板」隱藏「會員中心」
+(function(){
+  if (localStorage.getItem('sofa_uid')) {
+    const dash = document.getElementById('navDashBtn');
+    const login = document.getElementById('navLoginBtn');
+    if (dash) dash.style.display = 'inline-block';
+    if (login) login.style.display = 'none';
+  }
+})();
+
 (async () => {
   const API = 'https://sofa-engine-api.onrender.com';
   try {

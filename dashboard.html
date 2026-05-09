@@ -342,14 +342,28 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
 .exam-input { background: none; border: none; border-bottom: 1px solid rgba(231,187,167,.25); color: var(--cream); font-family: var(--mono); font-size: .65rem; outline: none; width: 100%; margin-top: .5rem; padding: .2rem 0; }
 
 /* ── SEARCH SECTION ── */
-.sofa-select-sm { -webkit-appearance: none; appearance: none; background: var(--navy-2); border: 1px solid var(--line-on-navy); color: var(--cream); font-family: var(--sans); font-size: .82rem; padding: .5rem 2rem .5rem .8rem; outline: none; border-radius: 2px; transition: border-color .15s; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A8892' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 8px center; width: 100%; }
-.sofa-select-sm:focus { border-color: rgba(231,187,167,.4); }
-.sofa-select-sm option { background: var(--navy-2); }
-.art-search-row { display: flex; align-items: center; justify-content: space-between; padding: .48rem .7rem; cursor: pointer; border-radius: 3px; transition: background .12s; gap: .5rem; }
+.law-combo-wrap { position: relative; margin-bottom: .6rem; }
+.law-combo-dd { position: absolute; top: 100%; left: 0; right: 0; z-index: 110; background: var(--navy-2); border: 1px solid rgba(231,187,167,.28); border-top: none; max-height: 220px; overflow-y: auto; display: none; }
+.law-combo-dd.open { display: block; }
+.law-combo-dd::-webkit-scrollbar { width: 3px; }
+.law-combo-dd::-webkit-scrollbar-thumb { background: rgba(231,187,167,.15); }
+.law-combo-item { padding: .5rem .85rem; font-size: .82rem; color: rgba(245,240,234,.55); cursor: pointer; transition: background .1s, color .1s; }
+.law-combo-item:hover { background: rgba(231,187,167,.08); color: var(--peach); }
+.sf-row { display: flex; align-items: center; gap: .7rem; margin-bottom: .7rem; flex-wrap: wrap; }
+.sf-tabs { display: flex; }
+.sf-tab { font-family: var(--mono); font-size: .65rem; letter-spacing: .04em; color: rgba(245,240,234,.32); background: none; border: 1px solid var(--line-on-navy); padding: .3rem .75rem; cursor: pointer; transition: color .15s, background .15s, border-color .15s; }
+.sf-tab:first-child { border-radius: 2px 0 0 2px; }
+.sf-tab:last-child { border-radius: 0 2px 2px 0; }
+.sf-tab + .sf-tab { border-left: none; }
+.sf-tab.active { color: var(--peach); border-color: rgba(231,187,167,.45); background: rgba(231,187,167,.06); }
+.sf-time { -webkit-appearance: none; appearance: none; background: var(--navy-2); border: 1px solid var(--line-on-navy); color: rgba(245,240,234,.45); font-family: var(--mono); font-size: .65rem; padding: .3rem 1.6rem .3rem .65rem; outline: none; border-radius: 2px; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A8892' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 5px center; transition: border-color .15s; }
+.sf-time:focus { border-color: rgba(231,187,167,.4); color: var(--cream); }
+.sf-time option { background: var(--navy-2); color: var(--cream); }
+.art-search-row { display: flex; align-items: center; justify-content: space-between; padding: .48rem .7rem; border-radius: 3px; transition: background .12s; gap: .5rem; }
 .art-search-row:hover { background: rgba(231,187,167,.07); }
-.art-search-title { font-family: var(--mono); font-size: .72rem; color: rgba(245,240,234,.55); flex: 1; transition: color .12s; }
+.art-search-title { font-family: var(--mono); font-size: .72rem; color: rgba(245,240,234,.55); flex: 1; cursor: pointer; transition: color .12s; }
 .art-search-row:hover .art-search-title { color: var(--peach); }
-.bm-star { background: none; border: none; color: rgba(231,187,167,.25); font-size: .9rem; cursor: pointer; padding: .1rem .25rem; transition: color .15s, transform .15s; flex-shrink: 0; line-height: 1; }
+.bm-star { background: none; border: none; color: rgba(231,187,167,.22); font-size: .88rem; cursor: pointer; padding: .1rem .25rem; transition: color .15s, transform .15s; flex-shrink: 0; line-height: 1; }
 .bm-star:hover { color: var(--peach); transform: scale(1.2); }
 .bm-star.on { color: var(--peach); }
 
@@ -379,7 +393,7 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
 
 <div class="warm-bar" id="warmBar">伺服器啟動中，資料即將出現（約 15–20 秒）…</div>
 <nav>
-  <a href="dashboard.html" class="nav-brand">SOFA ENGINE</a>
+  <a href="/" class="nav-brand">SOFA ENGINE</a>
   <div class="nav-right">
     <span class="nav-user" id="nav-user">—</span>
     <button class="nav-logout" onclick="doLogout()">登出</button>
@@ -445,12 +459,39 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
   <div class="section" id="search-section">
     <div class="section-label">直接查法條</div>
     <div class="card" style="padding:1.4rem 1.6rem">
-      <div style="display:flex;gap:.7rem;margin-bottom:.8rem;flex-wrap:wrap">
-        <select class="sofa-select-sm" id="searchLawSel" onchange="onSearchLawChange()" style="flex:0 0 auto;width:auto;min-width:160px"></select>
-        <input class="bm-search" id="artSearchInput" type="text" placeholder="搜尋條號或關鍵字…" oninput="filterArtSearch()" style="flex:1;min-width:150px;margin-bottom:0" autocomplete="off">
+      <!-- 法規 combo 搜尋 -->
+      <div class="law-combo-wrap">
+        <input class="bm-search" id="lawComboInput" type="text" placeholder="輸入法規名稱…" oninput="filterLawCombo()" onfocus="openLawCombo()" onblur="closeLawComboDelay()" autocomplete="off" style="margin-bottom:0">
+        <div class="law-combo-dd" id="lawComboDd"></div>
+      </div>
+      <!-- 條文搜尋 -->
+      <input class="bm-search" id="artSearchInput" type="text" placeholder="搜尋條號或關鍵字…" oninput="applySearchFilters()" autocomplete="off">
+      <!-- 篩選列 -->
+      <div class="sf-row">
+        <div class="sf-tabs">
+          <button class="sf-tab active" id="sfTab0" onclick="setStarFilter(0)">全部</button>
+          <button class="sf-tab" id="sfTab5" onclick="setStarFilter(5)">★★★★★</button>
+          <button class="sf-tab" id="sfTab4" onclick="setStarFilter(4)">★★★★</button>
+        </div>
+        <select class="sf-time" id="sfTimeSel" onchange="applySearchFilters()">
+          <option value="">相對時限</option>
+          <option value="7日">7日</option>
+          <option value="10日">10日</option>
+          <option value="15日">15日</option>
+          <option value="20日">20日</option>
+          <option value="30日">30日</option>
+          <option value="45日">45日</option>
+          <option value="1個月">1個月</option>
+          <option value="2個月">2個月</option>
+          <option value="3個月">3個月</option>
+          <option value="6個月">6個月</option>
+          <option value="1年">1年</option>
+          <option value="2年">2年</option>
+          <option value="3年">3年</option>
+        </select>
       </div>
       <div id="artSearchResults" style="max-height:320px;overflow-y:auto;margin:0 -.3rem">
-        <div class="empty" style="padding:.8rem .3rem">選擇法規後搜尋條文，或直接點選法規目錄</div>
+        <div class="empty" style="padding:.8rem .3rem">輸入法規名稱後搜尋，或點下方法規目錄</div>
       </div>
     </div>
   </div>
@@ -923,29 +964,63 @@ function saveExamDate() {
 /* ── 法條搜尋 ── */
 let _searchArts = [];
 let _searchLaw  = '';
+let _allLaws    = [];
+let _starFilter = 0;
+let _comboTimer = null;
 
-async function onSearchLawChange() {
-  const law = document.getElementById('searchLawSel').value;
+function filterLawCombo() {
+  const q = (document.getElementById('lawComboInput').value || '').trim().toLowerCase();
+  const list = q ? _allLaws.filter(l => l.name.toLowerCase().includes(q)) : _allLaws;
+  const dd = document.getElementById('lawComboDd');
+  if (!list.length) { dd.classList.remove('open'); return; }
+  dd.innerHTML = list.map(l =>
+    `<div class="law-combo-item" onmousedown="selectLawFromCombo('${escHtml(l.name)}')">${escHtml(l.name)}</div>`
+  ).join('');
+  dd.classList.add('open');
+}
+function openLawCombo() {
+  clearTimeout(_comboTimer);
+  if (_allLaws.length) filterLawCombo();
+}
+function closeLawComboDelay() {
+  _comboTimer = setTimeout(() => document.getElementById('lawComboDd')?.classList.remove('open'), 180);
+}
+function selectLawFromCombo(name) {
+  _searchLaw = name;
+  document.getElementById('lawComboInput').value = name;
+  document.getElementById('lawComboDd').classList.remove('open');
   document.getElementById('artSearchInput').value = '';
-  if (!law) {
-    _searchArts = []; _searchLaw = '';
-    document.getElementById('artSearchResults').innerHTML = '<div class="empty" style="padding:.8rem .3rem">選擇法規後搜尋條文</div>';
-    return;
-  }
-  _searchLaw = law;
+  _searchArts = [];
   document.getElementById('artSearchResults').innerHTML = '<div class="lbi-loading">載入中…</div>';
-  try {
-    const data = await apiFetch(`/api/articles?law=${encodeURIComponent(law)}`);
-    _searchArts = data.articles || [];
-    renderArtSearchResults(_searchArts);
-  } catch {
-    document.getElementById('artSearchResults').innerHTML = '<div class="lbi-loading">載入失敗，請再試。</div>';
-  }
+  apiFetch(`/api/articles?law=${encodeURIComponent(name)}`)
+    .then(d => { _searchArts = d.articles || []; applySearchFilters(); })
+    .catch(() => { document.getElementById('artSearchResults').innerHTML = '<div class="lbi-loading">載入失敗</div>'; });
 }
 
-function filterArtSearch() {
+function setStarFilter(n) {
+  _starFilter = n;
+  [0,5,4].forEach(v => document.getElementById(`sfTab${v}`)?.classList.toggle('active', v === n));
+  applySearchFilters();
+}
+
+function applySearchFilters() {
   const q = (document.getElementById('artSearchInput').value || '').trim().toLowerCase();
-  renderArtSearchResults(q ? _searchArts.filter(a => a.title.toLowerCase().includes(q)) : _searchArts);
+  const tl = document.getElementById('sfTimeSel')?.value || '';
+  let arts = _searchArts;
+  if (!arts.length) {
+    const res = document.getElementById('artSearchResults');
+    if (res && !res.innerHTML.includes('lbi-loading')) {
+      res.innerHTML = _searchLaw
+        ? '<div class="empty" style="padding:.8rem .3rem">沒有符合的條文</div>'
+        : '<div class="empty" style="padding:.8rem .3rem">輸入法規名稱後搜尋，或點下方法規目錄</div>';
+    }
+    return;
+  }
+  if (q) arts = arts.filter(a => a.title.toLowerCase().includes(q));
+  if (_starFilter === 5) arts = arts.filter(a => (a.stars || a.importance || 0) >= 5);
+  if (_starFilter === 4) arts = arts.filter(a => (a.stars || a.importance || 0) >= 4 && (a.stars || a.importance || 0) < 5);
+  if (tl) arts = arts.filter(a => (a.time_limit || a.title || '').includes(tl));
+  renderArtSearchResults(arts);
 }
 
 function renderArtSearchResults(arts) {
@@ -1006,12 +1081,8 @@ async function loadLawBrowser() {
         <div class="law-card-count" id="lc-${escHtml(l.name)}">— 條</div>
       </div>`
     ).join('')}</div>`;
-    // 同步填入搜尋下拉
-    const sel = document.getElementById('searchLawSel');
-    if (sel) {
-      sel.innerHTML = '<option value="">選擇法規…</option>' +
-        laws.map(l => `<option value="${escHtml(l.name)}">${escHtml(l.name)}</option>`).join('');
-    }
+    // 供 combo 搜尋使用
+    _allLaws = laws;
   } catch {
     el.innerHTML = '<div class="empty">法規目錄載入失敗，請重新整理。</div>';
   }
