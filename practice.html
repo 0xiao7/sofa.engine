@@ -18,6 +18,8 @@ nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.1rem 2.5rem;displa
 .nav-brand{font-family:var(--mono);font-size:.9rem;letter-spacing:.14em;color:var(--peach);text-decoration:none}
 .nav-back{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;color:rgba(245,240,234,.4);text-decoration:none;border:1px solid var(--line);padding:.38rem .9rem;transition:color .18s,border-color .18s}
 .nav-back:hover{color:var(--cream);border-color:rgba(231,187,167,.3)}
+.nav-uid{font-family:var(--mono);font-size:.62rem;letter-spacing:.06em;color:rgba(245,240,234,.3);display:flex;align-items:center;gap:.35rem}
+.nav-uid::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:#4CAF50;flex-shrink:0}
 main{max-width:760px;margin:0 auto;padding:6rem 1.5rem 4rem;position:relative;z-index:1}
 .page-label{font-family:var(--mono);font-size:.65rem;letter-spacing:.25em;color:rgba(245,240,234,.35);text-transform:uppercase;margin-bottom:.8rem}
 h1{font-family:var(--serif);font-size:1.5rem;font-weight:600;color:var(--cream);margin-bottom:1.6rem}
@@ -49,7 +51,10 @@ h1{font-family:var(--serif);font-size:1.5rem;font-weight:600;color:var(--cream);
 <body>
 <nav>
   <a class="nav-brand" href="/">SoFa Engine</a>
-  <a class="nav-back" href="dashboard.html">← 儀表板</a>
+  <div style="display:flex;align-items:center;gap:1rem">
+    <span class="nav-uid" id="navUid"></span>
+    <a class="nav-back" href="dashboard.html">← 儀表板</a>
+  </div>
 </nav>
 <main>
   <p class="page-label">PRACTICE — 打字練習</p>
@@ -75,6 +80,7 @@ h1{font-family:var(--serif);font-size:1.5rem;font-weight:600;color:var(--cream);
 const API = 'https://sofa-engine-api.onrender.com';
 const uid = localStorage.getItem('sofa_uid') || (location.hostname === 'localhost' || location.protocol === 'file:' ? 'PREVIEW' : null);
 if (!uid) { window.location.href = '/login.html'; }
+document.getElementById('navUid').textContent = uid;
 
 // 載入法規清單
 (async () => {
