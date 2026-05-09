@@ -139,17 +139,24 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
 .bar-count { font-family: var(--mono); font-size: .68rem; color: rgba(245,240,234,.4); min-width: 40px; text-align: right; }
 
 /* ── BOOKMARKS ── */
-.bm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--line-on-navy); }
+.bm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; background: transparent; }
 .bm-item {
-  background: var(--navy-3); padding: .9rem 1rem;
-  display: flex; justify-content: space-between; align-items: center;
-  transition: background .2s, border-left-color .2s;
-  border-left: 2px solid transparent; cursor: pointer;
+  background: var(--navy-3); padding: 1.2rem 1.3rem;
+  border: 1px solid var(--line-on-navy); border-radius: 4px;
+  display: flex; flex-direction: column;
+  cursor: pointer; position: relative; overflow: hidden;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s;
 }
-.bm-item:hover { background: #1a3347; border-left-color: var(--peach); }
-.bm-art  { font-family: var(--mono); font-size: .8rem; color: var(--peach); }
-.bm-law  { font-size: .72rem; color: rgba(245,240,234,.4); margin-top: .15rem; }
-.bm-date { font-family: var(--mono); font-size: .65rem; color: rgba(245,240,234,.3); }
+.bm-item::before {
+  content:''; position:absolute; top:0; right:0; width:80px; height:80px;
+  background:radial-gradient(circle at top right, rgba(231,187,167,.1), transparent 70%);
+  pointer-events:none;
+}
+.bm-item:hover { transform: translateY(-3px); box-shadow: 0 12px 28px rgba(13,28,40,.45); border-color: rgba(231,187,167,.22); }
+.bm-art  { font-family: var(--mono); font-size: .68rem; color: var(--peach); letter-spacing: .08em; margin-bottom: .45rem; }
+.bm-law  { font-size: .84rem; color: var(--cream); font-weight: 500; line-height: 1.45; flex: 1; }
+.bm-date { font-family: var(--mono); font-size: .62rem; color: rgba(231,187,167,.4); margin-top: .75rem; letter-spacing: .04em; }
+.bm-item:hover .bm-date { color: rgba(231,187,167,.7); }
 
 /* ── TOOLS ── */
 .tools-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--line-on-navy); }
@@ -164,16 +171,18 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
 .tool-soon  { font-family: var(--mono); font-size: .58rem; letter-spacing: .12em; color: rgba(245,240,234,.3); display: inline-block; margin-top: .35rem; border: 1px solid var(--line-on-navy); padding: .1rem .4rem; }
 
 /* ── HISTORY ── */
-.hist-list { display: flex; flex-direction: column; gap: 1px; background: var(--line-on-navy); }
+.hist-list { display: flex; flex-direction: column; gap: 7px; background: transparent; }
 .hist-item {
-  background: var(--navy-3); padding: .85rem 1rem;
+  background: var(--navy-3); padding: .95rem 1.2rem;
+  border: 1px solid var(--line-on-navy); border-radius: 4px;
   display: flex; justify-content: space-between; align-items: center;
-  cursor: pointer; border-left: 2px solid transparent;
-  transition: background .2s, border-left-color .2s;
+  cursor: pointer;
+  transition: transform .2s ease, box-shadow .2s ease, border-color .2s;
 }
-.hist-item:hover { background: #1a3347; border-left-color: var(--peach-3); }
+.hist-item:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(13,28,40,.4); border-color: rgba(231,187,167,.2); }
 .hist-main { font-size: .84rem; color: var(--cream); }
-.hist-time { font-family: var(--mono); font-size: .68rem; color: rgba(245,240,234,.35); flex-shrink: 0; margin-left: 1rem; }
+.hist-art  { font-family: var(--mono); font-size: .68rem; color: var(--peach); margin-bottom: .2rem; letter-spacing: .06em; }
+.hist-time { font-family: var(--mono); font-size: .65rem; color: rgba(245,240,234,.3); flex-shrink: 0; margin-left: 1rem; }
 
 /* ── EMPTY / LOADING ── */
 .empty   { font-size: .82rem; color: rgba(245,240,234,.35); padding: 1.5rem 0; }
@@ -556,11 +565,9 @@ function renderBookmarks(data) {
       data-law="${escHtml(b.law_name||'')}"
       data-art="${escHtml(b.article||'')}"
       onclick="itemClick(this)">
-      <div>
-        <div class="bm-art">§${escHtml(b.article)}</div>
-        <div class="bm-law">${escHtml(b.law_name)}</div>
-      </div>
-      <div class="bm-date">${(b.bookmarked_at||'').slice(5,10)}</div>
+      <div class="bm-art">${escHtml(b.law_name)}</div>
+      <div class="bm-law">§${escHtml(b.article)}</div>
+      <div class="bm-date">${(b.bookmarked_at||'').slice(5,10)} · 查看解析 →</div>
     </div>
   `).join('');
   el.innerHTML = `<div class="bm-grid">${items}</div>`;
@@ -581,8 +588,11 @@ function renderHistory(data) {
       data-law="${escHtml(h.law_name||'')}"
       data-art="${escHtml(h.article||'')}"
       onclick="itemClick(this)">
-      <div class="hist-main">${escHtml(h.law_name)} §${escHtml(h.article)}</div>
-      <div class="hist-time">${(h.queried_at||'').slice(5)}</div>
+      <div>
+        <div class="hist-art">${escHtml(h.law_name)}</div>
+        <div class="hist-main">§${escHtml(h.article)}</div>
+      </div>
+      <div class="hist-time">${(h.queried_at||'').slice(5,10)}</div>
     </div>
   `).join('');
   el.innerHTML = `<div class="hist-list">${items}</div>`;
