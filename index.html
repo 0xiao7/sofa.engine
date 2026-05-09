@@ -854,6 +854,60 @@
   }
   .qw-tag:hover{color:var(--cream);border-color:rgba(231,187,167,.35)}
 
+  /* ---------- Query Result ---------- */
+  .qw-result{margin-top:48px;border-top:1px solid var(--line-on-navy);padding-top:36px}
+  .qw-res-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px}
+  .qw-res-title{font-family:var(--mono);font-size:14px;color:var(--peach);letter-spacing:.08em}
+  .qw-res-law{font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.35);margin-left:12px;letter-spacing:.06em}
+  .qw-res-nav{display:flex;gap:8px;align-items:center}
+  .qw-res-nav button{
+    background:none;border:1px solid var(--line-on-navy);color:rgba(245,240,234,.5);
+    font-family:var(--mono);font-size:12px;padding:5px 14px;cursor:pointer;
+    transition:color .18s,border-color .18s;
+  }
+  .qw-res-nav button:hover:not(:disabled){color:var(--cream);border-color:rgba(231,187,167,.35)}
+  .qw-res-nav button:disabled{opacity:.25;cursor:default}
+  .qw-res-nav .qw-nav-idx{font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.3);padding:0 6px}
+  .qw-art-orig{
+    background:var(--navy-2);border-left:3px solid var(--peach);
+    padding:16px 20px;color:rgba(245,240,234,.82);font-size:15px;
+    line-height:1.85;margin-bottom:20px;white-space:pre-wrap;font-family:var(--serif);
+  }
+  .qw-segs{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:20px}
+  .qw-seg{background:var(--navy-2);border:1px solid var(--line-on-navy);padding:16px 18px;position:relative;overflow:hidden}
+  .qw-seg-lbl{
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--peach);
+    text-transform:uppercase;margin-bottom:10px;display:flex;align-items:center;gap:8px;
+  }
+  .qw-seg-badge{
+    font-size:10px;background:rgba(231,187,167,.12);color:var(--peach);
+    border:1px solid rgba(231,187,167,.25);padding:1px 8px;letter-spacing:.06em;
+  }
+  .qw-seg-body{font-size:13.5px;color:rgba(245,240,234,.68);line-height:1.72;white-space:pre-wrap}
+  .qw-seg-locked{filter:blur(4px);opacity:.35;user-select:none;pointer-events:none}
+  .qw-seg-overlay{
+    position:absolute;inset:0;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;gap:10px;
+    background:rgba(13,28,40,.55);
+  }
+  .qw-seg-overlay-txt{font-family:var(--mono);font-size:11px;color:var(--peach);letter-spacing:.1em}
+  .qw-seg-overlay a{
+    font-size:13px;color:var(--navy-4);background:var(--peach);
+    padding:7px 20px;text-decoration:none;font-weight:500;
+  }
+  .qw-res-cta{
+    text-align:center;padding:20px 0 4px;border-top:1px solid var(--line-on-navy);margin-top:4px;
+  }
+  .qw-res-cta a{
+    display:inline-flex;align-items:center;gap:8px;
+    background:var(--peach);color:var(--navy-4);padding:12px 28px;
+    font-size:14px;font-weight:500;text-decoration:none;transition:opacity .2s;
+  }
+  .qw-res-cta a:hover{opacity:.85}
+  .qw-res-cta p{font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.3);letter-spacing:.08em;margin-top:12px}
+  .qw-loading{text-align:center;color:rgba(245,240,234,.35);font-family:var(--mono);font-size:12px;letter-spacing:.12em;padding:36px 0}
+  .qw-err{text-align:center;color:rgba(231,187,167,.55);font-family:var(--mono);font-size:13px;padding:28px 0}
+
   /* ---------- Footer ---------- */
   footer{background:var(--navy-4);color:rgba(242,234,221,.6);padding:64px 0 32px}
   .ft-grid{display:grid;grid-template-columns:1.4fr 1fr 1fr 1fr;gap:48px}
@@ -1237,6 +1291,7 @@
           </div>
         </div>
       </div>
+      <div id="qwResult" class="qw-result" style="display:none;"></div>
     </div>
   </section>
 
@@ -1367,6 +1422,8 @@
 
 (async () => {
   const API = 'https://sofa-engine-api.onrender.com';
+
+  // Load law list into select
   try {
     const d = await fetch(`${API}/api/laws`).then(r => r.json());
     const sel = document.getElementById('qwLaw');
@@ -1374,18 +1431,134 @@
       const o = document.createElement('option'); o.value = l.name; o.textContent = l.name; sel.appendChild(o);
     });
   } catch {}
-  const btn = document.getElementById('qwBtn');
-  if (btn) btn.addEventListener('click', () => {
+
+  const FREE_KEYS = ['章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示','核心摘要與記憶策略','條文解析','考點整理','記憶技巧'];
+  const SEG_LABEL = {
+    '章節標題與戰略權重':'章節概覽','規範意旨與條文解析':'條文解析',
+    '執業要點與考情提示':'考情提示','核心摘要與記憶策略':'記憶策略',
+    '修法與聯覺備註':'修法備註','相關法規及注意事項':'相關法規',
+    '條文解析':'條文解析','考點整理':'考點整理','記憶技巧':'記憶技巧',
+    '相關條文':'相關條文','實務應用':'實務應用','常見錯誤':'常見錯誤',
+  };
+
+  let _articles = [], _curLaw = '';
+
+  function findArtIdx(articles, art) {
+    if (!art) return 0;
+    const norm = s => s.replace(/\s+/g,'');
+    const q = norm(art);
+    let i = articles.findIndex(a => norm(a.title) === q);
+    if (i >= 0) return i;
+    i = articles.findIndex(a => norm(a.title) === `第${q}條`);
+    if (i >= 0) return i;
+    i = articles.findIndex(a => norm(a.title).includes(q));
+    return i >= 0 ? i : 0;
+  }
+
+  async function showArticle(idx) {
+    const resultEl = document.getElementById('qwResult');
+    const art = _articles[idx];
+    if (!art) return;
+    resultEl.innerHTML = '<div class="qw-loading">載入中⋯</div>';
+    resultEl.style.display = 'block';
+
+    let data;
+    try {
+      data = await fetch(`${API}/api/article/${art.id}`).then(r => r.json());
+    } catch {
+      resultEl.innerHTML = '<div class="qw-err">載入失敗，請稍後再試。</div>';
+      return;
+    }
+
+    const secs = data.sections || {};
+    const secKeys = Object.keys(secs);
+    const freeKeys = secKeys.filter(k => FREE_KEYS.includes(k));
+    const premKeys = secKeys.filter(k => !FREE_KEYS.includes(k));
+
+    const navHTML = `
+      <div class="qw-res-nav">
+        <button id="qwPrev" ${idx === 0 ? 'disabled' : ''}>← 上一條</button>
+        <span class="qw-nav-idx">${idx + 1} / ${_articles.length}</span>
+        <button id="qwNext" ${idx === _articles.length - 1 ? 'disabled' : ''}>下一條 →</button>
+      </div>`;
+
+    const origHTML = data.original_text
+      ? `<div class="qw-art-orig">${data.original_text.replace(/</g,'&lt;')}</div>` : '';
+
+    const segHTML = key => {
+      const isFree = FREE_KEYS.includes(key);
+      const label = SEG_LABEL[key] || key;
+      const body = (secs[key] || '').replace(/</g,'&lt;').slice(0, 280) + (secs[key]?.length > 280 ? '…' : '');
+      if (isFree) {
+        return `<div class="qw-seg">
+          <div class="qw-seg-lbl">${label}</div>
+          <div class="qw-seg-body">${body}</div>
+        </div>`;
+      } else {
+        return `<div class="qw-seg">
+          <div class="qw-seg-lbl">${label}<span class="qw-seg-badge">免費體驗中</span></div>
+          <div class="qw-seg-body qw-seg-locked">${body || '（內容載入中）'}</div>
+          <div class="qw-seg-overlay">
+            <div class="qw-seg-overlay-txt">加入後完整查看</div>
+            <a href="https://lin.ee/zUeMwo4" target="_blank" rel="noopener">免費加入 →</a>
+          </div>
+        </div>`;
+      }
+    };
+
+    const segsInner = [...freeKeys.map(segHTML), ...premKeys.map(segHTML)].join('');
+
+    resultEl.innerHTML = `
+      <div class="qw-res-hd">
+        <div>
+          <span class="qw-res-title">${data.title || art.title}</span>
+          <span class="qw-res-law">${_curLaw}</span>
+        </div>
+        ${navHTML}
+      </div>
+      ${origHTML}
+      ${segsInner ? `<div class="qw-segs">${segsInner}</div>` : ''}
+      <div class="qw-res-cta">
+        <a href="https://lin.ee/zUeMwo4" target="_blank" rel="noopener">加入 LINE Bot 免費體驗 →</a>
+        <p>完整解鎖 2,138 條 · 每日推播 · 練習區</p>
+      </div>`;
+
+    document.getElementById('qwPrev')?.addEventListener('click', () => showArticle(idx - 1));
+    document.getElementById('qwNext')?.addEventListener('click', () => showArticle(idx + 1));
+    resultEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  async function doQuery() {
     const law = document.getElementById('qwLaw').value;
     const art = document.getElementById('qwArt').value.trim();
     if (!law) { document.getElementById('qwLaw').focus(); return; }
-    const params = new URLSearchParams();
-    if (law) params.set('law', law);
-    if (art) params.set('art', art);
-    window.location.href = `dashboard.html?${params.toString()}`;
-  });
+
+    const resultEl = document.getElementById('qwResult');
+    resultEl.innerHTML = '<div class="qw-loading">查詢中⋯</div>';
+    resultEl.style.display = 'block';
+    resultEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    if (law !== _curLaw) {
+      try {
+        const d = await fetch(`${API}/api/articles?law=${encodeURIComponent(law)}`).then(r => r.json());
+        _articles = d.articles || [];
+        _curLaw = law;
+      } catch {
+        resultEl.innerHTML = '<div class="qw-err">無法載入法規條文，請稍後再試。</div>';
+        return;
+      }
+    }
+    if (!_articles.length) {
+      resultEl.innerHTML = '<div class="qw-err">找不到此法規的條文。</div>';
+      return;
+    }
+    const idx = findArtIdx(_articles, art);
+    showArticle(idx);
+  }
+
+  document.getElementById('qwBtn')?.addEventListener('click', doQuery);
   document.getElementById('qwArt')?.addEventListener('keydown', e => {
-    if (e.key === 'Enter') document.getElementById('qwBtn').click();
+    if (e.key === 'Enter') doQuery();
   });
 })();
 </script>
