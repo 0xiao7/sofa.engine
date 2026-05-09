@@ -648,7 +648,9 @@ function renderArticle(data) {
     html += `<div class="art-callout">${escHtml(data.original_text)}</div>`;
 
   const sections = data.sections || {};
-  const isPaid = _userPlan === '月費' || _userPlan === '月訂' || _userPlan === '季費' || _userPlan === '買斷' || _userPlan === 'monthly' || _userPlan === 'lifetime';
+  const TRIAL_END_ART = new Date('2026-06-01T00:00:00+08:00');
+  const isPaid = new Date() < TRIAL_END_ART ||
+    _userPlan === '月費' || _userPlan === '月訂' || _userPlan === '季費' || _userPlan === '買斷' || _userPlan === 'monthly' || _userPlan === 'lifetime';
   SECTION_ORDER.forEach((key, i) => {
     const body = sections[key];
     if (!body) return;
@@ -699,7 +701,9 @@ async function init() {
     document.getElementById('member-card').innerHTML =
       '<div class="empty" style="padding:1rem 0">會員資料載入失敗。</div>';
 
-  const isPaidUser = _userPlan === '月費' || _userPlan === '月訂' || _userPlan === '季費' || _userPlan === '買斷' || _userPlan === 'monthly' || _userPlan === 'lifetime';
+  const TRIAL_END = new Date('2026-06-01T00:00:00+08:00');
+  const isPaidUser = new Date() < TRIAL_END ||
+    _userPlan === '月費' || _userPlan === '月訂' || _userPlan === '季費' || _userPlan === '買斷' || _userPlan === 'monthly' || _userPlan === 'lifetime';
   const LOCK_HTML = '<div class="card" style="display:flex;align-items:center;gap:.5rem;padding:1.2rem 1.4rem;color:rgba(245,240,234,.25);font-family:var(--mono);font-size:.7rem;letter-spacing:.06em">🔒 <span>付費功能</span></div>';
 
   if (isPaidUser) {
