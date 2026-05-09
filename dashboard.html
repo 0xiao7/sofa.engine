@@ -753,6 +753,7 @@ let _reviewDays    = 7;
 
 /* ── 工具 ── */
 function getUID() { return localStorage.getItem('sofa_uid') || ''; }
+function fmtArt(art) { const s = String(art||''); return s.startsWith('§') ? s : `§${s}`; }
 
 function apiFetch(path) {
   const uid = getUID();
@@ -920,7 +921,7 @@ function renderBookmarkGrid(bms) {
       data-art="${escHtml(b.article||'')}"
       onclick="itemClick(this)">
       <div class="bm-art">${escHtml(b.law_name)}</div>
-      <div class="bm-law">§${escHtml(b.article)}</div>
+      <div class="bm-law">${fmtArt(b.article)}</div>
       <div class="bm-date">${(b.bookmarked_at||'').slice(5,10)} · 查看解析 →</div>
     </div>
   `).join('');
@@ -967,7 +968,7 @@ function renderHistory(data) {
       onclick="itemClick(this)">
       <div>
         <div class="hist-art">${escHtml(h.law_name)}</div>
-        <div class="hist-main">§${escHtml(h.article)}</div>
+        <div class="hist-main">${fmtArt(h.article)}</div>
       </div>
       <div class="hist-time">${(h.queried_at||'').slice(5,10)}</div>
     </div>
@@ -1045,7 +1046,7 @@ function renderMasteredSection() {
   if (!_masteredItems.length) { el.innerHTML = '<div class="card"><div class="empty">還沒有標記已熟記的條文。開啟條文後點「已熟記」。</div></div>'; return; }
   el.innerHTML = `<div class="hist-list">${_masteredItems.map(i => `
     <div class="hist-item" onclick="openDrawer('${escHtml(i.page_id)}','${escHtml(i.law_name)}','${escHtml(i.article)}')">
-      <div><div class="hist-art">${escHtml(i.law_name)}</div><div class="hist-main">§${escHtml(i.article)}</div></div>
+      <div><div class="hist-art">${escHtml(i.law_name)}</div><div class="hist-main">${fmtArt(i.article)}</div></div>
       <div class="hist-time" style="color:var(--green)">✓ 熟記</div>
     </div>`).join('')}</div>`;
 }
@@ -1056,7 +1057,7 @@ function renderReviewSection() {
   if (!_reviewItems.length) { el.innerHTML = '<div class="card"><div class="empty">還沒有待複習的條文。開啟條文後點「待複習」並設定天數。</div></div>'; return; }
   el.innerHTML = `<div class="hist-list">${_reviewItems.map(i => `
     <div class="hist-item" onclick="openDrawer('${escHtml(i.page_id)}','${escHtml(i.law_name)}','${escHtml(i.article)}')">
-      <div><div class="hist-art">${escHtml(i.law_name)}</div><div class="hist-main">§${escHtml(i.article)}</div></div>
+      <div><div class="hist-art">${escHtml(i.law_name)}</div><div class="hist-main">${fmtArt(i.article)}</div></div>
       <div class="hist-time" style="color:var(--warn)">◷ ${i.days ? i.days+'天後' : '待複習'}</div>
     </div>`).join('')}</div>`;
 }
@@ -1335,7 +1336,7 @@ function applySearchFilters() {
       el.innerHTML = bms.slice(0, 60).map(b => {
         const pid = escHtml(b.page_id), law = escHtml(b.law_name), art = escHtml(b.article);
         return `<div class="art-search-row">
-          <span class="art-search-title" onclick="openDrawer('${pid}','${law}','${art}')">[${law}] §${art}</span>
+          <span class="art-search-title" onclick="openDrawer('${pid}','${law}','${art}')">[${law}] ${fmtArt(b.article)}</span>
           <button class="bm-star on" onclick="toggleSearchStar('${pid}','${law}','${art}',this)" title="取消收藏">★</button>
         </div>`;
       }).join('');
