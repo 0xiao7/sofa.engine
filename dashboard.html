@@ -346,17 +346,14 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
       <a href="practice.html" class="tool-item">
         <span class="tool-icon">TYPE</span>
         <span class="tool-label">打字練習</span>
-        <span class="tool-soon">COMING SOON</span>
       </a>
       <a href="quiz.html" class="tool-item">
         <span class="tool-icon">QUIZ</span>
         <span class="tool-label">選擇題</span>
-        <span class="tool-soon">COMING SOON</span>
       </a>
       <a href="fill.html" class="tool-item">
         <span class="tool-icon">FILL</span>
         <span class="tool-label">填空練習</span>
-        <span class="tool-soon">COMING SOON</span>
       </a>
       <a href="https://lin.ee/zUeMwo4" class="tool-item" target="_blank" rel="noopener">
         <span class="tool-icon">LINE</span>
@@ -656,12 +653,13 @@ function renderArticle(data) {
     const body = sections[key];
     if (!body) return;
     const label = `${i+1}．${key}`;
-    const trialBadge = (i >= 4 && !isPaid)
-      ? `<span style="font-size:.6rem;color:var(--peach);opacity:.6;margin-left:.5rem;font-family:var(--sans)">付費功能・體驗期間開放</span>`
-      : '';
+    if (i >= 4 && !isPaid) {
+      html += `<div class="art-locked"><span class="art-locked-label">${escHtml(label)}</span><span class="art-locked-icon">🔒</span></div>`;
+      return;
+    }
     html += `
       <details class="art-section">
-        <summary>${escHtml(label)}${trialBadge}</summary>
+        <summary>${escHtml(label)}</summary>
         <div class="art-section-body">${formatContent(body)}</div>
       </details>`;
   });
@@ -701,16 +699,34 @@ async function init() {
     document.getElementById('member-card').innerHTML =
       '<div class="empty" style="padding:1rem 0">會員資料載入失敗。</div>';
 
-  if (prog.status === 'fulfilled') renderProgress(prog.value);
-  else renderProgressError(prog.reason);
+  const isPaidUser = _userPlan === '月費' || _userPlan === '月訂' || _userPlan === '季費' || _userPlan === '買斷' || _userPlan === 'monthly' || _userPlan === 'lifetime';
+  const LOCK_HTML = '<div class="card" style="display:flex;align-items:center;gap:.5rem;padding:1.2rem 1.4rem;color:rgba(245,240,234,.25);font-family:var(--mono);font-size:.7rem;letter-spacing:.06em">🔒 <span>付費功能</span></div>';
 
-  if (bm.status === 'fulfilled')  renderBookmarks(bm.value);
-  else document.getElementById('bookmark-wrap').innerHTML =
-    '<div class="card"><div class="empty">資料載入失敗，請重新整理。</div></div>';
+  if (isPaidUser) {
+    if (prog.status === 'fulfilled') renderProgress(prog.value);
+    else renderProgressError(prog.reason);
+  } else {
+    document.getElementById('progress-list').innerHTML = '';
+    document.querySelector('.stats-row').innerHTML = LOCK_HTML.replace('class="card"','').replace('style="','style="margin:0;');
+    document.querySelector('.stats-row').style = 'padding:0';
+    document.getElementById('progress-list').innerHTML = '';
+  }
 
-  if (hist.status === 'fulfilled') renderHistory(hist.value);
-  else document.getElementById('history-wrap').innerHTML =
-    '<div class="card"><div class="empty">資料載入失敗，請重新整理。</div></div>';
+  if (isPaidUser) {
+    if (bm.status === 'fulfilled') renderBookmarks(bm.value);
+    else document.getElementById('bookmark-wrap').innerHTML =
+      '<div class="card"><div class="empty">資料載入失敗，請重新整理。</div></div>';
+  } else {
+    document.getElementById('bookmark-wrap').innerHTML = LOCK_HTML;
+  }
+
+  if (isPaidUser) {
+    if (hist.status === 'fulfilled') renderHistory(hist.value);
+    else document.getElementById('history-wrap').innerHTML =
+      '<div class="card"><div class="empty">資料載入失敗，請重新整理。</div></div>';
+  } else {
+    document.getElementById('history-wrap').innerHTML = LOCK_HTML;
+  }
 }
 
 init();
