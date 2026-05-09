@@ -1193,14 +1193,18 @@ async function toggleSearchStar(pid, law, art, btn) {
   const adding = !_bmSet.has(pid);
   try {
     if (adding) {
-      await fetch(`${API}/api/me/bookmarks`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid, law_name:_drawerLaw, article:_drawerArt}) });
+      await fetch(`${API}/api/me/bookmarks`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid, law_name:law, article:art}) });
       _bmSet.add(pid);
+      if (!_allBookmarks.find(b => b.page_id === pid))
+        _allBookmarks.unshift({ page_id:pid, law_name:law, article:art, bookmarked_at: new Date().toISOString() });
     } else {
       await fetch(`${API}/api/me/bookmarks/${encodeURIComponent(pid)}`, { method:'DELETE', headers:{'X-Sofa-UID':getUID()} });
       _bmSet.delete(pid);
+      _allBookmarks = _allBookmarks.filter(b => b.page_id !== pid);
     }
   } catch { if (adding) _bmSet.add(pid); else _bmSet.delete(pid); }
   btn.classList.toggle('on', _bmSet.has(pid));
+  refreshBookmarkGrid();
   animateCount(document.getElementById('stat-bm'), _bmSet.size);
 }
 
