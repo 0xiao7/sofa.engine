@@ -656,13 +656,12 @@ function renderArticle(data) {
     const body = sections[key];
     if (!body) return;
     const label = `${i+1}．${key}`;
-    if (i >= 4 && !isPaid) {
-      html += `<div class="art-locked"><span class="art-locked-icon">🔒</span><span class="art-locked-label">${escHtml(label)}（付費功能）</span></div>`;
-      return;
-    }
+    const trialBadge = (i >= 4 && !isPaid)
+      ? `<span style="font-size:.6rem;color:var(--peach);opacity:.6;margin-left:.5rem;font-family:var(--sans)">付費功能・體驗期間開放</span>`
+      : '';
     html += `
       <details class="art-section">
-        <summary>${escHtml(label)}</summary>
+        <summary>${escHtml(label)}${trialBadge}</summary>
         <div class="art-section-body">${formatContent(body)}</div>
       </details>`;
   });
