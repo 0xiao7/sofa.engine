@@ -372,6 +372,12 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
 .dr-act { font-family: var(--mono); font-size: .65rem; letter-spacing: .08em; color: rgba(245,240,234,.38); background: none; border: 1px solid var(--line-on-navy); padding: .3rem .8rem; cursor: pointer; transition: color .15s, border-color .15s, background .15s; border-radius: 2px; }
 .dr-act:hover { color: var(--cream); border-color: rgba(231,187,167,.28); }
 .dr-act.on { color: var(--peach); border-color: rgba(231,187,167,.5); background: rgba(231,187,167,.06); }
+.review-picker { display: none; align-items: center; gap: .4rem; padding: .45rem 1.6rem .55rem; border-bottom: 1px solid var(--line-on-navy); flex-shrink: 0; flex-wrap: wrap; }
+.review-picker.show { display: flex; }
+.rv-label { font-family: var(--mono); font-size: .6rem; letter-spacing: .07em; color: rgba(245,240,234,.26); margin-right: .2rem; }
+.rv-btn { font-family: var(--mono); font-size: .63rem; color: rgba(245,240,234,.28); background: none; border: 1px solid var(--line-on-navy); padding: .22rem .6rem; cursor: pointer; border-radius: 2px; transition: color .15s, border-color .15s, background .15s; }
+.rv-btn:hover { color: var(--cream); border-color: rgba(231,187,167,.3); }
+.rv-btn.active { color: var(--warn); border-color: rgba(245,166,35,.45); background: rgba(245,166,35,.06); }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 600px) {
@@ -413,6 +419,8 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
   <a class="sn-item" href="#progress-section">學習進度</a>
   <a class="sn-item" href="#search-section">法條搜尋</a>
   <a class="sn-item" href="#bookmark-section">我的收藏</a>
+  <a class="sn-item" href="#mastered-section">已熟記</a>
+  <a class="sn-item" href="#review-section">待複習</a>
   <a class="sn-item" href="#tools-section">備考工具</a>
   <a class="sn-item" href="#law-browser-section">法規目錄</a>
   <a class="sn-item" href="#history-section">最近查詢</a>
@@ -502,6 +510,18 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
     <div id="bookmark-wrap"><div class="card"><div class="loading">loading...</div></div></div>
   </div>
 
+  <!-- 已熟記 -->
+  <div class="section" id="mastered-section">
+    <div class="section-label">已熟記</div>
+    <div id="mastered-wrap"><div class="card"><div class="empty">還沒有標記已熟記的條文。</div></div></div>
+  </div>
+
+  <!-- 待複習 -->
+  <div class="section" id="review-section">
+    <div class="section-label">待複習</div>
+    <div id="review-wrap"><div class="card"><div class="empty">還沒有待複習的條文。</div></div></div>
+  </div>
+
   <!-- 備考工具 -->
   <div class="section" id="tools-section">
     <div class="section-label">備考工具</div>
@@ -564,9 +584,17 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
     <button class="drawer-close" onclick="closeDrawer()" aria-label="關閉">✕</button>
   </div>
   <div class="drawer-actions" id="drawer-actions">
-    <button class="dr-act" id="drActBm"    onclick="drToggleBookmark()">☆ 收藏</button>
+    <button class="dr-act" id="drActBm"     onclick="drToggleBookmark()">☆ 收藏</button>
     <button class="dr-act" id="drActMaster" onclick="drToggleMastered()">○ 已熟記</button>
     <button class="dr-act" id="drActReview" onclick="drToggleReview()">◷ 待複習</button>
+  </div>
+  <div class="review-picker" id="reviewPicker">
+    <span class="rv-label">LINE 推播提醒：</span>
+    <button class="rv-btn" id="rv1"  onclick="setReviewDays(1)">明天</button>
+    <button class="rv-btn" id="rv3"  onclick="setReviewDays(3)">3天</button>
+    <button class="rv-btn active" id="rv7"  onclick="setReviewDays(7)">7天</button>
+    <button class="rv-btn" id="rv14" onclick="setReviewDays(14)">14天</button>
+    <button class="rv-btn" id="rv30" onclick="setReviewDays(30)">30天</button>
   </div>
   <div class="drawer-body" id="drawer-content">
     <div class="loading">loading...</div>
@@ -580,9 +608,12 @@ let _userPlan = '免費';
 let _drawerPageId = '';
 let _drawerLaw = '';
 let _drawerArt = '';
-let _bmSet = new Set();
+let _bmSet       = new Set();
 let _masteredSet = new Set();
-let _reviewSet = new Set();
+let _reviewSet   = new Set();
+let _masteredItems = [];
+let _reviewItems   = [];
+let _reviewDays    = 7;
 
 /* ── 工具 ── */
 function getUID() { return localStorage.getItem('sofa_uid') || ''; }
@@ -837,47 +868,103 @@ function openDrawer(pageId, law, art) {
 
 function syncDrawerActions() {
   const pid = _drawerPageId;
-  document.getElementById('drActBm').classList.toggle('on', _bmSet.has(pid));
-  document.getElementById('drActBm').textContent = _bmSet.has(pid) ? '★ 已收藏' : '☆ 收藏';
-  document.getElementById('drActMaster').classList.toggle('on', _masteredSet.has(pid));
-  document.getElementById('drActMaster').textContent = _masteredSet.has(pid) ? '✓ 已熟記' : '○ 已熟記';
-  document.getElementById('drActReview').classList.toggle('on', _reviewSet.has(pid));
-  document.getElementById('drActReview').textContent = _reviewSet.has(pid) ? '◷ 待複習中' : '◷ 待複習';
+  const bm = document.getElementById('drActBm');
+  const ms = document.getElementById('drActMaster');
+  const rv = document.getElementById('drActReview');
+  const picker = document.getElementById('reviewPicker');
+  if (bm) { bm.classList.toggle('on', _bmSet.has(pid)); bm.textContent = _bmSet.has(pid) ? '★ 已收藏' : '☆ 收藏'; }
+  if (ms) { ms.classList.toggle('on', _masteredSet.has(pid)); ms.textContent = _masteredSet.has(pid) ? '✓ 已熟記' : '○ 已熟記'; }
+  if (rv) { rv.classList.toggle('on', _reviewSet.has(pid)); rv.textContent = _reviewSet.has(pid) ? '◷ 待複習中' : '◷ 待複習'; }
+  if (picker) picker.classList.toggle('show', _reviewSet.has(pid));
+}
+
+function setReviewDays(n) {
+  _reviewDays = n;
+  [1,3,7,14,30].forEach(d => document.getElementById(`rv${d}`)?.classList.toggle('active', d === n));
+}
+
+function refreshBookmarkGrid() {
+  const grid = document.getElementById('bm-grid-inner');
+  if (grid) { renderBookmarkGrid(_allBookmarks); return; }
+  const wrap = document.getElementById('bookmark-wrap');
+  if (!wrap) return;
+  if (!_allBookmarks.length) {
+    wrap.innerHTML = '<div class="card"><div class="empty">還沒有收藏。查詢法條後點「☆ 收藏」加入清單。</div></div>';
+  } else {
+    wrap.innerHTML = `<input class="bm-search" id="bmSearch" type="text" placeholder="搜尋法規名稱或條號…" oninput="filterBookmarks()" autocomplete="off"><div class="bm-grid" id="bm-grid-inner"></div>`;
+    renderBookmarkGrid(_allBookmarks);
+  }
+}
+
+function renderMasteredSection() {
+  const el = document.getElementById('mastered-wrap');
+  if (!el) return;
+  if (!_masteredItems.length) { el.innerHTML = '<div class="card"><div class="empty">還沒有標記已熟記的條文。開啟條文後點「已熟記」。</div></div>'; return; }
+  el.innerHTML = `<div class="hist-list">${_masteredItems.map(i => `
+    <div class="hist-item" onclick="openDrawer('${escHtml(i.page_id)}','${escHtml(i.law_name)}','${escHtml(i.article)}')">
+      <div><div class="hist-art">${escHtml(i.law_name)}</div><div class="hist-main">§${escHtml(i.article)}</div></div>
+      <div class="hist-time" style="color:var(--green)">✓ 熟記</div>
+    </div>`).join('')}</div>`;
+}
+
+function renderReviewSection() {
+  const el = document.getElementById('review-wrap');
+  if (!el) return;
+  if (!_reviewItems.length) { el.innerHTML = '<div class="card"><div class="empty">還沒有待複習的條文。開啟條文後點「待複習」並設定天數。</div></div>'; return; }
+  el.innerHTML = `<div class="hist-list">${_reviewItems.map(i => `
+    <div class="hist-item" onclick="openDrawer('${escHtml(i.page_id)}','${escHtml(i.law_name)}','${escHtml(i.article)}')">
+      <div><div class="hist-art">${escHtml(i.law_name)}</div><div class="hist-main">§${escHtml(i.article)}</div></div>
+      <div class="hist-time" style="color:var(--warn)">◷ ${i.days ? i.days+'天後' : '待複習'}</div>
+    </div>`).join('')}</div>`;
 }
 
 async function drToggleBookmark() {
-  const pid = _drawerPageId;
-  if (!pid) return;
+  const pid = _drawerPageId; if (!pid) return;
   const adding = !_bmSet.has(pid);
   try {
     if (adding) {
       await fetch(`${API}/api/me/bookmarks`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid}) });
       _bmSet.add(pid);
+      _allBookmarks = [{page_id:pid, law_name:_drawerLaw, article:_drawerArt, bookmarked_at:new Date().toISOString()}, ..._allBookmarks.filter(b=>b.page_id!==pid)];
     } else {
       await fetch(`${API}/api/me/bookmarks/${encodeURIComponent(pid)}`, { method:'DELETE', headers:{'X-Sofa-UID':getUID()} });
-      _bmSet.delete(pid);
+      _bmSet.delete(pid); _allBookmarks = _allBookmarks.filter(b => b.page_id !== pid);
     }
-  } catch { if (adding) _bmSet.add(pid); else _bmSet.delete(pid); }
+  } catch {
+    if (adding) { _bmSet.add(pid); _allBookmarks = [{page_id:pid, law_name:_drawerLaw, article:_drawerArt, bookmarked_at:new Date().toISOString()}, ..._allBookmarks.filter(b=>b.page_id!==pid)]; }
+    else { _bmSet.delete(pid); _allBookmarks = _allBookmarks.filter(b => b.page_id !== pid); }
+  }
   syncDrawerActions();
   animateCount(document.getElementById('stat-bm'), _bmSet.size);
+  refreshBookmarkGrid();
 }
 
 async function drToggleMastered() {
   const pid = _drawerPageId; if (!pid) return;
   const on = !_masteredSet.has(pid);
-  if (on) { _masteredSet.add(pid); _reviewSet.delete(pid); }
-  else _masteredSet.delete(pid);
-  syncDrawerActions();
+  if (on) {
+    _masteredSet.add(pid); _reviewSet.delete(pid);
+    _masteredItems = [{page_id:pid, law_name:_drawerLaw, article:_drawerArt}, ..._masteredItems.filter(i=>i.page_id!==pid)];
+    _reviewItems   = _reviewItems.filter(i => i.page_id !== pid);
+  } else {
+    _masteredSet.delete(pid); _masteredItems = _masteredItems.filter(i => i.page_id !== pid);
+  }
+  syncDrawerActions(); renderMasteredSection(); renderReviewSection();
   try { await fetch(`${API}/api/me/mastery`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid, status: on ? 'mastered' : 'none'}) }); } catch {}
 }
 
 async function drToggleReview() {
   const pid = _drawerPageId; if (!pid) return;
   const on = !_reviewSet.has(pid);
-  if (on) { _reviewSet.add(pid); _masteredSet.delete(pid); }
-  else _reviewSet.delete(pid);
-  syncDrawerActions();
-  try { await fetch(`${API}/api/me/mastery`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid, status: on ? 'review' : 'none'}) }); } catch {}
+  if (on) {
+    _reviewSet.add(pid); _masteredSet.delete(pid);
+    _reviewItems   = [{page_id:pid, law_name:_drawerLaw, article:_drawerArt, days:_reviewDays}, ..._reviewItems.filter(i=>i.page_id!==pid)];
+    _masteredItems = _masteredItems.filter(i => i.page_id !== pid);
+  } else {
+    _reviewSet.delete(pid); _reviewItems = _reviewItems.filter(i => i.page_id !== pid);
+  }
+  syncDrawerActions(); renderReviewSection(); renderMasteredSection();
+  try { await fetch(`${API}/api/me/mastery`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid, status: on ? 'review' : 'none', review_days: on ? _reviewDays : 0}) }); } catch {}
 }
 
 function closeDrawer() {
@@ -1053,7 +1140,7 @@ async function toggleSearchStar(pid, law, art, btn) {
 
 /* ── Sidebar 捲動高亮 ── */
 function initSidebarHighlight() {
-  const sections = ['member-section','progress-section','search-section','bookmark-section','tools-section','law-browser-section','history-section'];
+  const sections = ['member-section','progress-section','search-section','bookmark-section','mastered-section','review-section','tools-section','law-browser-section','history-section'];
   const items = document.querySelectorAll('.sn-item');
   if (!items.length) return;
   function onScroll() {
@@ -1165,15 +1252,26 @@ async function init() {
   renderExamCountdown();
   initSidebarHighlight();
 
-  const [prof, prog, bm, hist] = await Promise.allSettled([
+  const [prof, prog, bm, hist, mastery] = await Promise.allSettled([
     apiFetch('/api/me/profile'),
     apiFetch('/api/me/progress'),
     apiFetch('/api/me/bookmarks'),
     apiFetch('/api/me/history?limit=60'),
+    apiFetch('/api/me/mastery'),
   ]);
 
   const all401 = [prog, bm, hist].every(r => r.status === 'rejected' && r.reason?.status === 401);
   if (all401) { window.location.href = '/login.html'; return; }
+
+  if (mastery.status === 'fulfilled') {
+    const items = mastery.value.items || [];
+    _masteredItems = items.filter(i => i.status === 'mastered');
+    _reviewItems   = items.filter(i => i.status === 'review');
+    _masteredSet   = new Set(_masteredItems.map(i => i.page_id));
+    _reviewSet     = new Set(_reviewItems.map(i => i.page_id));
+    renderMasteredSection();
+    renderReviewSection();
+  }
 
   const histData = hist.status === 'fulfilled' ? hist.value : null;
   const streak = histData ? calcStreak(histData.history) : 0;
