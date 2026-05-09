@@ -101,15 +101,15 @@ async function loadQuiz() {
     (data.options || []).forEach((opt, i) => {
       const btn = document.createElement('button');
       btn.className = 'opt-btn';
-      btn.innerHTML = `<span class="opt-label">${labels[i]}</span>${esc(opt.snippet || '')}`;
+      btn.innerHTML = `<span class="opt-label">${labels[i]}</span>${esc(opt)}`;
       btn.addEventListener('click', () => {
         if (answered) return;
         answered = true; total++;
         document.querySelectorAll('.opt-btn').forEach((b, j) => {
           b.disabled = true;
-          if ((data.options[j] || {}).is_correct) b.classList.add('correct');
+          if (data.options[j] === data.answer) b.classList.add('correct');
         });
-        if (!opt.is_correct) { btn.classList.add('wrong'); wrong++; } else { right++; }
+        if (opt !== data.answer) { btn.classList.add('wrong'); wrong++; } else { right++; }
         updateScore();
       });
       obox.appendChild(btn);
