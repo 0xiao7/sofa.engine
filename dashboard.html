@@ -244,7 +244,7 @@ main { padding-top: 6rem; padding-bottom: 6rem; }
 /* ── DRAWER PANEL ── */
 .drawer {
   position: fixed; top: 0; right: 0; bottom: 0; z-index: 201;
-  width: min(540px, 94vw);
+  width: min(680px, 96vw);
   background: var(--navy-2);
   border-left: 1px solid rgba(231,187,167,0.18);
   transform: translateX(100%);
@@ -988,7 +988,7 @@ function openDrawer(pageId, law, art) {
   _drawerLaw = law;
   _drawerArt = art;
   document.getElementById('drawer-law').textContent = law;
-  document.getElementById('drawer-art').textContent = `§${art}`;
+  document.getElementById('drawer-art').textContent = art.startsWith('§') ? art : `§${art}`;
   document.getElementById('drawer-content').innerHTML = '<div class="drawer-spinner"><div class="drawer-spinner-text">LOADING</div></div>';
   document.getElementById('drawer-overlay').classList.add('open');
   document.getElementById('drawer').classList.add('open');
@@ -1141,13 +1141,17 @@ function formatContent(text) {
 }
 
 function formatRawText(text) {
-  return text.split('\n').map(l => {
+  // 在中文列舉符號前插入換行（原文無換行符）
+  const processed = text
+    .replace(/([：:]\s*)([一二三四五六七八九十百]{1,3}、)/g, '$1\n$2')
+    .replace(/([。）\s])([一二三四五六七八九十百]{1,3}、)/g, '$1\n$2')
+    .replace(/([。）\s])（([一二三四五六七八九十]{1,2})）/g, '$1\n　（$2）');
+
+  return processed.split('\n').map(l => {
     if (!l.trim()) return '<div class="raw-blank"></div>';
-    const raw = l.replace(/\t/g, '  ');
-    const spaces = (raw.match(/^( *)/) || ['',''])[1].length;
     let depth = 0;
-    if (spaces >= 4 || /^[\s　]*[（(]/.test(l)) depth = 2;
-    else if (spaces >= 2 || /^[\s　]*[一二三四五六七八九十]{1,2}、/.test(l)) depth = 1;
+    if (/^[\s　]*（[一二三四五六七八九十]）/.test(l)) depth = 2;
+    else if (/^[一二三四五六七八九十百]{1,3}、/.test(l)) depth = 1;
     const cls = depth > 0 ? ` d${depth}` : '';
     return `<div class="raw-line${cls}">${escHtml(l.trim())}</div>`;
   }).join('');
