@@ -381,42 +381,6 @@ main { padding-top: 6rem; padding-bottom: 6rem; }
 .rv-btn:hover { color: var(--cream); border-color: rgba(231,187,167,.3); }
 .rv-btn.active { color: var(--warn); border-color: rgba(245,166,35,.45); background: rgba(245,166,35,.06); }
 
-/* ── DEMO MODE ── */
-.demo-banner {
-  display: none;
-  position: sticky; top: 0; z-index: 99;
-  background: linear-gradient(90deg, var(--navy-3), var(--navy-2));
-  border-bottom: 1px solid rgba(231,187,167,.22);
-  padding: .7rem 1.4rem;
-  align-items: center; justify-content: space-between; gap: 1rem;
-  flex-wrap: wrap;
-}
-.demo-banner.show { display: flex; }
-.demo-banner-text {
-  font-family: var(--mono); font-size: .68rem; letter-spacing: .06em;
-  color: rgba(245,240,234,.6);
-}
-.demo-banner-text strong { color: var(--peach); }
-.demo-cta {
-  display: inline-flex; align-items: center; gap: .45rem;
-  background: var(--peach); color: var(--navy);
-  font-family: var(--mono); font-size: .68rem; font-weight: 600;
-  letter-spacing: .06em; padding: .38rem 1rem;
-  text-decoration: none; white-space: nowrap;
-  transition: opacity .18s;
-}
-.demo-cta:hover { opacity: .85; }
-.demo-gate {
-  display: flex; flex-direction: column; align-items: center; gap: .9rem;
-  padding: 2rem 1.4rem; text-align: center;
-  background: var(--navy-3); border: 1px solid var(--line-on-navy);
-}
-.demo-gate-msg {
-  font-family: var(--mono); font-size: .72rem;
-  letter-spacing: .06em; color: rgba(245,240,234,.45);
-}
-.demo-gate-msg strong { color: var(--peach); }
-
 /* ── PAGE LOADER ── */
 #page-loader {
   position: fixed; inset: 0; z-index: 9999;
@@ -443,64 +407,15 @@ main { padding-top: 6rem; padding-bottom: 6rem; }
 }
 
 /* ── RESPONSIVE ── */
-@media (max-width: 768px) {
-  /* nav */
-  nav { padding: .85rem 1.1rem; }
-  .nav-user { display: none; }
-  .nav-logout { padding: .28rem .7rem; font-size: .68rem; }
-
-  /* layout */
+@media (max-width: 600px) {
+  nav { padding: 1rem 1.2rem; }
   .container { padding: 0 1rem; }
-  main { padding-top: 5rem; padding-bottom: 4rem; }
-  .section { margin-bottom: 2.2rem; }
-  .card { padding: 1.3rem 1.2rem; }
-
-  /* member card */
-  .member-card { padding: 1.2rem 1.1rem; }
-  .member-card::after { display: none; }
-  .mc-top { flex-wrap: wrap; gap: .6rem; }
-  .mc-serial { font-size: .78rem; margin-bottom: 1rem; }
-  .mc-bottom { gap: 1.4rem; }
-
-  /* stats */
+  .bm-grid, .tools-grid { grid-template-columns: repeat(2, 1fr); }
   .stats-row { grid-template-columns: repeat(2, 1fr); }
   .stats-row .stat-item:nth-child(2) { border-right: none; }
-  .stat-num { font-size: 1.6rem; }
-
-  /* law browser */
-  .law-grid { grid-template-columns: repeat(2, 1fr); }
-  .law-name { min-width: 80px; font-size: .7rem; }
-
-  /* bookmarks */
-  .bm-grid { grid-template-columns: 1fr; }
-
-  /* tools */
-  .tools-grid { grid-template-columns: repeat(2, 1fr); }
-
-  /* search row */
-  .sf-row { gap: .5rem; }
-  .sf-tabs { flex-wrap: wrap; }
-
-  /* drawer already uses min(540px,94vw) — just ensure full width on very small */
-  .drawer { width: 100vw; }
-
-  /* progress bars */
-  .law-row { gap: .6rem; }
+  .law-name { min-width: 90px; font-size: .7rem; }
+  .mc-bottom { gap: 1.8rem; }
 }
-
-@media (max-width: 480px) {
-  .container { padding: 0 .8rem; }
-  .nav-brand { font-size: .8rem; }
-  .mc-bottom { flex-direction: column; gap: 1rem; }
-  .stats-row { grid-template-columns: repeat(2, 1fr); }
-  .card { padding: 1rem .95rem; }
-  .section-label { font-size: .62rem; }
-  .sf-row { flex-direction: column; align-items: flex-start; }
-  .sf-tabs { width: 100%; }
-  .sf-tab { flex: 1; text-align: center; }
-  .sf-time { width: 100%; }
-}
-
 @media (min-width: 1150px) {
   .side-nav { display: flex; }
   main { margin-left: 148px; }
@@ -518,15 +433,10 @@ main { padding-top: 6rem; padding-bottom: 6rem; }
 <nav>
   <a href="/" class="nav-brand">SOFA ENGINE</a>
   <div class="nav-right">
-    <span class="nav-user" id="nav-user" style="display:none">—</span>
-    <button class="nav-logout" id="nav-logout-btn" onclick="doLogout()" style="display:none">登出</button>
-    <a href="https://lin.ee/zUeMwo4" id="nav-line-cta" class="demo-cta" target="_blank" rel="noopener" style="display:none">加 LINE 領序號 →</a>
+    <span class="nav-user" id="nav-user">—</span>
+    <button class="nav-logout" onclick="doLogout()">登出</button>
   </div>
 </nav>
-<div class="demo-banner" id="demoBanner">
-  <span class="demo-banner-text">你正在瀏覽<strong>示範版</strong>。加 LINE Bot 領取體驗序號，解鎖完整功能。</span>
-  <a href="https://lin.ee/zUeMwo4" class="demo-cta" target="_blank" rel="noopener">加 LINE Bot → 立即領序號</a>
-</div>
 
 <!-- 左側邊欄 -->
 <aside class="side-nav" id="sideNav">
@@ -1442,54 +1352,9 @@ async function doLogout() {
   window.location.href = '/login.html';
 }
 
-/* ── ?uid= 自動登入（Bot 傳直連連結用）── */
-(function() {
-  const p = new URLSearchParams(location.search);
-  const u = p.get('uid');
-  if (u) {
-    localStorage.setItem('sofa_uid', u);
-    p.delete('uid');
-    const qs = p.toString();
-    history.replaceState({}, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
-  }
-})();
-
-const DEMO_MODE = !getUID();
-
-function showDemoMode() {
-  document.getElementById('demoBanner').classList.add('show');
-  document.getElementById('nav-line-cta').style.display = '';
-  // 示範版 member card
-  document.getElementById('member-card').innerHTML = `
-    <div class="mc-top">
-      <span class="mc-plan-badge">示範帳號</span>
-      <span class="mc-status">● DEMO</span>
-    </div>
-    <div class="mc-serial" style="opacity:.35">SOFA-T-????????</div>
-    <div class="mc-bottom">
-      <div><div class="mc-col-label">方案</div><div class="mc-col-val accent">體驗版</div></div>
-      <div><div class="mc-col-label">有效期</div><div class="mc-col-val">加 LINE 後取得</div></div>
-    </div>`;
-  // 示範版 stats
-  document.querySelector('.stats-row').innerHTML =
-    ['連續天數','查詢次數','收藏數','熟記數'].map(l =>
-      `<div class="stat-item"><span class="stat-num" style="opacity:.2">—</span><span class="stat-label">${l}</span></div>`
-    ).join('');
-  // 需登入的區塊顯示 gate
-  const gate = (msg) => `<div class="demo-gate">
-    <div class="demo-gate-msg">${msg}</div>
-    <a href="https://lin.ee/zUeMwo4" class="demo-cta" target="_blank" rel="noopener">加 LINE Bot → 領序號解鎖</a>
-  </div>`;
-  document.getElementById('bookmark-wrap').innerHTML = gate('加入 LINE Bot 領取體驗序號，即可使用<strong>收藏法條</strong>功能。');
-  document.getElementById('history-wrap').innerHTML  = gate('加入 LINE Bot 領取體驗序號，即可查看<strong>查詢紀錄</strong>。');
-  document.getElementById('progress-list').innerHTML = gate('加入 LINE Bot 領取體驗序號，即可查看<strong>學習進度</strong>。');
-}
-
 /* ── 初始化 ── */
 async function init() {
-  if (DEMO_MODE) { showDemoMode(); return; }
-  document.getElementById('nav-user').style.display = '';
-  document.getElementById('nav-logout-btn').style.display = '';
+  if (!getUID()) { window.location.href = '/login.html'; return; }
   document.getElementById('nav-user').textContent = localStorage.getItem('sofa_nickname') || getUID();
   renderExamCountdown();
   initSidebarHighlight();
