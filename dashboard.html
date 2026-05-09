@@ -82,14 +82,14 @@ nav {
 
 /* ── LAYOUT ── */
 .container { max-width: 860px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 1; }
-main { padding-top: 6rem; padding-bottom: 5rem; }
-.section { margin-bottom: 2rem; }
+main { padding-top: 6rem; padding-bottom: 6rem; }
+.section { margin-bottom: 3.5rem; }
 .section-label {
   font-family: var(--mono); font-size: .68rem;
   letter-spacing: .25em; color: rgba(245,240,234,.35);
-  text-transform: uppercase; margin-bottom: 1rem;
+  text-transform: uppercase; margin-bottom: 1.3rem;
 }
-.card { background: var(--navy-2); border: 1px solid var(--line-on-navy); padding: 2rem; }
+.card { background: var(--navy-2); border: 1px solid var(--line-on-navy); padding: 2rem 2.2rem; }
 
 /* ── MEMBER CARD ── */
 .member-card {
@@ -134,13 +134,13 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
   display: grid; grid-template-columns: repeat(4, 1fr);
   border-bottom: 1px solid var(--line-on-navy); margin-bottom: 1.8rem;
 }
-.stat-item { padding: 1rem 0; text-align: center; border-right: 1px solid var(--line-on-navy); }
+.stat-item { padding: 1.3rem 0; text-align: center; border-right: 1px solid var(--line-on-navy); }
 .stat-item:last-child { border-right: none; }
 .stat-num { font-family: var(--mono); font-size: 2rem; font-weight: 500; color: var(--peach); display: block; line-height: 1; }
 .stat-label { display: block; margin-top: .4rem; font-size: .72rem; letter-spacing: .1em; color: rgba(245,240,234,.4); }
 
 /* ── PROGRESS BARS ── */
-.law-row { display: flex; align-items: center; gap: 1rem; margin-bottom: .8rem; }
+.law-row { display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem; }
 .law-name { font-size: .78rem; color: rgba(245,240,234,.45); min-width: 130px; flex-shrink: 0; letter-spacing: .02em; }
 .bar-wrap { flex: 1; background: rgba(245,240,234,.06); height: 4px; }
 .bar-fill { height: 100%; background: var(--peach); transition: width .7s ease; }
@@ -150,7 +150,7 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
 .bm-search { width: 100%; background: var(--navy-2); border: 1px solid var(--line-on-navy); color: var(--cream); font-family: var(--sans); font-size: .82rem; padding: .55rem .9rem; outline: none; border-radius: 2px; margin-bottom: .8rem; transition: border-color .15s; }
 .bm-search:focus { border-color: rgba(231,187,167,.4); }
 .bm-search::placeholder { color: var(--muted); }
-.bm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; background: transparent; }
+.bm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; background: transparent; }
 .bm-item {
   background: var(--navy-3); padding: 1.2rem 1.3rem;
   border: 1px solid var(--line-on-navy); border-radius: 4px;
@@ -182,7 +182,7 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
 .tool-soon  { font-family: var(--mono); font-size: .58rem; letter-spacing: .12em; color: rgba(245,240,234,.3); display: inline-block; margin-top: .35rem; border: 1px solid var(--line-on-navy); padding: .1rem .4rem; }
 
 /* ── HISTORY ── */
-.hist-list { display: flex; flex-direction: column; gap: 7px; background: transparent; }
+.hist-list { display: flex; flex-direction: column; gap: 9px; background: transparent; }
 .hist-item {
   background: var(--navy-3); padding: .95rem 1.2rem;
   border: 1px solid var(--line-on-navy); border-radius: 4px;
@@ -196,7 +196,7 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
 .hist-time { font-family: var(--mono); font-size: .65rem; color: rgba(245,240,234,.3); flex-shrink: 0; margin-left: 1rem; }
 
 /* ── LAW BROWSER GRID ── */
-.law-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.law-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .law-card { background: var(--navy-3); border: 1px solid var(--line-on-navy); border-radius: 4px; padding: .85rem 1rem; cursor: pointer; transition: border-color .15s, background .15s, transform .15s; }
 .law-card:hover { background: rgba(231,187,167,.05); border-color: rgba(231,187,167,.22); transform: translateY(-1px); }
 .law-card-name { font-size: .82rem; color: var(--cream); line-height: 1.4; }
@@ -379,6 +379,31 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
 .rv-btn:hover { color: var(--cream); border-color: rgba(231,187,167,.3); }
 .rv-btn.active { color: var(--warn); border-color: rgba(245,166,35,.45); background: rgba(245,166,35,.06); }
 
+/* ── PAGE LOADER ── */
+#page-loader {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--navy-4);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.4rem;
+  transition: opacity .45s ease;
+}
+#page-loader.hide { opacity: 0; pointer-events: none; }
+.pl-spinner {
+  width: 30px; height: 30px;
+  border: 2px solid rgba(231,187,167,.12);
+  border-top-color: var(--peach);
+  border-radius: 50%;
+  animation: spin .8s linear infinite;
+}
+.pl-text {
+  font-family: var(--mono); font-size: .64rem;
+  letter-spacing: .18em; color: rgba(245,240,234,.35);
+}
+.pl-sub {
+  font-family: var(--mono); font-size: .56rem;
+  letter-spacing: .1em; color: rgba(245,240,234,.18);
+  margin-top: -.6rem;
+}
+
 /* ── RESPONSIVE ── */
 @media (max-width: 600px) {
   nav { padding: 1rem 1.2rem; }
@@ -397,6 +422,11 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
 </head>
 <body>
 
+<div id="page-loader">
+  <div class="pl-spinner"></div>
+  <div class="pl-text">LOADING</div>
+  <div class="pl-sub">初次載入約 15–20 秒，請稍等</div>
+</div>
 <div class="warm-bar" id="warmBar">伺服器啟動中，資料即將出現（約 15–20 秒）…</div>
 <nav>
   <a href="/" class="nav-brand">SOFA ENGINE</a>
@@ -885,16 +915,16 @@ function setReviewDays(n) {
 }
 
 function refreshBookmarkGrid() {
-  const grid = document.getElementById('bm-grid-inner');
-  if (grid) { renderBookmarkGrid(_allBookmarks); return; }
   const wrap = document.getElementById('bookmark-wrap');
   if (!wrap) return;
   if (!_allBookmarks.length) {
     wrap.innerHTML = '<div class="card"><div class="empty">還沒有收藏。查詢法條後點「☆ 收藏」加入清單。</div></div>';
-  } else {
-    wrap.innerHTML = `<input class="bm-search" id="bmSearch" type="text" placeholder="搜尋法規名稱或條號…" oninput="filterBookmarks()" autocomplete="off"><div class="bm-grid" id="bm-grid-inner"></div>`;
-    renderBookmarkGrid(_allBookmarks);
+    return;
   }
+  if (!document.getElementById('bm-grid-inner')) {
+    wrap.innerHTML = `<input class="bm-search" id="bmSearch" type="text" placeholder="搜尋法規名稱或條號…" oninput="filterBookmarks()" autocomplete="off"><div class="bm-grid" id="bm-grid-inner"></div>`;
+  }
+  renderBookmarkGrid(_allBookmarks);
 }
 
 function renderMasteredSection() {
@@ -1346,11 +1376,19 @@ async function init() {
   }
 }
 
-const _warmTimer = setTimeout(() => document.getElementById('warmBar').classList.add('show'), 4000);
+function hidePageLoader() {
+  const loader = document.getElementById('page-loader');
+  if (!loader) return;
+  loader.classList.add('hide');
+  setTimeout(() => loader.remove(), 500);
+}
+
+const _warmTimer = setTimeout(() => document.getElementById('warmBar').classList.add('show'), 5000);
 loadLawBrowser();
 init().then(() => {
   clearTimeout(_warmTimer);
   document.getElementById('warmBar').classList.remove('show');
+  hidePageLoader();
   const params = new URLSearchParams(location.search);
   const openId  = params.get('open');
   const lawName = params.get('law') || '';
