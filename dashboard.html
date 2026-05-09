@@ -1159,7 +1159,7 @@ function linkifyRefs(rawLine) {
   while ((m = re.exec(rawLine)) !== null) {
     if (m.index > last) result += escHtml(rawLine.slice(last, m.index));
     const law = m[1], art = `第${m[2]}條`;
-    result += `<a class="law-ref-link" href="javascript:void(0)" onclick="openDrawerByLawArt(${JSON.stringify(law)},${JSON.stringify(art)})">${escHtml(m[0])}</a>`;
+    result += `<a class="law-ref-link" href="javascript:void(0)" data-law="${escHtml(law)}" data-art="${escHtml(art)}" onclick="openDrawerByLawArt(this.dataset.law,this.dataset.art)">${escHtml(m[0])}</a>`;
     last = m.index + m[0].length;
   }
   if (last < rawLine.length) result += escHtml(rawLine.slice(last));
