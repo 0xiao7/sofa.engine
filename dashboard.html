@@ -1093,20 +1093,40 @@ function setStarFilter(n) {
 function applySearchFilters() {
   const q = (document.getElementById('artSearchInput').value || '').trim().toLowerCase();
   const tl = document.getElementById('sfTimeSel')?.value || '';
-  let arts = _searchArts;
-  if (!arts.length) {
-    const res = document.getElementById('artSearchResults');
-    if (res && !res.innerHTML.includes('lbi-loading')) {
-      res.innerHTML = _searchLaw
-        ? '<div class="empty" style="padding:.8rem .3rem">沒有符合的條文</div>'
-        : '<div class="empty" style="padding:.8rem .3rem">輸入法規名稱後搜尋，或點下方法規目錄</div>';
+  const el = document.getElementById('artSearchResults');
+
+  // 沒有選法規：星等 > 0 → 顯示收藏；有 keyword → 搜尋收藏
+  if (!_searchLaw) {
+    if (_starFilter > 0 || q) {
+      let bms = _allBookmarks;
+      if (q) bms = bms.filter(b => (b.law_name||'').toLowerCase().includes(q) || (b.article||'').toLowerCase().includes(q));
+      if (!bms.length) {
+        el.innerHTML = '<div class="empty" style="padding:.8rem .3rem">' + (q ? '沒有符合的收藏條文' : '還沒有收藏的條文') + '</div>';
+      } else {
+        el.innerHTML = bms.slice(0, 60).map(b => {
+          const pid = escHtml(b.page_id), law = escHtml(b.law_name), art = escHtml(b.article);
+          return `<div class="art-search-row">
+            <span class="art-search-title" onclick="openDrawer('${pid}','${law}','${art}')">[${law}] §${art}</span>
+            <button class="bm-star on" onclick="toggleSearchStar('${pid}','${law}','${art}',this)" title="取消收藏">★</button>
+          </div>`;
+        }).join('');
+      }
+      return;
     }
+    el.innerHTML = '<div class="empty" style="padding:.8rem .3rem">輸入法規名稱後搜尋，或點下方法規目錄</div>';
     return;
   }
+
+  // 有選法規
+  if (!_searchArts.length) {
+    if (el && !el.innerHTML.includes('lbi-loading')) el.innerHTML = '<div class="empty" style="padding:.8rem .3rem">沒有符合的條文</div>';
+    return;
+  }
+  let arts = _searchArts;
   if (q) arts = arts.filter(a => a.title.toLowerCase().includes(q));
   if (_starFilter === 5) arts = arts.filter(a => (a.stars || a.importance || 0) >= 5);
   if (_starFilter === 4) arts = arts.filter(a => (a.stars || a.importance || 0) >= 4 && (a.stars || a.importance || 0) < 5);
-  if (tl) arts = arts.filter(a => (a.time_limit || a.title || '').includes(tl));
+  if (tl) arts = arts.filter(a => (a.time_limit || '').includes(tl));
   renderArtSearchResults(arts);
 }
 
