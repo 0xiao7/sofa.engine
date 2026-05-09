@@ -1167,15 +1167,40 @@ function linkifyRefs(rawLine) {
 }
 
 function openDrawerByLawArt(lawName, artTitle) {
+  document.getElementById('drawer-law').textContent = lawName;
+  document.getElementById('drawer-art').textContent = artTitle;
+  document.getElementById('drawer-content').innerHTML = '<div class="drawer-spinner"><div class="drawer-spinner-text">查詢中…</div></div>';
+  document.getElementById('drawer-overlay').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  _drawerOpen = true;
+
+  const numMatch = artTitle.match(/第(\d+)條/);
+  const artNum = numMatch ? parseInt(numMatch[1], 10) : null;
+
   apiFetch(`/api/articles?law=${encodeURIComponent(lawName)}`)
     .then(data => {
       const arts = data.articles || [];
-      const norm = t => t.replace(/\s/g, '');
-      let target = arts.find(a => norm(a.title) === norm(artTitle));
-      if (!target) target = arts.find(a => norm(a.title).includes(norm(artTitle.replace('條', ''))));
-      if (target) openDrawer(target.id, lawName, target.title);
+      let target = null;
+      if (artNum !== null) {
+        target = arts.find(a => {
+          const m = a.title.match(/§\s*0*(\d+)/);
+          return m && parseInt(m[1], 10) === artNum;
+        });
+      }
+      if (!target) {
+        const norm = t => t.replace(/\s/g, '');
+        target = arts.find(a => norm(a.title).includes(norm(artTitle.replace('條', ''))));
+      }
+      if (target) {
+        openDrawer(target.id, lawName, target.title);
+      } else {
+        document.getElementById('drawer-content').innerHTML = '<div class="empty">找不到此條文。</div>';
+      }
     })
-    .catch(() => {});
+    .catch(() => {
+      document.getElementById('drawer-content').innerHTML = '<div class="empty">載入失敗，請稍後再試。</div>';
+    });
 }
 
 function renderArticle(data) {
