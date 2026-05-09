@@ -895,6 +895,12 @@ function openDrawer(pageId, law, art) {
     .catch(() => {
       document.getElementById('drawer-content').innerHTML = '<div class="empty">載入失敗，請稍後再試。</div>';
     });
+
+  fetch(`${API}/api/me/history`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Sofa-UID': getUID() },
+    body: JSON.stringify({ page_id: pageId, law_name: law, article: art }),
+  }).catch(() => {});
 }
 
 function syncDrawerActions() {
