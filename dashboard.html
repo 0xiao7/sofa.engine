@@ -366,6 +366,8 @@ main { padding-top: 6rem; padding-bottom: 6rem; }
 .bm-star { background: none; border: none; color: rgba(231,187,167,.22); font-size: .88rem; cursor: pointer; padding: .1rem .25rem; transition: color .15s, transform .15s; flex-shrink: 0; line-height: 1; }
 .bm-star:hover { color: var(--peach); transform: scale(1.2); }
 .bm-star.on { color: var(--peach); }
+.cross-search-hd { font-family: var(--mono); font-size: .68rem; letter-spacing: .08em; color: var(--peach); padding: .5rem .7rem .3rem; opacity: .7; }
+.tl-badge { font-family: var(--mono); font-size: .62rem; background: rgba(231,187,167,.12); color: var(--peach); border: 1px solid rgba(231,187,167,.2); padding: .05rem .4rem; border-radius: 2px; margin-left: .3rem; vertical-align: middle; }
 
 /* ── DRAWER ACTIONS ── */
 .drawer-actions { display: flex; gap: .5rem; padding: .75rem 1.6rem; border-bottom: 1px solid var(--line-on-navy); flex-shrink: 0; flex-wrap: wrap; }
@@ -529,7 +531,7 @@ main { padding-top: 6rem; padding-bottom: 6rem; }
         </select>
       </div>
       <div id="artSearchResults" style="max-height:320px;overflow-y:auto;margin:0 -.3rem">
-        <div class="empty" style="padding:.8rem .3rem">輸入法規名稱後搜尋，或點下方法規目錄</div>
+        <div class="empty" style="padding:.8rem .3rem">選時限可跨法規搜尋，或選法規後輸入條號/關鍵字</div>
       </div>
     </div>
   </div>
@@ -1140,17 +1142,23 @@ function setStarFilter(n) {
   applySearchFilters();
 }
 
+let _crossSearchTimer = null;
+
 function applySearchFilters() {
   const q = (document.getElementById('artSearchInput').value || '').trim().toLowerCase();
   const tl = document.getElementById('sfTimeSel')?.value || '';
   const el = document.getElementById('artSearchResults');
 
-  // 沒選法規 或 選了「我的收藏」→ 預設顯示全部收藏，可 keyword 篩選
+  // 沒選法規：有時限 → 跨法規搜尋；無時限 → 收藏
   if (!_searchLaw || _searchLaw === '__bookmarks__') {
+    if (tl || q) {
+      clearTimeout(_crossSearchTimer);
+      _crossSearchTimer = setTimeout(() => doCrossLawSearch(q, tl), 300);
+      return;
+    }
     let bms = _allBookmarks;
-    if (q) bms = bms.filter(b => (b.law_name||'').toLowerCase().includes(q) || (b.article||'').toLowerCase().includes(q));
     if (!bms.length) {
-      el.innerHTML = `<div class="empty" style="padding:.8rem .3rem">${_allBookmarks.length ? '沒有符合的收藏條文' : '收藏載入中，或點下方法規目錄瀏覽'}</div>`;
+      el.innerHTML = `<div class="empty" style="padding:.8rem .3rem">收藏載入中，或點下方法規目錄瀏覽</div>`;
     } else {
       el.innerHTML = bms.slice(0, 60).map(b => {
         const pid = escHtml(b.page_id), law = escHtml(b.law_name), art = escHtml(b.article);
@@ -1174,6 +1182,35 @@ function applySearchFilters() {
   if (_starFilter === 4) arts = arts.filter(a => (a.stars || a.importance || 0) >= 4 && (a.stars || a.importance || 0) < 5);
   if (tl) arts = arts.filter(a => (a.time_limit || '').includes(tl));
   renderArtSearchResults(arts);
+}
+
+async function doCrossLawSearch(q, tl) {
+  const el = document.getElementById('artSearchResults');
+  el.innerHTML = '<div class="lbi-loading">跨法規搜尋中⋯</div>';
+  const params = new URLSearchParams();
+  if (q) params.set('q', q);
+  if (tl) params.set('time_limit', tl);
+  try {
+    const data = await apiFetch(`/api/search?${params.toString()}`);
+    const items = data.results || [];
+    if (!items.length) {
+      el.innerHTML = '<div class="empty" style="padding:.8rem .3rem">沒有符合的條文</div>';
+      return;
+    }
+    el.innerHTML = `<div class="cross-search-hd">找到 ${items.length} 條${tl ? `（時限含「${tl}」）` : ''}${q ? `・關鍵字「${q}」` : ''}</div>` +
+      items.slice(0, 80).map(a => {
+        const pid = escHtml(a.id), law = escHtml(a.law_name), title = escHtml(a.title);
+        const tlBadge = a.time_limit ? `<span class="tl-badge">${escHtml(a.time_limit)}</span>` : '';
+        const starred = _bmSet.has(a.id) ? 'on' : '';
+        return `<div class="art-search-row">
+          <span class="art-search-title" onclick="openDrawer('${pid}','${law}','${title}')">[${law}] ${title} ${tlBadge}</span>
+          <button class="bm-star ${starred}" onclick="toggleSearchStar('${pid}','${law}','${title}',this)" title="收藏">★</button>
+        </div>`;
+      }).join('') +
+      (items.length > 80 ? `<div class="empty" style="padding:.6rem .3rem">僅顯示前 80 筆，請縮小條件</div>` : '');
+  } catch {
+    el.innerHTML = '<div class="lbi-loading">搜尋失敗，請稍後再試</div>';
+  }
 }
 
 function renderArtSearchResults(arts) {
