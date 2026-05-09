@@ -65,8 +65,8 @@ nav {
 .warm-bar.show { display: block; }
 .nav-brand { font-family: var(--mono); font-size: .9rem; letter-spacing: .14em; color: var(--peach); text-decoration: none; }
 .nav-right  { display: flex; align-items: center; gap: 1.8rem; }
-.nav-user   { font-family: var(--mono); font-size: .68rem; letter-spacing: .08em; color: rgba(245,240,234,.3); display: flex; align-items: center; gap: .35rem; }
-.nav-user::before { content:''; display:inline-block; width:5px; height:5px; border-radius:50%; background:#4CAF50; flex-shrink:0; }
+.nav-user   { font-family: var(--mono); font-size: .68rem; letter-spacing: .08em; color: rgba(245,240,234,.6); display: flex; align-items: center; gap: .45rem; }
+.nav-user::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:#4CAF50; box-shadow:0 0 0 3px rgba(76,175,80,.2); flex-shrink:0; }
 .nav-logout {
   font-family: var(--mono); font-size: .72rem; letter-spacing: .12em;
   color: rgba(245,240,234,.4); background: none; border: 1px solid var(--line-on-navy);
@@ -147,6 +147,9 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
 .bar-count { font-family: var(--mono); font-size: .68rem; color: rgba(245,240,234,.4); min-width: 40px; text-align: right; }
 
 /* ── BOOKMARKS ── */
+.bm-search { width: 100%; background: var(--navy-2); border: 1px solid var(--line-on-navy); color: var(--cream); font-family: var(--sans); font-size: .82rem; padding: .55rem .9rem; outline: none; border-radius: 2px; margin-bottom: .8rem; transition: border-color .15s; }
+.bm-search:focus { border-color: rgba(231,187,167,.4); }
+.bm-search::placeholder { color: var(--muted); }
 .bm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; background: transparent; }
 .bm-item {
   background: var(--navy-3); padding: 1.2rem 1.3rem;
@@ -414,7 +417,7 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
   </div>
 
   <!-- 法規目錄 -->
-  <div class="section">
+  <div class="section" id="law-browser-section">
     <div class="section-label">法規目錄 — 33 部</div>
     <div id="law-browser"><div class="loading">loading...</div></div>
   </div>
@@ -555,8 +558,10 @@ function renderMemberCard(data, streak) {
     expireHtml = `<div class="mc-col-val">—</div>`;
   } else {
     const cls = days < 0 ? 'danger' : days <= 14 ? 'warn' : '';
-    expireHtml = `<div class="mc-col-val ${cls}">${(data.expire||'').slice(0,10)}</div>`;
-    const dcls = days < 0 ? 'danger' : days <= 14 ? 'warn' : '';
+    const relative = days < 0 ? `已過期 ${Math.abs(days)} 天` : days === 0 ? '今天到期' : `還有 ${days} 天`;
+    expireHtml = `<div class="mc-col-val ${cls}">${(data.expire||'').slice(0,10)}</div>
+      <div style="font-family:var(--mono);font-size:.65rem;color:${days<=0?'var(--danger)':days<=14?'var(--warn)':'rgba(245,240,234,.4)'};margin-top:.2rem">${relative}</div>`;
+    const dcls = days < 0 ? 'danger' : days <= 14 ? 'warn' : 'green';
     daysHtml = `
       <div>
         <div class="mc-col-label">剩餘天數</div>
@@ -616,14 +621,13 @@ function renderProgressError(reason) {
 }
 
 /* ── 收藏 ── */
-function renderBookmarks(data) {
-  animateCount(document.getElementById('stat-bm'), data.total || 0);
-  const el = document.getElementById('bookmark-wrap');
-  if (!data.bookmarks || !data.bookmarks.length) {
-    el.innerHTML = '<div class="card"><div class="empty">還沒有收藏。查詢法條後點「⭐ 收藏」加入清單。</div></div>';
-    return;
-  }
-  const items = data.bookmarks.slice(0,16).map(b => `
+let _allBookmarks = [];
+
+function renderBookmarkGrid(bms) {
+  const grid = document.getElementById('bm-grid-inner');
+  if (!grid) return;
+  if (!bms.length) { grid.innerHTML = '<div class="empty" style="grid-column:span 2">沒有符合的收藏</div>'; return; }
+  grid.innerHTML = bms.slice(0, 40).map(b => `
     <div class="bm-item"
       data-page-id="${escHtml(b.page_id||'')}"
       data-law="${escHtml(b.law_name||'')}"
@@ -634,9 +638,30 @@ function renderBookmarks(data) {
       <div class="bm-date">${(b.bookmarked_at||'').slice(5,10)} · 查看解析 →</div>
     </div>
   `).join('');
-  el.innerHTML = `<div class="bm-grid">${items}</div>`;
-  if (data.total > 16)
-    el.innerHTML += `<div style="margin-top:.8rem;font-family:var(--mono);font-size:.68rem;color:rgba(245,240,234,.35);letter-spacing:.08em">共 ${data.total} 條 · LINE 傳「複習收藏」一次推播全部</div>`;
+}
+
+function filterBookmarks() {
+  const q = (document.getElementById('bmSearch').value || '').trim().toLowerCase();
+  const filtered = q ? _allBookmarks.filter(b =>
+    (b.law_name||'').toLowerCase().includes(q) || (b.article||'').toLowerCase().includes(q)
+  ) : _allBookmarks;
+  renderBookmarkGrid(filtered);
+}
+
+function renderBookmarks(data) {
+  animateCount(document.getElementById('stat-bm'), data.total || 0);
+  const el = document.getElementById('bookmark-wrap');
+  if (!data.bookmarks || !data.bookmarks.length) {
+    el.innerHTML = '<div class="card"><div class="empty">還沒有收藏。查詢法條後點「⭐ 收藏」加入清單。</div></div>';
+    return;
+  }
+  _allBookmarks = data.bookmarks;
+  el.innerHTML = `
+    <input class="bm-search" id="bmSearch" type="text" placeholder="搜尋法規名稱或條號…" oninput="filterBookmarks()" autocomplete="off">
+    <div class="bm-grid" id="bm-grid-inner"></div>
+    ${data.total > 40 ? `<div style="margin-top:.8rem;font-family:var(--mono);font-size:.68rem;color:rgba(245,240,234,.35);letter-spacing:.08em">共 ${data.total} 條 · LINE 傳「複習收藏」一次推播全部</div>` : ''}
+  `;
+  renderBookmarkGrid(_allBookmarks);
 }
 
 /* ── 最近查詢 ── */
@@ -902,7 +927,6 @@ init().then(() => {
   if (openId) {
     openDrawer(openId, lawName, artNo);
   } else if (lawName) {
-    // index.html 查法條帶 law+art 進來，用條文清單找 page_id 後開 drawer
     apiFetch(`/api/articles?law=${encodeURIComponent(lawName)}`)
       .then(data => {
         const arts = data.articles || [];
@@ -913,6 +937,10 @@ init().then(() => {
         if (target) openDrawer(target.id, lawName, target.title);
       })
       .catch(() => {});
+  } else if (location.hash === '#law-browser') {
+    setTimeout(() => {
+      document.getElementById('law-browser-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 300);
   }
 });
 </script>
