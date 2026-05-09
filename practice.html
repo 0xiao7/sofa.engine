@@ -84,7 +84,7 @@ h1{font-family:var(--serif);font-size:1.5rem;font-weight:600;color:var(--cream);
 const API = 'https://sofa-engine-api.onrender.com';
 const uid = localStorage.getItem('sofa_uid') || (location.hostname === 'localhost' || location.protocol === 'file:' ? 'PREVIEW' : null);
 if (!uid) { window.location.href = '/login.html?redirect=practice.html'; }
-document.getElementById('navUid').textContent = uid;
+document.getElementById('navUid').textContent = localStorage.getItem('sofa_nickname') || uid;
 
 // 載入法規清單
 (async () => {

@@ -74,6 +74,11 @@ nav {
 }
 .nav-logout:hover { color: var(--cream); border-color: rgba(231,187,167,.3); transform: translateY(-1px); }
 .nav-logout:active { transform: scale(.97); }
+.nick-row { display: flex; align-items: center; gap: .5rem; margin-top: .6rem; }
+.nick-display { font-family: var(--mono); font-size: .72rem; color: rgba(245,240,234,.5); cursor: pointer; border-bottom: 1px dashed rgba(245,240,234,.2); padding-bottom: 1px; transition: color .15s; }
+.nick-display:hover { color: var(--peach); }
+.nick-edit { display: none; background: var(--navy-2); border: 1px solid rgba(231,187,167,.3); color: var(--cream); font-family: var(--mono); font-size: .72rem; padding: .25rem .5rem; outline: none; width: 140px; border-radius: 2px; }
+.nick-hint { font-family: var(--mono); font-size: .62rem; color: rgba(245,240,234,.25); }
 
 /* ── LAYOUT ── */
 .container { max-width: 860px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 1; }
@@ -187,21 +192,38 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
 .hist-art  { font-family: var(--mono); font-size: .68rem; color: var(--peach); margin-bottom: .2rem; letter-spacing: .06em; }
 .hist-time { font-family: var(--mono); font-size: .65rem; color: rgba(245,240,234,.3); flex-shrink: 0; margin-left: 1rem; }
 
-/* ── LAW BROWSER ── */
-.lbi { background: var(--navy-3); border: 1px solid var(--line-on-navy); border-radius: 4px; margin-bottom: 6px; overflow: hidden; }
-.lbi-head { display: flex; justify-content: space-between; align-items: center; padding: .85rem 1.1rem; cursor: pointer; transition: background .15s; user-select: none; }
-.lbi-head:hover { background: rgba(231,187,167,.05); }
-.lbi.open .lbi-head { background: rgba(231,187,167,.07); }
-.lbi-name { font-size: .84rem; color: var(--cream); }
-.lbi-right { display: flex; align-items: center; gap: .8rem; flex-shrink: 0; }
-.lbi-count { font-family: var(--mono); font-size: .63rem; color: var(--muted); }
-.lbi-arrow { font-family: var(--mono); font-size: .9rem; color: var(--peach-3); transition: transform .2s; line-height: 1; }
-.lbi.open .lbi-arrow { transform: rotate(90deg); }
-.lbi-arts { display: none; padding: .4rem .8rem .85rem; flex-wrap: wrap; gap: 5px; }
-.lbi.open .lbi-arts { display: flex; }
-.lbi-art-btn { font-family: var(--mono); font-size: .68rem; color: rgba(245,240,234,.45); padding: .28rem .55rem; background: none; border: 1px solid var(--line-on-navy); cursor: pointer; transition: color .15s, border-color .15s, background .15s; border-radius: 2px; }
-.lbi-art-btn:hover { color: var(--peach); border-color: rgba(231,187,167,.3); background: rgba(231,187,167,.05); }
-.lbi-loading { padding: .6rem .4rem; font-family: var(--mono); font-size: .7rem; color: var(--muted); }
+/* ── LAW BROWSER GRID ── */
+.law-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.law-card { background: var(--navy-3); border: 1px solid var(--line-on-navy); border-radius: 4px; padding: .85rem 1rem; cursor: pointer; transition: border-color .15s, background .15s, transform .15s; }
+.law-card:hover { background: rgba(231,187,167,.05); border-color: rgba(231,187,167,.22); transform: translateY(-1px); }
+.law-card-name { font-size: .82rem; color: var(--cream); line-height: 1.4; }
+.law-card-count { font-family: var(--mono); font-size: .62rem; color: var(--muted); margin-top: .3rem; }
+@media(max-width:600px){ .law-grid { grid-template-columns: repeat(2,1fr); } }
+
+/* ── LAW PANEL (SIDEBAR) ── */
+.law-panel-overlay { position: fixed; inset: 0; z-index: 201; background: rgba(13,28,40,.55); display: none; }
+.law-panel-overlay.open { display: block; }
+.law-panel {
+  position: fixed; top: 0; right: 0; bottom: 0; z-index: 202;
+  width: 360px; max-width: 92vw;
+  background: var(--navy-3); border-left: 1px solid var(--line-on-navy);
+  display: flex; flex-direction: column;
+  transform: translateX(100%); transition: transform .25s ease;
+}
+.law-panel.open { transform: translateX(0); }
+.law-panel-header { display: flex; justify-content: space-between; align-items: center; padding: 1.1rem 1.2rem; border-bottom: 1px solid var(--line-on-navy); flex-shrink: 0; }
+.law-panel-name { font-family: var(--serif); font-size: 1rem; font-weight: 600; color: var(--cream); }
+.law-panel-close { background: none; border: none; color: rgba(245,240,234,.4); font-size: 1rem; cursor: pointer; padding: .2rem .4rem; transition: color .15s; }
+.law-panel-close:hover { color: var(--cream); }
+.law-panel-search { padding: .8rem 1rem; border-bottom: 1px solid var(--line-on-navy); flex-shrink: 0; }
+.law-panel-search input { width: 100%; background: var(--navy-2); border: 1px solid var(--line-on-navy); color: var(--cream); font-family: var(--sans); font-size: .82rem; padding: .5rem .8rem; outline: none; border-radius: 2px; transition: border-color .15s; }
+.law-panel-search input:focus { border-color: rgba(231,187,167,.4); }
+.law-panel-search input::placeholder { color: var(--muted); }
+.law-panel-list { flex: 1; overflow-y: auto; padding: .6rem .6rem; }
+.panel-art { padding: .55rem .7rem; font-family: var(--mono); font-size: .72rem; color: rgba(245,240,234,.5); cursor: pointer; border-radius: 3px; transition: background .12s, color .12s; }
+.panel-art:hover { background: rgba(231,187,167,.08); color: var(--peach); }
+.panel-art-no { color: var(--peach-3); margin-right: .4rem; }
+.lbi-loading { padding: .8rem; font-family: var(--mono); font-size: .72rem; color: var(--muted); }
 
 /* ── EMPTY / LOADING ── */
 .empty   { font-size: .82rem; color: rgba(245,240,234,.35); padding: 1.5rem 0; }
@@ -406,6 +428,19 @@ main { padding-top: 6rem; padding-bottom: 5rem; }
 </div>
 </main>
 
+<!-- 法規側邊欄 -->
+<div class="law-panel-overlay" id="lawPanelOverlay" onclick="closeLawPanel()"></div>
+<div class="law-panel" id="lawPanel">
+  <div class="law-panel-header">
+    <span class="law-panel-name" id="lawPanelTitle"></span>
+    <button class="law-panel-close" onclick="closeLawPanel()" aria-label="關閉">✕</button>
+  </div>
+  <div class="law-panel-search">
+    <input type="text" id="lawPanelSearch" placeholder="搜尋條文…" oninput="filterLawPanel()" autocomplete="off">
+  </div>
+  <div class="law-panel-list" id="lawPanelList"></div>
+</div>
+
 <!-- 條文 Drawer -->
 <div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
 <div class="drawer" id="drawer" role="dialog" aria-modal="true">
@@ -536,6 +571,10 @@ function renderMemberCard(data, streak) {
       <span class="mc-status">● ACTIVE</span>
     </div>
     <div class="mc-serial">${escHtml(serial)}</div>
+    <div class="nick-row">
+      <span class="nick-display" id="nickDisplay" onclick="startNickEdit()" title="點擊設定暱稱">${escHtml(localStorage.getItem('sofa_nickname') || '設定暱稱 ✎')}</span>
+      <input class="nick-edit" id="nickEdit" maxlength="20" placeholder="輸入暱稱…" onblur="saveNick()" onkeydown="if(event.key==='Enter')saveNick();else if(event.key==='Escape')cancelNick();">
+    </div>
     <div class="mc-bottom">
       <div>
         <div class="mc-col-label">到期日</div>
@@ -706,47 +745,85 @@ function renderArticle(data) {
 }
 
 /* ── 法規目錄 ── */
+/* ── 法規目錄 grid ── */
 async function loadLawBrowser() {
   const el = document.getElementById('law-browser');
   try {
     const data = await apiFetch('/api/laws');
     const laws = data.laws || [];
-    el.innerHTML = laws.map((l, i) => `
-      <div class="lbi" id="lbi-${i}">
-        <div class="lbi-head" onclick="toggleLaw(${i},'${escHtml(l.name)}')">
-          <span class="lbi-name">${escHtml(l.name)}</span>
-          <div class="lbi-right">
-            <span class="lbi-count" id="lbi-c-${i}"></span>
-            <span class="lbi-arrow">›</span>
-          </div>
-        </div>
-        <div class="lbi-arts" id="lbi-a-${i}"></div>
-      </div>`).join('');
+    el.innerHTML = `<div class="law-grid">${laws.map(l =>
+      `<div class="law-card" onclick="openLawPanel('${escHtml(l.name)}')">
+        <div class="law-card-name">${escHtml(l.name)}</div>
+        <div class="law-card-count" id="lc-${escHtml(l.name)}">— 條</div>
+      </div>`
+    ).join('')}</div>`;
   } catch {
     el.innerHTML = '<div class="empty">法規目錄載入失敗，請重新整理。</div>';
   }
 }
 
-async function toggleLaw(idx, lawName) {
-  const item = document.getElementById(`lbi-${idx}`);
-  const artsEl = document.getElementById(`lbi-a-${idx}`);
-  const wasOpen = item.classList.contains('open');
-  document.querySelectorAll('.lbi.open').forEach(el => el.classList.remove('open'));
-  if (wasOpen) return;
-  item.classList.add('open');
-  if (artsEl.dataset.loaded) return;
-  artsEl.innerHTML = '<div class="lbi-loading">載入中…</div>';
+/* ── 法規側邊欄 ── */
+let _panelArts = [];
+let _panelLaw  = '';
+
+async function openLawPanel(lawName) {
+  _panelLaw = lawName;
+  document.getElementById('lawPanelTitle').textContent = lawName;
+  document.getElementById('lawPanelSearch').value = '';
+  document.getElementById('lawPanelList').innerHTML = '<div class="lbi-loading">載入中…</div>';
+  document.getElementById('lawPanel').classList.add('open');
+  document.getElementById('lawPanelOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
   try {
     const data = await apiFetch(`/api/articles?law=${encodeURIComponent(lawName)}`);
-    const arts = data.articles || [];
-    document.getElementById(`lbi-c-${idx}`).textContent = `${arts.length} 條`;
-    artsEl.innerHTML = arts.map(a =>
-      `<button class="lbi-art-btn" onclick="openDrawer('${escHtml(a.id)}','${escHtml(lawName)}','${escHtml(a.title)}')">${escHtml(a.title)}</button>`
-    ).join('');
-    artsEl.dataset.loaded = '1';
+    _panelArts = data.articles || [];
+    const countEl = document.getElementById(`lc-${lawName}`);
+    if (countEl) countEl.textContent = `${_panelArts.length} 條`;
+    renderPanelArts(_panelArts);
   } catch {
-    artsEl.innerHTML = '<div class="lbi-loading">載入失敗，請再試一次。</div>';
+    document.getElementById('lawPanelList').innerHTML = '<div class="lbi-loading">載入失敗，請再試一次。</div>';
   }
+}
+
+function renderPanelArts(arts) {
+  document.getElementById('lawPanelList').innerHTML = arts.length
+    ? arts.map(a => `<div class="panel-art" onclick="openDrawer('${escHtml(a.id)}','${escHtml(_panelLaw)}','${escHtml(a.title)}')">${escHtml(a.title)}</div>`).join('')
+    : '<div class="lbi-loading">沒有符合的條文</div>';
+}
+
+function filterLawPanel() {
+  const q = document.getElementById('lawPanelSearch').value.trim().toLowerCase();
+  renderPanelArts(q ? _panelArts.filter(a => a.title.toLowerCase().includes(q)) : _panelArts);
+}
+
+function closeLawPanel() {
+  document.getElementById('lawPanel').classList.remove('open');
+  document.getElementById('lawPanelOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+/* ── 暱稱 ── */
+function startNickEdit() {
+  const nick = localStorage.getItem('sofa_nickname') || '';
+  document.getElementById('nickDisplay').style.display = 'none';
+  const inp = document.getElementById('nickEdit');
+  inp.style.display = 'inline-block';
+  inp.value = nick;
+  inp.focus(); inp.select();
+}
+function saveNick() {
+  const val = (document.getElementById('nickEdit').value || '').trim();
+  if (val) localStorage.setItem('sofa_nickname', val);
+  else localStorage.removeItem('sofa_nickname');
+  document.getElementById('nickEdit').style.display = 'none';
+  const disp = document.getElementById('nickDisplay');
+  disp.style.display = '';
+  disp.textContent = val || '設定暱稱 ✎';
+  document.getElementById('nav-user').textContent = val || getUID();
+}
+function cancelNick() {
+  document.getElementById('nickEdit').style.display = 'none';
+  document.getElementById('nickDisplay').style.display = '';
 }
 
 /* ── 登出 ── */
@@ -758,7 +835,7 @@ async function doLogout() {
 /* ── 初始化 ── */
 async function init() {
   if (!getUID()) { window.location.href = '/login.html'; return; }
-  document.getElementById('nav-user').textContent = getUID();
+  document.getElementById('nav-user').textContent = localStorage.getItem('sofa_nickname') || getUID();
 
   const [prof, prog, bm, hist] = await Promise.allSettled([
     apiFetch('/api/me/profile'),
