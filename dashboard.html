@@ -948,7 +948,7 @@ function initScrollSpy() {
 /* ── Greet & Clock ── */
 function renderClock() {
   const now = new Date();
-  const taipeiMs = now.getTime() + (8*60 + now.getTimezoneOffset()) * 60000;
+  const taipeiMs = now.getTime() + 8 * 3600000;
   const t = new Date(taipeiMs);
   const hh = String(t.getUTCHours()).padStart(2,'0');
   const mm = String(t.getUTCMinutes()).padStart(2,'0');
@@ -994,7 +994,7 @@ function calcStreak(history) {
   if (!history || !history.length) return 0;
   const dates = new Set(history.map(h => (h.queried_at||'').slice(0,10)).filter(Boolean));
   const now = new Date();
-  const taipeiMs = now.getTime() + (8*60 + now.getTimezoneOffset()) * 60000;
+  const taipeiMs = now.getTime() + 8 * 3600000;
   const taipeiNow = new Date(taipeiMs);
   const fmt = d => {
     const y = d.getUTCFullYear();
@@ -1021,7 +1021,7 @@ function calcStreak(history) {
 function calcWeekCount(history) {
   if (!history || !history.length) return 0;
   const now = new Date();
-  const taipeiMs = now.getTime() + (8*60 + now.getTimezoneOffset()) * 60000;
+  const taipeiMs = now.getTime() + 8 * 3600000;
   const taipeiNow = new Date(taipeiMs);
   const day = taipeiNow.getUTCDay(); // 0=Sun
   const weekStart = new Date(taipeiMs - day * 86400000);
