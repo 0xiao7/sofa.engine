@@ -1211,7 +1211,7 @@ function renderHistory(data) {
       data-art="${escHtml(h.article||'')}"
       onclick="itemClick(this)">
       <div>
-        <div class="hist-art">${escHtml(h.law_name)}</div>
+        ${h.law_name ? `<div class="hist-art">${escHtml(h.law_name)}</div>` : ''}
         <div class="hist-main">${fmtArt(h.article)}</div>
       </div>
       <div class="hist-time">${(h.queried_at||'').slice(5,10)}</div>
@@ -1290,7 +1290,7 @@ function renderMasteredSection() {
   if (!_masteredItems.length) { el.innerHTML = '<div class="card"><div class="empty">還沒有標記已熟記的條文。開啟條文後點「已熟記」。</div></div>'; return; }
   el.innerHTML = `<div class="hist-list">${_masteredItems.map(i => `
     <div class="hist-item" onclick="openDrawer('${escHtml(i.page_id)}','${escHtml(i.law_name)}','${escHtml(i.article)}')">
-      <div><div class="hist-art">${escHtml(i.law_name)}</div><div class="hist-main">${fmtArt(i.article)}</div></div>
+      <div>${i.law_name ? `<div class="hist-art">${escHtml(i.law_name)}</div>` : ''}<div class="hist-main">${fmtArt(i.article)}</div></div>
       <div class="hist-time" style="color:var(--good)">✓ 熟記</div>
     </div>`).join('')}</div>`;
 }
@@ -1301,7 +1301,7 @@ function renderReviewSection() {
   if (!_reviewItems.length) { el.innerHTML = '<div class="card"><div class="empty">還沒有待複習的條文。開啟條文後點「待複習」並設定天數。</div></div>'; return; }
   el.innerHTML = `<div class="hist-list">${_reviewItems.map(i => `
     <div class="hist-item" onclick="openDrawer('${escHtml(i.page_id)}','${escHtml(i.law_name)}','${escHtml(i.article)}')">
-      <div><div class="hist-art">${escHtml(i.law_name)}</div><div class="hist-main">${fmtArt(i.article)}</div></div>
+      <div>${i.law_name ? `<div class="hist-art">${escHtml(i.law_name)}</div>` : ''}<div class="hist-main">${fmtArt(i.article)}</div></div>
       <div class="hist-time" style="color:var(--warn)">◷ ${i.days ? i.days+'天後' : '待複習'}</div>
     </div>`).join('')}</div>`;
 }
