@@ -210,7 +210,7 @@
     <form class="auth-form" onsubmit="event.preventDefault();doLogin();">
       <div class="eb">STEP 01 / 01</div>
       <h2>歡迎回來，<br/>輸入序號進入。</h2>
-      <p class="greet-sub">購買後收到的 8 位序號。格式：SOFA-XXXX-XXXX</p>
+      <p class="greet-sub">輸入購買序號或體驗序號。格式：SOFA-XXXX-XXXX / SOFA-T-XXXXXXXX</p>
 
       <div style="margin-top:36px"></div>
 
@@ -222,7 +222,7 @@
       <div class="field-lab"><span>SERIAL / 序號</span></div>
       <div class="auth-field" id="serialWrap">
         <span class="ic">SOFA-</span>
-        <input id="serial" type="text" placeholder="XXXX-XXXX" maxlength="9"
+        <input id="serial" type="text" placeholder="XXXX-XXXX 或 T-XXXXXXXX" maxlength="12"
           autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text">
       </div>
 
@@ -244,18 +244,37 @@
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
 
+function normalizeSerial(value) {
+  const raw = value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  const body = raw.startsWith('SOFA') ? raw.slice(4) : raw;
+  if (body.startsWith('T')) {
+    const suffix = body.slice(1, 9);
+    return suffix.length === 8 ? `SOFA-T-${suffix}` : '';
+  }
+  const paid = body.slice(0, 8);
+  return paid.length === 8 ? `SOFA-${paid.slice(0, 4)}-${paid.slice(4, 8)}` : '';
+}
+
+function formatSerialInput(value) {
+  const raw = value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  const body = raw.startsWith('SOFA') ? raw.slice(4) : raw;
+  if (body.startsWith('T')) {
+    const suffix = body.slice(1, 9);
+    return suffix ? `T-${suffix}` : 'T-';
+  }
+  const paid = body.slice(0, 8);
+  return paid.length > 4 ? `${paid.slice(0, 4)}-${paid.slice(4)}` : paid;
+}
+
 document.getElementById('serial').addEventListener('input', function() {
-  let raw = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 8);
-  if (!raw) { this.value = ''; return; }
-  this.value = raw.length > 4 ? raw.slice(0, 4) + '-' + raw.slice(4) : raw;
+  this.value = formatSerialInput(this.value);
 });
 
 async function doLogin() {
   const btn = document.getElementById('btn');
-  const raw = document.getElementById('serial').value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  const serial = normalizeSerial(document.getElementById('serial').value);
   document.getElementById('msg').style.display = 'none';
-  if (raw.length < 8) { showErr('請輸入完整的 8 位序號'); return; }
-  const serial = 'SOFA-' + raw.slice(0, 4) + '-' + raw.slice(4, 8);
+  if (!serial) { showErr('請輸入完整序號：SOFA-XXXX-XXXX 或 SOFA-T-XXXXXXXX'); return; }
   btn.disabled = true;
   btn.innerHTML = '驗證中… <span class="arrow">⟶</span>';
   try {
