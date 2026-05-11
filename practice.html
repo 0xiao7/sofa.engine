@@ -2,86 +2,264 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
+<!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <title>打字練習 — SoFa Engine</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="sofa.css">
 <style>
-:root{--navy:#1F3848;--navy-2:#19303E;--navy-3:#142836;--navy-4:#0D1C28;--peach:#E7BBA7;--peach-2:#F0CDBD;--peach-3:#C89580;--cream:#F5F0EA;--muted:#7A8892;--line:rgba(245,240,234,.14);--mono:'JetBrains Mono',ui-monospace,monospace;--serif:'Noto Serif TC',serif;--sans:'Noto Sans TC',system-ui,sans-serif}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-body{background:var(--navy);color:var(--cream);font-family:var(--sans);font-weight:300;min-height:100vh}
-body::before{content:'';position:fixed;inset:0;background:radial-gradient(ellipse 70% 50% at 10% 0%,rgba(13,28,40,.7) 0%,transparent 60%),radial-gradient(ellipse 60% 70% at 85% 95%,rgba(231,187,167,.05) 0%,transparent 55%);pointer-events:none;z-index:0}
-nav{position:fixed;top:0;left:0;right:0;z-index:100;padding:1.1rem 2.5rem;display:flex;align-items:center;justify-content:space-between;background:rgba(13,28,40,.96);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
-.nav-brand{font-family:var(--mono);font-size:.9rem;letter-spacing:.14em;color:var(--peach);text-decoration:none}
-.nav-back{font-family:var(--mono);font-size:.72rem;letter-spacing:.08em;color:rgba(245,240,234,.4);text-decoration:none;border:1px solid var(--line);padding:.38rem .9rem;transition:color .18s,border-color .18s}
-.nav-back:hover{color:var(--cream);border-color:rgba(231,187,167,.3)}
-.nav-uid{font-family:var(--mono);font-size:.62rem;letter-spacing:.06em;color:rgba(245,240,234,.3);display:flex;align-items:center;gap:.35rem}
-.nav-uid::before{content:'';display:inline-block;width:5px;height:5px;border-radius:50%;background:#4CAF50;flex-shrink:0}
-.nav-logout-sm{font-family:var(--mono);font-size:.6rem;letter-spacing:.08em;color:rgba(245,240,234,.22);text-decoration:none;transition:color .15s}
-.nav-logout-sm:hover{color:rgba(229,100,100,.65)}
-@media(max-width:480px){.nav-uid{display:none}}
-main{max-width:760px;margin:0 auto;padding:6rem 1.5rem 4rem;position:relative;z-index:1}
-.page-label{font-family:var(--mono);font-size:.65rem;letter-spacing:.25em;color:rgba(245,240,234,.35);text-transform:uppercase;margin-bottom:.8rem}
-h1{font-family:var(--serif);font-size:1.5rem;font-weight:600;color:var(--cream);margin-bottom:1.6rem}
-.law-row{margin-bottom:1.2rem}
-.sofa-select{-webkit-appearance:none;appearance:none;background:var(--navy-2);border:1px solid var(--line);color:var(--cream);font-family:var(--sans);font-size:.84rem;padding:.6rem 2.2rem .6rem 1rem;outline:none;transition:border-color .2s;border-radius:0;width:100%;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A8892' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;cursor:pointer}
-.sofa-select:focus{border-color:rgba(231,187,167,.4)}
-.sofa-select option{background:var(--navy-2);color:var(--cream)}
-.meta-row{display:flex;justify-content:space-between;font-family:var(--mono);font-size:.72rem;color:var(--muted);margin-bottom:.8rem;flex-wrap:wrap;gap:.5rem}
-.typing-prompt{background:var(--navy-2);border:1px solid var(--line);padding:1.5rem;font-size:.88rem;line-height:2.2;min-height:140px;cursor:text;position:relative;color:var(--muted)}
-.typing-prompt.focused{border-color:rgba(231,187,167,.4)}
-.typing-hint{position:absolute;bottom:.6rem;right:.8rem;font-family:var(--mono);font-size:.65rem;color:var(--muted);opacity:.6}
-.char-correct{color:#72B5CF}
-.char-wrong{color:#E5B3B3;text-decoration:underline wavy}
-.char-cursor{border-right:2px solid var(--peach);animation:blink 1s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-@keyframes dot{0%,80%,100%{opacity:.2;transform:scale(.8)}40%{opacity:1;transform:scale(1)}}
-.btn-row{display:flex;gap:.8rem;margin-top:1rem;flex-wrap:wrap}
-.btn-primary-sm{padding:.55rem 1.3rem;background:var(--peach);color:var(--navy-4);border:none;font-family:var(--sans);font-size:.8rem;font-weight:500;letter-spacing:.06em;cursor:pointer;transition:opacity .2s}
-.btn-primary-sm:hover{opacity:.85}
-.btn-ghost-sm{padding:.55rem 1.3rem;background:none;border:1px solid var(--line);color:var(--muted);font-family:var(--sans);font-size:.8rem;cursor:pointer;transition:border-color .2s,color .2s}
-.btn-ghost-sm:hover{border-color:rgba(231,187,167,.3);color:var(--cream)}
-.loading{display:inline-flex;gap:4px;align-items:center}
-.loading span{width:4px;height:4px;background:var(--peach);border-radius:50%;animation:dot 1.2s infinite}
-.loading span:nth-child(2){animation-delay:.2s}.loading span:nth-child(3){animation-delay:.4s}
-.complete-box{margin-top:1rem;padding:1.2rem;background:var(--navy-3);border:1px solid var(--line);font-family:var(--mono);font-size:.82rem;color:var(--peach)}
-@media(max-width:640px){main{padding:5rem 1rem 3rem}}
+  /* === Practice control bar === */
+  .pr-bar{
+    background:var(--navy-2);border-bottom:1px solid var(--line);
+    padding:16px 40px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;
+  }
+  .pr-bar .l{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .pr-back{
+    font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+    color:rgba(245,240,234,.55);text-transform:uppercase;
+    padding:6px 10px;border:1px solid var(--line-2);border-radius:3px;transition:.18s;
+  }
+  .pr-back:hover{color:var(--cream);border-color:var(--peach-dim)}
+
+  .law-pick{
+    position:relative;display:flex;align-items:center;gap:10px;
+    background:var(--navy-3);border:1px solid var(--line-2);border-radius:3px;
+    padding:9px 36px 9px 14px;transition:.18s;
+  }
+  .law-pick:focus-within{border-color:var(--peach-dim)}
+  .law-pick .lab{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:rgba(245,240,234,.5);text-transform:uppercase;white-space:nowrap}
+  .law-pick select{
+    background:transparent;border:none;outline:none;
+    font-family:var(--serif);font-weight:500;font-size:14px;color:var(--cream);
+    cursor:pointer;min-width:100px;max-width:200px;
+    -webkit-appearance:none;appearance:none;
+  }
+  .law-pick select option{background:var(--navy-2);color:var(--cream)}
+  .law-pick .car{
+    position:absolute;right:12px;top:50%;transform:translateY(-50%);
+    color:var(--peach);font-family:var(--mono);font-size:11px;pointer-events:none;
+  }
+
+  .pr-meta{
+    display:flex;align-items:center;gap:24px;
+    font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:rgba(245,240,234,.55);
+  }
+  .pr-meta .seg{display:flex;align-items:center;gap:8px}
+  .pr-meta .seg b{color:var(--peach);font-weight:600;font-size:13px;letter-spacing:.04em}
+
+  .pr-progress{height:2px;background:rgba(245,240,234,.06);position:relative}
+  .pr-progress .fl{
+    position:absolute;left:0;top:0;height:100%;
+    background:linear-gradient(to right, var(--peach), var(--peach-2));
+    width:0%;transition:width .35s ease;
+  }
+
+  /* === Main stage === */
+  .pr-stage{
+    padding:48px 64px 96px;background:var(--navy-3);
+    position:relative;min-height:calc(100vh - 70px - 57px - 2px);
+  }
+  .pr-stage::before{
+    content:"";position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(245,240,234,.018) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,240,234,.018) 1px, transparent 1px);
+    background-size:60px 60px;
+    mask-image:radial-gradient(ellipse 60% 50% at 50% 0%, #000 30%, transparent 70%);
+    pointer-events:none;
+  }
+  .pr-inner{max-width:980px;margin:0 auto;position:relative}
+
+  /* article head */
+  .ar-head{
+    display:flex;align-items:flex-end;justify-content:space-between;
+    margin-bottom:28px;gap:24px;padding-bottom:20px;border-bottom:1px solid var(--line);
+    flex-wrap:wrap;
+  }
+  .ar-head .eb{
+    font-family:var(--mono);font-size:11px;color:var(--peach);
+    letter-spacing:.22em;text-transform:uppercase;
+    display:flex;align-items:center;gap:10px;margin-bottom:10px;
+  }
+  .ar-head .eb::before{content:"";width:18px;height:1px;background:var(--peach)}
+  .ar-head h2{
+    font-family:var(--serif);font-weight:600;font-size:28px;
+    color:var(--cream);line-height:1.3;
+  }
+  .ar-head h2 a{color:inherit;border-bottom:1px solid rgba(231,187,167,.3);padding-bottom:2px}
+  .ar-head h2 a:hover{border-color:var(--peach)}
+  .ar-head .r{
+    text-align:right;font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+    color:rgba(245,240,234,.5);text-transform:uppercase;
+  }
+  .ar-head .r b{color:var(--cream);font-weight:500;font-size:12px;display:block;margin-top:4px}
+
+  /* stat row */
+  .stat-row{
+    display:grid;grid-template-columns:1fr 1fr;gap:0;
+    background:var(--navy-2);border:1px solid var(--line);border-radius:4px;
+    padding:18px 0;margin-bottom:36px;
+  }
+  .stat{padding:0 28px;border-right:1px solid var(--line);text-align:center}
+  .stat:last-child{border-right:none}
+  .stat .v{font-family:var(--serif);font-weight:600;font-size:32px;line-height:1;color:var(--cream);letter-spacing:.01em}
+  .stat .v.peach{color:var(--peach)}
+  .stat .k{margin-top:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;color:rgba(245,240,234,.5);text-transform:uppercase}
+
+  /* type card */
+  .type-card{
+    background:var(--navy-2);border:1px solid var(--line);border-radius:4px;padding:40px 44px;
+  }
+
+  /* ghost text display — production JS writes char spans into this */
+  .ghost{
+    font-family:var(--serif);font-size:22px;line-height:2.1;
+    color:rgba(245,240,234,.25);letter-spacing:.02em;
+    user-select:none;cursor:text;min-height:96px;
+  }
+  .ghost.focused{cursor:text}
+  /* production JS char classes */
+  .char-correct{color:var(--cream)}
+  .char-wrong{color:var(--bad);background:rgba(199,123,106,.18);border-radius:1px;padding:0 1px}
+  .char-cursor{
+    color:var(--peach);background:rgba(231,187,167,.16);
+    padding:0 2px;border-radius:1px;
+    animation:blink 1s steps(2) infinite;
+  }
+  @keyframes blink{50%{background:transparent}}
+  .typing-hint{
+    display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+    color:rgba(245,240,234,.3);text-transform:uppercase;margin-top:16px;
+  }
+
+  /* action strip */
+  .type-input{
+    margin-top:28px;padding-top:22px;border-top:1px dashed var(--line);
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  }
+
+  /* complete box */
+  .complete-msg{
+    margin-top:20px;padding:18px 24px;
+    background:rgba(159,184,159,.07);border:1px solid rgba(159,184,159,.22);border-radius:4px;
+    font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--good);
+  }
+
+  /* keyboard hint footer */
+  .kbd-foot{
+    margin-top:32px;padding:16px 22px;border-top:1px dashed var(--line);
+    font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+    color:rgba(245,240,234,.4);text-transform:uppercase;
+  }
+
+  /* === RWD === */
+  @media(max-width:1100px){
+    .pr-bar{padding:14px 24px}
+    .pr-stage{padding:36px 32px 72px}
+    .stat-row{grid-template-columns:1fr 1fr}
+  }
+  @media(max-width:760px){
+    .topbar{padding:14px 20px}
+    .top-mid{display:none}
+    .menu-btn{display:flex}
+    .pr-bar{padding:12px 18px;gap:12px}
+    .pr-bar .l{gap:10px}
+    .pr-meta{gap:14px;font-size:11px}
+    .pr-stage{padding:28px 18px 60px}
+    .ar-head h2{font-size:22px}
+    .type-card{padding:24px 22px}
+    .ghost{font-size:18px;line-height:1.95}
+    .type-input{flex-direction:column;align-items:stretch}
+  }
 </style>
 </head>
 <body>
-<nav>
-  <a class="nav-brand" href="/">SoFa Engine</a>
-  <div style="display:flex;align-items:center;gap:1rem">
-    <span class="nav-uid" id="navUid"></span>
-    <a class="nav-logout-sm" href="#" onclick="localStorage.removeItem('sofa_uid');window.location.href='/login.html';return false;">登出</a>
-    <a class="nav-back" href="dashboard.html">← 儀表板</a>
+
+<header class="topbar">
+  <a class="brand" href="/"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
+  <nav class="top-mid">
+    <a href="dashboard.html">會員中心</a>
+    <a href="practice.html" class="on">打字</a>
+    <a href="quiz.html">選擇題</a>
+  </nav>
+  <div class="top-right">
+    <span class="user-pill"><span class="live"></span><span id="navUid"></span></span>
+    <button class="btn-out" onclick="localStorage.removeItem('sofa_uid');window.location.href='login.html'">登出</button>
+    <button class="menu-btn"><span></span></button>
   </div>
-</nav>
-<main>
-  <p class="page-label">PRACTICE — 打字練習</p>
-  <h1>逐字輸入法條原文</h1>
-  <div class="law-row">
-    <select class="sofa-select" id="lawSelect"><option value="">全部法規（隨機）</option></select>
+</header>
+
+<!-- Practice control bar -->
+<div class="pr-bar">
+  <div class="l">
+    <a href="dashboard.html" class="pr-back">← BACK</a>
+    <div class="law-pick">
+      <span class="lab">LAW</span>
+      <select id="lawSelect"><option value="">全部法規（隨機）</option></select>
+      <span class="car">▾</span>
+    </div>
   </div>
-  <div class="meta-row">
-    <span id="lawTitle" style="color:var(--accent2)">—</span>
-    <span>正確率 <b id="accDisplay" style="color:var(--accent)">—</b> &nbsp; 進度 <b id="progDisplay" style="color:var(--accent)">0%</b></span>
+  <div class="pr-meta">
+    <div class="seg">ACC <b id="accDisplay">—</b></div>
+    <div class="seg">PROGRESS <b id="progDisplay">0%</b></div>
   </div>
-  <div class="typing-prompt" id="typingPrompt" tabindex="0">
-    <span style="font-size:.82rem;color:var(--muted)">選擇法規後點「換一條」開始</span>
-    <span class="typing-hint">點擊此區域後開始輸入</span>
+</div>
+<div class="pr-progress"><div class="fl" id="progBar"></div></div>
+
+<main class="pr-stage">
+  <div class="pr-inner">
+
+    <!-- article head -->
+    <div class="ar-head">
+      <div>
+        <div class="eb">TYPING DRILL · ARTICLE</div>
+        <h2 id="lawTitle">選擇法規後點「換一條」開始</h2>
+      </div>
+      <div class="r">
+        打字練習
+        <b>逐字輸入法條原文</b>
+      </div>
+    </div>
+
+    <!-- stat row -->
+    <div class="stat-row">
+      <div class="stat">
+        <div class="v peach" id="progStatDisplay">0%</div>
+        <div class="k">PROGRESS</div>
+      </div>
+      <div class="stat">
+        <div class="v" id="accStatDisplay">—</div>
+        <div class="k">ACCURACY</div>
+      </div>
+    </div>
+
+    <!-- type card -->
+    <div class="type-card">
+      <div class="ghost" id="typingPrompt" tabindex="0">
+        <span style="font-size:.85rem;color:rgba(245,240,234,.35);font-family:var(--mono);letter-spacing:.06em">選擇法規後點「換一條」開始</span>
+        <span class="typing-hint">點擊此區域後開始輸入</span>
+      </div>
+
+      <div class="type-input">
+        <button class="btn btn-pri" id="btnNew">換一條</button>
+        <button class="btn btn-sec" id="btnReset">重來</button>
+      </div>
+    </div>
+
+    <div id="completeBox"></div>
+
+    <div class="kbd-foot">點擊文字區域後開始輸入 · 退格鍵可刪除</div>
+
   </div>
-  <div class="btn-row">
-    <button class="btn-primary-sm" id="btnNew">換一條</button>
-    <button class="btn-ghost-sm" id="btnReset">重來</button>
-  </div>
-  <div id="completeBox"></div>
 </main>
+
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
 const uid = localStorage.getItem('sofa_uid') || (location.hostname === 'localhost' || location.protocol === 'file:' ? 'PREVIEW' : null);
@@ -101,7 +279,7 @@ document.getElementById('navUid').textContent = localStorage.getItem('sofa_nickn
 
 let typeText = '', typeInput = '', typeFocused = false;
 
-function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
 
 function render() {
   const prompt = document.getElementById('typingPrompt');
@@ -112,7 +290,7 @@ function render() {
     if (i < typeInput.length) {
       html += typeInput[i] === typeText[i]
         ? `<span class="char-correct">${ch}</span>`
-        : `<span class="char-wrong" title="應為：${ch}">${esc(typeInput[i]||'?')}</span>`;
+        : `<span class="char-wrong" title="應為：${ch}">${esc(typeInput[i] || '?')}</span>`;
     } else if (i === typeInput.length) {
       html += `<span class="char-cursor">${ch}</span>`;
     } else {
@@ -124,12 +302,20 @@ function render() {
   prompt.innerHTML = html;
 
   const cor = [...typeInput].filter((c, i) => c === typeText[i]).length;
-  document.getElementById('accDisplay').textContent = (typeInput.length ? Math.round(cor/typeInput.length*100) : 100) + '%';
-  document.getElementById('progDisplay').textContent = Math.min(typeText.length ? Math.round(typeInput.length/typeText.length*100) : 0, 100) + '%';
+  const accPct = typeInput.length ? Math.round(cor / typeInput.length * 100) : 100;
+  const progPct = Math.min(typeText.length ? Math.round(typeInput.length / typeText.length * 100) : 0, 100);
+
+  document.getElementById('accDisplay').textContent = accPct + '%';
+  document.getElementById('progDisplay').textContent = progPct + '%';
+  document.getElementById('accStatDisplay').textContent = accPct + '%';
+  document.getElementById('progStatDisplay').textContent = progPct + '%';
+  const bar = document.getElementById('progBar');
+  if (bar) bar.style.width = progPct + '%';
 
   if (typeInput.length >= typeText.length && typeText.length > 0) {
-    const acc = Math.round(cor/typeText.length*100);
-    document.getElementById('completeBox').innerHTML = `<div class="complete-box">完成 ✓ 正確率 ${acc}%</div>`;
+    const acc = Math.round(cor / typeText.length * 100);
+    document.getElementById('completeBox').innerHTML =
+      `<div class="complete-msg">完成 ✓ 正確率 ${acc}%</div>`;
   }
 }
 
@@ -138,15 +324,27 @@ function ensureHiddenInput() {
   if (!ta) {
     ta = document.createElement('textarea');
     ta.id = '_ta';
-    ta.setAttribute('autocomplete','off'); ta.setAttribute('autocorrect','off'); ta.setAttribute('autocapitalize','none');
+    ta.setAttribute('autocomplete', 'off');
+    ta.setAttribute('autocorrect', 'off');
+    ta.setAttribute('autocapitalize', 'none');
     ta.style.cssText = 'position:fixed;opacity:.01;top:0;left:0;width:1px;height:1px;pointer-events:none;';
     document.body.appendChild(ta);
     ta.addEventListener('input', () => { typeInput = ta.value; render(); });
     ta.addEventListener('keydown', e => {
-      if (e.key === 'Backspace' && typeInput.length) { typeInput = typeInput.slice(0,-1); ta.value = typeInput; render(); e.preventDefault(); }
+      if (e.key === 'Backspace' && typeInput.length) {
+        typeInput = typeInput.slice(0, -1); ta.value = typeInput; render(); e.preventDefault();
+      }
     });
-    ta.addEventListener('focus', () => { typeFocused = true; document.getElementById('typingPrompt').classList.add('focused'); render(); });
-    ta.addEventListener('blur',  () => { typeFocused = false; document.getElementById('typingPrompt').classList.remove('focused'); render(); });
+    ta.addEventListener('focus', () => {
+      typeFocused = true;
+      document.getElementById('typingPrompt').classList.add('focused');
+      render();
+    });
+    ta.addEventListener('blur', () => {
+      typeFocused = false;
+      document.getElementById('typingPrompt').classList.remove('focused');
+      render();
+    });
   }
   return ta;
 }
@@ -156,7 +354,7 @@ document.getElementById('typingPrompt').addEventListener('click', () => ensureHi
 async function loadNew() {
   document.getElementById('completeBox').innerHTML = '';
   const prompt = document.getElementById('typingPrompt');
-  prompt.innerHTML = '<div class="loading"><span></span><span></span><span></span></div>';
+  prompt.innerHTML = '<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.4);letter-spacing:.1em">載入中…</span>';
   typeInput = ''; typeText = '';
   const ta = document.getElementById('_ta'); if (ta) ta.value = '';
   const law = document.getElementById('lawSelect').value;
@@ -166,13 +364,12 @@ async function loadNew() {
     typeText = d.original_text || '';
     const titleEl = document.getElementById('lawTitle');
     if (d.id) {
-      titleEl.innerHTML = `<a href="dashboard.html?open=${encodeURIComponent(d.id)}&art=${encodeURIComponent(d.title||'')}" style="color:inherit;text-decoration:none;border-bottom:1px solid rgba(231,187,167,.35);padding-bottom:1px;" title="查看解析">${esc(d.title||'')}</a>`;
+      titleEl.innerHTML = `<a href="dashboard.html?open=${encodeURIComponent(d.id)}&art=${encodeURIComponent(d.title || '')}" title="查看解析">${esc(d.title || '')}</a>`;
     } else {
-      titleEl.textContent = d.title || '';
+      titleEl.textContent = d.title || '—';
     }
     render();
   } catch {
-    // 離線展示：API 無法連線時載入範例法條供本地測試
     typeText = '民事訴訟，係指當事人就私法上之權利義務關係，請求法院加以裁判之程序。';
     document.getElementById('lawTitle').textContent = '（展示模式）民事訴訟法第一條';
     render();
@@ -182,7 +379,8 @@ async function loadNew() {
 document.getElementById('btnNew').addEventListener('click', loadNew);
 loadNew();
 document.getElementById('btnReset').addEventListener('click', () => {
-  typeInput = ''; const ta = document.getElementById('_ta'); if (ta) ta.value = '';
+  typeInput = '';
+  const ta = document.getElementById('_ta'); if (ta) ta.value = '';
   document.getElementById('completeBox').innerHTML = '';
   render();
 });
