@@ -1720,8 +1720,21 @@ function showDemoMode() {
 
 /* ── 初始化 ── */
 async function init() {
-  renderClock();
-  setInterval(renderClock, 30000);
+  window._sofaLastHour = renderClock();
+  setInterval(() => {
+    const prevHour = window._sofaLastHour;
+    const h = renderClock();
+    if (h !== prevHour) {
+      window._sofaLastHour = h;
+      const timeWord = h < 5 ? '深夜了' : h < 12 ? '早安' : h < 18 ? '午安' : '晚安';
+      const greetEl = document.getElementById('greet-text');
+      if (greetEl) {
+        const nameSpan = greetEl.querySelector('.name');
+        const name = nameSpan ? nameSpan.textContent.replace('。','') : '';
+        greetEl.innerHTML = name ? `${timeWord}，<span class="name">${escHtml(name)}。</span>` : `${timeWord}。`;
+      }
+    }
+  }, 10000);
   renderExamCountdown();
 
   if (DEMO_MODE) {
