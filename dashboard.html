@@ -1541,7 +1541,16 @@ function openDrawerByLawArt(lawName, artTitle) {
     });
 }
 
+function _importanceLabel(imp) {
+  if (!imp) return 'ARTICLE';
+  const stars = (imp.match(/★/g) || []).length;
+  const label = stars >= 5 ? '高頻' : stars >= 4 ? '重要' : stars >= 3 ? '一般' : '';
+  return label ? `ARTICLE · ${label} ${imp}` : `ARTICLE · ${imp}`;
+}
+
 function renderArticle(data) {
+  const metaEl = document.getElementById('drawer-meta-label');
+  if (metaEl) metaEl.textContent = _importanceLabel(data.importance || '');
   let html = '';
   if (data.original_text)
     html += `<div class="art-callout">${formatRawText(data.original_text)}</div>`;
