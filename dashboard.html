@@ -147,6 +147,10 @@ nav {
   transition: color .2s, border-color .2s;
 }
 .nav-logout:hover { color: var(--cream); border-color: rgba(231,187,167,.3); }
+.nav-refresh { font-family: var(--mono); font-size: .7rem; letter-spacing: .06em; color: rgba(245,240,234,.35); background: none; border: none; padding: .28rem .5rem; cursor: pointer; transition: color .2s; }
+.nav-refresh:hover { color: var(--peach); }
+.nav-refresh.spinning { animation: spin .6s linear infinite; pointer-events: none; }
+@keyframes spin { to { transform: rotate(360deg); } }
 .nick-row  { display: flex; align-items: center; gap: .5rem; margin-top: .6rem; }
 .nick-display { font-family: var(--mono); font-size: .72rem; color: rgba(245,240,234,.5); cursor: pointer; border-bottom: 1px dashed rgba(245,240,234,.2); padding-bottom: 1px; transition: color .15s; }
 .nick-display:hover { color: var(--peach); }
@@ -615,6 +619,7 @@ main {
   </div>
   <div class="nav-right">
     <span class="nav-user" id="nav-user" style="display:none">—</span>
+    <button class="nav-refresh" id="nav-refresh-btn" onclick="adminCacheClear()" title="清除 API 快取並重整" style="display:none">⟳</button>
     <button class="nav-logout" id="nav-logout-btn" onclick="doLogout()" style="display:none">登出</button>
     <a href="https://lin.ee/zUeMwo4" id="nav-line-cta" class="demo-cta" target="_blank" rel="noopener" style="display:none">加 LINE 領序號 →</a>
   </div>
@@ -1798,6 +1803,24 @@ async function doLogout() {
   window.location.href = '/login.html';
 }
 
+async function adminCacheClear() {
+  const btn = document.getElementById('nav-refresh-btn');
+  if (!btn) return;
+  btn.classList.add('spinning');
+  try {
+    await fetch(`${API}/api/cache/clear`, {
+      method: 'POST',
+      headers: { 'X-Sofa-UID': getUID() },
+    });
+    // 重拉所有資料區塊
+    await init();
+  } catch {
+    alert('重整失敗，請稍後再試。');
+  } finally {
+    btn.classList.remove('spinning');
+  }
+}
+
 /* ── ?uid= 自動登入（Bot 傳直連連結用）── */
 (function() {
   const p = new URLSearchParams(location.search);
@@ -1907,6 +1930,9 @@ async function init() {
   if (prof.status === 'fulfilled') {
     _userPlan = prof.value.plan || '免費';
     renderMemberCard(prof.value, streak);
+    if (prof.value.is_admin) {
+      document.getElementById('nav-refresh-btn').style.display = '';
+    }
   } else
     document.getElementById('member-card').innerHTML =
       '<div class="mc-body"><div class="empty" style="padding:1rem 0">會員資料載入失敗。</div></div>';
