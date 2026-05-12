@@ -1271,16 +1271,23 @@ function itemClick(el) {
 }
 
 /* ── Drawer helpers ── */
-function _setDrawerHeader(law, art) {
+function _setDrawerHeader(law, art, chapter) {
   const s = art.startsWith('§') ? art : `§${art}`;
   const idx = s.indexOf('｜');
   const num  = idx !== -1 ? s.slice(1, idx).trim() : s.slice(1).trim();
   const name = idx !== -1 ? s.slice(idx + 1).trim() : '';
+  const numDisplay = num.replace(/^0+/, '') || num;
   const bc = document.getElementById('drawer-breadcrumb');
   const tn = document.getElementById('drawer-title-num');
   const tname = document.getElementById('drawer-title-name');
-  if (bc) bc.textContent = law ? `${law}  /  第 ${num.replace(/^0+/, '') || num} 條` : `第 ${num.replace(/^0+/, '') || num} 條`;
-  if (tn) tn.textContent = num.replace(/^0+/, '') || num;
+  if (bc) {
+    let parts = [];
+    if (law) parts.push(law);
+    if (chapter) parts.push(chapter);
+    parts.push(`第 ${numDisplay} 條`);
+    bc.textContent = parts.join('  /  ');
+  }
+  if (tn) tn.textContent = numDisplay;
   if (tname) tname.textContent = name;
 }
 
@@ -1303,7 +1310,7 @@ function openDrawer(pageId, law, art) {
       let enriched = false;
       if (!_drawerLaw && data.law_name) { _drawerLaw = data.law_name; enriched = true; }
       if (!_drawerArt.includes('｜') && data.title && data.title.includes('｜')) { _drawerArt = data.title; enriched = true; }
-      if (enriched) _setDrawerHeader(_drawerLaw, _drawerArt);
+      _setDrawerHeader(_drawerLaw, _drawerArt, data.chapter || '');
       renderArticle(data);
       if (enriched && getUID()) {
         fetch(`${API}/api/me/history`, {
