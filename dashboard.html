@@ -1819,10 +1819,17 @@ async function refreshData() {
   if (!btn) return;
   btn.classList.add('spinning');
   try {
-    // 嘗試清 Notion cache；非 admin 會回 403 → 靜默忽略
-    await fetch(`${API}/api/cache/clear`, {
-      method: 'POST', headers: { 'X-Sofa-UID': getUID() },
-    }).catch(() => {});
+    const uid = getUID();
+    if (uid) {
+      // 補全舊歷史紀錄缺 law_name / 完整標題
+      await fetch(`${API}/api/me/history/enrich`, {
+        method: 'POST', headers: { 'X-Sofa-UID': uid },
+      }).catch(() => {});
+      // 嘗試清 Notion cache；非 admin 會回 403 → 靜默忽略
+      await fetch(`${API}/api/cache/clear`, {
+        method: 'POST', headers: { 'X-Sofa-UID': uid },
+      }).catch(() => {});
+    }
     await init();
   } finally {
     btn.classList.remove('spinning');
