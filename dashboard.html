@@ -1511,10 +1511,12 @@ function renderArticle(data) {
   const TRIAL_END_ART = new Date('2026-06-01T00:00:00+08:00');
   const isPaid = new Date() < TRIAL_END_ART ||
     _userPlan === '月費' || _userPlan === '月訂' || _userPlan === '季費' || _userPlan === '買斷' || _userPlan === 'monthly' || _userPlan === 'lifetime';
+  let sectionNum = 0;
   SECTION_ORDER.forEach((key, i) => {
     const body = sections[key];
     if (!body) return;
-    const label = `${i+1}．${key}`;
+    sectionNum++;
+    const label = `${sectionNum}．${key}`;
     if (i >= 4 && !isPaid) {
       html += `<div class="art-locked"><span class="art-locked-label">${escHtml(label)}</span><span class="art-locked-icon">🔒</span></div>`;
       return;
