@@ -1819,14 +1819,18 @@ async function refreshData() {
   if (!btn) return;
   btn.classList.add('spinning');
   try {
-    await fetch(`${API}/api/cache/clear`, {
-      method: 'POST',
-      headers: { 'X-Sofa-UID': getUID() },
-    }).catch(() => {});
     await init();
   } finally {
     btn.classList.remove('spinning');
   }
+}
+
+async function adminClearCache() {
+  const r = await fetch(`${API}/api/cache/clear`, {
+    method: 'POST', headers: { 'X-Sofa-UID': getUID() },
+  }).catch(() => null);
+  if (r?.ok) { alert('Notion cache 已清除，重新整理中…'); await refreshData(); }
+  else alert('沒有權限或清除失敗。');
 }
 
 /* ── ?uid= 自動登入（Bot 傳直連連結用）── */
