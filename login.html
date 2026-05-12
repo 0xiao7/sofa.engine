@@ -266,6 +266,14 @@ function formatSerialInput(value) {
   return paid.length > 4 ? `${paid.slice(0, 4)}-${paid.slice(4)}` : paid;
 }
 
+// 已登入則直接跳轉
+(function() {
+  if (localStorage.getItem('sofa_uid')) {
+    const redirect = new URLSearchParams(location.search).get('redirect');
+    window.location.href = redirect ? '/' + redirect.replace(/^\/+/, '') : '/dashboard.html';
+  }
+})();
+
 document.getElementById('serial').addEventListener('input', function() {
   this.value = formatSerialInput(this.value);
 });
