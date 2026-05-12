@@ -549,9 +549,13 @@ main {
 .df-btn--master { background: var(--navy-3); color: var(--cream); }
 .df-btn--master.on { background: var(--navy-4); }
 .df-btn--review  { background: var(--navy-2); color: var(--cream); border-left: 1px solid rgba(245,240,234,.08); border-right: 1px solid rgba(245,240,234,.08); }
-.df-btn--bm      { background: rgba(231,187,167,.18); color: var(--peach-3); }
-.df-btn--bm.on   { background: var(--peach); color: var(--navy); }
 .df-btn:hover    { opacity: .82; }
+/* article nav in footer */
+.df-nav { display: flex; align-items: center; justify-content: center; gap: .3rem; background: var(--navy-2); border-left: 1px solid rgba(245,240,234,.08); }
+.df-nav-btn { background: none; border: none; color: rgba(245,240,234,.55); font-family: var(--mono); font-size: .85rem; padding: .5rem .6rem; cursor: pointer; transition: color .15s; line-height: 1; }
+.df-nav-btn:hover:not(:disabled) { color: var(--cream); }
+.df-nav-btn:disabled { opacity: .2; cursor: default; }
+.df-nav-pos { font-family: var(--mono); font-size: .62rem; color: rgba(245,240,234,.45); letter-spacing: .06em; white-space: nowrap; }
 /* 條文原文 */
 .art-callout { margin-bottom: 1.3rem; padding: 1rem 1.2rem; background: rgba(31,56,72,.05); border-left: 2px solid var(--peach-3); font-family: var(--serif); font-size: .88rem; line-height: 1.9; color: var(--navy); }
 .raw-line { font-size:.88rem; color:var(--navy); line-height:1.9; padding:.04rem 0; }
@@ -904,7 +908,7 @@ main {
   <div class="drawer-footer" id="drawer-footer">
     <button class="df-btn df-btn--master" id="dfBtnMaster" onclick="drToggleMastered()">○ 已熟記</button>
     <button class="df-btn df-btn--review"  id="dfBtnReview"  onclick="drToggleReview()">加入再讀清單</button>
-    <button class="df-btn df-btn--bm"      id="dfBtnBm"      onclick="drToggleBookmark()">☆ 收藏</button>
+    <div class="df-nav" id="dfBtnNav"></div>
   </div>
 </div>
 
@@ -921,6 +925,8 @@ let _reviewSet   = new Set();
 let _masteredItems = [];
 let _reviewItems   = [];
 let _reviewDays    = 7;
+let _artList = [];
+let _artIndex = -1;
 
 /* ── 工具 ── */
 function getUID() { return localStorage.getItem('sofa_uid') || ''; }
@@ -1304,6 +1310,7 @@ function openDrawer(pageId, law, art) {
   _drawerOpen = true;
   syncDrawerActions();
   if (getUID()) document.getElementById('drawer-footer')?.classList.add('visible');
+  loadArtNav(_drawerLaw, pageId);
 
   apiFetch(`/api/article/${encodeURIComponent(pageId)}`)
     .then(data => {
@@ -1348,10 +1355,8 @@ function syncDrawerActions() {
   // 底部 action bar
   const dfMs = document.getElementById('dfBtnMaster');
   const dfRv = document.getElementById('dfBtnReview');
-  const dfBm = document.getElementById('dfBtnBm');
   if (dfMs) { dfMs.classList.toggle('on', isMs); dfMs.textContent = isMs ? '✓ 已熟記' : '○ 已熟記'; }
   if (dfRv) { dfRv.classList.toggle('on', isRv); dfRv.textContent = isRv ? '◷ 待複習中' : '加入再讀清單'; }
-  if (dfBm) { dfBm.classList.toggle('on', isBm); dfBm.textContent = isBm ? '★ 已收藏' : '☆ 收藏'; }
 }
 
 function setReviewDays(n) {
@@ -1447,6 +1452,36 @@ function closeDrawer() {
   document.getElementById('drawer-footer')?.classList.remove('visible');
   document.body.style.overflow = '';
   _drawerOpen = false;
+}
+
+/* ── Article prev/next nav ── */
+function _updateNavFooter() {
+  const el = document.getElementById('dfBtnNav');
+  if (!el) return;
+  if (_artList.length === 0 || _artIndex === -1) { el.innerHTML = ''; return; }
+  const pos = _artIndex + 1;
+  const total = _artList.length;
+  const pDis = _artIndex <= 0 ? ' disabled' : '';
+  const nDis = _artIndex >= total - 1 ? ' disabled' : '';
+  el.innerHTML = `<button class="df-nav-btn" onclick="navArticle(-1)"${pDis}>←</button><span class="df-nav-pos">${pos} / ${total}</span><button class="df-nav-btn" onclick="navArticle(1)"${nDis}>→</button>`;
+}
+
+async function loadArtNav(law, pageId) {
+  _artList = []; _artIndex = -1; _updateNavFooter();
+  if (!law) return;
+  try {
+    const data = await apiFetch(`/api/articles?law=${encodeURIComponent(law)}`);
+    _artList = data.articles || [];
+    _artIndex = _artList.findIndex(a => a.id === pageId);
+    _updateNavFooter();
+  } catch { _artList = []; _artIndex = -1; }
+}
+
+function navArticle(dir) {
+  const idx = _artIndex + dir;
+  if (idx < 0 || idx >= _artList.length) return;
+  const a = _artList[idx];
+  openDrawer(a.id, _drawerLaw, a.title);
 }
 
 document.addEventListener('keydown', e => {
