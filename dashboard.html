@@ -619,7 +619,7 @@ main {
   </div>
   <div class="nav-right">
     <span class="nav-user" id="nav-user" style="display:none">—</span>
-    <button class="nav-refresh" id="nav-refresh-btn" onclick="adminCacheClear()" title="清除 API 快取並重整" style="display:none">⟳</button>
+    <button class="nav-refresh" id="nav-refresh-btn" onclick="refreshData()" title="重新載入資料" style="display:none">⟳</button>
     <button class="nav-logout" id="nav-logout-btn" onclick="doLogout()" style="display:none">登出</button>
     <a href="https://lin.ee/zUeMwo4" id="nav-line-cta" class="demo-cta" target="_blank" rel="noopener" style="display:none">加 LINE 領序號 →</a>
   </div>
@@ -1803,19 +1803,12 @@ async function doLogout() {
   window.location.href = '/login.html';
 }
 
-async function adminCacheClear() {
+async function refreshData() {
   const btn = document.getElementById('nav-refresh-btn');
   if (!btn) return;
   btn.classList.add('spinning');
   try {
-    await fetch(`${API}/api/cache/clear`, {
-      method: 'POST',
-      headers: { 'X-Sofa-UID': getUID() },
-    });
-    // 重拉所有資料區塊
     await init();
-  } catch {
-    alert('重整失敗，請稍後再試。');
   } finally {
     btn.classList.remove('spinning');
   }
@@ -1895,6 +1888,7 @@ async function init() {
 
   document.getElementById('nav-user').style.display = '';
   document.getElementById('nav-logout-btn').style.display = '';
+  document.getElementById('nav-refresh-btn').style.display = '';
   document.getElementById('nav-user').textContent = localStorage.getItem('sofa_nickname') || getUID();
   initSidebarHighlight();
 
@@ -1930,9 +1924,6 @@ async function init() {
   if (prof.status === 'fulfilled') {
     _userPlan = prof.value.plan || '免費';
     renderMemberCard(prof.value, streak);
-    if (prof.value.is_admin) {
-      document.getElementById('nav-refresh-btn').style.display = '';
-    }
   } else
     document.getElementById('member-card').innerHTML =
       '<div class="mc-body"><div class="empty" style="padding:1rem 0">會員資料載入失敗。</div></div>';
