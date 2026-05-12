@@ -1819,6 +1819,10 @@ async function refreshData() {
   if (!btn) return;
   btn.classList.add('spinning');
   try {
+    await fetch(`${API}/api/cache/clear`, {
+      method: 'POST',
+      headers: { 'X-Sofa-UID': getUID() },
+    }).catch(() => {});
     await init();
   } finally {
     btn.classList.remove('spinning');
