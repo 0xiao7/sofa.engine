@@ -556,6 +556,9 @@ main {
 .df-nav-btn:hover:not(:disabled) { color: var(--cream); }
 .df-nav-btn:disabled { opacity: .2; cursor: default; }
 .df-nav-pos { font-family: var(--mono); font-size: .62rem; color: rgba(245,240,234,.45); letter-spacing: .06em; white-space: nowrap; }
+.df-nav-pos.loading { animation: navPulse 1s ease-in-out infinite; }
+@keyframes navPulse { 0%,100% { opacity: .45; } 50% { opacity: .15; } }
+.hist-item.tapping, .bm-item.tapping { opacity: .6; transition: opacity .12s; }
 /* 條文原文 */
 .art-callout { margin-bottom: 1.3rem; padding: 1rem 1.2rem; background: rgba(31,56,72,.05); border-left: 2px solid var(--peach-3); font-family: var(--serif); font-size: .88rem; line-height: 1.9; color: var(--navy); }
 .raw-line { font-size:.88rem; color:var(--navy); line-height:1.9; padding:.04rem 0; }
@@ -1273,7 +1276,10 @@ function itemClick(el) {
   const pid = el.dataset.pageId;
   const law = el.dataset.law;
   const art = el.dataset.art;
-  if (pid) openDrawer(pid, law, art);
+  if (!pid) return;
+  el.classList.add('tapping');
+  setTimeout(() => el.classList.remove('tapping'), 300);
+  openDrawer(pid, law, art);
 }
 
 /* ── Drawer helpers ── */
@@ -1481,7 +1487,45 @@ function navArticle(dir) {
   const idx = _artIndex + dir;
   if (idx < 0 || idx >= _artList.length) return;
   const a = _artList[idx];
-  openDrawer(a.id, _drawerLaw, a.title);
+
+  // 立刻更新 index + header + 鎖按鈕，不重新抓清單
+  _artIndex = idx;
+  _drawerPageId = a.id;
+  _drawerArt = a.title;
+  _drawerLaw = _drawerLaw;
+  _setDrawerHeader(_drawerLaw, _drawerArt);
+  document.getElementById('drawer-content').innerHTML =
+    '<div class="drawer-spinner"><div class="drawer-spinner-text">LOADING</div></div>';
+  syncDrawerActions();
+
+  // nav 按鈕視覺：數字脈動 + 兩邊停用
+  document.querySelectorAll('.df-nav-btn').forEach(b => { b.disabled = true; });
+  const posEl = document.querySelector('.df-nav-pos');
+  if (posEl) posEl.classList.add('loading');
+
+  apiFetch(`/api/article/${encodeURIComponent(a.id)}`)
+    .then(data => {
+      if (!_drawerArt.includes('｜') && data.title && data.title.includes('｜')) {
+        _drawerArt = data.title;
+        _setDrawerHeader(_drawerLaw, _drawerArt, data.chapter || '');
+      } else if (data.chapter) {
+        _setDrawerHeader(_drawerLaw, _drawerArt, data.chapter);
+      }
+      renderArticle(data);
+      _updateNavFooter();
+      if (getUID()) {
+        fetch(`${API}/api/me/history`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Sofa-UID': getUID() },
+          body: JSON.stringify({ page_id: a.id, law_name: _drawerLaw, article: _drawerArt }),
+        }).catch(() => {});
+      }
+    })
+    .catch(() => {
+      document.getElementById('drawer-content').innerHTML =
+        '<div class="empty">載入失敗，請稍後再試。</div>';
+      _updateNavFooter();
+    });
 }
 
 document.addEventListener('keydown', e => {
