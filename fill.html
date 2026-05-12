@@ -192,6 +192,11 @@
     .rail{position:static;flex-direction:row;flex-wrap:wrap}
     .rail-card,.tip-card{flex:1;min-width:220px}
   }
+  /* mobile nav sheet */
+  .mob-nav{display:none;position:fixed;top:56px;left:0;right:0;z-index:300;background:var(--navy-2);border-bottom:1px solid var(--line-2);flex-direction:column;padding:.5rem 0}
+  .mob-nav.open{display:flex}
+  .mob-nav a{padding:.75rem 1.4rem;font-family:var(--mono);font-size:.7rem;letter-spacing:.1em;color:rgba(245,240,234,.55);border-left:2px solid transparent;transition:.15s}
+  .mob-nav a:hover,.mob-nav a.on{color:var(--cream);border-color:var(--peach-dim)}
   @media(max-width:760px){
     .topbar{padding:14px 20px}
     .top-mid{display:none}
@@ -221,9 +226,15 @@
   <div class="top-right">
     <span class="user-pill"><span class="live"></span><span id="navUid"></span></span>
     <button class="btn-out" onclick="localStorage.removeItem('sofa_uid');window.location.href='login.html'">登出</button>
-    <button class="menu-btn"><span></span></button>
+    <button class="menu-btn" onclick="toggleMobNav()" aria-label="選單"><span></span></button>
   </div>
 </header>
+<nav class="mob-nav" id="mobNav">
+  <a href="dashboard.html">儀表板</a>
+  <a href="practice.html">打字練習</a>
+  <a href="quiz.html">選擇題</a>
+  <a href="fill.html" class="on">填空題</a>
+</nav>
 
 <div class="pr-bar">
   <div class="l">
@@ -286,6 +297,15 @@
 </main>
 
 <script>
+function toggleMobNav() {
+  const n = document.getElementById('mobNav');
+  if (n) n.classList.toggle('open');
+}
+document.addEventListener('click', e => {
+  const n = document.getElementById('mobNav');
+  if (n && n.classList.contains('open') && !n.contains(e.target) && !e.target.closest('.menu-btn')) n.classList.remove('open');
+});
+
 const API = 'https://sofa-engine-api.onrender.com';
 const uid = localStorage.getItem('sofa_uid') || (location.hostname === 'localhost' || location.protocol === 'file:' ? 'PREVIEW' : null);
 if (!uid) { window.location.href = '/login.html?redirect=fill.html'; }

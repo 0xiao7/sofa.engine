@@ -926,7 +926,7 @@ let _reviewDays    = 7;
 function getUID() { return localStorage.getItem('sofa_uid') || ''; }
 function fmtArt(art) { const s = String(art||''); return s.startsWith('§') ? s : `§${s}`; }
 function splitArt(art) {
-  const s = fmtArt(art);
+  const s = fmtArt(art).replace(/^(§)(\d)(?=[｜\s]|$)/, '$10$2'); // §9 → §09
   const idx = s.indexOf('｜');
   if (idx === -1) return { num: s, title: '' };
   return { num: s.slice(0, idx).trim(), title: s.slice(idx + 1).trim() };
