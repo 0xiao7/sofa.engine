@@ -293,7 +293,7 @@ async function doLogin() {
     });
     const data = await res.json();
     if (!res.ok) { showErr(data.detail || '序號無效，請確認後再試'); return; }
-    localStorage.setItem('sofa_uid', data.uid);
+    localStorage.setItem('sofa_uid', serial);
     const redirect = new URLSearchParams(location.search).get('redirect');
     window.location.href = redirect ? '/' + redirect.replace(/^\/+/, '') : '/dashboard.html';
   } catch { showErr('連線失敗，請稍後再試'); }
