@@ -417,16 +417,19 @@ main {
 /* ── HISTORY ── */
 .hist-list { display: flex; flex-direction: column; gap: 8px; }
 .hist-item {
-  background: var(--navy-2); padding: .9rem 1.2rem;
+  background: var(--navy-2); padding: .75rem 1.2rem;
   border: 1px solid var(--line-on-navy);
-  display: flex; justify-content: space-between; align-items: center;
-  cursor: pointer; transition: transform .18s, border-color .18s;
+  display: grid;
+  grid-template-columns: 6.5rem 3.2rem 1fr auto;
+  align-items: center; gap: 0 1rem;
+  cursor: pointer; transition: background .18s, border-color .18s;
 }
-.hist-item:hover { transform: translateY(-1px); border-color: rgba(231,187,167,.18); }
-.hist-art  { font-family: var(--mono); font-size: .65rem; color: var(--peach); margin-bottom: .18rem; letter-spacing: .06em; }
-.hist-art--unknown { color: rgba(231,187,167,.28); }
-.hist-main { font-size: .82rem; color: var(--cream); }
-.hist-time { font-family: var(--mono); font-size: .62rem; color: rgba(245,240,234,.3); flex-shrink: 0; margin-left: 1rem; }
+.hist-item:hover { background: rgba(255,255,255,.03); border-color: rgba(231,187,167,.18); }
+.hist-col-law  { font-family: var(--mono); font-size: .65rem; color: var(--peach); letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hist-col-law--unknown { color: rgba(231,187,167,.25); }
+.hist-col-num  { font-family: var(--mono); font-size: .78rem; color: var(--cream); white-space: nowrap; }
+.hist-col-title { font-size: .82rem; color: rgba(245,240,234,.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.hist-time { font-family: var(--mono); font-size: .62rem; color: rgba(245,240,234,.3); white-space: nowrap; text-align: right; }
 
 /* ── LAW BROWSER ── */
 .law-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
@@ -898,6 +901,20 @@ let _reviewDays    = 7;
 /* ── 工具 ── */
 function getUID() { return localStorage.getItem('sofa_uid') || ''; }
 function fmtArt(art) { const s = String(art||''); return s.startsWith('§') ? s : `§${s}`; }
+function splitArt(art) {
+  const s = fmtArt(art);
+  const idx = s.indexOf('｜');
+  if (idx === -1) return { num: s, title: '' };
+  return { num: s.slice(0, idx).trim(), title: s.slice(idx + 1).trim() };
+}
+function histRow(law, article, extra) {
+  const { num, title } = splitArt(article);
+  const lawClass = law ? 'hist-col-law' : 'hist-col-law hist-col-law--unknown';
+  return `<div class="${lawClass}">${law ? escHtml(law) : '—'}</div>
+    <div class="hist-col-num">${escHtml(num)}</div>
+    <div class="hist-col-title">${escHtml(title)}</div>
+    <div class="hist-time">${extra}</div>`;
+}
 
 function apiFetch(path) {
   const uid = getUID();
@@ -1216,11 +1233,7 @@ function renderHistory(data) {
       data-law="${escHtml(h.law_name||'')}"
       data-art="${escHtml(h.article||'')}"
       onclick="itemClick(this)">
-      <div>
-        <div class="hist-art${h.law_name ? '' : ' hist-art--unknown'}">${h.law_name ? escHtml(h.law_name) : '—'}</div>
-        <div class="hist-main">${fmtArt(h.article)}</div>
-      </div>
-      <div class="hist-time">${(h.queried_at||'').slice(5,10)}</div>
+      ${histRow(h.law_name, h.article, (h.queried_at||'').slice(5,10))}
     </div>
   `).join('');
   el.innerHTML = `<div class="hist-list">${items}</div>`;
@@ -1319,8 +1332,7 @@ function renderMasteredSection() {
   if (!_masteredItems.length) { el.innerHTML = '<div class="card"><div class="empty">還沒有標記已熟記的條文。開啟條文後點「已熟記」。</div></div>'; return; }
   el.innerHTML = `<div class="hist-list">${_masteredItems.map(i => `
     <div class="hist-item" onclick="openDrawer('${escHtml(i.page_id)}','${escHtml(i.law_name)}','${escHtml(i.article)}')">
-      <div><div class="hist-art${i.law_name ? '' : ' hist-art--unknown'}">${i.law_name ? escHtml(i.law_name) : '—'}</div><div class="hist-main">${fmtArt(i.article)}</div></div>
-      <div class="hist-time" style="color:var(--good)">✓ 熟記</div>
+      ${histRow(i.law_name, i.article, '<span style="color:var(--good)">✓</span>')}
     </div>`).join('')}</div>`;
 }
 
@@ -1330,8 +1342,7 @@ function renderReviewSection() {
   if (!_reviewItems.length) { el.innerHTML = '<div class="card"><div class="empty">還沒有待複習的條文。開啟條文後點「待複習」並設定天數。</div></div>'; return; }
   el.innerHTML = `<div class="hist-list">${_reviewItems.map(i => `
     <div class="hist-item" onclick="openDrawer('${escHtml(i.page_id)}','${escHtml(i.law_name)}','${escHtml(i.article)}')">
-      <div><div class="hist-art${i.law_name ? '' : ' hist-art--unknown'}">${i.law_name ? escHtml(i.law_name) : '—'}</div><div class="hist-main">${fmtArt(i.article)}</div></div>
-      <div class="hist-time" style="color:var(--warn)">◷ ${i.days ? i.days+'天後' : '待複習'}</div>
+      ${histRow(i.law_name, i.article, `<span style="color:var(--warn)">◷ ${i.days ? i.days+'天後' : '待複習'}</span>`)}
     </div>`).join('')}</div>`;
 }
 
