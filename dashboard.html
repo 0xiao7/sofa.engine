@@ -420,6 +420,7 @@ main {
 }
 .hist-item:hover { transform: translateY(-1px); border-color: rgba(231,187,167,.18); }
 .hist-art  { font-family: var(--mono); font-size: .65rem; color: var(--peach); margin-bottom: .18rem; letter-spacing: .06em; }
+.hist-art--unknown { color: rgba(231,187,167,.28); }
 .hist-main { font-size: .82rem; color: var(--cream); }
 .hist-time { font-family: var(--mono); font-size: .62rem; color: rgba(245,240,234,.3); flex-shrink: 0; margin-left: 1rem; }
 
@@ -1211,7 +1212,7 @@ function renderHistory(data) {
       data-art="${escHtml(h.article||'')}"
       onclick="itemClick(this)">
       <div>
-        ${h.law_name ? `<div class="hist-art">${escHtml(h.law_name)}</div>` : ''}
+        <div class="hist-art${h.law_name ? '' : ' hist-art--unknown'}">${h.law_name ? escHtml(h.law_name) : '—'}</div>
         <div class="hist-main">${fmtArt(h.article)}</div>
       </div>
       <div class="hist-time">${(h.queried_at||'').slice(5,10)}</div>
@@ -1242,7 +1243,30 @@ function openDrawer(pageId, law, art) {
   syncDrawerActions();
 
   apiFetch(`/api/article/${encodeURIComponent(pageId)}`)
-    .then(renderArticle)
+    .then(data => {
+      let enriched = false;
+      // 補正 law_name：若 openDrawer 沒帶，從 article 回應取
+      if (!_drawerLaw && data.law_name) {
+        _drawerLaw = data.law_name;
+        document.getElementById('drawer-law').textContent = _drawerLaw;
+        enriched = true;
+      }
+      // 補正 article title：若只有條號（無 ｜），且 data.title 更完整，則更新
+      if (!_drawerArt.includes('｜') && data.title && data.title.includes('｜')) {
+        _drawerArt = data.title;
+        document.getElementById('drawer-art').textContent = _drawerArt;
+        enriched = true;
+      }
+      renderArticle(data);
+      // 若有補正，更新 history 紀錄
+      if (enriched && getUID()) {
+        fetch(`${API}/api/me/history`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Sofa-UID': getUID() },
+          body: JSON.stringify({ page_id: pageId, law_name: _drawerLaw, article: _drawerArt }),
+        }).catch(() => {});
+      }
+    })
     .catch(() => {
       document.getElementById('drawer-content').innerHTML = '<div class="empty">載入失敗，請稍後再試。</div>';
     });
@@ -1290,7 +1314,7 @@ function renderMasteredSection() {
   if (!_masteredItems.length) { el.innerHTML = '<div class="card"><div class="empty">還沒有標記已熟記的條文。開啟條文後點「已熟記」。</div></div>'; return; }
   el.innerHTML = `<div class="hist-list">${_masteredItems.map(i => `
     <div class="hist-item" onclick="openDrawer('${escHtml(i.page_id)}','${escHtml(i.law_name)}','${escHtml(i.article)}')">
-      <div>${i.law_name ? `<div class="hist-art">${escHtml(i.law_name)}</div>` : ''}<div class="hist-main">${fmtArt(i.article)}</div></div>
+      <div><div class="hist-art${i.law_name ? '' : ' hist-art--unknown'}">${i.law_name ? escHtml(i.law_name) : '—'}</div><div class="hist-main">${fmtArt(i.article)}</div></div>
       <div class="hist-time" style="color:var(--good)">✓ 熟記</div>
     </div>`).join('')}</div>`;
 }
@@ -1301,7 +1325,7 @@ function renderReviewSection() {
   if (!_reviewItems.length) { el.innerHTML = '<div class="card"><div class="empty">還沒有待複習的條文。開啟條文後點「待複習」並設定天數。</div></div>'; return; }
   el.innerHTML = `<div class="hist-list">${_reviewItems.map(i => `
     <div class="hist-item" onclick="openDrawer('${escHtml(i.page_id)}','${escHtml(i.law_name)}','${escHtml(i.article)}')">
-      <div>${i.law_name ? `<div class="hist-art">${escHtml(i.law_name)}</div>` : ''}<div class="hist-main">${fmtArt(i.article)}</div></div>
+      <div><div class="hist-art${i.law_name ? '' : ' hist-art--unknown'}">${i.law_name ? escHtml(i.law_name) : '—'}</div><div class="hist-main">${fmtArt(i.article)}</div></div>
       <div class="hist-time" style="color:var(--warn)">◷ ${i.days ? i.days+'天後' : '待複習'}</div>
     </div>`).join('')}</div>`;
 }
