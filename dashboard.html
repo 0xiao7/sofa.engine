@@ -520,10 +520,10 @@ main {
 /* meta 行：ARTICLE · 高頻 */
 .drawer-meta { padding: 0 1.5rem .3rem; flex-shrink: 0; }
 .drawer-meta-label { font-family: var(--mono); font-size: .6rem; letter-spacing: .13em; color: var(--peach-3); }
-/* 大標題：數字 + 條文名 */
-.drawer-title { padding: .15rem 1.5rem .85rem; flex-shrink: 0; border-bottom: 1px solid rgba(31,56,72,.1); }
-.drawer-title-num  { font-family: var(--serif); font-size: 3.2rem; font-weight: 700; line-height: 1; color: var(--navy); }
-.drawer-title-name { font-family: var(--serif); font-size: 1.08rem; color: var(--navy); margin-top: .3rem; line-height: 1.35; }
+/* 大標題：數字 + 條文名（同一行） */
+.drawer-title { padding: .15rem 1.5rem .85rem; flex-shrink: 0; border-bottom: 1px solid rgba(31,56,72,.1); display: flex; align-items: baseline; gap: .65rem; flex-wrap: wrap; }
+.drawer-title-num  { font-family: var(--serif); font-size: 3.2rem; font-weight: 700; line-height: 1; color: var(--navy); flex-shrink: 0; }
+.drawer-title-name { font-family: var(--serif); font-size: 1.08rem; color: var(--navy); line-height: 1.35; }
 /* 小動作列（收藏 / 已熟記 / 待複習） */
 .drawer-actions { display: flex; gap: .4rem; padding: .65rem 1.5rem; border-bottom: 1px solid rgba(31,56,72,.1); flex-shrink: 0; flex-wrap: wrap; }
 .dr-act { font-family: var(--mono); font-size: .62rem; letter-spacing: .07em; color: rgba(31,56,72,.42); background: none; border: 1px solid rgba(31,56,72,.15); padding: .24rem .72rem; cursor: pointer; transition: color .15s, border-color .15s, background .15s; }
@@ -548,17 +548,22 @@ main {
 .df-btn { font-family: var(--mono); font-size: .65rem; letter-spacing: .07em; padding: 1.05rem .5rem; border: none; cursor: pointer; transition: opacity .15s, background .15s; }
 .df-btn--master { background: var(--navy-3); color: var(--cream); }
 .df-btn--master.on { background: var(--navy-4); }
-.df-btn--review  { background: var(--navy-2); color: var(--cream); border-left: 1px solid rgba(245,240,234,.08); border-right: 1px solid rgba(245,240,234,.08); }
+.df-btn--review  { background: var(--cream-2); color: var(--navy); border-left: 1px solid rgba(31,56,72,.1); border-right: 1px solid rgba(31,56,72,.1); }
+.df-btn--review.on { background: var(--warn); color: var(--navy); }
 .df-btn--bm      { background: var(--peach-3); color: var(--navy); }
 .df-btn--bm.on   { background: var(--peach); }
 .df-btn:hover    { opacity: .82; }
 .hist-item.tapping, .bm-item.tapping { opacity: .6; transition: opacity .12s; }
 /* 條文原文 */
-.art-callout { margin-bottom: 1.3rem; padding: 1rem 1.2rem; background: rgba(31,56,72,.05); border-left: 2px solid var(--peach-3); font-family: var(--serif); font-size: .88rem; line-height: 1.9; color: var(--navy); }
+.art-callout { margin-bottom: 1.3rem; padding: 1.1rem 1.3rem; background: #fff; border: 1px solid rgba(31,56,72,.1); border-left: 3px solid var(--peach-3); border-radius: 0 4px 4px 0; font-family: var(--serif); font-size: .88rem; line-height: 1.9; color: var(--navy); }
 .raw-line { font-size:.88rem; color:var(--navy); line-height:1.9; padding:.04rem 0; }
 .raw-line.d1 { padding-left:0; }
 .raw-line.d2 { padding-left:1.4rem; color: rgba(31,56,72,.7); }
 .raw-blank   { height:.4rem; }
+/* 但書分隔線 + 文字 */
+.raw-proviso-sep { border: none; border-top: 1px dashed rgba(31,56,72,.2); margin: .6rem 0 .5rem; }
+.raw-line.proviso { color: rgba(31,56,72,.55); font-size: .84rem; }
+.neg-keyword { color: #c0392b; font-weight: 600; }
 .art-num { font-family: var(--mono); color: var(--peach-3); font-size: .82rem; margin-right: .15rem; }
 .law-ref-link { color:var(--peach-3); text-decoration:underline; cursor:pointer; }
 .law-ref-link:hover { opacity:.75; }
@@ -1557,22 +1562,31 @@ function formatRawText(text) {
     .replace(/([。）\s])([一二三四五六七八九十百]{1,3}、)/g, '$1\n$2')
     .replace(/([。）\s])（([一二三四五六七八九十]{1,2})）/g, '$1\n　（$2）');
 
-  return processed.split('\n').map(l => {
+  const lines = processed.split('\n');
+  let hitProviso = false;
+  return lines.map(l => {
     if (!l.trim()) return '<div class="raw-blank"></div>';
+    const trimmed = l.trim();
+    // 但書偵測：以「前項」「但」開頭的條款
+    const isProviso = !hitProviso && /^(前項|但(?!書)|附則)/.test(trimmed);
+    if (isProviso) { hitProviso = true; }
+    const sep = isProviso ? '<hr class="raw-proviso-sep">' : '';
+    const provisoCls = isProviso ? ' proviso' : '';
     let depth = 0;
     if (/^[\s　]*（[一二三四五六七八九十]）/.test(l)) depth = 2;
     else if (/^[一二三四五六七八九十百]{1,3}、/.test(l)) depth = 1;
-    const cls = depth > 0 ? ` d${depth}` : '';
-    const trimmed = l.trim();
+    // 負向關鍵字標紅
+    const highlight = s => s.replace(/(不包括|不得|禁止|除外|不在此限)/g,
+      '<span class="neg-keyword">$1</span>');
     if (depth === 1) {
       const m = trimmed.match(/^([一二三四五六七八九十百]{1,3}、)([\s\S]*)$/);
-      if (m) return `<div class="raw-line d1"><span class="art-num">${escHtml(m[1])}</span>${escHtml(m[2])}</div>`;
+      if (m) return `${sep}<div class="raw-line d1${provisoCls}"><span class="art-num">${escHtml(m[1])}</span>${highlight(escHtml(m[2]))}</div>`;
     }
     if (depth === 2) {
       const m = trimmed.match(/^(（[一二三四五六七八九十]）)([\s\S]*)$/);
-      if (m) return `<div class="raw-line d2"><span class="art-num">${escHtml(m[1])}</span>${escHtml(m[2])}</div>`;
+      if (m) return `${sep}<div class="raw-line d2${provisoCls}"><span class="art-num">${escHtml(m[1])}</span>${highlight(escHtml(m[2]))}</div>`;
     }
-    return `<div class="raw-line${cls}">${escHtml(trimmed)}</div>`;
+    return `${sep}<div class="raw-line${provisoCls}">${highlight(escHtml(trimmed))}</div>`;
   }).join('');
 }
 
