@@ -1,2177 +1,1662 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
+<!doctype html>
+<html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-G81F9D4YJ3');
-</script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>會員中心 — SoFa Engine</title>
-<link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<meta charset="utf-8" />
+<title>SoFa Engine — 會員中心</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700;900&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
-/* ── TOKENS ── */
-:root {
-  --navy:   #1F3848;
-  --navy-2: #19303E;
-  --navy-3: #142836;
-  --navy-4: #0D1C28;
-  --plum-1: #2C4A5C;
-  --peach:  #E7BBA7;
-  --peach-2:#F0CDBD;
-  --peach-3:#C89580;
-  --cream:  #F5F0EA;
-  --cream-2:#ECE5DB;
-  --ink-2:  #3A4A55;
-  --muted:  #7A8892;
-  --good:   #9FB89F;
-  --warn:   #D9B084;
-  --danger: #e06060;
-  --line-on-navy: rgba(245,240,234,.10);
-  --line-on-navy-2: rgba(245,240,234,.18);
-  --mono: 'JetBrains Mono', ui-monospace, monospace;
-  --serif:'Noto Serif TC', serif;
-  --sans: 'Noto Sans TC', system-ui, sans-serif;
-}
-*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
-:focus-visible { outline: 2px solid var(--peach-3); outline-offset: 3px; }
-@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration:.01ms !important; transition-duration:.01ms !important; } }
+  :root{
+    --navy:#1F3848;
+    --navy-2:#19303E;
+    --navy-3:#142836;
+    --navy-4:#0D1C28;
+    --plum-1:#2C4A5C;
+    --plum-2:#4A6373;
+    --peach:#E7BBA7;
+    --peach-2:#F0CDBD;
+    --peach-3:#C89580;
+    --peach-dim:rgba(231,187,167,.7);
+    --cream:#F5F0EA;
+    --cream-2:#ECE5DB;
+    --cream-3:#E0D6C7;
+    --good:#9FB89F;
+    --warn:#D9B084;
+    --line:rgba(245,240,234,.08);
+    --line-2:rgba(245,240,234,.16);
+    --line-3:rgba(245,240,234,.28);
+    --serif:"Noto Serif TC","Songti TC",serif;
+    --sans:"Noto Sans TC",system-ui,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--navy-3)}
+  body{
+    font-family:var(--sans);color:var(--cream);
+    font-size:15px;line-height:1.65;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  }
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input{font-family:inherit;color:inherit}
+  ::selection{background:var(--peach);color:var(--navy)}
 
-body {
-  background: var(--navy-3);
-  color: var(--cream);
-  font-family: var(--sans);
-  font-weight: 300;
-  font-size: 15px;
-  line-height: 1.65;
-  min-height: 100vh;
-  overflow-x: hidden;
-  -webkit-font-smoothing: antialiased;
-}
+  /* === Top bar === */
+  .topbar{
+    background:rgba(20,40,54,.85);
+    backdrop-filter:blur(14px) saturate(140%);
+    -webkit-backdrop-filter:blur(14px) saturate(140%);
+    border-bottom:1px solid var(--line);
+    padding:18px 44px;
+    display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;z-index:50;
+  }
+  .brand{
+    font-family:var(--mono);font-weight:500;font-size:16px;
+    letter-spacing:.18em;
+    display:flex;align-items:center;gap:14px;
+  }
+  .brand .dot{
+    width:7px;height:7px;background:var(--peach);border-radius:50%;
+    box-shadow:0 0 0 4px rgba(231,187,167,.16);
+  }
+  .top-mid{
+    display:flex;gap:30px;font-size:13px;
+    font-family:var(--mono);letter-spacing:.08em;
+    color:rgba(245,240,234,.5);
+  }
+  .top-mid a{padding:6px 2px;border-bottom:1px solid transparent;transition:.18s}
+  .top-mid a:hover{color:var(--cream);border-color:var(--peach-dim)}
+  .top-right{display:flex;align-items:center;gap:18px;font-size:14px}
+  .user-pill{
+    display:flex;align-items:center;gap:10px;
+    font-family:var(--mono);font-size:12px;letter-spacing:.12em;
+    color:var(--cream);
+  }
+  .user-pill .live{
+    width:6px;height:6px;background:var(--good);border-radius:50%;
+    box-shadow:0 0 0 3px rgba(159,184,159,.16);
+  }
+  .btn-out{
+    border:1px solid var(--line-2);
+    padding:8px 18px;border-radius:2px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+    color:rgba(245,240,234,.7);
+    transition:.2s;
+  }
+  .btn-out:hover{background:rgba(245,240,234,.06);color:var(--cream);border-color:var(--cream)}
+  .menu-btn{display:none;width:36px;height:36px;border:1px solid var(--line-2);border-radius:2px;align-items:center;justify-content:center}
+  .menu-btn span{display:block;width:16px;height:1.5px;background:var(--cream);position:relative}
+  .menu-btn span::before,.menu-btn span::after{content:"";position:absolute;left:0;width:16px;height:1.5px;background:var(--cream)}
+  .menu-btn span::before{top:-5px}
+  .menu-btn span::after{top:5px}
 
-/* ── PAGE LOADER ── */
-#page-loader {
-  position: fixed; inset: 0; z-index: 9999;
-  background: var(--navy-4);
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1.4rem;
-  transition: opacity .45s ease;
-}
-#page-loader.hide { opacity: 0; pointer-events: none; }
-.pl-spinner {
-  width: 28px; height: 28px;
-  border: 2px solid rgba(231,187,167,.12);
-  border-top-color: var(--peach);
-  border-radius: 50%;
-  animation: spin .8s linear infinite;
-}
-.pl-text { font-family: var(--mono); font-size: .64rem; letter-spacing: .18em; color: rgba(245,240,234,.35); }
-.pl-sub  { font-family: var(--mono); font-size: .56rem; letter-spacing: .1em; color: rgba(245,240,234,.18); margin-top: -.6rem; }
-@keyframes spin { to { transform: rotate(360deg); } }
+  /* === Layout === */
+  .shell{
+    display:grid;
+    grid-template-columns:280px 1fr;
+    min-height:calc(100vh - 71px);
+  }
 
-/* ── WARM BAR ── */
-.warm-bar {
-  position: fixed; bottom: 1.4rem; left: 50%; transform: translateX(-50%); z-index: 300;
-  background: rgba(13,28,40,.95); border: 1px solid var(--line-on-navy);
-  padding: .5rem 1.2rem; font-family: var(--mono); font-size: .68rem;
-  letter-spacing: .06em; color: rgba(245,240,234,.5);
-  display: none; white-space: nowrap; backdrop-filter: blur(12px);
-}
-.warm-bar.show { display: block; }
+  /* === Sidebar === */
+  aside.side{
+    background:var(--navy-2);
+    border-right:1px solid var(--line);
+    padding:36px 30px 48px;
+    position:sticky;top:71px;
+    height:calc(100vh - 71px);
+    overflow-y:auto;
+  }
+  /* almanac-style countdown */
+  .countdown{
+    border:1px solid var(--line-2);
+    border-radius:3px;
+    background:var(--navy);
+    overflow:hidden;
+  }
+  .cd-top{
+    padding:12px 18px;
+    background:rgba(231,187,167,.06);
+    border-bottom:1px solid var(--line-2);
+    display:flex;align-items:center;justify-content:space-between;
+    font-family:var(--mono);font-size:10.5px;
+    letter-spacing:.22em;text-transform:uppercase;
+    color:var(--peach);
+    white-space:nowrap;
+  }
+  .cd-top .tick{color:rgba(231,187,167,.55)}
+  .cd-x{
+    width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:12px;color:rgba(231,187,167,.5);
+    background:transparent;border:none;cursor:pointer;
+    border-radius:2px;transition:.16s;letter-spacing:0;
+    padding:0;line-height:1;
+  }
+  .cd-x:hover{color:var(--peach);background:rgba(231,187,167,.08)}
+  .cd-restore{
+    display:none;width:100%;
+    margin-top:0;padding:14px 16px;
+    background:transparent;
+    border:1px dashed var(--line-2);border-radius:3px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+    color:rgba(245,240,234,.45);
+    text-align:center;cursor:pointer;
+    transition:.18s;
+  }
+  .cd-restore:hover{color:var(--peach);border-color:var(--peach-dim)}
+  .countdown.hidden{display:none}
+  .cd-restore.show{display:block}
+  .cd-mid{
+    padding:24px 20px 22px;
+    text-align:center;position:relative;
+  }
+  .cd-num{
+    font-family:var(--serif);font-weight:600;font-size:88px;
+    color:var(--cream);line-height:.95;
+    letter-spacing:-.02em;
+    font-feature-settings:"lnum";
+  }
+  .cd-unit{
+    margin-top:8px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.18em;
+    color:rgba(245,240,234,.55);text-transform:uppercase;
+  }
+  .cd-foot{
+    padding:12px 18px;
+    border-top:1px dashed var(--line-2);
+    display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+    font-family:var(--mono);font-size:11.5px;
+    color:rgba(245,240,234,.55);letter-spacing:.06em;
+    white-space:nowrap;
+  }
+  .cd-foot b{color:var(--cream);font-weight:500;letter-spacing:.04em;white-space:nowrap}
 
-/* ── DEMO BANNER ── */
-.demo-banner {
-  display: none; position: sticky; top: 0; z-index: 99;
-  background: linear-gradient(90deg, var(--navy-3), var(--navy-2));
-  border-bottom: 1px solid rgba(231,187,167,.22);
-  padding: .65rem 1.4rem;
-  align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap;
-}
-.demo-banner.show { display: flex; }
-.demo-banner-text { font-family: var(--mono); font-size: .68rem; letter-spacing: .06em; color: rgba(245,240,234,.6); }
-.demo-banner-text strong { color: var(--peach); }
-.demo-cta {
-  display: inline-flex; align-items: center; gap: .45rem;
-  background: var(--peach); color: var(--navy);
-  font-family: var(--mono); font-size: .68rem; font-weight: 600;
-  letter-spacing: .06em; padding: .38rem 1rem;
-  text-decoration: none; white-space: nowrap; transition: opacity .18s;
-}
-.demo-cta:hover { opacity: .85; }
-.demo-gate {
-  display: flex; flex-direction: column; align-items: center; gap: .9rem;
-  padding: 2rem 1.4rem; text-align: center;
-  background: var(--navy-2); border: 1px solid var(--line-on-navy);
-}
-.demo-gate-msg { font-family: var(--mono); font-size: .72rem; letter-spacing: .06em; color: rgba(245,240,234,.45); }
-.demo-gate-msg strong { color: var(--peach); }
+  .nav-section{margin-top:32px}
+  .nav-section .lab{
+    font-family:var(--mono);font-size:10.5px;
+    color:rgba(245,240,234,.36);
+    letter-spacing:.24em;text-transform:uppercase;
+    padding:0 4px 14px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .nav-section .lab::after{
+    content:"";flex:1;height:1px;background:var(--line);
+  }
+  .nav-list{display:flex;flex-direction:column;gap:1px}
+  .nav-list a{
+    display:grid;
+    grid-template-columns:28px 1fr auto;
+    align-items:center;gap:12px;
+    padding:10px 12px;
+    font-size:14px;
+    color:rgba(245,240,234,.65);
+    border-radius:2px;
+    position:relative;
+    transition:.16s;
+  }
+  .nav-list a .num{
+    font-family:var(--mono);font-size:10.5px;
+    color:rgba(245,240,234,.32);letter-spacing:.06em;
+  }
+  .nav-list a .ct{
+    font-family:var(--mono);font-size:11px;
+    color:rgba(245,240,234,.3);letter-spacing:.04em;
+  }
+  .nav-list a:hover{background:rgba(245,240,234,.04);color:var(--cream)}
+  .nav-list a:hover .ct{color:rgba(245,240,234,.55)}
+  .nav-list a.on{background:rgba(231,187,167,.09);color:var(--cream)}
+  .nav-list a.on::before{
+    content:"";position:absolute;left:-30px;top:50%;transform:translateY(-50%);
+    width:3px;height:16px;background:var(--peach);border-radius:0 2px 2px 0;
+  }
+  .nav-list a.on .num{color:var(--peach)}
+  .nav-list a.on .ct{color:var(--peach-dim)}
 
-/* ── NAV ── */
-nav {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
-  height: 70px;
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 0 2rem 0 1.6rem;
-  background: rgba(20,40,54,.97); backdrop-filter: blur(18px);
-  border-bottom: 1px solid var(--line-on-navy);
-}
-.nav-hamburger {
-  display: none; flex-direction: column; justify-content: center; gap: 5px;
-  width: 32px; height: 32px; background: none; border: none; cursor: pointer;
-  padding: 4px; margin-right: .6rem; flex-shrink: 0;
-}
-.nav-hamburger span {
-  display: block; height: 1.5px; background: rgba(245,240,234,.5);
-  transition: background .15s;
-}
-.nav-hamburger:hover span { background: var(--cream); }
-.nav-brand { font-family: var(--mono); font-size: .78rem; letter-spacing: .14em; color: var(--cream); text-decoration: none; display: flex; align-items: center; gap: .6rem; }
-.nav-brand::before { content:''; display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--peach); box-shadow:0 0 0 3px rgba(231,187,167,.18); flex-shrink:0; }
-.nav-right { display: flex; align-items: center; gap: 1.4rem; }
-.nav-user  { font-family: var(--mono); font-size: .68rem; letter-spacing: .08em; color: rgba(245,240,234,.6); display: flex; align-items: center; gap: .45rem; }
-.nav-user::before { content:''; display:inline-block; width:6px; height:6px; border-radius:50%; background:var(--good); box-shadow:0 0 0 3px rgba(159,184,159,.2); flex-shrink:0; }
-.nav-logout {
-  font-family: var(--mono); font-size: .7rem; letter-spacing: .12em;
-  color: rgba(245,240,234,.4); background: none;
-  border: 1px solid var(--line-on-navy);
-  padding: .28rem .85rem; cursor: pointer;
-  transition: color .2s, border-color .2s;
-}
-.nav-logout:hover { color: var(--cream); border-color: rgba(231,187,167,.3); }
-.nav-refresh { font-family: var(--mono); font-size: .7rem; letter-spacing: .06em; color: rgba(245,240,234,.35); background: none; border: none; padding: .28rem .5rem; cursor: pointer; transition: color .2s; }
-.nav-refresh:hover { color: var(--peach); }
-.nav-refresh.spinning { animation: spin .6s linear infinite; pointer-events: none; }
-@keyframes spin { to { transform: rotate(360deg); } }
-.nick-row  { display: flex; align-items: center; gap: .5rem; margin-top: .6rem; }
-.nick-display { font-family: var(--mono); font-size: .72rem; color: rgba(245,240,234,.5); cursor: pointer; border-bottom: 1px dashed rgba(245,240,234,.2); padding-bottom: 1px; transition: color .15s; }
-.nick-display:hover { color: var(--peach); }
-.nick-edit { display: none; background: var(--navy-2); border: 1px solid rgba(231,187,167,.3); color: var(--cream); font-family: var(--mono); font-size: .72rem; padding: .25rem .5rem; outline: none; width: 140px; }
+  .side-foot{
+    margin-top:32px;padding:18px 16px;
+    border-top:1px solid var(--line);
+    font-family:var(--serif);font-size:13px;
+    color:rgba(245,240,234,.6);
+    line-height:1.9;letter-spacing:.04em;
+    text-align:center;
+  }
+  .side-foot .dash{
+    display:block;
+    font-family:var(--mono);font-size:9px;letter-spacing:.32em;
+    color:rgba(245,240,234,.3);margin-bottom:10px;
+  }
+  .side-foot b{color:var(--peach);font-weight:500;font-family:var(--mono);font-size:11px;letter-spacing:.08em}
 
-/* ── LAYOUT ── */
-.page-wrap { display: flex; min-height: 100vh; padding-top: 70px; }
+  /* === Main === */
+  main.main{
+    padding:60px 72px 96px;
+    background:var(--navy-3);
+    position:relative;
+    overflow:hidden;
+  }
+  main.main::before{
+    content:"";position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(245,240,234,.014) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,240,234,.014) 1px, transparent 1px);
+    background-size:64px 64px;
+    mask-image:radial-gradient(ellipse 70% 50% at 50% 0%, #000 30%, transparent 75%);
+    pointer-events:none;
+  }
+  main.main::after{
+    content:"";position:absolute;
+    top:-100px;right:-200px;width:600px;height:600px;
+    background:radial-gradient(circle, rgba(231,187,167,.06) 0%, transparent 60%);
+    pointer-events:none;
+  }
+  .main-inner{max-width:1180px;margin:0 auto;position:relative}
 
-/* ── SIDEBAR OVERLAY (mobile) ── */
-.side-overlay {
-  display: none; position: fixed; inset: 0; z-index: 99;
-  background: rgba(13,28,40,.6); backdrop-filter: blur(2px);
-}
-.side-overlay.show { display: block; }
+  /* === Hero === */
+  .greet{
+    display:grid;
+    grid-template-columns:1fr auto;
+    align-items:flex-end;
+    gap:48px;
+    padding-bottom:36px;
+    border-bottom:1px solid var(--line);
+  }
+  .greet .eyebrow{
+    font-family:var(--mono);font-size:11px;
+    letter-spacing:.24em;color:var(--peach);
+    text-transform:uppercase;
+    display:flex;align-items:center;gap:12px;
+    margin-bottom:18px;
+  }
+  .greet .eyebrow::after{content:"";flex:0 0 36px;height:1px;background:var(--peach-dim)}
+  .greet h1{
+    font-family:var(--serif);font-weight:500;font-size:46px;
+    color:var(--cream);line-height:1.22;letter-spacing:.005em;
+  }
+  .greet h1 em{font-style:normal;color:var(--peach);font-weight:600}
+  .greet .sub{
+    margin-top:18px;font-size:15.5px;color:rgba(245,240,234,.62);
+    max-width:540px;line-height:1.85;letter-spacing:.01em;
+  }
+  .greet .now{
+    text-align:right;
+    font-family:var(--mono);font-size:11px;
+    color:rgba(245,240,234,.45);
+    letter-spacing:.16em;text-transform:uppercase;
+  }
+  .greet .now .t{
+    font-family:var(--serif);font-size:42px;color:var(--cream);
+    font-weight:500;display:block;margin:8px 0 6px;letter-spacing:.01em;
+    font-feature-settings:"lnum";
+  }
+  .greet .now .l{margin-top:4px;color:rgba(245,240,234,.55)}
 
-/* ── SIDEBAR ── */
-.side-nav {
-  position: fixed; top: 70px; left: 0; bottom: 0;
-  width: 260px; z-index: 100;
-  background: var(--navy-4);
-  border-right: 1px solid var(--line-on-navy);
-  display: flex; flex-direction: column;
-  overflow-y: auto;
-  transition: transform .25s ease;
-}
-.side-nav::-webkit-scrollbar { width: 2px; }
-.side-nav::-webkit-scrollbar-thumb { background: rgba(231,187,167,.1); }
+  /* tonight strip — quick stats under hero */
+  .tonight{
+    margin-top:32px;
+    display:grid;grid-template-columns:repeat(4,1fr);
+    border:1px solid var(--line-2);
+    border-radius:3px;
+    background:linear-gradient(180deg, rgba(31,56,72,.5), rgba(20,40,54,.2));
+    margin-bottom:64px;
+  }
+  .tn{
+    padding:22px 26px;
+    border-right:1px solid var(--line);
+    position:relative;
+  }
+  .tn:last-child{border-right:none}
+  .tn .k{
+    font-family:var(--mono);font-size:10.5px;
+    letter-spacing:.18em;color:rgba(245,240,234,.5);
+    text-transform:uppercase;
+  }
+  .tn .v{
+    font-family:var(--serif);font-weight:500;font-size:30px;
+    color:var(--cream);margin-top:10px;line-height:1;
+    letter-spacing:.005em;display:flex;align-items:baseline;gap:8px;
+    font-feature-settings:"lnum";
+  }
+  .tn .v .u{
+    font-family:var(--sans);font-size:13px;
+    color:rgba(245,240,234,.55);font-weight:400;letter-spacing:.04em;
+  }
+  .tn .v.peach{color:var(--peach)}
+  .tn .v.good{color:var(--good)}
 
-/* exam countdown box */
-.exam-box {
-  padding: 1.1rem 1rem 1rem;
-  border-bottom: 1px solid var(--line-on-navy);
-  flex-shrink: 0;
-}
-.exam-label { font-family: var(--mono); font-size: .54rem; letter-spacing: .18em; color: rgba(245,240,234,.3); text-transform: uppercase; margin-bottom: .3rem; }
-.exam-days  { font-family: var(--serif); font-size: 2.6rem; color: var(--cream); line-height: 1; font-weight: 600; }
-.exam-sub   { font-family: var(--mono); font-size: .6rem; color: rgba(245,240,234,.35); margin-top: .3rem; letter-spacing: .04em; }
-.exam-input { background: none; border: none; border-bottom: 1px solid rgba(231,187,167,.2); color: var(--cream); font-family: var(--mono); font-size: .62rem; outline: none; width: 100%; margin-top: .6rem; padding: .18rem 0; cursor: pointer; }
-.exam-input::-webkit-calendar-picker-indicator { filter: invert(1) opacity(.3); cursor: pointer; }
+  /* sections */
+  section.block{margin-bottom:80px;scroll-margin-top:90px}
+  .sec-head{
+    display:flex;align-items:flex-end;justify-content:space-between;
+    margin-bottom:28px;gap:24px;
+    padding-bottom:16px;border-bottom:1px solid var(--line);
+  }
+  .sec-head .l{display:flex;align-items:baseline;gap:18px}
+  .sec-head .idx{
+    font-family:var(--serif);font-weight:500;font-size:14px;
+    color:var(--peach);letter-spacing:.04em;
+    font-feature-settings:"lnum";
+  }
+  .sec-head .idx::after{
+    content:"";display:inline-block;width:18px;height:1px;
+    background:var(--peach-dim);
+    vertical-align:middle;margin-left:14px;margin-right:6px;
+  }
+  .sec-head h2{
+    font-family:var(--serif);font-weight:600;font-size:28px;
+    letter-spacing:.005em;color:var(--cream);
+  }
+  .sec-head .eb{
+    font-family:var(--mono);font-size:10.5px;
+    color:rgba(245,240,234,.4);letter-spacing:.22em;
+    text-transform:uppercase;
+    align-self:center;
+  }
+  .sec-head .r{
+    font-family:var(--mono);font-size:11.5px;
+    color:rgba(245,240,234,.5);letter-spacing:.08em;
+  }
+  .sec-head .r a{color:var(--peach);transition:.18s}
+  .sec-head .r a:hover{color:var(--peach-2)}
 
-/* sidebar nav items */
-.sn-group-label { font-family: var(--mono); font-size: .5rem; letter-spacing: .22em; color: rgba(245,240,234,.18); text-transform: uppercase; padding: .9rem .85rem .3rem; }
-.sn-item {
-  display: flex; align-items: center; gap: .55rem;
-  font-family: var(--mono); font-size: .62rem; letter-spacing: .06em;
-  color: rgba(245,240,234,.32);
-  padding: .46rem .85rem;
-  border-left: 2px solid transparent;
-  text-decoration: none;
-  transition: color .15s, background .15s, border-color .15s;
-}
-.sn-item:hover { color: rgba(245,240,234,.7); background: rgba(245,240,234,.03); }
-.sn-item.active { color: var(--peach); border-left-color: var(--peach); background: rgba(231,187,167,.05); }
-.sn-num { color: rgba(245,240,234,.2); font-size: .55rem; flex-shrink: 0; min-width: 1.2rem; }
-.sn-item.active .sn-num { color: rgba(231,187,167,.5); }
+  /* === 01 MEMBER — ticket stub === */
+  .member-card{
+    background:
+      linear-gradient(135deg, rgba(231,187,167,.04), transparent 60%),
+      var(--navy-2);
+    border:1px solid var(--line-2);
+    border-radius:4px;
+    display:grid;grid-template-columns:1fr 280px;
+    overflow:hidden;
+    position:relative;
+  }
+  /* perforation between left & right */
+  .member-card .perf{
+    position:absolute;top:0;bottom:0;left:calc(100% - 280px);
+    width:1px;
+    background:repeating-linear-gradient(to bottom, var(--line-3) 0 4px, transparent 4px 10px);
+  }
+  .member-card .perf::before,
+  .member-card .perf::after{
+    content:"";position:absolute;left:-9px;width:18px;height:18px;
+    border-radius:50%;background:var(--navy-3);
+    border:1px solid var(--line-2);
+  }
+  .member-card .perf::before{top:-9px}
+  .member-card .perf::after{bottom:-9px}
+  .mc-l{padding:40px 44px;position:relative}
+  .mc-stub-lab{
+    position:absolute;top:36px;right:60px;
+    font-family:var(--mono);font-size:10.5px;
+    color:rgba(245,240,234,.36);letter-spacing:.24em;text-transform:uppercase;
+  }
+  .mc-tags{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .mc-tag{
+    font-family:var(--mono);font-size:11px;font-weight:600;
+    padding:6px 14px;border-radius:2px;
+    background:var(--peach);color:var(--navy);letter-spacing:.06em;
+  }
+  .mc-status{
+    font-family:var(--mono);font-size:11.5px;
+    color:var(--good);letter-spacing:.16em;
+    display:flex;align-items:center;gap:8px;
+  }
+  .mc-status::before{
+    content:"";width:6px;height:6px;background:var(--good);border-radius:50%;
+    box-shadow:0 0 0 3px rgba(159,184,159,.2);
+  }
+  .mc-name{
+    margin-top:22px;
+    font-family:var(--serif);font-weight:500;font-size:36px;
+    color:var(--cream);letter-spacing:.01em;line-height:1;
+  }
+  .mc-target{
+    margin-top:10px;
+    font-family:var(--mono);font-size:11.5px;
+    color:rgba(245,240,234,.62);letter-spacing:.14em;
+  }
+  .mc-target .yr{color:var(--peach);font-weight:600}
+  .mc-id{
+    margin-top:6px;
+    font-family:var(--mono);font-size:11.5px;
+    color:rgba(245,240,234,.5);letter-spacing:.16em;
+  }
+  .mc-id .sn{color:var(--peach)}
+  .mc-divider{
+    margin:28px 0 22px;height:1px;
+    background:linear-gradient(to right, var(--line-2), transparent 80%);
+  }
+  .mc-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:36px}
+  .mc-stat .k{
+    font-family:var(--mono);font-size:10.5px;
+    color:rgba(245,240,234,.46);letter-spacing:.18em;text-transform:uppercase;
+  }
+  .mc-stat .v{
+    font-family:var(--serif);font-weight:500;font-size:22px;
+    color:var(--cream);margin-top:10px;letter-spacing:.01em;
+    font-feature-settings:"lnum";
+  }
+  .mc-stat .v.good{color:var(--good)}
+  .mc-stat .v .u{
+    font-family:var(--sans);font-size:13px;color:rgba(245,240,234,.5);
+    font-weight:400;margin-left:4px;
+  }
 
-/* ── MAIN CONTENT ── */
-.main-wrap {
-  flex: 1;
-  min-width: 0;
-  padding: 0;
-  margin-left: 260px;
-}
+  /* right stub */
+  .mc-r{
+    padding:40px 30px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(13,28,40,.35);
+    position:relative;
+  }
+  .mc-r .lab{
+    position:absolute;top:36px;left:50%;transform:translateX(-50%);
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.24em;
+    color:rgba(245,240,234,.36);text-transform:uppercase;
+  }
+  .avatar{
+    width:84px;height:84px;border-radius:50%;
+    background:linear-gradient(140deg, var(--peach), var(--peach-3));
+    color:var(--navy);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--serif);font-weight:600;font-size:38px;
+    box-shadow:0 0 0 4px rgba(231,187,167,.12), 0 10px 30px rgba(0,0,0,.25);
+    margin-top:8px;
+  }
+  .mc-r .who{
+    margin-top:18px;text-align:center;
+    font-family:var(--mono);font-size:11px;
+    letter-spacing:.18em;color:rgba(245,240,234,.6);
+  }
+  .mc-r .who b{color:var(--cream);font-weight:500;display:block;font-size:14px;margin-bottom:4px;letter-spacing:.12em}
+  .mc-r .barcode{
+    margin-top:22px;height:30px;width:140px;
+    background:repeating-linear-gradient(to right,
+      var(--cream) 0 1px, transparent 1px 3px,
+      var(--cream) 3px 5px, transparent 5px 7px,
+      var(--cream) 7px 8px, transparent 8px 12px);
+    opacity:.5;
+  }
 
-main {
-  padding: 0 3.5rem 5rem;
-}
+  /* === 02 PROGRESS === */
+  .prog-card{
+    background:var(--navy-2);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:36px 40px;
+  }
+  .prog-stats{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    border-bottom:1px solid var(--line);
+    padding-bottom:30px;
+  }
+  .ps{padding:0 32px;border-right:1px solid var(--line)}
+  .ps:first-child{padding-left:0}
+  .ps:last-child{border-right:none;padding-right:0}
+  .ps .v{
+    font-family:var(--serif);font-weight:500;font-size:58px;
+    color:var(--peach);line-height:1;letter-spacing:-.01em;
+    font-feature-settings:"lnum";
+    display:flex;align-items:baseline;gap:8px;
+  }
+  .ps .v .u{
+    font-family:var(--sans);font-size:14px;color:rgba(245,240,234,.5);
+    font-weight:400;letter-spacing:.04em;
+  }
+  .ps .k{
+    margin-top:14px;font-family:var(--mono);font-size:10.5px;
+    letter-spacing:.2em;color:rgba(245,240,234,.5);text-transform:uppercase;
+  }
 
-/* ── GREET SECTION ── */
-.greet-area {
-  padding: 3.2rem 0 2.8rem;
-  border-bottom: 1px solid var(--line-on-navy);
-  margin-bottom: 3rem;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 2rem;
-}
-.greet-left {}
-.greet-headline {
-  font-family: var(--serif);
-  font-size: 2.8rem;
-  font-weight: 600;
-  line-height: 1.25;
-  color: var(--cream);
-  letter-spacing: .01em;
-}
-.greet-headline .name { color: var(--peach); }
-.greet-sub {
-  margin-top: .9rem;
-  font-size: .85rem;
-  color: rgba(245,240,234,.45);
-  line-height: 1.7;
-  max-width: 540px;
-}
-.greet-right {
-  text-align: right;
-  flex-shrink: 0;
-  padding-top: .4rem;
-}
-.greet-location {
-  font-family: var(--mono);
-  font-size: .6rem;
-  letter-spacing: .18em;
-  color: rgba(245,240,234,.28);
-  text-transform: uppercase;
-  margin-bottom: .5rem;
-}
-.greet-time {
-  font-family: var(--mono);
-  font-size: 2.2rem;
-  color: var(--cream);
-  font-weight: 400;
-  letter-spacing: -.01em;
-  line-height: 1;
-}
-.greet-date {
-  font-family: var(--mono);
-  font-size: .62rem;
-  color: rgba(245,240,234,.3);
-  letter-spacing: .06em;
-  margin-top: .5rem;
-}
+  .prog-list{margin-top:30px;display:flex;flex-direction:column;gap:18px}
+  .prog-row{
+    display:grid;grid-template-columns:200px 1fr 56px;gap:28px;
+    align-items:center;
+  }
+  .prog-row .name{
+    font-size:14px;color:rgba(245,240,234,.86);font-weight:400;
+    font-family:var(--serif);font-size:15px;letter-spacing:.01em;
+  }
+  .prog-bar{
+    height:4px;background:rgba(245,240,234,.06);
+    border-radius:100px;overflow:hidden;position:relative;
+  }
+  .prog-bar .fill{
+    position:absolute;top:0;left:0;height:100%;
+    background:linear-gradient(to right, var(--peach), var(--peach-2));
+    border-radius:100px;
+    box-shadow:0 0 12px rgba(231,187,167,.3);
+  }
+  .prog-row .n{
+    font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.5);
+    text-align:right;letter-spacing:.06em;
+  }
+  .prog-row .n b{color:var(--peach);font-weight:500}
 
-/* ── SECTION STRUCTURE ── */
-.section { margin-bottom: 3.5rem; }
+  /* === 03 SEARCH === */
+  .search-card{
+    background:var(--navy-2);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:32px 36px;
+  }
+  .search-row{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:12px;margin-bottom:18px}
+  .field{
+    background:var(--navy-3);
+    border:1px solid var(--line-2);
+    border-radius:3px;
+    padding:14px 18px;
+    display:flex;align-items:center;gap:12px;
+    transition:.18s;
+  }
+  .field:focus-within{border-color:var(--peach);background:var(--navy)}
+  .field .ic{
+    color:rgba(245,240,234,.45);flex-shrink:0;
+    font-family:var(--mono);font-size:14px;
+  }
+  .field input{
+    background:transparent;border:none;outline:none;width:100%;
+    font-size:14px;color:var(--cream);
+  }
+  .field input::placeholder{color:rgba(245,240,234,.38)}
+  .select-field{
+    background:var(--navy-3);
+    border:1px solid var(--line-2);
+    border-radius:3px;
+    padding:14px 18px;
+    font-size:14px;color:rgba(245,240,234,.7);
+    display:flex;align-items:center;justify-content:space-between;
+    cursor:pointer;transition:.18s;
+  }
+  .select-field:hover{border-color:var(--peach-dim);color:var(--cream)}
+  .select-field .car{color:var(--peach);font-family:var(--mono);font-size:11px}
 
-.sec-eyebrow {
-  display: flex; align-items: center; gap: .7rem;
-  font-family: var(--mono); font-size: .58rem;
-  letter-spacing: .2em; color: rgba(245,240,234,.28);
-  text-transform: uppercase;
-  margin-bottom: .9rem;
-}
-.sec-eyebrow::before, .sec-eyebrow::after {
-  content:''; flex: 0 0 20px; height: 1px;
-  background: rgba(245,240,234,.14);
-}
-.sec-header {
-  display: flex; align-items: baseline; justify-content: space-between;
-  margin-bottom: 1.4rem;
-}
-.sec-title {
-  font-family: var(--serif);
-  font-size: 1.55rem;
-  font-weight: 600;
-  color: var(--cream);
-  letter-spacing: .01em;
-}
-.sec-meta {
-  font-family: var(--mono); font-size: .6rem;
-  letter-spacing: .1em; color: rgba(245,240,234,.28);
-  text-transform: uppercase;
-  display: flex; align-items: center; gap: .5rem;
-}
-.sec-meta a, .sec-meta span { color: inherit; text-decoration: none; transition: color .15s; cursor: pointer; }
-.sec-meta a:hover, .sec-meta span:hover { color: var(--peach); }
-.sec-meta .sep { opacity: .4; }
+  .chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .chip{
+    padding:7px 16px;border-radius:100px;
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;
+    border:1px solid var(--line-2);
+    background:transparent;color:rgba(245,240,234,.7);
+    transition:.18s;
+    white-space:nowrap;
+  }
+  .chip:hover{border-color:var(--peach-dim);color:var(--cream)}
+  .chip.on{background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:600}
 
-/* ── CARD ── */
-.card { background: var(--navy-2); border: 1px solid var(--line-on-navy); padding: 1.8rem 2rem; }
+  .results{
+    margin-top:24px;display:flex;flex-direction:column;
+    padding-top:20px;border-top:1px dashed var(--line-2);
+  }
+  .res-row{
+    display:grid;grid-template-columns:auto auto 1fr auto;
+    align-items:center;gap:18px;
+    padding:14px 14px;border-radius:2px;
+    transition:.16s;cursor:pointer;
+    border-bottom:1px solid var(--line);
+  }
+  .res-row:last-child{border-bottom:none}
+  .res-row:hover{background:rgba(245,240,234,.025)}
+  .res-row .law{
+    color:rgba(245,240,234,.55);font-family:var(--mono);
+    font-size:11.5px;letter-spacing:.08em;min-width:90px;
+  }
+  .res-row .art{
+    color:var(--cream);font-family:var(--serif);font-weight:500;
+    font-size:18px;letter-spacing:.01em;min-width:50px;
+    font-feature-settings:"lnum";
+  }
+  .res-row .ttl{
+    color:rgba(245,240,234,.72);font-size:14px;
+    border-left:1px solid var(--line-2);padding-left:18px;
+  }
+  .star{color:var(--peach);font-size:16px;cursor:pointer;line-height:1}
+  .star.off{color:rgba(245,240,234,.22)}
 
-/* ── MEMBER CARD ── */
-.member-card {
-  background: var(--navy-2);
-  border: 1px solid var(--line-on-navy);
-  padding: 1.6rem 1.8rem;
-  display: flex;
-  align-items: stretch;
-  gap: 0;
-  position: relative;
-  overflow: hidden;
-}
-.mc-body { flex: 1; }
-.mc-top { display: flex; align-items: center; gap: .8rem; margin-bottom: 1.2rem; flex-wrap: wrap; }
-.mc-plan-badge {
-  font-family: var(--mono); font-size: .6rem; letter-spacing: .14em;
-  background: rgba(231,187,167,.1); color: var(--peach);
-  padding: .22rem .8rem; border: 1px solid rgba(231,187,167,.22);
-}
-.mc-status { font-family: var(--mono); font-size: .6rem; letter-spacing: .14em; color: var(--good); }
-.mc-serial { font-family: var(--mono); font-size: .85rem; color: rgba(245,240,234,.45); letter-spacing: .08em; margin-bottom: 1.3rem; }
-.mc-bottom { display: flex; gap: 2.5rem; flex-wrap: wrap; }
-.mc-col-label { font-family: var(--mono); font-size: .56rem; letter-spacing: .16em; color: rgba(245,240,234,.3); text-transform: uppercase; margin-bottom: .3rem; }
-.mc-col-val { font-family: var(--serif); font-size: 1.1rem; color: var(--cream); font-weight: 500; }
-.mc-col-val.accent  { color: var(--peach); }
-.mc-col-val.warn    { color: var(--warn); }
-.mc-col-val.danger  { color: var(--danger); }
-.mc-col-val.green   { color: var(--good); }
+  /* === 04/05/06 CARDS === */
+  .card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .li-card{
+    background:var(--navy-2);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:24px 26px;
+    transition:.2s;
+    cursor:pointer;
+    position:relative;
+    overflow:hidden;
+  }
+  .li-card::before{
+    content:"";position:absolute;top:0;left:0;width:3px;height:0%;
+    background:var(--peach);transition:height .3s;
+  }
+  .li-card:hover{background:var(--plum-1);border-color:var(--line-3);transform:translateY(-1px)}
+  .li-card:hover::before{height:100%}
+  .li-card .law{
+    font-family:var(--mono);font-size:10.5px;color:var(--peach);
+    letter-spacing:.2em;text-transform:uppercase;font-weight:600;
+  }
+  .li-card .art{
+    font-family:var(--serif);font-weight:600;font-size:32px;
+    color:var(--cream);margin-top:14px;line-height:1;
+    letter-spacing:-.01em;
+    font-feature-settings:"lnum";
+  }
+  .li-card .sub{
+    font-family:var(--serif);font-size:15px;
+    color:rgba(245,240,234,.78);font-weight:400;
+    margin-top:10px;letter-spacing:.01em;
+  }
+  .li-card .meta{
+    margin-top:22px;padding-top:14px;border-top:1px dashed var(--line);
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.5);
+    letter-spacing:.06em;
+  }
+  .li-card .meta a{color:var(--peach)}
+  .li-card .star{position:absolute;top:22px;right:24px}
+  .li-card.warn .law{color:var(--warn)}
+  .li-card.warn::before{background:var(--warn)}
+  .li-card.warn .meta b{color:var(--warn);font-weight:500}
 
-/* member card "S" watermark */
-.member-card::after {
-  content: 'S';
-  position: absolute; right: 1.2rem; bottom: -.6rem;
-  font-family: var(--serif); font-size: 8rem; font-weight: 700;
-  color: var(--cream); opacity: .04; line-height: 1;
-  pointer-events: none; user-select: none;
-}
+  /* empty state */
+  .empty{
+    padding:42px 32px;text-align:center;
+    background:rgba(31,56,72,.4);
+    border:1px dashed var(--line-2);
+    border-radius:3px;
+    color:rgba(245,240,234,.5);font-size:13.5px;
+    display:flex;flex-direction:column;align-items:center;gap:12px;
+    line-height:1.8;
+  }
+  .empty .ic{
+    font-family:var(--serif);font-size:46px;color:rgba(245,240,234,.16);
+    line-height:1;letter-spacing:-.02em;
+  }
+  .empty b{color:var(--cream);font-weight:500}
+  .empty.full{grid-column:1/-1}
 
-/* avatar on right */
-.mc-avatar {
-  width: 90px; flex-shrink: 0;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  gap: .5rem;
-  border-left: 1px solid var(--line-on-navy);
-  margin-left: 1.6rem;
-  padding-left: 1.6rem;
-}
-.mc-avatar-circle {
-  width: 56px; height: 56px; border-radius: 50%;
-  background: var(--peach); color: var(--navy);
-  display: flex; align-items: center; justify-content: center;
-  font-family: var(--serif); font-size: 1.4rem; font-weight: 600;
-}
-.mc-avatar-name { font-family: var(--mono); font-size: .52rem; letter-spacing: .14em; color: rgba(245,240,234,.35); text-transform: uppercase; }
+  /* === 07 TOOLS — index-card style === */
+  .tool-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .tool{
+    background:var(--navy-2);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:28px 26px 24px;
+    transition:.2s;cursor:pointer;
+    position:relative;overflow:hidden;
+    display:flex;flex-direction:column;gap:14px;
+    min-height:200px;
+  }
+  .tool:hover{background:var(--plum-1);border-color:var(--line-3);transform:translateY(-2px)}
+  .tool .num{
+    font-family:var(--serif);font-weight:500;font-size:42px;
+    color:rgba(231,187,167,.32);line-height:.9;letter-spacing:-.02em;
+    transition:color .2s;
+  }
+  .tool:hover .num{color:var(--peach)}
+  .tool .code{
+    font-family:var(--mono);font-weight:600;font-size:10.5px;
+    color:rgba(245,240,234,.5);letter-spacing:.24em;
+    text-transform:uppercase;
+  }
+  .tool .name{
+    font-family:var(--serif);font-weight:600;font-size:22px;
+    color:var(--cream);letter-spacing:.005em;
+  }
+  .tool .desc{
+    font-size:13px;color:rgba(245,240,234,.6);line-height:1.7;
+  }
+  .tool .arrow{
+    margin-top:auto;padding-top:12px;
+    border-top:1px dashed var(--line);
+    font-family:var(--mono);font-size:11px;
+    color:var(--peach);letter-spacing:.12em;
+    display:flex;align-items:center;justify-content:space-between;
+    text-transform:uppercase;
+  }
+  .tool .arrow .glyph{transition:transform .2s}
+  .tool:hover .arrow .glyph{transform:translateX(4px)}
 
-/* ── STATS ROW ── */
-.stats-row {
-  display: grid; grid-template-columns: repeat(4, 1fr);
-  border: 1px solid var(--line-on-navy);
-  background: var(--navy-2);
-  margin-bottom: 1.6rem;
-}
-.stat-item {
-  padding: 1.5rem 1.2rem; text-align: center;
-  border-right: 1px solid var(--line-on-navy);
-}
-.stat-item:last-child { border-right: none; }
-.stat-num   { font-family: var(--serif); font-size: 2.2rem; font-weight: 600; color: var(--peach); display: block; line-height: 1; }
-.stat-label { display: block; margin-top: .45rem; font-family: var(--mono); font-size: .6rem; letter-spacing: .1em; color: rgba(245,240,234,.35); text-transform: uppercase; }
+  /* === 08 LAWS — table-of-contents === */
+  .laws-head{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:24px;gap:24px;
+  }
+  .laws-search{
+    background:var(--navy-2);
+    border:1px solid var(--line-2);
+    border-radius:3px;
+    padding:11px 16px;width:300px;
+    display:flex;align-items:center;gap:10px;font-size:13px;
+  }
+  .laws-search input{background:transparent;border:none;outline:none;width:100%;color:var(--cream)}
+  .laws-search input::placeholder{color:rgba(245,240,234,.38)}
+  .laws-count{
+    font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.55);
+    letter-spacing:.08em;
+  }
+  .laws-count b{color:var(--peach);font-weight:600}
 
-/* ── PROGRESS BARS ── */
-.law-row { display: flex; align-items: center; gap: 1rem; margin-bottom: .85rem; }
-.law-name { font-size: .76rem; color: rgba(245,240,234,.4); min-width: 130px; flex-shrink: 0; letter-spacing: .02em; }
-.bar-wrap  { flex: 1; background: rgba(245,240,234,.06); height: 3px; }
-.bar-fill  { height: 100%; background: var(--peach); transition: width .7s ease; }
-.bar-count { font-family: var(--mono); font-size: .65rem; color: rgba(245,240,234,.35); min-width: 36px; text-align: right; }
+  .laws-toc{
+    background:var(--navy-2);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:14px 28px;
+  }
+  .toc-row{
+    display:grid;
+    grid-template-columns:40px 1fr 90px 30px;
+    align-items:center;gap:18px;
+    padding:14px 0;
+    border-bottom:1px solid var(--line);
+    cursor:pointer;transition:.18s;
+  }
+  .toc-row:last-child{border-bottom:none}
+  .toc-row:hover{padding-left:8px}
+  .toc-row:hover .nm{color:var(--peach)}
+  .toc-row .idx{
+    font-family:var(--mono);font-size:11px;
+    color:rgba(245,240,234,.38);letter-spacing:.08em;
+    font-feature-settings:"lnum";
+  }
+  .toc-row .nm{
+    font-family:var(--serif);font-size:16px;
+    color:var(--cream);font-weight:400;letter-spacing:.005em;
+    transition:.18s;
+    display:flex;align-items:center;gap:10px;
+  }
+  .toc-row .nm .leader{
+    flex:1;height:1px;
+    background:repeating-linear-gradient(to right, var(--line-2) 0 2px, transparent 2px 6px);
+    margin:0 4px;align-self:center;opacity:0;transition:opacity .18s;
+  }
+  .toc-row:hover .nm .leader{opacity:1}
+  .toc-row .nm .star-mark{
+    font-family:var(--mono);font-size:10px;color:var(--peach);
+    letter-spacing:.16em;padding:2px 7px;border:1px solid rgba(231,187,167,.32);
+    border-radius:2px;
+  }
+  .toc-row .ct{
+    font-family:var(--mono);font-size:11.5px;
+    color:rgba(245,240,234,.5);text-align:right;letter-spacing:.04em;
+  }
+  .toc-row .arrow{
+    font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.32);
+    text-align:right;transition:.18s;
+  }
+  .toc-row:hover .arrow{color:var(--peach);transform:translateX(2px)}
 
-/* ── BOOKMARKS ── */
-.bm-search { width: 100%; background: var(--navy-2); border: 1px solid var(--line-on-navy); color: var(--cream); font-family: var(--sans); font-size: .82rem; padding: .52rem .9rem; outline: none; margin-bottom: .8rem; transition: border-color .15s; }
-.bm-search:focus { border-color: rgba(231,187,167,.35); }
-.bm-search::placeholder { color: var(--muted); }
-.bm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-.bm-item {
-  background: var(--navy-3); padding: 1.1rem 1.2rem;
-  border: 1px solid var(--line-on-navy);
-  display: flex; flex-direction: column;
-  cursor: pointer; position: relative; overflow: hidden;
-  transition: transform .2s, border-color .2s, box-shadow .2s;
-}
-.bm-item:hover { transform: translateY(-2px); border-color: rgba(231,187,167,.2); box-shadow: 0 8px 20px rgba(13,28,40,.4); }
-.bm-art  { font-family: var(--mono); font-size: .62rem; color: var(--peach); letter-spacing: .06em; margin-bottom: .4rem; }
-.bm-law  { font-size: .82rem; color: var(--cream); font-weight: 400; line-height: 1.45; flex: 1; }
-.bm-date { font-family: var(--mono); font-size: .6rem; color: rgba(231,187,167,.35); margin-top: .7rem; letter-spacing: .04em; }
-.bm-item:hover .bm-date { color: rgba(231,187,167,.6); }
+  /* === 09 RECENT — timeline === */
+  .recent-list{
+    background:var(--navy-2);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:8px 0;
+    position:relative;
+  }
+  .rec-group{padding:0 28px}
+  .rec-date-head{
+    display:flex;align-items:center;gap:14px;
+    padding:18px 0 10px;
+    font-family:var(--mono);font-size:10.5px;
+    letter-spacing:.22em;color:rgba(245,240,234,.45);
+    text-transform:uppercase;
+  }
+  .rec-date-head::after{content:"";flex:1;height:1px;background:var(--line)}
+  .rec-row{
+    display:grid;
+    grid-template-columns:auto auto 1fr auto;
+    align-items:center;gap:18px;
+    padding:14px 14px 14px 28px;
+    cursor:pointer;transition:.18s;
+    position:relative;
+    margin-left:-14px;border-radius:2px;
+  }
+  .rec-row::before{
+    content:"";position:absolute;left:6px;top:50%;transform:translateY(-50%);
+    width:6px;height:6px;border-radius:50%;
+    background:var(--peach-dim);opacity:.4;transition:.18s;
+  }
+  .rec-row:hover{background:rgba(245,240,234,.025)}
+  .rec-row:hover::before{opacity:1;background:var(--peach);box-shadow:0 0 0 3px rgba(231,187,167,.18)}
+  .rec-row .law{
+    font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+    color:rgba(245,240,234,.55);min-width:90px;
+  }
+  .rec-row .art{
+    font-family:var(--serif);font-weight:500;font-size:18px;
+    color:var(--cream);min-width:50px;
+    font-feature-settings:"lnum";
+  }
+  .rec-row .ttl{
+    font-size:13.5px;color:rgba(245,240,234,.62);
+    border-left:1px solid var(--line);padding-left:18px;
+  }
+  .rec-row .time{
+    font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.4);
+    letter-spacing:.06em;
+  }
 
-/* ── TOOLS GRID ── */
-.tools-grid { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line-on-navy); background: var(--line-on-navy); gap: 1px; }
-.tool-item { background: var(--navy-2); padding: 1.4rem 1rem; text-align: center; text-decoration: none; transition: background .2s; display: block; }
-.tool-item:hover { background: var(--plum-1); }
-.tool-icon  { font-family: var(--mono); font-size: .7rem; letter-spacing: .18em; color: var(--peach); display: block; margin-bottom: .4rem; }
-.tool-label { font-size: .74rem; color: rgba(245,240,234,.4); letter-spacing: .04em; display: block; }
+  /* === Drawer (unchanged base) === */
+  .drawer-mask{
+    position:fixed;inset:0;background:rgba(13,28,40,.7);
+    backdrop-filter:blur(4px);z-index:99;
+    opacity:0;pointer-events:none;transition:.25s;
+  }
+  .drawer-mask.open{opacity:1;pointer-events:auto}
+  .drawer{
+    position:fixed;top:0;right:0;bottom:0;width:580px;max-width:100%;
+    background:var(--cream);color:var(--navy);
+    z-index:100;
+    transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);
+    display:flex;flex-direction:column;
+    box-shadow:-20px 0 60px rgba(0,0,0,.4);
+  }
+  .drawer.open{transform:translateX(0)}
+  .dr-head{
+    padding:20px 28px;background:var(--cream-2);
+    border-bottom:1px solid var(--cream-3);
+    display:flex;align-items:center;justify-content:space-between;
+    font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--navy);
+  }
+  .dr-head .x{font-size:18px;cursor:pointer;color:var(--navy)}
+  .dr-body{flex:1;overflow-y:auto;padding:36px 38px 24px}
+  .dr-eyebrow{
+    font-family:var(--mono);font-size:11px;font-weight:600;
+    color:var(--peach-3);letter-spacing:.18em;text-transform:uppercase;
+  }
+  .dr-title{margin-top:10px;display:flex;align-items:baseline;gap:14px}
+  .dr-title .n{
+    font-family:var(--serif);font-weight:600;font-size:58px;
+    letter-spacing:-.02em;line-height:1;color:var(--navy);
+    font-feature-settings:"lnum";
+  }
+  .dr-title .tt{font-family:var(--serif);font-weight:500;font-size:22px;color:var(--navy);line-height:1.4}
+  .dr-meta{
+    margin-top:18px;padding:14px 18px;
+    background:#fff;border-radius:3px;border:1px solid var(--cream-3);
+    display:flex;align-items:center;gap:24px;
+    font-family:var(--mono);font-size:12px;color:var(--navy);
+    letter-spacing:.06em;
+  }
+  .dr-meta b{color:var(--peach-3);font-weight:600}
+  .dr-text{
+    margin-top:24px;padding:24px 26px;background:#fff;border-radius:3px;
+    border-left:3px solid var(--peach);
+    font-size:15.5px;line-height:1.95;color:var(--navy);
+  }
+  .dr-text p{margin-bottom:10px}
+  .dr-text p:last-child{margin-bottom:0}
+  .dr-text .ro{font-family:var(--mono);font-size:13px;color:var(--peach-3);font-weight:600;margin-right:6px}
+  .dr-text .hl{background:rgba(231,187,167,.42);padding:1px 4px;border-radius:2px;color:var(--navy);font-weight:600}
+  .dr-text .but{margin-top:14px;padding-top:12px;border-top:1px dashed rgba(31,56,72,.14);color:rgba(31,56,72,.65);font-size:14px}
+  .dr-text .but b{color:var(--peach-3);font-weight:600}
 
-/* ── HISTORY ── */
-.hist-list { display: flex; flex-direction: column; gap: 8px; }
-.hist-item {
-  background: var(--navy-2); padding: .75rem 1.2rem;
-  border: 1px solid var(--line-on-navy);
-  display: grid;
-  grid-template-columns: 6.5rem 3.2rem 1fr auto;
-  align-items: center; gap: 0 1rem;
-  cursor: pointer; transition: background .18s, border-color .18s;
-}
-.hist-item:hover { background: rgba(255,255,255,.03); border-color: rgba(231,187,167,.18); }
-.hist-col-law  { font-family: var(--mono); font-size: .65rem; color: var(--peach); letter-spacing: .04em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hist-col-law--unknown { color: rgba(231,187,167,.25); }
-.hist-col-num  { font-family: var(--mono); font-size: .78rem; color: var(--cream); white-space: nowrap; }
-.hist-col-title { font-size: .82rem; color: rgba(245,240,234,.7); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.hist-time { font-family: var(--mono); font-size: .62rem; color: rgba(245,240,234,.3); white-space: nowrap; text-align: right; }
+  .dr-actions{display:flex;gap:8px;margin-top:18px}
+  .dr-chip{
+    flex:0 0 auto;padding:9px 18px;border-radius:3px;
+    border:1px solid var(--cream-3);background:#fff;
+    font-size:13px;color:rgba(31,56,72,.7);
+    cursor:pointer;transition:.18s;
+    display:flex;align-items:center;gap:6px;
+  }
+  .dr-chip:hover{border-color:var(--peach-3);color:var(--navy)}
+  .dr-chip.on{background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:600}
 
-/* ── LAW BROWSER ── */
-.law-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-.law-card { background: var(--navy-2); border: 1px solid var(--line-on-navy); padding: .8rem 1rem; cursor: pointer; transition: border-color .15s, background .15s, transform .15s; }
-.law-card:hover { background: rgba(231,187,167,.04); border-color: rgba(231,187,167,.2); transform: translateY(-1px); }
-.law-card-name  { font-size: .8rem; color: var(--cream); line-height: 1.4; }
-.law-card-count { font-family: var(--mono); font-size: .6rem; color: var(--muted); margin-top: .28rem; }
+  .dr-acc{margin-top:24px;border-top:1px solid var(--cream-3)}
+  .acc-item{border-bottom:1px solid var(--cream-3)}
+  .acc-head{display:flex;align-items:center;gap:14px;padding:16px 6px;cursor:pointer;transition:.18s}
+  .acc-head:hover{padding-left:12px}
+  .acc-head .cv{font-family:var(--mono);font-size:11px;color:var(--peach-3);transition:transform .25s;width:14px;display:inline-block}
+  .acc-head .num{font-family:var(--mono);font-size:12px;font-weight:600;color:rgba(31,56,72,.45);letter-spacing:.04em}
+  .acc-head .ttl{font-family:var(--serif);font-size:16.5px;font-weight:500;color:rgba(31,56,72,.85);letter-spacing:.01em}
+  .acc-item.open .acc-head .cv{transform:rotate(90deg);color:var(--peach-3)}
+  .acc-item.open .acc-head .ttl{color:var(--navy)}
+  .acc-item.open .acc-head .num{color:var(--peach-3)}
+  .acc-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .acc-item.open .acc-body{max-height:600px}
+  .acc-inner{padding:4px 22px 22px 28px;font-size:14px;line-height:1.85;color:rgba(31,56,72,.78)}
+  .acc-inner p{margin-bottom:8px}
+  .acc-inner b{color:var(--navy);font-weight:600}
+  .acc-inner .kw{background:rgba(231,187,167,.32);padding:1px 5px;border-radius:2px;color:var(--navy);font-weight:500}
 
-/* ── LAW PANEL (side panel) ── */
-.law-panel-overlay { position: fixed; inset: 0; z-index: 201; background: rgba(13,28,40,.55); display: none; }
-.law-panel-overlay.open { display: block; }
-.law-panel { position: fixed; top: 0; right: 0; bottom: 0; z-index: 202; width: 340px; max-width: 92vw; background: var(--navy-3); border-left: 1px solid var(--line-on-navy); display: flex; flex-direction: column; transform: translateX(100%); transition: transform .25s ease; }
-.law-panel.open { transform: translateX(0); }
-.law-panel-header { display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.2rem; border-bottom: 1px solid var(--line-on-navy); flex-shrink: 0; }
-.law-panel-name { font-family: var(--serif); font-size: .95rem; font-weight: 600; color: var(--cream); }
-.law-panel-close { background: none; border: none; color: rgba(245,240,234,.4); font-size: 1rem; cursor: pointer; padding: .2rem .4rem; transition: color .15s; }
-.law-panel-close:hover { color: var(--cream); }
-.law-panel-search { padding: .7rem 1rem; border-bottom: 1px solid var(--line-on-navy); flex-shrink: 0; }
-.law-panel-search input { width: 100%; background: var(--navy-2); border: 1px solid var(--line-on-navy); color: var(--cream); font-family: var(--sans); font-size: .8rem; padding: .48rem .8rem; outline: none; transition: border-color .15s; }
-.law-panel-search input:focus { border-color: rgba(231,187,167,.35); }
-.law-panel-search input::placeholder { color: var(--muted); }
-.law-panel-list { flex: 1; overflow-y: auto; padding: .5rem; }
-.panel-art { padding: .5rem .7rem; font-family: var(--mono); font-size: .7rem; color: rgba(245,240,234,.45); cursor: pointer; transition: background .1s, color .1s; }
-.panel-art:hover { background: rgba(231,187,167,.07); color: var(--peach); }
-.panel-art-no { color: var(--peach-3); margin-right: .4rem; }
-.lbi-loading { padding: .8rem; font-family: var(--mono); font-size: .7rem; color: var(--muted); }
+  .dr-foot{padding:18px 28px;background:var(--cream-2);border-top:1px solid var(--cream-3);display:flex;gap:10px}
+  .dr-btn{
+    flex:1;padding:14px 18px;border-radius:3px;
+    font-family:var(--sans);font-size:14px;font-weight:600;
+    text-align:center;cursor:pointer;transition:.18s;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .dr-btn.pri{background:var(--navy);color:var(--cream)}
+  .dr-btn.pri:hover{background:var(--navy-2)}
+  .dr-btn.sec{background:transparent;color:var(--navy);border:1px solid var(--navy)}
+  .dr-btn.sec:hover{background:rgba(31,56,72,.06)}
+  .dr-btn.peach{background:var(--peach);color:var(--navy)}
+  .dr-btn.peach:hover{background:var(--peach-2)}
 
-/* ── SEARCH SECTION ── */
-.law-combo-wrap { position: relative; margin-bottom: .6rem; }
-.law-combo-dd { position: absolute; top: 100%; left: 0; right: 0; z-index: 110; background: var(--navy-2); border: 1px solid rgba(231,187,167,.25); border-top: none; max-height: 200px; overflow-y: auto; display: none; }
-.law-combo-dd.open { display: block; }
-.law-combo-dd::-webkit-scrollbar { width: 3px; }
-.law-combo-dd::-webkit-scrollbar-thumb { background: rgba(231,187,167,.15); }
-.law-combo-item { padding: .48rem .85rem; font-size: .8rem; color: rgba(245,240,234,.5); cursor: pointer; transition: background .1s, color .1s; }
-.law-combo-item:hover { background: rgba(231,187,167,.08); color: var(--peach); }
-.sf-row { display: flex; align-items: center; gap: .7rem; margin-bottom: .7rem; flex-wrap: wrap; }
-.sf-tabs { display: flex; }
-.sf-tab { font-family: var(--mono); font-size: .62rem; letter-spacing: .04em; color: rgba(245,240,234,.3); background: none; border: 1px solid var(--line-on-navy); padding: .28rem .72rem; cursor: pointer; transition: color .15s, background .15s, border-color .15s; }
-.sf-tab:first-child { border-radius: 1px 0 0 1px; }
-.sf-tab:last-child  { border-radius: 0 1px 1px 0; }
-.sf-tab + .sf-tab { border-left: none; }
-.sf-tab.active { color: var(--peach); border-color: rgba(231,187,167,.4); background: rgba(231,187,167,.06); }
-.sf-time { -webkit-appearance: none; appearance: none; background: var(--navy-2); border: 1px solid var(--line-on-navy); color: rgba(245,240,234,.4); font-family: var(--mono); font-size: .62rem; padding: .28rem 1.5rem .28rem .6rem; outline: none; cursor: pointer; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='7' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%237A8892' stroke-width='1.5' fill='none'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 5px center; transition: border-color .15s; }
-.sf-time:focus { border-color: rgba(231,187,167,.35); color: var(--cream); }
-.sf-time option { background: var(--navy-2); color: var(--cream); }
-.art-search-row { display: flex; align-items: center; justify-content: space-between; padding: .45rem .7rem; transition: background .12s; gap: .5rem; }
-.art-search-row:hover { background: rgba(231,187,167,.06); }
-.art-search-title { font-family: var(--mono); font-size: .7rem; color: rgba(245,240,234,.5); flex: 1; cursor: pointer; transition: color .12s; }
-.art-search-row:hover .art-search-title { color: var(--peach); }
-.bm-star { background: none; border: none; color: rgba(231,187,167,.2); font-size: .86rem; cursor: pointer; padding: .1rem .25rem; transition: color .15s, transform .15s; flex-shrink: 0; line-height: 1; }
-.bm-star:hover { color: var(--peach); transform: scale(1.2); }
-.bm-star.on { color: var(--peach); }
-.cross-search-hd { font-family: var(--mono); font-size: .66rem; letter-spacing: .08em; color: var(--peach); padding: .5rem .7rem .3rem; opacity: .7; }
-.tl-badge { font-family: var(--mono); font-size: .6rem; background: rgba(231,187,167,.1); color: var(--peach); border: 1px solid rgba(231,187,167,.18); padding: .04rem .38rem; margin-left: .3rem; vertical-align: middle; }
-
-/* ── DRAWER OVERLAY ── */
-.drawer-overlay {
-  position: fixed; inset: 0; z-index: 200;
-  background: rgba(0,0,0,.45); backdrop-filter: blur(3px);
-  opacity: 0; pointer-events: none; transition: opacity .3s ease;
-}
-.drawer-overlay.open { opacity: 1; pointer-events: all; }
-
-/* ── DRAWER PANEL ── */
-.drawer {
-  position: fixed; top: 0; right: 0; bottom: 0; z-index: 201;
-  width: min(700px, 96vw);
-  background: var(--cream);
-  border-left: 3px solid var(--peach);
-  transform: translateX(100%);
-  transition: transform .35s cubic-bezier(.4,0,.2,1);
-  display: flex; flex-direction: column; overflow: hidden;
-}
-.drawer.open { transform: translateX(0); }
-/* header：breadcrumb 行 + ✕ */
-.drawer-header {
-  padding: 1rem 1.5rem .6rem;
-  display: flex; align-items: flex-start; justify-content: space-between; flex-shrink: 0;
-}
-.drawer-breadcrumb { font-family: var(--mono); font-size: .58rem; letter-spacing: .09em; color: rgba(31,56,72,.38); line-height: 1.4; }
-.drawer-close {
-  background: rgba(31,56,72,.06); border: 1px solid rgba(31,56,72,.15);
-  color: rgba(31,56,72,.4); cursor: pointer; font-size: 1rem;
-  width: 2rem; height: 2rem; display: flex; align-items: center; justify-content: center;
-  transition: background .2s, color .2s; flex-shrink: 0; margin-left: 1rem;
-}
-.drawer-close:hover { background: rgba(31,56,72,.12); color: var(--navy); }
-/* meta 行：ARTICLE · 高頻 */
-.drawer-meta { padding: 0 1.5rem .3rem; flex-shrink: 0; }
-.drawer-meta-label { font-family: var(--mono); font-size: .6rem; letter-spacing: .13em; color: var(--peach-3); }
-/* 大標題：數字 + 條文名（同一行） */
-.drawer-title { padding: .15rem 1.5rem .85rem; flex-shrink: 0; border-bottom: 1px solid rgba(31,56,72,.1); display: flex; align-items: baseline; gap: .65rem; flex-wrap: wrap; }
-.drawer-title-num  { font-family: var(--serif); font-size: 3.2rem; font-weight: 700; line-height: 1; color: var(--navy); flex-shrink: 0; }
-.drawer-title-name { font-family: var(--serif); font-size: 1.08rem; color: var(--navy); line-height: 1.35; }
-/* 小動作列（收藏 / 已熟記 / 待複習） */
-.drawer-actions { display: flex; gap: .4rem; padding: .65rem 1.5rem; border-bottom: 1px solid rgba(31,56,72,.1); flex-shrink: 0; flex-wrap: wrap; }
-.dr-act { font-family: var(--mono); font-size: .62rem; letter-spacing: .07em; color: rgba(31,56,72,.42); background: none; border: 1px solid rgba(31,56,72,.15); padding: .24rem .72rem; cursor: pointer; transition: color .15s, border-color .15s, background .15s; }
-.dr-act:hover { color: var(--navy); border-color: rgba(31,56,72,.35); }
-.dr-act.on { color: var(--peach-3); border-color: var(--peach-3); background: rgba(200,149,128,.08); }
-.review-picker { display: none; align-items: center; gap: .4rem; padding: .4rem 1.5rem .5rem; border-bottom: 1px solid rgba(31,56,72,.1); flex-shrink: 0; flex-wrap: wrap; }
-.review-picker.show { display: flex; }
-.rv-label { font-family: var(--mono); font-size: .58rem; letter-spacing: .07em; color: rgba(31,56,72,.35); margin-right: .2rem; }
-.rv-btn { font-family: var(--mono); font-size: .6rem; color: rgba(31,56,72,.4); background: none; border: 1px solid rgba(31,56,72,.18); padding: .2rem .58rem; cursor: pointer; transition: color .15s, border-color .15s, background .15s; }
-.rv-btn:hover { color: var(--navy); border-color: rgba(31,56,72,.35); }
-.rv-btn.active { color: var(--peach-3); border-color: var(--peach-3); background: rgba(200,149,128,.08); }
-/* 可滾動內文 */
-.drawer-body { flex: 1; overflow-y: auto; padding: 1.2rem 1.5rem 1rem; }
-.drawer-body::-webkit-scrollbar { width: 3px; }
-.drawer-body::-webkit-scrollbar-thumb { background: rgba(31,56,72,.15); }
-.drawer-spinner { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; padding: 3rem 0; }
-.drawer-spinner::before { content: ''; width: 26px; height: 26px; border: 2px solid rgba(31,56,72,.1); border-top-color: var(--peach-3); border-radius: 50%; animation: spin .8s linear infinite; }
-.drawer-spinner-text { font-family: var(--mono); font-size: .68rem; color: rgba(31,56,72,.4); letter-spacing: .1em; }
-/* 底部固定 action bar */
-.drawer-footer { flex-shrink: 0; display: none; grid-template-columns: 1fr 1fr 1fr; border-top: 1px solid rgba(31,56,72,.12); }
-.drawer-footer.visible { display: grid; }
-.df-btn { font-family: var(--mono); font-size: .65rem; letter-spacing: .07em; padding: 1.05rem .5rem; border: none; cursor: pointer; transition: opacity .15s, background .15s; }
-.df-btn--master { background: var(--navy-3); color: var(--cream); }
-.df-btn--master.on { background: var(--navy-4); }
-.df-btn--review  { background: var(--cream-2); color: var(--navy); border-left: 1px solid rgba(31,56,72,.1); border-right: 1px solid rgba(31,56,72,.1); }
-.df-btn--review.on { background: var(--warn); color: var(--navy); }
-.df-btn--bm      { background: var(--peach-3); color: var(--navy); }
-.df-btn--bm.on   { background: var(--peach); }
-.df-btn:hover    { opacity: .82; }
-.hist-item.tapping, .bm-item.tapping { opacity: .6; transition: opacity .12s; }
-/* 條文原文 */
-.art-callout { margin-bottom: 1.3rem; padding: 1.1rem 1.3rem; background: #fff; border: 1px solid rgba(31,56,72,.1); border-left: 3px solid var(--peach-3); border-radius: 0 4px 4px 0; font-family: var(--serif); font-size: .88rem; line-height: 1.9; color: var(--navy); }
-.raw-line { font-size:.88rem; color:var(--navy); line-height:1.9; padding:.04rem 0; }
-.raw-line.d1 { padding-left:0; }
-.raw-line.d2 { padding-left:1.4rem; color: rgba(31,56,72,.7); }
-.raw-blank   { height:.4rem; }
-/* 但書分隔線 + 文字 */
-.raw-proviso-sep { border: none; border-top: 1px dashed rgba(31,56,72,.2); margin: .6rem 0 .5rem; }
-.raw-line.proviso { color: rgba(31,56,72,.55); font-size: .84rem; }
-.neg-keyword { color: #c0392b; font-weight: 600; }
-.art-num { font-family: var(--mono); color: var(--peach-3); font-size: .82rem; margin-right: .15rem; }
-.law-ref-link { color:var(--peach-3); text-decoration:underline; cursor:pointer; }
-.law-ref-link:hover { opacity:.75; }
-/* 可折疊 section */
-.art-section-collapsible { border-bottom: 1px solid rgba(31,56,72,.08); }
-.art-section-hdr  { display: flex; align-items: center; gap: .38rem; padding: .85rem 0 .6rem; cursor: pointer; user-select: none; }
-.art-section-hdr:hover .art-section-key { color: rgba(31,56,72,.75); }
-.art-section-chevron { font-size: .6rem; color: var(--peach-3); transition: transform .18s; flex-shrink: 0; }
-.art-section-collapsible.collapsed .art-section-chevron { transform: rotate(-90deg); }
-.art-section-star { color: var(--peach-3); font-size: .65rem; line-height: 1; }
-.art-section-num  { font-family: var(--mono); font-size: .62rem; color: var(--peach-3); }
-.art-section-key  { font-family: var(--mono); font-size: .66rem; letter-spacing: .06em; color: rgba(31,56,72,.5); }
-.art-section-body { padding: 0 0 .8rem .1rem; }
-.art-section-collapsible.collapsed .art-section-body { display: none; }
-.art-line { font-size: .8rem; color: var(--navy); line-height: 1.78; padding: .05rem 0; }
-.art-line.d1 { padding-left: 1.1rem; color: rgba(31,56,72,.65); font-size: .78rem; }
-.art-line.d2 { padding-left: 2.2rem; color: rgba(31,56,72,.5); font-size: .76rem; }
-.art-locked { border-bottom: 1px solid rgba(31,56,72,.1); padding: .8rem 0; display: flex; align-items: center; gap: .6rem; }
-.art-locked-label { font-family: var(--mono); font-size: .68rem; letter-spacing: .07em; color: rgba(31,56,72,.3); }
-.art-locked-icon { font-size: .8rem; opacity: .35; }
-
-/* ── EMPTY / LOADING ── */
-.empty   { font-size: .8rem; color: rgba(245,240,234,.3); padding: 1.4rem 0; }
-.loading { font-family: var(--mono); font-size: .72rem; color: rgba(245,240,234,.28); padding: 1.1rem 0; letter-spacing: .1em; }
-/* 抽屜內（米白底）覆寫 */
-.drawer-body .empty   { color: rgba(31,56,72,.35); }
-.drawer-body .loading { color: rgba(31,56,72,.35); }
-
-/* ── RESPONSIVE ── */
-/* ≤1100px: 側欄縮 220px */
-@media (max-width: 1100px) {
-  .side-nav { width: 220px; }
-  .main-wrap { margin-left: 220px; }
-  main { padding: 0 2.5rem 5rem; }
-}
-/* ≤760px: 漢堡抽屜 */
-@media (max-width: 760px) {
-  .side-nav { transform: translateX(-100%); }
-  .side-nav.open { transform: translateX(0); }
-  .main-wrap { margin-left: 0 !important; }
-  .nav-hamburger { display: flex !important; }
-  main { padding: 0 1.2rem 4rem; }
-  .greet-headline { font-size: 2rem; }
-  .greet-time { font-size: 1.6rem; }
-  .bm-grid { grid-template-columns: repeat(2, 1fr); }
-  .law-grid { grid-template-columns: repeat(2, 1fr); }
-  .stats-row { grid-template-columns: repeat(2, 1fr); }
-  .stats-row .stat-item:nth-child(2) { border-right: none; }
-  .tools-grid { grid-template-columns: repeat(2, 1fr); }
-  .mc-avatar { display: none; }
-}
-@media (max-width: 480px) {
-  main { padding: 0 .9rem 3.5rem; }
-  .greet-area { flex-direction: column; gap: 1rem; }
-  .greet-right { text-align: left; }
-  .greet-headline { font-size: 1.7rem; }
-  .bm-grid { grid-template-columns: 1fr; }
-  .law-grid { grid-template-columns: 1fr; }
-  .mc-bottom { flex-direction: column; gap: .85rem; }
-  .drawer { width: 100vw; }
-  .sec-title { font-size: 1.3rem; }
-}
+  /* === RWD === */
+  @media (max-width: 1180px){
+    .shell{grid-template-columns:240px 1fr}
+    main.main{padding:48px 44px 80px}
+    .mc-stats{grid-template-columns:1fr 1fr}
+    .card-grid,.tool-grid{grid-template-columns:repeat(2,1fr)}
+    .search-row{grid-template-columns:1fr 1fr}
+    .tonight{grid-template-columns:repeat(2,1fr)}
+    .tn:nth-child(2){border-right:none}
+    .tn:nth-child(1),.tn:nth-child(2){border-bottom:1px solid var(--line)}
+  }
+  @media (max-width: 760px){
+    .topbar{padding:14px 20px}
+    .top-mid{display:none}
+    .menu-btn{display:flex}
+    .shell{grid-template-columns:1fr}
+    aside.side{
+      position:fixed;top:65px;left:0;width:280px;height:calc(100vh - 65px);
+      transform:translateX(-100%);transition:transform .3s;z-index:40;
+    }
+    aside.side.open{transform:translateX(0)}
+    main.main{padding:32px 22px 60px}
+    .greet{grid-template-columns:1fr;gap:18px}
+    .greet h1{font-size:32px}
+    .greet .now{text-align:left}
+    .greet .now .t{font-size:30px}
+    .tonight{grid-template-columns:1fr 1fr}
+    .member-card{grid-template-columns:1fr}
+    .member-card .perf{display:none}
+    .mc-l{padding:28px 24px}
+    .mc-r{padding:28px 24px;border-top:1px dashed var(--line-2)}
+    .mc-stub-lab{position:static;margin-bottom:14px}
+    .mc-stats{grid-template-columns:1fr 1fr;gap:20px}
+    .prog-card{padding:24px}
+    .prog-stats{grid-template-columns:1fr 1fr;gap:20px 0}
+    .ps{padding:14px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .ps:nth-child(2n){border-right:none}
+    .ps:nth-last-child(-n+2){border-bottom:none}
+    .ps .v{font-size:42px}
+    .prog-row{grid-template-columns:120px 1fr 36px;gap:14px}
+    .search-row{grid-template-columns:1fr}
+    .card-grid,.tool-grid{grid-template-columns:1fr}
+    .sec-head{flex-direction:column;align-items:flex-start;gap:8px}
+    .toc-row{grid-template-columns:32px 1fr auto;gap:12px}
+    .toc-row .arrow{display:none}
+    .rec-row{grid-template-columns:auto 1fr auto;gap:12px}
+    .rec-row .ttl{display:none}
+    .drawer{width:100%}
+    .laws-head{flex-direction:column;align-items:flex-start;gap:12px}
+    .laws-search{width:100%}
+  }
 </style>
 </head>
-<body>
+<body data-screen-label="01 Dashboard">
 
-<div id="page-loader">
-  <div class="pl-spinner"></div>
-  <div class="pl-text">LOADING</div>
-  <div class="pl-sub">初次載入約 15–20 秒，請稍等</div>
-</div>
-
-<div class="warm-bar" id="warmBar">伺服器啟動中，資料即將出現（約 15–20 秒）…</div>
-
-<nav>
-  <div style="display:flex;align-items:center;gap:.2rem">
-    <button class="nav-hamburger" id="navHamburger" onclick="toggleSidebar()" aria-label="選單">
-      <span></span><span></span><span></span>
-    </button>
-    <a href="/" class="nav-brand">SOFA ENGINE</a>
-  </div>
-  <div class="nav-right">
-    <span class="nav-user" id="nav-user" style="display:none">—</span>
-    <button class="nav-refresh" id="nav-refresh-btn" onclick="refreshData()" title="重新載入資料" style="display:none">⟳</button>
-    <button class="nav-logout" id="nav-logout-btn" onclick="doLogout()" style="display:none">登出</button>
-    <a href="https://lin.ee/zUeMwo4" id="nav-line-cta" class="demo-cta" target="_blank" rel="noopener" style="display:none">加 LINE 領序號 →</a>
-  </div>
-</nav>
-
-<div class="demo-banner" id="demoBanner">
-  <span class="demo-banner-text">你正在瀏覽<strong>示範版</strong>。加 LINE Bot 領取體驗序號，解鎖完整功能。</span>
-  <a href="https://lin.ee/zUeMwo4" class="demo-cta" target="_blank" rel="noopener">加 LINE Bot → 立即領序號</a>
-</div>
-
-<div class="side-overlay" id="sideOverlay" onclick="closeSidebar()"></div>
-
-<div class="page-wrap">
-
-  <!-- 左側邊欄 -->
-  <aside class="side-nav" id="sideNav">
-    <div class="exam-box" id="examBox">
-      <div class="exam-label">距考試</div>
-      <div class="exam-days" id="examDays">—</div>
-      <div class="exam-sub" id="examSub">天 倒數中</div>
-      <input class="exam-input" type="date" id="examDateInput" onchange="saveExamDate()" title="設定考試日">
+  <!-- ============ TOP BAR ============ -->
+  <header class="topbar">
+    <a class="brand" href="/"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
+    <nav class="top-mid">
+      <a href="#member">會員</a>
+      <a href="#progress">進度</a>
+      <a href="#search">查法條</a>
+      <a href="#tools">備考工具</a>
+      <a href="#laws">法規</a>
+    </nav>
+    <div class="top-right">
+      <span class="user-pill"><span class="live"></span>Fay</span>
+      <button class="btn-out">登出</button>
+      <button class="menu-btn" onclick="document.querySelector('aside.side').classList.toggle('open')"><span></span></button>
     </div>
-    <div class="sn-group-label">導覽</div>
-    <a class="sn-item" href="#member-section"><span class="sn-num">01</span>會員資訊</a>
-    <a class="sn-item" href="#progress-section"><span class="sn-num">02</span>學習進度</a>
-    <a class="sn-item" href="#search-section"><span class="sn-num">03</span>法條搜尋</a>
-    <a class="sn-item" href="#bookmark-section"><span class="sn-num">04</span>我的收藏</a>
-    <a class="sn-item" href="#mastered-section"><span class="sn-num">05</span>已熟記</a>
-    <a class="sn-item" href="#review-section"><span class="sn-num">06</span>待複習</a>
-    <a class="sn-item" href="#tools-section"><span class="sn-num">07</span>備考工具</a>
-    <a class="sn-item" href="#law-browser-section"><span class="sn-num">08</span>法規目錄</a>
-    <a class="sn-item" href="#history-section"><span class="sn-num">09</span>最近查詢</a>
+  </header>
+
+  <div class="shell">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="side">
+      <div class="countdown" id="countdown">
+        <div class="cd-top">
+          <span>距 考 試</span>
+          <button class="cd-x" onclick="hideCountdown()" title="關閉倒數">✕</button>
+        </div>
+        <div class="cd-mid">
+          <div class="cd-num">187</div>
+          <div class="cd-unit">天 倒 數 中</div>
+        </div>
+        <div class="cd-foot">
+          <span>考試日</span>
+          <b>2026 / 11 / 14</b>
+        </div>
+      </div>
+      <button class="cd-restore" id="cdRestore" onclick="showCountdown()">+ 顯示考試倒數</button>
+
+      <div class="nav-section">
+        <div class="lab">導 覽</div>
+        <div class="nav-list">
+          <a href="#member" class="on"><span class="num">01</span>會員資訊<span class="ct"></span></a>
+          <a href="#progress"><span class="num">02</span>學習進度<span class="ct">6/7</span></a>
+          <a href="#search"><span class="num">03</span>法條搜尋<span class="ct"></span></a>
+          <a href="#favorites"><span class="num">04</span>我的收藏<span class="ct">1</span></a>
+          <a href="#memorized"><span class="num">05</span>已熟記<span class="ct">0</span></a>
+          <a href="#review"><span class="num">06</span>待複習<span class="ct">1</span></a>
+          <a href="#tools"><span class="num">07</span>備考工具<span class="ct">4</span></a>
+          <a href="#laws"><span class="num">08</span>法規目錄<span class="ct">33</span></a>
+          <a href="#recent"><span class="num">09</span>最近查詢<span class="ct">7d</span></a>
+        </div>
+      </div>
+
+      <div class="side-foot">
+        <span class="dash">— LIBRARY —</span>
+        坐下來，<br/>一條一條來。
+        <div style="margin-top:14px"><b>2,000+ 條 · 33 部</b></div>
+        <div style="margin-top:18px;display:flex;flex-direction:column;gap:6px;border-top:1px solid rgba(245,240,234,.08);padding-top:16px;">
+          <a href="terms.html" style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.35);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(245,240,234,.7)'" onmouseout="this.style.color='rgba(245,240,234,.35)'">服務聲明 / 退費政策 →</a>
+          <a href="mailto:hi@sofaengine.org" style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.35);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(245,240,234,.7)'" onmouseout="this.style.color='rgba(245,240,234,.35)'">hi@sofaengine.org</a>
+          <span style="font-family:var(--mono);font-size:10px;color:rgba(245,240,234,.18);letter-spacing:.06em;margin-top:4px">v3.1.0 · 2026.05</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============ MAIN ============ -->
+    <main class="main">
+      <div class="main-inner">
+
+        <!-- ============ HERO ============ -->
+        <div class="greet">
+          <div>
+            <div class="eyebrow">TONIGHT · TAIPEI</div>
+            <h1>晚安，<em>Fay</em>。<br/>今天讀一條也算數。</h1>
+            <p class="sub">距離考試還有 <span class="greet-days">—</span> 天。本週進度 6 / 7，連續學習 3 天——坐下來繼續吧。</p>
+          </div>
+          <div class="now">
+            <div class="l">CURRENT TIME</div>
+            <div class="t">22:48</div>
+            <div class="l">2026.05.11 · 一</div>
+          </div>
+        </div>
+
+        <!-- tonight strip -->
+        <div class="tonight">
+          <div class="tn">
+            <div class="k">今晚目標</div>
+            <div class="v">1 <span class="u">條</span></div>
+          </div>
+          <div class="tn">
+            <div class="k">本週進度</div>
+            <div class="v peach">6 / 7</div>
+          </div>
+          <div class="tn">
+            <div class="k">連續學習</div>
+            <div class="v good">3 <span class="u">天</span></div>
+          </div>
+          <div class="tn">
+            <div class="k">待複習</div>
+            <div class="v">1 <span class="u">條 · 7 天後</span></div>
+          </div>
+        </div>
+
+        <!-- ============ 01 MEMBER ============ -->
+        <section class="block" id="member">
+          <div class="sec-head">
+            <div class="l">
+              <span class="idx">01</span>
+              <h2>會員資訊</h2>
+            </div>
+            <div class="r"><span class="eb">MEMBER</span></div>
+          </div>
+
+          <div class="member-card">
+            <div class="mc-l">
+              <span class="mc-stub-lab">— MEMBERSHIP TICKET —</span>
+              <div class="mc-tags">
+                <span class="mc-tag">買斷終身</span>
+                <span class="mc-status">ACTIVE</span>
+              </div>
+              <div class="mc-name">Fay</div>
+              <div class="mc-target">目標 · 記帳士國考 <span class="yr">2026</span></div>
+              <div class="mc-id">NO. <span class="sn">SOFA-2026-0508-FAY</span></div>
+              <div class="mc-divider"></div>
+              <div class="mc-stats">
+                <div class="mc-stat">
+                  <div class="k">到期日</div>
+                  <div class="v">永久有效</div>
+                </div>
+                <div class="mc-stat">
+                  <div class="k">連續學習</div>
+                  <div class="v good">3<span class="u">天</span></div>
+                </div>
+                <div class="mc-stat">
+                  <div class="k">啟用日</div>
+                  <div class="v">2026.05.08</div>
+                </div>
+              </div>
+            </div>
+            <div class="perf"></div>
+            <div class="mc-r">
+              <span class="lab">SEAT · 學員座位</span>
+              <div class="avatar">F</div>
+              <div class="who"><b>FAY</b>記帳士 · 國考</div>
+              <div class="barcode"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ 02 PROGRESS ============ -->
+        <section class="block" id="progress">
+          <div class="sec-head">
+            <div class="l">
+              <span class="idx">02</span>
+              <h2>學習進度</h2>
+            </div>
+            <div class="r"><a href="#">查看週報 →</a></div>
+          </div>
+
+          <div class="prog-card">
+            <div class="prog-stats">
+              <div class="ps">
+                <div class="v">8<span class="u">條</span></div>
+                <div class="k">已查條文</div>
+              </div>
+              <div class="ps">
+                <div class="v">6<span class="u">部</span></div>
+                <div class="k">涵蓋法規</div>
+              </div>
+              <div class="ps">
+                <div class="v">1<span class="u">條</span></div>
+                <div class="k">已收藏</div>
+              </div>
+              <div class="ps">
+                <div class="v">3<span class="u">天</span></div>
+                <div class="k">連續學習</div>
+              </div>
+            </div>
+
+            <div class="prog-list">
+              <div class="prog-row">
+                <span class="name">記帳士法</span>
+                <div class="prog-bar"><div class="fill" style="width:62%"></div></div>
+                <span class="n"><b>2</b> 條</span>
+              </div>
+              <div class="prog-row">
+                <span class="name">商業登記法</span>
+                <div class="prog-bar"><div class="fill" style="width:54%"></div></div>
+                <span class="n"><b>2</b> 條</span>
+              </div>
+              <div class="prog-row">
+                <span class="name">所得稅法</span>
+                <div class="prog-bar"><div class="fill" style="width:38%"></div></div>
+                <span class="n"><b>1</b> 條</span>
+              </div>
+              <div class="prog-row">
+                <span class="name">所得基本稅額條例</span>
+                <div class="prog-bar"><div class="fill" style="width:32%"></div></div>
+                <span class="n"><b>1</b> 條</span>
+              </div>
+              <div class="prog-row">
+                <span class="name">所得基本稅額條例施行細則</span>
+                <div class="prog-bar"><div class="fill" style="width:28%"></div></div>
+                <span class="n"><b>1</b> 條</span>
+              </div>
+              <div class="prog-row">
+                <span class="name">遺產及贈與稅法</span>
+                <div class="prog-bar"><div class="fill" style="width:24%"></div></div>
+                <span class="n"><b>1</b> 條</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ 03 SEARCH ============ -->
+        <section class="block" id="search">
+          <div class="sec-head">
+            <div class="l">
+              <span class="idx">03</span>
+              <h2>直接查法條</h2>
+            </div>
+            <div class="r"><span class="eb">2,000+ 條 · 33 部</span></div>
+          </div>
+
+          <div class="search-card">
+            <div class="search-row">
+              <div class="field">
+                <span class="ic">⌕</span>
+                <input placeholder="輸入法規名稱…" />
+              </div>
+              <div class="field">
+                <span class="ic">§</span>
+                <input placeholder="搜尋條號或關鍵字…" />
+              </div>
+              <div class="select-field">
+                <span>相對時限</span>
+                <span class="car">▾</span>
+              </div>
+            </div>
+            <div class="chip-row">
+              <button class="chip on">全部</button>
+              <button class="chip">★★★★★</button>
+              <button class="chip">★★★★</button>
+              <button class="chip">期間 / 時限</button>
+              <button class="chip">罰則</button>
+            </div>
+
+            <div class="results">
+              <div class="res-row">
+                <span class="law">記帳士法</span>
+                <span class="art">§9</span>
+                <span class="ttl">記帳士登錄</span>
+                <span class="star">★</span>
+              </div>
+              <div class="res-row">
+                <span class="law">記帳士法</span>
+                <span class="art">§13</span>
+                <span class="ttl">記帳士業務</span>
+                <span class="star off">☆</span>
+              </div>
+              <div class="res-row">
+                <span class="law">商業登記法</span>
+                <span class="art">§22</span>
+                <span class="ttl">補正通知</span>
+                <span class="star off">☆</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ 04 FAVORITES ============ -->
+        <section class="block" id="favorites">
+          <div class="sec-head">
+            <div class="l">
+              <span class="idx">04</span>
+              <h2>我的收藏</h2>
+            </div>
+            <div class="r">1 條 · <a href="#">管理</a></div>
+          </div>
+
+          <div class="card-grid">
+            <div class="li-card" onclick="openDrawer()">
+              <span class="star">★</span>
+              <div class="law">記帳士法</div>
+              <div class="art">§9</div>
+              <div class="sub">記帳士登錄</div>
+              <div class="meta">
+                <span>收藏於 05-09</span>
+                <a href="#">查看 →</a>
+              </div>
+            </div>
+            <div class="empty" style="grid-column: span 2;">
+              <span class="ic">☆</span>
+              <div>再多收藏幾條吧。<br/>在條文卡片上點 <b>★</b> 即可。</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ 05 MEMORIZED ============ -->
+        <section class="block" id="memorized">
+          <div class="sec-head">
+            <div class="l">
+              <span class="idx">05</span>
+              <h2>已熟記</h2>
+            </div>
+            <div class="r">0 條</div>
+          </div>
+
+          <div class="empty full">
+            <span class="ic">✓</span>
+            <div>還沒有標記已熟記的條文。<br/>開啟條文後點 <b>「已熟記」</b>。</div>
+          </div>
+        </section>
+
+        <!-- ============ 06 REVIEW ============ -->
+        <section class="block" id="review">
+          <div class="sec-head">
+            <div class="l">
+              <span class="idx">06</span>
+              <h2>待複習</h2>
+            </div>
+            <div class="r">1 條 · 排程中</div>
+          </div>
+
+          <div class="card-grid">
+            <div class="li-card warn" style="grid-column: span 3;" onclick="openDrawer()">
+              <div class="law">商業登記法</div>
+              <div class="art">§22</div>
+              <div class="sub">補正通知</div>
+              <div class="meta">
+                <span>下次複習 · <b>7 天後</b></span>
+                <a href="#">立即複習 →</a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ 07 TOOLS ============ -->
+        <section class="block" id="tools">
+          <div class="sec-head">
+            <div class="l">
+              <span class="idx">07</span>
+              <h2>備考工具</h2>
+            </div>
+            <div class="r"><span class="eb">4 種模式</span></div>
+          </div>
+
+          <div class="tool-grid">
+            <a class="tool" href="/practice.html">
+              <div class="num">01</div>
+              <div>
+                <div class="code">TYPE</div>
+                <div class="name" style="margin-top:6px">打字練習</div>
+              </div>
+              <p class="desc">逐字輸入法條原文，<br/>肌肉記憶法。</p>
+              <span class="arrow">開始 <span class="glyph">→</span></span>
+            </a>
+            <a class="tool" href="/quiz.html">
+              <div class="num">02</div>
+              <div>
+                <div class="code">QUIZ</div>
+                <div class="name" style="margin-top:6px">選擇題</div>
+              </div>
+              <p class="desc">四選一，<br/>自動排程錯題重練。</p>
+              <span class="arrow">開始 <span class="glyph">→</span></span>
+            </a>
+            <a class="tool" href="/fill.html">
+              <div class="num">03</div>
+              <div>
+                <div class="code">FILL</div>
+                <div class="name" style="margin-top:6px">填空練習</div>
+              </div>
+              <p class="desc">挖空關鍵字，<br/>靠記憶補回去。</p>
+              <span class="arrow">開始 <span class="glyph">→</span></span>
+            </a>
+            <a class="tool" href="#linebot">
+              <div class="num">04</div>
+              <div>
+                <div class="code">LINE</div>
+                <div class="name" style="margin-top:6px">LINE 查法條</div>
+              </div>
+              <p class="desc">手機直接查、<br/>每日 08:00 推播。</p>
+              <span class="arrow">加入 <span class="glyph">→</span></span>
+            </a>
+          </div>
+        </section>
+
+        <!-- ============ 08 LAWS ============ -->
+        <section class="block" id="laws">
+          <div class="sec-head">
+            <div class="l">
+              <span class="idx">08</span>
+              <h2>法規目錄</h2>
+            </div>
+            <div class="r"><span class="laws-count">共 <b>33</b> 部 · <b>2,000+</b> 條</span></div>
+          </div>
+
+          <div class="laws-head">
+            <div class="laws-search">
+              <span style="color:rgba(245,240,234,.45);font-family:var(--mono)">⌕</span>
+              <input placeholder="搜尋法規名稱…" />
+            </div>
+            <span class="laws-count">顯示 <b>1–12</b> / 33</span>
+          </div>
+
+          <div class="laws-toc">
+            <div class="toc-row">
+              <span class="idx">01</span>
+              <span class="nm">公司法<span class="leader"></span></span>
+              <span class="ct">— 條</span>
+              <span class="arrow">→</span>
+            </div>
+            <div class="toc-row">
+              <span class="idx">02</span>
+              <span class="nm">所得基本稅額條例施行細則<span class="leader"></span></span>
+              <span class="ct">— 條</span>
+              <span class="arrow">→</span>
+            </div>
+            <div class="toc-row">
+              <span class="idx">03</span>
+              <span class="nm">商業登記申請辦法<span class="leader"></span></span>
+              <span class="ct">— 條</span>
+              <span class="arrow">→</span>
+            </div>
+            <div class="toc-row">
+              <span class="idx">04</span>
+              <span class="nm">加值型及非加值型營業稅法<span class="leader"></span></span>
+              <span class="ct">— 條</span>
+              <span class="arrow">→</span>
+            </div>
+            <div class="toc-row">
+              <span class="idx">05</span>
+              <span class="nm">特種貨物及勞務稅條例<span class="leader"></span></span>
+              <span class="ct">— 條</span>
+              <span class="arrow">→</span>
+            </div>
+            <div class="toc-row">
+              <span class="idx">06</span>
+              <span class="nm">記帳士暨記帳及報稅代理人防制洗錢與打擊資恐辦法 <span class="star-mark">★ 高頻</span><span class="leader"></span></span>
+              <span class="ct">— 條</span>
+              <span class="arrow">→</span>
+            </div>
+            <div class="toc-row">
+              <span class="idx">07</span>
+              <span class="nm">商業登記法 <span class="star-mark">★ 高頻</span><span class="leader"></span></span>
+              <span class="ct">— 條</span>
+              <span class="arrow">→</span>
+            </div>
+            <div class="toc-row">
+              <span class="idx">08</span>
+              <span class="nm">統一發票使用辦法<span class="leader"></span></span>
+              <span class="ct">— 條</span>
+              <span class="arrow">→</span>
+            </div>
+            <div class="toc-row">
+              <span class="idx">09</span>
+              <span class="nm">行政程序法<span class="leader"></span></span>
+              <span class="ct">— 條</span>
+              <span class="arrow">→</span>
+            </div>
+            <div class="toc-row">
+              <span class="idx">10</span>
+              <span class="nm">記帳士懲戒委員會與懲戒覆審委員會組織及審議規則<span class="leader"></span></span>
+              <span class="ct">— 條</span>
+              <span class="arrow">→</span>
+            </div>
+            <div class="toc-row">
+              <span class="idx">11</span>
+              <span class="nm">遺產及贈與稅法施行細則<span class="leader"></span></span>
+              <span class="ct">— 條</span>
+              <span class="arrow">→</span>
+            </div>
+            <div class="toc-row">
+              <span class="idx">12</span>
+              <span class="nm">公司登記辦法<span class="leader"></span></span>
+              <span class="ct">— 條</span>
+              <span class="arrow">→</span>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ 09 RECENT ============ -->
+        <section class="block" id="recent">
+          <div class="sec-head">
+            <div class="l">
+              <span class="idx">09</span>
+              <h2>最近查詢</h2>
+            </div>
+            <div class="r"><span class="eb">最近 7 天</span></div>
+          </div>
+
+          <div class="recent-list">
+            <div class="rec-group">
+              <div class="rec-date-head">05.10 · 五</div>
+              <div class="rec-row" onclick="openDrawer()">
+                <span class="law">行政程序法</span>
+                <span class="art">§2</span>
+                <span class="ttl">行政程序與行政機關定義</span>
+                <span class="time">22:31</span>
+              </div>
+              <div class="rec-date-head">05.09 · 四</div>
+              <div class="rec-row">
+                <span class="law">行政程序法</span>
+                <span class="art">§2</span>
+                <span class="ttl">行政程序與行政機關定義</span>
+                <span class="time">23:02</span>
+              </div>
+              <div class="rec-row">
+                <span class="law">記帳士法</span>
+                <span class="art">§9</span>
+                <span class="ttl">記帳士登錄</span>
+                <span class="time">22:18</span>
+              </div>
+              <div class="rec-row" onclick="openDrawer()">
+                <span class="law">記帳士法</span>
+                <span class="art">§13</span>
+                <span class="ttl">執行業務範圍</span>
+                <span class="time">22:04</span>
+              </div>
+              <div class="rec-row">
+                <span class="law">商業登記法</span>
+                <span class="art">§22</span>
+                <span class="ttl">補正通知</span>
+                <span class="time">21:38</span>
+              </div>
+              <div class="rec-row">
+                <span class="law">商業登記法</span>
+                <span class="art">§23</span>
+                <span class="ttl">辦理期間</span>
+                <span class="time">21:30</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ DRAWER ============ -->
+  <div class="drawer-mask" onclick="closeDrawer()"></div>
+  <aside class="drawer">
+    <div class="dr-head">
+      <div>記帳士法 / 第三章 業務及責任 / 第 13 條</div>
+      <span class="x" onclick="closeDrawer()">✕</span>
+    </div>
+    <div class="dr-body">
+      <span class="dr-eyebrow">ARTICLE · 高頻 ★★★★★</span>
+      <div class="dr-title">
+        <span class="n">13</span>
+        <span class="tt">記帳士業務</span>
+      </div>
+      <div class="dr-actions">
+        <button class="dr-chip"><span>☆</span>收藏</button>
+        <button class="dr-chip"><span>○</span>已熟記</button>
+        <button class="dr-chip"><span>⊙</span>待複習</button>
+      </div>
+      <div class="dr-text">
+        <p style="color:rgba(31,56,72,.75)">記帳士得在<span class="hl">登錄區域內</span>，執行下列業務：</p>
+        <p><span class="ro">一、</span>受委任辦理營業、變更、註銷、停業、復業及其他登記事項。</p>
+        <p><span class="ro">二、</span>受委任辦理各項<span class="hl">稅捐稽徵</span>案件之申報及申請事項。</p>
+        <p><span class="ro">三、</span>受理稅務諮詢事項。</p>
+        <p><span class="ro">四、</span>受委任辦理商業會計事務。</p>
+        <p><span class="ro">五、</span>其他經主管機關核可辦理與記帳及報稅事務有關之事項。</p>
+        <div class="but">前項業務<b>不包括</b>受委任辦理各項稅捐之查核簽證申報及訴願、行政訴訟事項。</div>
+      </div>
+
+      <div class="dr-acc">
+        <div class="acc-item open" onclick="this.classList.toggle('open')">
+          <div class="acc-head"><span class="cv">▸</span><span class="num">1</span><span class="ttl">章節標題與戰略權重</span></div>
+          <div class="acc-body"><div class="acc-inner">
+            <p>本條位於<b>第三章「業務及責任」</b>，是定義「記帳士能做什麼」的核心條文。</p>
+            <p>近 10 年國考<b>命中率 92%</b>，<span class="kw">五款業務範圍</span>與<span class="kw">但書排除事項</span>幾乎每年都會考。</p>
+          </div></div>
+        </div>
+        <div class="acc-item" onclick="this.classList.toggle('open')">
+          <div class="acc-head"><span class="cv">▸</span><span class="num">2</span><span class="ttl">規範意旨與條文解析</span></div>
+          <div class="acc-body"><div class="acc-inner">
+            <p>本條規範記帳士的<b>業務範圍與限制</b>。前段五款採「列舉式」。</p>
+            <p>「<span class="kw">登錄區域內</span>」為地域限制；但書排除<b>查核簽證</b>與<b>訴願 / 行政訴訟</b>。</p>
+          </div></div>
+        </div>
+        <div class="acc-item" onclick="this.classList.toggle('open')">
+          <div class="acc-head"><span class="cv">▸</span><span class="num">3</span><span class="ttl">執業要點與考情提示</span></div>
+          <div class="acc-body"><div class="acc-inner">
+            <p>考點集中在三處：五款的<b>順序與內容</b>、但書的<b>三項排除</b>、與第 9 條、第 14 條的連動。</p>
+          </div></div>
+        </div>
+        <div class="acc-item" onclick="this.classList.toggle('open')">
+          <div class="acc-head"><span class="cv">▸</span><span class="num">4</span><span class="ttl">核心摘要與記憶策略</span></div>
+          <div class="acc-body"><div class="acc-inner">
+            <p>口訣：<span class="kw">登 / 稅 / 諮 / 商 / 其他</span> + 但書「<span class="kw">不查不訴</span>」。</p>
+          </div></div>
+        </div>
+        <div class="acc-item" onclick="this.classList.toggle('open')">
+          <div class="acc-head"><span class="cv">▸</span><span class="num">5</span><span class="ttl">修法與聯覺備註</span></div>
+          <div class="acc-body"><div class="acc-inner">
+            <p>最近一次修正：<b>2019 / 06 / 21</b>。實質規範自 2004 年立法以來未變動。</p>
+          </div></div>
+        </div>
+      </div>
+    </div>
+    <div class="dr-foot">
+      <button class="dr-btn pri">✓ 已熟記</button>
+      <button class="dr-btn sec">加入再讀清單</button>
+      <button class="dr-btn peach">★ 收藏</button>
+    </div>
   </aside>
 
-  <!-- 主內容 -->
-  <div class="main-wrap">
-    <main>
-
-      <!-- Greet Hero -->
-      <div class="greet-area" id="greet-area">
-        <div class="greet-left">
-          <div class="greet-headline">
-            <span id="greet-text">晚安。</span><br>
-            今天讀一條也算數。
-          </div>
-          <div class="greet-sub" id="greet-sub">正在載入你的進度…</div>
-        </div>
-        <div class="greet-right">
-          <div class="greet-location" id="greet-location">— · TAIPEI</div>
-          <div class="greet-time" id="greet-clock">—</div>
-          <div class="greet-date" id="greet-date">—</div>
-        </div>
-      </div>
-
-      <!-- SECTION 01 — 會員資訊 -->
-      <div class="section" id="member-section">
-        <div class="sec-eyebrow">SECTION 01 — MEMBER</div>
-        <div class="sec-header">
-          <h2 class="sec-title">會員資訊</h2>
-          <div class="sec-meta"><span onclick="startNickEdit()">序號</span><span class="sep">·</span><span onclick="startNickEdit()">查看</span></div>
-        </div>
-        <div class="member-card" id="member-card">
-          <div class="mc-body"><div class="loading">loading...</div></div>
-        </div>
-      </div>
-
-      <!-- SECTION 02 — 學習進度 -->
-      <div class="section" id="progress-section">
-        <div class="sec-eyebrow">SECTION 02 — PROGRESS</div>
-        <div class="sec-header">
-          <h2 class="sec-title">學習進度</h2>
-          <div class="sec-meta"><span>本週</span><span class="sep">·</span><span>查看週報</span></div>
-        </div>
-        <div class="stats-row">
-          <div class="stat-item">
-            <span class="stat-num" id="stat-arts">—</span>
-            <span class="stat-label">已查條文</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-num" id="stat-laws">—</span>
-            <span class="stat-label">涵蓋法規</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-num" id="stat-bm">—</span>
-            <span class="stat-label">已收藏</span>
-          </div>
-          <div class="stat-item">
-            <span class="stat-num" id="stat-streak">—</span>
-            <span class="stat-label">連續天數</span>
-          </div>
-        </div>
-        <div id="progress-list"><div class="loading">loading...</div></div>
-      </div>
-
-      <!-- SECTION 03 — 法條搜尋 -->
-      <div class="section" id="search-section">
-        <div class="sec-eyebrow">SECTION 03 — SEARCH</div>
-        <div class="sec-header">
-          <h2 class="sec-title">法條搜尋</h2>
-        </div>
-        <div class="card" style="padding:1.4rem 1.6rem">
-          <div class="law-combo-wrap">
-            <input class="bm-search" id="lawComboInput" type="text" placeholder="輸入法規名稱…" oninput="filterLawCombo()" onfocus="openLawCombo()" onblur="closeLawComboDelay()" autocomplete="off" style="margin-bottom:0">
-            <div class="law-combo-dd" id="lawComboDd"></div>
-          </div>
-          <input class="bm-search" id="artSearchInput" type="text" placeholder="搜尋條號或關鍵字…" oninput="applySearchFilters()" autocomplete="off">
-          <div class="sf-row">
-            <div class="sf-tabs">
-              <button class="sf-tab active" id="sfTab0" onclick="setStarFilter(0)">全部</button>
-              <button class="sf-tab" id="sfTab5" onclick="setStarFilter(5)">★★★★★</button>
-              <button class="sf-tab" id="sfTab4" onclick="setStarFilter(4)">★★★★</button>
-            </div>
-            <select class="sf-time" id="sfTimeSel" onchange="applySearchFilters()">
-              <option value="">相對時限</option>
-              <option value="7日">7日</option>
-              <option value="10日">10日</option>
-              <option value="15日">15日</option>
-              <option value="20日">20日</option>
-              <option value="30日">30日</option>
-              <option value="45日">45日</option>
-              <option value="1個月">1個月</option>
-              <option value="2個月">2個月</option>
-              <option value="3個月">3個月</option>
-              <option value="6個月">6個月</option>
-              <option value="1年">1年</option>
-              <option value="2年">2年</option>
-              <option value="3年">3年</option>
-            </select>
-          </div>
-          <div id="artSearchResults" style="max-height:320px;overflow-y:auto;margin:0 -.3rem">
-            <div class="empty" style="padding:.8rem .3rem">選時限可跨法規搜尋，或選法規後輸入條號/關鍵字</div>
-          </div>
-        </div>
-      </div>
-
-      <!-- SECTION 04 — 我的收藏 -->
-      <div class="section" id="bookmark-section">
-        <div class="sec-eyebrow">SECTION 04 — BOOKMARKS</div>
-        <div class="sec-header">
-          <h2 class="sec-title">我的收藏</h2>
-        </div>
-        <div id="bookmark-wrap"><div class="card"><div class="loading">loading...</div></div></div>
-      </div>
-
-      <!-- SECTION 05 — 已熟記 -->
-      <div class="section" id="mastered-section">
-        <div class="sec-eyebrow">SECTION 05 — MASTERED</div>
-        <div class="sec-header">
-          <h2 class="sec-title">已熟記</h2>
-        </div>
-        <div id="mastered-wrap"><div class="card"><div class="empty">還沒有標記已熟記的條文。</div></div></div>
-      </div>
-
-      <!-- SECTION 06 — 待複習 -->
-      <div class="section" id="review-section">
-        <div class="sec-eyebrow">SECTION 06 — REVIEW</div>
-        <div class="sec-header">
-          <h2 class="sec-title">待複習</h2>
-        </div>
-        <div id="review-wrap"><div class="card"><div class="empty">還沒有待複習的條文。</div></div></div>
-      </div>
-
-      <!-- SECTION 07 — 備考工具 -->
-      <div class="section" id="tools-section">
-        <div class="sec-eyebrow">SECTION 07 — TOOLS</div>
-        <div class="sec-header">
-          <h2 class="sec-title">備考工具</h2>
-        </div>
-        <div class="tools-grid">
-          <a href="practice.html" class="tool-item">
-            <span class="tool-icon">TYPE</span>
-            <span class="tool-label">打字練習</span>
-          </a>
-          <a href="quiz.html" class="tool-item">
-            <span class="tool-icon">QUIZ</span>
-            <span class="tool-label">選擇題</span>
-          </a>
-          <a href="fill.html" class="tool-item">
-            <span class="tool-icon">FILL</span>
-            <span class="tool-label">填空練習</span>
-          </a>
-          <a href="https://lin.ee/zUeMwo4" class="tool-item" target="_blank" rel="noopener">
-            <span class="tool-icon">LINE</span>
-            <span class="tool-label">LINE 查法條</span>
-          </a>
-        </div>
-      </div>
-
-      <!-- SECTION 08 — 法規目錄 -->
-      <div class="section" id="law-browser-section">
-        <div class="sec-eyebrow">SECTION 08 — LAWS</div>
-        <div class="sec-header">
-          <h2 class="sec-title">法規目錄</h2>
-          <div class="sec-meta"><span>33 部法規</span></div>
-        </div>
-        <div id="law-browser"><div class="loading">loading...</div></div>
-      </div>
-
-      <!-- SECTION 09 — 最近查詢 -->
-      <div class="section" id="history-section">
-        <div class="sec-eyebrow">SECTION 09 — RECENT</div>
-        <div class="sec-header">
-          <h2 class="sec-title">最近查詢</h2>
-        </div>
-        <div id="history-wrap"><div class="card"><div class="loading">loading...</div></div></div>
-      </div>
-
-    </main>
-
-    <footer style="padding:2rem 2.5rem 3rem;border-top:1px solid rgba(245,240,234,.07);margin-left:0;">
-      <p style="font-size:.68rem;color:rgba(245,240,234,.22);line-height:1.8;max-width:540px;">
-        本平台內容僅供備考學習參考，不構成任何法律意見或建議。<br>
-        法規條文以主管機關官方公告版本為準，如有疑義請以原始法規為據。<br>
-        © 2026 SoFa Engine &nbsp;·&nbsp; 版權所有，禁止轉載
-      </p>
-    </footer>
-  </div><!-- .main-wrap -->
-
-</div><!-- .page-wrap -->
-
-<!-- 法規側邊欄 -->
-<div class="law-panel-overlay" id="lawPanelOverlay" onclick="closeLawPanel()"></div>
-<div class="law-panel" id="lawPanel">
-  <div class="law-panel-header">
-    <span class="law-panel-name" id="lawPanelTitle"></span>
-    <button class="law-panel-close" onclick="closeLawPanel()" aria-label="關閉">✕</button>
-  </div>
-  <div class="law-panel-search">
-    <input type="text" id="lawPanelSearch" placeholder="搜尋條文…" oninput="filterLawPanel()" autocomplete="off">
-  </div>
-  <div class="law-panel-list" id="lawPanelList"></div>
-</div>
-
-<!-- 條文 Drawer -->
-<div class="drawer-overlay" id="drawer-overlay" onclick="closeDrawer()"></div>
-<div class="drawer" id="drawer" role="dialog" aria-modal="true">
-  <div class="drawer-header">
-    <div class="drawer-breadcrumb" id="drawer-breadcrumb"></div>
-    <button class="drawer-close" onclick="closeDrawer()" aria-label="關閉">✕</button>
-  </div>
-  <div class="drawer-meta">
-    <span class="drawer-meta-label" id="drawer-meta-label">ARTICLE</span>
-  </div>
-  <div class="drawer-title">
-    <div class="drawer-title-num" id="drawer-title-num"></div>
-    <div class="drawer-title-name" id="drawer-title-name"></div>
-  </div>
-  <div class="drawer-actions" id="drawer-actions">
-    <button class="dr-act" id="drActBm"     onclick="drToggleBookmark()">☆ 收藏</button>
-    <button class="dr-act" id="drActMaster" onclick="drToggleMastered()">○ 已熟記</button>
-    <button class="dr-act" id="drActReview" onclick="drToggleReview()">◎ 待複習</button>
-  </div>
-  <div class="review-picker" id="reviewPicker">
-    <span class="rv-label">LINE 推播提醒：</span>
-    <button class="rv-btn" id="rv1"  onclick="setReviewDays(1)">明天</button>
-    <button class="rv-btn" id="rv3"  onclick="setReviewDays(3)">3天</button>
-    <button class="rv-btn active" id="rv7"  onclick="setReviewDays(7)">7天</button>
-    <button class="rv-btn" id="rv14" onclick="setReviewDays(14)">14天</button>
-    <button class="rv-btn" id="rv30" onclick="setReviewDays(30)">30天</button>
-  </div>
-  <div class="drawer-body" id="drawer-content">
-    <div class="loading">loading...</div>
-  </div>
-  <div class="drawer-footer" id="drawer-footer">
-    <button class="df-btn df-btn--master" id="dfBtnMaster" onclick="drToggleMastered()">○ 已熟記</button>
-    <button class="df-btn df-btn--review"  id="dfBtnReview"  onclick="drToggleReview()">加入再讀清單</button>
-    <button class="df-btn df-btn--bm"      id="dfBtnBm"      onclick="drToggleBookmark()">☆ 收藏</button>
-  </div>
-</div>
-
 <script>
-const API = 'https://sofa-engine-api.onrender.com';
-let _drawerOpen = false;
-let _userPlan = '免費';
-let _drawerPageId = '';
-let _drawerLaw = '';
-let _drawerArt = '';
-let _bmSet       = new Set();
-let _masteredSet = new Set();
-let _reviewSet   = new Set();
-let _masteredItems = [];
-let _reviewItems   = [];
-let _reviewDays    = 7;
-let _artList = [];
-let _artIndex = -1;
-
-/* ── 工具 ── */
-function getUID() { return localStorage.getItem('sofa_uid') || ''; }
-function fmtArt(art) { const s = String(art||''); return s.startsWith('§') ? s : `§${s}`; }
-function splitArt(art) {
-  const s = fmtArt(art).replace(/^(§)(\d)(?=[｜\s]|$)/, '$10$2'); // §9 → §09
-  const idx = s.indexOf('｜');
-  if (idx === -1) return { num: s, title: '' };
-  return { num: s.slice(0, idx).trim(), title: s.slice(idx + 1).trim() };
+function openDrawer(){
+  document.querySelector('.drawer').classList.add('open');
+  document.querySelector('.drawer-mask').classList.add('open');
 }
-function histRow(law, article, extra) {
-  const { num, title } = splitArt(article);
-  const lawClass = law ? 'hist-col-law' : 'hist-col-law hist-col-law--unknown';
-  return `<div class="${lawClass}">${law ? escHtml(law) : '—'}</div>
-    <div class="hist-col-num">${escHtml(num)}</div>
-    <div class="hist-col-title">${escHtml(title)}</div>
-    <div class="hist-time">${extra}</div>`;
+function closeDrawer(){
+  document.querySelector('.drawer').classList.remove('open');
+  document.querySelector('.drawer-mask').classList.remove('open');
 }
 
-function apiFetch(path) {
-  const uid = getUID();
-  const ctrl = new AbortController();
-  setTimeout(() => ctrl.abort(), 15000);
-  return fetch(`${API}${path}`, {
-    headers: { 'X-Sofa-UID': uid },
-    signal: ctrl.signal,
-  }).then(r => {
-    if (r.ok) return r.json();
-    return r.json().catch(() => ({})).then(body => Promise.reject({ status: r.status, detail: body.detail || '' }));
-  });
-}
-
-function escHtml(s) {
-  return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-}
-
-function animateCount(el, target, duration=900) {
-  const pref = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  if (pref || isNaN(target)) { el.textContent = target; return; }
-  const t0 = performance.now();
-  function tick(now) {
-    const p = Math.min((now-t0)/duration, 1);
-    const ease = 1-Math.pow(1-p, 3);
-    el.textContent = Math.round(target*ease);
-    if (p < 1) requestAnimationFrame(tick); else el.textContent = target;
+// ── 動態倒數：考試日 2026/11/14 ──────────────────
+(function(){
+  const EXAM = new Date('2026-11-14T00:00:00+08:00');
+  function calcDays(){
+    return Math.max(Math.ceil((EXAM - Date.now()) / 86400000), 0);
   }
-  requestAnimationFrame(tick);
-}
-
-/* ── Sidebar toggle (mobile) ── */
-function toggleSidebar() {
-  const nav = document.getElementById('sideNav');
-  const overlay = document.getElementById('sideOverlay');
-  const isOpen = nav.classList.toggle('open');
-  overlay.classList.toggle('show', isOpen);
-}
-function closeSidebar() {
-  document.getElementById('sideNav').classList.remove('open');
-  document.getElementById('sideOverlay').classList.remove('show');
-}
-
-/* ── Scroll Spy ── */
-function initScrollSpy() {
-  const sections = document.querySelectorAll('.section[id]');
-  const navItems = document.querySelectorAll('.sn-item');
-  if (!sections.length || !navItems.length) return;
-
-  const obs = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (!entry.isIntersecting) return;
-      const id = entry.target.id;
-      navItems.forEach(item => {
-        item.classList.toggle('active', item.getAttribute('href') === '#' + id);
-      });
-    });
-  }, { rootMargin: '-15% 0px -70% 0px' });
-
-  sections.forEach(s => obs.observe(s));
-
-  /* close sidebar on nav-link click (mobile) */
-  navItems.forEach(item => item.addEventListener('click', () => {
-    if (window.innerWidth <= 760) closeSidebar();
-  }));
-}
-
-/* ── Greet & Clock ── */
-function renderClock() {
-  const now = new Date();
-  const taipeiMs = now.getTime() + 8 * 3600000;
-  const t = new Date(taipeiMs);
-  const hh = String(t.getUTCHours()).padStart(2,'0');
-  const mm = String(t.getUTCMinutes()).padStart(2,'0');
-  const el = document.getElementById('greet-clock');
-  if (el) el.textContent = `${hh}:${mm}`;
-  const dateEl = document.getElementById('greet-date');
-  if (dateEl) dateEl.textContent = `${t.getUTCFullYear()}.${String(t.getUTCMonth()+1).padStart(2,'0')}.${String(t.getUTCDate()).padStart(2,'0')} · —`;
-  const h = t.getUTCHours();
-  const locEl = document.getElementById('greet-location');
-  if (locEl) {
-    const period = h < 5 ? 'NIGHT' : h < 12 ? 'MORNING' : h < 18 ? 'AFTERNOON' : 'TONIGHT';
-    locEl.textContent = `${period} · TAIPEI`;
+  function update(){
+    const d = calcDays();
+    const el = document.querySelector('.cd-num');
+    if(el) el.textContent = d;
+    document.querySelectorAll('.greet-days').forEach(e => e.textContent = d);
   }
-  return h;
-}
-
-function renderGreeting(nickname, streak, weekCount) {
-  const hour = renderClock();
-  const timeWord = hour < 5 ? '深夜了' : hour < 12 ? '早安' : hour < 18 ? '午安' : '晚安';
-  const name = nickname || '';
-  const nameHtml = name ? `${timeWord}，<span class="name">${escHtml(name)}。</span>` : `${timeWord}。`;
-  const greetEl = document.getElementById('greet-text');
-  if (greetEl) greetEl.innerHTML = nameHtml;
-
-  const examDays = (() => {
-    const d = localStorage.getItem('sofa_exam_date');
-    if (!d) return null;
-    const diff = Math.ceil((new Date(d) - new Date()) / 86400000);
-    return diff > 0 ? diff : 0;
-  })();
-
-  let sub = '';
-  if (examDays !== null) sub += `距離考試還有 ${examDays} 天。`;
-  if (weekCount > 0) sub += `本週進度 ${weekCount}/7，`;
-  if (streak > 0) sub += `連續學習 ${streak} 天——坐下來繼續吧。`;
-  else sub += '坐下來，一條一條來。';
-  const subEl = document.getElementById('greet-sub');
-  if (subEl) subEl.textContent = sub;
-}
-
-/* ── Streak 計算 ── */
-function calcStreak(history) {
-  if (!history || !history.length) return 0;
-  const dates = new Set(history.map(h => (h.queried_at||'').slice(0,10)).filter(Boolean));
-  const now = new Date();
-  const taipeiMs = now.getTime() + 8 * 3600000;
-  const taipeiNow = new Date(taipeiMs);
-  const fmt = d => {
-    const y = d.getUTCFullYear();
-    const m = String(d.getUTCMonth()+1).padStart(2,'0');
-    const day = String(d.getUTCDate()).padStart(2,'0');
-    return `${y}-${m}-${day}`;
-  };
-  let check = fmt(taipeiNow);
-  if (!dates.has(check)) {
-    const prev = new Date(taipeiMs - 86400000);
-    check = fmt(prev);
-    if (!dates.has(check)) return 0;
-  }
-  let streak = 0;
-  while (dates.has(check)) {
-    streak++;
-    const d = new Date(check + 'T12:00:00Z');
-    d.setUTCDate(d.getUTCDate() - 1);
-    check = fmt(d);
-  }
-  return streak;
-}
-
-function calcWeekCount(history) {
-  if (!history || !history.length) return 0;
-  const now = new Date();
-  const taipeiMs = now.getTime() + 8 * 3600000;
-  const taipeiNow = new Date(taipeiMs);
-  const day = taipeiNow.getUTCDay(); // 0=Sun
-  const weekStart = new Date(taipeiMs - day * 86400000);
-  const wsDate = `${weekStart.getUTCFullYear()}-${String(weekStart.getUTCMonth()+1).padStart(2,'0')}-${String(weekStart.getUTCDate()).padStart(2,'0')}`;
-  const dates = new Set(history.map(h => (h.queried_at||'').slice(0,10)).filter(d => d >= wsDate));
-  return dates.size;
-}
-
-/* ── Member Card ── */
-function planLabel(plan) {
-  if (plan === 'monthly'  || plan === '月費') return '月訂閱';
-  if (plan === 'lifetime' || plan === '買斷') return '買斷終身';
-  if (plan === '季費') return '季訂閱';
-  if (plan === '體驗') return '體驗版';
-  return plan || '—';
-}
-function maskSerial(s) {
-  if (!s) return '—';
-  const parts = s.split('-');
-  if (parts.length >= 3) { parts[1] = '****'; return parts.join('-'); }
-  return s.slice(0,5) + '****' + s.slice(-4);
-}
-function daysUntil(dateStr) {
-  if (!dateStr || dateStr.startsWith('2099')) return null;
-  const target = new Date(dateStr + 'T00:00:00+08:00');
-  return Math.ceil((target - new Date()) / 86400000);
-}
-
-function renderMemberCard(data, streak) {
-  const plan      = planLabel(data.plan);
-  const serial    = maskSerial(data.serial);
-  const isLife    = data.plan === 'lifetime' || data.plan === '買斷' || (data.expire||'').startsWith('2099');
-  const days      = daysUntil(data.expire);
-  const nickname  = localStorage.getItem('sofa_nickname') || '';
-  const initial   = (nickname || getUID() || '?')[0].toUpperCase();
-
-  let expireHtml, daysHtml = '';
-  if (isLife) {
-    expireHtml = `<div class="mc-col-val accent">永久有效</div>`;
-  } else if (days === null) {
-    expireHtml = `<div class="mc-col-val">—</div>`;
-  } else {
-    const cls = days < 0 ? 'danger' : days <= 14 ? 'warn' : '';
-    const relative = days < 0 ? `已過期 ${Math.abs(days)} 天` : days === 0 ? '今天到期' : `還有 ${days} 天`;
-    expireHtml = `<div class="mc-col-val ${cls}">${(data.expire||'').slice(0,10)}</div>
-      <div style="font-family:var(--mono);font-size:.62rem;color:${days<=0?'var(--danger)':days<=14?'var(--warn)':'rgba(245,240,234,.35)'};margin-top:.2rem">${relative}</div>`;
-    const dcls = days < 0 ? 'danger' : days <= 14 ? 'warn' : 'green';
-    daysHtml = `<div>
-        <div class="mc-col-label">剩餘天數</div>
-        <div class="mc-col-val ${dcls}">${Math.max(days,0)}</div>
-      </div>`;
-  }
-
-  const activatedDate = (data.activated_at || data.created_at || '').slice(0,10).replace(/-/g,'.');
-  const streakCls = streak >= 7 ? 'accent' : streak >= 3 ? 'green' : '';
-
-  document.getElementById('member-card').innerHTML = `
-    <div class="mc-body">
-      <div class="mc-top">
-        <span class="mc-plan-badge">${escHtml(plan)}</span>
-        <span class="mc-status">● ACTIVE</span>
-        <span style="flex:1"></span>
-        <span class="nick-display" id="nickDisplay" onclick="startNickEdit()" title="點擊設定暱稱">${escHtml(nickname || '設定暱稱 ✎')}</span>
-        <input class="nick-edit" id="nickEdit" maxlength="20" placeholder="輸入暱稱…" onblur="saveNick()" onkeydown="if(event.key==='Enter')saveNick();else if(event.key==='Escape')cancelNick();">
-      </div>
-      <div class="mc-serial">${escHtml(serial)}</div>
-      <div class="mc-bottom">
-        <div>
-          <div class="mc-col-label">到期日</div>
-          ${expireHtml}
-        </div>
-        ${daysHtml}
-        <div>
-          <div class="mc-col-label">連續學習</div>
-          <div class="mc-col-val ${streakCls}">${streak} 天</div>
-        </div>
-        ${activatedDate ? `<div>
-          <div class="mc-col-label">啟用日</div>
-          <div class="mc-col-val">${escHtml(activatedDate)}</div>
-        </div>` : ''}
-      </div>
-    </div>
-    <div class="mc-avatar">
-      <div class="mc-avatar-circle">${escHtml(initial)}</div>
-      <div class="mc-avatar-name">${escHtml(nickname || getUID().slice(0,8) || 'USER')}</div>
-    </div>
-  `;
-}
-
-/* ── 進度 ── */
-function renderProgress(data) {
-  animateCount(document.getElementById('stat-arts'), data.total_articles);
-  animateCount(document.getElementById('stat-laws'), data.total_laws);
-  const laws = data.by_law || [];
-  if (!laws.length) {
-    document.getElementById('progress-list').innerHTML = '<div class="empty">還沒有查詢紀錄，從 LINE 開始查第一條吧。</div>';
-    return;
-  }
-  const max = laws[0].count;
-  document.getElementById('progress-list').innerHTML = laws.slice(0,12).map(l => `
-    <div class="law-row">
-      <div class="law-name">${escHtml(l.law)}</div>
-      <div class="bar-wrap"><div class="bar-fill" style="width:${Math.round(l.count/max*100)}%"></div></div>
-      <div class="bar-count">${l.count}</div>
-    </div>
-  `).join('');
-}
-
-function renderProgressError(reason) {
-  const msg = reason?.detail || (reason?.status ? `錯誤 ${reason.status}` : '連線逾時');
-  document.getElementById('stat-arts').textContent = '—';
-  document.getElementById('stat-laws').textContent = '—';
-  document.getElementById('progress-list').innerHTML = `<div class="empty">資料載入失敗：${escHtml(msg)}</div>`;
-}
-
-/* ── 收藏 ── */
-let _allBookmarks = [];
-
-function renderBookmarkGrid(bms) {
-  const grid = document.getElementById('bm-grid-inner');
-  if (!grid) return;
-  if (!bms.length) { grid.innerHTML = '<div class="empty" style="grid-column:span 3">沒有符合的收藏</div>'; return; }
-  grid.innerHTML = bms.slice(0, 40).map(b => `
-    <div class="bm-item"
-      data-page-id="${escHtml(b.page_id||'')}"
-      data-law="${escHtml(b.law_name||'')}"
-      data-art="${escHtml(b.article||'')}"
-      onclick="itemClick(this)">
-      <div class="bm-art">${escHtml(b.law_name)}</div>
-      <div class="bm-law">${fmtArt(b.article)}</div>
-      <div class="bm-date">${(b.bookmarked_at||'').slice(5,10)} · 查看解析 →</div>
-    </div>
-  `).join('');
-}
-
-function filterBookmarks() {
-  const q = (document.getElementById('bmSearch').value || '').trim().toLowerCase();
-  const filtered = q ? _allBookmarks.filter(b =>
-    (b.law_name||'').toLowerCase().includes(q) || (b.article||'').toLowerCase().includes(q)
-  ) : _allBookmarks;
-  renderBookmarkGrid(filtered);
-}
-
-function renderBookmarks(data) {
-  animateCount(document.getElementById('stat-bm'), data.total || 0);
-  const el = document.getElementById('bookmark-wrap');
-  if (!data.bookmarks || !data.bookmarks.length) {
-    el.innerHTML = '<div class="card"><div class="empty">還沒有收藏。查詢法條後點「⭐ 收藏」加入清單。</div></div>';
-    return;
-  }
-  _allBookmarks = data.bookmarks;
-  _bmSet = new Set(data.bookmarks.map(b => b.page_id).filter(Boolean));
-  el.innerHTML = `
-    <input class="bm-search" id="bmSearch" type="text" placeholder="搜尋法規名稱或條號…" oninput="filterBookmarks()" autocomplete="off">
-    <div class="bm-grid" id="bm-grid-inner"></div>
-    ${data.total > 40 ? `<div style="margin-top:.8rem;font-family:var(--mono);font-size:.66rem;color:rgba(245,240,234,.3);letter-spacing:.08em">共 ${data.total} 條 · LINE 傳「複習收藏」一次推播全部</div>` : ''}
-  `;
-  renderBookmarkGrid(_allBookmarks);
-  if (!_searchLaw) applySearchFilters();
-}
-
-/* ── 最近查詢 ── */
-function renderHistory(data) {
-  const el = document.getElementById('history-wrap');
-  if (!data.history || !data.history.length) {
-    el.innerHTML = '<div class="card"><div class="empty">還沒有查詢紀錄。</div></div>';
-    return;
-  }
-  const items = data.history.map(h => `
-    <div class="hist-item"
-      data-page-id="${escHtml(h.page_id||'')}"
-      data-law="${escHtml(h.law_name||'')}"
-      data-art="${escHtml(h.article||'')}"
-      onclick="itemClick(this)">
-      ${histRow(h.law_name, h.article, (h.queried_at||'').slice(5,10))}
-    </div>
-  `).join('');
-  el.innerHTML = `<div class="hist-list">${items}</div>`;
-}
-
-function itemClick(el) {
-  const pid = el.dataset.pageId;
-  const law = el.dataset.law;
-  const art = el.dataset.art;
-  if (!pid) return;
-  el.classList.add('tapping');
-  setTimeout(() => el.classList.remove('tapping'), 300);
-  openDrawer(pid, law, art);
-}
-
-/* ── Drawer helpers ── */
-function _setDrawerHeader(law, art, chapter) {
-  const s = art.startsWith('§') ? art : `§${art}`;
-  const idx = s.indexOf('｜');
-  const num  = idx !== -1 ? s.slice(1, idx).trim() : s.slice(1).trim();
-  const name = idx !== -1 ? s.slice(idx + 1).trim() : '';
-  const numDisplay = num.replace(/^0+/, '') || num;
-  const bc = document.getElementById('drawer-breadcrumb');
-  const tn = document.getElementById('drawer-title-num');
-  const tname = document.getElementById('drawer-title-name');
-  if (bc) {
-    let parts = [];
-    if (law) parts.push(law);
-    if (chapter) parts.push(chapter);
-    parts.push(`第 ${numDisplay} 條`);
-    bc.textContent = parts.join('  /  ');
-  }
-  if (tn) tn.textContent = numDisplay;
-  if (tname) tname.textContent = name;
-}
-
-/* ── Drawer ── */
-function openDrawer(pageId, law, art) {
-  _drawerPageId = pageId;
-  _drawerLaw = law;
-  _drawerArt = art;
-  _setDrawerHeader(law, art);
-  document.getElementById('drawer-content').innerHTML = '<div class="drawer-spinner"><div class="drawer-spinner-text">LOADING</div></div>';
-  document.getElementById('drawer-overlay').classList.add('open');
-  document.getElementById('drawer').classList.add('open');
-  document.body.style.overflow = 'hidden';
-  _drawerOpen = true;
-  syncDrawerActions();
-  if (getUID()) document.getElementById('drawer-footer')?.classList.add('visible');
-
-  apiFetch(`/api/article/${encodeURIComponent(pageId)}`)
-    .then(data => {
-      let enriched = false;
-      if (!_drawerLaw && data.law_name) { _drawerLaw = data.law_name; enriched = true; }
-      if (!_drawerArt.includes('｜') && data.title && data.title.includes('｜')) { _drawerArt = data.title; enriched = true; }
-      _setDrawerHeader(_drawerLaw, _drawerArt, data.chapter || '');
-      renderArticle(data);
-      if (enriched && getUID()) {
-        fetch(`${API}/api/me/history`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Sofa-UID': getUID() },
-          body: JSON.stringify({ page_id: pageId, law_name: _drawerLaw, article: _drawerArt }),
-        }).catch(() => {});
-      }
-    })
-    .catch(() => {
-      document.getElementById('drawer-content').innerHTML = '<div class="empty">載入失敗，請稍後再試。</div>';
-    });
-
-  fetch(`${API}/api/me/history`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Sofa-UID': getUID() },
-    body: JSON.stringify({ page_id: pageId, law_name: law, article: art }),
-  }).catch(() => {});
-}
-
-function syncDrawerActions() {
-  const pid = _drawerPageId;
-  const isBm  = _bmSet.has(pid);
-  const isMs  = _masteredSet.has(pid);
-  const isRv  = _reviewSet.has(pid);
-  // 小按鈕列
-  const bm = document.getElementById('drActBm');
-  const ms = document.getElementById('drActMaster');
-  const rv = document.getElementById('drActReview');
-  const picker = document.getElementById('reviewPicker');
-  if (bm) { bm.classList.toggle('on', isBm); bm.textContent = isBm ? '★ 已收藏' : '☆ 收藏'; }
-  if (ms) { ms.classList.toggle('on', isMs); ms.textContent = isMs ? '✓ 已熟記' : '○ 已熟記'; }
-  if (rv) { rv.classList.toggle('on', isRv); rv.textContent = isRv ? '◎ 待複習中' : '◎ 待複習'; }
-  if (picker) picker.classList.toggle('show', isRv);
-  // 底部 action bar
-  const dfMs = document.getElementById('dfBtnMaster');
-  const dfRv = document.getElementById('dfBtnReview');
-  const dfBm = document.getElementById('dfBtnBm');
-  if (dfMs) { dfMs.classList.toggle('on', isMs); dfMs.textContent = isMs ? '✓ 已熟記' : '○ 已熟記'; }
-  if (dfRv) { dfRv.classList.toggle('on', isRv); dfRv.textContent = isRv ? '◎ 待複習中' : '加入再讀清單'; }
-  if (dfBm) { dfBm.classList.toggle('on', isBm); dfBm.textContent = isBm ? '★ 已收藏' : '☆ 收藏'; }
-}
-
-function setReviewDays(n) {
-  _reviewDays = n;
-  [1,3,7,14,30].forEach(d => document.getElementById(`rv${d}`)?.classList.toggle('active', d === n));
-}
-
-function refreshBookmarkGrid() {
-  const wrap = document.getElementById('bookmark-wrap');
-  if (!wrap) return;
-  if (!_allBookmarks.length) {
-    wrap.innerHTML = '<div class="card"><div class="empty">還沒有收藏。查詢法條後點「☆ 收藏」加入清單。</div></div>';
-    return;
-  }
-  if (!document.getElementById('bm-grid-inner')) {
-    wrap.innerHTML = `<input class="bm-search" id="bmSearch" type="text" placeholder="搜尋法規名稱或條號…" oninput="filterBookmarks()" autocomplete="off"><div class="bm-grid" id="bm-grid-inner"></div>`;
-  }
-  renderBookmarkGrid(_allBookmarks);
-}
-
-function renderMasteredSection() {
-  const el = document.getElementById('mastered-wrap');
-  if (!el) return;
-  if (!_masteredItems.length) { el.innerHTML = '<div class="card"><div class="empty">還沒有標記已熟記的條文。開啟條文後點「已熟記」。</div></div>'; return; }
-  el.innerHTML = `<div class="hist-list">${_masteredItems.map(i => `
-    <div class="hist-item" onclick="openDrawer('${escHtml(i.page_id)}','${escHtml(i.law_name)}','${escHtml(i.article)}')">
-      ${histRow(i.law_name, i.article, '<span style="color:var(--good)">✓</span>')}
-    </div>`).join('')}</div>`;
-}
-
-function renderReviewSection() {
-  const el = document.getElementById('review-wrap');
-  if (!el) return;
-  if (!_reviewItems.length) { el.innerHTML = '<div class="card"><div class="empty">還沒有待複習的條文。開啟條文後點「待複習」並設定天數。</div></div>'; return; }
-  el.innerHTML = `<div class="hist-list">${_reviewItems.map(i => `
-    <div class="hist-item" onclick="openDrawer('${escHtml(i.page_id)}','${escHtml(i.law_name)}','${escHtml(i.article)}')">
-      ${histRow(i.law_name, i.article, `<span style="color:var(--warn)">◷ ${i.days ? i.days+'天後' : '待複習'}</span>`)}
-    </div>`).join('')}</div>`;
-}
-
-async function drToggleBookmark() {
-  const pid = _drawerPageId; if (!pid) return;
-  const adding = !_bmSet.has(pid);
-  try {
-    if (adding) {
-      await fetch(`${API}/api/me/bookmarks`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid, law_name:_drawerLaw, article:_drawerArt}) });
-      _bmSet.add(pid);
-      _allBookmarks = [{page_id:pid, law_name:_drawerLaw, article:_drawerArt, bookmarked_at:new Date().toISOString()}, ..._allBookmarks.filter(b=>b.page_id!==pid)];
-    } else {
-      await fetch(`${API}/api/me/bookmarks/${encodeURIComponent(pid)}`, { method:'DELETE', headers:{'X-Sofa-UID':getUID()} });
-      _bmSet.delete(pid); _allBookmarks = _allBookmarks.filter(b => b.page_id !== pid);
-    }
-  } catch {
-    if (adding) { _bmSet.add(pid); _allBookmarks = [{page_id:pid, law_name:_drawerLaw, article:_drawerArt, bookmarked_at:new Date().toISOString()}, ..._allBookmarks.filter(b=>b.page_id!==pid)]; }
-    else { _bmSet.delete(pid); _allBookmarks = _allBookmarks.filter(b => b.page_id !== pid); }
-  }
-  syncDrawerActions();
-  animateCount(document.getElementById('stat-bm'), _bmSet.size);
-  refreshBookmarkGrid();
-}
-
-async function drToggleMastered() {
-  const pid = _drawerPageId; if (!pid) return;
-  const on = !_masteredSet.has(pid);
-  if (on) {
-    _masteredSet.add(pid); _reviewSet.delete(pid);
-    _masteredItems = [{page_id:pid, law_name:_drawerLaw, article:_drawerArt}, ..._masteredItems.filter(i=>i.page_id!==pid)];
-    _reviewItems   = _reviewItems.filter(i => i.page_id !== pid);
-  } else {
-    _masteredSet.delete(pid); _masteredItems = _masteredItems.filter(i => i.page_id !== pid);
-  }
-  syncDrawerActions(); renderMasteredSection(); renderReviewSection();
-  try { await fetch(`${API}/api/me/mastery`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid, law_name:_drawerLaw, article:_drawerArt, status: on ? 'mastered' : 'none'}) }); } catch {}
-}
-
-async function drToggleReview() {
-  const pid = _drawerPageId; if (!pid) return;
-  const on = !_reviewSet.has(pid);
-  if (on) {
-    _reviewSet.add(pid); _masteredSet.delete(pid);
-    _reviewItems   = [{page_id:pid, law_name:_drawerLaw, article:_drawerArt, days:_reviewDays}, ..._reviewItems.filter(i=>i.page_id!==pid)];
-    _masteredItems = _masteredItems.filter(i => i.page_id !== pid);
-  } else {
-    _reviewSet.delete(pid); _reviewItems = _reviewItems.filter(i => i.page_id !== pid);
-  }
-  syncDrawerActions(); renderReviewSection(); renderMasteredSection();
-  try { await fetch(`${API}/api/me/mastery`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid, law_name:_drawerLaw, article:_drawerArt, status: on ? 'review' : 'none', review_days: on ? _reviewDays : 0}) }); } catch {}
-}
-
-function closeDrawer() {
-  document.getElementById('drawer-overlay').classList.remove('open');
-  document.getElementById('drawer').classList.remove('open');
-  document.getElementById('drawer-footer')?.classList.remove('visible');
-  document.body.style.overflow = '';
-  _drawerOpen = false;
-}
-
-/* ── Article prev/next nav ── */
-function _updateNavFooter() {
-  const el = document.getElementById('dfBtnNav');
-  if (!el) return;
-  if (_artList.length === 0 || _artIndex === -1) { el.innerHTML = ''; return; }
-  const pos = _artIndex + 1;
-  const total = _artList.length;
-  const pDis = _artIndex <= 0 ? ' disabled' : '';
-  const nDis = _artIndex >= total - 1 ? ' disabled' : '';
-  el.innerHTML = `<button class="df-nav-btn" onclick="navArticle(-1)"${pDis}>←</button><span class="df-nav-pos">${pos} / ${total}</span><button class="df-nav-btn" onclick="navArticle(1)"${nDis}>→</button>`;
-}
-
-async function loadArtNav(law, pageId) {
-  _artList = []; _artIndex = -1; _updateNavFooter();
-  if (!law) return;
-  try {
-    const data = await apiFetch(`/api/articles?law=${encodeURIComponent(law)}`);
-    _artList = data.articles || [];
-    _artIndex = _artList.findIndex(a => a.id === pageId);
-    _updateNavFooter();
-  } catch { _artList = []; _artIndex = -1; }
-}
-
-function navArticle(dir) {
-  const idx = _artIndex + dir;
-  if (idx < 0 || idx >= _artList.length) return;
-  const a = _artList[idx];
-
-  // 立刻更新 index + header + 鎖按鈕，不重新抓清單
-  _artIndex = idx;
-  _drawerPageId = a.id;
-  _drawerArt = a.title;
-  _drawerLaw = _drawerLaw;
-  _setDrawerHeader(_drawerLaw, _drawerArt);
-  document.getElementById('drawer-content').innerHTML =
-    '<div class="drawer-spinner"><div class="drawer-spinner-text">LOADING</div></div>';
-  syncDrawerActions();
-
-  // nav 按鈕視覺：數字脈動 + 兩邊停用
-  document.querySelectorAll('.df-nav-btn').forEach(b => { b.disabled = true; });
-  const posEl = document.querySelector('.df-nav-pos');
-  if (posEl) posEl.classList.add('loading');
-
-  apiFetch(`/api/article/${encodeURIComponent(a.id)}`)
-    .then(data => {
-      if (!_drawerArt.includes('｜') && data.title && data.title.includes('｜')) {
-        _drawerArt = data.title;
-        _setDrawerHeader(_drawerLaw, _drawerArt, data.chapter || '');
-      } else if (data.chapter) {
-        _setDrawerHeader(_drawerLaw, _drawerArt, data.chapter);
-      }
-      renderArticle(data);
-      _updateNavFooter();
-      if (getUID()) {
-        fetch(`${API}/api/me/history`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'X-Sofa-UID': getUID() },
-          body: JSON.stringify({ page_id: a.id, law_name: _drawerLaw, article: _drawerArt }),
-        }).catch(() => {});
-      }
-    })
-    .catch(() => {
-      document.getElementById('drawer-content').innerHTML =
-        '<div class="empty">載入失敗，請稍後再試。</div>';
-      _updateNavFooter();
-    });
-}
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape' && _drawerOpen) closeDrawer();
-});
-
-const SECTION_ORDER = [
-  '章節標題與戰略權重',
-  '規範意旨與條文解析',
-  '執業要點與考情提示',
-  '核心摘要與記憶策略',
-  '修法與聯覺備註',
-  '2026 修法與聯覺備註',
-  '相關法規及注意事項',
-];
-
-function formatContent(text) {
-  return text.split('\n').filter(l => l.trim()).map(l => {
-    const spaces = (l.match(/^(\s*)/) || ['',''])[1].length;
-    const depth  = Math.min(Math.floor(spaces / 2), 2);
-    const cls    = depth > 0 ? ` d${depth}` : '';
-    return `<div class="art-line${cls}">${linkifyRefs(l.trim())}</div>`;
-  }).join('');
-}
-
-function formatRawText(text) {
-  const processed = text
-    .replace(/([。）])\s+(\d+)\s+(?=[一-鿿])/g, '$1\n$2 ')
-    .replace(/([：:]\s*)([一二三四五六七八九十百]{1,3}、)/g, '$1\n$2')
-    .replace(/([。）\s])([一二三四五六七八九十百]{1,3}、)/g, '$1\n$2')
-    .replace(/([。）\s])（([一二三四五六七八九十]{1,2})）/g, '$1\n　（$2）');
-
-  const lines = processed.split('\n');
-  let hitProviso = false;
-  return lines.map(l => {
-    if (!l.trim()) return '<div class="raw-blank"></div>';
-    const trimmed = l.trim();
-    // 但書偵測：以「前項」「但」開頭的條款
-    const isProviso = !hitProviso && /^(前項|但(?!書)|附則)/.test(trimmed);
-    if (isProviso) { hitProviso = true; }
-    const sep = isProviso ? '<hr class="raw-proviso-sep">' : '';
-    const provisoCls = isProviso ? ' proviso' : '';
-    let depth = 0;
-    if (/^[\s　]*（[一二三四五六七八九十]）/.test(l)) depth = 2;
-    else if (/^[一二三四五六七八九十百]{1,3}、/.test(l)) depth = 1;
-    // 負向關鍵字標紅
-    const highlight = s => s.replace(/(不包括|不得|禁止|除外|不在此限)/g,
-      '<span class="neg-keyword">$1</span>');
-    if (depth === 1) {
-      const m = trimmed.match(/^([一二三四五六七八九十百]{1,3}、)([\s\S]*)$/);
-      if (m) return `${sep}<div class="raw-line d1${provisoCls}"><span class="art-num">${escHtml(m[1])}</span>${highlight(escHtml(m[2]))}</div>`;
-    }
-    if (depth === 2) {
-      const m = trimmed.match(/^(（[一二三四五六七八九十]）)([\s\S]*)$/);
-      if (m) return `${sep}<div class="raw-line d2${provisoCls}"><span class="art-num">${escHtml(m[1])}</span>${highlight(escHtml(m[2]))}</div>`;
-    }
-    return `${sep}<div class="raw-line${provisoCls}">${highlight(escHtml(trimmed))}</div>`;
-  }).join('');
-}
-
-function linkifyRefs(rawLine) {
-  const re = /《([^》]+)》第(\d+(?:-\d+)?)條/g;
-  let result = '', last = 0, m;
-  while ((m = re.exec(rawLine)) !== null) {
-    if (m.index > last) result += escHtml(rawLine.slice(last, m.index));
-    const law = m[1], art = `第${m[2]}條`;
-    result += `<a class="law-ref-link" href="javascript:void(0)" data-law="${escHtml(law)}" data-art="${escHtml(art)}" onclick="openDrawerByLawArt(this.dataset.law,this.dataset.art)">${escHtml(m[0])}</a>`;
-    last = m.index + m[0].length;
-  }
-  if (last < rawLine.length) result += escHtml(rawLine.slice(last));
-  return result;
-}
-
-function openDrawerByLawArt(lawName, artTitle) {
-  document.getElementById('drawer-law').textContent = lawName;
-  document.getElementById('drawer-art').textContent = artTitle;
-  document.getElementById('drawer-content').innerHTML = '<div class="drawer-spinner"><div class="drawer-spinner-text">查詢中…</div></div>';
-  document.getElementById('drawer-overlay').classList.add('open');
-  document.getElementById('drawer').classList.add('open');
-  document.body.style.overflow = 'hidden';
-  _drawerOpen = true;
-
-  const numMatch = artTitle.match(/第(\d+)條/);
-  const artNum = numMatch ? parseInt(numMatch[1], 10) : null;
-
-  apiFetch(`/api/articles?law=${encodeURIComponent(lawName)}`)
-    .then(data => {
-      const arts = data.articles || [];
-      let target = null;
-      if (artNum !== null) {
-        target = arts.find(a => {
-          const m = a.title.match(/§\s*0*(\d+)/);
-          return m && parseInt(m[1], 10) === artNum;
-        });
-      }
-      if (!target) {
-        const norm = t => t.replace(/\s/g, '');
-        target = arts.find(a => norm(a.title).includes(norm(artTitle.replace('條', ''))));
-      }
-      if (target) {
-        openDrawer(target.id, lawName, target.title);
-      } else {
-        document.getElementById('drawer-content').innerHTML = '<div class="empty">找不到此條文。</div>';
-      }
-    })
-    .catch(() => {
-      document.getElementById('drawer-content').innerHTML = '<div class="empty">載入失敗，請稍後再試。</div>';
-    });
-}
-
-function _importanceLabel(imp) {
-  if (!imp) return 'ARTICLE';
-  const stars = (imp.match(/★/g) || []).length;
-  const label = stars >= 5 ? '高頻' : stars >= 4 ? '重要' : stars >= 3 ? '一般' : '';
-  return label ? `ARTICLE · ${label} ${imp}` : `ARTICLE · ${imp}`;
-}
-
-function toggleSection(hdrEl) {
-  hdrEl.parentElement.classList.toggle('collapsed');
-}
-
-function renderArticle(data) {
-  const metaEl = document.getElementById('drawer-meta-label');
-  if (metaEl) metaEl.textContent = _importanceLabel(data.importance || '');
-  let html = '';
-  if (data.original_text)
-    html += `<div class="art-callout">${formatRawText(data.original_text)}</div>`;
-
-  const sections = data.sections || {};
-  const TRIAL_END_ART = new Date('2026-06-01T00:00:00+08:00');
-  const isPaid = new Date() < TRIAL_END_ART ||
-    _userPlan === '月費' || _userPlan === '月訂' || _userPlan === '季費' || _userPlan === '買斷' || _userPlan === 'monthly' || _userPlan === 'lifetime';
-  let sectionNum = 0;
-  SECTION_ORDER.forEach((key, i) => {
-    const body = sections[key];
-    if (!body) return;
-    sectionNum++;
-    if (i >= 4 && !isPaid) {
-      html += `<div class="art-locked"><span class="art-locked-label art-section-star">*</span><span class="art-locked-label">&nbsp;${sectionNum}&nbsp;${escHtml(key)}</span><span class="art-locked-icon">🔒</span></div>`;
-      return;
-    }
-    const collapsed = sectionNum > 1 ? ' collapsed' : '';
-    html += `<div class="art-section-collapsible${collapsed}">
-      <div class="art-section-hdr" onclick="toggleSection(this)">
-        <span class="art-section-chevron">▼</span>
-        <span class="art-section-num">${sectionNum}</span>
-        <span class="art-section-key">${escHtml(key)}</span>
-      </div>
-      <div class="art-section-body">${formatContent(body)}</div>
-    </div>`;
-  });
-
-  if (!html) html = '<div class="empty">此條文暫無詳細資料。</div>';
-  document.getElementById('drawer-content').innerHTML = html;
-}
-
-/* ── 考試倒數 ── */
-function renderExamCountdown() {
-  const d = localStorage.getItem('sofa_exam_date');
-  const daysEl = document.getElementById('examDays');
-  const subEl  = document.getElementById('examSub');
-  const inp    = document.getElementById('examDateInput');
-  if (!daysEl) return;
-  if (d) {
-    const diff = Math.ceil((new Date(d) - new Date()) / 86400000);
-    daysEl.textContent = diff > 0 ? diff : 0;
-    subEl.textContent  = diff > 0 ? `天 倒數中` : '考試日已到';
-    if (inp) { inp.value = d; inp.title = `考試日：${d}`; }
-  } else {
-    daysEl.textContent = '—';
-    subEl.textContent  = '點選設定考試日';
-  }
-}
-function saveExamDate() {
-  const v = document.getElementById('examDateInput').value;
-  if (v) localStorage.setItem('sofa_exam_date', v);
-  renderExamCountdown();
-}
-
-/* ── 法條搜尋 ── */
-let _searchArts = [];
-let _searchLaw  = '';
-let _allLaws    = [];
-let _starFilter = 0;
-let _comboTimer = null;
-
-function filterLawCombo() {
-  const q = (document.getElementById('lawComboInput').value || '').trim().toLowerCase();
-  const dd = document.getElementById('lawComboDd');
-  const lawList = q ? _allLaws.filter(l => l.name.toLowerCase().includes(q)) : _allLaws;
-  let html = '';
-  if (!q) {
-    html += `<div class="law-combo-item" style="color:var(--peach);border-bottom:1px solid var(--line-on-navy)" onmousedown="selectSpecialCombo('bookmarks')">★ 我的收藏</div>`;
-  }
-  if (!lawList.length && !html) { dd.classList.remove('open'); return; }
-  html += lawList.map(l => `<div class="law-combo-item" onmousedown="selectLawFromCombo('${escHtml(l.name)}')">${escHtml(l.name)}</div>`).join('');
-  dd.innerHTML = html;
-  dd.classList.add('open');
-}
-function selectSpecialCombo(type) {
-  document.getElementById('lawComboDd').classList.remove('open');
-  document.getElementById('artSearchInput').value = '';
-  _searchArts = [];
-  if (type === 'bookmarks') {
-    _searchLaw = '__bookmarks__';
-    document.getElementById('lawComboInput').value = '★ 我的收藏';
-    applySearchFilters();
-  }
-}
-function openLawCombo() {
-  clearTimeout(_comboTimer);
-  if (_allLaws.length) filterLawCombo();
-}
-function closeLawComboDelay() {
-  _comboTimer = setTimeout(() => document.getElementById('lawComboDd')?.classList.remove('open'), 180);
-}
-function selectLawFromCombo(name) {
-  _searchLaw = name;
-  document.getElementById('lawComboInput').value = name;
-  document.getElementById('lawComboDd').classList.remove('open');
-  document.getElementById('artSearchInput').value = '';
-  _searchArts = [];
-  document.getElementById('artSearchResults').innerHTML = '<div class="lbi-loading">載入中…</div>';
-  apiFetch(`/api/articles?law=${encodeURIComponent(name)}`)
-    .then(d => { _searchArts = d.articles || []; applySearchFilters(); })
-    .catch(() => { document.getElementById('artSearchResults').innerHTML = '<div class="lbi-loading">載入失敗</div>'; });
-}
-
-function setStarFilter(n) {
-  _starFilter = n;
-  [0,5,4].forEach(v => document.getElementById(`sfTab${v}`)?.classList.toggle('active', v === n));
-  applySearchFilters();
-}
-
-let _crossSearchTimer = null;
-
-function applySearchFilters() {
-  const q = (document.getElementById('artSearchInput').value || '').trim().toLowerCase();
-  const tl = document.getElementById('sfTimeSel')?.value || '';
-  const el = document.getElementById('artSearchResults');
-
-  if (!_searchLaw || _searchLaw === '__bookmarks__') {
-    if (tl || q) {
-      clearTimeout(_crossSearchTimer);
-      _crossSearchTimer = setTimeout(() => doCrossLawSearch(q, tl), 300);
-      return;
-    }
-    let bms = _allBookmarks;
-    if (!bms.length) {
-      el.innerHTML = `<div class="empty" style="padding:.8rem .3rem">收藏載入中，或點下方法規目錄瀏覽</div>`;
-    } else {
-      el.innerHTML = bms.slice(0, 60).map(b => {
-        const pid = escHtml(b.page_id), law = escHtml(b.law_name), art = escHtml(b.article);
-        return `<div class="art-search-row">
-          <span class="art-search-title" onclick="openDrawer('${pid}','${law}','${art}')">[${law}] ${fmtArt(b.article)}</span>
-          <button class="bm-star on" onclick="toggleSearchStar('${pid}','${law}','${art}',this)" title="取消收藏">★</button>
-        </div>`;
-      }).join('');
-    }
-    return;
-  }
-
-  if (!_searchArts.length) {
-    if (el && !el.innerHTML.includes('lbi-loading')) el.innerHTML = '<div class="empty" style="padding:.8rem .3rem">沒有符合的條文</div>';
-    return;
-  }
-  let arts = _searchArts;
-  if (q) arts = arts.filter(a => a.title.toLowerCase().includes(q));
-  if (_starFilter === 5) arts = arts.filter(a => (a.stars || a.importance || 0) >= 5);
-  if (_starFilter === 4) arts = arts.filter(a => (a.stars || a.importance || 0) >= 4 && (a.stars || a.importance || 0) < 5);
-  if (tl) arts = arts.filter(a => (a.time_limit || '').includes(tl));
-  renderArtSearchResults(arts);
-}
-
-async function doCrossLawSearch(q, tl) {
-  const el = document.getElementById('artSearchResults');
-  el.innerHTML = '<div class="lbi-loading">跨法規搜尋中⋯</div>';
-  const params = new URLSearchParams();
-  if (q) params.set('q', q);
-  if (tl) params.set('time_limit', tl);
-  try {
-    const data = await apiFetch(`/api/search?${params.toString()}`);
-    const items = data.results || [];
-    if (!items.length) {
-      el.innerHTML = '<div class="empty" style="padding:.8rem .3rem">沒有符合的條文</div>';
-      return;
-    }
-    el.innerHTML = `<div class="cross-search-hd">找到 ${items.length} 條${tl ? `（時限含「${tl}」）` : ''}${q ? `・關鍵字「${q}」` : ''}</div>` +
-      items.slice(0, 80).map(a => {
-        const pid = escHtml(a.id), law = escHtml(a.law_name), title = escHtml(a.title);
-        const tlBadge = a.time_limit ? `<span class="tl-badge">${escHtml(a.time_limit)}</span>` : '';
-        const starred = _bmSet.has(a.id) ? 'on' : '';
-        return `<div class="art-search-row">
-          <span class="art-search-title" onclick="openDrawer('${pid}','${law}','${title}')">[${law}] ${title} ${tlBadge}</span>
-          <button class="bm-star ${starred}" onclick="toggleSearchStar('${pid}','${law}','${title}',this)" title="收藏">★</button>
-        </div>`;
-      }).join('') +
-      (items.length > 80 ? `<div class="empty" style="padding:.6rem .3rem">僅顯示前 80 筆，請縮小條件</div>` : '');
-  } catch {
-    el.innerHTML = '<div class="lbi-loading">搜尋失敗，請稍後再試</div>';
-  }
-}
-
-function renderArtSearchResults(arts) {
-  const el = document.getElementById('artSearchResults');
-  if (!arts.length) { el.innerHTML = '<div class="empty" style="padding:.8rem .3rem">沒有符合的條文</div>'; return; }
-  el.innerHTML = arts.map(a => {
-    const pid = escHtml(a.id), law = escHtml(_searchLaw), title = escHtml(a.title);
-    const starred = _bmSet.has(a.id) ? 'on' : '';
-    return `<div class="art-search-row">
-      <span class="art-search-title" onclick="openDrawer('${pid}','${law}','${title}')">${title}</span>
-      <button class="bm-star ${starred}" onclick="toggleSearchStar('${pid}','${law}','${title}',this)" title="收藏">★</button>
-    </div>`;
-  }).join('');
-}
-
-async function toggleSearchStar(pid, law, art, btn) {
-  const adding = !_bmSet.has(pid);
-  try {
-    if (adding) {
-      await fetch(`${API}/api/me/bookmarks`, { method:'POST', headers:{'Content-Type':'application/json','X-Sofa-UID':getUID()}, body:JSON.stringify({page_id:pid, law_name:law, article:art}) });
-      _bmSet.add(pid);
-      if (!_allBookmarks.find(b => b.page_id === pid))
-        _allBookmarks.unshift({ page_id:pid, law_name:law, article:art, bookmarked_at: new Date().toISOString() });
-    } else {
-      await fetch(`${API}/api/me/bookmarks/${encodeURIComponent(pid)}`, { method:'DELETE', headers:{'X-Sofa-UID':getUID()} });
-      _bmSet.delete(pid);
-      _allBookmarks = _allBookmarks.filter(b => b.page_id !== pid);
-    }
-  } catch { if (adding) _bmSet.add(pid); else _bmSet.delete(pid); }
-  btn.classList.toggle('on', _bmSet.has(pid));
-  refreshBookmarkGrid();
-  animateCount(document.getElementById('stat-bm'), _bmSet.size);
-}
-
-/* ── Sidebar 捲動高亮 ── */
-function initSidebarHighlight() {
-  const sections = ['member-section','progress-section','search-section','bookmark-section','mastered-section','review-section','tools-section','law-browser-section','history-section'];
-  const items = document.querySelectorAll('.sn-item');
-  if (!items.length) return;
-  function onScroll() {
-    let cur = sections[0];
-    for (const id of sections) {
-      const el = document.getElementById(id);
-      if (el && el.getBoundingClientRect().top <= 100) cur = id;
-    }
-    items.forEach(a => a.classList.toggle('active', a.getAttribute('href') === '#' + cur));
-  }
-  window.addEventListener('scroll', onScroll, { passive:true });
-  onScroll();
-}
-
-/* ── 法規目錄 ── */
-async function loadLawBrowser() {
-  const el = document.getElementById('law-browser');
-  try {
-    const data = await apiFetch('/api/laws');
-    const laws = data.laws || [];
-    el.innerHTML = `<div class="law-grid">${laws.map(l =>
-      `<div class="law-card" onclick="openLawPanel('${escHtml(l.name)}')">
-        <div class="law-card-name">${escHtml(l.name)}</div>
-        <div class="law-card-count" id="lc-${escHtml(l.name)}">— 條</div>
-      </div>`
-    ).join('')}</div>`;
-    _allLaws = laws;
-  } catch {
-    el.innerHTML = '<div class="empty">法規目錄載入失敗，請重新整理。</div>';
-  }
-}
-
-/* ── 法規側邊欄 ── */
-let _panelArts = [];
-let _panelLaw  = '';
-
-async function openLawPanel(lawName) {
-  _panelLaw = lawName;
-  document.getElementById('lawPanelTitle').textContent = lawName;
-  document.getElementById('lawPanelSearch').value = '';
-  document.getElementById('lawPanelList').innerHTML = '<div class="lbi-loading">載入中…</div>';
-  document.getElementById('lawPanel').classList.add('open');
-  document.getElementById('lawPanelOverlay').classList.add('open');
-  document.body.style.overflow = 'hidden';
-  try {
-    const data = await apiFetch(`/api/articles?law=${encodeURIComponent(lawName)}`);
-    _panelArts = data.articles || [];
-    const countEl = document.getElementById(`lc-${lawName}`);
-    if (countEl) countEl.textContent = `${_panelArts.length} 條`;
-    renderPanelArts(_panelArts);
-  } catch {
-    document.getElementById('lawPanelList').innerHTML = '<div class="lbi-loading">載入失敗，請再試一次。</div>';
-  }
-}
-
-function renderPanelArts(arts) {
-  document.getElementById('lawPanelList').innerHTML = arts.length
-    ? arts.map(a => `<div class="panel-art" onclick="openDrawer('${escHtml(a.id)}','${escHtml(_panelLaw)}','${escHtml(a.title)}')">${escHtml(a.title)}</div>`).join('')
-    : '<div class="lbi-loading">沒有符合的條文</div>';
-}
-
-function filterLawPanel() {
-  const q = document.getElementById('lawPanelSearch').value.trim().toLowerCase();
-  renderPanelArts(q ? _panelArts.filter(a => a.title.toLowerCase().includes(q)) : _panelArts);
-}
-
-function closeLawPanel() {
-  document.getElementById('lawPanel').classList.remove('open');
-  document.getElementById('lawPanelOverlay').classList.remove('open');
-  document.body.style.overflow = '';
-}
-
-/* ── 暱稱 ── */
-function startNickEdit() {
-  const nick = localStorage.getItem('sofa_nickname') || '';
-  document.getElementById('nickDisplay').style.display = 'none';
-  const inp = document.getElementById('nickEdit');
-  inp.style.display = 'inline-block';
-  inp.value = nick;
-  inp.focus(); inp.select();
-}
-function saveNick() {
-  const val = (document.getElementById('nickEdit').value || '').trim();
-  if (val) localStorage.setItem('sofa_nickname', val);
-  else localStorage.removeItem('sofa_nickname');
-  document.getElementById('nickEdit').style.display = 'none';
-  const disp = document.getElementById('nickDisplay');
-  disp.style.display = '';
-  disp.textContent = val || '設定暱稱 ✎';
-  document.getElementById('nav-user').textContent = val || getUID();
-}
-function cancelNick() {
-  document.getElementById('nickEdit').style.display = 'none';
-  document.getElementById('nickDisplay').style.display = '';
-}
-
-/* ── 登出 ── */
-async function doLogout() {
-  localStorage.removeItem('sofa_uid');
-  window.location.href = '/login.html';
-}
-
-async function refreshData() {
-  const btn = document.getElementById('nav-refresh-btn');
-  if (!btn) return;
-  btn.classList.add('spinning');
-  try {
-    const uid = getUID();
-    if (uid) {
-      // 補全舊歷史紀錄缺 law_name / 完整標題
-      await fetch(`${API}/api/me/history/enrich`, {
-        method: 'POST', headers: { 'X-Sofa-UID': uid },
-      }).catch(() => {});
-      // 嘗試清 Notion cache；非 admin 會回 403 → 靜默忽略
-      await fetch(`${API}/api/cache/clear`, {
-        method: 'POST', headers: { 'X-Sofa-UID': uid },
-      }).catch(() => {});
-    }
-    await init();
-  } finally {
-    btn.classList.remove('spinning');
-  }
-}
-
-/* ── ?uid= 自動登入（Bot 傳直連連結用）── */
-(function() {
-  const p = new URLSearchParams(location.search);
-  const u = p.get('uid');
-  if (u) {
-    localStorage.setItem('sofa_uid', u);
-    p.delete('uid');
-    const qs = p.toString();
-    history.replaceState({}, '', location.pathname + (qs ? '?' + qs : '') + location.hash);
-  }
+  update();
+  setInterval(update, 60000);
 })();
 
-const DEMO_MODE = !getUID();
-
-function showDemoMode() {
-  document.getElementById('demoBanner').classList.add('show');
-  document.getElementById('nav-line-cta').style.display = '';
-  document.getElementById('member-card').innerHTML = `
-    <div class="mc-body">
-      <div class="mc-top">
-        <span class="mc-plan-badge">示範帳號</span>
-        <span class="mc-status">● DEMO</span>
-      </div>
-      <div class="mc-serial" style="opacity:.3">SOFA-T-????????</div>
-      <div class="mc-bottom">
-        <div><div class="mc-col-label">方案</div><div class="mc-col-val accent">體驗版</div></div>
-        <div><div class="mc-col-label">有效期</div><div class="mc-col-val">加 LINE 後取得</div></div>
-      </div>
-    </div>
-    <div class="mc-avatar">
-      <div class="mc-avatar-circle">?</div>
-      <div class="mc-avatar-name">DEMO</div>
-    </div>`;
-  document.querySelector('.stats-row').innerHTML =
-    ['已查條文','涵蓋法規','已收藏','連續天數'].map(l =>
-      `<div class="stat-item"><span class="stat-num" style="opacity:.2">—</span><span class="stat-label">${l}</span></div>`
-    ).join('');
-  const gate = (msg) => `<div class="demo-gate">
-    <div class="demo-gate-msg">${msg}</div>
-    <a href="https://lin.ee/zUeMwo4" class="demo-cta" target="_blank" rel="noopener">加 LINE Bot → 領序號解鎖</a>
-  </div>`;
-  document.getElementById('bookmark-wrap').innerHTML = gate('加入 LINE Bot 領取體驗序號，即可使用<strong>收藏法條</strong>功能。');
-  document.getElementById('history-wrap').innerHTML  = gate('加入 LINE Bot 領取體驗序號，即可查看<strong>查詢紀錄</strong>。');
-  document.getElementById('progress-list').innerHTML = gate('加入 LINE Bot 領取體驗序號，即可查看<strong>學習進度</strong>。');
+// countdown toggle (persisted) — default OFF
+const CD_KEY = 'sofa.dash.countdown.visible';
+function hideCountdown(){
+  document.getElementById('countdown').classList.add('hidden');
+  document.getElementById('cdRestore').classList.add('show');
+  try{ localStorage.removeItem(CD_KEY); }catch(e){}
 }
-
-/* ── 初始化 ── */
-async function init() {
-  window._sofaLastHour = renderClock();
-  setInterval(() => {
-    const prevHour = window._sofaLastHour;
-    const h = renderClock();
-    if (h !== prevHour) {
-      window._sofaLastHour = h;
-      const timeWord = h < 5 ? '深夜了' : h < 12 ? '早安' : h < 18 ? '午安' : '晚安';
-      const greetEl = document.getElementById('greet-text');
-      if (greetEl) {
-        const nameSpan = greetEl.querySelector('.name');
-        const name = nameSpan ? nameSpan.textContent.replace('。','') : '';
-        greetEl.innerHTML = name ? `${timeWord}，<span class="name">${escHtml(name)}。</span>` : `${timeWord}。`;
-      }
-    }
-  }, 10000);
-  renderExamCountdown();
-  initScrollSpy();
-
-  if (DEMO_MODE) {
-    renderGreeting('', 0, 0);
-    showDemoMode();
-    return;
-  }
-
-  document.getElementById('nav-user').style.display = '';
-  document.getElementById('nav-logout-btn').style.display = '';
-  document.getElementById('nav-refresh-btn').style.display = '';
-  document.getElementById('nav-user').textContent = localStorage.getItem('sofa_nickname') || getUID();
-  initSidebarHighlight();
-
-  const [prof, prog, bm, hist, mastery] = await Promise.allSettled([
-    apiFetch('/api/me/profile'),
-    apiFetch('/api/me/progress'),
-    apiFetch('/api/me/bookmarks'),
-    apiFetch('/api/me/history?limit=60'),
-    apiFetch('/api/me/mastery'),
-  ]);
-
-  const all401 = [prog, bm, hist].every(r => r.status === 'rejected' && r.reason?.status === 401);
-  if (all401) { window.location.href = '/login.html'; return; }
-
-  if (mastery.status === 'fulfilled') {
-    const items = mastery.value.items || [];
-    _masteredItems = items.filter(i => i.status === 'mastered');
-    _reviewItems   = items.filter(i => i.status === 'review');
-    _masteredSet   = new Set(_masteredItems.map(i => i.page_id));
-    _reviewSet     = new Set(_reviewItems.map(i => i.page_id));
-    renderMasteredSection();
-    renderReviewSection();
-  }
-
-  const histData = hist.status === 'fulfilled' ? hist.value : null;
-  const streak = histData ? calcStreak(histData.history) : 0;
-  const weekCount = histData ? calcWeekCount(histData.history) : 0;
-  animateCount(document.getElementById('stat-streak'), streak);
-
-  const nickname = localStorage.getItem('sofa_nickname') || (prof.status === 'fulfilled' ? '' : '');
-  renderGreeting(nickname, streak, weekCount);
-
-  if (prof.status === 'fulfilled') {
-    _userPlan = prof.value.plan || '免費';
-    renderMemberCard(prof.value, streak);
-  } else
-    document.getElementById('member-card').innerHTML =
-      '<div class="mc-body"><div class="empty" style="padding:1rem 0">會員資料載入失敗。</div></div>';
-
-  const TRIAL_END = new Date('2026-06-01T00:00:00+08:00');
-  const isPaidUser = new Date() < TRIAL_END ||
-    _userPlan === '月費' || _userPlan === '月訂' || _userPlan === '季費' || _userPlan === '買斷' || _userPlan === 'monthly' || _userPlan === 'lifetime';
-  const LOCK_HTML = '<div class="stat-item" style="grid-column:span 4;display:flex;align-items:center;gap:.5rem;padding:1.2rem;color:rgba(245,240,234,.2);font-family:var(--mono);font-size:.7rem;letter-spacing:.06em">🔒 <span>付費功能</span></div>';
-
-  if (isPaidUser) {
-    if (prog.status === 'fulfilled') renderProgress(prog.value);
-    else renderProgressError(prog.reason);
-  } else {
-    document.querySelector('.stats-row').innerHTML = LOCK_HTML;
-    document.getElementById('progress-list').innerHTML = '';
-  }
-
-  if (isPaidUser) {
-    if (bm.status === 'fulfilled') renderBookmarks(bm.value);
-    else document.getElementById('bookmark-wrap').innerHTML =
-      '<div class="card"><div class="empty">資料載入失敗，請重新整理。</div></div>';
-  } else {
-    document.getElementById('bookmark-wrap').innerHTML = '<div class="card" style="display:flex;align-items:center;gap:.5rem;padding:1.2rem;color:rgba(245,240,234,.2);font-family:var(--mono);font-size:.7rem;letter-spacing:.06em">🔒 <span>付費功能</span></div>';
-  }
-
-  if (isPaidUser) {
-    if (hist.status === 'fulfilled') renderHistory(hist.value);
-    else document.getElementById('history-wrap').innerHTML =
-      '<div class="card"><div class="empty">資料載入失敗，請重新整理。</div></div>';
-  } else {
-    document.getElementById('history-wrap').innerHTML = '<div class="card" style="display:flex;align-items:center;gap:.5rem;padding:1.2rem;color:rgba(245,240,234,.2);font-family:var(--mono);font-size:.7rem;letter-spacing:.06em">🔒 <span>付費功能</span></div>';
-  }
+function showCountdown(){
+  document.getElementById('countdown').classList.remove('hidden');
+  document.getElementById('cdRestore').classList.remove('show');
+  try{ localStorage.setItem(CD_KEY,'1'); }catch(e){}
 }
-
-function hidePageLoader() {
-  const loader = document.getElementById('page-loader');
-  if (!loader) return;
-  loader.classList.add('hide');
-  setTimeout(() => loader.remove(), 500);
-}
-
-const _warmTimer = setTimeout(() => document.getElementById('warmBar').classList.add('show'), 5000);
-loadLawBrowser();
-init().then(() => {
-  clearTimeout(_warmTimer);
-  document.getElementById('warmBar').classList.remove('show');
-  hidePageLoader();
-  const params = new URLSearchParams(location.search);
-  const openId  = params.get('open');
-  const lawName = params.get('law') || '';
-  const artNo   = params.get('art') || '';
-  if (openId) {
-    openDrawer(openId, lawName, artNo);
-  } else if (lawName) {
-    apiFetch(`/api/articles?law=${encodeURIComponent(lawName)}`)
-      .then(data => {
-        const arts = data.articles || [];
-        let target = artNo
-          ? arts.find(a => a.title === artNo || a.title.replace(/\s/g,'').includes(artNo.replace(/\s/g,'')))
-          : null;
-        if (!target && arts.length) target = arts[0];
-        if (target) openDrawer(target.id, lawName, target.title);
-      })
-      .catch(() => {});
-  } else if (location.hash === '#law-browser') {
-    setTimeout(() => {
-      document.getElementById('law-browser-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }, 300);
+// default: hidden. Only show if user has explicitly opted in.
+try{
+  if(localStorage.getItem(CD_KEY)!=='1'){
+    document.getElementById('countdown').classList.add('hidden');
+    document.getElementById('cdRestore').classList.add('show');
   }
-});
+}catch(e){
+  document.getElementById('countdown').classList.add('hidden');
+  document.getElementById('cdRestore').classList.add('show');
+}
+// active nav on scroll
+const navLinks = document.querySelectorAll('.nav-list a');
+const sections = document.querySelectorAll('section.block');
+const setActive = id => {
+  navLinks.forEach(l => l.classList.toggle('on', l.getAttribute('href') === '#'+id));
+};
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting) setActive(e.target.id);
+  });
+},{rootMargin:'-30% 0px -60% 0px'});
+sections.forEach(s=>io.observe(s));
 </script>
 </body>
 </html>
