@@ -1607,19 +1607,20 @@ function closeDrawer(){
   document.querySelector('.drawer-mask').classList.remove('open');
 }
 
-// ── 登入狀態：讀取用戶名稱 ────────────────────────
+// ── 登入狀態：讀取用戶名稱（支援體驗模式）──────────
 (function(){
-  const uid = localStorage.getItem('sofa_uid') || '';
+  const uid = localStorage.getItem('sofa_uid') || sessionStorage.getItem('sofa_trial') || '';
+  const isTrial = !localStorage.getItem('sofa_uid') && !!sessionStorage.getItem('sofa_trial');
+  if(!uid) { window.location.href = 'login.html'; return; }
   const nameEl = document.getElementById('greet-name');
   if(nameEl){
-    // uid 格式通常是 email 或 LINE uid；取 @ 前第一段或直接顯示
-    const name = uid.includes('@') ? uid.split('@')[0] : (uid ? uid.slice(0,8) : 'Fay');
+    const name = isTrial ? '體驗用戶' : (uid.includes('@') ? uid.split('@')[0] : (uid ? uid.slice(0,8) : 'Fay'));
     nameEl.textContent = name;
   }
   // 也更新 topbar pill
   const pill = document.querySelector('.user-pill');
-  if(pill && uid){
-    const name = uid.includes('@') ? uid.split('@')[0] : uid.slice(0,8);
+  if(pill){
+    const name = isTrial ? '體驗版' : (uid.includes('@') ? uid.split('@')[0] : uid.slice(0,8));
     pill.innerHTML = '<span class="live"></span>' + name;
   }
 })();
