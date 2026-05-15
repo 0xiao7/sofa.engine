@@ -321,7 +321,7 @@
             <span><kbd>F</kbd>標記</span>
           </div>
           <div class="r">
-            <button class="btn btn-ghost">⚑ 標記</button>
+            <button class="btn btn-ghost" id="btnFlag">⚑ 標記</button>
             <button class="btn btn-sec">← 上一題</button>
             <button class="btn btn-pri" id="btnNext">下一題 <span class="k">↵</span></button>
           </div>
@@ -361,8 +361,8 @@
           <div class="stat-line"><span>已作答</span><span><b id="railTotal">0</b></span></div>
           <div class="stat-line"><span>命中率</span><span><b id="railAcc" style="color:var(--good)">—</b></span></div>
           <div class="stat-line"><span>累計答錯</span><span><b id="railWrong" style="color:var(--bad)">0</b></span></div>
-          <div class="stat-line"><span>已標記</span><span><b>2</b></span></div>
-          <div class="stat-line"><span>平均用時</span><span><b>00:58</b></span></div>
+          <div class="stat-line"><span>已標記</span><span><b id="railFlagged">0</b></span></div>
+          <div class="stat-line"><span>平均用時</span><span><b>—</b></span></div>
         </div>
 
         <div class="rail-card">
@@ -393,7 +393,8 @@ document.getElementById('navUid').textContent = localStorage.getItem('sofa_nickn
 })();
 
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-let answered=false,right=0,wrong=0,total=0;
+let answered=false,right=0,wrong=0,total=0,flagged=0;
+let quizData=null;
 
 function updateScore(){
   document.getElementById('qNum').textContent=total;
@@ -402,6 +403,7 @@ function updateScore(){
   document.getElementById('scoreWrong').textContent=wrong;
   document.getElementById('railTotal').textContent=total;
   document.getElementById('railWrong').textContent=wrong;
+  document.getElementById('railFlagged').textContent=flagged;
   const acc=total>0?Math.round(right/total*100):0;
   document.getElementById('railAcc').textContent=acc+'%';
 }
@@ -419,8 +421,11 @@ async function loadQuiz(){
     const url=law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`;
     const data=await fetch(url,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
     if(data.error){document.getElementById('questionBox').textContent=data.error;document.getElementById('questionBox').style.opacity='1';total--;updateScore();return;}
+    quizData=data;
     document.getElementById('questionBox').innerHTML=data.question||'出題失敗';
     document.getElementById('questionBox').style.opacity='1';
+    document.getElementById('btnFlag').classList.remove('flagged');
+    document.getElementById('btnFlag').textContent='⚑ 標記';
     if(data.law_name&&data.title) document.getElementById('qSrc').textContent=`出處 · ${data.law_name} ${data.title}`;
     const labels=['A','B','C','D'];
     (data.options||[]).forEach((opt,i)=>{
@@ -436,6 +441,10 @@ async function loadQuiz(){
         });
         if(opt!==data.answer){btn.classList.add('wrong');wrong++;}else{right++;}
         updateScore();
+        // 寫入練習紀錄
+        if(data.page_id&&uid&&uid!=='PREVIEW'){
+          fetch(`${API}/api/me/history`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:data.page_id,law_name:data.law_name||'',article:data.title||''})}).catch(()=>{});
+        }
         if(data.law_name&&data.title){
           const href=`dashboard.html?open=${encodeURIComponent(data.page_id||'')}&law=${encodeURIComponent(data.law_name)}&art=${encodeURIComponent(data.title)}`;
           document.getElementById('sourceBox').innerHTML=`出自 <a href="${href}" style="color:var(--peach)">《${esc(data.law_name)}》${esc(data.title)}</a>`;
@@ -451,10 +460,25 @@ async function loadQuiz(){
   }
 }
 
+function doFlag(){
+  if(!quizData||!quizData.page_id)return;
+  const btn=document.getElementById('btnFlag');
+  const isFlagged=btn.classList.contains('flagged');
+  if(isFlagged){
+    btn.classList.remove('flagged');btn.textContent='⚑ 標記';flagged=Math.max(0,flagged-1);
+    if(uid&&uid!=='PREVIEW')fetch(`${API}/api/me/mastery`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:quizData.page_id,status:'none'})}).catch(()=>{});
+  }else{
+    btn.classList.add('flagged');btn.textContent='⚑ 已標記';flagged++;
+    if(uid&&uid!=='PREVIEW')fetch(`${API}/api/me/mastery`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:quizData.page_id,law_name:quizData.law_name||'',article:quizData.title||'',status:'review',review_days:7})}).catch(()=>{});
+  }
+  updateScore();
+}
+document.getElementById('btnFlag').addEventListener('click',doFlag);
 document.getElementById('btnNew').addEventListener('click',loadQuiz);
 document.getElementById('btnNext').addEventListener('click',loadQuiz);
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter')loadQuiz();
+  if(e.key.toLowerCase()==='f'){doFlag();return;}
   const idx={'a':0,'b':1,'c':2,'d':3}[e.key.toLowerCase()];
   if(idx!==undefined){const opts=document.querySelectorAll('.opt');if(opts[idx])opts[idx].click();}
 });

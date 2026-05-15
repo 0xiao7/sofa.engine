@@ -327,14 +327,14 @@
         </div>
 
         <div class="rail-card">
-          <div class="rail-h">HINT<span class="ct">REMAIN 3</span></div>
+          <div class="rail-h">HINT<span class="ct" id="hintRemain">REMAIN 3</span></div>
           <div style="font-size:13px;color:rgba(245,240,234,.65);line-height:1.7;margin-bottom:14px">
-            點下方任一格用掉一次提示——會多扣 5 分。
+            點下方任一格用掉一次提示。
           </div>
           <div class="hint-row">
-            <button class="hint-btn">首字<b>顯</b></button>
-            <button class="hint-btn">字數<b>4</b></button>
-            <button class="hint-btn">看答<b>★</b></button>
+            <button class="hint-btn" id="hintFirst">首字<b>顯</b></button>
+            <button class="hint-btn" id="hintCount">字數<b id="hintCountVal">?</b></button>
+            <button class="hint-btn" id="hintReveal">看答<b>★</b></button>
           </div>
         </div>
 
@@ -367,6 +367,28 @@ document.getElementById('navUid').textContent = localStorage.getItem('sofa_nickn
 
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 let fillData = null;
+let hintsLeft = 3;
+
+function updateHintUI(){
+  const el=document.getElementById('hintRemain');
+  if(el)el.textContent=hintsLeft>0?`REMAIN ${hintsLeft}`:'USED UP';
+  const btns=[document.getElementById('hintFirst'),document.getElementById('hintCount'),document.getElementById('hintReveal')];
+  btns.forEach(b=>{if(b)b.disabled=hintsLeft<=0;});
+  // 更新字數顯示
+  const inputs=[...document.getElementById('fillText').querySelectorAll('input')];
+  if(inputs.length){
+    const lens=inputs.map(i=>i.dataset.ans.length);
+    const cv=document.getElementById('hintCountVal');
+    if(cv)cv.textContent=lens.join('/');
+  }
+}
+
+function useHint(fn){
+  if(hintsLeft<=0)return;
+  hintsLeft--;
+  fn();
+  updateHintUI();
+}
 
 function renderFill(){
   const box = document.getElementById('fillText');
@@ -407,6 +429,8 @@ function renderFill(){
     inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(all[i+1])all[i+1].focus();else checkAnswers();}});
   });
   if(box.querySelector('input'))box.querySelector('input').focus();
+  hintsLeft=3;
+  updateHintUI();
 }
 
 function updateBlankList(){
@@ -451,6 +475,10 @@ function checkAnswers(){
     src.innerHTML=`出自 <a href="dashboard.html?open=${encodeURIComponent(fillData.id)}&art=${encodeURIComponent(fillData.title)}" style="color:var(--peach)">《${esc(fillData.law_name||'')}》${esc(fillData.title)}</a>`;
     src.style.display='block';
   }
+  // 寫入練習紀錄
+  if(fillData.id&&uid&&uid!=='PREVIEW'){
+    fetch(`${API}/api/me/history`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:fillData.id,law_name:fillData.law_name||'',article:fillData.title||''})}).catch(()=>{});
+  }
 }
 
 async function loadNew(){
@@ -470,6 +498,22 @@ async function loadNew(){
   }
 }
 
+document.getElementById('hintFirst').addEventListener('click',()=>useHint(()=>{
+  document.getElementById('fillText').querySelectorAll('input').forEach(inp=>{
+    if(inp.value.trim()||inp.disabled)return;
+    const first=(inp.dataset.ans||'')[0]||'';
+    if(!inp.dataset.hintFirst){inp.dataset.hintFirst='1';inp.placeholder=first+'…';}
+  });
+}));
+document.getElementById('hintCount').addEventListener('click',()=>useHint(()=>{}));
+document.getElementById('hintReveal').addEventListener('click',()=>useHint(()=>{
+  if(!fillData)return;
+  document.getElementById('fillText').querySelectorAll('input').forEach((inp,i)=>{
+    inp.value=(fillData.answers||[])[i]||'';
+    inp.classList.remove('empty','bad');inp.classList.add('ok');
+  });
+  updateBlankList();
+}));
 document.getElementById('btnCheck').addEventListener('click',checkAnswers);
 document.getElementById('btnNext').addEventListener('click',loadNew);
 document.getElementById('btnReset').addEventListener('click',()=>{
