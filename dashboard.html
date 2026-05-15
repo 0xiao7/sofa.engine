@@ -1001,7 +1001,7 @@
     </nav>
     <div class="top-right">
       <span class="user-pill"><span class="live"></span>Fay</span>
-      <button class="btn-out">登出</button>
+      <button class="btn-out" onclick="(function(){localStorage.removeItem('sofa_uid');window.location.href='login.html';})()">登出</button>
       <button class="menu-btn" onclick="document.querySelector('aside.side').classList.toggle('open')"><span></span></button>
     </div>
   </header>
@@ -1060,14 +1060,14 @@
         <!-- ============ HERO ============ -->
         <div class="greet">
           <div>
-            <div class="eyebrow">TONIGHT · TAIPEI</div>
-            <h1>晚安，<em>Fay</em>。<br/>今天讀一條也算數。</h1>
+            <div class="eyebrow" id="greet-eyebrow">TONIGHT · TAIPEI</div>
+            <h1><span id="greet-word">晚安</span>，<em id="greet-name">—</em>。<br/>今天讀一條也算數。</h1>
             <p class="sub">距離考試還有 <span class="greet-days">—</span> 天。本週進度 6 / 7，連續學習 3 天——坐下來繼續吧。</p>
           </div>
           <div class="now">
             <div class="l">CURRENT TIME</div>
-            <div class="t">22:48</div>
-            <div class="l">2026.05.11 · 一</div>
+            <div class="t" id="clock-time">--:--</div>
+            <div class="l" id="clock-date">----.--.-- · -</div>
           </div>
         </div>
 
@@ -1606,6 +1606,57 @@ function closeDrawer(){
   document.querySelector('.drawer').classList.remove('open');
   document.querySelector('.drawer-mask').classList.remove('open');
 }
+
+// ── 登入狀態：讀取用戶名稱 ────────────────────────
+(function(){
+  const uid = localStorage.getItem('sofa_uid') || '';
+  const nameEl = document.getElementById('greet-name');
+  if(nameEl){
+    // uid 格式通常是 email 或 LINE uid；取 @ 前第一段或直接顯示
+    const name = uid.includes('@') ? uid.split('@')[0] : (uid ? uid.slice(0,8) : 'Fay');
+    nameEl.textContent = name;
+  }
+  // 也更新 topbar pill
+  const pill = document.querySelector('.user-pill');
+  if(pill && uid){
+    const name = uid.includes('@') ? uid.split('@')[0] : uid.slice(0,8);
+    pill.innerHTML = '<span class="live"></span>' + name;
+  }
+})();
+
+// ── 即時時鐘 + 問候語 ─────────────────────────────
+(function(){
+  const DAY_ZH = ['日','一','二','三','四','五','六'];
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function tick(){
+    const now = new Date();
+    const h = now.getHours();
+    // 時鐘
+    const timeEl = document.getElementById('clock-time');
+    if(timeEl) timeEl.textContent = pad(h) + ':' + pad(now.getMinutes());
+    // 日期
+    const dateEl = document.getElementById('clock-date');
+    if(dateEl){
+      const y = now.getFullYear();
+      const m = pad(now.getMonth()+1);
+      const d = pad(now.getDate());
+      const w = DAY_ZH[now.getDay()];
+      dateEl.textContent = y + '.' + m + '.' + d + ' · ' + w;
+    }
+    // 問候語 & eyebrow
+    const wordEl = document.getElementById('greet-word');
+    const eyeEl  = document.getElementById('greet-eyebrow');
+    let word, label;
+    if(h >= 5 && h < 12)       { word = '早安'; label = 'MORNING'; }
+    else if(h >= 12 && h < 18) { word = '午安'; label = 'AFTERNOON'; }
+    else if(h >= 18 && h < 23) { word = '晚安'; label = 'TONIGHT'; }
+    else                        { word = '還沒睡';  label = 'MIDNIGHT'; }
+    if(wordEl) wordEl.textContent = word;
+    if(eyeEl)  eyeEl.textContent  = label + ' · TAIPEI';
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
 
 // ── 動態倒數：考試日 2026/11/14 ──────────────────
 (function(){
