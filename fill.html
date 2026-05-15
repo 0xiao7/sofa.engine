@@ -353,9 +353,10 @@
 
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
-const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
-if (!uid) window.location.href = '/login.html?redirect=fill.html';
-document.getElementById('navUid').textContent = localStorage.getItem('sofa_nickname') || uid;
+const uid = localStorage.getItem('sofa_uid') || sessionStorage.getItem('sofa_trial') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
+const isTrial = !localStorage.getItem('sofa_uid') && !!sessionStorage.getItem('sofa_trial');
+if (!uid) window.location.href = 'login.html?redirect=fill.html';
+document.getElementById('navUid').textContent = isTrial ? '體驗版' : (localStorage.getItem('sofa_nickname') || uid);
 
 (async()=>{
   try {
