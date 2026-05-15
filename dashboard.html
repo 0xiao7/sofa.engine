@@ -915,6 +915,24 @@
   .acc-item.open .acc-head .num{color:var(--peach-3)}
   .acc-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
   .acc-item.open .acc-body{max-height:600px}
+  /* locked segments (trial mode) */
+  .acc-item.locked{pointer-events:none;opacity:.55;position:relative}
+  .acc-item.locked .acc-head .ttl::after{content:" 🔒";font-size:12px;opacity:.7}
+  .acc-item.locked-cta{pointer-events:auto;opacity:1}
+  .acc-locked-banner{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:12px 16px;margin:8px 0 4px;
+    background:rgba(231,187,167,.08);
+    border:1px dashed rgba(231,187,167,.3);border-radius:4px;
+    font-size:12.5px;color:rgba(31,56,72,.7);
+  }
+  .acc-locked-banner a{
+    font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;
+    color:var(--peach-3);text-decoration:none;white-space:nowrap;
+    padding:4px 10px;border:1px solid var(--peach-dim);border-radius:2px;
+    transition:.18s;
+  }
+  .acc-locked-banner a:hover{background:var(--peach-dim)}
   .acc-inner{padding:4px 22px 22px 28px;font-size:14px;line-height:1.85;color:rgba(31,56,72,.78)}
   .acc-inner p{margin-bottom:8px}
   .acc-inner b{color:var(--navy);font-weight:600}
@@ -1556,36 +1574,43 @@
       </div>
 
       <div class="dr-acc">
-        <div class="acc-item open" onclick="this.classList.toggle('open')">
+        <div class="acc-item open" data-seg="1" onclick="this.classList.toggle('open')">
           <div class="acc-head"><span class="cv">▸</span><span class="num">1</span><span class="ttl">章節標題與戰略權重</span></div>
           <div class="acc-body"><div class="acc-inner">
             <p>本條位於<b>第三章「業務及責任」</b>，是定義「記帳士能做什麼」的核心條文。</p>
             <p>近 10 年國考<b>命中率 92%</b>，<span class="kw">五款業務範圍</span>與<span class="kw">但書排除事項</span>幾乎每年都會考。</p>
           </div></div>
         </div>
-        <div class="acc-item" onclick="this.classList.toggle('open')">
+        <div class="acc-item" data-seg="2" onclick="this.classList.toggle('open')">
           <div class="acc-head"><span class="cv">▸</span><span class="num">2</span><span class="ttl">規範意旨與條文解析</span></div>
           <div class="acc-body"><div class="acc-inner">
             <p>本條規範記帳士的<b>業務範圍與限制</b>。前段五款採「列舉式」。</p>
             <p>「<span class="kw">登錄區域內</span>」為地域限制；但書排除<b>查核簽證</b>與<b>訴願 / 行政訴訟</b>。</p>
           </div></div>
         </div>
-        <div class="acc-item" onclick="this.classList.toggle('open')">
+        <div class="acc-item" data-seg="3" onclick="this.classList.toggle('open')">
           <div class="acc-head"><span class="cv">▸</span><span class="num">3</span><span class="ttl">執業要點與考情提示</span></div>
           <div class="acc-body"><div class="acc-inner">
             <p>考點集中在三處：五款的<b>順序與內容</b>、但書的<b>三項排除</b>、與第 9 條、第 14 條的連動。</p>
           </div></div>
         </div>
-        <div class="acc-item" onclick="this.classList.toggle('open')">
+        <div class="acc-item" data-seg="4" onclick="this.classList.toggle('open')">
           <div class="acc-head"><span class="cv">▸</span><span class="num">4</span><span class="ttl">核心摘要與記憶策略</span></div>
           <div class="acc-body"><div class="acc-inner">
             <p>口訣：<span class="kw">登 / 稅 / 諮 / 商 / 其他</span> + 但書「<span class="kw">不查不訴</span>」。</p>
           </div></div>
         </div>
-        <div class="acc-item" onclick="this.classList.toggle('open')">
+        <div class="acc-item" data-seg="5" onclick="this.classList.toggle('open')">
           <div class="acc-head"><span class="cv">▸</span><span class="num">5</span><span class="ttl">修法與聯覺備註</span></div>
           <div class="acc-body"><div class="acc-inner">
             <p>最近一次修正：<b>2019 / 06 / 21</b>。實質規範自 2004 年立法以來未變動。</p>
+          </div></div>
+        </div>
+        <div class="acc-item" data-seg="6" onclick="this.classList.toggle('open')">
+          <div class="acc-head"><span class="cv">▸</span><span class="num">6</span><span class="ttl">關聯法規與條文互參</span></div>
+          <div class="acc-body"><div class="acc-inner">
+            <p>與 <span class="kw">第 9 條</span>（登錄要件）、<span class="kw">第 14 條</span>（業務限制）高度連動。</p>
+            <p>跨法連結：商業會計法 §71、稅捐稽徵法 §35 均有業務範圍交叉。</p>
           </div></div>
         </div>
       </div>
@@ -1622,6 +1647,25 @@ function closeDrawer(){
   if(pill){
     const name = isTrial ? '體驗版' : (uid.includes('@') ? uid.split('@')[0] : uid.slice(0,8));
     pill.innerHTML = '<span class="live"></span>' + name;
+  }
+
+  // ── 體驗版：鎖定 5/6 段分析 ──────────────────────
+  if(isTrial){
+    document.querySelectorAll('.acc-item').forEach(function(item){
+      var seg = parseInt(item.dataset.seg || '0');
+      if(seg >= 5){
+        item.classList.add('locked');
+        item.onclick = function(e){ e.stopPropagation(); };
+      }
+    });
+    // 在鎖定段落前插入 banner
+    var firstLocked = document.querySelector('.acc-item.locked');
+    if(firstLocked){
+      var banner = document.createElement('div');
+      banner.className = 'acc-locked-banner';
+      banner.innerHTML = '🔒 5 / 6 段為付費功能（修法備註 · 關聯法規）<a href="checkout.html">升級解鎖 →</a>';
+      firstLocked.parentNode.insertBefore(banner, firstLocked);
+    }
   }
 })();
 
