@@ -376,7 +376,7 @@ function render(){
   let html='';
   for(let i=0;i<typeText.length;i++){
     const ch=esc(typeText[i]);
-    if(i<typeInput.length){ html+=typeInput[i]===typeText[i]?`<span class="ok">${ch}</span>`:`<span class="err" title="應為：${ch}">${esc(typeInput[i]||'?')}</span>`; }
+    if(i<typeInput.length){ html+=typeInput[i]===typeText[i]?`<span class="ok">${ch}</span>`:`<span class="err" title="您輸入：${esc(typeInput[i]||'?')}">${ch}</span>`; }
     else if(i===typeInput.length){ html+=`<span class="cur">${ch}</span>`; }
     else{ html+=`<span>${ch}</span>`; }
   }
@@ -448,6 +448,50 @@ document.getElementById('btnReset').addEventListener('click',()=>{
   document.getElementById('wpm').textContent='—';
   render();
 });
+
+// ── Mode strip ──────────────────────────────────────────
+let currentMode=1;
+document.querySelectorAll('.mode').forEach((btn,idx)=>{
+  btn.addEventListener('click',()=>{
+    currentMode=idx+1;
+    document.querySelectorAll('.mode').forEach(b=>b.classList.remove('on'));
+    btn.classList.add('on');
+    if(idx>0){
+      const names=['','逐字','逐句','關鍵字'];
+      // modes 02/03 not yet implemented — show hint
+      const orig=btn.querySelector('.desc').textContent;
+      btn.querySelector('.desc').textContent='即將推出 ✦';
+      setTimeout(()=>{ btn.querySelector('.desc').textContent=orig; },1500);
+      currentMode=1;
+      document.querySelector('.mode').classList.add('on');
+      btn.classList.remove('on');
+    }
+  });
+});
+
+// ── Keyboard shortcuts ──────────────────────────────────
+document.addEventListener('keydown',e=>{
+  // ⌘+K or Ctrl+K → load new article
+  if((e.metaKey||e.ctrlKey)&&e.key==='k'){
+    e.preventDefault();
+    loadNew();
+    return;
+  }
+  // TAB → hint: highlight current char briefly
+  if(e.key==='Tab'&&document.activeElement===ti){
+    e.preventDefault();
+    const cur=document.querySelector('.ghost .cur');
+    if(cur){
+      cur.style.background='rgba(231,187,167,.5)';
+      cur.style.color='var(--cream)';
+      setTimeout(()=>{ cur.style.background=''; cur.style.color=''; },800);
+    }
+    return;
+  }
+  // ESC → blur input (pause)
+  if(e.key==='Escape'){ ti.blur(); }
+});
+
 loadNew();
 </script>
 </body>
