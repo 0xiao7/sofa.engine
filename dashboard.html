@@ -1652,7 +1652,9 @@ function closeDrawer(){
 (function(){
   const uid = localStorage.getItem('sofa_uid') || '';
   const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
+  const isAdmin = localStorage.getItem('sofa_role') === 'admin';
   if(!uid || isFree) return; // 免費版不拉資料
+  if(isAdmin) return;        // 管理員不走 API（序號不在資料庫）
 
   const API = 'https://sofa-engine-api.onrender.com';
   const H = { 'X-Sofa-UID': uid };
@@ -1705,9 +1707,15 @@ function closeDrawer(){
       var expire = profile.expire || '';
       var isExpired = expire && new Date(expire) < new Date();
 
+      // 存暱稱讓 practice/quiz/fill 頁面讀到
+      if(name && name !== '——') localStorage.setItem('sofa_nickname', name);
+
+      // 方案對應的代稱
+      var planBadge = {'月費':'備考學員','季費':'衝榜學員','體驗':'見習學員','試用':'見習學員'}[plan] || plan;
+
       setText('mc-name', name);
       setText('mc-serial', serial);
-      setText('mc-plan', plan);
+      setText('mc-plan', planBadge || plan);
       setText('mc-status', isExpired ? 'EXPIRED' : 'ACTIVE');
       setText('mc-expire', expire ? fmtDate(expire) : '永久有效');
       setText('mc-avatar', name.charAt(0).toUpperCase());
