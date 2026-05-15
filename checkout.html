@@ -9,420 +9,750 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="sofa.css" />
 <style>
-  body{background:var(--navy-3)}
+  html,body{height:100%;background:var(--navy-3)}
+  body{overflow:hidden}
 
-  /* === topbar tweak — minimal, no nav === */
-  .topbar-min{
-    background:rgba(31,56,72,.92);backdrop-filter:blur(12px);
-    border-bottom:1px solid var(--line);
-    padding:18px 40px;
-    display:flex;align-items:center;justify-content:flex-start;gap:18px;
-    position:sticky;top:0;z-index:50;
-  }
-  .topbar-min .brand-l{
-    font-family:var(--mono);font-weight:500;font-size:17px;letter-spacing:.16em;
-    display:flex;align-items:center;gap:12px;color:var(--cream);
-  }
-  .topbar-min .brand-l .dot{
-    width:8px;height:8px;background:var(--peach);border-radius:50%;
-    box-shadow:0 0 0 4px rgba(231,187,167,.18);
-  }
-  .topbar-min .sep{width:1px;height:18px;background:var(--line-2)}
-  .topbar-min .tag{
-    font-family:var(--serif);font-size:14.5px;color:rgba(245,240,234,.65);
-    letter-spacing:.02em;
+  .ck{
+    display:grid;grid-template-columns:1.05fr 1fr;
+    min-height:100vh;
   }
 
-  /* === page wrapper === */
-  .checkout{
-    padding:56px 40px 80px;background:var(--navy-3);
-    position:relative;overflow:hidden;min-height:calc(100vh - 65px);
+  /* ====================================================
+     LEFT — dark brand / sales panel (mirrors login)
+     ==================================================== */
+  .ck-l{
+    background:linear-gradient(165deg, var(--navy-2) 0%, var(--navy-4) 100%);
+    padding:44px 56px 48px;
+    position:relative;overflow:hidden;
+    display:flex;flex-direction:column;justify-content:space-between;
+    color:var(--cream);
   }
-  .checkout::before{
+  .ck-l::before{
+    content:"";position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(245,240,234,.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,240,234,.022) 1px, transparent 1px);
+    background-size:48px 48px;
+    mask-image:radial-gradient(ellipse 70% 60% at 30% 20%, #000 20%, transparent 75%);
+    pointer-events:none;
+  }
+  .ck-l::after{
+    content:"§";position:absolute;
+    right:-110px;bottom:-200px;
+    font-family:var(--serif);font-weight:600;font-size:680px;line-height:1;
+    color:rgba(231,187,167,.045);letter-spacing:-.04em;
+    pointer-events:none;
+    animation:drift 18s ease-in-out infinite;
+    transform-origin:center;
+  }
+  @keyframes drift{
+    0%,100%{transform:translate(0,0) rotate(0deg)}
+    50%{transform:translate(-14px,-10px) rotate(-2deg)}
+  }
+  .ck-brand{
+    position:relative;z-index:2;
+    display:flex;align-items:center;gap:14px;
+    font-family:var(--mono);font-weight:500;font-size:18px;letter-spacing:.18em;
+  }
+  .ck-brand .dot{
+    width:9px;height:9px;background:var(--peach);border-radius:50%;
+    box-shadow:0 0 0 5px rgba(231,187,167,.18);
+  }
+
+  .ck-hero{position:relative;z-index:2;max-width:520px;margin-top:8px}
+  .ck-hero .eb{
+    font-family:var(--mono);font-size:11px;
+    color:var(--peach);letter-spacing:.22em;text-transform:uppercase;
+    display:flex;align-items:center;gap:10px;margin-bottom:22px;
+  }
+  .ck-hero .eb::before{content:"";width:22px;height:1px;background:var(--peach)}
+  .ck-hero h1{
+    font-family:var(--serif);font-weight:600;font-size:44px;
+    line-height:1.25;letter-spacing:.005em;color:var(--cream);
+  }
+  .ck-hero h1 em{font-style:normal;color:var(--peach)}
+  .ck-hero p{
+    margin-top:22px;font-size:15px;line-height:1.85;
+    color:rgba(245,240,234,.65);max-width:440px;
+  }
+
+  /* sales-side bulletted "what's included" */
+  .incl{
+    margin-top:28px;display:flex;flex-direction:column;gap:11px;
+    list-style:none;max-width:460px;
+  }
+  .incl li{
+    display:flex;align-items:flex-start;gap:14px;
+    font-size:14.5px;color:rgba(245,240,234,.78);line-height:1.65;
+  }
+  .incl li .ix{
+    font-family:var(--mono);font-size:10.5px;font-weight:600;
+    color:var(--peach);letter-spacing:.16em;flex-shrink:0;
+    width:30px;padding-top:3px;
+  }
+  .incl li b{color:var(--cream);font-weight:500}
+
+  .ck-quote{
+    margin-top:32px;padding:20px 24px;
+    border-left:3px solid var(--peach);
+    background:rgba(245,240,234,.025);
+    border-radius:0 3px 3px 0;
+    font-family:var(--serif);font-size:16.5px;line-height:1.7;
+    color:var(--cream);letter-spacing:.01em;
+    max-width:460px;
+  }
+  .ck-quote span{
+    display:block;margin-top:8px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+    color:var(--peach);
+  }
+
+  .ck-foot{
+    position:relative;z-index:2;margin-top:28px;
+    display:flex;justify-content:space-between;align-items:flex-end;gap:24px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+    color:rgba(245,240,234,.4);text-transform:uppercase;
+  }
+  .ck-foot b{color:var(--peach);font-weight:500}
+  .ck-stats{display:flex;gap:32px}
+  .ck-stats .s .v{
+    font-family:var(--serif);font-weight:600;font-size:28px;color:var(--cream);
+    letter-spacing:.01em;line-height:1;
+  }
+  .ck-stats .s .v em{font-style:normal;color:var(--peach)}
+  .ck-stats .s .k{
+    margin-top:8px;font-family:var(--mono);font-size:10.5px;
+    letter-spacing:.18em;color:rgba(245,240,234,.5);
+  }
+
+  /* ====================================================
+     RIGHT — checkout panel (navy, matches left)
+     ==================================================== */
+  .ck-r{
+    background:linear-gradient(195deg, var(--navy-3) 0%, var(--navy-4) 100%);
+    color:var(--cream);
+    padding:36px 56px 40px;
+    display:flex;flex-direction:column;
+    position:relative;overflow-y:auto;
+    max-height:100vh;
+    border-left:1px solid var(--line);
+  }
+  .ck-r::before{
     content:"";position:absolute;inset:0;
     background-image:
       linear-gradient(rgba(245,240,234,.018) 1px, transparent 1px),
       linear-gradient(90deg, rgba(245,240,234,.018) 1px, transparent 1px);
-    background-size:60px 60px;
-    mask-image:radial-gradient(ellipse 70% 60% at 50% 0%, #000 30%, transparent 75%);
-    pointer-events:none;
+    background-size:48px 48px;
+    mask-image:radial-gradient(ellipse 70% 60% at 70% 10%, #000 20%, transparent 75%);
+    pointer-events:none;z-index:0;
   }
-  .checkout::after{
-    content:"§";position:absolute;
-    right:-60px;bottom:-120px;
-    font-family:var(--serif);font-weight:600;font-size:420px;line-height:1;
-    color:rgba(231,187,167,.035);letter-spacing:-.04em;
-    pointer-events:none;
+  .ck-r > *{position:relative;z-index:1}
+  .ck-r .top{
+    display:flex;justify-content:space-between;align-items:center;gap:14px;
+    font-family:var(--mono);font-size:12px;letter-spacing:.08em;
+    color:rgba(245,240,234,.5);white-space:nowrap;
   }
-  .checkout-inner{max-width:760px;margin:0 auto;position:relative;z-index:2}
+  .ck-r .top a{color:var(--peach);font-weight:600;transition:.18s}
+  .ck-r .top a:hover{color:var(--cream)}
+  .ck-r .top .step{
+    display:flex;align-items:center;gap:8px;
+  }
+  .ck-r .top .step .dot{
+    width:6px;height:6px;border-radius:50%;background:var(--peach-3);
+  }
 
-  /* === breadcrumb / head === */
-  .ck-crumb{
-    display:flex;align-items:center;gap:10px;
-    font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.5);
-    letter-spacing:.12em;text-transform:uppercase;margin-bottom:18px;
+  .form{
+    margin:28px 0 0;max-width:460px;width:100%;
   }
-  .ck-crumb a{transition:.18s}.ck-crumb a:hover{color:var(--peach)}
-  .ck-crumb .s{color:rgba(245,240,234,.25)}
-
-  .ck-head{
-    padding-bottom:32px;border-bottom:1px solid var(--line);margin-bottom:40px;
-  }
-  .ck-head .eb{
-    font-family:var(--mono);font-size:11px;color:var(--peach);
-    letter-spacing:.22em;text-transform:uppercase;
-    display:flex;align-items:center;gap:10px;margin-bottom:18px;
-  }
-  .ck-head .eb::before{content:"";width:22px;height:1px;background:var(--peach)}
-  .ck-head h1{
-    font-family:var(--serif);font-weight:600;font-size:38px;
-    color:var(--cream);line-height:1.25;letter-spacing:.005em;
-  }
-  .ck-head h1 em{font-style:normal;color:var(--peach)}
-  .ck-head p{margin-top:14px;font-size:15px;color:rgba(245,240,234,.6);max-width:540px;line-height:1.8}
-
-  /* === sections === */
-  .ck-sec{margin-bottom:48px}
-  .ck-sec-head{
-    display:flex;align-items:center;gap:12px;margin-bottom:20px;
-  }
-  .ck-sec-head .eb{
+  .form .eb{
     font-family:var(--mono);font-size:11px;color:var(--peach);
     letter-spacing:.22em;text-transform:uppercase;font-weight:600;
+    display:inline-flex;align-items:center;gap:8px;
+    padding:5px 12px;border:1px solid rgba(231,187,167,.35);border-radius:100px;
+    white-space:nowrap;
   }
-  .ck-sec-head .line{flex:1;height:1px;background:var(--line)}
+  .form .eb::before{
+    content:"";width:6px;height:6px;border-radius:50%;background:var(--peach);
+    box-shadow:0 0 0 3px rgba(231,187,167,.2);
+    animation:pulse 2.4s ease-in-out infinite;
+  }
+  @keyframes pulse{
+    0%,100%{box-shadow:0 0 0 3px rgba(231,187,167,.2)}
+    50%{box-shadow:0 0 0 5px rgba(231,187,167,.08)}
+  }
+  .form h2{
+    font-family:var(--serif);font-weight:600;font-size:34px;
+    line-height:1.28;margin-top:14px;color:var(--cream);
+  }
+  .form h2 em{font-style:normal;color:var(--peach)}
+  .form .sub{
+    margin-top:12px;font-size:14px;color:rgba(245,240,234,.6);line-height:1.75;
+  }
 
-  /* === plan cards === */
-  .plans{
-    display:grid;grid-template-columns:1fr 1fr;gap:14px;
+  /* === section label === */
+  .sec{margin-top:32px}
+  .sec-lab{
+    display:flex;align-items:center;gap:12px;margin-bottom:14px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.18em;
+    color:rgba(245,240,234,.55);text-transform:uppercase;font-weight:600;
   }
-  .plan-card{
-    background:var(--navy-2);border:1px solid var(--line);border-radius:4px;
-    padding:28px 28px 24px;cursor:pointer;
-    display:flex;flex-direction:column;gap:14px;
-    transition:border-color .18s, background .18s, transform .18s;
-    position:relative;
+  .sec-lab .num{color:var(--peach)}
+  .sec-lab .line{flex:1;height:1px;background:var(--line)}
+
+  /* === early-bird banner === */
+  .eb-banner{
+    display:flex;align-items:flex-start;gap:12px;
+    padding:13px 16px;margin-bottom:14px;
+    background:rgba(231,187,167,.06);
+    border:1px solid rgba(231,187,167,.22);
+    border-left:2px solid var(--peach);
+    border-radius:2px;
+    position:relative;overflow:hidden;
   }
-  .plan-card:hover{border-color:var(--peach-dim)}
-  .plan-card.selected{
+  .eb-banner::after{
+    content:"";position:absolute;top:0;left:-100%;width:60%;height:100%;
+    background:linear-gradient(90deg,transparent,rgba(231,187,167,.10),transparent);
+    animation:shimmer 4.5s ease-in-out infinite;
+  }
+  @keyframes shimmer{
+    0%,90%,100%{left:-100%}
+    45%{left:140%}
+  }
+  .eb-banner .ic{
+    font-family:var(--mono);font-weight:700;font-size:10px;letter-spacing:.18em;
+    color:var(--peach);flex-shrink:0;margin-top:2px;
+  }
+  .eb-banner .tx{
+    flex:1;font-size:12.5px;color:rgba(245,240,234,.78);line-height:1.65;
+  }
+  .eb-banner .tx b{color:var(--peach);font-weight:600}
+  .eb-banner .cd{
+    font-family:var(--mono);font-size:10px;letter-spacing:.12em;
+    color:rgba(245,240,234,.6);text-transform:uppercase;
+    white-space:nowrap;margin-top:2px;
+  }
+
+  /* === plan cards (navy version) === */
+  .plans{display:flex;flex-direction:column;gap:10px}
+  .plan{
+    background:var(--navy-2);border:1px solid var(--line);border-radius:3px;
+    padding:18px 18px 16px 22px;cursor:pointer;position:relative;
+    display:grid;grid-template-columns:24px 1fr auto;gap:14px;align-items:center;
+    transition:border-color .2s, background .25s, transform .18s;
+  }
+  .plan:hover{border-color:var(--peach-dim);transform:translateX(2px)}
+  .plan.selected{
     border-color:var(--peach);
-    background:linear-gradient(150deg, var(--navy-2) 0%, var(--plum-1) 100%);
-    box-shadow:0 0 0 1px var(--peach) inset, 0 18px 40px rgba(0,0,0,.25);
+    background:linear-gradient(135deg, var(--navy-2) 0%, var(--plum-1) 100%);
+    box-shadow:0 0 0 1px var(--peach) inset, 0 12px 32px rgba(0,0,0,.25);
   }
-  .plan-card .top{
-    display:flex;justify-content:space-between;align-items:flex-start;gap:12px;
+  .plan .radio{
+    width:18px;height:18px;border-radius:50%;
+    border:1.5px solid var(--line-2);
+    display:flex;align-items:center;justify-content:center;
+    transition:.2s;
   }
-  .plan-card .name{
-    font-family:var(--serif);font-weight:600;font-size:22px;
+  .plan.selected .radio{
+    border-color:var(--peach);background:var(--peach);
+    animation:pop .35s ease-out;
+  }
+  .plan.selected .radio::after{
+    content:"";width:6px;height:6px;border-radius:50%;background:var(--navy);
+  }
+  @keyframes pop{
+    0%{transform:scale(.6)}
+    60%{transform:scale(1.15)}
+    100%{transform:scale(1)}
+  }
+  .plan .body .name-row{
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  }
+  .plan .body .name{
+    font-family:var(--serif);font-weight:600;font-size:18px;
     color:var(--cream);letter-spacing:.005em;
   }
-  .plan-card .save{
-    font-family:var(--mono);font-size:10.5px;font-weight:700;
-    letter-spacing:.16em;text-transform:uppercase;
-    background:var(--peach);color:var(--navy);
-    padding:5px 9px;border-radius:2px;white-space:nowrap;
+  .plan .body .meta{
+    font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+    color:rgba(245,240,234,.55);
   }
-  .plan-card .price{
-    display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;
-    padding-bottom:14px;border-bottom:1px dashed var(--line);
+  .plan .body .desc{
+    margin-top:4px;font-size:12.5px;color:rgba(245,240,234,.6);line-height:1.55;
   }
-  .plan-card .price .c{
-    font-family:var(--mono);font-size:13px;color:rgba(245,240,234,.55);
-    letter-spacing:.06em;
+  .plan .body .desc b{color:var(--peach);font-weight:600}
+  .plan .badge{
+    font-family:var(--mono);font-size:9.5px;font-weight:600;
+    letter-spacing:.14em;text-transform:uppercase;
+    color:var(--peach);background:transparent;
+    border:1px solid rgba(231,187,167,.4);
+    padding:3px 7px;border-radius:2px;
   }
-  .plan-card .price .n{
-    font-family:var(--serif);font-weight:600;font-size:44px;
+  .plan .badge.save{
+    color:rgba(245,240,234,.82);border-color:var(--line-2);
+  }
+  .plan .price{
+    text-align:right;display:flex;flex-direction:column;align-items:flex-end;gap:3px;
+  }
+  .plan .price .n{
+    font-family:var(--serif);font-weight:600;font-size:28px;
     color:var(--cream);line-height:1;letter-spacing:-.01em;
+    transition:color .25s;
   }
-  .plan-card.selected .price .n{color:var(--peach)}
-  .plan-card .price .per{
-    font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.5);
-    letter-spacing:.08em;margin-left:4px;
+  .plan.selected .price .n{color:var(--peach)}
+  .plan .price .n .c{
+    font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.5);
+    font-weight:500;letter-spacing:.04em;margin-right:3px;
   }
-  .plan-card .desc{
-    font-size:13.5px;color:rgba(245,240,234,.65);line-height:1.7;
+  .plan .price .per{
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+    color:rgba(245,240,234,.5);
   }
-  .plan-card .check{
-    position:absolute;top:14px;right:14px;
-    width:18px;height:18px;border-radius:50%;
-    border:1px solid var(--line-2);
-    display:flex;align-items:center;justify-content:center;
+
+  /* === email field — cream floating card (echoes login serial card) === */
+  .email-card{
+    background:var(--cream);color:var(--navy);
+    border-radius:4px;padding:22px 24px 20px;
+    border:1px solid var(--cream-3);
+    box-shadow:0 18px 40px rgba(0,0,0,.22);
+    position:relative;
+    animation:float 6s ease-in-out infinite;
+  }
+  @keyframes float{
+    0%,100%{transform:translateY(0)}
+    50%{transform:translateY(-4px)}
+  }
+  .email-card .pill{
+    position:absolute;top:-12px;right:18px;
+    background:var(--peach);color:var(--navy);
+    font-family:var(--mono);font-size:10.5px;font-weight:700;letter-spacing:.16em;
+    padding:5px 12px;border-radius:100px;
+    display:flex;align-items:center;gap:6px;
+    box-shadow:0 6px 14px rgba(0,0,0,.18);
+  }
+  .email-card .pill::before{
+    content:"";width:5px;height:5px;border-radius:50%;background:var(--navy);
+  }
+  .field-row{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;color:rgba(31,56,72,.55);font-weight:600;
+    margin-bottom:4px;
+  }
+  .email-card .ask{
+    font-family:var(--serif);font-size:18px;font-weight:600;
+    color:var(--navy);margin:8px 0 14px;letter-spacing:.005em;
+  }
+  .ck-field{
+    background:#fff;border:1px solid var(--cream-3);border-radius:3px;
+    padding:14px 16px;display:flex;align-items:center;gap:12px;
     transition:.18s;
   }
-  .plan-card.selected .check{
-    background:var(--peach);border-color:var(--peach);
+  .ck-field:focus-within{
+    border-color:var(--peach-3);box-shadow:0 0 0 3px rgba(200,149,128,.18);
   }
-  .plan-card.selected .check::after{
-    content:"";width:6px;height:3px;border-left:1.5px solid var(--navy);
-    border-bottom:1.5px solid var(--navy);transform:rotate(-45deg) translateY(-1px);
+  .ck-field .ic{
+    width:16px;font-family:var(--mono);font-size:14px;
+    color:rgba(31,56,72,.4);flex-shrink:0;
   }
-  /* hide top-right save when card already has check overlap concern — keep both, fine spacing */
-  .plan-card .save{margin-right:26px}
-
-  /* === email field === */
-  .ck-email{
-    background:var(--cream);color:var(--navy);
-    border-radius:4px;padding:28px 28px 24px;
-    border:1px solid var(--cream-3);
+  .ck-field input{
+    background:transparent;border:none;outline:none;width:100%;
+    font-size:14.5px;color:var(--navy);
   }
-  .ck-email .label{
-    font-family:var(--serif);font-size:15.5px;font-weight:500;
-    color:var(--navy);display:block;margin-bottom:14px;
+  .ck-field input::placeholder{color:rgba(31,56,72,.32)}
+  .field-hint{
+    margin-top:10px;font-family:var(--mono);font-size:10.5px;
+    letter-spacing:.06em;color:rgba(31,56,72,.55);
   }
-  .ck-email-field{
-    display:flex;align-items:center;gap:12px;
-    background:#fff;border:1px solid var(--cream-3);border-radius:3px;
-    padding:14px 18px;transition:.18s;
-  }
-  .ck-email-field:focus-within{
-    border-color:var(--peach-3);box-shadow:0 0 0 3px rgba(200,149,128,.12);
-  }
-  .ck-email-field .ic{
-    font-family:var(--mono);font-size:13px;color:rgba(31,56,72,.4);
-    letter-spacing:.06em;flex-shrink:0;
-  }
-  .ck-email-field input{
-    flex:1;border:none;outline:none;background:transparent;
-    font-family:var(--sans);font-size:15px;color:var(--navy);
-  }
-  .ck-email-field input::placeholder{color:rgba(31,56,72,.35)}
-  .ck-email .hint{
-    margin-top:10px;font-family:var(--mono);font-size:11px;
-    letter-spacing:.06em;color:rgba(31,56,72,.5);
-  }
-  .ck-email .hint.err{color:var(--bad);font-weight:500}
+  .field-hint.err{color:var(--bad);font-weight:600}
 
   /* === summary line === */
-  .ck-sum{
-    display:flex;align-items:baseline;justify-content:space-between;
-    padding:18px 22px;border:1px dashed var(--line-2);border-radius:3px;
-    margin-bottom:16px;
-    font-family:var(--mono);font-size:12px;letter-spacing:.08em;
-    color:rgba(245,240,234,.55);text-transform:uppercase;
+  .summary{
+    margin-top:6px;padding:16px 20px;
+    background:rgba(245,240,234,.025);
+    border:1px solid var(--line);
+    border-radius:3px;
+    display:flex;justify-content:space-between;align-items:center;gap:14px;
   }
-  .ck-sum .total{
-    font-family:var(--serif);font-size:26px;font-weight:600;
-    color:var(--cream);letter-spacing:.005em;text-transform:none;
+  .summary .lab{
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+    color:rgba(245,240,234,.5);text-transform:uppercase;font-weight:600;
   }
-  .ck-sum .total .c{
-    font-family:var(--mono);font-size:13px;color:rgba(245,240,234,.5);
-    margin-right:6px;letter-spacing:.06em;
+  .summary .planName{
+    font-family:var(--serif);font-size:15px;color:var(--cream);font-weight:500;
+    display:block;margin-top:4px;letter-spacing:.005em;
+  }
+  .summary .tot{text-align:right}
+  .summary .tot .tlab{
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;
+    color:rgba(245,240,234,.5);text-transform:uppercase;
+  }
+  .summary .tot .n{
+    font-family:var(--serif);font-weight:600;font-size:28px;
+    color:var(--peach);line-height:1;letter-spacing:-.01em;margin-top:4px;
+    transition:color .25s;
+  }
+  .summary .tot .n.bump{animation:bump .35s ease}
+  @keyframes bump{
+    0%{transform:scale(1)}
+    50%{transform:scale(1.08)}
+    100%{transform:scale(1)}
+  }
+  .summary .tot .n .c{
+    font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.5);
+    font-weight:500;letter-spacing:.04em;margin-right:4px;
   }
 
-  /* === CTA + error === */
+  /* === CTA === */
   .ck-cta{
-    display:block;width:100%;
-    padding:18px 24px;border-radius:3px;
-    background:var(--peach);color:var(--navy);
-    font-family:var(--sans);font-size:16px;font-weight:600;
-    letter-spacing:.04em;text-align:center;
-    cursor:pointer;transition:.18s;
-    border:none;
+    margin-top:16px;width:100%;padding:17px 22px;
+    background:var(--peach);color:var(--navy);border-radius:3px;
+    font-family:var(--sans);font-size:15.5px;font-weight:600;letter-spacing:.05em;
+    display:flex;align-items:center;justify-content:center;gap:12px;
+    transition:.2s;cursor:pointer;border:none;
+    box-shadow:0 8px 24px rgba(231,187,167,.18);
+    position:relative;overflow:hidden;
   }
-  .ck-cta:hover:not(:disabled){background:var(--peach-2);transform:translateY(-1px)}
-  .ck-cta:disabled{
-    background:rgba(231,187,167,.4);color:rgba(31,56,72,.5);
-    cursor:not-allowed;transform:none;
+  .ck-cta::before{
+    content:"";position:absolute;top:0;left:-100%;width:100%;height:100%;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);
+    transition:left .6s ease;
   }
+  .ck-cta:hover:not(:disabled){background:var(--peach-2);transform:translateY(-1px);box-shadow:0 12px 32px rgba(231,187,167,.28)}
+  .ck-cta:hover:not(:disabled)::before{left:100%}
+  .ck-cta:disabled{background:rgba(231,187,167,.3);color:rgba(31,56,72,.5);cursor:not-allowed;transform:none;box-shadow:none}
+  .ck-cta .arrow{
+    font-family:var(--mono);font-size:14px;transition:transform .25s ease;
+  }
+  .ck-cta:hover:not(:disabled) .arrow{transform:translateX(5px)}
+
   .ck-error{
-    margin-top:14px;padding:12px 16px;
-    border-left:2px solid var(--bad);
-    background:rgba(199,123,106,.08);
-    font-size:13.5px;color:var(--bad);line-height:1.6;
+    margin-top:12px;padding:11px 14px;border-radius:3px;
+    border-left:2px solid var(--bad);background:rgba(199,123,106,.10);
+    font-size:13px;color:var(--bad);line-height:1.6;
+    font-family:var(--mono);letter-spacing:.02em;
     display:none;
   }
-  .ck-error.show{display:block}
+  .ck-error.show{display:block;animation:fadeIn .25s ease}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+
+  /* === payment / security strip === */
+  .pay-strip{
+    margin-top:16px;padding-top:14px;
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    flex-wrap:wrap;
+    border-top:1px dashed var(--line);
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;
+    color:rgba(245,240,234,.5);text-transform:uppercase;
+  }
+  .pay-strip .lock{
+    display:flex;align-items:center;gap:8px;color:rgba(245,240,234,.78);font-weight:600;
+  }
+  .pay-strip .lock::before{
+    content:"";width:7px;height:7px;background:var(--good);border-radius:50%;
+    box-shadow:0 0 0 3px rgba(159,184,159,.18);
+    animation:liveBlink 2.6s ease-in-out infinite;
+  }
+  @keyframes liveBlink{
+    0%,100%{box-shadow:0 0 0 3px rgba(159,184,159,.18)}
+    50%{box-shadow:0 0 0 5px rgba(159,184,159,.05)}
+  }
+  .pay-strip .methods{display:flex;gap:6px;flex-wrap:wrap}
+  .pay-strip .m{
+    padding:3px 8px;border:1px solid var(--line-2);border-radius:2px;
+    color:rgba(245,240,234,.72);font-weight:600;background:transparent;
+  }
 
   /* === legal === */
-  .ck-legal{
-    margin-top:36px;padding:24px 26px;
-    background:var(--navy-2);border:1px solid var(--line);border-radius:4px;
-    display:flex;flex-direction:column;gap:14px;
+  .legal{
+    margin-top:20px;padding:0;
+    display:flex;flex-direction:column;gap:9px;
   }
-  .ck-legal p{
-    font-size:13.5px;color:rgba(245,240,234,.62);line-height:1.85;
+  .legal p{
+    font-size:12.5px;color:rgba(245,240,234,.62);line-height:1.8;
   }
-  .ck-legal .ix{
-    font-family:var(--mono);font-size:10.5px;color:var(--peach);
+  .legal .ix{
+    font-family:var(--mono);font-size:10px;color:var(--peach);
     letter-spacing:.18em;font-weight:600;margin-right:8px;
   }
-  .ck-legal b{color:var(--cream);font-weight:500}
+  .legal b{color:var(--cream);font-weight:500}
 
-  .ck-fine{
-    margin-top:22px;text-align:center;
-    font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
+  /* === bottom === */
+  .ck-r .bottom{
+    margin-top:24px;padding-top:18px;border-top:1px dashed var(--line);
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;
     color:rgba(245,240,234,.4);text-transform:uppercase;
-    line-height:1.9;
   }
-  .ck-fine .dot{display:inline-block;margin:0 12px;color:rgba(245,240,234,.25)}
+  .ck-r .bottom .links{display:flex;gap:18px}
+  .ck-r .bottom a:hover{color:var(--peach)}
 
-  /* === early bird banner === */
-  .eb-banner{
-    display:flex;align-items:center;gap:14px;flex-wrap:wrap;
-    padding:14px 20px;margin-bottom:18px;
-    background:linear-gradient(90deg,rgba(231,187,167,.12) 0%,rgba(231,187,167,.05) 100%);
-    border:1px solid rgba(231,187,167,.3);border-radius:4px;
+  /* === entrance staggers === */
+  @keyframes rise{
+    from{opacity:0;transform:translateY(10px)}
+    to{opacity:1;transform:translateY(0)}
   }
-  .eb-banner .icon{font-size:16px;line-height:1}
-  .eb-banner .text{
-    flex:1;font-size:14px;color:rgba(245,240,234,.85);line-height:1.6;
+  .form > *{animation:rise .55s ease both}
+  .form > *:nth-child(1){animation-delay:.05s}
+  .form > *:nth-child(2){animation-delay:.12s}
+  .form > *:nth-child(3){animation-delay:.18s}
+  .form > *:nth-child(4){animation-delay:.26s}
+  .form > *:nth-child(5){animation-delay:.34s}
+  .form > *:nth-child(6){animation-delay:.42s}
+  .ck-l .ck-hero > *{animation:rise .65s ease both}
+  .ck-l .ck-hero > *:nth-child(1){animation-delay:.1s}
+  .ck-l .ck-hero > *:nth-child(2){animation-delay:.18s}
+  .ck-l .ck-hero > *:nth-child(3){animation-delay:.28s}
+  .ck-l .ck-hero > *:nth-child(4){animation-delay:.36s}
+  .ck-l .ck-hero > *:nth-child(5){animation-delay:.46s}
+
+  /* mobile brand strip — replaces left panel on small screens */
+  .ck-mb-brand{
+    display:none;
+    padding:14px 22px;background:var(--navy-2);
+    border-bottom:1px solid var(--line);
+    align-items:center;justify-content:space-between;gap:14px;
+    position:sticky;top:0;z-index:50;
   }
-  .eb-banner .text b{color:var(--peach);font-weight:600}
-  .eb-banner .countdown{
-    font-family:var(--mono);font-size:11px;letter-spacing:.14em;
-    color:var(--peach);background:rgba(231,187,167,.1);
-    padding:5px 12px;border-radius:2px;white-space:nowrap;
-    border:1px solid rgba(231,187,167,.2);
+  .ck-mb-brand .b{
+    font-family:var(--mono);font-weight:500;font-size:14px;letter-spacing:.16em;
+    display:flex;align-items:center;gap:10px;color:var(--cream);
   }
-  .plan-card .eb-tag{
-    display:inline-flex;align-items:center;gap:5px;
-    font-family:var(--mono);font-size:10px;font-weight:700;
-    letter-spacing:.14em;text-transform:uppercase;
-    background:rgba(231,187,167,.15);color:var(--peach);
-    border:1px solid rgba(231,187,167,.3);
-    padding:4px 8px;border-radius:2px;
-    margin-top:2px;
+  .ck-mb-brand .b .dot{
+    width:7px;height:7px;background:var(--peach);border-radius:50%;
+    box-shadow:0 0 0 3px rgba(231,187,167,.18);
+  }
+  .ck-mb-brand .tag{
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;
+    color:rgba(245,240,234,.55);text-transform:uppercase;
   }
 
   /* === RWD === */
-  @media (max-width:760px){
-    .topbar-min{padding:14px 20px;gap:12px;flex-wrap:wrap}
-    .topbar-min .tag{font-size:13px}
-    .checkout{padding:36px 20px 60px}
-    .checkout::after{font-size:240px;right:-30px;bottom:-60px}
-    .ck-head h1{font-size:28px}
-    .plans{grid-template-columns:1fr;gap:12px}
-    .plan-card{padding:22px 22px 20px}
-    .plan-card .price .n{font-size:38px}
-    .ck-email{padding:22px 22px 20px}
-    .ck-legal{padding:20px 22px}
-    .ck-sum{padding:14px 18px;flex-direction:column;align-items:flex-start;gap:8px}
+  /* tablet — keep both columns, just tighten */
+  @media (max-width:1024px){
+    .ck{grid-template-columns:.95fr 1fr}
+    .ck-l{padding:36px 32px 40px}
+    .ck-hero h1{font-size:34px}
+    .ck-hero p{font-size:14.5px}
+    .incl li{font-size:13.5px}
+    .ck-quote{font-size:15px;padding:16px 18px;margin-top:24px}
+    .ck-stats{gap:22px}
+    .ck-stats .s .v{font-size:22px}
+    .ck-r{padding:32px 32px}
+  }
+  /* phone — hide left panel, show only checkout flow */
+  @media (max-width:780px){
+    html,body{height:auto}
+    body{overflow:auto}
+    .ck{grid-template-columns:1fr;min-height:auto}
+    .ck-l{display:none}
+    .ck-mb-brand{display:flex}
+    .ck-r{padding:28px 22px 36px;max-height:none}
+    .form{margin-top:18px}
+    .form h2{font-size:26px}
+    .plan{grid-template-columns:22px 1fr;padding:16px 16px 14px 18px}
+    .plan .price{
+      grid-column:1 / -1;
+      display:flex;flex-direction:row;align-items:baseline;
+      justify-content:flex-start;gap:10px;
+      border-top:1px dashed rgba(31,56,72,.12);
+      padding-top:10px;margin-top:6px;
+    }
+    .plan .price .n{font-size:22px}
+    .summary{flex-direction:column;align-items:flex-start;gap:10px}
+    .summary .tot{text-align:left}
+    .ck-r .bottom{flex-direction:column;gap:10px;align-items:flex-start}
+    .pay-strip{flex-direction:column;align-items:flex-start;gap:10px}
   }
 </style>
 </head>
 <body data-screen-label="08 Checkout">
 
-  <header class="topbar-min">
-    <a class="brand-l" href="index.html"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
-    <span class="sep"></span>
-    <span class="tag">國考法條備考系統</span>
-  </header>
+<!-- mobile-only brand strip (left panel is hidden on phones) -->
+<header class="ck-mb-brand">
+  <a href="index.html" class="b"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
+  <span class="tag">CHECKOUT</span>
+</header>
 
-  <main class="checkout">
-    <div class="checkout-inner">
+<div class="ck">
 
-      <div class="ck-crumb">
-        <a href="index.html">SOFA</a>
-        <span class="s">/</span>
-        <span>結帳</span>
+  <!-- ============ LEFT — brand / sales panel ============ -->
+  <div class="ck-l">
+
+    <a href="index.html" class="ck-brand"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
+
+    <div class="ck-hero">
+      <div class="eb">CHECKOUT · 完成購買</div>
+      <h1>選方案，<br/>留下信箱，<br/><em>就這樣。</em></h1>
+      <p>付款完成後，序號會自動寄到你的信箱。
+沒有自動續扣—期間用完，需要再買就再買；不需要，就放著。
+</p>
+
+      <ul class="incl">
+        <li><span class="ix">01</span><span><b>33 部法規 · 2,000+ 條文</b>——記帳士國考完整資料庫，修法後 7 天內同步更新。</span></li>
+        <li><span class="ix">02</span><span><b>4 種練習模式</b>——TYPE 打字／QUIZ 選擇／FILL 填空／LINE 隨身查，依當天節奏挑著用。</span></li>
+        <li><span class="ix">03</span><span><b>智能排程錯題複習（SRS）</b>——答錯自動進排程，於 1 / 3 / 7 / 14 天回考。</span></li>
+        <li><span class="ix">04</span><span><b>上榜退 30% / 分享退 40%</b>——憑榜單退款；公開分享心得加 10%。</span></li>
+      </ul>
+
+      <div class="ck-quote">“讀不完沒關係。考試當天你只需要想起來。<br/>備考不是衝刺。是每天都還在。<br/>不記得了沒關係。記過一次，就比沒讀過好一點。”
+<span>SOFA · MANIFESTO</span>
+</div>
+    </div>
+
+    <div class="ck-foot">
+      <div class="ck-stats">
+        <div class="s"><div class="v">2,000<em>+</em></div><div class="k">ARTICLES</div></div>
+        <div class="s"><div class="v">33</div><div class="k">STATUTES</div></div>
+        <div class="s"><div class="v" id="ck-exam-days">—<em>d</em></div><div class="k">UNTIL EXAM</div></div>
       </div>
+      <div>© 2026 · <b>SOFA ENGINE</b> · v1.3.0</div>
+    </div>
+  </div>
 
-      <div class="ck-head">
-        <div class="eb">CHECKOUT · 完成購買</div>
-        <h1>選擇方案，<em>輸入信箱</em>，<br/>序號會在付款確認後寄到信箱。</h1>
-        <p>沒有自動續扣、沒有月底警示。期間用完，需要再買就再買；不需要，就放著。</p>
-      </div>
+  <!-- ============ RIGHT — checkout form ============ -->
+  <div class="ck-r">
 
-      <!-- ============ SECTION 01 — 方案 ============ -->
-      <section class="ck-sec">
-        <div class="ck-sec-head">
-          <span class="eb">SECTION 01 — 選擇方案</span>
-          <span class="line"></span>
+    <div class="top">
+      <span>CHECKOUT — 結帳</span>
+      <span class="step">
+        <a href="login.html">已有序號？登入 →</a>
+      </span>
+    </div>
+
+    <form class="form" onsubmit="event.preventDefault();" novalidate>
+      <div class="eb">STEP 01 / 01</div>
+      <h2>選擇方案，<br/><em>輸入信箱。</em></h2>
+      <p class="sub">序號會在付款確認後 1–3 分鐘內寄到你填的信箱；輸入序號即可開始備考。</p>
+
+      <!-- ───────── SECTION 01 — 方案 ───────── -->
+      <div class="sec">
+        <div class="sec-lab">
+          <span class="num">01</span><span>選擇方案</span><span class="line"></span>
         </div>
 
-        <!-- early bird banner, hidden after 2026-06-15 by JS -->
+        <!-- early bird banner — hidden after 2026-06-15 -->
         <div class="eb-banner" id="eb-banner">
-          <span class="icon">⚡</span>
-          <span class="text"><b>早鳥限定</b>：6/15 前購買月費方案，自動延長 +15 天——30 天變 45 天，同樣價格。</span>
-          <span class="countdown" id="eb-countdown"></span>
+          <span class="ic">EARLY</span>
+          <span class="tx"><b>6/15 前限定</b>：購買月費方案自動延長 +15 天，30 天變 <b>45 天</b>，同樣價格。</span>
+          <span class="cd" id="eb-countdown"></span>
         </div>
 
         <div class="plans" id="plans">
 
-          <div class="plan-card" data-plan="月費" data-amount="380" data-days="30">
-            <span class="check"></span>
-            <div class="top">
-              <div class="name">月費方案</div>
+          <!-- 月費 -->
+          <div class="plan" data-plan="月費" data-amount="380" data-days="30">
+            <span class="radio"></span>
+            <div class="body">
+              <div class="name-row">
+                <span class="name">月訂閱</span>
+                <span class="meta" id="monthly-meta">／ 45 天</span>
+                <span class="badge" id="monthly-eb">EARLY +15d</span>
+              </div>
+              <div class="desc" id="monthly-desc">早鳥限定：30 天 + 贈 15 天 = <b>共 45 天</b>。適合先試試節奏的你。</div>
             </div>
             <div class="price">
-              <span class="c">NT$</span>
-              <span class="n">380</span>
-              <span class="per" id="monthly-per">／ 45 天</span>
+              <div class="n"><span class="c">NT$</span>380</div>
+              <div class="per">每月</div>
             </div>
-            <div class="desc" id="monthly-desc">早鳥限定：30 天 + 贈 15 天 = <b style="color:var(--peach)">共 45 天</b>。<br/>適合先試試看的你。</div>
-            <span class="eb-tag" id="monthly-eb-tag">⚡ 早鳥 +15天</span>
           </div>
 
-          <div class="plan-card selected" data-plan="季費" data-amount="990" data-days="90">
-            <span class="check"></span>
-            <div class="top">
-              <div class="name">季費方案</div>
-              <span class="save">省 NT$ 150</span>
+          <!-- 季費 -->
+          <div class="plan selected" data-plan="季費" data-amount="990" data-days="90">
+            <span class="radio"></span>
+            <div class="body">
+              <div class="name-row">
+                <span class="name">季訂閱</span>
+                <span class="meta" id="quarterly-meta">／ 90 天</span>
+                <span class="badge save">省 NT$ 150</span>
+                <span class="badge" id="quarterly-eb" style="display:none">EARLY +15d</span>
+              </div>
+              <div class="desc" id="quarterly-desc">90 天無限使用，平均 <b>NT$11／日</b>。適合準備進入備考節奏的你。</div>
             </div>
             <div class="price">
-              <span class="c">NT$</span>
-              <span class="n">990</span>
-              <span class="per">／ 90 天</span>
+              <div class="n"><span class="c">NT$</span>990</div>
+              <div class="per">每季</div>
             </div>
-            <div class="desc">90 天有效。<br/>適合準備進入備考節奏的你。</div>
           </div>
 
         </div>
-      </section>
+      </div>
 
-      <!-- ============ SECTION 02 — 信箱 ============ -->
-      <section class="ck-sec">
-        <div class="ck-sec-head">
-          <span class="eb">SECTION 02 — 收件信箱</span>
-          <span class="line"></span>
+      <!-- ───────── SECTION 02 — 信箱 ───────── -->
+      <div class="sec">
+        <div class="sec-lab">
+          <span class="num">02</span><span>收件信箱</span><span class="line"></span>
         </div>
 
-        <div class="ck-email">
-          <label class="label" for="ck-email-input">購買完成後，序號會寄到這裡</label>
-          <div class="ck-email-field">
+        <div class="email-card">
+          <span class="pill">序號收件處</span>
+          <div class="field-row">
+            <span>EMAIL · 序號寄到這裡</span>
+            <span style="color:rgba(31,56,72,.42);font-weight:500">必填</span>
+          </div>
+          <div class="ask">付款完成後，序號會自動寄到信箱。</div>
+          <div class="ck-field">
             <span class="ic">@</span>
             <input id="ck-email-input" type="email" autocomplete="email" inputmode="email" placeholder="your@email.com" />
           </div>
-          <div class="hint" id="ck-email-hint">請確認信箱正確，序號僅寄送一次</div>
+          <div class="field-hint" id="ck-email-hint">請確認信箱正確，序號僅寄送一次。</div>
         </div>
-      </section>
+      </div>
 
-      <!-- ============ SECTION 03 — 結帳 ============ -->
-      <section class="ck-sec" style="margin-bottom:0">
-        <div class="ck-sec-head">
-          <span class="eb">SECTION 03 — 確認與付款</span>
-          <span class="line"></span>
-        </div>
-
-        <div class="ck-sum">
-          <span id="ck-sum-plan">季費方案 · 90 天</span>
-          <span class="total"><span class="c">NT$</span><span id="ck-sum-amount">990</span></span>
+      <!-- ───────── SECTION 03 — 確認與付款 ───────── -->
+      <div class="sec">
+        <div class="sec-lab">
+          <span class="num">03</span><span>確認與付款</span><span class="line"></span>
         </div>
 
-        <button class="ck-cta" id="ck-submit" type="button">前往付款</button>
+        <div class="summary">
+          <div>
+            <div class="lab">本次購買</div>
+            <span class="planName" id="ck-sum-plan">季訂閱 · 90 天</span>
+          </div>
+          <div class="tot">
+            <div class="tlab">應付金額</div>
+            <div class="n"><span class="c">NT$</span><span id="ck-sum-amount">990</span></div>
+          </div>
+        </div>
+
+        <button class="ck-cta" id="ck-submit" type="button">前往付款 <span class="arrow">⟶</span></button>
         <div class="ck-error" id="ck-error"></div>
 
-        <div class="ck-legal">
-          <p><span class="ix">§ 01</span>數位服務不適用消費者保護法第十九條之七天鑑賞期，購買前請確認方案內容。</p>
-          <p><span class="ix">§ 02</span><b>上榜退 30% 退款保障</b>——考試上榜後憑榜單截圖，退還實際付款費用 <b>30%</b>。若同時公開分享使用心得，退還實際付款費用 <b>40%</b>。</p>
+        <div class="pay-strip">
+          <span class="lock">SSL 加密 · ECPAY 處理</span>
+          <span class="methods">
+            <span class="m">VISA</span>
+            <span class="m">MasterCard</span>
+            <span class="m">JCB</span>
+            <span class="m">ATM</span>
+          </span>
         </div>
 
-        <div class="ck-fine">
-          付款由綠界科技 ECPay 處理
-          <span class="dot">·</span>
-          序號於付款確認後自動寄出
+        <div class="legal">
+          <p><span class="ix">§ 01</span>數位服務不適用消費者保護法第十九條之七天鑑賞期，購買前請確認方案內容。<b>序號寄出後 30 日內須啟用</b>，逾期序號失效。</p>
+          <p><span class="ix">§ 02</span><b>上榜退款保障</b>——考試上榜後憑榜單截圖，退還實際付款費用 <b>30%</b>；若同時公開分享使用心得，退還 <b>40%</b>。</p>
+          <p><span class="ix">§ 03</span>付款由<b>綠界科技 ECPay</b>處理，SoFa Engine 不接觸、不儲存你的信用卡資訊。</p>
         </div>
-      </section>
+      </div>
+    </form>
 
+    <div class="bottom">
+      <span>v1.3.0 · 2026.05</span>
+      <div class="links">
+        <a href="terms.html">服務條款</a>
+        <a href="terms.html">隱私政策</a>
+        <a href="mailto:hi@sofaengine.org">聯絡我們</a>
+      </div>
     </div>
-  </main>
+
+  </div>
+</div>
 
 <script>
 (function(){
   const API_URL = "https://sofa-engine-api.onrender.com/api/checkout";
 
   const plansEl   = document.getElementById("plans");
-  const cards     = plansEl.querySelectorAll(".plan-card");
+  const cards     = plansEl.querySelectorAll(".plan");
   const sumPlan   = document.getElementById("ck-sum-plan");
   const sumAmount = document.getElementById("ck-sum-amount");
   const emailEl   = document.getElementById("ck-email-input");
@@ -434,48 +764,65 @@
   const EB_END = new Date("2026-06-15T23:59:59+08:00");
   const isEarlyBird = new Date() < EB_END;
 
+  // ── 動態考試倒數（左側面板）──────────────────────
+  (function(){
+    const EXAM = new Date('2026-11-14T00:00:00+08:00');
+    const days = Math.max(Math.ceil((EXAM - new Date()) / 86400000), 0);
+    const el = document.getElementById('ck-exam-days');
+    if(el) el.innerHTML = days + '<em>d</em>';
+  })();
+
   (function setupEarlyBird(){
-    const banner = document.getElementById("eb-banner");
+    const banner    = document.getElementById("eb-banner");
     const countdown = document.getElementById("eb-countdown");
-    const monthlyPer = document.getElementById("monthly-per");
-    const monthlyDesc = document.getElementById("monthly-desc");
-    const monthlyTag = document.getElementById("monthly-eb-tag");
+    // 月費
+    const meta      = document.getElementById("monthly-meta");
+    const desc      = document.getElementById("monthly-desc");
+    const ebBadge   = document.getElementById("monthly-eb");
+    // 季費
+    const qMeta     = document.getElementById("quarterly-meta");
+    const qDesc     = document.getElementById("quarterly-desc");
+    const qEbBadge  = document.getElementById("quarterly-eb");
 
     if (!isEarlyBird) {
-      if (banner) banner.style.display = "none";
-      if (monthlyPer) monthlyPer.textContent = "／ 30 天";
-      if (monthlyDesc) monthlyDesc.innerHTML = "30 天有效。<br/>適合先試試看的你。";
-      if (monthlyTag) monthlyTag.style.display = "none";
+      if (banner)   banner.style.display  = "none";
+      if (meta)     meta.textContent      = "／ 30 天";
+      if (desc)     desc.innerHTML        = "30 天無限使用，適合先試試節奏的你。";
+      if (ebBadge)  ebBadge.style.display = "none";
+      if (qMeta)    qMeta.textContent     = "／ 90 天";
+      if (qEbBadge) qEbBadge.style.display= "none";
       return;
     }
-
-    // compute days remaining
-    const msLeft = EB_END - new Date();
-    const daysLeft = Math.ceil(msLeft / 86400000);
+    // 早鳥期間
+    const daysLeft = Math.ceil((EB_END - new Date()) / 86400000);
     if (countdown) countdown.textContent = "還剩 " + daysLeft + " 天";
+    // 季費早鳥 +15天
+    if (qMeta)    qMeta.textContent  = "／ 105 天";
+    if (qDesc)    qDesc.innerHTML    = '早鳥限定：90 天 + 贈 15 天 = <b>共 105 天</b>。適合進入備考節奏的你。';
+    if (qEbBadge) qEbBadge.style.display = "";
   })();
 
   const PLAN_TEXT = {
-    "月費": isEarlyBird ? "月費方案 · 45 天（含早鳥 +15天）" : "月費方案 · 30 天",
-    "季費": "季費方案 · 90 天"
+    "月費": isEarlyBird ? "月訂閱 · 45 天（含早鳥 +15 天）" : "月訂閱 · 30 天",
+    "季費": isEarlyBird ? "季訂閱 · 105 天（含早鳥 +15 天）" : "季訂閱 · 90 天"
   };
-
-  const DEFAULT_HINT = "請確認信箱正確，序號僅寄送一次";
+  const DEFAULT_HINT = "請確認信箱正確，序號僅寄送一次。";
 
   function getSelected(){
-    const el = plansEl.querySelector(".plan-card.selected");
-    return {
-      plan:   el.dataset.plan,
-      amount: el.dataset.amount
-    };
+    const el = plansEl.querySelector(".plan.selected");
+    return { plan: el.dataset.plan, amount: el.dataset.amount };
   }
-
   function refreshSummary(){
     const s = getSelected();
     sumPlan.textContent = PLAN_TEXT[s.plan] || s.plan;
-    sumAmount.textContent = s.amount;
+    if (sumAmount.textContent !== s.amount){
+      sumAmount.textContent = s.amount;
+      const totEl = sumAmount.parentElement;
+      totEl.classList.remove("bump");
+      void totEl.offsetWidth;
+      totEl.classList.add("bump");
+    }
   }
-
   cards.forEach(c => {
     c.addEventListener("click", () => {
       cards.forEach(x => x.classList.remove("selected"));
@@ -485,18 +832,9 @@
     });
   });
 
-  function isEmail(v){
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
-  }
-
-  function showError(msg){
-    errorEl.textContent = msg;
-    errorEl.classList.add("show");
-  }
-  function clearError(){
-    errorEl.textContent = "";
-    errorEl.classList.remove("show");
-  }
+  function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  function showError(msg){ errorEl.textContent = msg; errorEl.classList.add("show"); }
+  function clearError(){ errorEl.textContent = ""; errorEl.classList.remove("show"); }
 
   emailEl.addEventListener("input", () => {
     hintEl.textContent = DEFAULT_HINT;
@@ -507,62 +845,43 @@
   submitBtn.addEventListener("click", async () => {
     clearError();
     const email = emailEl.value.trim();
-
     if (!email){
-      hintEl.textContent = "請輸入信箱地址";
-      hintEl.classList.add("err");
-      emailEl.focus();
-      return;
+      hintEl.textContent = "請輸入信箱地址。";
+      hintEl.classList.add("err"); emailEl.focus(); return;
     }
     if (!isEmail(email)){
-      hintEl.textContent = "信箱格式看起來不太對，再檢查一次";
-      hintEl.classList.add("err");
-      emailEl.focus();
-      return;
+      hintEl.textContent = "信箱格式看起來不太對，再檢查一次。";
+      hintEl.classList.add("err"); emailEl.focus(); return;
     }
 
     const sel = getSelected();
-    const originalLabel = submitBtn.textContent;
+    const original = submitBtn.innerHTML;
     submitBtn.disabled = true;
-    submitBtn.textContent = "處理中，請稍候…";
+    submitBtn.innerHTML = "處理中，請稍候…";
 
     try {
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: sel.plan, email: email })
+        body: JSON.stringify({ plan: sel.plan, email })
       });
-
       let data = null;
       try { data = await res.json(); } catch(_){}
-
       if (!res.ok){
         const msg = (data && (data.error || data.message)) || `付款服務暫時無法回應（${res.status}），請稍後再試一次。`;
         throw new Error(msg);
       }
-
-      if (data && data.payment_url){
-        window.location.href = data.payment_url;
-        return;
-      }
-
+      if (data && data.payment_url){ window.location.href = data.payment_url; return; }
       throw new Error("付款連結沒有回傳，請稍後再試一次，或聯絡 hi@sofaengine.org。");
-
     } catch (err) {
       showError(err && err.message ? err.message : "連線發生問題，請確認網路後再試一次。");
       submitBtn.disabled = false;
-      submitBtn.textContent = originalLabel;
+      submitBtn.innerHTML = original;
     }
   });
 
-  // init
   refreshSummary();
 })();
 </script>
-
-<div style="padding:16px 0 24px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;color:rgba(245,240,234,.2);letter-spacing:.08em">
-  sofaengine.org · checkout · v1.2.0 · 2026.05
-</div>
-
 </body>
 </html>
