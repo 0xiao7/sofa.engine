@@ -1123,33 +1123,33 @@
             <div class="mc-l">
               <span class="mc-stub-lab">— MEMBERSHIP TICKET —</span>
               <div class="mc-tags">
-                <span class="mc-tag">買斷終身</span>
-                <span class="mc-status">ACTIVE</span>
+                <span class="mc-tag" id="mc-plan">——</span>
+                <span class="mc-status" id="mc-status">——</span>
               </div>
-              <div class="mc-name">Fay</div>
+              <div class="mc-name" id="mc-name">——</div>
               <div class="mc-target">目標 · 記帳士國考 <span class="yr">2026</span></div>
-              <div class="mc-id">NO. <span class="sn">SOFA-2026-0508-FAY</span></div>
+              <div class="mc-id">NO. <span class="sn" id="mc-serial">——</span></div>
               <div class="mc-divider"></div>
               <div class="mc-stats">
                 <div class="mc-stat">
                   <div class="k">到期日</div>
-                  <div class="v">永久有效</div>
+                  <div class="v" id="mc-expire">——</div>
                 </div>
                 <div class="mc-stat">
                   <div class="k">連續學習</div>
-                  <div class="v good">3<span class="u">天</span></div>
+                  <div class="v good" id="mc-streak">——</div>
                 </div>
                 <div class="mc-stat">
                   <div class="k">啟用日</div>
-                  <div class="v">2026.05.08</div>
+                  <div class="v" id="mc-start">——</div>
                 </div>
               </div>
             </div>
             <div class="perf"></div>
             <div class="mc-r">
               <span class="lab">SEAT · 學員座位</span>
-              <div class="avatar">F</div>
-              <div class="who"><b>FAY</b>記帳士 · 國考</div>
+              <div class="avatar" id="mc-avatar">—</div>
+              <div class="who"><b id="mc-who">——</b>記帳士 · 國考</div>
               <div class="barcode"></div>
             </div>
           </div>
@@ -1168,54 +1168,25 @@
           <div class="prog-card">
             <div class="prog-stats">
               <div class="ps">
-                <div class="v">8<span class="u">條</span></div>
+                <div class="v" id="ps-articles">——</div>
                 <div class="k">已查條文</div>
               </div>
               <div class="ps">
-                <div class="v">6<span class="u">部</span></div>
+                <div class="v" id="ps-laws">——</div>
                 <div class="k">涵蓋法規</div>
               </div>
               <div class="ps">
-                <div class="v">1<span class="u">條</span></div>
+                <div class="v" id="ps-bookmarks">——</div>
                 <div class="k">已收藏</div>
               </div>
               <div class="ps">
-                <div class="v">3<span class="u">天</span></div>
+                <div class="v" id="ps-streak">——</div>
                 <div class="k">連續學習</div>
               </div>
             </div>
 
-            <div class="prog-list">
-              <div class="prog-row">
-                <span class="name">記帳士法</span>
-                <div class="prog-bar"><div class="fill" style="width:62%"></div></div>
-                <span class="n"><b>2</b> 條</span>
-              </div>
-              <div class="prog-row">
-                <span class="name">商業登記法</span>
-                <div class="prog-bar"><div class="fill" style="width:54%"></div></div>
-                <span class="n"><b>2</b> 條</span>
-              </div>
-              <div class="prog-row">
-                <span class="name">所得稅法</span>
-                <div class="prog-bar"><div class="fill" style="width:38%"></div></div>
-                <span class="n"><b>1</b> 條</span>
-              </div>
-              <div class="prog-row">
-                <span class="name">所得基本稅額條例</span>
-                <div class="prog-bar"><div class="fill" style="width:32%"></div></div>
-                <span class="n"><b>1</b> 條</span>
-              </div>
-              <div class="prog-row">
-                <span class="name">所得基本稅額條例施行細則</span>
-                <div class="prog-bar"><div class="fill" style="width:28%"></div></div>
-                <span class="n"><b>1</b> 條</span>
-              </div>
-              <div class="prog-row">
-                <span class="name">遺產及贈與稅法</span>
-                <div class="prog-bar"><div class="fill" style="width:24%"></div></div>
-                <span class="n"><b>1</b> 條</span>
-              </div>
+            <div class="prog-list" id="prog-list">
+              <div style="padding:24px 0;text-align:center;opacity:.45;font-size:.85rem;font-family:var(--sans);">載入中…</div>
             </div>
           </div>
         </section>
@@ -1677,6 +1648,130 @@ function closeDrawer(){
       progCard.innerHTML = '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">學習紀錄在啟用後開始累積</div>';
     }
   }
+})();
+
+// ── 從 API 拉取真實會員資料 ──────────────────────
+(function(){
+  const uid = localStorage.getItem('sofa_uid') || '';
+  const isTrial = !uid && !!sessionStorage.getItem('sofa_trial');
+  if(!uid || isTrial) return; // 體驗版不拉資料
+
+  const API = 'https://sofa-engine-api.onrender.com';
+  const H = { 'X-Sofa-UID': uid };
+
+  function setText(id, val){ var el = document.getElementById(id); if(el) el.textContent = val; }
+  function setHTML(id, val){ var el = document.getElementById(id); if(el) el.innerHTML = val; }
+
+  // 計算連續學習天數
+  function calcStreak(history){
+    if(!history || !history.length) return 0;
+    var days = {};
+    history.forEach(function(h){
+      var d = (h.timestamp || h.queried_at || '').slice(0,10);
+      if(d) days[d] = true;
+    });
+    var sorted = Object.keys(days).sort().reverse();
+    var today = new Date().toISOString().slice(0,10);
+    var streak = 0;
+    var cur = new Date(today);
+    for(var i=0; i<365; i++){
+      var key = cur.toISOString().slice(0,10);
+      if(days[key]){ streak++; } else if(i>0){ break; }
+      cur.setDate(cur.getDate()-1);
+    }
+    return streak;
+  }
+
+  // 格式化日期 2026-05-08 → 2026.05.08
+  function fmtDate(s){
+    if(!s) return '——';
+    return s.slice(0,10).replace(/-/g,'.');
+  }
+
+  Promise.all([
+    fetch(API+'/api/me/profile',   { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
+    fetch(API+'/api/me/progress',  { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
+    fetch(API+'/api/me/bookmarks', { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
+    fetch(API+'/api/me/history',   { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
+  ]).then(function(results){
+    var profile   = results[0];
+    var progress  = results[1];
+    var bookmarks = results[2];
+    var historyRes = results[3];
+
+    // ── 會員卡 ──
+    if(profile){
+      var name = profile.name || '——';
+      var serial = profile.serial || '——';
+      var plan = profile.plan || '——';
+      var expire = profile.expire || '';
+      var isExpired = expire && new Date(expire) < new Date();
+
+      setText('mc-name', name);
+      setText('mc-serial', serial);
+      setText('mc-plan', plan);
+      setText('mc-status', isExpired ? 'EXPIRED' : 'ACTIVE');
+      setText('mc-expire', expire ? fmtDate(expire) : '永久有效');
+      setText('mc-avatar', name.charAt(0).toUpperCase());
+      setText('mc-who', name.toUpperCase());
+
+      // 同步更新 topbar 名稱
+      var pill = document.querySelector('.user-pill');
+      if(pill && !localStorage.getItem('sofa_role')){
+        pill.innerHTML = '<span class="live"></span>' + name;
+      }
+      var greetEl = document.getElementById('greet-name');
+      if(greetEl && !localStorage.getItem('sofa_role')){
+        greetEl.textContent = name;
+      }
+    }
+
+    // ── 啟用日（從 history 最舊一筆推算）──
+    if(historyRes && historyRes.history && historyRes.history.length){
+      var hist = historyRes.history;
+      var oldest = hist.reduce(function(a,b){
+        return (a.timestamp||a.queried_at||'') < (b.timestamp||b.queried_at||'') ? a : b;
+      });
+      var startDate = (oldest.timestamp || oldest.queried_at || '').slice(0,10);
+      setText('mc-start', fmtDate(startDate));
+
+      // 連續學習
+      var streak = calcStreak(hist);
+      setText('mc-streak', streak ? streak+'天' : '0天');
+      setText('ps-streak',  streak ? streak+'<span class="u">天</span>' : '0<span class="u">天</span>');
+      document.getElementById('ps-streak') && (document.getElementById('ps-streak').innerHTML = streak+'<span class="u">天</span>');
+      document.getElementById('mc-streak') && (document.getElementById('mc-streak').innerHTML = streak+'<span class="u">天</span>');
+    } else {
+      setText('mc-start', '——');
+      setText('mc-streak', '0天');
+    }
+
+    // ── 進度統計 ──
+    if(progress){
+      setHTML('ps-articles', (progress.total_articles||0)+'<span class="u">條</span>');
+      setHTML('ps-laws',     (progress.total_laws||0)+'<span class="u">部</span>');
+
+      // 進度列表
+      var byLaw = progress.by_law || [];
+      var maxCount = byLaw.length ? byLaw[0].count : 1;
+      if(byLaw.length){
+        var html = byLaw.slice(0,8).map(function(item){
+          var pct = Math.round((item.count / maxCount) * 100);
+          return '<div class="prog-row"><span class="name">'+item.law+'</span>'
+            +'<div class="prog-bar"><div class="fill" style="width:'+pct+'%"></div></div>'
+            +'<span class="n"><b>'+item.count+'</b> 條</span></div>';
+        }).join('');
+        setHTML('prog-list', html);
+      } else {
+        setHTML('prog-list', '<div style="padding:24px 0;text-align:center;opacity:.45;font-size:.85rem;font-family:var(--sans);">尚無查詢紀錄，去查第一條吧！</div>');
+      }
+    }
+
+    // ── 收藏數 ──
+    if(bookmarks){
+      setHTML('ps-bookmarks', (bookmarks.total||0)+'<span class="u">條</span>');
+    }
+  });
 })();
 
 // ── 即時時鐘 + 問候語 ─────────────────────────────
