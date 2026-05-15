@@ -1550,7 +1550,7 @@
         <h2>備考是一件<em>長</em>事情。<br>所以工具應該<em>穩</em>。</h2>
         <p>我們相信考試是長期的、是反覆的、有時候是無聊的——但只要你坐下來，一條一條來，就會抵達。</p>
         <div class="mani-quote">
-          <span class="qmark">「</span><span class="qline">今天讀十條很棒，讀一條也是進度。</span><span class="qline" style=""><br>只要能穩穩的前進，那就不枉費時光了。<span class="qmark">」</span></span>
+          <span class="qline">今天讀十條很棒，讀一條也是進度。</span><span class="qline"><br>只要能穩穩的前進，那就不枉費時光了。</span>
         </div>
       </div>
     </div>
@@ -1658,11 +1658,12 @@
         <div class="plan">
           <span class="plan-tag">PLAN · 03</span>
           <h3>季訂閱</h3>
-          <div class="plan-meta">90 日 · 平均 NT$11／日</div>
+          <div class="plan-meta" id="idx-q-meta">90 日 · 平均 NT$11／日</div>
           <div class="plan-num"><span class="c">NT$</span>990</div>
           <ul>
             <li>所有內容同月訂方案</li>
-            <li>連用 90 日，<b>省下 NT$150</b></li>
+            <li id="idx-q-li">連用 90 日，<b>省下 NT$150</b></li>
+            <li id="idx-q-eb" style="display:none"><b style="color:var(--peach)">早鳥 +15 天</b>——共 105 日無限使用</li>
             <li>適合衝刺期、模擬考前</li>
             <li>每日 LINE Bot 法條推播</li>
             <li>序號到期可再購買延長</li>
@@ -1856,4 +1857,27 @@
 </div>
 
 
+<script>
+// ── 早鳥邏輯（6/15 前季費 +15 天）────────────────────────
+(function(){
+  var EB_END = new Date('2026-06-15T23:59:59+08:00');
+  if(new Date() >= EB_END) return;
+  var meta  = document.getElementById('idx-q-meta');
+  var li    = document.getElementById('idx-q-li');
+  var eb    = document.getElementById('idx-q-eb');
+  if(meta) meta.textContent = '105 日 · 早鳥 +15 天 · 平均 NT$9.4／日';
+  if(li)   li.innerHTML    = '連用 105 日，<b>省下 NT$150</b>';
+  if(eb)   eb.style.display = '';
+})();
+
+// ── FAQ accordion ─────────────────────────────────────────
+document.querySelectorAll('.qa').forEach(function(qa){
+  var q = qa.querySelector('.q');
+  if(!q) return;
+  q.addEventListener('click', function(){
+    var open = qa.classList.toggle('open');
+    q.setAttribute('aria-expanded', open);
+  });
+});
+</script>
 </body></html>
