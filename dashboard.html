@@ -1640,13 +1640,13 @@ function closeDrawer(){
   if(!uid) { window.location.href = 'login.html'; return; }
   const nameEl = document.getElementById('greet-name');
   if(nameEl){
-    const name = isTrial ? '體驗用戶' : isAdmin ? 'Fay' : (uid.includes('@') ? uid.split('@')[0] : (uid ? uid.slice(0,8) : ''));
+    const name = isTrial ? '' : isAdmin ? 'Fay' : (uid.includes('@') ? uid.split('@')[0] : (uid ? uid.slice(0,8) : ''));
     nameEl.textContent = name;
   }
   // 也更新 topbar pill
   const pill = document.querySelector('.user-pill');
   if(pill){
-    const name = isTrial ? '體驗版' : isAdmin ? 'Fay ✦' : (uid.includes('@') ? uid.split('@')[0] : uid.slice(0,8));
+    const name = isTrial ? '試用中' : isAdmin ? 'Fay ✦' : (uid.includes('@') ? uid.split('@')[0] : uid.slice(0,8));
     pill.innerHTML = '<span class="live"></span>' + name;
   }
 
@@ -1666,6 +1666,15 @@ function closeDrawer(){
       banner.className = 'acc-locked-banner';
       banner.innerHTML = '🔒 5 / 6 段為付費功能（修法備註 · 關聯法規）<a href="checkout.html">升級解鎖 →</a>';
       firstLocked.parentNode.insertBefore(banner, firstLocked);
+    }
+    // 體驗版：遮蓋會員卡與進度（避免顯示他人資料）
+    var memberCard = document.querySelector('.member-card');
+    if(memberCard){
+      memberCard.innerHTML = '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">試用模式 · 完整資料升級後解鎖<br><a href="checkout.html" style="color:var(--peach);margin-top:8px;display:inline-block;">立刻升級 →</a></div>';
+    }
+    var progCard = document.querySelector('.prog-card');
+    if(progCard){
+      progCard.innerHTML = '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">學習紀錄在啟用後開始累積</div>';
     }
   }
 })();
