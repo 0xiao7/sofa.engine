@@ -1,70 +1,61 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
+<!doctype html>
+<html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8" />
+<title>SoFa Engine — 打字練習</title>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>打字練習 — SoFa Engine</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="sofa.css">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="sofa.css" />
 <style>
-  /* === Practice control bar === */
+  /* === Practice layout === */
   .pr-bar{
     background:var(--navy-2);border-bottom:1px solid var(--line);
-    padding:16px 40px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;
+    padding:18px 40px;display:flex;align-items:center;justify-content:space-between;gap:24px;
   }
-  .pr-bar .l{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-  .pr-back{
-    font-family:var(--mono);font-size:11px;letter-spacing:.16em;
-    color:rgba(245,240,234,.55);text-transform:uppercase;
-    padding:6px 10px;border:1px solid var(--line-2);border-radius:3px;transition:.18s;
-  }
-  .pr-back:hover{color:var(--cream);border-color:var(--peach-dim)}
-
-  .law-pick{
-    position:relative;display:flex;align-items:center;gap:10px;
+  .pr-bar .l{display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+  .pr-pick{
+    display:flex;align-items:center;gap:10px;
     background:var(--navy-3);border:1px solid var(--line-2);border-radius:3px;
-    padding:9px 36px 9px 14px;transition:.18s;
+    padding:10px 16px;cursor:pointer;transition:.18s;
+    font-size:13.5px;color:var(--cream);
   }
-  .law-pick:focus-within{border-color:var(--peach-dim)}
-  .law-pick .lab{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:rgba(245,240,234,.5);text-transform:uppercase;white-space:nowrap}
-  .law-pick select{
-    background:transparent;border:none;outline:none;
-    font-family:var(--serif);font-weight:500;font-size:14px;color:var(--cream);
-    cursor:pointer;min-width:100px;max-width:200px;
-    -webkit-appearance:none;appearance:none;
+  .pr-pick:hover{border-color:var(--peach-dim)}
+  .pr-pick .lab{
+    font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+    color:rgba(245,240,234,.5);text-transform:uppercase;
   }
-  .law-pick select option{background:var(--navy-2);color:var(--cream)}
-  .law-pick .car{
-    position:absolute;right:12px;top:50%;transform:translateY(-50%);
-    color:var(--peach);font-family:var(--mono);font-size:11px;pointer-events:none;
-  }
+  .pr-pick .v{font-family:var(--serif);font-weight:500;font-size:15px;color:var(--cream)}
+  .pr-pick .car{color:var(--peach);font-family:var(--mono);font-size:11px;margin-left:4px}
 
   .pr-meta{
     display:flex;align-items:center;gap:24px;
-    font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:rgba(245,240,234,.55);
+    font-family:var(--mono);font-size:12px;letter-spacing:.08em;
+    color:rgba(245,240,234,.55);
   }
   .pr-meta .seg{display:flex;align-items:center;gap:8px}
-  .pr-meta .seg b{color:var(--peach);font-weight:600;font-size:13px;letter-spacing:.04em}
+  .pr-meta .seg b{color:var(--peach);font-weight:600;letter-spacing:.04em;font-size:13px}
 
-  .pr-progress{height:2px;background:rgba(245,240,234,.06);position:relative}
+  .pr-progress{
+    height:2px;background:rgba(245,240,234,.06);position:relative;
+  }
   .pr-progress .fl{
     position:absolute;left:0;top:0;height:100%;
     background:linear-gradient(to right, var(--peach), var(--peach-2));
-    width:0%;transition:width .35s ease;
+    width:32%;transition:width .35s ease;
   }
 
-  /* === Main stage === */
+  /* === main stage === */
   .pr-stage{
     padding:48px 64px 96px;background:var(--navy-3);
-    position:relative;min-height:calc(100vh - 70px - 57px - 2px);
+    position:relative;min-height:calc(100vh - 70px - 60px - 2px);
   }
   .pr-stage::before{
     content:"";position:absolute;inset:0;
@@ -81,310 +72,383 @@
   .ar-head{
     display:flex;align-items:flex-end;justify-content:space-between;
     margin-bottom:28px;gap:24px;padding-bottom:20px;border-bottom:1px solid var(--line);
-    flex-wrap:wrap;
   }
   .ar-head .eb{
     font-family:var(--mono);font-size:11px;color:var(--peach);
     letter-spacing:.22em;text-transform:uppercase;
-    display:flex;align-items:center;gap:10px;margin-bottom:10px;
+    display:flex;align-items:center;gap:10px;
   }
   .ar-head .eb::before{content:"";width:18px;height:1px;background:var(--peach)}
   .ar-head h2{
-    font-family:var(--serif);font-weight:600;font-size:28px;
-    color:var(--cream);line-height:1.3;
+    font-family:var(--serif);font-weight:600;font-size:32px;
+    margin-top:10px;color:var(--cream);line-height:1.25;
+    display:flex;align-items:baseline;gap:18px;
   }
-  .ar-head h2 a{color:inherit;border-bottom:1px solid rgba(231,187,167,.3);padding-bottom:2px}
-  .ar-head h2 a:hover{border-color:var(--peach)}
+  .ar-head h2 .n{
+    font-size:46px;letter-spacing:-.02em;color:var(--peach);font-weight:600;
+  }
   .ar-head .r{
-    text-align:right;font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+    text-align:right;
+    font-family:var(--mono);font-size:11px;letter-spacing:.12em;
     color:rgba(245,240,234,.5);text-transform:uppercase;
   }
   .ar-head .r b{color:var(--cream);font-weight:500;font-size:12px;display:block;margin-top:4px}
 
-  /* stat row */
+  /* big stat row */
   .stat-row{
-    display:grid;grid-template-columns:1fr 1fr;gap:0;
+    display:grid;grid-template-columns:repeat(4,1fr);gap:0;
     background:var(--navy-2);border:1px solid var(--line);border-radius:4px;
-    padding:18px 0;margin-bottom:36px;
+    padding:22px 8px;margin-bottom:36px;
   }
-  .stat{padding:0 28px;border-right:1px solid var(--line);text-align:center}
+  .stat{padding:0 24px;border-right:1px solid var(--line);text-align:center}
   .stat:last-child{border-right:none}
-  .stat .v{font-family:var(--serif);font-weight:600;font-size:32px;line-height:1;color:var(--cream);letter-spacing:.01em}
+  .stat .v{
+    font-family:var(--serif);font-weight:600;font-size:36px;line-height:1;
+    color:var(--cream);letter-spacing:.01em;
+  }
   .stat .v.peach{color:var(--peach)}
-  .stat .k{margin-top:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;color:rgba(245,240,234,.5);text-transform:uppercase}
+  .stat .v.good{color:var(--good)}
+  .stat .k{
+    margin-top:10px;font-family:var(--mono);font-size:10.5px;
+    letter-spacing:.18em;color:rgba(245,240,234,.5);text-transform:uppercase;
+  }
 
-  /* type card */
+  /* article body — type stage */
   .type-card{
-    background:var(--navy-2);border:1px solid var(--line);border-radius:4px;padding:40px 44px;
+    background:var(--navy-2);
+    border:1px solid var(--line);border-radius:4px;
+    padding:42px 48px;position:relative;
+  }
+  .type-card::before{
+    content:"ARTICLE 13";
+    position:absolute;top:18px;right:24px;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;
+    color:rgba(245,240,234,.25);
   }
 
-  /* ghost text display — production JS writes char spans into this */
   .ghost{
-    font-family:var(--serif);font-size:22px;line-height:2.1;
+    font-family:var(--serif);font-size:22px;line-height:2.05;
     color:rgba(245,240,234,.25);letter-spacing:.02em;
-    user-select:none;cursor:text;min-height:96px;
+    user-select:none;
   }
-  .ghost.focused{cursor:text}
-  /* production JS char classes */
-  .char-correct{color:var(--cream)}
-  .char-wrong{color:var(--bad);background:rgba(199,123,106,.18);border-radius:1px;padding:0 1px}
-  .char-cursor{
+  .ghost p{margin-bottom:14px}
+  .ghost .ro{
+    color:rgba(231,187,167,.42);font-family:var(--mono);font-size:14px;
+    font-weight:600;margin-right:6px;letter-spacing:.04em;
+  }
+  /* characters already typed correctly */
+  .ghost .ok{color:var(--cream)}
+  /* current character — cursor */
+  .ghost .cur{
     color:var(--peach);background:rgba(231,187,167,.16);
     padding:0 2px;border-radius:1px;
     animation:blink 1s steps(2) infinite;
   }
+  /* wrong typed chars */
+  .ghost .err{color:var(--bad);background:rgba(199,123,106,.18);border-radius:1px}
   @keyframes blink{50%{background:transparent}}
-  .typing-hint{
-    display:block;font-family:var(--mono);font-size:11px;letter-spacing:.12em;
-    color:rgba(245,240,234,.3);text-transform:uppercase;margin-top:16px;
-  }
 
-  /* action strip */
+  /* input strip */
   .type-input{
-    margin-top:28px;padding-top:22px;border-top:1px dashed var(--line);
-    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+    margin-top:32px;padding-top:24px;border-top:1px dashed var(--line);
+    display:flex;align-items:stretch;gap:14px;
   }
-
-  /* complete box */
-  .complete-msg{
-    margin-top:20px;padding:18px 24px;
-    background:rgba(159,184,159,.07);border:1px solid rgba(159,184,159,.22);border-radius:4px;
-    font-family:var(--mono);font-size:13px;letter-spacing:.06em;color:var(--good);
+  .type-input .key{
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;
+    color:rgba(245,240,234,.5);text-transform:uppercase;
+    align-self:center;min-width:96px;
   }
+  .type-input .key b{color:var(--peach);font-weight:600}
+  .type-field{
+    flex:1;background:var(--navy-3);border:1px solid var(--line-2);
+    border-radius:3px;padding:14px 18px;
+    display:flex;align-items:center;gap:12px;transition:.18s;
+  }
+  .type-field:focus-within{border-color:var(--peach);background:var(--navy)}
+  .type-field input{
+    background:transparent;border:none;outline:none;width:100%;
+    font-family:var(--serif);font-size:18px;color:var(--cream);letter-spacing:.02em;
+  }
+  .type-field input::placeholder{
+    color:rgba(245,240,234,.3);font-family:var(--sans);font-size:14px;
+  }
+  .type-actions{display:flex;gap:10px}
 
-  /* keyboard hint footer */
+  /* === Bottom mode strip === */
+  .mode-strip{
+    margin-top:36px;display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+  }
+  .mode{
+    background:var(--navy-2);border:1px solid var(--line);border-radius:4px;
+    padding:18px 22px;display:flex;align-items:center;justify-content:space-between;
+    cursor:pointer;transition:.18s;
+  }
+  .mode:hover{background:var(--plum-1);border-color:var(--peach-dim)}
+  .mode.on{background:rgba(231,187,167,.10);border-color:var(--peach);color:var(--cream)}
+  .mode .ml{display:flex;flex-direction:column;gap:4px}
+  .mode .code{
+    font-family:var(--mono);font-size:11px;letter-spacing:.18em;color:var(--peach);font-weight:600;
+  }
+  .mode .nm{font-family:var(--serif);font-size:16px;color:var(--cream);font-weight:500}
+  .mode .desc{font-size:12px;color:rgba(245,240,234,.55);max-width:170px}
+
+  /* === Keyboard hint footer === */
   .kbd-foot{
-    margin-top:32px;padding:16px 22px;border-top:1px dashed var(--line);
+    margin-top:36px;padding:18px 24px;
+    border-top:1px dashed var(--line);
+    display:flex;justify-content:space-between;align-items:center;
     font-family:var(--mono);font-size:11px;letter-spacing:.12em;
-    color:rgba(245,240,234,.4);text-transform:uppercase;
+    color:rgba(245,240,234,.5);text-transform:uppercase;flex-wrap:wrap;gap:12px;
+  }
+  .kbd-foot .gp{display:flex;gap:18px;flex-wrap:wrap}
+  .kbd-foot kbd{
+    display:inline-block;padding:3px 8px;
+    background:var(--navy-2);border:1px solid var(--line-2);
+    border-radius:3px;font-family:var(--mono);font-size:10.5px;
+    color:var(--peach);margin-right:6px;
   }
 
   /* === RWD === */
-  @media(max-width:1100px){
-    .pr-bar{padding:14px 24px}
+  @media (max-width:1100px){
+    .pr-bar{padding:14px 24px;flex-wrap:wrap}
     .pr-stage{padding:36px 32px 72px}
     .stat-row{grid-template-columns:1fr 1fr}
+    .stat{border-bottom:1px solid var(--line);padding:14px 16px}
+    .stat:nth-child(2){border-right:none}
+    .stat:nth-last-child(-n+2){border-bottom:none}
   }
-  @media(max-width:760px){
-    .topbar{padding:14px 20px}
-    .top-mid{display:none}
-    .menu-btn{display:flex}
+  @media (max-width:760px){
     .pr-bar{padding:12px 18px;gap:12px}
     .pr-bar .l{gap:10px}
     .pr-meta{gap:14px;font-size:11px}
     .pr-stage{padding:28px 18px 60px}
-    .ar-head h2{font-size:22px}
+    .ar-head{flex-direction:column;align-items:flex-start;gap:14px}
+    .ar-head h2{font-size:24px}
+    .ar-head h2 .n{font-size:36px}
     .type-card{padding:24px 22px}
-    .ghost{font-size:18px;line-height:1.95}
+    .ghost{font-size:17px;line-height:1.95}
     .type-input{flex-direction:column;align-items:stretch}
+    .type-input .key{min-width:0;align-self:flex-start}
+    .mode-strip{grid-template-columns:1fr}
+    .kbd-foot{flex-direction:column;align-items:flex-start;gap:14px}
   }
 </style>
 </head>
 <body>
 
-<header class="topbar">
-  <a class="brand" href="/"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
-  <nav class="top-mid">
-    <a href="dashboard.html">會員中心</a>
-    <a href="practice.html" class="on">打字</a>
-    <a href="quiz.html">選擇題</a>
-    <a href="fill.html">填空</a>
-  </nav>
-  <div class="top-right">
-    <span class="user-pill"><span class="live"></span><span id="navUid"></span></span>
-    <button class="btn-out" onclick="localStorage.removeItem('sofa_uid');window.location.href='login.html'">登出</button>
-    <button class="menu-btn"><span></span></button>
-  </div>
-</header>
+  <!-- TOP BAR -->
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
+    <nav class="top-mid">
+      <a href="dashboard.html">會員中心</a>
+      <a href="practice.html" class="on">打字</a>
+      <a href="fill.html">填空</a>
+      <a href="quiz.html">選擇題</a>
+    </nav>
+    <div class="top-right">
+      <span class="user-pill"><span class="live"></span><span id="navUid">—</span></span>
+      <button class="btn-out" onclick="localStorage.removeItem('sofa_uid');window.location.href='login.html'">登出</button>
+      <button class="menu-btn"><span></span></button>
+    </div>
+  </header>
 
-<!-- Practice control bar -->
-<div class="pr-bar">
-  <div class="l">
-    <a href="dashboard.html" class="pr-back">← BACK</a>
-    <div class="law-pick">
-      <span class="lab">LAW</span>
-      <select id="lawSelect"><option value="">全部法規（隨機）</option></select>
-      <span class="car">▾</span>
+  <!-- Practice control bar -->
+  <div class="pr-bar">
+    <div class="l">
+      <a href="dashboard.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:rgba(245,240,234,.55);text-transform:uppercase;padding:6px 10px;border:1px solid var(--line-2);border-radius:3px">← BACK</a>
+
+      <div class="pr-pick">
+        <span class="lab">LAW</span>
+        <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:500;font-size:15px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none;min-width:80px;max-width:200px"><option value="">全部法規</option></select>
+        <span class="car">▾</span>
+      </div>
+      <button id="btnNew" class="btn btn-sec" style="padding:8px 16px;font-size:13px">換一條</button>
+    </div>
+    <div class="pr-meta">
+      <div class="seg">WPM <b id="wpm">42</b></div>
+      <div class="seg">ACC <b id="acc">96.4%</b></div>
+      <div class="seg">TIME <b id="time">01:24</b></div>
+      <div class="seg">STREAK <b>3 day</b></div>
     </div>
   </div>
-  <div class="pr-meta">
-    <div class="seg">ACC <b id="accDisplay">—</b></div>
-    <div class="seg">PROGRESS <b id="progDisplay">0%</b></div>
-  </div>
-</div>
-<div class="pr-progress"><div class="fl" id="progBar"></div></div>
+  <div class="pr-progress"><div class="fl" id="prog"></div></div>
 
-<main class="pr-stage">
-  <div class="pr-inner">
+  <main class="pr-stage">
+    <div class="pr-inner">
 
-    <!-- article head -->
-    <div class="ar-head">
-      <div>
-        <div class="eb">TYPING DRILL · ARTICLE</div>
-        <h2 id="lawTitle">選擇法規後點「換一條」開始</h2>
+      <!-- article head -->
+      <div class="ar-head">
+        <div>
+          <span class="eb">TYPING DRILL · ARTICLE</span>
+          <h2><span class="n" id="artNum">—</span><span id="artTitle">選擇法規後換一條開始</span></h2>
+        </div>
+        <div class="r">
+<span id="artMeta">—</span>
+        </div>
       </div>
-      <div class="r">
-        打字練習
-        <b>逐字輸入法條原文</b>
+
+      <!-- stat row -->
+      <div class="stat-row">
+        <div class="stat"><div class="v peach" id="stat-prog">—</div><div class="k">PROGRESS</div></div>
+        <div class="stat"><div class="v" id="stat-wpm">—</div><div class="k">WPM (字 / 分)</div></div>
+        <div class="stat"><div class="v good" id="stat-acc">—</div><div class="k">ACCURACY</div></div>
+        <div class="stat"><div class="v" id="stat-err">0</div><div class="k">ERRORS</div></div>
       </div>
+
+      <!-- type card -->
+      <div class="type-card">
+<div class="ghost" id="ghost"><span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.35);letter-spacing:.1em">選擇法規後點「換一條」開始</span></div>
+
+        <div class="type-input">
+          <div class="key">輸入 <b id="curHint">—</b></div>
+          <div class="type-field">
+            <input id="ti" placeholder="點擊此處開始輸入…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" />
+          </div>
+          <div class="type-actions">
+            <button class="btn btn-sec" id="btnReset">重來</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- mode strip -->
+      <div class="mode-strip">
+        <button class="mode on">
+          <div class="ml">
+            <span class="code">MODE · 01</span>
+            <span class="nm">逐字模式</span>
+            <span class="desc">一字一字輸入，最嚴格。</span>
+          </div>
+          <span style="font-family:var(--mono);font-size:11px;color:var(--peach)">▸</span>
+        </button>
+        <button class="mode">
+          <div class="ml">
+            <span class="code">MODE · 02</span>
+            <span class="nm">逐句模式</span>
+            <span class="desc">按 ↵ 換句，較適合熟讀。</span>
+          </div>
+          <span style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.4)">▸</span>
+        </button>
+        <button class="mode">
+          <div class="ml">
+            <span class="code">MODE · 03</span>
+            <span class="nm">關鍵字模式</span>
+            <span class="desc">只輸入挖空關鍵字。</span>
+          </div>
+          <span style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.4)">▸</span>
+        </button>
+      </div>
+
+      <!-- kbd foot -->
+      <div class="kbd-foot">
+        <div class="gp">
+          <span><kbd>↵</kbd>確認</span>
+          <span><kbd>TAB</kbd>提示</span>
+          <span><kbd>ESC</kbd>暫停</span>
+          <span><kbd>⌘</kbd>+<kbd>K</kbd>切換條文</span>
+        </div>
+        <div>SESSION · 01:24 / EST 04:20</div>
+      </div>
+
     </div>
-
-    <!-- stat row -->
-    <div class="stat-row">
-      <div class="stat">
-        <div class="v peach" id="progStatDisplay">0%</div>
-        <div class="k">PROGRESS</div>
-      </div>
-      <div class="stat">
-        <div class="v" id="accStatDisplay">—</div>
-        <div class="k">ACCURACY</div>
-      </div>
-    </div>
-
-    <!-- type card -->
-    <div class="type-card">
-      <div class="ghost" id="typingPrompt" tabindex="0">
-        <span style="font-size:.85rem;color:rgba(245,240,234,.35);font-family:var(--mono);letter-spacing:.06em">選擇法規後點「換一條」開始</span>
-        <span class="typing-hint">點擊此區域後開始輸入</span>
-      </div>
-
-      <div class="type-input">
-        <button class="btn btn-pri" id="btnNew">換一條</button>
-        <button class="btn btn-sec" id="btnReset">重來</button>
-      </div>
-    </div>
-
-    <div id="completeBox"></div>
-
-    <div class="kbd-foot">點擊文字區域後開始輸入 · 退格鍵可刪除</div>
-
-  </div>
-</main>
+  </main>
 
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
-const uid = localStorage.getItem('sofa_uid') || (location.hostname === 'localhost' || location.protocol === 'file:' ? 'PREVIEW' : null);
-if (!uid) { window.location.href = '/login.html?redirect=practice.html'; }
+const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
+if (!uid) window.location.href = '/login.html?redirect=practice.html';
 document.getElementById('navUid').textContent = localStorage.getItem('sofa_nickname') || uid;
 
-// 載入法規清單
-(async () => {
+(async()=>{
   try {
-    const d = await fetch(`${API}/api/laws`).then(r => r.json());
+    const d = await fetch(`${API}/api/laws`).then(r=>r.json());
     const sel = document.getElementById('lawSelect');
-    (d.laws || []).forEach(l => {
-      const o = document.createElement('option'); o.value = l.name; o.textContent = l.name; sel.appendChild(o);
-    });
-  } catch {}
+    (d.laws||[]).forEach(l=>{ const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o); });
+  } catch{}
 })();
 
-let typeText = '', typeInput = '', typeFocused = false;
+let typeText='', typeInput='', startTime=null, timerIv=null;
+const ti = document.getElementById('ti');
+const ghost = document.getElementById('ghost');
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
-
-function render() {
-  const prompt = document.getElementById('typingPrompt');
-  if (!typeText) return;
-  let html = '';
-  for (let i = 0; i < typeText.length; i++) {
-    const ch = esc(typeText[i]);
-    if (i < typeInput.length) {
-      html += typeInput[i] === typeText[i]
-        ? `<span class="char-correct">${ch}</span>`
-        : `<span class="char-wrong" title="應為：${ch}">${esc(typeInput[i] || '?')}</span>`;
-    } else if (i === typeInput.length) {
-      html += `<span class="char-cursor">${ch}</span>`;
-    } else {
-      html += `<span>${ch}</span>`;
-    }
+function render(){
+  if(!typeText)return;
+  let html='';
+  for(let i=0;i<typeText.length;i++){
+    const ch=esc(typeText[i]);
+    if(i<typeInput.length){ html+=typeInput[i]===typeText[i]?`<span class="ok">${ch}</span>`:`<span class="err" title="應為：${ch}">${esc(typeInput[i]||'?')}</span>`; }
+    else if(i===typeInput.length){ html+=`<span class="cur">${ch}</span>`; }
+    else{ html+=`<span>${ch}</span>`; }
   }
-  if (typeInput.length >= typeText.length) html += '<span class="char-cursor"> </span>';
-  html += `<span class="typing-hint">${typeFocused ? '輸入中…' : '點擊後開始輸入'}</span>`;
-  prompt.innerHTML = html;
-
-  const cor = [...typeInput].filter((c, i) => c === typeText[i]).length;
-  const accPct = typeInput.length ? Math.round(cor / typeInput.length * 100) : 100;
-  const progPct = Math.min(typeText.length ? Math.round(typeInput.length / typeText.length * 100) : 0, 100);
-
-  document.getElementById('accDisplay').textContent = accPct + '%';
-  document.getElementById('progDisplay').textContent = progPct + '%';
-  document.getElementById('accStatDisplay').textContent = accPct + '%';
-  document.getElementById('progStatDisplay').textContent = progPct + '%';
-  const bar = document.getElementById('progBar');
-  if (bar) bar.style.width = progPct + '%';
-
-  if (typeInput.length >= typeText.length && typeText.length > 0) {
-    const acc = Math.round(cor / typeText.length * 100);
-    document.getElementById('completeBox').innerHTML =
-      `<div class="complete-msg">完成 ✓ 正確率 ${acc}%</div>`;
+  ghost.innerHTML=`<p>${html}</p>`;
+  const cor=[...typeInput].filter((c,i)=>c===typeText[i]).length;
+  const err=typeInput.length-cor;
+  const acc=typeInput.length?Math.round(cor/typeInput.length*100):100;
+  const prog=Math.min(typeText.length?Math.round(typeInput.length/typeText.length*100):0,100);
+  document.getElementById('acc').textContent=acc+'%';
+  document.getElementById('stat-acc').textContent=acc+'%';
+  document.getElementById('stat-prog').textContent=prog+'%';
+  document.getElementById('stat-err').textContent=err;
+  document.getElementById('prog').style.width=prog+'%';
+  if(typeInput.length>=typeText.length&&typeText.length>0){
+    stopTimer();
+    ghost.innerHTML+=`<div style="margin-top:16px;font-family:var(--mono);font-size:13px;color:var(--good);letter-spacing:.1em">✓ 完成 · 正確率 ${acc}%</div>`;
   }
 }
 
-function ensureHiddenInput() {
-  let ta = document.getElementById('_ta');
-  if (!ta) {
-    ta = document.createElement('textarea');
-    ta.id = '_ta';
-    ta.setAttribute('autocomplete', 'off');
-    ta.setAttribute('autocorrect', 'off');
-    ta.setAttribute('autocapitalize', 'none');
-    ta.style.cssText = 'position:fixed;opacity:.01;top:0;left:0;width:1px;height:1px;pointer-events:none;';
-    document.body.appendChild(ta);
-    ta.addEventListener('input', () => { typeInput = ta.value; render(); });
-    ta.addEventListener('keydown', e => {
-      if (e.key === 'Backspace' && typeInput.length) {
-        typeInput = typeInput.slice(0, -1); ta.value = typeInput; render(); e.preventDefault();
-      }
-    });
-    ta.addEventListener('focus', () => {
-      typeFocused = true;
-      document.getElementById('typingPrompt').classList.add('focused');
-      render();
-    });
-    ta.addEventListener('blur', () => {
-      typeFocused = false;
-      document.getElementById('typingPrompt').classList.remove('focused');
-      render();
-    });
-  }
-  return ta;
-}
-
-document.getElementById('typingPrompt').addEventListener('click', () => ensureHiddenInput().focus());
-
-async function loadNew() {
-  document.getElementById('completeBox').innerHTML = '';
-  const prompt = document.getElementById('typingPrompt');
-  prompt.innerHTML = '<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.4);letter-spacing:.1em">載入中…</span>';
-  typeInput = ''; typeText = '';
-  const ta = document.getElementById('_ta'); if (ta) ta.value = '';
-  const law = document.getElementById('lawSelect').value;
-  try {
-    const url = law ? `${API}/api/random?law=${encodeURIComponent(law)}` : `${API}/api/random`;
-    const d = await fetch(url, { headers: { 'X-Sofa-UID': uid } }).then(r => r.json());
-    typeText = d.original_text || '';
-    const titleEl = document.getElementById('lawTitle');
-    if (d.id) {
-      titleEl.innerHTML = `<a href="dashboard.html?open=${encodeURIComponent(d.id)}&art=${encodeURIComponent(d.title || '')}" title="查看解析">${esc(d.title || '')}</a>`;
-    } else {
-      titleEl.textContent = d.title || '—';
-    }
-    render();
-  } catch {
-    typeText = '民事訴訟，係指當事人就私法上之權利義務關係，請求法院加以裁判之程序。';
-    document.getElementById('lawTitle').textContent = '（展示模式）民事訴訟法第一條';
-    render();
-  }
-}
-
-document.getElementById('btnNew').addEventListener('click', loadNew);
-loadNew();
-document.getElementById('btnReset').addEventListener('click', () => {
-  typeInput = '';
-  const ta = document.getElementById('_ta'); if (ta) ta.value = '';
-  document.getElementById('completeBox').innerHTML = '';
+ti.addEventListener('input',()=>{
+  typeInput=ti.value;
+  if(!startTime&&typeInput.length>0)startTimer();
   render();
 });
+
+function startTimer(){
+  startTime=Date.now();
+  timerIv=setInterval(()=>{
+    const sec=Math.floor((Date.now()-startTime)/1000);
+    document.getElementById('time').textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');
+    if(typeInput.length>0&&sec>0){
+      const w=Math.round(typeInput.length/sec*60/2);
+      document.getElementById('wpm').textContent=w;
+      document.getElementById('stat-wpm').textContent=w;
+    }
+  },1000);
+}
+function stopTimer(){ if(timerIv){clearInterval(timerIv);timerIv=null;} }
+
+async function loadNew(){
+  stopTimer();startTime=null;typeInput='';typeText='';ti.value='';
+  ghost.innerHTML='<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.4);letter-spacing:.1em">載入中…</span>';
+  ['wpm','acc','time'].forEach(id=>document.getElementById(id).textContent=id==='time'?'00:00':'—');
+  ['stat-prog','stat-wpm','stat-acc'].forEach(id=>document.getElementById(id).textContent='—');
+  document.getElementById('stat-err').textContent='0';
+  document.getElementById('prog').style.width='0%';
+  const law=document.getElementById('lawSelect').value;
+  try{
+    const url=law?`${API}/api/random?law=${encodeURIComponent(law)}`:`${API}/api/random`;
+    const d=await fetch(url,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
+    typeText=d.original_text||'';
+    const m=(d.title||'').match(/第(\d+)條/);
+    document.getElementById('artNum').textContent=m?m[1]:'—';
+    document.getElementById('artTitle').textContent=(d.title||'').replace(/第\d+條/,'').trim()||d.title||'—';
+    document.getElementById('artMeta').textContent=(d.law_name||'')+(d.chapter?' / '+d.chapter:'');
+    ghost.innerHTML='';render();
+  }catch{
+    typeText='民事訴訟，係指當事人就私法上之權利義務關係，請求法院加以裁判之程序。';
+    document.getElementById('artNum').textContent='1';
+    document.getElementById('artTitle').textContent='（展示模式）';
+    ghost.innerHTML='';render();
+  }
+}
+
+document.getElementById('btnNew').addEventListener('click',loadNew);
+document.getElementById('btnReset').addEventListener('click',()=>{
+  stopTimer();startTime=null;typeInput='';ti.value='';
+  document.getElementById('time').textContent='00:00';
+  document.getElementById('wpm').textContent='—';
+  render();
+});
+loadNew();
 </script>
 </body>
 </html>

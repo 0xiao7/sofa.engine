@@ -1,73 +1,51 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
+<!doctype html>
+<html lang="zh-Hant">
 <head>
-<meta charset="UTF-8">
+<meta charset="utf-8" />
+<title>SoFa Engine — 選擇題</title>
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>選擇題 — SoFa Engine</title>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="sofa.css">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="sofa.css" />
 <style>
-  /* === Quiz control bar === */
   .pr-bar{
     background:var(--navy-2);border-bottom:1px solid var(--line);
     padding:16px 40px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;
   }
   .pr-bar .l{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
-  .pr-back{
+  .pr-bar .back{
     font-family:var(--mono);font-size:11px;letter-spacing:.16em;
     color:rgba(245,240,234,.55);text-transform:uppercase;
-    padding:6px 10px;border:1px solid var(--line-2);border-radius:3px;transition:.18s;
+    padding:6px 10px;border:1px solid var(--line-2);border-radius:3px;
   }
-  .pr-back:hover{color:var(--cream);border-color:var(--peach-dim)}
-
-  .law-pick{
-    position:relative;display:flex;align-items:center;gap:10px;
-    background:var(--navy-3);border:1px solid var(--line-2);border-radius:3px;
-    padding:9px 36px 9px 14px;transition:.18s;
+  .pr-bar .title{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+  .pr-bar .title .lab{
+    font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+    color:rgba(245,240,234,.5);text-transform:uppercase;
   }
-  .law-pick:focus-within{border-color:var(--peach-dim)}
-  .law-pick .lab{font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:rgba(245,240,234,.5);text-transform:uppercase;white-space:nowrap}
-  .law-pick select{
-    background:transparent;border:none;outline:none;
-    font-family:var(--serif);font-weight:500;font-size:14px;color:var(--cream);
-    cursor:pointer;min-width:100px;max-width:200px;
-    -webkit-appearance:none;appearance:none;
-  }
-  .law-pick select option{background:var(--navy-2);color:var(--cream)}
-  .law-pick .car{
-    position:absolute;right:12px;top:50%;transform:translateY(-50%);
-    color:var(--peach);font-family:var(--mono);font-size:11px;pointer-events:none;
-  }
-
+  .pr-bar .title .v{font-family:var(--serif);font-weight:600;font-size:17px;color:var(--cream)}
   .pr-meta{
     display:flex;align-items:center;gap:22px;
     font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:rgba(245,240,234,.55);
   }
-  .pr-meta .seg b{font-weight:600;font-size:13px;margin-left:6px}
-  .pr-meta .seg.good b{color:var(--good)}
-  .pr-meta .seg.bad b{color:var(--bad)}
-  .pr-meta .seg b{color:var(--peach)}
+  .pr-meta .seg b{color:var(--peach);font-weight:600;font-size:13px;margin-left:6px}
+  .pr-meta .timer b{color:var(--cream);font-family:var(--serif);font-size:18px;letter-spacing:.02em}
 
   .pr-progress{height:2px;background:rgba(245,240,234,.06);position:relative}
   .pr-progress .fl{
     position:absolute;left:0;top:0;height:100%;
-    background:linear-gradient(to right, var(--good), var(--peach));
-    width:0%;transition:width .4s ease;
+    background:linear-gradient(to right, var(--peach), var(--peach-2));
+    width:42%;
   }
 
-  /* === Stage === */
-  .stage{
-    padding:40px 64px 96px;background:var(--navy-3);
-    position:relative;min-height:calc(100vh - 70px - 57px - 2px);
-  }
+  .stage{padding:40px 64px 96px;background:var(--navy-3);position:relative;min-height:calc(100vh - 70px - 60px - 2px)}
   .stage::before{
     content:"";position:absolute;inset:0;
     background-image:
@@ -92,22 +70,29 @@
   .q-head .eb::before{content:"";width:18px;height:1px;background:var(--peach)}
   .q-head .n{
     font-family:var(--serif);font-weight:600;font-size:54px;line-height:1;
-    color:var(--cream);letter-spacing:-.01em;margin-top:8px;
+    color:var(--cream);letter-spacing:-.01em;
   }
+  .q-head .n .of{font-size:22px;color:rgba(245,240,234,.45);font-weight:400;margin-left:4px}
+  .q-head .src{
+    text-align:right;font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+    color:rgba(245,240,234,.5);text-transform:uppercase;line-height:1.8;
+  }
+  .q-head .src b{color:var(--peach);font-weight:600;display:block;margin-top:4px;font-size:12px}
 
-  /* question stem */
   .q-stem{
     background:var(--navy-2);border:1px solid var(--line);border-radius:4px;
     padding:32px 36px;position:relative;
   }
   .q-stem::before{
     content:"QUESTION";position:absolute;top:16px;right:22px;
-    font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;color:rgba(245,240,234,.22);
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;color:rgba(245,240,234,.25);
   }
-  #questionBox{
-    font-family:var(--serif);font-size:21px;line-height:1.85;
-    color:var(--cream);letter-spacing:.02em;min-height:80px;
+  .q-stem p{font-family:var(--serif);font-size:21px;line-height:1.85;color:var(--cream);letter-spacing:.02em}
+  .q-stem .quote{
+    margin-top:18px;padding:18px 22px;background:var(--navy-3);border-left:3px solid var(--peach-dim);
+    border-radius:0 3px 3px 0;font-size:16px;line-height:1.85;color:rgba(245,240,234,.72);
   }
+  .q-stem .quote .ro{font-family:var(--mono);color:var(--peach);font-weight:600;margin-right:4px;font-size:13px}
 
   /* options */
   .opts{margin-top:24px;display:flex;flex-direction:column;gap:10px}
@@ -124,6 +109,18 @@
     transition:.18s;
   }
   .opt .body{flex:1;font-size:15.5px;line-height:1.75;color:rgba(245,240,234,.85);padding-top:4px}
+  .opt .body .tag{
+    display:inline-block;margin-right:8px;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;
+    color:rgba(245,240,234,.5);
+  }
+
+  /* selected */
+  .opt.sel{border-color:var(--peach);background:rgba(231,187,167,.06)}
+  .opt.sel .key{background:var(--peach);color:var(--navy);border-color:var(--peach)}
+  .opt.sel .body{color:var(--cream)}
+
+  /* answered states */
   .opt.right{border-color:var(--good);background:rgba(159,184,159,.08)}
   .opt.right .key{background:var(--good);color:var(--navy-3);border-color:var(--good)}
   .opt.right::after{
@@ -137,24 +134,43 @@
     font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--bad);font-weight:600;
   }
 
-  /* source attribution */
-  .source-box{
-    margin-top:16px;padding:10px 14px;
-    font-family:var(--mono);font-size:12px;letter-spacing:.06em;
-    color:rgba(245,240,234,.5);
-    border-left:2px solid var(--peach-dim);
-    background:rgba(245,240,234,.03);border-radius:0 3px 3px 0;
+  /* explanation */
+  .explain{
+    margin-top:24px;background:var(--cream);color:var(--navy);
+    border-radius:4px;padding:24px 28px;border-left:4px solid var(--peach-3);
+    position:relative;
   }
-  .source-box a{color:var(--peach);font-weight:600;text-decoration:none}
-  .source-box a:hover{color:var(--peach-2)}
+  .explain .eb{
+    font-family:var(--mono);font-size:11px;font-weight:600;color:var(--peach-3);
+    letter-spacing:.22em;text-transform:uppercase;
+  }
+  .explain h3{
+    font-family:var(--serif);font-weight:600;font-size:20px;margin-top:8px;color:var(--navy);
+  }
+  .explain p{margin-top:12px;font-size:14.5px;line-height:1.85;color:rgba(31,56,72,.78)}
+  .explain p b{color:var(--navy);font-weight:600}
+  .explain .kw{background:rgba(231,187,167,.45);padding:1px 5px;border-radius:2px;color:var(--navy);font-weight:600}
+  .explain .src{
+    margin-top:16px;padding-top:12px;border-top:1px dashed rgba(31,56,72,.15);
+    display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;
+    letter-spacing:.12em;color:rgba(31,56,72,.55);text-transform:uppercase;
+  }
+  .explain .src a{color:var(--peach-3);font-weight:600}
 
-  /* foot */
+  /* bottom action */
   .q-foot{
-    margin-top:28px;display:flex;justify-content:flex-end;align-items:center;gap:10px;
+    margin-top:28px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
     padding-top:20px;border-top:1px dashed var(--line);
   }
+  .q-foot .l{display:flex;gap:18px;font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:rgba(245,240,234,.5);text-transform:uppercase;align-items:center;flex-wrap:wrap}
+  .q-foot .l kbd{
+    display:inline-block;padding:3px 8px;
+    background:var(--navy-2);border:1px solid var(--line-2);
+    border-radius:3px;font-family:var(--mono);font-size:10.5px;color:var(--peach);margin-right:6px;
+  }
+  .q-foot .r{display:flex;gap:10px}
 
-  /* === Rail === */
+  /* === rail === */
   .rail{display:flex;flex-direction:column;gap:18px;position:sticky;top:92px;align-self:start}
   .rail-card{background:var(--navy-2);border:1px solid var(--line);border-radius:4px;padding:22px}
   .rail-h{
@@ -164,188 +180,284 @@
     display:flex;justify-content:space-between;align-items:center;
   }
   .rail-h .ct{color:rgba(245,240,234,.4);font-weight:500;letter-spacing:.1em}
+
+  .qgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+  .qcell{
+    aspect-ratio:1;display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:12px;font-weight:600;
+    background:var(--navy-3);border:1px solid var(--line-2);border-radius:3px;
+    color:rgba(245,240,234,.6);cursor:pointer;transition:.18s;
+  }
+  .qcell:hover{border-color:var(--peach)}
+  .qcell.cur{background:var(--peach);color:var(--navy);border-color:var(--peach)}
+  .qcell.ok{background:rgba(159,184,159,.18);color:var(--good);border-color:rgba(159,184,159,.3)}
+  .qcell.bad{background:rgba(199,123,106,.18);color:var(--bad);border-color:rgba(199,123,106,.3)}
+  .qcell.flag{position:relative}
+  .qcell.flag::after{
+    content:"";position:absolute;top:3px;right:3px;width:4px;height:4px;
+    background:var(--warn);border-radius:50%;
+  }
+
   .stat-line{display:flex;justify-content:space-between;align-items:center;padding:8px 0;font-size:13px;color:rgba(245,240,234,.7)}
   .stat-line + .stat-line{border-top:1px dashed var(--line)}
   .stat-line b{font-family:var(--mono);color:var(--cream);font-weight:600}
-  .stat-line .good b{color:var(--good)}
-  .stat-line .bad b{color:var(--bad)}
+  .stat-line .v.good{color:var(--good)}
+  .stat-line .v.bad{color:var(--bad)}
 
-  /* === RWD === */
-  @media(max-width:1100px){
+  @media (max-width:1100px){
     .pr-bar{padding:14px 24px}
     .stage{padding:32px 32px 72px}
     .inner{grid-template-columns:1fr}
     .rail{position:static;flex-direction:row;flex-wrap:wrap}
     .rail-card{flex:1;min-width:240px}
   }
-  @media(max-width:760px){
-    .topbar{padding:14px 20px}
-    .top-mid{display:none}
-    .menu-btn{display:flex}
+  @media (max-width:760px){
     .pr-bar{padding:12px 18px}
     .pr-meta{gap:14px;font-size:11px}
     .stage{padding:24px 18px 60px}
-    .inner{grid-template-columns:1fr}
     .q-head{flex-direction:column;align-items:flex-start;gap:14px}
+    .q-head .src{text-align:left}
     .q-head .n{font-size:42px}
-    .q-stem{padding:22px}
-    #questionBox{font-size:17px}
+    .q-stem{padding:22px 22px}
+    .q-stem p{font-size:17px}
     .opt{padding:14px 18px;gap:14px}
     .opt .body{font-size:14.5px}
     .opt.right::after,.opt.wrong::after{display:none}
+    .q-foot{flex-direction:column;align-items:stretch}
+    .q-foot .r{flex-direction:column}
     .rail{flex-direction:column}
   }
 </style>
 </head>
 <body>
 
-<header class="topbar">
-  <a class="brand" href="/"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
-  <nav class="top-mid">
-    <a href="dashboard.html">會員中心</a>
-    <a href="practice.html">打字</a>
-    <a href="quiz.html" class="on">選擇題</a>
-    <a href="fill.html">填空</a>
-  </nav>
-  <div class="top-right">
-    <span class="user-pill"><span class="live"></span><span id="navUid"></span></span>
-    <button class="btn-out" onclick="localStorage.removeItem('sofa_uid');window.location.href='login.html'">登出</button>
-    <button class="menu-btn"><span></span></button>
-  </div>
-</header>
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
+    <nav class="top-mid">
+      <a href="dashboard.html">會員中心</a>
+      <a href="practice.html">打字</a>
+      <a href="fill.html">填空</a>
+      <a href="quiz.html" class="on">選擇題</a>
+    </nav>
+    <div class="top-right">
+      <span class="user-pill"><span class="live"></span><span id="navUid">—</span></span>
+      <button class="btn-out" onclick="localStorage.removeItem('sofa_uid');window.location.href='login.html'">登出</button>
+      <button class="menu-btn"><span></span></button>
+    </div>
+  </header>
 
-<div class="pr-bar">
-  <div class="l">
-    <a href="dashboard.html" class="pr-back">← BACK</a>
-    <div class="law-pick">
-      <span class="lab">LAW</span>
-      <select id="lawSelect"><option value="">全部法規（隨機）</option></select>
-      <span class="car">▾</span>
+  <div class="pr-bar">
+    <div class="l">
+      <a href="dashboard.html" class="back">← BACK</a>
+      <div class="title">
+        <span class="lab">LAW</span>
+        <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:600;font-size:17px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none"><option value="">全部法規</option></select>
+      </div>
+      <button id="btnNew" class="btn btn-sec" style="padding:8px 16px;font-size:13px">出題</button>
+    </div>
+    <div class="pr-meta">
+      <div class="seg">第 <b id="qNum">—</b></div>
+      <div class="seg">正確 <b id="scoreRight" style="color:var(--good)">0</b></div>
+      <div class="seg">錯誤 <b id="scoreWrong" style="color:var(--bad)">0</b></div>
+      <div class="seg timer">TIMER <b>08:42</b></div>
     </div>
   </div>
-  <div class="pr-meta">
-    <span class="seg good">正確 <b id="scoreRight">0</b></span>
-    <span class="seg bad">錯誤 <b id="scoreWrong">0</b></span>
-    <span class="seg">共 <b id="scoreTotal">0</b> 題</span>
-  </div>
-</div>
-<div class="pr-progress"><div class="fl" id="progBar"></div></div>
+  <div class="pr-progress"><div class="fl"></div></div>
 
-<main class="stage">
-  <div class="inner">
+  <main class="stage">
+    <div class="inner">
 
-    <div>
-      <div class="q-head">
-        <div>
-          <div class="eb">QUESTION · MULTIPLE CHOICE</div>
-          <div class="n" id="qNum">—</div>
+      <div>
+        <div class="q-head">
+          <div>
+            <span class="eb">QUESTION · MULTIPLE CHOICE</span>
+            <div class="n" style="margin-top:8px"><span id="qNumBig">—</span></div>
+          </div>
+<div class="src" id="qSrc">—</div>
+        </div>
+
+        <div class="q-stem">
+          <p>下列關於記帳士業務範圍之敘述，<b style="color:var(--peach)">何者錯誤</b>？</p>
+          <div class="quote">
+            <span class="ro">§13</span>記帳士得在登錄區域內，執行下列業務：一、受委任辦理營業、變更、註銷、停業、復業及其他登記事項。二、受委任辦理各項<b style="color:var(--cream)">稅捐稽徵</b>案件之申報及申請事項…前項業務不包括受委任辦理各項稅捐之<b style="color:var(--cream)">查核簽證</b>申報及訴願、行政訴訟事項。
+          </div>
+        </div>
+
+        <div class="opts">
+          <div class="opt right">
+            <div class="key">A</div>
+            <div class="body"><span class="tag">A</span>記帳士得受委任辦理營業之變更與註銷登記。</div>
+          </div>
+          <div class="opt">
+            <div class="key">B</div>
+            <div class="body"><span class="tag">B</span>記帳士得在登錄區域內，受理稅務諮詢事項。</div>
+          </div>
+          <div class="opt wrong sel">
+            <div class="key">C</div>
+            <div class="body"><span class="tag">C</span>記帳士得受委任辦理各項稅捐之<b style="color:var(--bad)">查核簽證申報</b>事項。</div>
+          </div>
+          <div class="opt">
+            <div class="key">D</div>
+            <div class="body"><span class="tag">D</span>記帳士得受委任辦理商業會計事務。</div>
+          </div>
+        </div>
+
+        <div class="explain">
+          <span class="eb">EXPLANATION · 詳解</span>
+          <h3>正解 (A)，你選了 (C)——但書漏看了</h3>
+          <p>本題考點在 <b>§13 但書</b>。記帳士業務範圍前段五款為列舉，但書明確排除三件事：<span class="kw">查核簽證</span>（屬會計師專屬，會計師法 §39）、訴願、行政訴訟（屬律師專屬）。</p>
+          <p>(C) 把「查核簽證申報」放進記帳士業務——這是<b>典型的混淆題</b>。記憶口訣：「<span class="kw">登 / 稅 / 諮 / 商 / 其他</span>」+ 但書「<span class="kw">不查不訴</span>」。</p>
+          <p>(A) 是 §13 第 1 款的直接文字。(B) 是第 3 款。(D) 是第 4 款——三者皆為正確業務。</p>
+          <div class="src">
+            <span>SOURCE · 記帳士法 §13 + §14</span>
+            <a href="dashboard.html">查看完整條文 →</a>
+          </div>
+        </div>
+
+        <div class="q-foot">
+          <div class="l">
+            <span><kbd>A</kbd><kbd>B</kbd><kbd>C</kbd><kbd>D</kbd>作答</span>
+            <span><kbd>↵</kbd>下一題</span>
+            <span><kbd>F</kbd>標記</span>
+          </div>
+          <div class="r">
+            <button class="btn btn-ghost">⚑ 標記</button>
+            <button class="btn btn-sec">← 上一題</button>
+            <button class="btn btn-pri" id="btnNext">下一題 <span class="k">↵</span></button>
+          </div>
         </div>
       </div>
 
-      <div class="q-stem">
-        <p id="questionBox">選擇法規後點「出題」開始</p>
-      </div>
+      <!-- rail -->
+      <aside class="rail">
+        <div class="rail-card">
+          <div class="rail-h">SET MAP<span class="ct">20 Q</span></div>
+          <div class="qgrid">
+            <div class="qcell ok">1</div>
+            <div class="qcell ok">2</div>
+            <div class="qcell bad">3</div>
+            <div class="qcell ok">4</div>
+            <div class="qcell ok flag">5</div>
+            <div class="qcell ok">6</div>
+            <div class="qcell ok">7</div>
+            <div class="qcell bad">8</div>
+            <div class="qcell cur">9</div>
+            <div class="qcell">10</div>
+            <div class="qcell">11</div>
+            <div class="qcell">12</div>
+            <div class="qcell flag">13</div>
+            <div class="qcell">14</div>
+            <div class="qcell">15</div>
+            <div class="qcell">16</div>
+            <div class="qcell">17</div>
+            <div class="qcell">18</div>
+            <div class="qcell">19</div>
+            <div class="qcell">20</div>
+          </div>
+        </div>
 
-      <div class="opts" id="optionsBox"></div>
+        <div class="rail-card">
+          <div class="rail-h">SESSION<span class="ct">LIVE</span></div>
+          <div class="stat-line"><span>已作答</span><span><b id="railTotal">0</b></span></div>
+          <div class="stat-line"><span>命中率</span><span><b id="railAcc" style="color:var(--good)">—</b></span></div>
+          <div class="stat-line"><span>累計答錯</span><span><b id="railWrong" style="color:var(--bad)">0</b></span></div>
+          <div class="stat-line"><span>已標記</span><span><b>2</b></span></div>
+          <div class="stat-line"><span>平均用時</span><span><b>00:58</b></span></div>
+        </div>
 
-      <div id="sourceBox" style="display:none" class="source-box"></div>
+        <div class="rail-card">
+          <div class="rail-h">ERRORS<span class="ct">REVIEW</span></div>
+          <div style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;line-height:1.95;color:rgba(245,240,234,.65)">
+            <div>Q3 · 記帳士法 §9</div>
+            <div>Q8 · 商業登記法 §17</div>
+          </div>
+          <button class="btn btn-sec" style="width:100%;margin-top:14px;padding:10px 14px;font-size:13px">本回錯題重練 →</button>
+        </div>
+      </aside>
 
-      <div class="q-foot">
-        <button class="btn btn-pri" id="btnNew">出題</button>
-      </div>
     </div>
-
-    <!-- rail sidebar -->
-    <aside class="rail">
-      <div class="rail-card">
-        <div class="rail-h">SESSION <span class="ct">LIVE</span></div>
-        <div class="stat-line"><span>答對</span><span class="good"><b id="railRight">0</b></span></div>
-        <div class="stat-line"><span>答錯</span><span class="bad"><b id="railWrong">0</b></span></div>
-        <div class="stat-line"><span>共答</span><span><b id="railTotal">0</b> 題</span></div>
-      </div>
-    </aside>
-
-  </div>
-</main>
+  </main>
 
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
-const uid = localStorage.getItem('sofa_uid');
-if (!uid) { window.location.href = '/login.html?redirect=quiz.html'; }
+const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
+if (!uid) window.location.href = '/login.html?redirect=quiz.html';
 document.getElementById('navUid').textContent = localStorage.getItem('sofa_nickname') || uid;
 
-(async () => {
-  try {
-    const d = await fetch(`${API}/api/laws`).then(r => r.json());
-    const sel = document.getElementById('lawSelect');
-    (d.laws || []).forEach(l => {
-      const o = document.createElement('option'); o.value = l.name; o.textContent = l.name; sel.appendChild(o);
-    });
-  } catch {}
+(async()=>{
+  try{
+    const d=await fetch(`${API}/api/laws`).then(r=>r.json());
+    const sel=document.getElementById('lawSelect');
+    (d.laws||[]).forEach(l=>{const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);});
+  }catch{}
 })();
 
-function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+let answered=false,right=0,wrong=0,total=0;
 
-let answered = false, right = 0, wrong = 0, total = 0;
-
-function updateScore() {
-  document.getElementById('scoreRight').textContent = right;
-  document.getElementById('scoreWrong').textContent = wrong;
-  document.getElementById('scoreTotal').textContent = total;
-  document.getElementById('railRight').textContent = right;
-  document.getElementById('railWrong').textContent = wrong;
-  document.getElementById('railTotal').textContent = total;
-  const bar = document.getElementById('progBar');
-  if (bar && (right + wrong) > 0) bar.style.width = Math.round(right / (right + wrong) * 100) + '%';
+function updateScore(){
+  document.getElementById('qNum').textContent=total;
+  document.getElementById('qNumBig').textContent=total;
+  document.getElementById('scoreRight').textContent=right;
+  document.getElementById('scoreWrong').textContent=wrong;
+  document.getElementById('railTotal').textContent=total;
+  document.getElementById('railWrong').textContent=wrong;
+  const acc=total>0?Math.round(right/total*100):0;
+  document.getElementById('railAcc').textContent=acc+'%';
 }
 
-async function loadQuiz() {
-  const qbox = document.getElementById('questionBox');
-  const obox = document.getElementById('optionsBox');
-  const sbox = document.getElementById('sourceBox');
-  qbox.textContent = '載入中…';
-  qbox.style.opacity = '.45';
-  obox.innerHTML = '';
-  sbox.style.display = 'none';
-  answered = false;
-  document.getElementById('qNum').textContent = total + 1;
-  const law = document.getElementById('lawSelect').value;
-  try {
-    const url = law ? `${API}/api/quiz?law=${encodeURIComponent(law)}` : `${API}/api/quiz`;
-    const data = await fetch(url, { headers: { 'X-Sofa-UID': uid } }).then(r => r.json());
-    if (data.error) { qbox.textContent = data.error; qbox.style.opacity = '1'; return; }
-    qbox.textContent = data.question || '出題失敗';
-    qbox.style.opacity = '1';
-    const labels = ['A', 'B', 'C', 'D'];
-    (data.options || []).forEach((opt, i) => {
-      const btn = document.createElement('div');
-      btn.className = 'opt';
-      btn.innerHTML = `<div class="key">${labels[i]}</div><div class="body">${esc(opt)}</div>`;
-      btn.addEventListener('click', () => {
-        if (answered) return;
-        answered = true; total++;
-        document.querySelectorAll('.opt').forEach((b, j) => {
-          b.style.pointerEvents = 'none';
-          b.style.cursor = 'default';
-          if (data.options[j] === data.answer) b.classList.add('right');
+async function loadQuiz(){
+  answered=false;total++;
+  document.getElementById('questionBox').textContent='載入中…';
+  document.getElementById('questionBox').style.opacity='.45';
+  document.getElementById('optionsBox').innerHTML='';
+  document.getElementById('explainBox').style.display='none';
+  document.getElementById('qSrc').textContent='—';
+  updateScore();
+  const law=document.getElementById('lawSelect').value;
+  try{
+    const url=law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`;
+    const data=await fetch(url,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
+    if(data.error){document.getElementById('questionBox').textContent=data.error;document.getElementById('questionBox').style.opacity='1';total--;updateScore();return;}
+    document.getElementById('questionBox').innerHTML=data.question||'出題失敗';
+    document.getElementById('questionBox').style.opacity='1';
+    if(data.law_name&&data.title) document.getElementById('qSrc').textContent=`出處 · ${data.law_name} ${data.title}`;
+    const labels=['A','B','C','D'];
+    (data.options||[]).forEach((opt,i)=>{
+      const btn=document.createElement('div');
+      btn.className='opt';
+      btn.innerHTML=`<div class="key">${labels[i]}</div><div class="body">${esc(opt)}</div>`;
+      btn.addEventListener('click',()=>{
+        if(answered)return;
+        answered=true;
+        document.querySelectorAll('.opt').forEach((b,j)=>{
+          b.style.pointerEvents='none';b.style.cursor='default';
+          if(data.options[j]===data.answer)b.classList.add('right');
         });
-        if (opt !== data.answer) { btn.classList.add('wrong'); wrong++; } else { right++; }
+        if(opt!==data.answer){btn.classList.add('wrong');wrong++;}else{right++;}
         updateScore();
-        if (data.law_name && data.title) {
-          const href = `dashboard.html?open=${encodeURIComponent(data.page_id)}&law=${encodeURIComponent(data.law_name)}&art=${encodeURIComponent(data.title)}`;
-          sbox.innerHTML = `出自 <a href="${href}">《${esc(data.law_name)}》${esc(data.title)}</a>`;
-          sbox.style.display = 'block';
+        if(data.law_name&&data.title){
+          const href=`dashboard.html?open=${encodeURIComponent(data.page_id||'')}&law=${encodeURIComponent(data.law_name)}&art=${encodeURIComponent(data.title)}`;
+          document.getElementById('sourceBox').innerHTML=`出自 <a href="${href}" style="color:var(--peach)">《${esc(data.law_name)}》${esc(data.title)}</a>`;
+          document.getElementById('explainBox').style.display='block';
         }
       });
-      obox.appendChild(btn);
+      document.getElementById('optionsBox').appendChild(btn);
     });
-  } catch {
-    qbox.textContent = '載入失敗，請稍後再試';
-    qbox.style.opacity = '1';
+  }catch{
+    document.getElementById('questionBox').textContent='載入失敗，請稍後再試';
+    document.getElementById('questionBox').style.opacity='1';
+    total--;updateScore();
   }
 }
 
-document.getElementById('btnNew').addEventListener('click', loadQuiz);
+document.getElementById('btnNew').addEventListener('click',loadQuiz);
+document.getElementById('btnNext').addEventListener('click',loadQuiz);
+document.addEventListener('keydown',e=>{
+  if(e.key==='Enter')loadQuiz();
+  const idx={'a':0,'b':1,'c':2,'d':3}[e.key.toLowerCase()];
+  if(idx!==undefined){const opts=document.querySelectorAll('.opt');if(opts[idx])opts[idx].click();}
+});
 </script>
 </body>
 </html>
