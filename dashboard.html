@@ -1019,7 +1019,7 @@
     </nav>
     <div class="top-right">
       <span class="user-pill"><span class="live"></span>Fay</span>
-      <button class="btn-out" onclick="(function(){localStorage.removeItem('sofa_uid');localStorage.removeItem('sofa_role');window.location.href='login.html';})()">登出</button>
+      <button class="btn-out" onclick="(function(){localStorage.removeItem('sofa_uid');localStorage.removeItem('sofa_role');localStorage.removeItem('sofa_free');window.location.href='login.html';})()">登出</button>
       <button class="menu-btn" onclick="document.querySelector('aside.side').classList.toggle('open')"><span></span></button>
     </div>
   </header>
@@ -1603,26 +1603,26 @@ function closeDrawer(){
   document.querySelector('.drawer-mask').classList.remove('open');
 }
 
-// ── 登入狀態：讀取用戶名稱（支援體驗模式）──────────
+// ── 登入狀態：讀取用戶名稱 ──────────────────────
 (function(){
-  const uid = localStorage.getItem('sofa_uid') || sessionStorage.getItem('sofa_trial') || '';
-  const isTrial = !localStorage.getItem('sofa_uid') && !!sessionStorage.getItem('sofa_trial');
+  const uid = localStorage.getItem('sofa_uid');
+  const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
   const isAdmin = localStorage.getItem('sofa_role') === 'admin';
-  if(!uid) { window.location.href = 'login.html'; return; }
+  if(!uid && !isFree) { window.location.href = 'login.html'; return; }
+
   const nameEl = document.getElementById('greet-name');
   if(nameEl){
-    const name = isTrial ? '' : isAdmin ? 'Fay' : (uid.includes('@') ? uid.split('@')[0] : (uid ? uid.slice(0,8) : ''));
+    const name = isFree ? '' : isAdmin ? 'Fay' : '';
     nameEl.textContent = name;
   }
-  // 也更新 topbar pill
   const pill = document.querySelector('.user-pill');
   if(pill){
-    const name = isTrial ? '試用中' : isAdmin ? 'Fay ✦' : (uid.includes('@') ? uid.split('@')[0] : uid.slice(0,8));
+    const name = isFree ? '免費版' : isAdmin ? 'Fay ✦' : '——';
     pill.innerHTML = '<span class="live"></span>' + name;
   }
 
-  // ── 體驗版：鎖定 5/6 段分析（管理員不鎖）──────
-  if(isTrial && !isAdmin){
+  // ── 免費版：鎖定 5+ 段，遮蓋個人資料 ──────────
+  if(isFree && !isAdmin){
     document.querySelectorAll('.acc-item').forEach(function(item){
       var seg = parseInt(item.dataset.seg || '0');
       if(seg >= 5){
@@ -1630,7 +1630,6 @@ function closeDrawer(){
         item.onclick = function(e){ e.stopPropagation(); };
       }
     });
-    // 在鎖定段落前插入 banner
     var firstLocked = document.querySelector('.acc-item.locked');
     if(firstLocked){
       var banner = document.createElement('div');
@@ -1638,14 +1637,13 @@ function closeDrawer(){
       banner.innerHTML = '🔒 5 / 6 段為付費功能（修法備註 · 關聯法規）<a href="checkout.html">升級解鎖 →</a>';
       firstLocked.parentNode.insertBefore(banner, firstLocked);
     }
-    // 體驗版：遮蓋會員卡與進度（避免顯示他人資料）
     var memberCard = document.querySelector('.member-card');
     if(memberCard){
-      memberCard.innerHTML = '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">試用模式 · 完整資料升級後解鎖<br><a href="checkout.html" style="color:var(--peach);margin-top:8px;display:inline-block;">立刻升級 →</a></div>';
+      memberCard.innerHTML = '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版 · 完整會員資訊在升級後解鎖<br><a href="checkout.html" style="color:var(--peach);margin-top:8px;display:inline-block;">查看方案 →</a></div>';
     }
     var progCard = document.querySelector('.prog-card');
     if(progCard){
-      progCard.innerHTML = '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">學習紀錄在啟用後開始累積</div>';
+      progCard.innerHTML = '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版不儲存學習紀錄<br><span style="opacity:.6;font-size:.8em;">升級後自動累積進度</span></div>';
     }
   }
 })();
@@ -1653,8 +1651,8 @@ function closeDrawer(){
 // ── 從 API 拉取真實會員資料 ──────────────────────
 (function(){
   const uid = localStorage.getItem('sofa_uid') || '';
-  const isTrial = !uid && !!sessionStorage.getItem('sofa_trial');
-  if(!uid || isTrial) return; // 體驗版不拉資料
+  const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
+  if(!uid || isFree) return; // 免費版不拉資料
 
   const API = 'https://sofa-engine-api.onrender.com';
   const H = { 'X-Sofa-UID': uid };

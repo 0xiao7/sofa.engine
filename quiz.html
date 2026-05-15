@@ -380,10 +380,10 @@
 
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
-const uid = localStorage.getItem('sofa_uid') || sessionStorage.getItem('sofa_trial') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
-const isTrial = !localStorage.getItem('sofa_uid') && !!sessionStorage.getItem('sofa_trial');
-if (!uid) window.location.href = 'login.html?redirect=quiz.html';
-document.getElementById('navUid').textContent = isTrial ? '體驗版' : (localStorage.getItem('sofa_nickname') || uid);
+const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
+const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
+if (!uid && !isFree) { window.location.href = 'login.html?redirect=quiz.html'; }
+document.getElementById('navUid').textContent = isFree ? '免費版' : (localStorage.getItem('sofa_nickname') || uid);
 
 (async()=>{
   try{
@@ -443,7 +443,7 @@ async function loadQuiz(){
         if(opt!==data.answer){btn.classList.add('wrong');wrong++;}else{right++;}
         updateScore();
         // 寫入練習紀錄
-        if(data.page_id&&uid&&uid!=='PREVIEW'){
+        if(data.page_id&&uid&&uid!=='PREVIEW'&&!isFree){
           fetch(`${API}/api/me/history`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:data.page_id,law_name:data.law_name||'',article:data.title||''})}).catch(()=>{});
         }
         if(data.law_name&&data.title){
@@ -467,10 +467,10 @@ function doFlag(){
   const isFlagged=btn.classList.contains('flagged');
   if(isFlagged){
     btn.classList.remove('flagged');btn.textContent='⚑ 標記';flagged=Math.max(0,flagged-1);
-    if(uid&&uid!=='PREVIEW')fetch(`${API}/api/me/mastery`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:quizData.page_id,status:'none'})}).catch(()=>{});
+    if(uid&&uid!=='PREVIEW'&&!isFree)fetch(`${API}/api/me/mastery`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:quizData.page_id,status:'none'})}).catch(()=>{});
   }else{
     btn.classList.add('flagged');btn.textContent='⚑ 已標記';flagged++;
-    if(uid&&uid!=='PREVIEW')fetch(`${API}/api/me/mastery`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:quizData.page_id,law_name:quizData.law_name||'',article:quizData.title||'',status:'review',review_days:7})}).catch(()=>{});
+    if(uid&&uid!=='PREVIEW'&&!isFree)fetch(`${API}/api/me/mastery`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:quizData.page_id,law_name:quizData.law_name||'',article:quizData.title||'',status:'review',review_days:7})}).catch(()=>{});
   }
   updateScore();
 }
