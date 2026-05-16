@@ -1517,9 +1517,9 @@
       <div style="padding:48px 0;text-align:center;opacity:.4;font-size:.9rem;font-family:var(--sans)">載入中…</div>
     </div>
     <div class="dr-foot">
-      <button class="dr-btn pri"  id="dr-btn-mastered">✓ 已熟記</button>
-      <button class="dr-btn sec"  id="dr-btn-review">加入再讀清單</button>
-      <button class="dr-btn peach" id="dr-btn-bookmark">★ 收藏</button>
+      <button class="dr-btn pri"   id="dr-btn-mastered" onclick="drToggleMastered(this)">✓ 已熟記</button>
+      <button class="dr-btn sec"   id="dr-btn-review"   onclick="drToggleReview(this)">加入再讀清單</button>
+      <button class="dr-btn peach" id="dr-btn-bookmark" onclick="drToggleBookmark(this)">★ 收藏</button>
     </div>
   </aside>
 
@@ -1630,14 +1630,14 @@ function _renderDrawerFallback(lawName, article){
 
 function drToggleBookmark(btn){
   if(!_drPageId) return;
-  var uid  = localStorage.getItem('sofa_uid');
+  var uid = localStorage.getItem('sofa_uid');
   if(!uid){ alert('請先登入'); return; }
   btn.classList.toggle('on');
   var adding = btn.classList.contains('on');
   var path = '/api/me/bookmarks' + (adding ? '' : '/'+encodeURIComponent(_drPageId));
   fetch(API + path, {
     method: adding ? 'POST' : 'DELETE',
-    headers: { 'Authorization':'Bearer '+uid, 'Content-Type':'application/json' },
+    headers: { 'X-Sofa-UID': uid, 'Content-Type': 'application/json' },
     body: adding ? JSON.stringify({ page_id:_drPageId, law_name:_drLawName, article:_drArticle }) : undefined,
   }).catch(function(){});
 }
@@ -1648,7 +1648,8 @@ function drToggleMastered(btn){
   btn.classList.toggle('on');
   var status = btn.classList.contains('on') ? 'mastered' : 'none';
   fetch(API + '/api/me/mastery', {
-    method:'POST', headers:{'Authorization':'Bearer '+uid,'Content-Type':'application/json'},
+    method: 'POST',
+    headers: { 'X-Sofa-UID': uid, 'Content-Type': 'application/json' },
     body: JSON.stringify({ page_id:_drPageId, law_name:_drLawName, article:_drArticle, status:status }),
   }).catch(function(){});
 }
@@ -1659,7 +1660,8 @@ function drToggleReview(btn){
   btn.classList.toggle('on');
   var status = btn.classList.contains('on') ? 'review' : 'none';
   fetch(API + '/api/me/mastery', {
-    method:'POST', headers:{'Authorization':'Bearer '+uid,'Content-Type':'application/json'},
+    method: 'POST',
+    headers: { 'X-Sofa-UID': uid, 'Content-Type': 'application/json' },
     body: JSON.stringify({ page_id:_drPageId, law_name:_drLawName, article:_drArticle, status:status, review_days:7 }),
   }).catch(function(){});
 }
@@ -1674,8 +1676,9 @@ function closeDrawer(){
   // LINE Bot 推播連結帶 ?uid= 時自動登入
   (function(){
     var urlUid = new URLSearchParams(location.search).get('uid');
-    if(urlUid && !localStorage.getItem('sofa_uid') && !localStorage.getItem('sofa_free')){
+    if(urlUid){
       localStorage.setItem('sofa_uid', urlUid);
+      localStorage.removeItem('sofa_free');   // 有序號就以序號登入，清掉免費模式
       history.replaceState(null, '', location.pathname);
     }
   })();
