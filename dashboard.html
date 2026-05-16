@@ -1394,85 +1394,15 @@
           <div class="laws-head">
             <div class="laws-search">
               <span style="color:rgba(245,240,234,.45);font-family:var(--mono)">⌕</span>
-              <input placeholder="搜尋法規名稱…" />
+              <input id="laws-filter-inp" placeholder="搜尋法規名稱…" oninput="_renderLawsToc(0)" />
             </div>
-            <span class="laws-count">顯示 <b>1–12</b> / 33</span>
+            <span id="laws-pager-label" class="laws-count">載入中…</span>
           </div>
 
           <div class="laws-toc" id="laws-toc">
-            <div class="toc-row" onclick="searchLaw('公司法')">
-              <span class="idx">01</span>
-              <span class="nm">公司法<span class="leader"></span></span>
-              <span class="ct" id="lawct-公司法">— 條</span>
-              <span class="arrow">→</span>
-            </div>
-            <div class="toc-row" onclick="searchLaw('所得基本稅額條例施行細則')">
-              <span class="idx">02</span>
-              <span class="nm">所得基本稅額條例施行細則<span class="leader"></span></span>
-              <span class="ct">— 條</span>
-              <span class="arrow">→</span>
-            </div>
-            <div class="toc-row" onclick="searchLaw('商業登記申請辦法')">
-              <span class="idx">03</span>
-              <span class="nm">商業登記申請辦法<span class="leader"></span></span>
-              <span class="ct">— 條</span>
-              <span class="arrow">→</span>
-            </div>
-            <div class="toc-row" onclick="searchLaw('加值型及非加值型營業稅法')">
-              <span class="idx">04</span>
-              <span class="nm">加值型及非加值型營業稅法<span class="leader"></span></span>
-              <span class="ct">— 條</span>
-              <span class="arrow">→</span>
-            </div>
-            <div class="toc-row" onclick="searchLaw('特種貨物及勞務稅條例')">
-              <span class="idx">05</span>
-              <span class="nm">特種貨物及勞務稅條例<span class="leader"></span></span>
-              <span class="ct">— 條</span>
-              <span class="arrow">→</span>
-            </div>
-            <div class="toc-row" onclick="searchLaw('記帳士暨記帳及報稅代理人防制洗錢與打擊資恐辦法')">
-              <span class="idx">06</span>
-              <span class="nm">記帳士暨記帳及報稅代理人防制洗錢與打擊資恐辦法<span class="star-mark">★ 高頻</span><span class="leader"></span></span>
-              <span class="ct">— 條</span>
-              <span class="arrow">→</span>
-            </div>
-            <div class="toc-row" onclick="searchLaw('商業登記法')">
-              <span class="idx">07</span>
-              <span class="nm">商業登記法<span class="star-mark">★ 高頻</span><span class="leader"></span></span>
-              <span class="ct">— 條</span>
-              <span class="arrow">→</span>
-            </div>
-            <div class="toc-row" onclick="searchLaw('統一發票使用辦法')">
-              <span class="idx">08</span>
-              <span class="nm">統一發票使用辦法<span class="leader"></span></span>
-              <span class="ct">— 條</span>
-              <span class="arrow">→</span>
-            </div>
-            <div class="toc-row" onclick="searchLaw('行政程序法')">
-              <span class="idx">09</span>
-              <span class="nm">行政程序法<span class="leader"></span></span>
-              <span class="ct">— 條</span>
-              <span class="arrow">→</span>
-            </div>
-            <div class="toc-row" onclick="searchLaw('記帳士懲戒委員會與懲戒覆審委員會組織及審議規則')">
-              <span class="idx">10</span>
-              <span class="nm">記帳士懲戒委員會與懲戒覆審委員會組織及審議規則<span class="leader"></span></span>
-              <span class="ct">— 條</span>
-              <span class="arrow">→</span>
-            </div>
-            <div class="toc-row" onclick="searchLaw('遺產及贈與稅法施行細則')">
-              <span class="idx">11</span>
-              <span class="nm">遺產及贈與稅法施行細則<span class="leader"></span></span>
-              <span class="ct">— 條</span>
-              <span class="arrow">→</span>
-            </div>
-            <div class="toc-row" onclick="searchLaw('公司登記辦法')">
-              <span class="idx">12</span>
-              <span class="nm">公司登記辦法<span class="leader"></span></span>
-              <span class="ct">— 條</span>
-              <span class="arrow">→</span>
-            </div>
+            <div style="padding:24px;text-align:center;opacity:.4;font-size:.85rem;font-family:var(--sans)">載入中…</div>
           </div>
+          <div id="laws-pager" style="display:flex;justify-content:center;align-items:center;gap:12px;padding:14px 0"></div>
         </section>
 
         <!-- ============ 09 RECENT ============ -->
@@ -2156,15 +2086,115 @@ try{
   document.getElementById('cdRestore').classList.add('show');
 }
 // ── 03 法條搜尋 ──────────────────────────────────────────
-var _allLaws   = [];
-var _curChip   = 'all';
+var _allLaws    = [];
+var _lawsPage   = 0;
+var _lawsPerPg  = 12;
+var _curChip    = 'all';
 var _curLawName = '';
+// 搜尋結果分頁
+var _srArts  = [];
+var _srLaw   = '';
+var _srPage  = 0;
+var _srSize  = 10;
 
-// 頁面載入後抓法規清單，供自動補全
+function _renderSrPage(){
+  var resEl = document.getElementById('search-results');
+  if(!resEl) return;
+  var total = _srArts.length;
+  if(!total){
+    resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">沒有符合條件的條文</div>';
+    return;
+  }
+  var totalPg = Math.ceil(total / _srSize);
+  if(_srPage >= totalPg) _srPage = totalPg - 1;
+  var start = _srPage * _srSize;
+  var slice = _srArts.slice(start, start + _srSize);
+  var html = _renderResRows(slice, _srLaw);
+  // 分頁列
+  var btnS = 'padding:5px 14px;border-radius:3px;border:1px solid rgba(245,240,234,.2);background:transparent;color:rgba(245,240,234,.65);cursor:pointer;font-family:var(--mono);font-size:11.5px';
+  var disS = 'padding:5px 14px;border-radius:3px;border:1px solid rgba(245,240,234,.07);background:transparent;color:rgba(245,240,234,.2);font-family:var(--mono);font-size:11.5px;cursor:default';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-top:1px solid rgba(245,240,234,.08)">'
+    + '<span style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.38)">' + (start+1) + '–' + (start+slice.length) + ' / 共 ' + total + ' 條</span>'
+    + '<div style="display:flex;gap:6px">'
+    + (_srPage > 0 ? '<button style="'+btnS+'" onclick="_srGoto('+(_srPage-1)+')">‹ 上頁</button>' : '<button style="'+disS+'" disabled>‹ 上頁</button>')
+    + (_srPage < totalPg-1 ? '<button style="'+btnS+'" onclick="_srGoto('+(_srPage+1)+')">下頁 ›</button>' : '<button style="'+disS+'" disabled>下頁 ›</button>')
+    + '</div></div>';
+  resEl.innerHTML = html;
+}
+
+function _srGoto(p){
+  _srPage = p;
+  _renderSrPage();
+  var sec = document.getElementById('search');
+  if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// 法規目錄渲染（分頁 + filter）
+function _renderLawsToc(page){
+  _lawsPage = page || 0;
+  var filter = ((document.getElementById('laws-filter-inp')||{}).value||'').trim();
+  var list = filter
+    ? _allLaws.filter(function(l){ return (l.name||'').indexOf(filter) !== -1; })
+    : _allLaws;
+  var total = list.length;
+  var totalPg = Math.max(1, Math.ceil(total / _lawsPerPg));
+  if(_lawsPage >= totalPg) _lawsPage = totalPg - 1;
+  var start = _lawsPage * _lawsPerPg;
+  var slice = list.slice(start, start + _lawsPerPg);
+
+  var label = document.getElementById('laws-pager-label');
+  var tocEl = document.getElementById('laws-toc');
+  var pagerEl = document.getElementById('laws-pager');
+
+  if(label) label.innerHTML = total
+    ? '顯示 <b>' + (start+1) + '–' + (start+slice.length) + '</b> / ' + total
+    : '找不到符合的法規';
+
+  if(tocEl){
+    if(!slice.length){
+      tocEl.innerHTML = '<div style="padding:24px;text-align:center;opacity:.4;font-size:.85rem;font-family:var(--sans)">找不到符合的法規</div>';
+    } else {
+      tocEl.innerHTML = slice.map(function(l, i){
+        var nm  = esc(l.name||'');
+        var ct  = l.article_count ? l.article_count + ' 條' : '— 條';
+        var star = l.starred ? '<span class="star-mark">★ 高頻</span>' : '';
+        var idx = String(start + i + 1).padStart(2,'0');
+        return '<div class="toc-row" onclick="searchLaw(\''+nm+'\')">'
+          + '<span class="idx">'+idx+'</span>'
+          + '<span class="nm">'+nm+star+'<span class="leader"></span></span>'
+          + '<span class="ct">'+ct+'</span>'
+          + '<span class="arrow">→</span></div>';
+      }).join('');
+    }
+  }
+
+  if(pagerEl){
+    if(totalPg <= 1){
+      pagerEl.innerHTML = '';
+    } else {
+      var btnStyle = 'padding:6px 16px;border-radius:4px;border:1px solid rgba(245,240,234,.2);background:transparent;color:rgba(245,240,234,.7);cursor:pointer;font-family:var(--mono);font-size:12px;transition:.15s';
+      var disStyle = 'padding:6px 16px;border-radius:4px;border:1px solid rgba(245,240,234,.07);background:transparent;color:rgba(245,240,234,.2);font-family:var(--mono);font-size:12px;cursor:default';
+      pagerEl.innerHTML =
+        (_lawsPage > 0
+          ? '<button style="'+btnStyle+'" onclick="_renderLawsToc('+(_lawsPage-1)+')">‹ 上頁</button>'
+          : '<button style="'+disStyle+'" disabled>‹ 上頁</button>')
+        + '<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.4)">'
+          + (_lawsPage+1) + ' / ' + totalPg
+          + '</span>'
+        + (_lawsPage < totalPg-1
+          ? '<button style="'+btnStyle+'" onclick="_renderLawsToc('+(_lawsPage+1)+')">下頁 ›</button>'
+          : '<button style="'+disStyle+'" disabled>下頁 ›</button>');
+    }
+  }
+}
+
+// 頁面載入後抓法規清單，供自動補全 + 目錄渲染
 (function(){
   fetch(API + '/api/laws')
     .then(function(r){ return r.ok ? r.json() : null; })
-    .then(function(d){ if(d && d.laws) _allLaws = d.laws; })
+    .then(function(d){
+      if(d && d.laws){ _allLaws = d.laws; _renderLawsToc(0); }
+    })
     .catch(function(){});
 })();
 
@@ -2262,6 +2292,14 @@ function _renderResRows(arts, lawName){
   }).join('');
 }
 
+function _srSet(arts, law){
+  _srArts = arts; _srLaw = law||''; _srPage = 0;
+  _renderSrPage();
+}
+var _MSG_LOADING = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢中⋯</div>';
+var _MSG_EMPTY   = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">沒有符合條件的條文</div>';
+var _MSG_FAIL    = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢失敗，請稍後再試</div>';
+
 function doSearch(){
   var lawName = (document.getElementById('search-law')||{}).value||'';
   lawName = lawName.trim();
@@ -2269,67 +2307,36 @@ function doSearch(){
   var resEl = document.getElementById('search-results');
   if(!resEl) return;
 
-  // ── Fix 2: 無法規名稱時依 chip 跨法規搜尋 ──
+  // ── 無法規名稱時依 chip 跨法規搜尋 ──
   if(!lawName){
     var chip = _curChip;
     if(chip === 'all'){
       resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">選擇分類或輸入法規名稱開始查詢</div>';
       return;
     }
-    resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢中⋯</div>';
+    resEl.innerHTML = _MSG_LOADING;
     var sec = document.getElementById('search');
     if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
-    if(chip === '5star' || chip === '4star'){
-      fetch(API + '/api/starred')
-        .then(function(r){ return r.ok ? r.json() : null; })
-        .then(function(d){
-          var arts = (d && d.articles) ? d.articles : [];
-          arts = _chipFilter(arts, chip);
-          if(!arts.length){
-            resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">沒有符合條件的條文</div>';
-            return;
-          }
-          resEl.innerHTML = _renderResRows(arts, '');
-        })
-        .catch(function(){
-          resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢失敗，請稍後再試</div>';
-        });
-    } else if(chip === 'deadline'){
-      fetch(API + '/api/search?q=' + encodeURIComponent('期間'))
-        .then(function(r){ return r.ok ? r.json() : null; })
-        .then(function(d){
-          var arts = (d && d.articles) ? d.articles : [];
-          if(!arts.length){
-            resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">沒有符合條件的條文</div>';
-            return;
-          }
-          resEl.innerHTML = _renderResRows(arts, '');
-        })
-        .catch(function(){
-          resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢失敗，請稍後再試</div>';
-        });
-    } else if(chip === 'penalty'){
-      fetch(API + '/api/search?q=' + encodeURIComponent('罰則'))
-        .then(function(r){ return r.ok ? r.json() : null; })
-        .then(function(d){
-          var arts = (d && d.articles) ? d.articles : [];
-          if(!arts.length){
-            resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">沒有符合條件的條文</div>';
-            return;
-          }
-          resEl.innerHTML = _renderResRows(arts, '');
-        })
-        .catch(function(){
-          resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢失敗，請稍後再試</div>';
-        });
-    }
+
+    var url = (chip === '5star' || chip === '4star')
+      ? API + '/api/starred'
+      : API + '/api/search?q=' + encodeURIComponent(chip === 'deadline' ? '期間' : '罰則');
+
+    fetch(url)
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        var arts = (d && d.articles) ? d.articles : [];
+        if(chip === '5star' || chip === '4star') arts = _chipFilter(arts, chip);
+        if(!arts.length){ resEl.innerHTML = _MSG_EMPTY; return; }
+        _srSet(arts, '');
+      })
+      .catch(function(){ resEl.innerHTML = _MSG_FAIL; });
     return;
   }
 
-  // ── 有法規名稱：原有邏輯 + Fix 1 chip 過濾 ──
+  // ── 有法規名稱：撈全部條文 → chip 過濾 → 分頁顯示 ──
   _curLawName = lawName;
-  resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢中⋯</div>';
-  // 捲動到搜尋區
+  resEl.innerHTML = _MSG_LOADING;
   var sec = document.getElementById('search');
   if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
 
@@ -2341,24 +2348,17 @@ function doSearch(){
         return;
       }
       var arts = d.articles;
-      // 條號篩選
       if(artFilter){
         arts = arts.filter(function(a){
           var num = ((a.title||'').match(/(\d+)/)||['',''])[1];
           return num === artFilter || (a.title||'').indexOf(artFilter) !== -1;
         });
       }
-      // Fix 1: chip 過濾
       arts = _chipFilter(arts, _curChip);
-      if(!arts.length){
-        resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">沒有符合條件的條文</div>';
-        return;
-      }
-      resEl.innerHTML = _renderResRows(arts, lawName);
+      if(!arts.length){ resEl.innerHTML = _MSG_EMPTY; return; }
+      _srSet(arts, lawName);
     })
-    .catch(function(){
-      resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢失敗，請稍後再試</div>';
-    });
+    .catch(function(){ resEl.innerHTML = _MSG_FAIL; });
 }
 
 // 法規目錄點擊 → 填入搜尋並執行
