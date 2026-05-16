@@ -1299,23 +1299,12 @@
               <span class="idx">04</span>
               <h2>我的收藏</h2>
             </div>
-            <div class="r">1 條 · <a href="#">管理</a></div>
+            <div class="r"><span id="fav-count">— 條</span></div>
           </div>
-
-          <div class="card-grid">
-            <div class="li-card" onclick="openDrawer()">
-              <span class="star">★</span>
-              <div class="law">記帳士法</div>
-              <div class="art">§9</div>
-              <div class="sub">記帳士登錄</div>
-              <div class="meta">
-                <span>收藏於 05-09</span>
-                <a href="#">查看 →</a>
-              </div>
-            </div>
-            <div class="empty" style="grid-column: span 2;">
+          <div class="card-grid" id="favorites-list">
+            <div class="empty" style="grid-column:span 3">
               <span class="ic">☆</span>
-              <div>再多收藏幾條吧。<br/>在條文卡片上點 <b>★</b> 即可。</div>
+              <div>載入中…</div>
             </div>
           </div>
         </section>
@@ -1327,12 +1316,13 @@
               <span class="idx">05</span>
               <h2>已熟記</h2>
             </div>
-            <div class="r">0 條</div>
+            <div class="r"><span id="mastered-count">0 條</span></div>
           </div>
-
-          <div class="empty full">
-            <span class="ic">✓</span>
-            <div>還沒有標記已熟記的條文。<br/>開啟條文後點 <b>「已熟記」</b>。</div>
+          <div class="card-grid" id="mastered-list">
+            <div class="empty full" style="grid-column:span 3">
+              <span class="ic">✓</span>
+              <div>載入中…</div>
+            </div>
           </div>
         </section>
 
@@ -1343,18 +1333,12 @@
               <span class="idx">06</span>
               <h2>待複習</h2>
             </div>
-            <div class="r">1 條 · 排程中</div>
+            <div class="r"><span id="review-count">0 條</span></div>
           </div>
-
-          <div class="card-grid">
-            <div class="li-card warn" style="grid-column: span 3;" onclick="openDrawer()">
-              <div class="law">商業登記法</div>
-              <div class="art">§22</div>
-              <div class="sub">補正通知</div>
-              <div class="meta">
-                <span>下次複習 · <b>7 天後</b></span>
-                <a href="#">立即複習 →</a>
-              </div>
+          <div class="card-grid" id="review-list">
+            <div class="empty" style="grid-column:span 3">
+              <span class="ic">⊙</span>
+              <div>載入中…</div>
             </div>
           </div>
         </section>
@@ -1513,47 +1497,8 @@
             <div class="r"><span class="eb">最近 7 天</span></div>
           </div>
 
-          <div class="recent-list">
-            <div class="rec-group">
-              <div class="rec-date-head">05.10 · 五</div>
-              <div class="rec-row" onclick="openDrawer()">
-                <span class="law">行政程序法</span>
-                <span class="art">§2</span>
-                <span class="ttl">行政程序與行政機關定義</span>
-                <span class="time">22:31</span>
-              </div>
-              <div class="rec-date-head">05.09 · 四</div>
-              <div class="rec-row">
-                <span class="law">行政程序法</span>
-                <span class="art">§2</span>
-                <span class="ttl">行政程序與行政機關定義</span>
-                <span class="time">23:02</span>
-              </div>
-              <div class="rec-row">
-                <span class="law">記帳士法</span>
-                <span class="art">§9</span>
-                <span class="ttl">記帳士登錄</span>
-                <span class="time">22:18</span>
-              </div>
-              <div class="rec-row" onclick="openDrawer()">
-                <span class="law">記帳士法</span>
-                <span class="art">§13</span>
-                <span class="ttl">執行業務範圍</span>
-                <span class="time">22:04</span>
-              </div>
-              <div class="rec-row">
-                <span class="law">商業登記法</span>
-                <span class="art">§22</span>
-                <span class="ttl">補正通知</span>
-                <span class="time">21:38</span>
-              </div>
-              <div class="rec-row">
-                <span class="law">商業登記法</span>
-                <span class="art">§23</span>
-                <span class="ttl">辦理期間</span>
-                <span class="time">21:30</span>
-              </div>
-            </div>
+          <div class="recent-list" id="recent-list">
+            <div style="padding:24px 0;text-align:center;opacity:.4;font-size:.85rem;font-family:var(--sans)">載入中…</div>
           </div>
         </section>
 
@@ -1565,84 +1510,160 @@
   <div class="drawer-mask" onclick="closeDrawer()"></div>
   <aside class="drawer">
     <div class="dr-head">
-      <div>記帳士法 / 第三章 業務及責任 / 第 13 條</div>
+      <div id="dr-breadcrumb">——</div>
       <span class="x" onclick="closeDrawer()">✕</span>
     </div>
-    <div class="dr-body">
-      <span class="dr-eyebrow">ARTICLE · 高頻 ★★★★★</span>
-      <div class="dr-title">
-        <span class="n">13</span>
-        <span class="tt">記帳士業務</span>
-      </div>
-      <div class="dr-actions">
-        <button class="dr-chip"><span>☆</span>收藏</button>
-        <button class="dr-chip"><span>○</span>已熟記</button>
-        <button class="dr-chip"><span>⊙</span>待複習</button>
-      </div>
-      <div class="dr-text">
-        <p style="color:rgba(31,56,72,.75)">記帳士得在<span class="hl">登錄區域內</span>，執行下列業務：</p>
-        <p><span class="ro">一、</span>受委任辦理營業、變更、註銷、停業、復業及其他登記事項。</p>
-        <p><span class="ro">二、</span>受委任辦理各項<span class="hl">稅捐稽徵</span>案件之申報及申請事項。</p>
-        <p><span class="ro">三、</span>受理稅務諮詢事項。</p>
-        <p><span class="ro">四、</span>受委任辦理商業會計事務。</p>
-        <p><span class="ro">五、</span>其他經主管機關核可辦理與記帳及報稅事務有關之事項。</p>
-        <div class="but">前項業務<b>不包括</b>受委任辦理各項稅捐之查核簽證申報及訴願、行政訴訟事項。</div>
-      </div>
-
-      <div class="dr-acc">
-        <div class="acc-item open" data-seg="1" onclick="this.classList.toggle('open')">
-          <div class="acc-head"><span class="cv">▸</span><span class="num">1</span><span class="ttl">章節標題與戰略權重</span></div>
-          <div class="acc-body"><div class="acc-inner">
-            <p>本條位於<b>第三章「業務及責任」</b>，是定義「記帳士能做什麼」的核心條文。</p>
-            <p>近 10 年國考<b>命中率 92%</b>，<span class="kw">五款業務範圍</span>與<span class="kw">但書排除事項</span>幾乎每年都會考。</p>
-          </div></div>
-        </div>
-        <div class="acc-item" data-seg="2" onclick="this.classList.toggle('open')">
-          <div class="acc-head"><span class="cv">▸</span><span class="num">2</span><span class="ttl">規範意旨與條文解析</span></div>
-          <div class="acc-body"><div class="acc-inner">
-            <p>本條規範記帳士的<b>業務範圍與限制</b>。前段五款採「列舉式」。</p>
-            <p>「<span class="kw">登錄區域內</span>」為地域限制；但書排除<b>查核簽證</b>與<b>訴願 / 行政訴訟</b>。</p>
-          </div></div>
-        </div>
-        <div class="acc-item" data-seg="3" onclick="this.classList.toggle('open')">
-          <div class="acc-head"><span class="cv">▸</span><span class="num">3</span><span class="ttl">執業要點與考情提示</span></div>
-          <div class="acc-body"><div class="acc-inner">
-            <p>考點集中在三處：五款的<b>順序與內容</b>、但書的<b>三項排除</b>、與第 9 條、第 14 條的連動。</p>
-          </div></div>
-        </div>
-        <div class="acc-item" data-seg="4" onclick="this.classList.toggle('open')">
-          <div class="acc-head"><span class="cv">▸</span><span class="num">4</span><span class="ttl">核心摘要與記憶策略</span></div>
-          <div class="acc-body"><div class="acc-inner">
-            <p>口訣：<span class="kw">登 / 稅 / 諮 / 商 / 其他</span> + 但書「<span class="kw">不查不訴</span>」。</p>
-          </div></div>
-        </div>
-        <div class="acc-item" data-seg="5" onclick="this.classList.toggle('open')">
-          <div class="acc-head"><span class="cv">▸</span><span class="num">5</span><span class="ttl">修法與聯覺備註</span></div>
-          <div class="acc-body"><div class="acc-inner">
-            <p>最近一次修正：<b>2019 / 06 / 21</b>。實質規範自 2004 年立法以來未變動。</p>
-          </div></div>
-        </div>
-        <div class="acc-item" data-seg="6" onclick="this.classList.toggle('open')">
-          <div class="acc-head"><span class="cv">▸</span><span class="num">6</span><span class="ttl">關聯法規與條文互參</span></div>
-          <div class="acc-body"><div class="acc-inner">
-            <p>與 <span class="kw">第 9 條</span>（登錄要件）、<span class="kw">第 14 條</span>（業務限制）高度連動。</p>
-            <p>跨法連結：商業會計法 §71、稅捐稽徵法 §35 均有業務範圍交叉。</p>
-          </div></div>
-        </div>
-      </div>
+    <div class="dr-body" id="dr-body">
+      <div style="padding:48px 0;text-align:center;opacity:.4;font-size:.9rem;font-family:var(--sans)">載入中…</div>
     </div>
     <div class="dr-foot">
-      <button class="dr-btn pri">✓ 已熟記</button>
-      <button class="dr-btn sec">加入再讀清單</button>
-      <button class="dr-btn peach">★ 收藏</button>
+      <button class="dr-btn pri"  id="dr-btn-mastered">✓ 已熟記</button>
+      <button class="dr-btn sec"  id="dr-btn-review">加入再讀清單</button>
+      <button class="dr-btn peach" id="dr-btn-bookmark">★ 收藏</button>
     </div>
   </aside>
 
 <script>
-function openDrawer(){
+// ── Drawer 動態開啟 ──────────────────────────────────────
+var _drPageId = '';
+var _drLawName = '';
+var _drArticle = '';
+
+function openDrawer(pageId, lawName, article){
+  _drPageId  = pageId  || '';
+  _drLawName = lawName || '';
+  _drArticle = article || '';
   document.querySelector('.drawer').classList.add('open');
   document.querySelector('.drawer-mask').classList.add('open');
+  // 先填入基本資訊
+  var bc = document.getElementById('dr-breadcrumb');
+  if(bc) bc.textContent = lawName ? (lawName + ' §' + article) : '——';
+  var body = document.getElementById('dr-body');
+  if(body) body.innerHTML = '<div style="padding:48px 0;text-align:center;opacity:.4;font-size:.9rem;font-family:var(--sans)">載入中…</div>';
+  // 有 pageId 才拉內容
+  if(!pageId) return;
+  var uid  = localStorage.getItem('sofa_uid') || '';
+  var free = !uid && localStorage.getItem('sofa_free') === 'FREE';
+  var auth = uid ? ('Bearer ' + uid) : (free ? 'Bearer FREE' : '');
+  fetch(API + '/api/article/' + encodeURIComponent(pageId), {
+    headers: auth ? { 'Authorization': auth } : {}
+  }).then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){ _renderDrawer(d); })
+    .catch(function(){ _renderDrawerFallback(lawName, article); });
 }
+
+function _renderDrawer(d){
+  var body = document.getElementById('dr-body');
+  if(!body || !d) { _renderDrawerFallback(_drLawName, _drArticle); return; }
+
+  var bc = document.getElementById('dr-breadcrumb');
+  if(bc){
+    var parts = [d.law_name || _drLawName];
+    if(d.chapter) parts.push(d.chapter);
+    parts.push('第 ' + (d.title||'').match(/(\d+)/)?.[1] + ' 條');
+    bc.textContent = parts.filter(Boolean).join(' / ');
+  }
+
+  var artNum = (d.title||'').match(/(\d+)/)?.[1] || _drArticle;
+  var artTitle = (d.title||'').replace(/第\d+條\s*/,'').trim() || '——';
+  var imp = d.importance || '';
+
+  // 原文段落
+  var origHtml = '';
+  if(d.original_text){
+    origHtml = '<div class="dr-text">'
+      + d.original_text.split('\n').filter(Boolean).map(function(l){
+          return '<p>' + l.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</p>';
+        }).join('')
+      + '</div>';
+  }
+
+  // 分析段落（付費/體驗才顯示第5、6段）
+  var uid   = localStorage.getItem('sofa_uid') || '';
+  var isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
+  var SEC_NAMES = [
+    '章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示',
+    '核心摘要與記憶策略','修法與聯覺備註','相關法規及注意事項'
+  ];
+  var accHtml = '<div class="dr-acc">';
+  SEC_NAMES.forEach(function(name, idx){
+    var seg  = idx + 1;
+    var text = (d.sections || {})[name] || '';
+    var locked = isFree && seg >= 5;
+    if(locked){
+      accHtml += '<div class="acc-item locked" data-seg="'+seg+'">'
+        + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span>'
+        + '<span class="ttl">'+name+'</span><span style="margin-left:auto;font-size:11px;opacity:.5">🔒 付費解鎖</span></div></div>';
+    } else if(text){
+      accHtml += '<div class="acc-item'+(seg===1?' open':'')+'" data-seg="'+seg+'" onclick="this.classList.toggle(\'open\')">'
+        + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span><span class="ttl">'+name+'</span></div>'
+        + '<div class="acc-body"><div class="acc-inner">'
+        + text.split('\n').filter(Boolean).map(function(l){
+            return '<p>'+l.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</p>';
+          }).join('')
+        + '</div></div></div>';
+    }
+  });
+  accHtml += '</div>';
+
+  body.innerHTML =
+    '<span class="dr-eyebrow">ARTICLE' + (imp ? ' · ' + imp : '') + '</span>'
+    + '<div class="dr-title"><span class="n">' + artNum + '</span><span class="tt">' + artTitle + '</span></div>'
+    + '<div class="dr-actions">'
+    + '<button class="dr-chip" onclick="drToggleBookmark(this)"><span>☆</span>收藏</button>'
+    + '<button class="dr-chip" onclick="drToggleMastered(this)"><span>○</span>已熟記</button>'
+    + '<button class="dr-chip" onclick="drToggleReview(this)"><span>⊙</span>待複習</button>'
+    + '</div>'
+    + origHtml
+    + accHtml;
+}
+
+function _renderDrawerFallback(lawName, article){
+  var body = document.getElementById('dr-body');
+  if(!body) return;
+  body.innerHTML = '<div style="padding:32px;text-align:center;opacity:.5;font-size:.9rem;font-family:var(--sans)">'
+    + (lawName ? '§' + article + '　' + lawName : '——')
+    + '<br><br>詳細內容請至練習頁查看</div>'
+    + '<div style="padding:0 32px 24px;text-align:center">'
+    + '<a href="practice.html" style="color:var(--peach-3);font-family:var(--sans);font-size:.9rem">前往練習頁 →</a></div>';
+}
+
+function drToggleBookmark(btn){
+  if(!_drPageId) return;
+  var uid  = localStorage.getItem('sofa_uid');
+  if(!uid){ alert('請先登入'); return; }
+  btn.classList.toggle('on');
+  var adding = btn.classList.contains('on');
+  var path = '/api/me/bookmarks' + (adding ? '' : '/'+encodeURIComponent(_drPageId));
+  fetch(API + path, {
+    method: adding ? 'POST' : 'DELETE',
+    headers: { 'Authorization':'Bearer '+uid, 'Content-Type':'application/json' },
+    body: adding ? JSON.stringify({ page_id:_drPageId, law_name:_drLawName, article:_drArticle }) : undefined,
+  }).catch(function(){});
+}
+function drToggleMastered(btn){
+  if(!_drPageId) return;
+  var uid = localStorage.getItem('sofa_uid');
+  if(!uid){ alert('請先登入'); return; }
+  btn.classList.toggle('on');
+  var status = btn.classList.contains('on') ? 'mastered' : 'none';
+  fetch(API + '/api/me/mastery', {
+    method:'POST', headers:{'Authorization':'Bearer '+uid,'Content-Type':'application/json'},
+    body: JSON.stringify({ page_id:_drPageId, law_name:_drLawName, article:_drArticle, status:status }),
+  }).catch(function(){});
+}
+function drToggleReview(btn){
+  if(!_drPageId) return;
+  var uid = localStorage.getItem('sofa_uid');
+  if(!uid){ alert('請先登入'); return; }
+  btn.classList.toggle('on');
+  var status = btn.classList.contains('on') ? 'review' : 'none';
+  fetch(API + '/api/me/mastery', {
+    method:'POST', headers:{'Authorization':'Bearer '+uid,'Content-Type':'application/json'},
+    body: JSON.stringify({ page_id:_drPageId, law_name:_drLawName, article:_drArticle, status:status, review_days:7 }),
+  }).catch(function(){});
+}
+
 function closeDrawer(){
   document.querySelector('.drawer').classList.remove('open');
   document.querySelector('.drawer-mask').classList.remove('open');
@@ -1706,6 +1727,7 @@ function closeDrawer(){
 
   function setText(id, val){ var el = document.getElementById(id); if(el) el.textContent = val; }
   function setHTML(id, val){ var el = document.getElementById(id); if(el) el.innerHTML = val; }
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 
   // 計算連續學習天數
   function calcStreak(history){
@@ -1738,11 +1760,13 @@ function closeDrawer(){
     fetch(API+'/api/me/progress',  { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
     fetch(API+'/api/me/bookmarks', { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
     fetch(API+'/api/me/history',   { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
+    fetch(API+'/api/me/mastery',   { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
   ]).then(function(results){
     var profile   = results[0];
     var progress  = results[1];
     var bookmarks = results[2];
     var historyRes = results[3];
+    var masteryRes = results[4];
 
     // ── 會員卡 ──
     if(profile){
@@ -1831,6 +1855,123 @@ function closeDrawer(){
     if(bookmarks){
       setHTML('ps-bookmarks', (bookmarks.total||0)+'<span class="u">條</span>');
     }
+
+    // ── 04 我的收藏 ────────────────────────────────────────
+    (function(){
+      var el = document.getElementById('favorites-list');
+      if(!el) return;
+      var items = (bookmarks && bookmarks.bookmarks) || [];
+      var cnt = document.getElementById('fav-count');
+      if(cnt) cnt.textContent = items.length + ' 條';
+      if(!items.length){
+        el.innerHTML = '<div class="empty" style="grid-column:span 3"><span class="ic">☆</span>'
+          + '<div>還沒有收藏任何條文。<br/>在條文卡片上點 <b>★</b> 即可。</div></div>';
+        return;
+      }
+      el.innerHTML = items.map(function(b){
+        var dateStr = (b.bookmarked_at||'').slice(5,10).replace('-','.');
+        var pid = (b.page_id||'').replace(/'/g,'');
+        var ln  = (b.law_name||'').replace(/'/g,'');
+        var art = (b.article||'').replace(/'/g,'');
+        return '<div class="li-card" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+art+'\')">'+
+          '<span class="star">★</span>'+
+          '<div class="law">'+esc(b.law_name||'——')+'</div>'+
+          '<div class="art">§'+esc(b.article||'?')+'</div>'+
+          '<div class="sub">'+esc(b.title||'')+'</div>'+
+          '<div class="meta"><span>收藏於 '+esc(dateStr)+'</span></div>'+
+          '</div>';
+      }).join('');
+    })();
+
+    // ── 05 已熟記 ／ 06 待複習 ──────────────────────────────
+    (function(){
+      var items = (masteryRes && masteryRes.items) || [];
+      var mastered = items.filter(function(m){ return m.status==='mastered'; });
+      var reviews  = items.filter(function(m){ return m.status==='review'; });
+
+      var masteredEl = document.getElementById('mastered-list');
+      var masteredCt = document.getElementById('mastered-count');
+      if(masteredCt) masteredCt.textContent = mastered.length + ' 條';
+      if(masteredEl){
+        if(!mastered.length){
+          masteredEl.innerHTML = '<div class="empty full" style="grid-column:span 3"><span class="ic">✓</span>'
+            +'<div>還沒有標記已熟記的條文。<br/>開啟條文後點 <b>「已熟記」</b>。</div></div>';
+        } else {
+          masteredEl.innerHTML = mastered.map(function(m){
+            var pid = (m.page_id||'').replace(/'/g,'');
+            var ln  = (m.law_name||'').replace(/'/g,'');
+            var art = (m.article||'').replace(/'/g,'');
+            return '<div class="li-card" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+art+'\')">'+
+              '<div class="law">'+esc(m.law_name||'——')+'</div>'+
+              '<div class="art">§'+esc(m.article||'?')+'</div>'+
+              '</div>';
+          }).join('');
+        }
+      }
+
+      var reviewEl = document.getElementById('review-list');
+      var reviewCt = document.getElementById('review-count');
+      if(reviewCt) reviewCt.textContent = reviews.length + ' 條';
+      if(reviewEl){
+        if(!reviews.length){
+          reviewEl.innerHTML = '<div class="empty" style="grid-column:span 3"><span class="ic">⊙</span>'
+            +'<div>尚無待複習條文。<br/>開啟條文後點「加入再讀清單」。</div></div>';
+        } else {
+          reviewEl.innerHTML = reviews.map(function(m){
+            var pid = (m.page_id||'').replace(/'/g,'');
+            var ln  = (m.law_name||'').replace(/'/g,'');
+            var art = (m.article||'').replace(/'/g,'');
+            var days = m.review_days || 7;
+            return '<div class="li-card warn" style="grid-column:span 3" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+art+'\')">'+
+              '<div class="law">'+esc(m.law_name||'——')+'</div>'+
+              '<div class="art">§'+esc(m.article||'?')+'</div>'+
+              '<div class="meta"><span>複習間隔 · <b>'+days+' 天</b></span></div>'+
+              '</div>';
+          }).join('');
+        }
+      }
+    })();
+
+    // ── 09 最近查詢 ──────────────────────────────────────────
+    (function(){
+      var el = document.getElementById('recent-list');
+      if(!el) return;
+      var hist = (historyRes && historyRes.history) || [];
+      if(!hist.length){
+        el.innerHTML = '<div style="padding:24px 0;text-align:center;opacity:.4;font-size:.85rem;font-family:var(--sans)">還沒有查詢紀錄，去查第一條吧！</div>';
+        return;
+      }
+      // 按日期分組
+      var groups = {};
+      hist.forEach(function(h){
+        var ts = h.timestamp || h.queried_at || '';
+        var d  = ts.slice(0,10);
+        if(!groups[d]) groups[d]=[];
+        groups[d].push(h);
+      });
+      var days = ['日','一','二','三','四','五','六'];
+      var html = '';
+      Object.keys(groups).sort(function(a,b){return b>a?1:-1;}).slice(0,7).forEach(function(date){
+        var dt  = new Date(date);
+        var label = date.slice(5).replace('-','.') + ' · ' + days[dt.getDay()];
+        html += '<div class="rec-group"><div class="rec-date-head">'+label+'</div>';
+        groups[date].forEach(function(h){
+          var time = (h.timestamp||h.queried_at||'').slice(11,16);
+          var pid  = (h.page_id||'').replace(/'/g,'');
+          var ln   = (h.law_name||'').replace(/'/g,'');
+          var art  = (h.article||'').replace(/'/g,'');
+          var hasId = !!pid;
+          html += '<div class="rec-row"'+(hasId?' onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+art+'\')"':'')+'>'+
+            '<span class="law">'+esc(h.law_name||'——')+'</span>'+
+            '<span class="art">§'+esc(h.article||'?')+'</span>'+
+            '<span class="ttl">'+esc(h.title||'')+'</span>'+
+            '<span class="time">'+esc(time)+'</span>'+
+            '</div>';
+        });
+        html += '</div>';
+      });
+      el.innerHTML = html;
+    })();
   });
 })();
 
