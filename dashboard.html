@@ -1057,7 +1057,7 @@
       <a href="#laws">法規</a>
     </nav>
     <div class="top-right">
-      <span class="user-pill"><span class="live"></span>Fay</span>
+      <span class="user-pill" id="user-pill-top"><span class="live"></span>——</span>
       <button class="btn-out" onclick="(function(){localStorage.removeItem('sofa_uid');localStorage.removeItem('sofa_free');localStorage.removeItem('sofa_nickname');window.location.href='login.html';})()">登出</button>
       <button class="menu-btn" onclick="document.querySelector('aside.side').classList.toggle('open')"><span></span></button>
     </div>
@@ -1684,7 +1684,7 @@ function closeDrawer(){
   const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
   if(!uid && !isFree) { window.location.href = 'login.html'; return; }
 
-  const pill = document.querySelector('.user-pill');
+  const pill = document.getElementById('user-pill-top') || document.querySelector('.user-pill');
   if(pill && isFree){
     pill.innerHTML = '<span class="live"></span>免費版';
   }
@@ -1804,7 +1804,7 @@ function closeDrawer(){
       }
 
       // 同步更新 topbar 名稱
-      var pill = document.querySelector('.user-pill');
+      var pill = document.getElementById('user-pill-top') || document.querySelector('.user-pill');
       if(pill) pill.innerHTML = '<span class="live"></span>' + name;
       var greetEl = document.getElementById('greet-name');
       if(greetEl) greetEl.textContent = name;
