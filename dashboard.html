@@ -1702,7 +1702,9 @@ function closeDrawer(){
       if(name && name !== '——') localStorage.setItem('sofa_nickname', name);
 
       // 方案對應的代稱
-      var planBadge = {'月費':'備考學員','季費':'衝榜學員','體驗':'見習學員','試用':'見習學員'}[plan] || plan;
+      var planBadge = {'月費':'月訂閱','季費':'季訂閱','體驗':'體驗序號','試用':'體驗序號','Admin':'帳號擁有者'}[plan] || plan;
+      // Admin 不鎖任何段落
+      var isAdmin = (plan === 'Admin');
 
       setText('mc-name', name);
       setText('mc-serial', serial);
