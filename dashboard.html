@@ -423,6 +423,45 @@
     color:rgba(245,240,234,.5);letter-spacing:.16em;
   }
   .mc-id .sn{color:var(--peach)}
+  .sn-eye{
+    background:none;border:none;cursor:pointer;padding:0 0 0 8px;
+    font-size:11px;color:rgba(245,240,234,.32);vertical-align:middle;
+    transition:color .15s;line-height:1;
+  }
+  .sn-eye:hover{color:var(--peach)}
+  .mc-email-row{
+    margin-top:4px;font-family:var(--mono);font-size:11px;
+    color:rgba(245,240,234,.38);letter-spacing:.12em;
+  }
+  .mc-email-row .em{color:rgba(245,240,234,.6)}
+  .mc-edit-btn{
+    background:none;border:none;cursor:pointer;
+    font-size:15px;color:rgba(245,240,234,.3);
+    padding:0 0 2px 10px;vertical-align:middle;
+    transition:color .15s;line-height:1;
+  }
+  .mc-edit-btn:hover{color:var(--peach)}
+  .mc-nick-edit{
+    display:none;margin-top:10px;
+    align-items:center;gap:8px;flex-wrap:wrap;
+  }
+  .mc-nick-edit.open{display:flex}
+  .mc-nick-input{
+    font-family:var(--serif);font-size:18px;
+    background:rgba(255,255,255,.07);border:1px solid var(--line-2);
+    color:var(--cream);padding:6px 12px;border-radius:2px;
+    outline:none;width:160px;
+  }
+  .mc-nick-input:focus{border-color:var(--peach)}
+  .mc-nick-save,.mc-nick-cancel{
+    font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+    padding:6px 12px;border-radius:2px;cursor:pointer;border:none;
+  }
+  .mc-nick-save{background:var(--peach);color:var(--navy);font-weight:600}
+  .mc-nick-cancel{
+    background:transparent;border:1px solid var(--line-2);
+    color:rgba(245,240,234,.5);
+  }
   .mc-divider{
     margin:28px 0 22px;height:1px;
     background:linear-gradient(to right, var(--line-2), transparent 80%);
@@ -1126,9 +1165,15 @@
                 <span class="mc-tag" id="mc-plan">——</span>
                 <span class="mc-status" id="mc-status">——</span>
               </div>
-              <div class="mc-name" id="mc-name">——</div>
+              <div class="mc-name" id="mc-name"><span id="mc-name-text">——</span><button class="mc-edit-btn" onclick="openNickEdit()" title="修改暱稱">✎</button></div>
+              <div class="mc-nick-edit" id="mc-nick-edit">
+                <input class="mc-nick-input" id="mc-nick-input" type="text" maxlength="30" placeholder="新暱稱">
+                <button class="mc-nick-save" onclick="saveNickname()">儲存</button>
+                <button class="mc-nick-cancel" onclick="cancelNickname()">取消</button>
+              </div>
               <div class="mc-target">目標 · 記帳士國考 <span class="yr">2026</span></div>
-              <div class="mc-id">NO. <span class="sn" id="mc-serial">——</span></div>
+              <div class="mc-id">NO. <span class="sn" id="mc-serial">——</span><button class="sn-eye" onclick="toggleSerial()" title="顯示完整序號">◉</button></div>
+              <div class="mc-email-row" id="mc-email-row" style="display:none">EMAIL · <span class="em" id="mc-email"></span></div>
               <div class="mc-divider"></div>
               <div class="mc-stats">
                 <div class="mc-stat">
@@ -1692,27 +1737,38 @@ function closeDrawer(){
 
     // ── 會員卡 ──
     if(profile){
-      var name = profile.name || '——';
-      var serial = profile.serial || '——';
-      var plan = profile.plan || '——';
+      var plan   = profile.plan || '';
       var expire = profile.expire || '';
       var isExpired = expire && new Date(expire) < new Date();
 
-      // 存暱稱讓 practice/quiz/fill 頁面讀到
-      if(name && name !== '——') localStorage.setItem('sofa_nickname', name);
-
-      // 方案對應的代稱
-      var planBadge = {'月費':'月訂閱','季費':'季訂閱','體驗':'體驗序號','試用':'體驗序號','Admin':'帳號擁有者'}[plan] || plan;
-      // Admin 不鎖任何段落
+      // 方案 → 代稱
+      var PLAN_LABEL = {'月費':'準榜生','季費':'準榜生','體驗':'試讀生','免費':'讀友','Admin':'帳號擁有者'};
+      var planBadge = PLAN_LABEL[plan] || plan || '讀友';
       var isAdmin = (plan === 'Admin');
 
-      setText('mc-name', name);
-      setText('mc-serial', serial);
-      setText('mc-plan', planBadge || plan);
+      // 暱稱：有設就用，否則用方案預設代稱
+      var name   = profile.name || profile.default_nickname || planBadge;
+      var serial = profile.serial || '';
+
+      if(name) localStorage.setItem('sofa_nickname', name);
+
+      // 序號遮擋
+      _fullSerial = serial;
+
+      setText('mc-name-text', name);
+      setText('mc-serial', serial ? _maskSerial(serial) : '——');
+      setText('mc-plan', planBadge);
       setText('mc-status', isExpired ? 'EXPIRED' : 'ACTIVE');
       setText('mc-expire', expire ? fmtDate(expire) : '永久有效');
-      setText('mc-avatar', name.charAt(0).toUpperCase());
-      setText('mc-who', name.toUpperCase());
+      setText('mc-avatar', (name || '—').charAt(0).toUpperCase());
+      setText('mc-who', (name || '—').toUpperCase());
+
+      // Email
+      if(profile.email){
+        var emailRow = document.getElementById('mc-email-row');
+        if(emailRow) emailRow.style.display = '';
+        setText('mc-email', profile.email);
+      }
 
       // 同步更新 topbar 名稱
       var pill = document.querySelector('.user-pill');
@@ -1768,6 +1824,67 @@ function closeDrawer(){
     }
   });
 })();
+
+// ── 序號遮擋 + 暱稱編輯 ────────────────────────────
+var _fullSerial = '';
+
+function _maskSerial(s){
+  if(!s) return '——';
+  return s.replace(/^(SOFA-[A-Z0-9]+-)[A-Z0-9]+$/, '$1****');
+}
+
+function toggleSerial(){
+  var el  = document.getElementById('mc-serial');
+  if(!el || !_fullSerial) return;
+  if(el.dataset.revealed === '1'){
+    el.textContent = _maskSerial(_fullSerial);
+    el.dataset.revealed = '0';
+  } else {
+    el.textContent = _fullSerial;
+    el.dataset.revealed = '1';
+  }
+}
+
+function openNickEdit(){
+  var box = document.getElementById('mc-nick-edit');
+  var inp = document.getElementById('mc-nick-input');
+  var cur = document.getElementById('mc-name-text');
+  if(inp && cur) inp.value = cur.textContent.trim();
+  if(box) box.classList.add('open');
+  if(inp) inp.focus();
+}
+
+function cancelNickname(){
+  var box = document.getElementById('mc-nick-edit');
+  if(box) box.classList.remove('open');
+}
+
+function saveNickname(){
+  var inp = document.getElementById('mc-nick-input');
+  if(!inp) return;
+  var nick = inp.value.trim();
+  if(!nick){ inp.focus(); return; }
+  var uid = localStorage.getItem('sofa_uid') || '';
+  fetch('https://sofa-engine-api.onrender.com/api/me/profile', {
+    method: 'PATCH',
+    headers: {'Content-Type':'application/json', 'X-Sofa-UID': uid},
+    body: JSON.stringify({nickname: nick})
+  }).then(function(r){ return r.ok ? r.json() : null; }).then(function(res){
+    if(res && res.ok){
+      localStorage.setItem('sofa_nickname', nick);
+      var el; // reuse variable
+      el = document.getElementById('mc-name-text'); if(el) el.textContent = nick;
+      el = document.getElementById('mc-avatar');    if(el) el.textContent = nick.charAt(0).toUpperCase();
+      el = document.getElementById('mc-who');       if(el) el.textContent = nick.toUpperCase();
+      var pill = document.querySelector('.user-pill');
+      if(pill) pill.innerHTML = '<span class="live"></span>' + nick;
+      el = document.getElementById('greet-name');   if(el) el.textContent = nick;
+      cancelNickname();
+    } else {
+      alert('儲存失敗，請稍後再試');
+    }
+  }).catch(function(){ alert('網路錯誤，請稍後再試'); });
+}
 
 // ── 即時時鐘 + 問候語 ─────────────────────────────
 (function(){
