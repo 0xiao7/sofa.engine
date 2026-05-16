@@ -1535,9 +1535,11 @@ function openDrawer(pageId, lawName, article){
   if(!pageId){ _renderDrawerFallback(_drLawName, _drArticle); return; }
   var uid  = localStorage.getItem('sofa_uid') || '';
   var free = !uid && localStorage.getItem('sofa_free') === 'FREE';
-  var auth = uid ? ('Bearer ' + uid) : (free ? 'Bearer FREE' : '');
+  var headers = {};
+  if(uid) headers['X-Sofa-UID'] = uid;
+  else if(free) headers['X-Sofa-UID'] = 'FREE';
   fetch(API + '/api/article/' + encodeURIComponent(pageId), {
-    headers: auth ? { 'Authorization': auth } : {}
+    headers: headers
   }).then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){ _renderDrawer(d); })
     .catch(function(){ _renderDrawerFallback(lawName, article); });
@@ -1629,7 +1631,7 @@ function drToggleBookmark(btn){
   var path = '/api/me/bookmarks' + (adding ? '' : '/'+encodeURIComponent(_drPageId));
   fetch(API + path, {
     method: adding ? 'POST' : 'DELETE',
-    headers: { 'Authorization':'Bearer '+uid, 'Content-Type':'application/json' },
+    headers: { 'X-Sofa-UID': uid, 'Content-Type':'application/json' },
     body: adding ? JSON.stringify({ page_id:_drPageId, law_name:_drLawName, article:_drArticle }) : undefined,
   }).catch(function(){});
 }
@@ -1640,7 +1642,7 @@ function drToggleMastered(btn){
   btn.classList.toggle('on');
   var status = btn.classList.contains('on') ? 'mastered' : 'none';
   fetch(API + '/api/me/mastery', {
-    method:'POST', headers:{'Authorization':'Bearer '+uid,'Content-Type':'application/json'},
+    method:'POST', headers:{'X-Sofa-UID': uid,'Content-Type':'application/json'},
     body: JSON.stringify({ page_id:_drPageId, law_name:_drLawName, article:_drArticle, status:status }),
   }).catch(function(){});
 }
@@ -1651,7 +1653,7 @@ function drToggleReview(btn){
   btn.classList.toggle('on');
   var status = btn.classList.contains('on') ? 'review' : 'none';
   fetch(API + '/api/me/mastery', {
-    method:'POST', headers:{'Authorization':'Bearer '+uid,'Content-Type':'application/json'},
+    method:'POST', headers:{'X-Sofa-UID': uid,'Content-Type':'application/json'},
     body: JSON.stringify({ page_id:_drPageId, law_name:_drLawName, article:_drArticle, status:status, review_days:7 }),
   }).catch(function(){});
 }
@@ -1664,11 +1666,17 @@ function closeDrawer(){
 // ── 登入狀態：讀取用戶名稱 ──────────────────────
 (function(){
   // LINE Bot 推播連結帶 ?uid= 時自動登入
-  // 只接受 LINE UID 格式：U 開頭 + 32 位英數字，防止任意值被寫入
+  // 接受兩種格式：LINE UID（U + 32 hex）、或試用序號（SOFA-XXXX-XXXX）
   (function(){
     var urlUid = new URLSearchParams(location.search).get('uid');
-    if(urlUid && /^U[0-9a-f]{32}$/.test(urlUid)
-       && !localStorage.getItem('sofa_uid') && !localStorage.getItem('sofa_free')){
+    if(!urlUid) return;
+    var isLineUid   = /^U[0-9a-f]{32}$/.test(urlUid);
+    var isSerial    = /^SOFA-[A-Z0-9]+-[A-Z0-9]+$/.test(urlUid);
+    if(isLineUid && !localStorage.getItem('sofa_uid') && !localStorage.getItem('sofa_free')){
+      localStorage.setItem('sofa_uid', urlUid);
+      history.replaceState(null, '', location.pathname);
+    } else if(isSerial && !localStorage.getItem('sofa_uid') && !localStorage.getItem('sofa_free')){
+      // 試用序號：存為 sofa_uid（API 的 _require_auth 兩種格式都接受）
       localStorage.setItem('sofa_uid', urlUid);
       history.replaceState(null, '', location.pathname);
     }
