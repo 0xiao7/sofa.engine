@@ -1650,6 +1650,15 @@ function closeDrawer(){
 
 // ── 登入狀態：讀取用戶名稱 ──────────────────────
 (function(){
+  // LINE Bot 推播連結帶 ?uid= 時自動登入
+  (function(){
+    var urlUid = new URLSearchParams(location.search).get('uid');
+    if(urlUid && !localStorage.getItem('sofa_uid') && !localStorage.getItem('sofa_free')){
+      localStorage.setItem('sofa_uid', urlUid);
+      history.replaceState(null, '', location.pathname);
+    }
+  })();
+
   const uid = localStorage.getItem('sofa_uid');
   const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
   if(!uid && !isFree) { window.location.href = 'login.html'; return; }
