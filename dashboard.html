@@ -1545,6 +1545,27 @@ function openDrawer(pageId, lawName, article){
     .catch(function(){ _renderDrawerFallback(lawName, article); });
 }
 
+function _linkifyLaw(escapedText){
+  return escapedText.replace(/《([^》]+)》第(\d+)條/g, function(match, law, art){
+    var safelaw = law.replace(/\\/g,'').replace(/'/g,"\\'");
+    return '<a class="crossref" onclick="event.stopPropagation();searchAndOpen(\''+safelaw+'\',\''+art+'\')" style="color:var(--peach-3);text-decoration:underline;cursor:pointer">'+match+'</a>';
+  });
+}
+
+function searchAndOpen(lawName, artNum){
+  fetch(API + '/api/articles?law=' + encodeURIComponent(lawName))
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if(!d || !d.articles){ openDrawer('', lawName, artNum); return; }
+      var found = d.articles.filter(function(a){
+        var m = (a.title||'').match(/第(\d+)條/);
+        return m && m[1] === artNum;
+      })[0];
+      openDrawer(found ? found.id : '', lawName, artNum);
+    })
+    .catch(function(){ openDrawer('', lawName, artNum); });
+}
+
 function _renderDrawer(d){
   var body = document.getElementById('dr-body');
   if(!body || !d) { _renderDrawerFallback(_drLawName, _drArticle); return; }
@@ -1566,7 +1587,8 @@ function _renderDrawer(d){
   if(d.original_text){
     origHtml = '<div class="dr-text">'
       + d.original_text.split('\n').filter(Boolean).map(function(l){
-          return '<p>' + l.replace(/&/g,'&amp;').replace(/</g,'&lt;') + '</p>';
+          var escaped = l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          return '<p>' + _linkifyLaw(escaped) + '</p>';
         }).join('')
       + '</div>';
   }
@@ -1592,7 +1614,8 @@ function _renderDrawer(d){
         + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span><span class="ttl">'+name+'</span></div>'
         + '<div class="acc-body"><div class="acc-inner">'
         + text.split('\n').filter(Boolean).map(function(l){
-            return '<p>'+l.replace(/&/g,'&amp;').replace(/</g,'&lt;')+'</p>';
+            var escaped = l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            return '<p>'+_linkifyLaw(escaped)+'</p>';
           }).join('')
         + '</div></div></div>';
     }
@@ -2130,7 +2153,7 @@ function setChip(btn, key){
   document.querySelectorAll('.chip-row .chip').forEach(function(c){ c.classList.remove('on'); });
   btn.classList.add('on');
   _curChip = key;
-  if(_curLawName) doSearch();
+  doSearch();
 }
 
 // 法規名稱 autocomplete
@@ -2186,16 +2209,104 @@ function selectLaw(nameOrEl){
   doSearch();
 }
 
+function _chipFilter(arts, chip){
+  if(chip === 'all') return arts;
+  if(chip === '5star') return arts.filter(function(a){ return (a.importance||'').indexOf('★★★★★') !== -1; });
+  if(chip === '4star') return arts.filter(function(a){ var imp = a.importance||''; return imp.indexOf('★★★★') !== -1 && imp.indexOf('★★★★★') === -1; });
+  if(chip === 'deadline') return arts.filter(function(a){
+    var tags = a.tags||[];
+    var hasTag = tags.some(function(t){ return t.indexOf('期間') !== -1 || t.indexOf('時限') !== -1; });
+    return hasTag || (!tags.length && ((a.title||'').indexOf('期間') !== -1 || (a.title||'').indexOf('時限') !== -1));
+  });
+  if(chip === 'penalty') return arts.filter(function(a){
+    var tags = a.tags||[];
+    return tags.some(function(t){ return t.indexOf('罰則') !== -1; });
+  });
+  return arts;
+}
+
+function _renderResRows(arts, lawName){
+  var lnSafe = lawName.replace(/'/g,"\\'");
+  return arts.map(function(a){
+    var m = (a.title||'').match(/第(\d+)條/);
+    var artNum  = m ? m[1] : ((a.title||'').match(/(\d+)/)||['',''])[1];
+    var artTtl  = (a.title||'').replace(/^第\d+條\s*/,'').trim();
+    var pid     = (a.id||'').replace(/'/g,'');
+    var dispLaw = a.law_name || lawName;
+    return '<div class="res-row" onclick="openDrawer(\''+pid+'\',\''+lnSafe+'\',\''+artNum+'\')">'
+      + '<span class="law">'+esc(dispLaw)+'</span>'
+      + '<span class="art">§'+esc(artNum)+'</span>'
+      + '<span class="ttl">'+esc(artTtl)+'</span>'
+      + '<span class="star off">☆</span>'
+      + '</div>';
+  }).join('');
+}
+
 function doSearch(){
   var lawName = (document.getElementById('search-law')||{}).value||'';
   lawName = lawName.trim();
   var artFilter = ((document.getElementById('search-art')||{}).value||'').trim().replace(/^§+/,'');
   var resEl = document.getElementById('search-results');
   if(!resEl) return;
+
+  // ── Fix 2: 無法規名稱時依 chip 跨法規搜尋 ──
   if(!lawName){
-    resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">請先輸入法規名稱</div>';
+    var chip = _curChip;
+    if(chip === 'all'){
+      resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">選擇分類或輸入法規名稱開始查詢</div>';
+      return;
+    }
+    resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢中⋯</div>';
+    var sec = document.getElementById('search');
+    if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
+    if(chip === '5star' || chip === '4star'){
+      fetch(API + '/api/starred')
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(d){
+          var arts = (d && d.articles) ? d.articles : [];
+          arts = _chipFilter(arts, chip);
+          if(!arts.length){
+            resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">沒有符合條件的條文</div>';
+            return;
+          }
+          resEl.innerHTML = _renderResRows(arts, '');
+        })
+        .catch(function(){
+          resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢失敗，請稍後再試</div>';
+        });
+    } else if(chip === 'deadline'){
+      fetch(API + '/api/search?q=' + encodeURIComponent('期間'))
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(d){
+          var arts = (d && d.articles) ? d.articles : [];
+          if(!arts.length){
+            resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">沒有符合條件的條文</div>';
+            return;
+          }
+          resEl.innerHTML = _renderResRows(arts, '');
+        })
+        .catch(function(){
+          resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢失敗，請稍後再試</div>';
+        });
+    } else if(chip === 'penalty'){
+      fetch(API + '/api/search?q=' + encodeURIComponent('罰則'))
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(d){
+          var arts = (d && d.articles) ? d.articles : [];
+          if(!arts.length){
+            resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">沒有符合條件的條文</div>';
+            return;
+          }
+          resEl.innerHTML = _renderResRows(arts, '');
+        })
+        .catch(function(){
+          resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢失敗，請稍後再試</div>';
+        });
+    }
     return;
   }
+
+  // ── 有法規名稱：原有邏輯 + Fix 1 chip 過濾 ──
   _curLawName = lawName;
   resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢中⋯</div>';
   // 捲動到搜尋區
@@ -2217,23 +2328,13 @@ function doSearch(){
           return num === artFilter || (a.title||'').indexOf(artFilter) !== -1;
         });
       }
+      // Fix 1: chip 過濾
+      arts = _chipFilter(arts, _curChip);
       if(!arts.length){
-        resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">沒有符合條號的條文</div>';
+        resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">沒有符合條件的條文</div>';
         return;
       }
-      var lnSafe = lawName.replace(/'/g,"\\'");
-      resEl.innerHTML = arts.map(function(a){
-        var m = (a.title||'').match(/第(\d+)條/);
-        var artNum  = m ? m[1] : ((a.title||'').match(/(\d+)/)||['',''])[1];
-        var artTtl  = (a.title||'').replace(/^第\d+條\s*/,'').trim();
-        var pid     = (a.id||'').replace(/'/g,'');
-        return '<div class="res-row" onclick="openDrawer(\''+pid+'\',\''+lnSafe+'\',\''+artNum+'\')">'
-          + '<span class="law">'+esc(lawName)+'</span>'
-          + '<span class="art">§'+esc(artNum)+'</span>'
-          + '<span class="ttl">'+esc(artTtl)+'</span>'
-          + '<span class="star off">☆</span>'
-          + '</div>';
-      }).join('');
+      resEl.innerHTML = _renderResRows(arts, lawName);
     })
     .catch(function(){
       resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢失敗，請稍後再試</div>';
