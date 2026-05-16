@@ -1061,7 +1061,7 @@
       <a href="#laws">法規</a>
     </nav>
     <div class="top-right">
-      <span class="user-pill"><span class="live"></span>Fay</span>
+      <span class="user-pill"><span class="live"></span>——</span>
       <button class="btn-out" onclick="(function(){localStorage.removeItem('sofa_uid');localStorage.removeItem('sofa_free');localStorage.removeItem('sofa_nickname');window.location.href='login.html';})()">登出</button>
       <button class="menu-btn" onclick="document.querySelector('aside.side').classList.toggle('open')"><span></span></button>
     </div>
@@ -1519,14 +1519,16 @@ var _drLawName = '';
 var _drArticle = '';
 
 function openDrawer(pageId, lawName, article){
-  _drPageId  = pageId  || '';
-  _drLawName = lawName || '';
-  _drArticle = article || '';
+  // 統一去除可能的 § 前綴，避免 §§ 重複顯示
+  var artClean = (article||'').replace(/^§+/, '');
+  _drPageId  = pageId   || '';
+  _drLawName = lawName  || '';
+  _drArticle = artClean;
   document.querySelector('.drawer').classList.add('open');
   document.querySelector('.drawer-mask').classList.add('open');
   // 先填入基本資訊
   var bc = document.getElementById('dr-breadcrumb');
-  if(bc) bc.textContent = lawName ? (lawName + ' §' + article) : '——';
+  if(bc) bc.textContent = lawName ? (lawName + ' §' + artClean) : '——';
   var body = document.getElementById('dr-body');
   if(body) body.innerHTML = '<div style="padding:48px 0;text-align:center;opacity:.4;font-size:.9rem;font-family:var(--sans)">載入中…</div>';
   // 有 pageId 才拉內容；否則直接顯示 fallback，不卡在「載入中」
@@ -1596,8 +1598,8 @@ function _renderDrawer(d){
   accHtml += '</div>';
 
   body.innerHTML =
-    '<span class="dr-eyebrow">ARTICLE' + (imp ? ' · ' + imp : '') + '</span>'
-    + '<div class="dr-title"><span class="n">' + artNum + '</span><span class="tt">' + artTitle + '</span></div>'
+    '<span class="dr-eyebrow">ARTICLE' + (imp ? ' · ' + esc(imp) : '') + '</span>'
+    + '<div class="dr-title"><span class="n">' + esc(artNum) + '</span><span class="tt">' + esc(artTitle) + '</span></div>'
     + '<div class="dr-actions">'
     + '<button class="dr-chip" onclick="drToggleBookmark(this)"><span>☆</span>收藏</button>'
     + '<button class="dr-chip" onclick="drToggleMastered(this)"><span>○</span>已熟記</button>'
@@ -1610,8 +1612,9 @@ function _renderDrawer(d){
 function _renderDrawerFallback(lawName, article){
   var body = document.getElementById('dr-body');
   if(!body) return;
+  var artClean = (article||'').replace(/^§+/,'');
   body.innerHTML = '<div style="padding:32px;text-align:center;opacity:.5;font-size:.9rem;font-family:var(--sans)">'
-    + (lawName ? '§' + article + '　' + lawName : '——')
+    + (lawName ? '§' + esc(artClean) + '　' + esc(lawName) : '——')
     + '<br><br>詳細內容請至練習頁查看</div>'
     + '<div style="padding:0 32px 24px;text-align:center">'
     + '<a href="practice.html" style="color:var(--peach-3);font-family:var(--sans);font-size:.9rem">前往練習頁 →</a></div>';
@@ -1661,9 +1664,11 @@ function closeDrawer(){
 // ── 登入狀態：讀取用戶名稱 ──────────────────────
 (function(){
   // LINE Bot 推播連結帶 ?uid= 時自動登入
+  // 只接受 LINE UID 格式：U 開頭 + 32 位英數字，防止任意值被寫入
   (function(){
     var urlUid = new URLSearchParams(location.search).get('uid');
-    if(urlUid && !localStorage.getItem('sofa_uid') && !localStorage.getItem('sofa_free')){
+    if(urlUid && /^U[0-9a-f]{32}$/.test(urlUid)
+       && !localStorage.getItem('sofa_uid') && !localStorage.getItem('sofa_free')){
       localStorage.setItem('sofa_uid', urlUid);
       history.replaceState(null, '', location.pathname);
     }
@@ -1726,7 +1731,6 @@ function closeDrawer(){
       var d = (h.timestamp || h.queried_at || '').slice(0,10);
       if(d) days[d] = true;
     });
-    var sorted = Object.keys(days).sort().reverse();
     var today = new Date().toISOString().slice(0,10);
     var streak = 0;
     var cur = new Date(today);
@@ -1766,7 +1770,6 @@ function closeDrawer(){
       // 方案 → 代稱
       var PLAN_LABEL = {'月費':'準榜生','季費':'準榜生','體驗':'試讀生','免費':'讀友','Admin':'帳號擁有者'};
       var planBadge = PLAN_LABEL[plan] || plan || '讀友';
-      var isAdmin = (plan === 'Admin');
 
       // 暱稱：有設就用，否則用方案預設代稱
       var name   = profile.name || profile.default_nickname || planBadge;
@@ -1792,9 +1795,9 @@ function closeDrawer(){
         setText('mc-email', profile.email);
       }
 
-      // 同步更新 topbar 名稱
+      // 同步更新 topbar 名稱（textContent 防 XSS）
       var pill = document.querySelector('.user-pill');
-      if(pill) pill.innerHTML = '<span class="live"></span>' + name;
+      if(pill){ pill.innerHTML = '<span class="live"></span>'; pill.appendChild(document.createTextNode(name)); }
       var greetEl = document.getElementById('greet-name');
       if(greetEl) greetEl.textContent = name;
     }
@@ -1808,15 +1811,16 @@ function closeDrawer(){
       var startDate = (oldest.timestamp || oldest.queried_at || '').slice(0,10);
       setText('mc-start', fmtDate(startDate));
 
-      // 連續學習
+      // 連續學習（innerHTML 統一帶單位 span）
       var streak = calcStreak(hist);
-      setText('mc-streak', streak ? streak+'天' : '0天');
-      setText('ps-streak',  streak ? streak+'<span class="u">天</span>' : '0<span class="u">天</span>');
-      document.getElementById('ps-streak') && (document.getElementById('ps-streak').innerHTML = streak+'<span class="u">天</span>');
-      document.getElementById('mc-streak') && (document.getElementById('mc-streak').innerHTML = streak+'<span class="u">天</span>');
+      var streakHtml = streak + '<span class="u">天</span>';
+      document.getElementById('mc-streak') && (document.getElementById('mc-streak').innerHTML = streakHtml);
+      document.getElementById('ps-streak') && (document.getElementById('ps-streak').innerHTML = streakHtml);
     } else {
       setText('mc-start', '——');
-      setText('mc-streak', '0天');
+      var zeroHtml = '0<span class="u">天</span>';
+      document.getElementById('mc-streak') && (document.getElementById('mc-streak').innerHTML = zeroHtml);
+      document.getElementById('ps-streak') && (document.getElementById('ps-streak').innerHTML = zeroHtml);
     }
 
     // ── 進度統計 ──
@@ -1830,9 +1834,9 @@ function closeDrawer(){
       if(byLaw.length){
         var html = byLaw.slice(0,8).map(function(item){
           var pct = Math.round((item.count / maxCount) * 100);
-          return '<div class="prog-row"><span class="name">'+item.law+'</span>'
+          return '<div class="prog-row"><span class="name">'+esc(item.law)+'</span>'
             +'<div class="prog-bar"><div class="fill" style="width:'+pct+'%"></div></div>'
-            +'<span class="n"><b>'+item.count+'</b> 條</span></div>';
+            +'<span class="n"><b>'+esc(String(item.count||0))+'</b> 條</span></div>';
         }).join('');
         setHTML('prog-list', html);
       } else {
@@ -1858,14 +1862,15 @@ function closeDrawer(){
         return;
       }
       el.innerHTML = items.map(function(b){
-        var dateStr = (b.bookmarked_at||'').slice(5,10).replace('-','.');
-        var pid = (b.page_id||'').replace(/'/g,'');
-        var ln  = (b.law_name||'').replace(/'/g,'');
-        var art = (b.article||'').replace(/'/g,'');
-        return '<div class="li-card" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+art+'\')">'+
+        var dateStr  = (b.bookmarked_at||'').slice(5,10).replace('-','.');
+        var pid      = (b.page_id||'').replace(/'/g,'');
+        var ln       = (b.law_name||'').replace(/'/g,'');
+        var artRaw   = (b.article||'').replace(/^§+/,'');  // 去除重複 §
+        var artSafe  = artRaw.replace(/'/g,'');
+        return '<div class="li-card" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artSafe+'\')">'+
           '<span class="star">★</span>'+
           '<div class="law">'+esc(b.law_name||'——')+'</div>'+
-          '<div class="art">§'+esc(b.article||'?')+'</div>'+
+          '<div class="art">§'+esc(artRaw||'?')+'</div>'+
           '<div class="sub">'+esc(b.title||'')+'</div>'+
           '<div class="meta"><span>收藏於 '+esc(dateStr)+'</span></div>'+
           '</div>';
@@ -1887,12 +1892,13 @@ function closeDrawer(){
             +'<div>還沒有標記已熟記的條文。<br/>開啟條文後點 <b>「已熟記」</b>。</div></div>';
         } else {
           masteredEl.innerHTML = mastered.map(function(m){
-            var pid = (m.page_id||'').replace(/'/g,'');
-            var ln  = (m.law_name||'').replace(/'/g,'');
-            var art = (m.article||'').replace(/'/g,'');
-            return '<div class="li-card" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+art+'\')">'+
+            var pid     = (m.page_id||'').replace(/'/g,'');
+            var ln      = (m.law_name||'').replace(/'/g,'');
+            var artRaw  = (m.article||'').replace(/^§+/,'');
+            var artSafe = artRaw.replace(/'/g,'');
+            return '<div class="li-card" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artSafe+'\')">'+
               '<div class="law">'+esc(m.law_name||'——')+'</div>'+
-              '<div class="art">§'+esc(m.article||'?')+'</div>'+
+              '<div class="art">§'+esc(artRaw||'?')+'</div>'+
               '</div>';
           }).join('');
         }
@@ -1907,14 +1913,15 @@ function closeDrawer(){
             +'<div>尚無待複習條文。<br/>開啟條文後點「加入再讀清單」。</div></div>';
         } else {
           reviewEl.innerHTML = reviews.map(function(m){
-            var pid = (m.page_id||'').replace(/'/g,'');
-            var ln  = (m.law_name||'').replace(/'/g,'');
-            var art = (m.article||'').replace(/'/g,'');
-            var days = m.review_days || 7;
-            return '<div class="li-card warn" style="grid-column:span 3" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+art+'\')">'+
+            var pid     = (m.page_id||'').replace(/'/g,'');
+            var ln      = (m.law_name||'').replace(/'/g,'');
+            var artRaw  = (m.article||'').replace(/^§+/,'');
+            var artSafe = artRaw.replace(/'/g,'');
+            var days    = m.review_days || 7;
+            return '<div class="li-card warn" style="grid-column:span 3" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artSafe+'\')">'+
               '<div class="law">'+esc(m.law_name||'——')+'</div>'+
-              '<div class="art">§'+esc(m.article||'?')+'</div>'+
-              '<div class="meta"><span>複習間隔 · <b>'+days+' 天</b></span></div>'+
+              '<div class="art">§'+esc(artRaw||'?')+'</div>'+
+              '<div class="meta"><span>複習間隔 · <b>'+esc(String(days))+'</b> 天</span></div>'+
               '</div>';
           }).join('');
         }
@@ -2017,7 +2024,7 @@ function saveNickname(){
       el = document.getElementById('mc-avatar');    if(el) el.textContent = nick.charAt(0).toUpperCase();
       el = document.getElementById('mc-who');       if(el) el.textContent = nick.toUpperCase();
       var pill = document.querySelector('.user-pill');
-      if(pill) pill.innerHTML = '<span class="live"></span>' + nick;
+      if(pill){ pill.innerHTML = '<span class="live"></span>'; pill.appendChild(document.createTextNode(nick)); }
       el = document.getElementById('greet-name');   if(el) el.textContent = nick;
       cancelNickname();
     } else {
@@ -2130,13 +2137,17 @@ function setChip(btn, key){
     var hits = _allLaws.filter(function(l){ return l.name.indexOf(v) !== -1; }).slice(0,10);
     if(!hits.length){ dd.style.display = 'none'; return; }
     dd.innerHTML = hits.map(function(l){
-      var safe = l.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      // escape 法規名稱與關鍵字再做高亮，避免 XSS
+      var escapedName = esc(l.name);
+      var escapedV    = esc(v);
+      var highlighted = escapedName.replace(escapedV, '<b style="color:var(--peach)">'+escapedV+'</b>');
       return '<div style="padding:11px 16px;cursor:pointer;font-size:13.5px;color:var(--cream);'
         +'border-bottom:1px solid var(--line);font-family:var(--sans);transition:.13s"'
-        +' onmousedown="event.preventDefault();selectLaw(\''+safe+'\')"'
+        +' onmousedown="event.preventDefault();selectLaw(this.dataset.law)"'
+        +' data-law="'+esc(l.name)+'"'
         +' onmouseover="this.style.background=\'rgba(245,240,234,.08)\'"'
         +' onmouseout="this.style.background=\'\'">'
-        + l.name.replace(v,'<b style="color:var(--peach)">'+v+'</b>')
+        + highlighted
         + '</div>';
     }).join('');
     dd.style.display = 'block';
@@ -2156,7 +2167,10 @@ function setChip(btn, key){
   });
 })();
 
-function selectLaw(name){
+function selectLaw(nameOrEl){
+  // 可傳入字串或 element（由 data-law 讀取）
+  var name = (typeof nameOrEl === 'string') ? nameOrEl
+           : (nameOrEl && nameOrEl.dataset && nameOrEl.dataset.law) || '';
   var inp = document.getElementById('search-law');
   var dd  = document.getElementById('law-dropdown');
   if(inp) inp.value = name;
