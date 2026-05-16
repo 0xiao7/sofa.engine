@@ -978,7 +978,10 @@
   .acc-inner b{color:var(--navy);font-weight:600}
   .acc-inner .kw{background:rgba(231,187,167,.32);padding:1px 5px;border-radius:2px;color:var(--navy);font-weight:500}
 
-  .dr-foot{padding:18px 28px;background:var(--cream-2);border-top:1px solid var(--cream-3);display:flex;gap:10px}
+  .dr-foot{padding:18px 28px;background:var(--cream-2);border-top:1px solid var(--cream-3);display:flex;gap:10px;flex-wrap:wrap}
+  #dr-review-picker{display:none;width:100%;gap:8px;padding-top:4px}
+  #dr-review-picker button{flex:1;padding:10px 6px;border-radius:4px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.3}
+  #dr-review-picker button small{font-size:10px;opacity:.8;font-weight:400}
   .dr-btn{
     flex:1;padding:14px 18px;border-radius:3px;
     font-family:var(--sans);font-size:14px;font-weight:600;
@@ -1503,8 +1506,13 @@
     </div>
     <div class="dr-foot">
       <button class="dr-btn pri"  id="dr-btn-mastered">✓ 已熟記</button>
-      <button class="dr-btn sec"  id="dr-btn-review">加入再讀清單</button>
+      <button class="dr-btn sec"  id="dr-btn-review" onclick="drShowReviewPicker()">加入再讀清單</button>
       <button class="dr-btn peach" id="dr-btn-bookmark">★ 收藏</button>
+      <div id="dr-review-picker">
+        <button style="background:#c0392b;color:#fff" onclick="drSetReview(3)">困難<small>3 天後複習</small></button>
+        <button style="background:#d4860a;color:#fff" onclick="drSetReview(7)">普通<small>7 天後複習</small></button>
+        <button style="background:#2e7d52;color:#fff" onclick="drSetReview(14)">簡單<small>14 天後複習</small></button>
+      </div>
     </div>
   </aside>
 
@@ -1579,7 +1587,7 @@ function _renderDrawer(d){
   }
 
   var artNum = (d.title||'').match(/(\d+)/)?.[1] || _drArticle;
-  var artTitle = (d.title||'').replace(/第\d+條\s*/,'').trim() || '——';
+  var artTitle = (d.title||'').replace(/第\d+條\s*/,'').replace(/^§\s*\d+\s*[|｜]\s*/,'').trim() || '——';
   var imp = d.importance || '';
 
   // 原文段落
@@ -1628,7 +1636,7 @@ function _renderDrawer(d){
     + '<div class="dr-actions">'
     + '<button class="dr-chip" onclick="drToggleBookmark(this)"><span>☆</span>收藏</button>'
     + '<button class="dr-chip" onclick="drToggleMastered(this)"><span>○</span>已熟記</button>'
-    + '<button class="dr-chip" onclick="drToggleReview(this)"><span>⊙</span>待複習</button>'
+    + '<button class="dr-chip" onclick="drShowReviewPicker()"><span>⊙</span>待複習</button>'
     + '</div>'
     + origHtml
     + accHtml;
@@ -1669,15 +1677,26 @@ function drToggleMastered(btn){
     body: JSON.stringify({ page_id:_drPageId, law_name:_drLawName, article:_drArticle, status:status }),
   }).catch(function(){});
 }
-function drToggleReview(btn){
+function drShowReviewPicker(){
+  var picker = document.getElementById('dr-review-picker');
+  if(!picker) return;
+  picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
+}
+
+function drSetReview(days){
   if(!_drPageId) return;
   var uid = localStorage.getItem('sofa_uid');
   if(!uid){ alert('請先登入'); return; }
-  btn.classList.toggle('on');
-  var status = btn.classList.contains('on') ? 'review' : 'none';
+  // 關閉選擇器
+  var picker = document.getElementById('dr-review-picker');
+  if(picker) picker.style.display = 'none';
+  // 更新按鈕顯示
+  var btn = document.getElementById('dr-btn-review');
+  if(btn){ btn.classList.add('on'); btn.textContent = '⊙ 已加入（' + days + ' 天）'; }
+  // 送出 API
   fetch(API + '/api/me/mastery', {
     method:'POST', headers:{'X-Sofa-UID': uid,'Content-Type':'application/json'},
-    body: JSON.stringify({ page_id:_drPageId, law_name:_drLawName, article:_drArticle, status:status, review_days:7 }),
+    body: JSON.stringify({ page_id:_drPageId, law_name:_drLawName, article:_drArticle, status:'review', review_days:days }),
   }).catch(function(){});
 }
 
@@ -2220,7 +2239,8 @@ function _chipFilter(arts, chip){
   });
   if(chip === 'penalty') return arts.filter(function(a){
     var tags = a.tags||[];
-    return tags.some(function(t){ return t.indexOf('罰則') !== -1; });
+    var hasTag = tags.some(function(t){ return t.indexOf('罰則') !== -1 || t.indexOf('罰') !== -1; });
+    return hasTag || (a.title||'').indexOf('罰') !== -1;
   });
   return arts;
 }
