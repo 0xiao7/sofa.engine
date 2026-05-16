@@ -733,14 +733,6 @@ async function doLogin() {
   }
   const serial = 'SOFA-' + raw.slice(0, 4) + '-' + raw.slice(4, 8);
 
-  // ── 管理員序號（本地驗證，無需 API）──────────
-  if (serial === 'SOFA-FAY0-0001') {
-    localStorage.setItem('sofa_uid', 'fay@sofaengine.org');
-    localStorage.setItem('sofa_role', 'admin');
-    window.location.href = 'dashboard.html';
-    return;
-  }
-
   const original = btn.innerHTML;
   btn.disabled = true;
   btn.textContent = '驗證中…';

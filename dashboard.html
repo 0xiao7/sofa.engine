@@ -1019,7 +1019,7 @@
     </nav>
     <div class="top-right">
       <span class="user-pill"><span class="live"></span>Fay</span>
-      <button class="btn-out" onclick="(function(){localStorage.removeItem('sofa_uid');localStorage.removeItem('sofa_role');localStorage.removeItem('sofa_free');window.location.href='login.html';})()">登出</button>
+      <button class="btn-out" onclick="(function(){localStorage.removeItem('sofa_uid');localStorage.removeItem('sofa_free');localStorage.removeItem('sofa_nickname');window.location.href='login.html';})()">登出</button>
       <button class="menu-btn" onclick="document.querySelector('aside.side').classList.toggle('open')"><span></span></button>
     </div>
   </header>
@@ -1607,22 +1607,15 @@ function closeDrawer(){
 (function(){
   const uid = localStorage.getItem('sofa_uid');
   const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
-  const isAdmin = localStorage.getItem('sofa_role') === 'admin';
   if(!uid && !isFree) { window.location.href = 'login.html'; return; }
 
-  const nameEl = document.getElementById('greet-name');
-  if(nameEl){
-    const name = isFree ? '' : isAdmin ? 'Fay' : '';
-    nameEl.textContent = name;
-  }
   const pill = document.querySelector('.user-pill');
-  if(pill){
-    const name = isFree ? '免費版' : isAdmin ? 'Fay ✦' : '——';
-    pill.innerHTML = '<span class="live"></span>' + name;
+  if(pill && isFree){
+    pill.innerHTML = '<span class="live"></span>免費版';
   }
 
   // ── 免費版：鎖定 5+ 段，遮蓋個人資料 ──────────
-  if(isFree && !isAdmin){
+  if(isFree){
     document.querySelectorAll('.acc-item').forEach(function(item){
       var seg = parseInt(item.dataset.seg || '0');
       if(seg >= 5){
@@ -1652,9 +1645,7 @@ function closeDrawer(){
 (function(){
   const uid = localStorage.getItem('sofa_uid') || '';
   const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
-  const isAdmin = localStorage.getItem('sofa_role') === 'admin';
   if(!uid || isFree) return; // 免費版不拉資料
-  if(isAdmin) return;        // 管理員不走 API（序號不在資料庫）
 
   const API = 'https://sofa-engine-api.onrender.com';
   const H = { 'X-Sofa-UID': uid };
@@ -1723,13 +1714,9 @@ function closeDrawer(){
 
       // 同步更新 topbar 名稱
       var pill = document.querySelector('.user-pill');
-      if(pill && !localStorage.getItem('sofa_role')){
-        pill.innerHTML = '<span class="live"></span>' + name;
-      }
+      if(pill) pill.innerHTML = '<span class="live"></span>' + name;
       var greetEl = document.getElementById('greet-name');
-      if(greetEl && !localStorage.getItem('sofa_role')){
-        greetEl.textContent = name;
-      }
+      if(greetEl) greetEl.textContent = name;
     }
 
     // ── 啟用日（從 history 最舊一筆推算）──
