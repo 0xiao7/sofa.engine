@@ -802,18 +802,19 @@
     font-family:var(--serif);font-size:16px;
     color:var(--cream);font-weight:400;letter-spacing:.005em;
     transition:.18s;
-    display:flex;align-items:center;gap:10px;
+    display:flex;align-items:center;gap:8px;
+    min-width:0;overflow:hidden;
   }
   .toc-row .nm .leader{
-    flex:1;height:1px;
+    flex:1;height:1px;min-width:8px;
     background:repeating-linear-gradient(to right, var(--line-2) 0 2px, transparent 2px 6px);
-    margin:0 4px;align-self:center;opacity:0;transition:opacity .18s;
+    margin:0 2px;align-self:center;opacity:0;transition:opacity .18s;
   }
   .toc-row:hover .nm .leader{opacity:1}
   .toc-row .nm .star-mark{
     font-family:var(--mono);font-size:10px;color:var(--peach);
-    letter-spacing:.16em;padding:2px 7px;border:1px solid rgba(231,187,167,.32);
-    border-radius:2px;
+    letter-spacing:.12em;padding:2px 6px;border:1px solid rgba(231,187,167,.32);
+    border-radius:2px;white-space:nowrap;flex-shrink:0;
   }
   .toc-row .ct{
     font-family:var(--mono);font-size:11.5px;
@@ -997,7 +998,7 @@
     main.main{padding:48px 44px 80px}
     .mc-stats{grid-template-columns:1fr 1fr}
     .card-grid,.tool-grid{grid-template-columns:repeat(2,1fr)}
-    .search-row{grid-template-columns:1fr 1fr}
+    .search-row{grid-template-columns:1.2fr 0.8fr auto}
     .tonight{grid-template-columns:repeat(2,1fr)}
     .tn:nth-child(2){border-right:none}
     .tn:nth-child(1),.tn:nth-child(2){border-bottom:1px solid var(--line)}
@@ -1034,8 +1035,11 @@
     .search-row{grid-template-columns:1fr}
     .card-grid,.tool-grid{grid-template-columns:1fr}
     .sec-head{flex-direction:column;align-items:flex-start;gap:8px}
-    .toc-row{grid-template-columns:32px 1fr auto;gap:12px}
+    .toc-row{grid-template-columns:30px 1fr auto;gap:10px}
     .toc-row .arrow{display:none}
+    .toc-row .nm{font-size:14.5px}
+    .toc-row .nm .leader{display:none}
+    .toc-row .nm .star-mark{font-size:9px;padding:1px 5px}
     .rec-row{grid-template-columns:auto 1fr auto;gap:12px}
     .rec-row .ttl{display:none}
     .drawer{width:100%}
@@ -1057,7 +1061,7 @@
       <a href="#laws">法規</a>
     </nav>
     <div class="top-right">
-      <span class="user-pill" id="user-pill-top"><span class="live"></span>——</span>
+      <span class="user-pill"><span class="live"></span>Fay</span>
       <button class="btn-out" onclick="(function(){localStorage.removeItem('sofa_uid');localStorage.removeItem('sofa_free');localStorage.removeItem('sofa_nickname');window.location.href='login.html';})()">登出</button>
       <button class="menu-btn" onclick="document.querySelector('aside.side').classList.toggle('open')"><span></span></button>
     </div>
@@ -1248,46 +1252,27 @@
 
           <div class="search-card">
             <div class="search-row">
-              <div class="field">
+              <div class="field" style="position:relative;overflow:visible">
                 <span class="ic">⌕</span>
-                <input placeholder="輸入法規名稱…" />
+                <input id="search-law" placeholder="輸入法規名稱…" autocomplete="off" />
+                <div id="law-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:-1px;right:-1px;background:var(--navy);border:1px solid var(--line-2);border-radius:3px;z-index:30;max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.4)"></div>
               </div>
               <div class="field">
                 <span class="ic">§</span>
-                <input placeholder="搜尋條號或關鍵字…" />
+                <input id="search-art" placeholder="條號（選填）" type="text" inputmode="numeric" />
               </div>
-              <div class="select-field">
-                <span>相對時限</span>
-                <span class="car">▾</span>
-              </div>
+              <button id="search-btn" onclick="doSearch()" style="background:var(--peach);color:var(--navy);border:none;border-radius:3px;padding:0 28px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:.18s;letter-spacing:.04em;flex-shrink:0" onmouseover="this.style.background='var(--peach-2)'" onmouseout="this.style.background='var(--peach)'">搜尋</button>
             </div>
             <div class="chip-row">
-              <button class="chip on">全部</button>
-              <button class="chip">★★★★★</button>
-              <button class="chip">★★★★</button>
-              <button class="chip">期間 / 時限</button>
-              <button class="chip">罰則</button>
+              <button class="chip on" onclick="setChip(this,'all')">全部</button>
+              <button class="chip" onclick="setChip(this,'5star')">★★★★★</button>
+              <button class="chip" onclick="setChip(this,'4star')">★★★★</button>
+              <button class="chip" onclick="setChip(this,'deadline')">期間 / 時限</button>
+              <button class="chip" onclick="setChip(this,'penalty')">罰則</button>
             </div>
 
-            <div class="results">
-              <div class="res-row">
-                <span class="law">記帳士法</span>
-                <span class="art">§9</span>
-                <span class="ttl">記帳士登錄</span>
-                <span class="star">★</span>
-              </div>
-              <div class="res-row">
-                <span class="law">記帳士法</span>
-                <span class="art">§13</span>
-                <span class="ttl">記帳士業務</span>
-                <span class="star off">☆</span>
-              </div>
-              <div class="res-row">
-                <span class="law">商業登記法</span>
-                <span class="art">§22</span>
-                <span class="ttl">補正通知</span>
-                <span class="star off">☆</span>
-              </div>
+            <div class="results" id="search-results">
+              <div style="padding:28px 0;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.38);letter-spacing:.1em">輸入法規名稱後按搜尋 →</div>
             </div>
           </div>
         </section>
@@ -1411,74 +1396,74 @@
             <span class="laws-count">顯示 <b>1–12</b> / 33</span>
           </div>
 
-          <div class="laws-toc">
-            <div class="toc-row">
+          <div class="laws-toc" id="laws-toc">
+            <div class="toc-row" onclick="searchLaw('公司法')">
               <span class="idx">01</span>
               <span class="nm">公司法<span class="leader"></span></span>
-              <span class="ct">— 條</span>
+              <span class="ct" id="lawct-公司法">— 條</span>
               <span class="arrow">→</span>
             </div>
-            <div class="toc-row">
+            <div class="toc-row" onclick="searchLaw('所得基本稅額條例施行細則')">
               <span class="idx">02</span>
               <span class="nm">所得基本稅額條例施行細則<span class="leader"></span></span>
               <span class="ct">— 條</span>
               <span class="arrow">→</span>
             </div>
-            <div class="toc-row">
+            <div class="toc-row" onclick="searchLaw('商業登記申請辦法')">
               <span class="idx">03</span>
               <span class="nm">商業登記申請辦法<span class="leader"></span></span>
               <span class="ct">— 條</span>
               <span class="arrow">→</span>
             </div>
-            <div class="toc-row">
+            <div class="toc-row" onclick="searchLaw('加值型及非加值型營業稅法')">
               <span class="idx">04</span>
               <span class="nm">加值型及非加值型營業稅法<span class="leader"></span></span>
               <span class="ct">— 條</span>
               <span class="arrow">→</span>
             </div>
-            <div class="toc-row">
+            <div class="toc-row" onclick="searchLaw('特種貨物及勞務稅條例')">
               <span class="idx">05</span>
               <span class="nm">特種貨物及勞務稅條例<span class="leader"></span></span>
               <span class="ct">— 條</span>
               <span class="arrow">→</span>
             </div>
-            <div class="toc-row">
+            <div class="toc-row" onclick="searchLaw('記帳士暨記帳及報稅代理人防制洗錢與打擊資恐辦法')">
               <span class="idx">06</span>
-              <span class="nm">記帳士暨記帳及報稅代理人防制洗錢與打擊資恐辦法 <span class="star-mark">★ 高頻</span><span class="leader"></span></span>
+              <span class="nm">記帳士暨記帳及報稅代理人防制洗錢與打擊資恐辦法<span class="star-mark">★ 高頻</span><span class="leader"></span></span>
               <span class="ct">— 條</span>
               <span class="arrow">→</span>
             </div>
-            <div class="toc-row">
+            <div class="toc-row" onclick="searchLaw('商業登記法')">
               <span class="idx">07</span>
-              <span class="nm">商業登記法 <span class="star-mark">★ 高頻</span><span class="leader"></span></span>
+              <span class="nm">商業登記法<span class="star-mark">★ 高頻</span><span class="leader"></span></span>
               <span class="ct">— 條</span>
               <span class="arrow">→</span>
             </div>
-            <div class="toc-row">
+            <div class="toc-row" onclick="searchLaw('統一發票使用辦法')">
               <span class="idx">08</span>
               <span class="nm">統一發票使用辦法<span class="leader"></span></span>
               <span class="ct">— 條</span>
               <span class="arrow">→</span>
             </div>
-            <div class="toc-row">
+            <div class="toc-row" onclick="searchLaw('行政程序法')">
               <span class="idx">09</span>
               <span class="nm">行政程序法<span class="leader"></span></span>
               <span class="ct">— 條</span>
               <span class="arrow">→</span>
             </div>
-            <div class="toc-row">
+            <div class="toc-row" onclick="searchLaw('記帳士懲戒委員會與懲戒覆審委員會組織及審議規則')">
               <span class="idx">10</span>
               <span class="nm">記帳士懲戒委員會與懲戒覆審委員會組織及審議規則<span class="leader"></span></span>
               <span class="ct">— 條</span>
               <span class="arrow">→</span>
             </div>
-            <div class="toc-row">
+            <div class="toc-row" onclick="searchLaw('遺產及贈與稅法施行細則')">
               <span class="idx">11</span>
               <span class="nm">遺產及贈與稅法施行細則<span class="leader"></span></span>
               <span class="ct">— 條</span>
               <span class="arrow">→</span>
             </div>
-            <div class="toc-row">
+            <div class="toc-row" onclick="searchLaw('公司登記辦法')">
               <span class="idx">12</span>
               <span class="nm">公司登記辦法<span class="leader"></span></span>
               <span class="ct">— 條</span>
@@ -1517,13 +1502,17 @@
       <div style="padding:48px 0;text-align:center;opacity:.4;font-size:.9rem;font-family:var(--sans)">載入中…</div>
     </div>
     <div class="dr-foot">
-      <button class="dr-btn pri"   id="dr-btn-mastered" onclick="drToggleMastered(this)">✓ 已熟記</button>
-      <button class="dr-btn sec"   id="dr-btn-review"   onclick="drToggleReview(this)">加入再讀清單</button>
-      <button class="dr-btn peach" id="dr-btn-bookmark" onclick="drToggleBookmark(this)">★ 收藏</button>
+      <button class="dr-btn pri"  id="dr-btn-mastered">✓ 已熟記</button>
+      <button class="dr-btn sec"  id="dr-btn-review">加入再讀清單</button>
+      <button class="dr-btn peach" id="dr-btn-bookmark">★ 收藏</button>
     </div>
   </aside>
 
 <script>
+// ── 全域常數 ─────────────────────────────────────────────
+const API = 'https://sofa-engine-api.onrender.com';
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
 // ── Drawer 動態開啟 ──────────────────────────────────────
 var _drPageId = '';
 var _drLawName = '';
@@ -1540,8 +1529,8 @@ function openDrawer(pageId, lawName, article){
   if(bc) bc.textContent = lawName ? (lawName + ' §' + article) : '——';
   var body = document.getElementById('dr-body');
   if(body) body.innerHTML = '<div style="padding:48px 0;text-align:center;opacity:.4;font-size:.9rem;font-family:var(--sans)">載入中…</div>';
-  // 有 pageId 才拉內容
-  if(!pageId) return;
+  // 有 pageId 才拉內容；否則直接顯示 fallback，不卡在「載入中」
+  if(!pageId){ _renderDrawerFallback(_drLawName, _drArticle); return; }
   var uid  = localStorage.getItem('sofa_uid') || '';
   var free = !uid && localStorage.getItem('sofa_free') === 'FREE';
   var auth = uid ? ('Bearer ' + uid) : (free ? 'Bearer FREE' : '');
@@ -1630,14 +1619,14 @@ function _renderDrawerFallback(lawName, article){
 
 function drToggleBookmark(btn){
   if(!_drPageId) return;
-  var uid = localStorage.getItem('sofa_uid');
+  var uid  = localStorage.getItem('sofa_uid');
   if(!uid){ alert('請先登入'); return; }
   btn.classList.toggle('on');
   var adding = btn.classList.contains('on');
   var path = '/api/me/bookmarks' + (adding ? '' : '/'+encodeURIComponent(_drPageId));
   fetch(API + path, {
     method: adding ? 'POST' : 'DELETE',
-    headers: { 'X-Sofa-UID': uid, 'Content-Type': 'application/json' },
+    headers: { 'Authorization':'Bearer '+uid, 'Content-Type':'application/json' },
     body: adding ? JSON.stringify({ page_id:_drPageId, law_name:_drLawName, article:_drArticle }) : undefined,
   }).catch(function(){});
 }
@@ -1648,8 +1637,7 @@ function drToggleMastered(btn){
   btn.classList.toggle('on');
   var status = btn.classList.contains('on') ? 'mastered' : 'none';
   fetch(API + '/api/me/mastery', {
-    method: 'POST',
-    headers: { 'X-Sofa-UID': uid, 'Content-Type': 'application/json' },
+    method:'POST', headers:{'Authorization':'Bearer '+uid,'Content-Type':'application/json'},
     body: JSON.stringify({ page_id:_drPageId, law_name:_drLawName, article:_drArticle, status:status }),
   }).catch(function(){});
 }
@@ -1660,8 +1648,7 @@ function drToggleReview(btn){
   btn.classList.toggle('on');
   var status = btn.classList.contains('on') ? 'review' : 'none';
   fetch(API + '/api/me/mastery', {
-    method: 'POST',
-    headers: { 'X-Sofa-UID': uid, 'Content-Type': 'application/json' },
+    method:'POST', headers:{'Authorization':'Bearer '+uid,'Content-Type':'application/json'},
     body: JSON.stringify({ page_id:_drPageId, law_name:_drLawName, article:_drArticle, status:status, review_days:7 }),
   }).catch(function(){});
 }
@@ -1676,9 +1663,8 @@ function closeDrawer(){
   // LINE Bot 推播連結帶 ?uid= 時自動登入
   (function(){
     var urlUid = new URLSearchParams(location.search).get('uid');
-    if(urlUid){
+    if(urlUid && !localStorage.getItem('sofa_uid') && !localStorage.getItem('sofa_free')){
       localStorage.setItem('sofa_uid', urlUid);
-      localStorage.removeItem('sofa_free');   // 有序號就以序號登入，清掉免費模式
       history.replaceState(null, '', location.pathname);
     }
   })();
@@ -1687,7 +1673,7 @@ function closeDrawer(){
   const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
   if(!uid && !isFree) { window.location.href = 'login.html'; return; }
 
-  const pill = document.getElementById('user-pill-top') || document.querySelector('.user-pill');
+  const pill = document.querySelector('.user-pill');
   if(pill && isFree){
     pill.innerHTML = '<span class="live"></span>免費版';
   }
@@ -1807,7 +1793,7 @@ function closeDrawer(){
       }
 
       // 同步更新 topbar 名稱
-      var pill = document.getElementById('user-pill-top') || document.querySelector('.user-pill');
+      var pill = document.querySelector('.user-pill');
       if(pill) pill.innerHTML = '<span class="live"></span>' + name;
       var greetEl = document.getElementById('greet-name');
       if(greetEl) greetEl.textContent = name;
@@ -1962,11 +1948,12 @@ function closeDrawer(){
           var time = (h.timestamp||h.queried_at||'').slice(11,16);
           var pid  = (h.page_id||'').replace(/'/g,'');
           var ln   = (h.law_name||'').replace(/'/g,'');
-          var art  = (h.article||'').replace(/'/g,'');
-          var hasId = !!pid;
-          html += '<div class="rec-row"'+(hasId?' onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+art+'\')"':'')+'>'+
+          // 去掉 Firestore 裡可能已含的 § 前綴，避免顯示 §§9
+          var artRaw   = (h.article||'').replace(/^§+/,'');
+          var artSafe  = artRaw.replace(/'/g,'');
+          html += '<div class="rec-row" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artSafe+'\')">'+
             '<span class="law">'+esc(h.law_name||'——')+'</span>'+
-            '<span class="art">§'+esc(h.article||'?')+'</span>'+
+            '<span class="art">§'+esc(artRaw||'?')+'</span>'+
             '<span class="ttl">'+esc(h.title||'')+'</span>'+
             '<span class="time">'+esc(time)+'</span>'+
             '</div>';
@@ -2111,6 +2098,133 @@ try{
   document.getElementById('countdown').classList.add('hidden');
   document.getElementById('cdRestore').classList.add('show');
 }
+// ── 03 法條搜尋 ──────────────────────────────────────────
+var _allLaws   = [];
+var _curChip   = 'all';
+var _curLawName = '';
+
+// 頁面載入後抓法規清單，供自動補全
+(function(){
+  fetch(API + '/api/laws')
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){ if(d && d.laws) _allLaws = d.laws; })
+    .catch(function(){});
+})();
+
+function setChip(btn, key){
+  document.querySelectorAll('.chip-row .chip').forEach(function(c){ c.classList.remove('on'); });
+  btn.classList.add('on');
+  _curChip = key;
+  if(_curLawName) doSearch();
+}
+
+// 法規名稱 autocomplete
+(function(){
+  var inp = document.getElementById('search-law');
+  var dd  = document.getElementById('law-dropdown');
+  if(!inp || !dd) return;
+
+  inp.addEventListener('input', function(){
+    var v = this.value.trim();
+    if(!v){ dd.style.display = 'none'; return; }
+    var hits = _allLaws.filter(function(l){ return l.name.indexOf(v) !== -1; }).slice(0,10);
+    if(!hits.length){ dd.style.display = 'none'; return; }
+    dd.innerHTML = hits.map(function(l){
+      var safe = l.name.replace(/'/g,"\\'").replace(/"/g,'&quot;');
+      return '<div style="padding:11px 16px;cursor:pointer;font-size:13.5px;color:var(--cream);'
+        +'border-bottom:1px solid var(--line);font-family:var(--sans);transition:.13s"'
+        +' onmousedown="event.preventDefault();selectLaw(\''+safe+'\')"'
+        +' onmouseover="this.style.background=\'rgba(245,240,234,.08)\'"'
+        +' onmouseout="this.style.background=\'\'">'
+        + l.name.replace(v,'<b style="color:var(--peach)">'+v+'</b>')
+        + '</div>';
+    }).join('');
+    dd.style.display = 'block';
+  });
+
+  inp.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ dd.style.display = 'none'; doSearch(); }
+    if(e.key === 'Escape'){ dd.style.display = 'none'; }
+  });
+  inp.addEventListener('blur', function(){
+    setTimeout(function(){ if(dd) dd.style.display = 'none'; }, 150);
+  });
+
+  var artInp = document.getElementById('search-art');
+  if(artInp) artInp.addEventListener('keydown', function(e){
+    if(e.key === 'Enter') doSearch();
+  });
+})();
+
+function selectLaw(name){
+  var inp = document.getElementById('search-law');
+  var dd  = document.getElementById('law-dropdown');
+  if(inp) inp.value = name;
+  if(dd)  dd.style.display = 'none';
+  doSearch();
+}
+
+function doSearch(){
+  var lawName = (document.getElementById('search-law')||{}).value||'';
+  lawName = lawName.trim();
+  var artFilter = ((document.getElementById('search-art')||{}).value||'').trim().replace(/^§+/,'');
+  var resEl = document.getElementById('search-results');
+  if(!resEl) return;
+  if(!lawName){
+    resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">請先輸入法規名稱</div>';
+    return;
+  }
+  _curLawName = lawName;
+  resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢中⋯</div>';
+  // 捲動到搜尋區
+  var sec = document.getElementById('search');
+  if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
+
+  fetch(API + '/api/articles?law=' + encodeURIComponent(lawName))
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if(!d || !d.articles || !d.articles.length){
+        resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">找不到「'+esc(lawName)+'」的條文</div>';
+        return;
+      }
+      var arts = d.articles;
+      // 條號篩選
+      if(artFilter){
+        arts = arts.filter(function(a){
+          var num = ((a.title||'').match(/(\d+)/)||['',''])[1];
+          return num === artFilter || (a.title||'').indexOf(artFilter) !== -1;
+        });
+      }
+      if(!arts.length){
+        resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">沒有符合條號的條文</div>';
+        return;
+      }
+      var lnSafe = lawName.replace(/'/g,"\\'");
+      resEl.innerHTML = arts.map(function(a){
+        var m = (a.title||'').match(/第(\d+)條/);
+        var artNum  = m ? m[1] : ((a.title||'').match(/(\d+)/)||['',''])[1];
+        var artTtl  = (a.title||'').replace(/^第\d+條\s*/,'').trim();
+        var pid     = (a.id||'').replace(/'/g,'');
+        return '<div class="res-row" onclick="openDrawer(\''+pid+'\',\''+lnSafe+'\',\''+artNum+'\')">'
+          + '<span class="law">'+esc(lawName)+'</span>'
+          + '<span class="art">§'+esc(artNum)+'</span>'
+          + '<span class="ttl">'+esc(artTtl)+'</span>'
+          + '<span class="star off">☆</span>'
+          + '</div>';
+      }).join('');
+    })
+    .catch(function(){
+      resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢失敗，請稍後再試</div>';
+    });
+}
+
+// 法規目錄點擊 → 填入搜尋並執行
+function searchLaw(name){
+  var inp = document.getElementById('search-law');
+  if(inp){ inp.value = name; }
+  doSearch();
+}
+
 // active nav on scroll
 const navLinks = document.querySelectorAll('.nav-list a');
 const sections = document.querySelectorAll('section.block');
