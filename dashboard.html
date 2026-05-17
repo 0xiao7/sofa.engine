@@ -1768,6 +1768,11 @@ function closeDrawer(){
       setText('mc-avatar', (name || '—').charAt(0).toUpperCase());
       setText('mc-who', (name || '—').toUpperCase());
 
+      // P0-C：已到期且非 Admin → 顯示覆蓋層
+      if(isExpired && plan !== 'Admin'){
+        setTimeout(showExpireOverlay, 800); // 讓 UI 先渲染完再蓋上
+      }
+
       // Email
       if(profile.email){
         var emailRow = document.getElementById('mc-email-row');
@@ -2380,6 +2385,46 @@ const io = new IntersectionObserver((entries)=>{
   });
 },{rootMargin:'-30% 0px -60% 0px'});
 sections.forEach(s=>io.observe(s));
+</script>
+
+<!-- ── P0-C 到期覆蓋層 ───────────────────────────────────── -->
+<div id="expire-overlay" style="display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(27,43,75,0.93);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;flex-direction:column;
+  font-family:'Noto Serif TC',serif;color:#F5F0EA;text-align:center;padding:2rem;">
+  <div style="max-width:380px;">
+    <div style="font-size:2.4rem;margin-bottom:1rem;">⏳</div>
+    <h2 style="font-size:1.4rem;font-weight:700;margin:0 0 0.6rem;">
+      你的方案已到期
+    </h2>
+    <p style="font-size:0.95rem;opacity:0.8;line-height:1.6;margin:0 0 2rem;">
+      你的備考旅程還沒結束。<br>
+      續訂後馬上恢復所有學習進度。
+    </p>
+    <a href="/checkout.html" style="display:block;background:#E8A598;color:#1B2B4B;
+      border-radius:8px;padding:0.85rem 1.5rem;font-size:1rem;font-weight:700;
+      text-decoration:none;margin-bottom:0.75rem;">
+      立即續訂
+    </a>
+    <button onclick="switchToFree()" style="display:block;width:100%;
+      background:transparent;border:1px solid rgba(245,240,234,0.35);color:#F5F0EA;
+      border-radius:8px;padding:0.75rem 1.5rem;font-size:0.9rem;cursor:pointer;">
+      切換免費版（不保留查詢紀錄）
+    </button>
+  </div>
+</div>
+<script>
+function showExpireOverlay(){
+  var el=document.getElementById('expire-overlay');
+  if(el){ el.style.display='flex'; }
+}
+function switchToFree(){
+  localStorage.removeItem('sofa_uid');
+  localStorage.removeItem('sofa_plan');
+  localStorage.removeItem('sofa_expire');
+  localStorage.setItem('sofa_free','1');
+  window.location.href='/';
+}
 </script>
 </body>
 </html>
