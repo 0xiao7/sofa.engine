@@ -865,14 +865,14 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan: sel.plan, email })
       });
-      let data = null;
-      try { data = await res.json(); } catch(_){}
       if (!res.ok){
-        const msg = (data && (data.error || data.message)) || `付款服務暫時無法回應（${res.status}），請稍後再試一次。`;
+        let msg = `付款服務暫時無法回應（${res.status}），請稍後再試一次。`;
+        try { const d = await res.json(); msg = d.error || d.message || d.detail || msg; } catch(_){}
         throw new Error(msg);
       }
-      if (data && data.payment_url){ window.location.href = data.payment_url; return; }
-      throw new Error("付款連結沒有回傳，請稍後再試一次，或聯絡 hi@sofaengine.org。");
+      const html = await res.text();
+      document.open(); document.write(html); document.close();
+      return;
     } catch (err) {
       showError(err && err.message ? err.message : "連線發生問題，請確認網路後再試一次。");
       submitBtn.disabled = false;
