@@ -277,40 +277,16 @@
         </div>
 
         <div class="q-stem">
-          <p>下列關於記帳士業務範圍之敘述，<b style="color:var(--peach)">何者錯誤</b>？</p>
-          <div class="quote">
-            <span class="ro">§13</span>記帳士得在登錄區域內，執行下列業務：一、受委任辦理營業、變更、註銷、停業、復業及其他登記事項。二、受委任辦理各項<b style="color:var(--cream)">稅捐稽徵</b>案件之申報及申請事項…前項業務不包括受委任辦理各項稅捐之<b style="color:var(--cream)">查核簽證</b>申報及訴願、行政訴訟事項。
-          </div>
+          <p id="questionBox" style="opacity:.45;font-family:var(--mono);font-size:13px;letter-spacing:.1em;color:rgba(245,240,234,.4)">按「出題」開始作答</p>
         </div>
 
-        <div class="opts">
-          <div class="opt right">
-            <div class="key">A</div>
-            <div class="body"><span class="tag">A</span>記帳士得受委任辦理營業之變更與註銷登記。</div>
-          </div>
-          <div class="opt">
-            <div class="key">B</div>
-            <div class="body"><span class="tag">B</span>記帳士得在登錄區域內，受理稅務諮詢事項。</div>
-          </div>
-          <div class="opt wrong sel">
-            <div class="key">C</div>
-            <div class="body"><span class="tag">C</span>記帳士得受委任辦理各項稅捐之<b style="color:var(--bad)">查核簽證申報</b>事項。</div>
-          </div>
-          <div class="opt">
-            <div class="key">D</div>
-            <div class="body"><span class="tag">D</span>記帳士得受委任辦理商業會計事務。</div>
-          </div>
-        </div>
+        <div class="opts" id="optionsBox"></div>
 
-        <div class="explain">
-          <span class="eb">EXPLANATION · 詳解</span>
-          <h3>正解 (A)，你選了 (C)——但書漏看了</h3>
-          <p>本題考點在 <b>§13 但書</b>。記帳士業務範圍前段五款為列舉，但書明確排除三件事：<span class="kw">查核簽證</span>（屬會計師專屬，會計師法 §39）、訴願、行政訴訟（屬律師專屬）。</p>
-          <p>(C) 把「查核簽證申報」放進記帳士業務——這是<b>典型的混淆題</b>。記憶口訣：「<span class="kw">登 / 稅 / 諮 / 商 / 其他</span>」+ 但書「<span class="kw">不查不訴</span>」。</p>
-          <p>(A) 是 §13 第 1 款的直接文字。(B) 是第 3 款。(D) 是第 4 款——三者皆為正確業務。</p>
-          <div class="src">
-            <span>SOURCE · 記帳士法 §13 + §14</span>
-            <a href="dashboard.html">查看完整條文 →</a>
+        <div class="explain" id="explainBox" style="display:none">
+          <span class="eb">答對了</span>
+          <div class="src" id="sourceBox">
+            <span>—</span>
+            <a href="dashboard.html" id="sourceLink">查看完整條文 →</a>
           </div>
         </div>
 
@@ -421,40 +397,45 @@ async function loadQuiz(){
   try{
     const url=law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`;
     const data=await fetch(url,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
-    if(data.error){document.getElementById('questionBox').textContent=data.error;document.getElementById('questionBox').style.opacity='1';total--;updateScore();return;}
+    if(data.error||data.detail){document.getElementById('questionBox').textContent=data.error||data.detail;document.getElementById('questionBox').style.opacity='1';total--;updateScore();return;}
     quizData=data;
-    document.getElementById('questionBox').innerHTML=data.question||'出題失敗';
+    document.getElementById('questionBox').textContent=data.question||'出題失敗';
     document.getElementById('questionBox').style.opacity='1';
     document.getElementById('btnFlag').classList.remove('flagged');
     document.getElementById('btnFlag').textContent='⚑ 標記';
-    if(data.law_name&&data.title) document.getElementById('qSrc').textContent=`出處 · ${data.law_name} ${data.title}`;
     const labels=['A','B','C','D'];
+    // API returns options: [{id, snippet, is_correct}]
+    const correctOpt=(data.options||[]).find(o=>o.is_correct);
     (data.options||[]).forEach((opt,i)=>{
       const btn=document.createElement('div');
       btn.className='opt';
-      btn.innerHTML=`<div class="key">${labels[i]}</div><div class="body">${esc(opt)}</div>`;
+      btn.innerHTML=`<div class="key">${labels[i]}</div><div class="body">${esc(opt.snippet||opt)}</div>`;
       btn.addEventListener('click',()=>{
         if(answered)return;
         answered=true;
-        document.querySelectorAll('.opt').forEach((b,j)=>{
+        document.querySelectorAll('#optionsBox .opt').forEach((b,j)=>{
           b.style.pointerEvents='none';b.style.cursor='default';
-          if(data.options[j]===data.answer)b.classList.add('right');
+          if((data.options[j]?.is_correct))b.classList.add('right');
         });
-        if(opt!==data.answer){btn.classList.add('wrong');wrong++;}else{right++;}
+        if(!opt.is_correct){btn.classList.add('wrong');wrong++;}else{right++;}
         updateScore();
         // 寫入練習紀錄
-        if(data.page_id&&uid&&uid!=='PREVIEW'&&!isFree){
-          fetch(`${API}/api/me/history`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:data.page_id,law_name:data.law_name||'',article:data.title||''})}).catch(()=>{});
+        if(correctOpt?.id&&uid&&uid!=='PREVIEW'&&!isFree){
+          fetch(`${API}/api/me/history`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:correctOpt.id,law_name:'',article:''})}).catch(()=>{});
         }
-        if(data.law_name&&data.title){
-          const href=`dashboard.html?open=${encodeURIComponent(data.page_id||'')}&law=${encodeURIComponent(data.law_name)}&art=${encodeURIComponent(data.title)}`;
-          document.getElementById('sourceBox').innerHTML=`出自 <a href="${href}" style="color:var(--peach)">《${esc(data.law_name)}》${esc(data.title)}</a>`;
-          document.getElementById('explainBox').style.display='block';
+        // 顯示來源連結
+        const eb=document.querySelector('#explainBox .eb');
+        if(eb)eb.textContent=opt.is_correct?'✓ 答對了':'✗ 答錯了，正確答案已標綠';
+        if(correctOpt?.id){
+          const href=`dashboard.html?open=${encodeURIComponent(correctOpt.id)}`;
+          document.getElementById('sourceLink').href=href;
+          document.getElementById('sourceBox').querySelector('span').textContent='查看該條完整原文 →';
         }
+        document.getElementById('explainBox').style.display='block';
       });
       document.getElementById('optionsBox').appendChild(btn);
     });
-  }catch{
+  }catch(e){
     document.getElementById('questionBox').textContent='載入失敗，請稍後再試';
     document.getElementById('questionBox').style.opacity='1';
     total--;updateScore();
