@@ -119,11 +119,10 @@
     border:1px solid var(--line);border-radius:4px;
     padding:42px 48px;position:relative;
   }
-  .type-card::before{
-    content:"ARTICLE 13";
+  .art-label{
     position:absolute;top:18px;right:24px;
     font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;
-    color:rgba(245,240,234,.25);
+    color:rgba(245,240,234,.25);pointer-events:none;
   }
 
   .ghost{
@@ -313,6 +312,7 @@
 
       <!-- type card -->
       <div class="type-card">
+        <span class="art-label" id="artLabel">ARTICLE —</span>
 <div class="ghost" id="ghost"><span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.35);letter-spacing:.1em">選擇法規後點「換一條」開始</span></div>
 
         <div class="type-input">
@@ -379,9 +379,16 @@ if (!uid && !isFree) { window.location.href = 'login.html?redirect=practice.html
 document.getElementById('navUid').textContent = isFree ? '免費版' : (localStorage.getItem('sofa_nickname') || uid);
 
 (async()=>{
+  const sel = document.getElementById('lawSelect');
+  // Special filters
+  if(uid){
+    [['__starred__','★ 五星條文'],['__bookmarks__','♥ 我的收藏']].forEach(([v,t])=>{
+      const o=document.createElement('option');o.value=v;o.textContent=t;sel.appendChild(o);
+    });
+    const sep=document.createElement('option');sep.disabled=true;sep.textContent='──────';sel.appendChild(sep);
+  }
   try {
     const d = await fetch(`${API}/api/laws`).then(r=>r.json());
-    const sel = document.getElementById('lawSelect');
     (d.laws||[]).forEach(l=>{ const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o); });
   } catch{}
 })();
@@ -446,19 +453,42 @@ async function loadNew(){
   document.getElementById('prog').style.width='0%';
   const law=document.getElementById('lawSelect').value;
   try{
-    const url=law?`${API}/api/random?law=${encodeURIComponent(law)}`:`${API}/api/random`;
-    const d=await fetch(url,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
+    let d, lawMeta='';
+    if(law==='__starred__'){
+      const sl=await fetch(`${API}/api/starred?min_stars=5`,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
+      const arts=(sl.articles||[]);
+      if(!arts.length) throw new Error('no starred');
+      const pick=arts[Math.floor(Math.random()*arts.length)];
+      d=await fetch(`${API}/api/article/${pick.id}`,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
+      lawMeta=pick.law||'';
+    } else if(law==='__bookmarks__'){
+      const bm=await fetch(`${API}/api/me/bookmarks`,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
+      const ids=(bm.bookmarks||[]);
+      if(!ids.length){
+        ghost.innerHTML='<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.5);letter-spacing:.1em">尚無收藏條文</span>';
+        return;
+      }
+      const pick=ids[Math.floor(Math.random()*ids.length)];
+      d=await fetch(`${API}/api/article/${pick}`,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
+    } else {
+      const url=law?`${API}/api/random?law=${encodeURIComponent(law)}`:`${API}/api/random`;
+      d=await fetch(url,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
+      lawMeta=law||'';
+    }
     typeText=d.original_text||'';
-    const m=(d.title||'').match(/第(\d+)條/);
-    document.getElementById('artNum').textContent=m?m[1]:'—';
-    document.getElementById('artTitle').textContent=(d.title||'').replace(/第\d+條/,'').trim()||d.title||'—';
-    document.getElementById('artMeta').textContent=(d.law_name||'')+(d.chapter?' / '+d.chapter:'');
+    const m=(d.title||'').match(/第(\d+(?:之\d+)?)條/);
+    const artNum=m?m[1]:'—';
+    document.getElementById('artNum').textContent=artNum;
+    document.getElementById('artTitle').textContent=(d.title||'').replace(/第[\d之]+條/,'').trim()||d.title||'—';
+    document.getElementById('artMeta').textContent=lawMeta;
+    document.getElementById('artLabel').textContent=artNum!=='—'?`ARTICLE ${artNum}`:'ARTICLE —';
     ghost.innerHTML='';
     if(currentMode===2) initMode2(); else if(currentMode===3) initMode3(); else render();
   }catch{
     typeText='民事訴訟，係指當事人就私法上之權利義務關係，請求法院加以裁判之程序。';
     document.getElementById('artNum').textContent='1';
     document.getElementById('artTitle').textContent='（展示模式）';
+    document.getElementById('artLabel').textContent='ARTICLE 1';
     ghost.innerHTML='';
     if(currentMode===2) initMode2(); else if(currentMode===3) initMode3(); else render();
   }
