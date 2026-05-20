@@ -101,14 +101,16 @@ body::after{{
 
 CARDS = [
     # (filename, brand label, big title, English subtitle, corner watermark)
-    ("account.png",  "SOFA ENGINE / ACCOUNT",  "帳號狀態", "Member Status · Serial · Expiry",  "SOFA <b>·</b> ACCOUNT"),
-    ("qa.png",       "SOFA ENGINE / Q&A",      "常見問題", "Browse by Topic",                   "SOFA <b>·</b> Q&amp;A"),
-    ("qa-serial.png","SOFA ENGINE / Q&A",      "序號相關", "Serial Code FAQ",                   "SOFA <b>·</b> SERIAL"),
-    ("qa-pay.png",   "SOFA ENGINE / Q&A",      "方案 / 付費", "Pricing &amp; Payment",          "SOFA <b>·</b> PAYMENT"),
-    ("qa-sys.png",   "SOFA ENGINE / Q&A",      "系統操作", "System Operations",                 "SOFA <b>·</b> SYSTEM"),
-    ("pricing.png",  "SOFA ENGINE / PLANS",    "訂閱方案", "Monthly · Quarterly",               "SOFA <b>·</b> PLANS"),
-    ("buy.png",      "SOFA ENGINE / CHECKOUT", "立即購買", "Secure Payment · 5 min",            "SOFA <b>·</b> BUY"),
-    ("help.png",     "SOFA ENGINE / GUIDE",    "使用說明", "Full Command Reference",            "SOFA <b>·</b> GUIDE"),
+    ("account.png",          "SOFA ENGINE / ACCOUNT",    "帳號狀態",    "Member Status · Serial · Expiry",      "SOFA <b>·</b> ACCOUNT"),
+    ("qa.png",               "SOFA ENGINE / Q&A",        "常見問題",    "Browse by Topic",                      "SOFA <b>·</b> Q&amp;A"),
+    ("qa-serial.png",        "SOFA ENGINE / Q&A",        "序號相關",    "Serial Code FAQ",                      "SOFA <b>·</b> SERIAL"),
+    ("qa-pay.png",           "SOFA ENGINE / Q&A",        "方案 / 付費", "Pricing &amp; Payment",                "SOFA <b>·</b> PAYMENT"),
+    ("qa-sys.png",           "SOFA ENGINE / Q&A",        "系統操作",    "System Operations",                    "SOFA <b>·</b> SYSTEM"),
+    ("pricing.png",          "SOFA ENGINE / PLANS",      "訂閱方案",    "Monthly · Quarterly",                  "SOFA <b>·</b> PLANS"),
+    ("pricing-monthly.png",  "SOFA ENGINE / MONTHLY",    "月費方案",    "Monthly · NT$380",                     "SOFA <b>·</b> MONTHLY"),
+    ("pricing-quarterly.png","SOFA ENGINE / QUARTERLY",  "季費方案",    "Quarterly · NT$990 · Save 13%",        "SOFA <b>·</b> QUARTERLY"),
+    ("buy.png",              "SOFA ENGINE / CHECKOUT",   "立即購買",    "Secure Payment · 5 min",               "SOFA <b>·</b> BUY"),
+    ("help.png",             "SOFA ENGINE / GUIDE",      "使用說明",    "Full Command Reference",               "SOFA <b>·</b> GUIDE"),
 ]
 
 async def main():
