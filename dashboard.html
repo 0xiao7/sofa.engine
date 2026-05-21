@@ -1637,22 +1637,25 @@ function closeDrawer(){
 
 // ── 登入狀態：讀取用戶名稱 ──────────────────────
 (function(){
-  // LINE Bot 推播連結帶 ?uid= 時自動登入
-  // 接受兩種格式：LINE UID（U + 32 hex）、或試用序號（SOFA-XXXX-XXXX）
-  (function(){
-    var urlUid = new URLSearchParams(location.search).get('uid');
-    if(!urlUid) return;
-    var isLineUid   = /^U[0-9a-f]{32}$/.test(urlUid);
-    var isSerial    = /^SOFA-[A-Z0-9]+-[A-Z0-9]+$/.test(urlUid);
-    if(isLineUid && !localStorage.getItem('sofa_uid') && !localStorage.getItem('sofa_free')){
-      localStorage.setItem('sofa_uid', urlUid);
-      history.replaceState(null, '', location.pathname);
-    } else if(isSerial && !localStorage.getItem('sofa_uid') && !localStorage.getItem('sofa_free')){
-      // 試用序號：存為 sofa_uid（API 的 _require_auth 兩種格式都接受）
-      localStorage.setItem('sofa_uid', urlUid);
-      history.replaceState(null, '', location.pathname);
-    }
-  })();
+  // LINE Bot 推播連結帶 ?t= 時，用一次性 token 換取 session（舊 ?uid= 已停用）
+  var params = new URLSearchParams(location.search);
+  var magicToken = params.get('t');
+  if(magicToken){
+    history.replaceState(null, '', location.pathname);
+    fetch('https://sofa-engine-api.onrender.com/api/redeem-magic-link', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      credentials: 'include',
+      body: JSON.stringify({token: magicToken})
+    }).then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function(d){
+        if(d.uid) localStorage.setItem('sofa_uid', d.uid);
+        if(d.name) localStorage.setItem('sofa_nickname', d.name);
+        location.reload();
+      })
+      .catch(function(){ window.location.href = 'login.html'; });
+    return;
+  }
 
   const uid = localStorage.getItem('sofa_uid');
   const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
