@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>登入 — SoFa Engine</title>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="sofa.css">
+<style>
+  html,body{height:100%;background:var(--navy-3)}
+  body{overflow:hidden}
+
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+  @keyframes errFade{from{opacity:0;transform:translateY(-4px)}to{opacity:1;transform:translateY(0)}}
+
+  .auth{display:grid;grid-template-columns:1.05fr 1fr;min-height:100vh}
+
+  /* === LEFT — dark brand panel === */
+  .auth-l{
+    background:linear-gradient(165deg, var(--navy-2) 0%, var(--navy-4) 100%);
+    padding:48px 56px;position:relative;overflow:hidden;
+    display:flex;flex-direction:column;justify-content:space-between;color:var(--cream);
+  }
+  .auth-l::before{
+    content:"";position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(245,240,234,.022) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,240,234,.022) 1px, transparent 1px);
+    background-size:48px 48px;
+    mask-image:radial-gradient(ellipse 70% 60% at 30% 20%, #000 20%, transparent 75%);
+    pointer-events:none;
+  }
+  .auth-l::after{
+    content:"S";position:absolute;
+    right:-90px;bottom:-180px;
+    font-family:var(--serif);font-weight:600;font-size:640px;line-height:1;
+    color:rgba(231,187,167,.05);letter-spacing:-.04em;pointer-events:none;
+  }
+  .auth-brand{
+    position:relative;z-index:2;
+    display:flex;align-items:center;gap:14px;
+    font-family:var(--mono);font-weight:500;font-size:18px;letter-spacing:.18em;
+  }
+  .auth-brand .dot{width:9px;height:9px;background:var(--peach);border-radius:50%;box-shadow:0 0 0 5px rgba(231,187,167,.18)}
+
+  .auth-hero{position:relative;z-index:2;max-width:520px}
+  .auth-hero .eb{
+    font-family:var(--mono);font-size:11px;color:var(--peach);
+    letter-spacing:.22em;text-transform:uppercase;
+    display:flex;align-items:center;gap:10px;margin-bottom:22px;
+  }
+  .auth-hero .eb::before{content:"";width:22px;height:1px;background:var(--peach)}
+  .auth-hero h1{font-family:var(--serif);font-weight:600;font-size:48px;line-height:1.25;letter-spacing:.005em;color:var(--cream)}
+  .auth-hero h1 em{font-style:normal;color:var(--peach)}
+  .auth-hero p{margin-top:24px;font-size:15.5px;line-height:1.85;color:rgba(245,240,234,.65);max-width:440px}
+  .auth-quote{
+    margin-top:36px;padding:22px 26px;
+    border-left:3px solid var(--peach);background:rgba(245,240,234,.025);
+    border-radius:0 3px 3px 0;
+    font-family:var(--serif);font-size:18px;line-height:1.7;color:var(--cream);letter-spacing:.01em;max-width:460px;
+  }
+  .auth-quote span{display:block;margin-top:10px;font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:var(--peach)}
+
+  .auth-foot{
+    position:relative;z-index:2;
+    display:flex;justify-content:space-between;align-items:flex-end;
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;color:rgba(245,240,234,.4);text-transform:uppercase;
+  }
+  .auth-foot b{color:var(--peach);font-weight:500}
+  .auth-stats{display:flex;gap:36px}
+  .auth-stats .s .v{font-family:var(--serif);font-weight:600;font-size:30px;color:var(--cream);letter-spacing:.01em;line-height:1}
+  .auth-stats .s .k{margin-top:8px;font-family:var(--mono);font-size:10.5px;letter-spacing:.18em;color:rgba(245,240,234,.5)}
+
+  /* === RIGHT — form panel === */
+  .auth-r{
+    background:var(--cream);color:var(--navy);
+    padding:48px 56px;display:flex;flex-direction:column;
+    position:relative;overflow-y:auto;
+  }
+  .auth-r .top{
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:rgba(31,56,72,.55);
+  }
+  .auth-r .top a{color:var(--peach-3);font-weight:600;transition:.18s}
+  .auth-r .top a:hover{color:var(--navy)}
+
+  .auth-form{margin:auto 0;padding:32px 0;max-width:420px;width:100%}
+  .auth-form .eb{font-family:var(--mono);font-size:11px;color:var(--peach-3);letter-spacing:.22em;text-transform:uppercase;font-weight:600}
+  .auth-form h2{font-family:var(--serif);font-weight:600;font-size:36px;line-height:1.25;margin-top:10px;color:var(--navy)}
+  .auth-form .greet-sub{margin-top:10px;font-size:14.5px;color:rgba(31,56,72,.6);line-height:1.7}
+
+  .field-lab{
+    display:flex;justify-content:space-between;align-items:baseline;
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+    text-transform:uppercase;color:rgba(31,56,72,.55);font-weight:600;margin-bottom:8px;
+  }
+  .auth-field{
+    background:#fff;border:1px solid var(--cream-3);border-radius:3px;
+    padding:14px 18px;display:flex;align-items:center;gap:12px;
+    transition:.18s;margin-bottom:18px;
+  }
+  .auth-field:focus-within{border-color:var(--peach-3);box-shadow:0 0 0 3px rgba(200,149,128,.15)}
+  .auth-field.shake{animation:shake .35s ease}
+  .auth-field .ic{
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;font-weight:700;
+    color:var(--peach-3);flex-shrink:0;white-space:nowrap;user-select:none;
+  }
+  .auth-field input{
+    background:transparent;border:none;outline:none;width:100%;
+    font-size:15px;color:var(--navy);
+    font-family:var(--mono);letter-spacing:.18em;text-transform:uppercase;
+  }
+  .auth-field input::placeholder{color:rgba(31,56,72,.35);letter-spacing:.1em;font-size:.85rem;text-transform:none}
+
+  .auth-cta{
+    width:100%;padding:16px 22px;
+    background:var(--navy);color:var(--cream);border-radius:3px;
+    font-family:var(--sans);font-size:15px;font-weight:600;letter-spacing:.05em;
+    display:flex;align-items:center;justify-content:center;gap:12px;
+    transition:.2s;cursor:pointer;
+  }
+  .auth-cta:hover:not(:disabled){background:var(--navy-2);transform:translateY(-1px)}
+  .auth-cta:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .auth-cta .arrow{font-family:var(--mono);font-size:13px;transition:transform .2s}
+  .auth-cta:hover:not(:disabled) .arrow{transform:translateX(4px)}
+
+  .auth-msg{
+    margin-bottom:18px;padding:11px 14px;border-radius:3px;
+    border:1px solid rgba(200,149,128,.4);background:rgba(231,187,167,.15);
+    font-size:13px;color:var(--peach-3);font-family:var(--mono);letter-spacing:.04em;
+    display:flex;align-items:center;gap:8px;animation:errFade .25s ease;
+  }
+  .auth-msg .dot{width:6px;height:6px;border-radius:50%;background:var(--peach-3)}
+
+  .auth-r .bottom{
+    margin-top:auto;padding-top:32px;
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:rgba(31,56,72,.45);text-transform:uppercase;
+  }
+  .auth-r .bottom .links{display:flex;gap:18px}
+  .auth-r .bottom a:hover{color:var(--navy)}
+
+  /* === RWD === */
+  @media(max-width:1024px){
+    .auth{grid-template-columns:1fr}
+    body{overflow:auto}
+    .auth-l{padding:32px 28px;min-height:auto}
+    .auth-l::after{font-size:380px;right:-60px;bottom:-120px}
+    .auth-hero h1{font-size:34px}
+    .auth-quote{font-size:15.5px;padding:16px 18px;margin-top:24px}
+    .auth-foot{margin-top:32px}
+    .auth-stats{gap:24px}
+    .auth-stats .s .v{font-size:24px}
+    .auth-r{padding:36px 28px}
+  }
+  @media(max-width:560px){
+    .auth-l{padding:28px 22px}
+    .auth-hero h1{font-size:28px}
+    .auth-hero p{font-size:14.5px}
+    .auth-foot{flex-direction:column;align-items:flex-start;gap:22px}
+    .auth-r{padding:32px 22px}
+    .auth-form h2{font-size:28px}
+    .auth-r .bottom{flex-direction:column;gap:12px;align-items:flex-start}
+  }
+</style>
+</head>
+<body>
+
+<div class="auth">
+
+  <!-- LEFT — brand panel -->
+  <div class="auth-l">
+    <a href="/" class="auth-brand"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
+
+    <div class="auth-hero">
+      <div class="eb">MEMBER ACCESS</div>
+      <h1>坐下來，<br/>一條一條來。</h1>
+      <p>記帳士國考——2,138 條法規，33 部法典。我們不催你，也不嚇你。你決定步調，我們陪你把它讀完。</p>
+      <div class="auth-quote">
+        "今天讀一條也算數。讀十條也只是把昨天的疑問少一條。"
+        <span>SOFA · MANIFESTO</span>
+      </div>
+    </div>
+
+    <div class="auth-foot">
+      <div class="auth-stats">
+        <div class="s"><div class="v">2,138</div><div class="k">ARTICLES</div></div>
+        <div class="s"><div class="v">33</div><div class="k">STATUTES</div></div>
+        <div class="s"><div class="v">187d</div><div class="k">UNTIL EXAM</div></div>
+      </div>
+      <div>© 2026 · <b>SOFA ENGINE</b></div>
+    </div>
+  </div>
+
+  <!-- RIGHT — serial auth form -->
+  <div class="auth-r">
+    <div class="top">
+      <span>MEMBER ACCESS — 輸入序號</span>
+      <span>需要協助？<a href="https://lin.ee/zUeMwo4" target="_blank">LINE 客服 →</a></span>
+    </div>
+
+    <form class="auth-form" onsubmit="event.preventDefault();doLogin();">
+      <div class="eb">STEP 01 / 01</div>
+      <h2>歡迎回來，<br/>輸入序號進入。</h2>
+      <p class="greet-sub">輸入購買序號或體驗序號。格式：SOFA-XXXX-XXXX / SOFA-T-XXXXXXXX</p>
+
+      <div style="margin-top:36px"></div>
+
+      <div class="auth-msg" style="display:none" id="msg">
+        <span class="dot"></span>
+        <span id="msgTxt">序號無效，請確認後再試。</span>
+      </div>
+
+      <div class="field-lab"><span>SERIAL / 序號</span></div>
+      <div class="auth-field" id="serialWrap">
+        <span class="ic">SOFA-</span>
+        <input id="serial" type="text" placeholder="XXXX-XXXX 或 T-XXXXXXXX" maxlength="12"
+          autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text">
+      </div>
+
+      <button class="auth-cta" id="btn" type="submit">進入會員中心 <span class="arrow">⟶</span></button>
+    </form>
+
+    <div class="bottom">
+      <span>v1.0 · 2026.05</span>
+      <div class="links">
+        <a href="#">服務條款</a>
+        <a href="#">隱私政策</a>
+        <a href="https://lin.ee/zUeMwo4" target="_blank">LINE 客服</a>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const API = 'https://sofa-engine-api.onrender.com';
+
+function normalizeSerial(value) {
+  const raw = value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  const body = raw.startsWith('SOFA') ? raw.slice(4) : raw;
+  if (body.startsWith('T')) {
+    const suffix = body.slice(1, 9);
+    return suffix.length === 8 ? `SOFA-T-${suffix}` : '';
+  }
+  const paid = body.slice(0, 8);
+  return paid.length === 8 ? `SOFA-${paid.slice(0, 4)}-${paid.slice(4, 8)}` : '';
+}
+
+function formatSerialInput(value) {
+  const raw = value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  const body = raw.startsWith('SOFA') ? raw.slice(4) : raw;
+  if (body.startsWith('T')) {
+    const suffix = body.slice(1, 9);
+    return suffix ? `T-${suffix}` : 'T-';
+  }
+  const paid = body.slice(0, 8);
+  return paid.length > 4 ? `${paid.slice(0, 4)}-${paid.slice(4)}` : paid;
+}
+
+document.getElementById('serial').addEventListener('input', function() {
+  this.value = formatSerialInput(this.value);
+});
+
+async function doLogin() {
+  const btn = document.getElementById('btn');
+  const serial = normalizeSerial(document.getElementById('serial').value);
+  document.getElementById('msg').style.display = 'none';
+  if (!serial) { showErr('請輸入完整序號：SOFA-XXXX-XXXX 或 SOFA-T-XXXXXXXX'); return; }
+  btn.disabled = true;
+  btn.innerHTML = '驗證中… <span class="arrow">⟶</span>';
+  try {
+    const res = await fetch(`${API}/api/verify-serial`, {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ serial }),
+    });
+    const data = await res.json();
+    if (!res.ok) { showErr(data.detail || '序號無效，請確認後再試'); return; }
+    localStorage.setItem('sofa_uid', data.uid);
+    const redirect = new URLSearchParams(location.search).get('redirect');
+    window.location.href = redirect ? '/' + redirect.replace(/^\/+/, '') : '/dashboard.html';
+  } catch { showErr('連線失敗，請稍後再試'); }
+  finally {
+    btn.disabled = false;
+    btn.innerHTML = '進入會員中心 <span class="arrow">⟶</span>';
+  }
+}
+
+function showErr(msg) {
+  document.getElementById('msgTxt').textContent = msg;
+  document.getElementById('msg').style.display = 'flex';
+  const wrap = document.getElementById('serialWrap');
+  if (wrap) {
+    wrap.classList.remove('shake');
+    void wrap.offsetWidth;
+    wrap.classList.add('shake');
+    setTimeout(() => wrap.classList.remove('shake'), 400);
+  }
+}
+
+document.getElementById('serial').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+</script>
+</body>
+</html>
