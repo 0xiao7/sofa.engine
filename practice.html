@@ -161,14 +161,15 @@
   .type-field{
     flex:1;background:var(--navy-3);border:1px solid var(--line-2);
     border-radius:3px;padding:14px 18px;
-    display:flex;align-items:center;gap:12px;transition:.18s;
+    display:flex;align-items:flex-start;gap:12px;transition:.18s;
   }
   .type-field:focus-within{border-color:var(--peach);background:var(--navy)}
-  .type-field input{
+  .type-field textarea{
     background:transparent;border:none;outline:none;width:100%;
     font-family:var(--serif);font-size:18px;color:var(--cream);letter-spacing:.02em;
+    resize:none;overflow-y:hidden;min-height:1.6em;line-height:1.6;
   }
-  .type-field input::placeholder{
+  .type-field textarea::placeholder{
     color:rgba(245,240,234,.3);font-family:var(--sans);font-size:14px;
   }
   .type-actions{display:flex;gap:10px}
@@ -316,7 +317,7 @@
         <div class="type-input">
           <div class="key">輸入 <b id="curHint">—</b></div>
           <div class="type-field">
-            <input id="ti" placeholder="點擊此處開始輸入…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" />
+            <textarea id="ti" rows="1" placeholder="點擊此處開始輸入…" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false"></textarea>
           </div>
           <div class="type-actions">
             <button class="btn btn-sec" id="btnReset">重來</button>
@@ -375,6 +376,13 @@ const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'
 const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
 if (!uid && !isFree) { window.location.href = 'login.html?redirect=practice.html'; }
 document.getElementById('navUid').textContent = isFree ? '免費版' : (localStorage.getItem('sofa_nickname') || uid);
+if(isFree){
+  const bar=document.createElement('div');
+  bar.style.cssText='background:rgba(231,187,167,.13);border-bottom:1px solid rgba(231,187,167,.3);padding:10px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;';
+  bar.innerHTML='<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">⚠ 免費版 · 法條內容有限制，練習紀錄不會儲存</span>'
+    +'<a href="checkout.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--peach);border:1px solid var(--peach);border-radius:3px;padding:5px 14px;text-transform:uppercase;white-space:nowrap">升級解鎖全部 →</a>';
+  document.querySelector('.pr-bar').before(bar);
+}
 
 (async()=>{
   const sel = document.getElementById('lawSelect');
@@ -431,6 +439,9 @@ function render(){
 }
 
 ti.addEventListener('input',()=>{
+  // auto-resize
+  ti.style.height='auto';
+  ti.style.height=ti.scrollHeight+'px';
   typeInput=ti.value;
   if(!startTime&&typeInput.length>0)startTimer();
   if(currentMode===2) renderMode2();
@@ -539,9 +550,10 @@ function switchMode(newMode){
   stopTimer(); startTime=null; typeInput=''; ti.value='';
   document.getElementById('time').textContent='00:00';
   document.getElementById('wpm').textContent='—';
-  if(newMode===1){ ti.style.display=''; document.getElementById('m3area').style.display='none'; render(); }
-  else if(newMode===2){ ti.style.display=''; document.getElementById('m3area').style.display='none'; initMode2(); }
-  else if(newMode===3){ ti.style.display='none'; document.getElementById('m3area').style.display='block'; initMode3(); }
+  const typeInputRow = document.querySelector('.type-input');
+  if(newMode===1){ ti.style.display=''; if(typeInputRow)typeInputRow.style.display=''; ghost.style.display=''; document.getElementById('m3area').style.display='none'; render(); }
+  else if(newMode===2){ ti.style.display=''; if(typeInputRow)typeInputRow.style.display=''; ghost.style.display=''; document.getElementById('m3area').style.display='none'; initMode2(); }
+  else if(newMode===3){ if(typeInputRow)typeInputRow.style.display='none'; ghost.style.display='none'; document.getElementById('m3area').style.display='block'; initMode3(); }
 }
 
 function initMode2(){

@@ -359,6 +359,25 @@ const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'
 const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
 if (!uid && !isFree) { window.location.href = 'login.html?redirect=fill.html'; }
 document.getElementById('navUid').textContent = isFree ? '免費版' : (localStorage.getItem('sofa_nickname') || uid);
+if(isFree){
+  const bar=document.createElement('div');
+  bar.style.cssText='background:rgba(231,187,167,.13);border-bottom:1px solid rgba(231,187,167,.3);padding:10px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;';
+  bar.innerHTML='<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">⚠ 免費版 · 填空範圍有限，練習紀錄不會儲存</span>'
+    +'<a href="checkout.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--peach);border:1px solid var(--peach);border-radius:3px;padding:5px 14px;text-transform:uppercase;white-space:nowrap">升級解鎖全部 →</a>';
+  document.querySelector('.pr-bar').before(bar);
+}
+
+// 中文數字正規化：二年→2年、三十日→30日
+function normLegalNum(s){
+  const d={'一':'1','二':'2','三':'3','四':'4','五':'5','六':'6','七':'7','八':'8','九':'9'};
+  let r=s;
+  r=r.replace(/[一二三四五六七八九]十[一二三四五六七八九]/g,m=>String(+d[m[0]]*10+ +d[m[2]]));
+  r=r.replace(/[一二三四五六七八九]十/g,m=>String(+d[m[0]]*10));
+  r=r.replace(/十[一二三四五六七八九]/g,m=>String(10+ +d[m[1]]));
+  r=r.replace(/十/g,'10');
+  r=r.replace(/[一二三四五六七八九]/g,c=>d[c]);
+  return r;
+}
 
 // ── 計時器 ──────────────────────────────────────────
 let _fillTimerIv=null, _fillStart=null, _sessionRight=0, _sessionHint=0;
@@ -493,8 +512,8 @@ function renderFill(){
       inp.classList.remove('ok','bad','empty');
       const v=inp.value.trim();
       if(!v){inp.classList.add('empty');}
-      else if(v===inp.dataset.ans)inp.classList.add('ok');
-      else if(v.length>=inp.dataset.ans.length)inp.classList.add('bad');
+      else if(answerMatch(v,inp.dataset.ans))inp.classList.add('ok');
+      else if(normLegalNum(v).length>=normLegalNum(inp.dataset.ans).length)inp.classList.add('bad');
       updateBlankList();
       const filled=[...box.querySelectorAll('input')].filter(x=>x.value.trim()).length;
       document.getElementById('filled').textContent=filled+' / '+all.length;
@@ -522,6 +541,11 @@ function updateBlankList(){
   document.getElementById('blankList').innerHTML=html||'—';
 }
 
+function answerMatch(val, ans){
+  const v=val.trim(), a=ans.trim();
+  return v===a || normLegalNum(v)===normLegalNum(a);
+}
+
 function checkAnswers(){
   const box=document.getElementById('fillText');
   const inputs=[...box.querySelectorAll('input')];
@@ -530,7 +554,7 @@ function checkAnswers(){
   inputs.forEach((inp,i)=>{
     const ans=(fillData.answers||[])[i]||'';
     inp.disabled=true;
-    if(inp.value.trim()===ans){inp.classList.add('ok');cor++;}
+    if(answerMatch(inp.value,ans)){inp.classList.add('ok');cor++;}
     else{inp.classList.add('bad');const sp=document.createElement('span');sp.textContent=`（${ans}）`;sp.style.cssText='color:var(--good);font-size:.78rem;font-family:var(--mono);margin-left:.3rem;';inp.after(sp);}
   });
   const msg=document.getElementById('resultMsg');

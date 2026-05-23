@@ -337,6 +337,13 @@ const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'
 const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
 if (!uid && !isFree) { window.location.href = 'login.html?redirect=quiz.html'; }
 document.getElementById('navUid').textContent = isFree ? '免費版' : (localStorage.getItem('sofa_nickname') || uid);
+if(isFree){
+  const bar=document.createElement('div');
+  bar.style.cssText='background:rgba(231,187,167,.13);border-bottom:1px solid rgba(231,187,167,.3);padding:10px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;';
+  bar.innerHTML='<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">⚠ 免費版 · 選擇題範圍有限，答題紀錄不會儲存</span>'
+    +'<a href="checkout.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:var(--peach);border:1px solid var(--peach);border-radius:3px;padding:5px 14px;text-transform:uppercase;white-space:nowrap">升級解鎖全部 →</a>';
+  document.querySelector('.pr-bar').before(bar);
+}
 
 (async()=>{
   const sel=document.getElementById('lawSelect');
@@ -404,8 +411,8 @@ function updateScore(){
   rebuildSetMap();
   rebuildErrorList();
   // 進度條：以命中率為寬度（有作答才顯示）
-  const answered_n=sessionHistory.filter(q=>q.correct!==null).length;
-  const prog=answered_n>0?Math.round(right/answered_n*100):0;
+  const prog_n=sessionHistory.filter(q=>q.correct!==null).length;
+  const prog=prog_n>0?Math.round(right/prog_n*100):0;
   document.getElementById('quizProg').style.width=prog+'%';
 }
 

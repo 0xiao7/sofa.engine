@@ -3,6 +3,9 @@
 <head>
 <meta charset="utf-8" />
 <title>SoFa Engine — 會員中心</title>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2343,23 +2346,38 @@ function doSearch(){
       resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">選擇分類或輸入法規名稱開始查詢</div>';
       return;
     }
-    resEl.innerHTML = _MSG_LOADING;
-    var sec = document.getElementById('search');
-    if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
-
-    var url = (chip === '5star' || chip === '4star')
-      ? API + '/api/starred'
-      : API + '/api/search?q=' + encodeURIComponent(chip === 'deadline' ? '期間' : '罰則');
-
-    fetch(url)
-      .then(function(r){ return r.ok ? r.json() : null; })
-      .then(function(d){
-        var arts = (d && d.articles) ? d.articles : [];
-        if(chip === '5star' || chip === '4star') arts = _chipFilter(arts, chip);
+    if(chip === '5star' || chip === '4star'){
+      resEl.innerHTML = _MSG_LOADING;
+      var sec = document.getElementById('search');
+      if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
+      fetch(API + '/api/starred')
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(d){
+          var arts = _chipFilter((d && d.articles) ? d.articles : [], chip);
+          if(!arts.length){ resEl.innerHTML = _MSG_EMPTY; return; }
+          _srSet(arts, '');
+        })
+        .catch(function(){ resEl.innerHTML = _MSG_FAIL; });
+    } else {
+      // 期間/罰則 chip 在無法規名稱時，改為從已載入清單全量掃描
+      if(!_allLaws.length){
+        resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">請先選擇法規名稱再使用分類篩選</div>';
+        return;
+      }
+      resEl.innerHTML = _MSG_LOADING;
+      var lawNames = _allLaws.map(function(l){ return l.name; });
+      Promise.all(lawNames.map(function(n){
+        return fetch(API + '/api/articles?law=' + encodeURIComponent(n))
+          .then(function(r){ return r.ok ? r.json() : null; })
+          .catch(function(){ return null; });
+      })).then(function(results){
+        var allArts = [];
+        results.forEach(function(d){ if(d && d.articles) allArts = allArts.concat(d.articles); });
+        var arts = _chipFilter(allArts, chip);
         if(!arts.length){ resEl.innerHTML = _MSG_EMPTY; return; }
         _srSet(arts, '');
-      })
-      .catch(function(){ resEl.innerHTML = _MSG_FAIL; });
+      }).catch(function(){ resEl.innerHTML = _MSG_FAIL; });
+    }
     return;
   }
 
