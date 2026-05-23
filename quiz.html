@@ -307,29 +307,8 @@
       <!-- rail -->
       <aside class="rail">
         <div class="rail-card">
-          <div class="rail-h">SET MAP<span class="ct">20 Q</span></div>
-          <div class="qgrid">
-            <div class="qcell ok">1</div>
-            <div class="qcell ok">2</div>
-            <div class="qcell bad">3</div>
-            <div class="qcell ok">4</div>
-            <div class="qcell ok flag">5</div>
-            <div class="qcell ok">6</div>
-            <div class="qcell ok">7</div>
-            <div class="qcell bad">8</div>
-            <div class="qcell cur">9</div>
-            <div class="qcell">10</div>
-            <div class="qcell">11</div>
-            <div class="qcell">12</div>
-            <div class="qcell flag">13</div>
-            <div class="qcell">14</div>
-            <div class="qcell">15</div>
-            <div class="qcell">16</div>
-            <div class="qcell">17</div>
-            <div class="qcell">18</div>
-            <div class="qcell">19</div>
-            <div class="qcell">20</div>
-          </div>
+          <div class="rail-h">SET MAP<span class="ct" id="mapCount">0 Q</span></div>
+          <div class="qgrid" id="qgrid"></div>
         </div>
 
         <div class="rail-card">
@@ -338,16 +317,12 @@
           <div class="stat-line"><span>命中率</span><span><b id="railAcc" style="color:var(--good)">—</b></span></div>
           <div class="stat-line"><span>累計答錯</span><span><b id="railWrong" style="color:var(--bad)">0</b></span></div>
           <div class="stat-line"><span>已標記</span><span><b id="railFlagged">0</b></span></div>
-          <div class="stat-line"><span>平均用時</span><span><b>—</b></span></div>
+          <div class="stat-line"><span>用時</span><span><b id="railTimer">0:00</b></span></div>
         </div>
 
         <div class="rail-card">
           <div class="rail-h">ERRORS<span class="ct">REVIEW</span></div>
-          <div style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;line-height:1.95;color:rgba(245,240,234,.65)">
-            <div>Q3 · 記帳士法 §9</div>
-            <div>Q8 · 商業登記法 §17</div>
-          </div>
-          <button class="btn btn-sec" style="width:100%;margin-top:14px;padding:10px 14px;font-size:13px">本回錯題重練 →</button>
+          <div id="errorList" style="font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;line-height:2;color:rgba(245,240,234,.65)">—</div>
         </div>
       </aside>
 
@@ -376,27 +351,69 @@ document.getElementById('navUid').textContent = isFree ? '免費版' : (localSto
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 let answered=false,right=0,wrong=0,total=0,flagged=0;
 let quizData=null;
+// 本次作答紀錄
+let sessionHistory=[]; // [{num, correct:null|true|false, flagged:false, law:'', title:''}]
+// 計時器
+let sessionStart=null, timerIv=null;
+
+function startSessionTimer(){
+  if(timerIv)return;
+  sessionStart=Date.now();
+  timerIv=setInterval(()=>{
+    const sec=Math.floor((Date.now()-sessionStart)/1000);
+    const m=Math.floor(sec/60), s=sec%60;
+    document.getElementById('railTimer').textContent=m+':'+(s<10?'0':'')+s;
+  },1000);
+}
+
+function rebuildSetMap(){
+  const grid=document.getElementById('qgrid');
+  document.getElementById('mapCount').textContent=total+' Q';
+  grid.innerHTML=sessionHistory.map(q=>{
+    let cls='qcell';
+    if(q.num===total&&q.correct===null)cls+=' cur';
+    else if(q.correct===true)cls+=' ok';
+    else if(q.correct===false)cls+=' bad';
+    if(q.flagged)cls+=' flag';
+    return`<div class="${cls}">${q.num}</div>`;
+  }).join('');
+}
+
+function rebuildErrorList(){
+  const errors=sessionHistory.filter(q=>q.correct===false);
+  document.getElementById('errorList').innerHTML=errors.length
+    ?errors.map(e=>`<div>Q${e.num}${e.law?' · '+e.law:''}${e.title?' '+e.title:''}</div>`).join('')
+    :'<span style="color:rgba(245,240,234,.3)">—</span>';
+}
 
 function updateScore(){
   document.getElementById('qNum').textContent=total;
   document.getElementById('qNumBig').textContent=total;
   document.getElementById('scoreRight').textContent=right;
   document.getElementById('scoreWrong').textContent=wrong;
-  document.getElementById('railTotal').textContent=total;
+  document.getElementById('railTotal').textContent=sessionHistory.filter(q=>q.correct!==null).length;
   document.getElementById('railWrong').textContent=wrong;
   document.getElementById('railFlagged').textContent=flagged;
-  const acc=total>0?Math.round(right/total*100):0;
-  document.getElementById('railAcc').textContent=acc+'%';
+  const answered_n=sessionHistory.filter(q=>q.correct!==null).length;
+  const acc=answered_n>0?Math.round(right/answered_n*100):0;
+  document.getElementById('railAcc').textContent=answered_n>0?acc+'%':'—';
+  rebuildSetMap();
+  rebuildErrorList();
 }
 
 async function loadQuiz(){
-  answered=false;total++;
+  answered=false; total++;
+  // 新增到 sessionHistory
+  sessionHistory.push({num:total, correct:null, flagged:false, law:'', title:''});
+  startSessionTimer();
+
   document.getElementById('questionBox').textContent='載入中…';
   document.getElementById('questionBox').style.opacity='.45';
   document.getElementById('optionsBox').innerHTML='';
   document.getElementById('explainBox').style.display='none';
-  document.getElementById('qSrc').textContent='—';
+  document.getElementById('qSrc').innerHTML='—';
   updateScore();
+
   let law=document.getElementById('lawSelect').value;
   try{
     if(law==='__starred__'){
@@ -407,14 +424,32 @@ async function loadQuiz(){
     }
     const url=law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`;
     const data=await fetch(url,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
-    if(data.error||data.detail){document.getElementById('questionBox').textContent=data.error||data.detail;document.getElementById('questionBox').style.opacity='1';total--;updateScore();return;}
+    if(data.error||data.detail){
+      document.getElementById('questionBox').textContent=data.error||data.detail;
+      document.getElementById('questionBox').style.opacity='1';
+      sessionHistory.pop(); total--; updateScore(); return;
+    }
     quizData=data;
+
+    // 法規名稱（API 新增的 law_name / 或 dropdown）
+    const lawName=data.law_name||(law&&law!=='__starred__'?document.getElementById('lawSelect').selectedOptions[0]?.text:'');
+    const artTitle=data.correct_title||'';
+    // 更新 history
+    const cur=sessionHistory[sessionHistory.length-1];
+    cur.law=lawName; cur.title=artTitle;
+
+    // 顯示法規來源
+    if(lawName||artTitle){
+      document.getElementById('qSrc').innerHTML=
+        `<span style="color:var(--peach)">${esc(lawName)}</span>${artTitle?` <b>${esc(artTitle)}</b>`:''}`;
+    }
+
     document.getElementById('questionBox').textContent=data.question||'出題失敗';
     document.getElementById('questionBox').style.opacity='1';
     document.getElementById('btnFlag').classList.remove('flagged');
     document.getElementById('btnFlag').textContent='⚑ 標記';
+
     const labels=['A','B','C','D'];
-    // API returns options: [{id, snippet, is_correct}]
     const correctOpt=(data.options||[]).find(o=>o.is_correct);
     (data.options||[]).forEach((opt,i)=>{
       const btn=document.createElement('div');
@@ -425,20 +460,22 @@ async function loadQuiz(){
         answered=true;
         document.querySelectorAll('#optionsBox .opt').forEach((b,j)=>{
           b.style.pointerEvents='none';b.style.cursor='default';
-          if((data.options[j]?.is_correct))b.classList.add('right');
+          if(data.options[j]?.is_correct)b.classList.add('right');
         });
-        if(!opt.is_correct){btn.classList.add('wrong');wrong++;}else{right++;}
+        const isCorrect=!!opt.is_correct;
+        if(!isCorrect){btn.classList.add('wrong');wrong++;}else{right++;}
+        // 更新 sessionHistory
+        cur.correct=isCorrect;
         updateScore();
         // 寫入練習紀錄
         if(correctOpt?.id&&uid&&uid!=='PREVIEW'&&!isFree){
-          fetch(`${API}/api/me/history`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:correctOpt.id,law_name:'',article:''})}).catch(()=>{});
+          fetch(`${API}/api/me/history`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:correctOpt.id,law_name:lawName,article:artTitle})}).catch(()=>{});
         }
-        // 顯示來源連結
+        // 顯示說明框
         const eb=document.querySelector('#explainBox .eb');
-        if(eb)eb.textContent=opt.is_correct?'✓ 答對了':'✗ 答錯了，正確答案已標綠';
+        if(eb)eb.textContent=isCorrect?'✓ 答對了':'✗ 答錯了，正確答案已標綠';
         if(correctOpt?.id){
-          const href=`dashboard.html?open=${encodeURIComponent(correctOpt.id)}`;
-          document.getElementById('sourceLink').href=href;
+          document.getElementById('sourceLink').href=`dashboard.html?open=${encodeURIComponent(correctOpt.id)}`;
           document.getElementById('sourceBox').querySelector('span').textContent='查看該條完整原文 →';
         }
         document.getElementById('explainBox').style.display='block';
@@ -448,20 +485,26 @@ async function loadQuiz(){
   }catch(e){
     document.getElementById('questionBox').textContent='載入失敗，請稍後再試';
     document.getElementById('questionBox').style.opacity='1';
-    total--;updateScore();
+    sessionHistory.pop(); total--; updateScore();
   }
 }
 
 function doFlag(){
-  if(!quizData||!quizData.page_id)return;
+  if(!quizData)return;
+  const cur=sessionHistory.find(q=>q.num===total);
   const btn=document.getElementById('btnFlag');
-  const isFlagged=btn.classList.contains('flagged');
-  if(isFlagged){
-    btn.classList.remove('flagged');btn.textContent='⚑ 標記';flagged=Math.max(0,flagged-1);
-    if(uid&&uid!=='PREVIEW'&&!isFree)fetch(`${API}/api/me/mastery`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:quizData.page_id,status:'none'})}).catch(()=>{});
+  if(btn.classList.contains('flagged')){
+    btn.classList.remove('flagged');btn.textContent='⚑ 標記';
+    flagged=Math.max(0,flagged-1);
+    if(cur)cur.flagged=false;
+    if(uid&&uid!=='PREVIEW'&&!isFree&&quizData.correct_id)
+      fetch(`${API}/api/me/mastery`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:quizData.correct_id,status:'none'})}).catch(()=>{});
   }else{
-    btn.classList.add('flagged');btn.textContent='⚑ 已標記';flagged++;
-    if(uid&&uid!=='PREVIEW'&&!isFree)fetch(`${API}/api/me/mastery`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:quizData.page_id,law_name:quizData.law_name||'',article:quizData.title||'',status:'review',review_days:7})}).catch(()=>{});
+    btn.classList.add('flagged');btn.textContent='⚑ 已標記';
+    flagged++;
+    if(cur)cur.flagged=true;
+    if(uid&&uid!=='PREVIEW'&&!isFree&&quizData.correct_id)
+      fetch(`${API}/api/me/mastery`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:quizData.correct_id,law_name:quizData.law_name||'',article:quizData.correct_title||'',status:'review',review_days:7})}).catch(()=>{});
   }
   updateScore();
 }

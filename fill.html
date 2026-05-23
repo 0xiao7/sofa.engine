@@ -88,16 +88,17 @@
   .fill-card{
     background:var(--navy-2);border:1px solid var(--line);border-radius:4px;
     padding:42px 48px;
-    font-family:var(--serif);font-size:22px;line-height:2.1;
+    font-family:var(--serif);font-size:21px;line-height:2.15;
     color:var(--cream);letter-spacing:.02em;position:relative;
+    word-break:keep-all;overflow-wrap:break-word;
   }
   .fill-card::before{
-    content:"FILL · 5 BLANKS";
+    content:attr(data-label);
     position:absolute;top:18px;right:24px;
     font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;
     color:rgba(245,240,234,.25);
   }
-  .fill-card p{margin-bottom:14px}
+  .fill-card p{margin-bottom:16px}
   .fill-card .ro{
     color:var(--peach);font-family:var(--mono);font-size:14px;
     font-weight:600;margin-right:8px;letter-spacing:.04em;
@@ -283,12 +284,13 @@
           <span class="eb">FILL-IN · 關鍵字填空</span>
           <h2><span class="n" id="artNum">—</span><span id="artTitle">選擇法規後換一條開始</span></h2>
           <div class="row">
+            <span class="pill" id="lawName" style="display:none"></span>
             <span class="pill" id="diffPill">—</span>
             <span id="blankCount">—</span>
           </div>
         </div>
 
-        <div class="fill-card">
+        <div class="fill-card" id="fillCard" data-label="FILL">
           <div id="fillText"><span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.35);letter-spacing:.1em">選擇法規後點「換一條」開始</span></div>
           <div id="resultMsg" style="display:none;margin-top:16px;font-family:var(--mono);font-size:13px;letter-spacing:.1em"></div>
           <div id="sourceBox" style="display:none;margin-top:8px;font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.5);letter-spacing:.08em"></div>
@@ -405,20 +407,47 @@ function renderFill(){
     box.innerHTML=`<span style="color:rgba(245,240,234,.4);font-size:.84rem;font-family:var(--mono)">${esc(fillData?.error||'出題失敗')}</span>`;
     return;
   }
-  const m=(fillData.title||'').match(/第(\d+)條/);
+  const m=(fillData.title||'').match(/第(\d+(?:之\d+)?)條/);
   document.getElementById('artNum').textContent=m?m[1]:'—';
-  document.getElementById('artTitle').textContent=(fillData.title||'').replace(/第\d+條/,'').trim()||fillData.title||'—';
+  document.getElementById('artTitle').textContent=(fillData.title||'').replace(/第[\d之]+條/,'').trim()||fillData.title||'—';
+  // 顯示法規名
+  const lawEl=document.getElementById('lawName');
+  if(fillData.law_name){lawEl.textContent=fillData.law_name;lawEl.style.display='';}
+  else{lawEl.style.display='none';}
+
   const text=fillData.masked_text||'';
-  let html='',i=0,idx=0;
-  while(i<text.length){
-    if(text[i]==='＿'){
-      let b='';while(i<text.length&&text[i]==='＿'){b+=text[i];i++;}
-      const lbl=String.fromCharCode(65+idx);
-      html+=`<input class="blank empty" id="fb_${idx}" data-idx="${idx}" data-ans="${esc((fillData.answers||[])[idx]||'')}" style="min-width:${Math.max(b.length*1.1,2.5)}em" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="　"/><span class="blank-tag">${lbl}</span>`;
-      idx++;
-    } else { html+=esc(text[i]);i++; }
+  // 分段渲染：以 \n 切段，各段內處理空格
+  const paragraphs=text.split('\n').filter(p=>p.trim());
+  let allHtml='', blankIdx=0;
+  paragraphs.forEach(para=>{
+    let ph='',i=0;
+    while(i<para.length){
+      if(para[i]==='＿'){
+        let b='';while(i<para.length&&para[i]==='＿'){b+=para[i];i++;}
+        const lbl=String.fromCharCode(65+blankIdx);
+        ph+=`<input class="blank empty" id="fb_${blankIdx}" data-idx="${blankIdx}" data-ans="${esc((fillData.answers||[])[blankIdx]||'')}" style="min-width:${Math.max(b.length*1.1,2.5)}em" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="　"/><span class="blank-tag">${lbl}</span>`;
+        blankIdx++;
+      } else { ph+=esc(para[i]);i++; }
+    }
+    if(ph.trim()) allHtml+=`<p>${ph}</p>`;
+  });
+  // 若無換行，fallback 整段
+  if(!allHtml){
+    let ph='',i=0;
+    while(i<text.length){
+      if(text[i]==='＿'){
+        let b='';while(i<text.length&&text[i]==='＿'){b+=text[i];i++;}
+        const lbl=String.fromCharCode(65+blankIdx);
+        ph+=`<input class="blank empty" id="fb_${blankIdx}" data-idx="${blankIdx}" data-ans="${esc((fillData.answers||[])[blankIdx]||'')}" style="min-width:${Math.max(b.length*1.1,2.5)}em" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="　"/><span class="blank-tag">${lbl}</span>`;
+        blankIdx++;
+      } else { ph+=esc(text[i]);i++; }
+    }
+    allHtml=`<p>${ph}</p>`;
   }
-  box.innerHTML=`<p style="font-family:var(--serif);font-size:20px;line-height:2.1;color:var(--cream);letter-spacing:.02em">${html}</p>`;
+  box.innerHTML=allHtml;
+  const idx=blankIdx;
+  // 更新 data-label
+  document.getElementById('fillCard').dataset.label=`FILL · ${idx} BLANK${idx>1?'S':''}`;
   document.getElementById('blankCount').textContent=idx+' 個空格';
   document.getElementById('filled').textContent='0 / '+idx;
   updateBlankList();
@@ -516,7 +545,12 @@ async function loadNew(){
     } else {
       url=law?`${API}/api/fill?law=${encodeURIComponent(law)}`:`${API}/api/fill`;
     }
-    fillData=await fetch(url,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
+    const resp=await fetch(url,{headers:{'X-Sofa-UID':uid}});
+    fillData=await resp.json();
+    // 補上前端已知的法規名（若 API 未回傳）
+    if(!fillData.law_name&&law&&law!=='__starred__'&&law!=='__bookmarks__'){
+      fillData.law_name=document.getElementById('lawSelect').selectedOptions[0]?.text||law;
+    }
     renderFill();
   }catch{
     document.getElementById('fillText').innerHTML='<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.4)">載入失敗，請稍後再試</span>';

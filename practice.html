@@ -70,8 +70,7 @@
 
   /* article head */
   .ar-head{
-    display:flex;align-items:flex-end;justify-content:space-between;
-    margin-bottom:28px;gap:24px;padding-bottom:20px;border-bottom:1px solid var(--line);
+    margin-bottom:28px;gap:8px;padding-bottom:20px;border-bottom:1px solid var(--line);
   }
   .ar-head .eb{
     font-family:var(--mono);font-size:11px;color:var(--peach);
@@ -82,17 +81,18 @@
   .ar-head h2{
     font-family:var(--serif);font-weight:600;font-size:32px;
     margin-top:10px;color:var(--cream);line-height:1.25;
-    display:flex;align-items:baseline;gap:18px;
+    display:flex;align-items:baseline;gap:18px;flex-wrap:wrap;
   }
   .ar-head h2 .n{
     font-size:46px;letter-spacing:-.02em;color:var(--peach);font-weight:600;
   }
-  .ar-head .r{
-    text-align:right;
-    font-family:var(--mono);font-size:11px;letter-spacing:.12em;
-    color:rgba(245,240,234,.5);text-transform:uppercase;
+  .ar-head .law-tag{
+    display:inline-block;margin-top:10px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+    color:rgba(245,240,234,.55);text-transform:uppercase;
+    background:rgba(231,187,167,.08);border:1px solid var(--line-2);
+    border-radius:100px;padding:4px 12px;
   }
-  .ar-head .r b{color:var(--cream);font-weight:500;font-size:12px;display:block;margin-top:4px}
 
   /* big stat row */
   .stat-row{
@@ -128,7 +128,7 @@
   .ghost{
     font-family:var(--serif);font-size:22px;line-height:2.05;
     color:rgba(245,240,234,.25);letter-spacing:.02em;
-    user-select:none;
+    user-select:none;word-break:keep-all;overflow-wrap:break-word;
   }
   .ghost p{margin-bottom:14px}
   .ghost .ro{
@@ -293,13 +293,9 @@
 
       <!-- article head -->
       <div class="ar-head">
-        <div>
-          <span class="eb">TYPING DRILL · ARTICLE</span>
-          <h2><span class="n" id="artNum">—</span><span id="artTitle">選擇法規後換一條開始</span></h2>
-        </div>
-        <div class="r">
-<span id="artMeta">—</span>
-        </div>
+        <span class="eb">TYPING DRILL · ARTICLE</span>
+        <h2><span class="n" id="artNum">—</span><span id="artTitle">選擇法規後換一條開始</span></h2>
+        <span class="law-tag" id="artMeta" style="display:none">—</span>
       </div>
 
       <!-- stat row -->
@@ -400,14 +396,23 @@ function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 
 function render(){
   if(!typeText)return;
-  let html='';
-  for(let i=0;i<typeText.length;i++){
-    const ch=esc(typeText[i]);
-    if(i<typeInput.length){ html+=typeInput[i]===typeText[i]?`<span class="ok">${ch}</span>`:`<span class="err" title="您輸入：${esc(typeInput[i]||'?')}">${ch}</span>`; }
-    else if(i===typeInput.length){ html+=`<span class="cur">${ch}</span>`; }
-    else{ html+=`<span>${ch}</span>`; }
-  }
-  ghost.innerHTML=`<p>${html}</p>`;
+  // 以 \n 分段渲染
+  const lines=typeText.split('\n');
+  let html='', globalI=0;
+  lines.forEach((line,li)=>{
+    let lh='';
+    for(let i=0;i<line.length;i++,globalI++){
+      const ch=esc(line[i]);
+      if(globalI<typeInput.length){
+        lh+=typeInput[globalI]===line[i]?`<span class="ok">${ch}</span>`:`<span class="err" title="您輸入：${esc(typeInput[globalI]||'?')}">${ch}</span>`;
+      } else if(globalI===typeInput.length){
+        lh+=`<span class="cur">${ch}</span>`;
+      } else { lh+=`<span>${ch}</span>`; }
+    }
+    html+=`<p>${lh}</p>`;
+    if(li<lines.length-1) globalI++; // skip the \n itself
+  });
+  ghost.innerHTML=html;
   const cor=[...typeInput].filter((c,i)=>c===typeText[i]).length;
   const err=typeInput.length-cor;
   const acc=typeInput.length?Math.round(cor/typeInput.length*100):100;
@@ -475,12 +480,14 @@ async function loadNew(){
       d=await fetch(url,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
       lawMeta=law||'';
     }
-    typeText=d.original_text||'';
+    typeText=(d.original_text||'').replace(/(?<=[一-鿿]) +(?=[一-鿿])/g,'');
     const m=(d.title||'').match(/第(\d+(?:之\d+)?)條/);
     const artNum=m?m[1]:'—';
     document.getElementById('artNum').textContent=artNum;
     document.getElementById('artTitle').textContent=(d.title||'').replace(/第[\d之]+條/,'').trim()||d.title||'—';
-    document.getElementById('artMeta').textContent=lawMeta;
+    const metaEl=document.getElementById('artMeta');
+    if(lawMeta){metaEl.textContent=lawMeta;metaEl.style.display='';}
+    else{metaEl.style.display='none';}
     document.getElementById('artLabel').textContent=artNum!=='—'?`ARTICLE ${artNum}`:'ARTICLE —';
     ghost.innerHTML='';
     if(currentMode===2) initMode2(); else if(currentMode===3) initMode3(); else render();
@@ -601,27 +608,53 @@ function initMode3(){
     }
   });
   if(!found.length){
-    // fallback: pick 2-4 char words
-    const re=/[一-鿿]{2,4}/g;
+    // 後備：優先挑句末（標點前）的名詞，比隨機更自然
+    const rePunct=/[一-鿿]{2,4}(?=[，。；：、])/g;
+    const reAny=/[一-鿿]{2,4}/g;
     let m, picks=[];
-    while((m=re.exec(typeText))!==null){ picks.push({start:m.index,end:m.index+m[0].length,ans:m[0]}); }
-    picks=picks.sort(()=>Math.random()-.5).slice(0,3);
-    found.push(...picks);
+    while((m=rePunct.exec(typeText))!==null) picks.push({start:m.index,end:m.index+m[0].length,ans:m[0]});
+    if(!picks.length){ while((m=reAny.exec(typeText))!==null) picks.push({start:m.index,end:m.index+m[0].length,ans:m[0]}); }
+    // 隨機挑最多 3 個，並確保不重疊
+    picks=picks.sort(()=>Math.random()-.5);
+    const chosen=[]; const usedSet=new Set();
+    for(const p of picks){
+      if(chosen.length>=3)break;
+      const key=p.start+'_'+p.end;
+      if(!usedSet.has(key)&&!chosen.some(c=>c.start<p.end&&c.end>p.start)){usedSet.add(key);chosen.push(p);}
+    }
+    found.push(...chosen);
   }
   found.sort((a,b)=>a.start-b.start);
   m3Blanks=found;
 
-  // Render text with inline inputs
+  // Render text with inline inputs, split by \n for proper paragraphs
   const box=document.getElementById('m3area');
-  let html=`<div style="font-family:var(--serif);font-size:20px;line-height:2.1;color:var(--cream);letter-spacing:.02em">`;
+  // Build segment list: [{type:'text',val} | {type:'blank',idx,ans}]
+  const segs=[];
   let prev=0;
-  found.forEach((b,i)=>{
-    html+=esc(typeText.slice(prev,b.start));
-    const w=Math.max(b.ans.length*22+16,60);
-    html+=`<input class="blank" id="m3b_${i}" data-ans="${esc(b.ans)}" style="width:${w}px" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="　"/>`;
+  found.sort((a,b)=>a.start-b.start).forEach((b,i)=>{
+    if(b.start>prev) segs.push({type:'text',val:typeText.slice(prev,b.start)});
+    segs.push({type:'blank',idx:i,ans:b.ans});
     prev=b.end;
   });
-  html+=esc(typeText.slice(prev))+'</div>';
+  if(prev<typeText.length) segs.push({type:'text',val:typeText.slice(prev)});
+  // Flatten to per-line structure
+  let lineHtmlArr=[''];
+  segs.forEach(seg=>{
+    if(seg.type==='blank'){
+      const w=Math.max(seg.ans.length*22+16,60);
+      lineHtmlArr[lineHtmlArr.length-1]+=`<input class="blank" id="m3b_${seg.idx}" data-ans="${esc(seg.ans)}" style="width:${w}px" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="　"/>`;
+    } else {
+      const parts=seg.val.split('\n');
+      parts.forEach((part,pi)=>{
+        if(pi>0) lineHtmlArr.push('');
+        lineHtmlArr[lineHtmlArr.length-1]+=esc(part);
+      });
+    }
+  });
+  let html=`<div style="font-family:var(--serif);font-size:20px;line-height:2.15;color:var(--cream);letter-spacing:.02em;word-break:keep-all;overflow-wrap:break-word">`;
+  html+=lineHtmlArr.filter(l=>l.trim()||l.includes('input')).map(l=>`<p>${l}</p>`).join('');
+  html+='</div>';
   html+=`<div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap">
     <button class="btn btn-pri" id="m3check">提交 ↵</button>
     <button class="btn btn-sec" id="m3reset">重來</button>
