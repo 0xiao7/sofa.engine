@@ -271,12 +271,12 @@
     </div>
     <div class="pr-meta">
       <div class="seg">已填 <b id="filled">— / —</b></div>
-      <div class="seg">正確 <b style="color:var(--good)">2</b></div>
-      <div class="seg">提示 <b>0</b></div>
-      <div class="seg">TIME <b>02:18</b></div>
+      <div class="seg">正確 <b id="metaRight" style="color:var(--good)">0</b></div>
+      <div class="seg">提示 <b id="metaHint">0</b></div>
+      <div class="seg">TIME <b id="metaTime">00:00</b></div>
     </div>
   </div>
-  <div class="pr-progress"><div class="fl" style="width:60%"></div></div>
+  <div class="pr-progress"><div class="fl" id="fillProg" style="width:0%"></div></div>
 
   <main class="stage">
     <div class="inner">
@@ -343,11 +343,9 @@
         </div>
 
         <div class="rail-card">
-          <div class="rail-h">NEXT<span class="ct">QUEUE</span></div>
-          <div style="font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;color:rgba(245,240,234,.5);line-height:2;text-transform:uppercase">
-            <div>02 · 商業登記法 §22</div>
-            <div>03 · 所得稅法 §71</div>
-            <div>04 · 記帳士法 §9</div>
+          <div class="rail-h">HISTORY<span class="ct" id="histCount">0</span></div>
+          <div id="histList" style="font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:rgba(245,240,234,.45);line-height:2;text-transform:uppercase">
+            <span style="color:rgba(245,240,234,.25)">—</span>
           </div>
         </div>
       </aside>
@@ -361,6 +359,39 @@ const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'
 const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
 if (!uid && !isFree) { window.location.href = 'login.html?redirect=fill.html'; }
 document.getElementById('navUid').textContent = isFree ? '免費版' : (localStorage.getItem('sofa_nickname') || uid);
+
+// ── 計時器 ──────────────────────────────────────────
+let _fillTimerIv=null, _fillStart=null, _sessionRight=0, _sessionHint=0;
+let _sessionHistory=[], _sessionCount=0;
+
+function fillTimerStart(){
+  if(_fillTimerIv)return;
+  _fillStart=Date.now();
+  _fillTimerIv=setInterval(()=>{
+    const sec=Math.floor((Date.now()-_fillStart)/1000);
+    const m=Math.floor(sec/60), s=sec%60;
+    document.getElementById('metaTime').textContent=String(m).padStart(2,'0')+':'+(s<10?'0':'')+s;
+  },1000);
+}
+
+function fillTimerReset(){
+  if(_fillTimerIv){clearInterval(_fillTimerIv);_fillTimerIv=null;}
+  _fillStart=null;
+  document.getElementById('metaTime').textContent='00:00';
+}
+
+function updateMetaRight(cor){ _sessionRight+=cor; document.getElementById('metaRight').textContent=_sessionRight; }
+function incMetaHint(){ _sessionHint++; document.getElementById('metaHint').textContent=_sessionHint; }
+
+function pushHistory(law, title){
+  _sessionCount++;
+  _sessionHistory.unshift({n:_sessionCount, law:law||'', title:title||''});
+  if(_sessionHistory.length>6)_sessionHistory.pop();
+  document.getElementById('histCount').textContent=_sessionCount;
+  document.getElementById('histList').innerHTML=_sessionHistory.map(h=>
+    `<div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.n} · ${h.law?h.law+' ':' '}${h.title}</div>`
+  ).join('')||'<span style="color:rgba(245,240,234,.25)">—</span>';
+}
 
 (async()=>{
   const sel = document.getElementById('lawSelect');
@@ -399,9 +430,13 @@ function useHint(fn){
   hintsLeft--;
   fn();
   updateHintUI();
+  incMetaHint();
 }
 
 function renderFill(){
+  fillTimerReset();
+  fillTimerStart();
+  document.getElementById('fillProg').style.width='0%';
   const box = document.getElementById('fillText');
   document.getElementById('resultMsg').style.display='none';
   document.getElementById('sourceBox').style.display='none';
@@ -463,6 +498,7 @@ function renderFill(){
       updateBlankList();
       const filled=[...box.querySelectorAll('input')].filter(x=>x.value.trim()).length;
       document.getElementById('filled').textContent=filled+' / '+all.length;
+      document.getElementById('fillProg').style.width=Math.round(filled/all.length*100)+'%';
     });
     inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(all[i+1])all[i+1].focus();else checkAnswers();}});
   });
@@ -503,6 +539,9 @@ function checkAnswers(){
   msg.textContent=cor===inputs.length?`✓ 全對！${cor}/${inputs.length}`:`${cor}/${inputs.length} 正確`;
   document.getElementById('scoreDisplay').textContent=cor+'/'+inputs.length;
   document.getElementById('accDisplay').textContent=Math.round(cor/inputs.length*100)+'%';
+  updateMetaRight(cor);
+  document.getElementById('fillProg').style.width='100%';
+  pushHistory(fillData.law_name||'', fillData.title||'');
   const pills=cor===inputs.length
     ?`<span class="pill good">✓ ${cor} 正確</span>`
     :`<span class="pill good">✓ ${cor} 正確</span><span class="pill bad">✗ ${inputs.length-cor} 錯誤</span>`;
@@ -521,11 +560,13 @@ function checkAnswers(){
 
 async function loadNew(){
   fillData=null;
+  fillTimerReset();
   document.getElementById('fillText').innerHTML='<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.4);letter-spacing:.1em">載入中…</span>';
   document.getElementById('artNum').textContent='—';
   document.getElementById('artTitle').textContent='載入中…';
   document.getElementById('resultMsg').style.display='none';
   document.getElementById('sourceBox').style.display='none';
+  document.getElementById('fillProg').style.width='0%';
   const law=document.getElementById('lawSelect').value;
   try{
     let url;

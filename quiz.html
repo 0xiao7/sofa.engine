@@ -261,10 +261,10 @@
       <div class="seg">第 <b id="qNum">—</b></div>
       <div class="seg">正確 <b id="scoreRight" style="color:var(--good)">0</b></div>
       <div class="seg">錯誤 <b id="scoreWrong" style="color:var(--bad)">0</b></div>
-      <div class="seg timer">TIMER <b>08:42</b></div>
+      <div class="seg timer">TIMER <b id="topTimer">0:00</b></div>
     </div>
   </div>
-  <div class="pr-progress"><div class="fl"></div></div>
+  <div class="pr-progress"><div class="fl" id="quizProg" style="width:0%"></div></div>
 
   <main class="stage">
     <div class="inner">
@@ -364,7 +364,9 @@ function startSessionTimer(){
   timerIv=setInterval(()=>{
     const sec=Math.floor((Date.now()-sessionStart)/1000);
     const m=Math.floor(sec/60), s=sec%60;
-    document.getElementById('railTimer').textContent=m+':'+(s<10?'0':'')+s;
+    const t=m+':'+(s<10?'0':'')+s;
+    document.getElementById('railTimer').textContent=t;
+    document.getElementById('topTimer').textContent=t;
   },1000);
 }
 
@@ -401,6 +403,10 @@ function updateScore(){
   document.getElementById('railAcc').textContent=answered_n>0?acc+'%':'—';
   rebuildSetMap();
   rebuildErrorList();
+  // 進度條：以命中率為寬度（有作答才顯示）
+  const answered_n=sessionHistory.filter(q=>q.correct!==null).length;
+  const prog=answered_n>0?Math.round(right/answered_n*100):0;
+  document.getElementById('quizProg').style.width=prog+'%';
 }
 
 async function loadQuiz(){

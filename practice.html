@@ -285,7 +285,7 @@
       <div class="seg">WPM <b id="wpm">42</b></div>
       <div class="seg">ACC <b id="acc">96.4%</b></div>
       <div class="seg">TIME <b id="time">01:24</b></div>
-      <div class="seg">STREAK <b>3 day</b></div>
+      <div class="seg">STREAK <b id="streakVal">—</b></div>
     </div>
   </div>
   <div class="pr-progress"><div class="fl" id="prog"></div></div>
@@ -363,7 +363,7 @@
           <span><kbd>ESC</kbd>暫停</span>
           <span><kbd>⌘</kbd>+<kbd>K</kbd>切換條文</span>
         </div>
-        <div>SESSION · 01:24 / EST 04:20</div>
+        <div id="sessionInfo">SESSION · 00:00</div>
       </div>
 
     </div>
@@ -437,8 +437,20 @@ ti.addEventListener('input',()=>{
   else render();
 });
 
+let _sessionStart=null, _sessionIv=null;
+function ensureSessionTimer(){
+  if(_sessionIv) return;
+  if(!_sessionStart) _sessionStart=Date.now();
+  _sessionIv=setInterval(()=>{
+    const s=Math.floor((Date.now()-_sessionStart)/1000);
+    const sm=Math.floor(s/60), ss=s%60;
+    document.getElementById('sessionInfo').textContent=
+      'SESSION · '+String(sm).padStart(2,'0')+':'+(ss<10?'0':'')+ss;
+  },1000);
+}
 function startTimer(){
   startTime=Date.now();
+  ensureSessionTimer();
   timerIv=setInterval(()=>{
     const sec=Math.floor((Date.now()-startTime)/1000);
     document.getElementById('time').textContent=String(Math.floor(sec/60)).padStart(2,'0')+':'+String(sec%60).padStart(2,'0');
