@@ -220,6 +220,18 @@
   .hint-btn:hover{border-color:var(--peach);color:var(--cream)}
   .hint-btn b{font-family:var(--serif);font-size:18px;color:var(--peach);letter-spacing:.01em;font-weight:600}
 
+  /* section analysis panel */
+  .sec-panel{margin-top:22px;background:var(--cream);color:var(--navy);border-radius:4px;padding:22px 26px;border-left:4px solid var(--peach-3)}
+  .sec-panel .sec-hd{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--peach-3);font-weight:600;padding-bottom:12px;border-bottom:1px dashed rgba(31,56,72,.15);margin-bottom:4px}
+  .sec-block{margin-top:16px;padding-top:14px;border-top:1px dashed rgba(31,56,72,.15)}
+  .sec-label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--peach-3);font-weight:600;margin-bottom:6px}
+  .sec-text{font-size:13px;line-height:1.85;color:rgba(31,56,72,.78);white-space:pre-wrap}
+  .sec-lock{margin-top:16px;position:relative;border-radius:3px;overflow:hidden}
+  .sec-lock-inner{padding:12px 0;border-top:1px dashed rgba(31,56,72,.15);filter:blur(4px);user-select:none;pointer-events:none}
+  .sec-lock-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(245,240,234,.92);backdrop-filter:blur(2px)}
+  .sec-lock-overlay p{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:rgba(27,43,75,.8);text-transform:uppercase;font-weight:600;margin:0}
+  .sec-lock-overlay a{display:inline-block;padding:7px 20px;background:var(--peach);color:var(--navy);font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;border-radius:2px;text-decoration:none}
+
   @media (max-width:1100px){
     .pr-bar{padding:14px 24px}
     .stage{padding:36px 32px 72px}
@@ -310,6 +322,8 @@
             <button class="btn btn-pri" id="btnCheck">提交 <span class="k">↵</span></button>
           </div>
         </div>
+
+        <div id="sectionsBox" class="sec-panel" style="display:none"></div>
       </div>
 
       <!-- right rail -->
@@ -427,6 +441,25 @@ function pushHistory(law, title){
 })();
 
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+const _FREE_SECS=['規範意旨與條文解析','條文解析','考點整理','記憶技巧','相關條文'];
+function buildSections(sections,isPaid,wrapEl,beforeEl){
+  wrapEl.querySelectorAll('.sec-block,.sec-lock').forEach(e=>e.remove());
+  _FREE_SECS.forEach(name=>{
+    if(!sections[name])return;
+    const d=document.createElement('div');d.className='sec-block';
+    const lb=document.createElement('div');lb.className='sec-label';lb.textContent=name;
+    const tx=document.createElement('div');tx.className='sec-text';tx.textContent=sections[name];
+    d.append(lb,tx);
+    if(beforeEl)wrapEl.insertBefore(d,beforeEl);else wrapEl.appendChild(d);
+  });
+  if(!isPaid){
+    const lk=document.createElement('div');lk.className='sec-lock';
+    lk.innerHTML='<div class="sec-lock-inner"><div class="sec-label">修法與聯覺備註</div><div class="sec-text">本條文近期修法重點與考試常見出題方向完整分析，含記憶技巧與易混淆比較⋯⋯</div></div><div class="sec-lock-overlay"><p>🔒 付費版完整考情分析</p><a href="checkout.html">升級解鎖 修法備註 · 實務應用 · 常見錯誤 →</a></div>';
+    if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
+  }
+}
+
 let fillData = null;
 let hintsLeft = 3;
 
@@ -580,6 +613,19 @@ function checkAnswers(){
   if(fillData.id&&uid&&uid!=='PREVIEW'&&!isFree){
     fetch(`${API}/api/me/history`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:fillData.id,law_name:fillData.law_name||'',article:fillData.title||''})}).catch(()=>{});
   }
+  // 載入條文解析 sections
+  if(fillData.id){
+    const panel=document.getElementById('sectionsBox');
+    panel.innerHTML='<div class="sec-hd">條文解析</div>';
+    panel.style.display='block';
+    (async()=>{
+      try{
+        const h={};if(uid)h['X-Sofa-UID']=uid;
+        const art=await fetch(`${API}/api/article/${fillData.id}`,{headers:h}).then(r=>r.json());
+        buildSections(art.sections||{},art._plan!=='free',panel);
+      }catch(e){}
+    })();
+  }
 }
 
 async function loadNew(){
@@ -591,6 +637,7 @@ async function loadNew(){
   document.getElementById('resultMsg').style.display='none';
   document.getElementById('sourceBox').style.display='none';
   document.getElementById('fillProg').style.width='0%';
+  const sp=document.getElementById('sectionsBox');sp.innerHTML='';sp.style.display='none';
   const law=document.getElementById('lawSelect').value;
   try{
     let url;
