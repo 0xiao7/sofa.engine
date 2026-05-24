@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=1080">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Noto+Sans+TC:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    width: 1080px;
+    height: 1080px;
+    background: #142836;
+    font-family: "Noto Sans TC", system-ui, sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* 背景垂直格線 */
+  .bg-grid {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      90deg,
+      rgba(245,240,234,0.025) 0px,
+      rgba(245,240,234,0.025) 1px,
+      transparent 1px,
+      transparent 90px
+    );
+    pointer-events: none;
+  }
+
+  /* 左上暖光 */
+  .bg-glow {
+    position: absolute;
+    top: -120px;
+    left: -80px;
+    width: 600px;
+    height: 500px;
+    background: radial-gradient(ellipse, rgba(231,187,167,0.07) 0%, transparent 68%);
+    pointer-events: none;
+  }
+
+  /* 右下深藍暗角 */
+  .bg-vignette {
+    position: absolute;
+    bottom: -60px;
+    right: -60px;
+    width: 500px;
+    height: 460px;
+    background: radial-gradient(ellipse, rgba(13,28,40,0.55) 0%, transparent 70%);
+    pointer-events: none;
+  }
+
+  /* 大 § 水印 */
+  .watermark {
+    position: absolute;
+    bottom: 100px;
+    right: 60px;
+    font-family: "Noto Serif TC", serif;
+    font-size: 340px;
+    font-weight: 700;
+    color: rgba(231,187,167,0.045);
+    line-height: 1;
+    letter-spacing: -0.04em;
+    user-select: none;
+  }
+
+  /* 主版面 */
+  .canvas {
+    position: relative;
+    width: 1080px;
+    height: 1080px;
+    display: flex;
+    flex-direction: column;
+    padding: 72px 80px 64px;
+  }
+
+  /* ── 頂部：eyebrow + 右側 tag ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0;
+  }
+
+  .eyebrow {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .eyebrow-line {
+    width: 20px;
+    height: 2px;
+    background: #E7BBA7;
+    flex-shrink: 0;
+  }
+  .eyebrow-text {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    color: #E7BBA7;
+    text-transform: uppercase;
+    opacity: 0.9;
+  }
+
+  .blog-tag {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    color: rgba(231,187,167,0.55);
+    text-transform: uppercase;
+    border: 1px solid rgba(231,187,167,0.2);
+    border-radius: 3px;
+    padding: 5px 10px;
+  }
+
+  /* ── 中間：主標題區 ── */
+  .main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding-bottom: 20px;
+  }
+
+  .question-mark-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 0;
+    margin-bottom: 8px;
+  }
+
+  .title-main {
+    font-family: "Noto Serif TC", serif;
+    font-size: 96px;
+    font-weight: 700;
+    color: #F5F0EA;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .title-accent {
+    font-family: "Noto Serif TC", serif;
+    font-size: 96px;
+    font-weight: 700;
+    color: #E7BBA7;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+  }
+
+  .title-sub {
+    font-family: "Noto Serif TC", serif;
+    font-size: 28px;
+    font-weight: 400;
+    color: rgba(245,240,234,0.55);
+    margin-top: 18px;
+    letter-spacing: 0.04em;
+    line-height: 1.5;
+  }
+
+  /* ── 分隔線 ── */
+  .divider {
+    width: 48px;
+    height: 1px;
+    background: rgba(231,187,167,0.35);
+    margin: 36px 0;
+  }
+
+  /* ── 方法三步 ── */
+  .steps {
+    display: flex;
+    gap: 0;
+    flex-direction: column;
+    gap: 20px;
+  }
+
+  .step {
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+  }
+
+  .step-num {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: #E7BBA7;
+    opacity: 0.7;
+    flex-shrink: 0;
+    padding-top: 3px;
+    min-width: 28px;
+  }
+
+  .step-text {
+    font-size: 17px;
+    color: rgba(245,240,234,0.75);
+    line-height: 1.55;
+  }
+
+  .step-text strong {
+    color: #F5F0EA;
+    font-weight: 500;
+  }
+
+  /* ── 底部：logo + URL ── */
+  .footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .logo-mark {
+    width: 34px;
+    height: 34px;
+    border: 1.5px solid rgba(231,187,167,0.45);
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Noto Serif TC", serif;
+    font-size: 15px;
+    color: #E7BBA7;
+    font-weight: 700;
+  }
+
+  .logo-name {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    color: rgba(245,240,234,0.45);
+  }
+
+  .url-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    color: rgba(245,240,234,0.25);
+  }
+</style>
+</head>
+<body>
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+  <div class="bg-vignette"></div>
+  <div class="watermark">§</div>
+
+  <div class="canvas">
+    <!-- 頂部 -->
+    <div class="header">
+      <div class="eyebrow">
+        <div class="eyebrow-line"></div>
+        <span class="eyebrow-text">BLOG 01 — 備考指南</span>
+      </div>
+      <div class="blog-tag">記帳士國考</div>
+    </div>
+
+    <!-- 主標題 -->
+    <div class="main">
+      <div class="title-main">法條</div>
+      <div class="title-accent">怎麼讀？</div>
+      <div class="title-sub">從陌生到熟背的系統方法</div>
+
+      <div class="divider"></div>
+
+      <div class="steps">
+        <div class="step">
+          <span class="step-num">01 —</span>
+          <span class="step-text"><strong>先讀結構，後記內容</strong>　條文的骨架比細節重要</span>
+        </div>
+        <div class="step">
+          <span class="step-num">02 —</span>
+          <span class="step-text"><strong>主動測試比反覆閱讀有效</strong>　打字、填空、選擇三種模式</span>
+        </div>
+        <div class="step">
+          <span class="step-num">03 —</span>
+          <span class="step-text"><strong>間隔重複，讓記憶落地</strong>　不懂的條文加入再讀清單</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 底部 -->
+    <div class="footer">
+      <div class="logo-area">
+        <div class="logo-mark">S</div>
+        <span class="logo-name">SoFa Engine</span>
+      </div>
+      <span class="url-label">sofaengine.org</span>
+    </div>
+  </div>
+</body>
+</html>
