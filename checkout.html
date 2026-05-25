@@ -839,6 +839,25 @@
   });
 
   function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+
+  // ── Query string prefill：?plan=月費&email=xxx ──────────────
+  // 從 LINE bot 帶過來的連結會自動選方案 + 預填信箱，省去重輸
+  (function prefillFromQuery(){
+    const qs = new URLSearchParams(location.search);
+    const planParam  = (qs.get("plan")  || "").trim();
+    const emailParam = (qs.get("email") || "").trim();
+    if (planParam) {
+      const target = plansEl.querySelector('.plan[data-plan="' + planParam.replace(/"/g, '') + '"]');
+      if (target && !target.classList.contains("selected")) {
+        cards.forEach(x => x.classList.remove("selected"));
+        target.classList.add("selected");
+        refreshSummary();
+      }
+    }
+    if (emailParam && isEmail(emailParam) && !emailEl.value) {
+      emailEl.value = emailParam;
+    }
+  })();
   function showError(msg){ errorEl.textContent = msg; errorEl.classList.add("show"); }
   function clearError(){ errorEl.textContent = ""; errorEl.classList.remove("show"); }
 
