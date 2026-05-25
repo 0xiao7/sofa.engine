@@ -314,6 +314,8 @@
           <div id="fillText"><span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.35);letter-spacing:.1em">選擇法規後點「換一條」開始</span></div>
           <div id="resultMsg" style="display:none;margin-top:16px;font-family:var(--mono);font-size:13px;letter-spacing:.1em"></div>
           <div id="sourceBox" style="display:none;margin-top:8px;font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.5);letter-spacing:.08em"></div>
+          <button id="fillSourceLink" style="display:none;margin-top:10px;background:transparent;border:1px solid var(--peach-dim);color:var(--peach);font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:6px 12px;border-radius:2px;cursor:pointer">查看完整條文 →</button>
+          <div id="fillArtInline" style="display:none;margin-top:12px;padding:14px 16px;background:rgba(245,240,234,.04);border-left:2px solid var(--peach);font-size:14.5px;line-height:1.95;color:var(--cream);white-space:pre-wrap"></div>
         </div>
 
         <div class="fill-actions">
@@ -650,15 +652,30 @@ function checkAnswers(){
     const panel=document.getElementById('sectionsBox');
     panel.innerHTML='<div class="sec-hd">條文解析</div>';
     panel.style.display='block';
+    const srcBtn=document.getElementById('fillSourceLink');
+    const srcPanel=document.getElementById('fillArtInline');
+    srcBtn.style.display='inline-block';
+    srcBtn.textContent='查看完整條文 →';
+    srcPanel.style.display='none';
+    srcPanel.textContent='';
     (async()=>{
       try{
         const h={};if(uid)h['X-Sofa-UID']=uid;
         const art=await fetch(`${API}/api/article/${fillData.id}`,{headers:h}).then(r=>r.json());
+        srcPanel.textContent=art.original_text||'';
         buildSections(art.sections||{},art._plan!=='free',panel);
       }catch(e){}
     })();
   }
 }
+
+document.getElementById('fillSourceLink').addEventListener('click',()=>{
+  const panel=document.getElementById('fillArtInline');
+  const btn=document.getElementById('fillSourceLink');
+  const open=panel.style.display==='none'||!panel.style.display;
+  panel.style.display=open?'block':'none';
+  btn.textContent=open?'收起條文 ↑':'查看完整條文 →';
+});
 
 async function loadNew(){
   fillData=null;
@@ -670,6 +687,8 @@ async function loadNew(){
   document.getElementById('sourceBox').style.display='none';
   document.getElementById('fillProg').style.width='0%';
   const sp=document.getElementById('sectionsBox');sp.innerHTML='';sp.style.display='none';
+  const srcBtn0=document.getElementById('fillSourceLink');if(srcBtn0)srcBtn0.style.display='none';
+  const srcP0=document.getElementById('fillArtInline');if(srcP0){srcP0.style.display='none';srcP0.textContent='';}
   const law=document.getElementById('lawSelect').value;
   try{
     let url;
