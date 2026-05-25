@@ -265,6 +265,12 @@
         <span class="lab">LAW</span>
         <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:600;font-size:17px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none"><option value="">全部法規</option></select>
       </div>
+      <div class="title" id="artPickWrap" style="display:none">
+        <span class="lab">§</span>
+        <input id="artNumInput" list="artDatalist" placeholder="條號"
+          style="background:transparent;border:none;outline:none;font-family:var(--mono);font-size:14px;color:var(--cream);width:64px;cursor:text">
+        <datalist id="artDatalist"></datalist>
+      </div>
       <button id="btnNew" class="btn btn-sec" style="padding:8px 16px;font-size:13px">出題</button>
     </div>
     <div class="pr-meta">
@@ -367,6 +373,32 @@ if(isFree){
   }catch{}
 })();
 
+let _artCache = {};
+document.getElementById('lawSelect').addEventListener('change', async function(){
+  const law = this.value;
+  const wrap = document.getElementById('artPickWrap');
+  const dl   = document.getElementById('artDatalist');
+  const inp  = document.getElementById('artNumInput');
+  dl.innerHTML = ''; inp.value = '';
+  const realLaw = law && !law.startsWith('__');
+  wrap.style.display = realLaw ? '' : 'none';
+  if (!realLaw) return;
+  if (!_artCache[law]) {
+    try {
+      const r = await fetch(`${API}/api/articles?law=${encodeURIComponent(law)}`).then(r=>r.json());
+      _artCache[law] = r.articles || [];
+    } catch { _artCache[law] = []; }
+  }
+  _artCache[law].forEach(a => {
+    const m = (a.title||'').match(/第(\d+(?:之\d+)?)條/);
+    if (!m) return;
+    const opt = document.createElement('option');
+    opt.value = m[1];
+    opt.label = a.title.replace(/第[\d之]+條\s*/,'').trim();
+    dl.appendChild(opt);
+  });
+});
+
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 const _FREE_SECS=['規範意旨與條文解析','條文解析','考點整理','記憶技巧','相關條文'];
@@ -463,10 +495,21 @@ async function loadQuiz(){
     if(law==='__starred__'){
       const sl=await fetch(`${API}/api/starred?min_stars=5`,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
       const arts=(sl.articles||[]).filter(a=>a.law);
-      if(!arts.length) throw new Error('no starred');
+      if(!arts.length){
+        document.getElementById('questionBox').textContent='尚無五星條文 · 請先在練習中對條文評分';
+        document.getElementById('questionBox').style.opacity='1';
+        return;
+      }
       law=arts[Math.floor(Math.random()*arts.length)].law;
     }
-    const url=law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`;
+    const artNum = (document.getElementById('artNumInput')||{}).value?.trim();
+    let url;
+    if(artNum && law && _artCache[law]){
+      const match=_artCache[law].find(a=>{const m=(a.title||'').match(/第(\d+(?:之\d+)?)條/);return m&&m[1]===artNum;});
+      url = match ? `${API}/api/quiz?page_id=${encodeURIComponent(match.id)}` : (law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`);
+    } else {
+      url=law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`;
+    }
     const data=await fetch(url,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
     if(data.error||data.detail){
       document.getElementById('questionBox').textContent=data.error||data.detail;
