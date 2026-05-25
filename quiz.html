@@ -156,6 +156,8 @@
     letter-spacing:.12em;color:rgba(31,56,72,.55);text-transform:uppercase;
   }
   .explain .src a{color:var(--peach-3);font-weight:600}
+  .explain .src button{background:none;border:none;padding:0;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--peach-3);font-weight:600}
+  .art-inline{margin-top:14px;padding:16px 20px;background:rgba(31,56,72,.06);border-radius:3px;max-height:380px;overflow-y:auto;font-family:var(--serif);font-size:14.5px;line-height:2;color:rgba(31,56,72,.82);white-space:pre-wrap;display:none}
 
   /* section analysis */
   .sec-block{margin-top:16px;padding-top:14px;border-top:1px dashed rgba(31,56,72,.15)}
@@ -304,8 +306,9 @@
           <span class="eb">答對了</span>
           <div class="src" id="sourceBox">
             <span>—</span>
-            <a href="dashboard.html" id="sourceLink">查看完整條文 →</a>
+            <button id="sourceLink">查看完整條文 →</button>
           </div>
+          <div class="art-inline" id="artInline"></div>
         </div>
 
         <div class="q-foot">
@@ -569,9 +572,10 @@ async function loadQuiz(){
         const eb=document.querySelector('#explainBox .eb');
         if(eb)eb.textContent=isCorrect?'✓ 答對了':'✗ 答錯了，正確答案已標綠';
         if(pageId){
-          document.getElementById('sourceLink').href=`dashboard.html?open=${encodeURIComponent(pageId)}`;
           document.getElementById('sourceBox').querySelector('span').textContent='查看該條完整原文 →';
+          document.getElementById('sourceLink').textContent='查看完整條文 →';
         }
+        document.getElementById('artInline').style.display='none';
         document.getElementById('explainBox').style.display='block';
         // 載入條文解析 sections
         if(pageId){
@@ -579,6 +583,7 @@ async function loadQuiz(){
             try{
               const h={};if(uid)h['X-Sofa-UID']=uid;
               const art=await fetch(`${API}/api/article/${pageId}`,{headers:h}).then(r=>r.json());
+              document.getElementById('artInline').textContent=art.original_text||'';
               buildSections(art.sections||{},art._plan!=='free',
                 document.getElementById('explainBox'),document.getElementById('sourceBox'));
             }catch(e){}
@@ -614,6 +619,13 @@ function doFlag(){
   }
   updateScore();
 }
+document.getElementById('sourceLink').addEventListener('click',()=>{
+  const panel=document.getElementById('artInline');
+  const btn=document.getElementById('sourceLink');
+  const open=panel.style.display==='none'||!panel.style.display;
+  panel.style.display=open?'block':'none';
+  btn.textContent=open?'收起條文 ↑':'查看完整條文 →';
+});
 document.getElementById('btnFlag').addEventListener('click',doFlag);
 document.getElementById('btnNew').addEventListener('click',loadQuiz);
 document.getElementById('btnNext').addEventListener('click',loadQuiz);
