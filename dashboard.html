@@ -625,6 +625,10 @@
   }
   .chip:hover{border-color:var(--peach-dim);color:var(--cream)}
   .chip.on{background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:600}
+  .sub-filter-row{display:none;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(245,240,234,.1)}
+  .sub-filter-row .sf-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(245,240,234,.4);white-space:nowrap}
+  .sub-filter-row select{background:var(--navy-2);border:1px solid var(--line-2);border-radius:3px;color:var(--cream);font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:5px 10px;cursor:pointer;outline:none}
+  .sub-filter-row select:focus{border-color:var(--peach-dim)}
 
   .results{
     margin-top:24px;display:flex;flex-direction:column;
@@ -1275,6 +1279,12 @@
               <button class="chip" onclick="setChip(this,'4star')">★★★★</button>
               <button class="chip" onclick="setChip(this,'deadline')">期間 / 時限</button>
               <button class="chip" onclick="setChip(this,'penalty')">罰則</button>
+            </div>
+            <div class="sub-filter-row" id="subFilterRow">
+              <span class="sf-label">細篩</span>
+              <select id="subFilterSel" onchange="doSearch()">
+                <option value="">全部</option>
+              </select>
             </div>
 
             <div class="results" id="search-results">
@@ -2230,10 +2240,44 @@ function _renderLawsToc(page){
     .catch(function(){});
 })();
 
+var _DEADLINE_OPTS = [
+  {l:'全部',v:''},{l:'1日',v:'一日'},{l:'2日',v:'二日'},{l:'3日',v:'三日'},
+  {l:'5日',v:'五日'},{l:'7日',v:'七日'},{l:'10日',v:'十日'},{l:'14日',v:'十四日'},
+  {l:'20日',v:'二十日'},{l:'30日',v:'三十日'},{l:'60日',v:'六十日'},
+  {l:'1個月',v:'一個月'},{l:'2個月',v:'二個月'},{l:'3個月',v:'三個月'},
+  {l:'6個月',v:'六個月'},{l:'1年',v:'一年'},{l:'2年',v:'二年'},
+  {l:'3年',v:'三年'},{l:'5年',v:'五年'},{l:'10年',v:'十年'}
+];
+var _PENALTY_OPTS = [
+  {l:'全部',v:''},{l:'3千元',v:'三千元'},{l:'5千元',v:'五千元'},
+  {l:'1萬元',v:'一萬元'},{l:'3萬元',v:'三萬元'},{l:'5萬元',v:'五萬元'},
+  {l:'10萬元',v:'十萬元'},{l:'15萬元',v:'十五萬元'},{l:'30萬元',v:'三十萬元'},
+  {l:'50萬元',v:'五十萬元'},{l:'100萬元',v:'一百萬元'},{l:'200萬元',v:'二百萬元'},
+  {l:'300萬元',v:'三百萬元'},{l:'500萬元',v:'五百萬元'}
+];
+
+function _populateSubFilter(opts){
+  var sel = document.getElementById('subFilterSel');
+  if(!sel) return;
+  sel.innerHTML = opts.map(function(o){
+    return '<option value="'+esc(o.v)+'">'+esc(o.l)+'</option>';
+  }).join('');
+}
+
 function setChip(btn, key){
   document.querySelectorAll('.chip-row .chip').forEach(function(c){ c.classList.remove('on'); });
   btn.classList.add('on');
   _curChip = key;
+  var row = document.getElementById('subFilterRow');
+  if(key === 'deadline'){
+    _populateSubFilter(_DEADLINE_OPTS);
+    row.style.display = 'flex';
+  } else if(key === 'penalty'){
+    _populateSubFilter(_PENALTY_OPTS);
+    row.style.display = 'flex';
+  } else {
+    row.style.display = 'none';
+  }
   doSearch();
 }
 
@@ -2291,18 +2335,27 @@ function selectLaw(nameOrEl){
 }
 
 function _chipFilter(arts, chip){
+  var subVal = ((document.getElementById('subFilterSel')||{}).value||'').trim();
+  function _subMatch(a){
+    if(!subVal) return true;
+    if((a.title||'').indexOf(subVal) !== -1) return true;
+    if((a.tags||[]).some(function(t){ return t.indexOf(subVal) !== -1; })) return true;
+    return false;
+  }
   if(chip === 'all') return arts;
   if(chip === '5star') return arts.filter(function(a){ return (a.importance||'').indexOf('★★★★★') !== -1; });
   if(chip === '4star') return arts.filter(function(a){ var imp = a.importance||''; return imp.indexOf('★★★★') !== -1 && imp.indexOf('★★★★★') === -1; });
   if(chip === 'deadline') return arts.filter(function(a){
     var tags = a.tags||[];
     var hasTag = tags.some(function(t){ return t.indexOf('期間') !== -1 || t.indexOf('時限') !== -1; });
-    return hasTag || (!tags.length && ((a.title||'').indexOf('期間') !== -1 || (a.title||'').indexOf('時限') !== -1));
+    var baseMatch = hasTag || (!tags.length && ((a.title||'').indexOf('期間') !== -1 || (a.title||'').indexOf('時限') !== -1));
+    return baseMatch && _subMatch(a);
   });
   if(chip === 'penalty') return arts.filter(function(a){
     var tags = a.tags||[];
     var hasTag = tags.some(function(t){ return t.indexOf('罰則') !== -1 || t.indexOf('罰') !== -1; });
-    return hasTag || (a.title||'').indexOf('罰') !== -1;
+    var baseMatch = hasTag || (a.title||'').indexOf('罰') !== -1;
+    return baseMatch && _subMatch(a);
   });
   return arts;
 }
@@ -2359,24 +2412,7 @@ function doSearch(){
         })
         .catch(function(){ resEl.innerHTML = _MSG_FAIL; });
     } else {
-      // 期間/罰則 chip 在無法規名稱時，改為從已載入清單全量掃描
-      if(!_allLaws.length){
-        resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">請先選擇法規名稱再使用分類篩選</div>';
-        return;
-      }
-      resEl.innerHTML = _MSG_LOADING;
-      var lawNames = _allLaws.map(function(l){ return l.name; });
-      Promise.all(lawNames.map(function(n){
-        return fetch(API + '/api/articles?law=' + encodeURIComponent(n))
-          .then(function(r){ return r.ok ? r.json() : null; })
-          .catch(function(){ return null; });
-      })).then(function(results){
-        var allArts = [];
-        results.forEach(function(d){ if(d && d.articles) allArts = allArts.concat(d.articles); });
-        var arts = _chipFilter(allArts, chip);
-        if(!arts.length){ resEl.innerHTML = _MSG_EMPTY; return; }
-        _srSet(arts, '');
-      }).catch(function(){ resEl.innerHTML = _MSG_FAIL; });
+      resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">請先輸入法規名稱，再使用分類篩選</div>';
     }
     return;
   }
