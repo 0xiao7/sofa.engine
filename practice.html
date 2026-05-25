@@ -408,7 +408,7 @@ if(isFree){
   const sel = document.getElementById('lawSelect');
   // Special filters
   if(uid){
-    [['__starred__','★ 五星條文'],['__bookmarks__','♥ 我的收藏']].forEach(([v,t])=>{
+    [['__starred__','★ 五星條文'],['__bookmarks__','♥ 我的收藏'],['__mastered__','✓ 已熟記'],['__review__','⏰ 待複習']].forEach(([v,t])=>{
       const o=document.createElement('option');o.value=v;o.textContent=t;sel.appendChild(o);
     });
     const sep=document.createElement('option');sep.disabled=true;sep.textContent='──────';sel.appendChild(sep);
@@ -578,6 +578,18 @@ async function loadNew(){
       }
       const pick=ids[Math.floor(Math.random()*ids.length)];
       d=await fetch(`${API}/api/article/${pick}`,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
+    } else if(law==='__mastered__'||law==='__review__'){
+      const wantStatus=law==='__mastered__'?'mastered':'review';
+      const mr=await fetch(`${API}/api/me/mastery`,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
+      const items=(mr.items||[]).filter(m=>m.status===wantStatus&&m.page_id);
+      if(!items.length){
+        const msg=wantStatus==='mastered'?'尚無已熟記條文':'尚無待複習條文';
+        ghost.innerHTML='<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.5);letter-spacing:.1em">'+msg+'</span>';
+        return;
+      }
+      const pick=items[Math.floor(Math.random()*items.length)];
+      d=await fetch(`${API}/api/article/${pick.page_id}`,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
+      lawMeta=pick.law_name||'';
     } else {
       // 若有指定條號，直接取那條
       const artNum = (document.getElementById('artNumInput')||{}).value?.trim();

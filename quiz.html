@@ -367,7 +367,9 @@ if(isFree){
 (async()=>{
   const sel=document.getElementById('lawSelect');
   if(uid){
-    const o=document.createElement('option');o.value='__starred__';o.textContent='★ 五星條文';sel.appendChild(o);
+    [['__starred__','★ 五星條文'],['__bookmarks__','♥ 我的收藏'],['__mastered__','✓ 已熟記'],['__review__','⏰ 待複習']].forEach(([v,t])=>{
+      const o=document.createElement('option');o.value=v;o.textContent=t;sel.appendChild(o);
+    });
     const sep=document.createElement('option');sep.disabled=true;sep.textContent='──────';sel.appendChild(sep);
   }
   try{
@@ -495,6 +497,7 @@ async function loadQuiz(){
 
   let law=document.getElementById('lawSelect').value;
   try{
+    let pickedPageId='';
     if(law==='__starred__'){
       const sl=await fetch(`${API}/api/starred?min_stars=5`,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
       const arts=(sl.articles||[]).filter(a=>a.law);
@@ -504,10 +507,34 @@ async function loadQuiz(){
         return;
       }
       law=arts[Math.floor(Math.random()*arts.length)].law;
+    } else if(law==='__bookmarks__'){
+      const bm=await fetch(`${API}/api/me/bookmarks`,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
+      const ids=(bm.bookmarks||[]);
+      if(!ids.length){
+        document.getElementById('questionBox').textContent='尚無收藏條文';
+        document.getElementById('questionBox').style.opacity='1';
+        return;
+      }
+      pickedPageId=ids[Math.floor(Math.random()*ids.length)];
+      law='';
+    } else if(law==='__mastered__'||law==='__review__'){
+      const wantStatus=law==='__mastered__'?'mastered':'review';
+      const mr=await fetch(`${API}/api/me/mastery`,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
+      const items=(mr.items||[]).filter(m=>m.status===wantStatus&&m.page_id);
+      if(!items.length){
+        document.getElementById('questionBox').textContent=wantStatus==='mastered'?'尚無已熟記條文':'尚無待複習條文';
+        document.getElementById('questionBox').style.opacity='1';
+        return;
+      }
+      const pick=items[Math.floor(Math.random()*items.length)];
+      pickedPageId=pick.page_id;
+      law='';
     }
     const artNum = (document.getElementById('artNumInput')||{}).value?.trim();
     let url;
-    if(artNum && law && _artCache[law]){
+    if(pickedPageId){
+      url=`${API}/api/quiz?page_id=${encodeURIComponent(pickedPageId)}`;
+    } else if(artNum && law && _artCache[law]){
       const match=_artCache[law].find(a=>{const m=(a.title||'').match(/第(\d+(?:之\d+)?)條/);return m&&m[1]===artNum;});
       url = match ? `${API}/api/quiz?page_id=${encodeURIComponent(match.id)}` : (law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`);
     } else {
