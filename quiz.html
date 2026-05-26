@@ -300,7 +300,7 @@
     <button type="button" class="pr-chip" data-chip="deadline">期限 / 時限</button>
     <button type="button" class="pr-chip" data-chip="penalty">罰則</button>
     <div class="pr-sub" id="prSub"><select id="prSubSel"><option value="">全部</option></select></div>
-    <span class="lock-hint">⚐ 先選法規以啟用</span>
+    <span class="lock-hint">⚐ 跨法規請選關鍵字（如 三日 / 三萬元）</span>
   </div>
   <div class="pr-progress"><div class="fl" id="quizProg" style="width:0%"></div></div>
 
@@ -423,16 +423,15 @@ function _prFilterByChip(arts){
 }
 function _updateChipLock(){
   var v=(document.getElementById('lawSelect')||{}).value||'';
+  var subVal=(document.getElementById('prSubSel')||{}).value||'';
   var box=document.querySelector('.pr-chips');
   if(!box)return;
-  if(v==='')box.classList.add('is-locked');
+  if(v==='' && _curPrChip!=='all' && !subVal) box.classList.add('is-locked');
   else box.classList.remove('is-locked');
 }
 document.addEventListener('DOMContentLoaded',function(){
   document.querySelectorAll('.pr-chip').forEach(function(btn){
     btn.addEventListener('click',function(){
-      var box=document.querySelector('.pr-chips');
-      if(box&&box.classList.contains('is-locked'))return;
       document.querySelectorAll('.pr-chip').forEach(function(c){c.classList.remove('on');});
       btn.classList.add('on');
       _curPrChip=btn.dataset.chip||'all';
@@ -440,11 +439,14 @@ document.addEventListener('DOMContentLoaded',function(){
       if(_curPrChip==='deadline'){_prPopulateSub(_PR_DEADLINE_OPTS);sub.classList.add('show');}
       else if(_curPrChip==='penalty'){_prPopulateSub(_PR_PENALTY_OPTS);sub.classList.add('show');}
       else{sub.classList.remove('show');var s=document.getElementById('prSubSel');if(s)s.value='';}
+      _updateChipLock();
     });
   });
   _updateChipLock();
   var _lawSel=document.getElementById('lawSelect');
   if(_lawSel)_lawSel.addEventListener('change',_updateChipLock);
+  var _subSel=document.getElementById('prSubSel');
+  if(_subSel)_subSel.addEventListener('change',_updateChipLock);
 });
 document.getElementById('lawSelect').addEventListener('change', async function(){
   const law = this.value;
@@ -615,6 +617,10 @@ async function loadQuiz(){
       url=`${API}/api/quiz?page_id=${encodeURIComponent(pick.id)}`;
     } else {
       url=law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`;
+      var _subVal=(document.getElementById('prSubSel')||{}).value||'';
+      if(!law && _curPrChip!=='all' && _subVal){
+        url+=(url.indexOf('?')>=0?'&':'?')+'chip='+encodeURIComponent(_curPrChip)+'&sub='+encodeURIComponent(_subVal);
+      }
     }
     const data=await fetch(url,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
     if(data.error||data.detail){
