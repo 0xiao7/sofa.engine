@@ -279,7 +279,7 @@
     </nav>
     <div class="top-right">
       <span class="user-pill"><span class="live"></span><span id="navUid">—</span></span>
-      <button class="btn-out" onclick="localStorage.removeItem('sofa_uid');localStorage.removeItem('sofa_token');window.location.href='login.html'">登出</button>
+      <button class="btn-out" onclick="localStorage.removeItem('sofa_uid');window.location.href='login.html'">登出</button>
       <button class="menu-btn"><span></span></button>
     </div>
   </header>
@@ -398,13 +398,6 @@
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
 const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
-const tok = localStorage.getItem('sofa_token') || '';
-function _authH(extra) {
-  const h = extra ? {...extra} : {};
-  if (tok) h['Authorization'] = 'Bearer ' + tok;
-  else if (uid) h['X-Sofa-UID'] = uid;
-  return h;
-}
 const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
 if (!uid && !isFree) { window.location.href = 'login.html?redirect=fill.html'; }
 document.getElementById('navUid').textContent = isFree ? '免費版' : (localStorage.getItem('sofa_nickname') || uid);
@@ -721,7 +714,7 @@ function checkAnswers(){
   }
   // 寫入練習紀錄
   if(fillData.id&&uid&&uid!=='PREVIEW'&&!isFree){
-    fetch(`${API}/api/me/history`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({page_id:fillData.id,law_name:fillData.law_name||'',article:fillData.title||''})}).catch(()=>{});
+    fetch(`${API}/api/me/history`,{method:'POST',headers:{'Content-Type':'application/json','X-Sofa-UID':uid},body:JSON.stringify({page_id:fillData.id,law_name:fillData.law_name||'',article:fillData.title||''})}).catch(()=>{});
   }
   // 載入條文解析 sections
   if(fillData.id){
@@ -736,7 +729,7 @@ function checkAnswers(){
     srcPanel.textContent='';
     (async()=>{
       try{
-        const h=_authH();
+        const h={};if(uid)h['X-Sofa-UID']=uid;
         const art=await fetch(`${API}/api/article/${fillData.id}`,{headers:h}).then(r=>r.json());
         srcPanel.textContent=art.original_text||'';
         buildSections(art.sections||{},art._plan!=='free',panel);
@@ -769,7 +762,7 @@ async function loadNew(){
   try{
     let url;
     if(law==='__starred__'){
-      const sl=await fetch(`${API}/api/starred?min_stars=5`,{headers:_authH()}).then(r=>r.json());
+      const sl=await fetch(`${API}/api/starred?min_stars=5`,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
       const arts=(sl.articles||[]);
       if(!arts.length){
         document.getElementById('fillText').innerHTML='<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.4)">尚無重點法條</span>';
@@ -778,7 +771,7 @@ async function loadNew(){
       const pick=arts[Math.floor(Math.random()*arts.length)];
       url=`${API}/api/fill?page_id=${encodeURIComponent(pick.id)}`;
     } else if(law==='__bookmarks__'){
-      const bm=await fetch(`${API}/api/me/bookmarks`,{headers:_authH()}).then(r=>r.json());
+      const bm=await fetch(`${API}/api/me/bookmarks`,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
       const ids=(bm.bookmarks||[]);
       if(!ids.length){
         document.getElementById('fillText').innerHTML='<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.4)">尚無收藏條文</span>';
@@ -788,7 +781,7 @@ async function loadNew(){
       url=`${API}/api/fill?page_id=${encodeURIComponent(pick)}`;
     } else if(law==='__mastered__'||law==='__review__'){
       const wantStatus=law==='__mastered__'?'mastered':'review';
-      const mr=await fetch(`${API}/api/me/mastery`,{headers:_authH()}).then(r=>r.json());
+      const mr=await fetch(`${API}/api/me/mastery`,{headers:{'X-Sofa-UID':uid}}).then(r=>r.json());
       const items=(mr.items||[]).filter(m=>m.status===wantStatus&&m.page_id);
       if(!items.length){
         const msg=wantStatus==='mastered'?'尚無已熟記條文':'尚無待複習條文';
@@ -820,7 +813,7 @@ async function loadNew(){
         }
       }
     }
-    const resp=await fetch(url,{headers:_authH()});
+    const resp=await fetch(url,{headers:{'X-Sofa-UID':uid}});
     fillData=await resp.json();
     // 補上前端已知的法規名（若 API 未回傳）
     if(!fillData.law_name&&law&&!law.startsWith('__')){
