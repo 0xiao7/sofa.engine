@@ -427,6 +427,17 @@ if(isFree){
   document.querySelector('.pr-bar').before(bar);
 }
 
+// 連續學習天數（從 /api/me/streak）
+(async function loadStreak(){
+  if(!uid || uid==='PREVIEW') return;
+  try{
+    const r = await fetch(`${API}/api/me/streak`, {headers:{'X-Sofa-UID':uid}}).then(r=>r.ok?r.json():null);
+    if(!r) return;
+    const el = document.getElementById('streakVal');
+    if(el) el.textContent = (r.streak||0) + '天';
+  }catch(e){}
+})();
+
 (async()=>{
   const sel = document.getElementById('lawSelect');
   // Special filters
