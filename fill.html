@@ -258,6 +258,9 @@
   .pr-chip{padding:6px 12px;border:1px solid var(--line-2);border-radius:100px;background:transparent;color:rgba(245,240,234,.55);cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.06em;transition:.18s}
   .pr-chip:hover{border-color:var(--peach-dim);color:var(--cream)}
   .pr-chip.on{background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:600}
+  .pr-chips.is-locked .pr-chip{opacity:.4;cursor:not-allowed;border-color:var(--line-2)!important;color:rgba(245,240,234,.35)!important;background:transparent!important}
+  .pr-chips .lock-hint{display:none;font-size:10.5px;color:var(--peach-dim);letter-spacing:.05em;margin-left:auto;font-style:italic;opacity:.85}
+  .pr-chips.is-locked .lock-hint{display:inline-block}
   .pr-sub{display:none;align-items:center;gap:8px;margin-left:6px}
   .pr-sub.show{display:flex}
   .pr-sub select{background:var(--navy-3);border:1px solid var(--line-2);border-radius:3px;color:var(--cream);font-family:var(--mono);font-size:11.5px;padding:5px 10px;cursor:pointer;outline:none}
@@ -309,6 +312,7 @@
     <button type="button" class="pr-chip" data-chip="deadline">期限 / 時限</button>
     <button type="button" class="pr-chip" data-chip="penalty">罰則</button>
     <div class="pr-sub" id="prSub"><select id="prSubSel"><option value="">全部</option></select></div>
+    <span class="lock-hint">⚐ 先選法規以啟用</span>
   </div>
   <div class="pr-progress"><div class="fl" id="fillProg" style="width:0%"></div></div>
 
@@ -487,9 +491,18 @@ function _prFilterByChip(arts){
     return t.indexOf(sub)!==-1||tl.indexOf(sub)!==-1||tags.some(function(x){return x.indexOf(sub)!==-1;});
   });
 }
+function _updateChipLock(){
+  var v=(document.getElementById('lawSelect')||{}).value||'';
+  var box=document.querySelector('.pr-chips');
+  if(!box)return;
+  if(v==='')box.classList.add('is-locked');
+  else box.classList.remove('is-locked');
+}
 document.addEventListener('DOMContentLoaded',function(){
   document.querySelectorAll('.pr-chip').forEach(function(btn){
     btn.addEventListener('click',function(){
+      var box=document.querySelector('.pr-chips');
+      if(box&&box.classList.contains('is-locked'))return;
       document.querySelectorAll('.pr-chip').forEach(function(c){c.classList.remove('on');});
       btn.classList.add('on');
       _curPrChip=btn.dataset.chip||'all';
@@ -499,6 +512,9 @@ document.addEventListener('DOMContentLoaded',function(){
       else{sub.classList.remove('show');var s=document.getElementById('prSubSel');if(s)s.value='';}
     });
   });
+  _updateChipLock();
+  var _lawSel=document.getElementById('lawSelect');
+  if(_lawSel)_lawSel.addEventListener('change',_updateChipLock);
 });
 document.getElementById('lawSelect').addEventListener('change', async function(){
   const law = this.value;
