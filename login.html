@@ -749,6 +749,40 @@ serialEl.addEventListener('input', function() {
 
 serialEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
+// Magic-link 自動登入：URL ?t=<token> → POST /api/auth/magic → 存 sofa_uid + sofa_token → 跳 dashboard
+(async function autoLoginFromMagicToken(){
+  var params = new URLSearchParams(location.search);
+  var magicToken = params.get('t');
+  if(!magicToken) return;
+  // 立即把表單藏起，顯示「自動登入中…」狀態
+  try{
+    btn.disabled = true;
+    btn.textContent = '自動登入中…';
+    hintEl.textContent = '從 LINE 收到的連結，正在驗證…';
+    var res = await fetch(`${API}/api/auth/magic`, {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token: magicToken }),
+    });
+    var data = await res.json();
+    if(!res.ok){
+      showErr(data.detail || '連結已失效，請從 LINE 重新取得');
+      btn.disabled = false;
+      btn.innerHTML = '進入會員中心 →';
+      return;
+    }
+    localStorage.setItem('sofa_uid', data.uid);
+    if(data.token) localStorage.setItem('sofa_token', data.token);
+    // 清掉 URL 上的 token 避免被分享 / 留在瀏覽紀錄
+    history.replaceState({}, '', location.pathname);
+    window.location.href = 'dashboard.html';
+  }catch(e){
+    showErr('連線失敗，請改用序號登入');
+    btn.disabled = false;
+    btn.innerHTML = '進入會員中心 →';
+  }
+})();
+
 async function doLogin() {
   const raw = serialEl.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
   errEl.classList.remove('show');
@@ -775,6 +809,7 @@ async function doLogin() {
     const data = await res.json();
     if (!res.ok) { showErr(data.detail || '序號無效，請確認後再試'); return; }
     localStorage.setItem('sofa_uid', data.uid);
+    if (data.token) localStorage.setItem('sofa_token', data.token);
     window.location.href = 'dashboard.html';
   } catch {
     showErr('連線失敗，請稍後再試');
