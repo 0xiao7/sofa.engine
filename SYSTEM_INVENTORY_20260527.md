@@ -1,0 +1,379 @@
+# SoFa Engine 系統現況盤點｜2026-05-27
+
+> 目的：評估「LAW_DB 從記帳士 33 部擴充到國考樹狀圖 205 個職能涵蓋的所有法規」路線下，是否該搬資料庫。
+> 盤點範圍：sofa.engine repo + Notion workspace（LAW_DB / STATUTE_INDEX / Admin / WEEKLY_DB / 國考樹狀圖專案中心）
+
+---
+
+## A. Notion LAW_DB 現況
+
+### A-1. 條文總筆數
+
+```
+2,131 筆（2026-05-25 WEEKLY_DB 盤點紀錄）
+```
+
+### A-2. 已收錄法規數
+
+```
+33 部（程式碼 LAW_ORDER 陣列）
+STATUTE_INDEX 資料庫有 34 筆 row（含 1 筆模板頁 "ststute index"，實際法規 33 部）
+```
+
+### A-3. 已收錄法規名稱（全 33 部）
+
+| # | 法規名稱 | # | 法規名稱 |
+|---|---------|---|---------|
+| 1 | 記帳士法 | 18 | 所得基本稅額條例施行細則 |
+| 2 | 商業會計法 | 19 | 加值型及非加值型營業稅法施行細則 |
+| 3 | 公司法 | 20 | 遺產及贈與稅法施行細則 |
+| 4 | 行政程序法 | 21 | 特種貨物及勞務稅條例施行細則 |
+| 5 | 稅捐稽徵法施行細則 | 22 | 兼營營業人營業稅額計算辦法 |
+| 6 | 稅捐稽徵法 | 23 | 統一發票給獎辦法 |
+| 7 | 納稅者權利保護法 | 24 | 商業會計處理準則 |
+| 8 | 所得基本稅額條例 | 25 | 公司登記辦法 |
+| 9 | 加值型及非加值型營業稅法 | 26 | 商業登記法 |
+| 10 | 遺產及贈與稅法 | 27 | 商業登記申請辦法 |
+| 11 | 特種貨物及勞務稅條例 | 28 | 記帳士職業倫理道德規範 |
+| 12 | 所得稅法 | 29 | 中華民國記帳士職業道德規範 |
+| 13 | 各類所得扣繳率標準 | 30 | 記帳士法第三十五條規定之管理辦法 |
+| 14 | 營利事業所得稅查核準則 | 31 | 記帳士暨記帳及報稅代理人防制洗錢與打擊資恐辦法 |
+| 15 | 統一發票使用辦法 | 32 | 記帳士懲戒委員會與懲戒覆審委員會組織及審議規則 |
+| 16 | 納稅者權利保護法施行細則 | 33 | 商業使用電子方式處理會計資料辦法 |
+| 17 | 所得稅法施行細則 | | |
+
+### A-4. 平均每條文的 Toggle 子層 block 數
+
+```
+固定結構：1 個 callout（【原文】）＋ 6 個 toggle section
+  1️⃣ 章節標題與戰略權重
+  2️⃣ 規範意旨與條文解析（SOP 規定 ≥200 字）
+  3️⃣ 執業要點與考情提示（SOP 規定 ≥200 字）
+  4️⃣ 核心摘要與記憶策略
+  5️⃣ 2026修法與聯覺備註
+  6️⃣ 相關法規及注意事項
+
+每個 toggle 內部子 block 數依條文複雜度不等。
+⚠️ 無集中統計數據，未做 aggregate query。
+```
+
+### A-5. 平均每條文字元數（六段全展開後）
+
+```
+⚠️ 無精確數據。
+SOP 規定第 2、3 段各 ≥200 字，加上原文 + 其餘 4 段，
+估算每條完整展開約 1,500–3,000 字元，但未做全庫統計。
+需跑 2,131 筆全量 block 抓取才能算出精確值。
+```
+
+### A-6. 最大單筆條文字元數
+
+```
+⚠️ 無精確數據。
+公司法、所得稅法、行政程序法等大法的複雜條文預估為最大，
+但未做 max 查詢。
+```
+
+### A-7. 資料庫所有欄位清單與型態
+
+| 欄位名稱 | Notion 型態 | 說明 |
+|---------|------------|------|
+| 條號 | title | 命名格式 `§ XX｜短標題`（如 `§ 17｜綜所稅列舉扣除`） |
+| 【法規總目錄】Master Index | relation | 關聯到 STATUTE_INDEX 資料庫 |
+| 重要性 | select | 選項：`★★★★★`、`★★★★☆`、`★★★☆☆`、`★★☆☆☆`、`★☆☆☆☆`、`-`、`🆕新修法🆕` |
+| 難度評級 | select | 選項：`未讀`、`忘記`、`困難`、`簡單` |
+| 複習次數 | number | 累計查閱次數（每次查閱 +1） |
+| 關鍵字 | multi_select | 130+ 標籤（如 `10日`、`罰鍰`、`CFC`、`KYC`、`進項扣抵`、`房地合一` 等） |
+| 期限｜時限 | rich_text | 條文中的時間限制（無則寫「無」） |
+| 罰金｜罰鍰 | rich_text | 條文中的罰則金額（無則空白） |
+| Chapter | select | 章節歸屬（數百個選項，如「第二章｜總則」） |
+| 暫存分類 | select | 24 個法規名稱（備用分類欄位，非主要分類） |
+| 【查找戳記】 | rich_text | 查閱時間戳記串（每次追加 `YYYY-MM-DD HH:MM`，上限 500 字元） |
+| 複習 | checkbox | 是否已複習 |
+| 複習階段 | number | 複習進度階段 |
+| 上次複習 | date | 最近一次複習日期 |
+| 人工更新日期 | date | 人工確認更新的日期 |
+| ⚡ Daily sprint | relation | 關聯到每日衝刺資料庫 |
+| 檔案和媒體 | file | 附件 |
+| 最後編輯 | last_edited_time | 系統自動（唯讀） |
+| createdTime | created_time | 系統自動（唯讀） |
+
+**合計 19 個欄位**（含 2 個系統自動欄位）
+
+---
+
+## B. LINE Bot 效能現況
+
+### B-1. 三種查詢模式的平均回應時間
+
+| 查詢模式 | 回應時間 | 備註 |
+|---------|---------|------|
+| 法規縮寫+條號（如「查 記帳士 13」） | ⚠️ 無精確測量 | 流程：query INDEX_DB (1 call) → query LAW_DB (1–2 calls) → get_all_blocks (1+ calls) → read_children 遞迴（每 toggle 1 call）→ 逐段 line_push（每段 0.4s delay）。單條完整回覆涉及 **3–8 次 Notion API 呼叫** |
+| 純數字跨法規（如「查 13」） | ⚠️ 無精確測量 | 比上面多一輪互動：先回傳 33 部法規選單，用戶選號後再走上面流程 |
+| 關鍵字搜尋（如「查 進項」） | ⚠️ 無精確測量 | 查詢 LAW_DB filter (1 call) → 回傳最多 10 筆清單 → 用戶選號 → 走全文流程。Changelog 記錄「Drawer 反應非常慢（API on Render cold start + Notion API 延遲）」 |
+
+### B-2. 關鍵字搜尋實作方式
+
+```python
+# main.py:442–449 — 使用 Notion API database query filter（非全表掃描）
+data = notion_post(f'databases/{LAW_DB}/query', {
+    'filter': {'or': [
+        {'property': '關鍵字', 'multi_select': {'contains': keyword}},
+        {'property': '條號',   'title':        {'contains': keyword}}
+    ]},
+    'sorts': [{'property': '複習次數', 'direction': 'ascending'}],
+    'page_size': 10
+})
+```
+
+- 搜尋範圍：`關鍵字`（multi_select 標籤命中）＋ `條號`（title 文字包含）
+- 排序：複習次數由低到高（優先顯示較少複習的）
+- 上限：10 筆
+- **不支援**：條文原文全文搜尋、模糊匹配
+
+### B-3. Render 部署規格
+
+| 項目 | 數值 |
+|------|------|
+| 方案 | **Free tier**（render.yaml 未指定 plan） |
+| 記憶體 | 512 MB（Free tier 上限） |
+| CPU | 0.1 CPU |
+| 休眠 | 15 分鐘無流量自動 spin down |
+| 防冷啟動 | GitHub Actions `api_keepalive.yml` 每 10 分鐘 ping API（UTC 00–14） |
+| Bot 服務 | `fay-spectrum-bot.onrender.com`（Flask + Gunicorn） |
+| API 服務 | `sofa-engine-api.onrender.com`（獨立服務） |
+| Python 依賴 | flask 3.0.3, line-bot-sdk 3.11.0, requests 2.32.3, gunicorn 22.0.0 |
+
+### B-4. UptimeRobot 過去 30 天 uptime %
+
+```
+⚠️ 無法取得。
+UptimeRobot 已設定（2026-05-14 修過 HEAD 405 bug），
+但 uptime 數據存在 UptimeRobot Dashboard，不在 Notion 或程式碼中。
+```
+
+### B-5. 過去 30 天平均每日查詢次數
+
+```
+⚠️ 無集中統計。
+Bot 無內建查詢計數器或 analytics。
+查詢紀錄分散在每條文的【查找戳記】欄位中（追加時間戳），未做 aggregate。
+
+參考用戶數：
+- 2026-05-22：76 位（免費 66、體驗 9、Admin 1）
+- 2026-05-25：99 位（試用 97、訂閱 2）
+```
+
+---
+
+## C. 擴充 SOP 效能現況
+
+### C-1. AutoPatch_LAW_DB_v4 跑一條完整六段解析平均耗時
+
+```
+⚠️ 無集中計時數據。
+
+關鍵事實：法條建置使用的是 Notion AI Agent（頁面名稱「AI法規逐條建置」），
+不是獨立 Python 腳本。sofa.engine repo 內無 AutoPatch 系列 Python 腳本。
+
+建置流程：
+1. Notion AI Agent 讀取 prompt（含角色設定、格式規範、6 段輸出要求）
+2. Agent 查全國法規資料庫（law.moj.gov.tw）取得最新條文原文
+3. Agent 生成 6 段解析內容（含原文 callout）
+4. Agent 寫入 Notion 頁面（含屬性回填：關鍵字、重要性、期限、罰金等）
+```
+
+### C-2. AutoPatch 跑滿 2,100 條當初總耗時
+
+```
+⚠️ 無紀錄。
+2,131 條是截至 2026-05-25 的累積結果。
+建置時間跨度從 2026-02 月開始至今（約 3 個月），非一次性批次完成。
+```
+
+### C-3. Python 腳本各自的執行速度
+
+```
+⚠️ repo 內無 AutoPatch 系列腳本。
+
+repo 內的 4 支 Python 工具腳本（均在 _archive/ 目錄）：
+┌──────────────────────┬────────────────────────────────────────┐
+│ 腳本                  │ 用途                                    │
+├──────────────────────┼────────────────────────────────────────┤
+│ main.py (704 行)      │ LINE Bot 主程式（Flask webhook）         │
+│ export_laws.py (175行) │ Notion → laws.json 靜態匯出             │
+│ export-cards.py (134行)│ LINE Flex Message 卡片圖渲染（Playwright）│
+│ export-rich-menu.py    │ LINE Rich Menu 圖渲染（Playwright）      │
+└──────────────────────┴────────────────────────────────────────┘
+
+export_laws.py 遍歷全庫 2,131 條需逐頁 fetch blocks（遞迴），
+速度受 Notion API rate limit 限制，無實測數據。
+```
+
+### C-4. Notion API rate limit 在現有腳本下實際碰到幾次 429
+
+```
+⚠️ 無紀錄。
+- main.py 的 notion_get / notion_post 無 429 retry 邏輯
+- export_laws.py 使用官方 notion_client SDK（內建 retry + backoff）
+- 實際 429 頻率未被記錄或監控
+- Notion API 官方 rate limit：平均 3 requests/second
+```
+
+---
+
+## D. 樹狀圖資料盤點
+
+### D-1. 全國考法規聯集清單
+
+```
+⚠️ 無法取得。
+
+「國考職涯導航路徑.html」不在 sofa.engine repo 中。
+exam-tree 專案位於獨立 repo：0xiao7/exam-tree
+本環境 GitHub 權限僅限 0xiao7/sofa.engine，無法讀取 exam-tree repo。
+
+已知資訊（來自 Notion 專案企劃頁）：
+- 資料來源：data/exam_database.xlsx
+- 生成腳本：scripts/generate_html.py（讀 4 個 sheet，用 jinja2 生成）
+- 輸出：output/exam_tree.html
+- 6 批次計畫：
+  ┌────────────┬──────────────────────────────┬──────────┐
+  │ Batch      │ 範圍                          │ 狀態      │
+  ├────────────┼──────────────────────────────┼──────────┤
+  │ 樣本驗證    │ 記帳士（完整 L1~L4）           │ ⏳ 待開始 │
+  │ Batch 1    │ 司法/法律體系                  │ ⏳ 待開始 │
+  │ Batch 2    │ 行政/公職體系（30+ 類科）       │ ⏳ 待開始 │
+  │ Batch 3    │ 警察/國安 + 海事/航運           │ ⏳ 待開始 │
+  │ Batch 4    │ 財經/稅務 + 觀光               │ ⏳ 待開始 │
+  │ Batch 5    │ 醫事/生技（最大批）             │ ⏳ 待開始 │
+  │ Batch 6    │ 工程 + 建築 + 農業 + 社福       │ ⏳ 待開始 │
+  └────────────┴──────────────────────────────┴──────────┘
+```
+
+### D-2. LAW_DB 已收錄幾部
+
+```
+⚠️ 無法比對（需 exam-tree 中的法規聯集才能做差集）。
+目前 LAW_DB 收錄 33 部（全為記帳士考試範圍）。
+```
+
+### D-3. 還缺幾部
+
+```
+⚠️ 無法計算（依賴 D-1 數據）。
+```
+
+### D-4. 擴充預估（新增條文數 / AutoPatch 時間 / Claude API 費用）
+
+```
+⚠️ 無法估算（依賴 D-1~D-3 數據）。
+
+若日後取得 exam-tree 的法規聯集，可用以下公式估算：
+- 預估新增條文數 = Σ（每部缺漏法規的條文數，可查全國法規資料庫）
+- 預估 AutoPatch 時間 = 新增條文數 × 單條耗時（待補 C-1 數據）
+- 預估 Claude API 費用 = 新增條文數 × 單條 token 消耗 × Sonnet 4 單價
+  - Sonnet 4 定價：$3/M input tokens, $15/M output tokens
+  - 每條估計 input ~2K tokens（prompt + 原文），output ~3K tokens（6 段生成）
+  - 每條估計費用 ≈ $0.006 + $0.045 = ~$0.05/條
+  - 但此為粗估，實際取決於 Notion AI Agent 的計費方式（非直接 Claude API）
+```
+
+---
+
+## E. 商業化準備度
+
+### E-1. userId 識別機制
+
+```
+✅ 有。三層識別：
+1. LINE Bot：event.source.user_id（LINE 平台 UID）
+2. Web 前端：localStorage 存 sofa_uid + sofa_token
+3. API 端：Authorization: Bearer <HMAC token> 或 fallback X-Sofa-UID header
+```
+
+### E-2. 訂閱/白名單檢查
+
+```
+✅ 有。完整機制：
+1. 序號登入制：
+   - 試用序號：SOFA-T-XXXXXXXX 格式（有效期 today+10 天）
+   - 付費序號：正式格式（依方案設定到期日）
+2. USERS_DB 欄位：Plan（免費/體驗/月費/季費/買斷）、Is_Paid、Expire_Date、序號、狀態
+3. magic-link 認證（HMAC token）：2026-05-26 上線
+   - Bot 推播按鈕已改為 magic-link URL（15 分鐘/24 小時有效）
+   - 前端支援 ?t=token 自動登入
+4. 前端功能分層：
+   - 免費版：第 1–4 段完整顯示，第 5–6 段只露前 3 行 + 漸層遮罩 + 升級 CTA
+   - 付費版：6 段全開
+```
+
+### E-3. Notion 資料庫權限現況
+
+```
+- Notion Integration（internal）：由 workspace owner（Fay）建立的 API Key
+- 可讀寫：所有已分享給該 integration 的資料庫
+  （LAW_DB、STATUTE_INDEX、USERS_DB、TASK_DB、WEEKLY_DB、
+   CHANGELOG_DB、FEEDBACK_DB、SYSTEM_DB、RISK_DB、
+   INCOME_DB、EXPENSE_DB、CONTENT_DB、舊 MEMBERS_DB）
+- ro（國考樹狀圖主理人）：被明確禁止修改 SoFa 的任何 Notion 資料庫
+- 一般用戶：無 Notion 直接存取權，僅透過 API 間接讀取法條內容
+```
+
+### E-4. 金流串接
+
+```
+✅ 有，ECPay（綠界科技）。
+
+┌──────────────────┬──────────────────────────────────────┐
+│ 項目              │ 狀態                                  │
+├──────────────────┼──────────────────────────────────────┤
+│ 沙盒測試          │ ✅ 全流程已通過                        │
+│ 正式帳號審核       │ ✅ 已通過（2026-05-25 確認）            │
+│ 退刷測試          │ ✅ Fay 自測成功                        │
+│ 外部用戶 e2e 測試  │ ⏳ 尚未完成                            │
+│ PAYMENT_OPEN 開關  │ 目前 = false（付費入口尚未對外開放）     │
+│ Webhook endpoint  │ /webhook/ecpay（含 MerchantTradeNo 查重）│
+│ 安全措施          │ Firestore 紀錄、HTML escape、rate limit │
+├──────────────────┼──────────────────────────────────────┤
+│ 月費方案          │ NT$380/月                              │
+│ 季費方案          │ NT$990/季（省 13%）                     │
+│ 年費方案          │ 結帳頁有入口，具體金額待確認              │
+└──────────────────┴──────────────────────────────────────┘
+```
+
+---
+
+## 附錄：系統架構一覽
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                     SoFa Engine 架構圖                       │
+├──────────┬──────────────────────┬──────────────────────────┤
+│ 元件      │ 技術                 │ 位置                      │
+├──────────┼──────────────────────┼──────────────────────────┤
+│ 前端      │ 純 HTML/CSS/JS（靜態）│ GitHub Pages → sofaengine.org │
+│ LINE Bot  │ Python Flask + SDK v3 │ Render (fay-spectrum-bot)     │
+│ Web API   │ Python（Flask/FastAPI）│ Render (sofa-engine-api)      │
+│ 資料庫    │ Notion（13 個 DB）    │ Notion workspace              │
+│ 用戶資料  │ Firestore            │ Google Cloud                   │
+│ 金流      │ ECPay 綠界           │ 外部服務                       │
+│ 監控      │ UptimeRobot          │ 外部服務                       │
+│ 推播排程  │ cron-job.org         │ 每日 08:00 Asia/Taipei         │
+│ 網域/CDN  │ Cloudflare           │ NS 已切換，安全標頭已部署       │
+│ CI/CD     │ GitHub Actions       │ keepalive 每 10 分、cache 凌晨 2:00 │
+└──────────┴──────────────────────┴──────────────────────────┘
+```
+
+---
+
+## 無法取得項目彙總
+
+| 項目 | 原因 | 補齊方式 |
+|------|------|---------|
+| A-5 平均字元數 | 需跑全庫 2,131 筆 block 抓取 | 跑 export_laws.py 後統計 laws.json |
+| A-6 最大字元數 | 同上 | 同上 |
+| B-4 UptimeRobot uptime% | 數據在 UptimeRobot Dashboard | 登入 UptimeRobot 擷取 |
+| B-5 每日查詢次數 | Bot 無 analytics 計數器 | 需 aggregate 全庫【查找戳記】欄位，或接 GA/自建 counter |
+| C-1~C-4 AutoPatch 全段 | 法條建置用 Notion AI Agent，非 Python 腳本，無執行時間紀錄 | 跑一次計時實測；或改用 Claude API 腳本後再測 |
+| D-1~D-4 樹狀圖全段 | exam-tree repo（0xiao7/exam-tree）不在本環境授權範圍 | 取得 exam_tree.html 的 NODES 陣列後可立即算出 |
