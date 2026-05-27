@@ -72,3 +72,18 @@ GitHub Pages 靜態網站，部署到 sofaengine.org。
 4. **Favicon**：`favicon.svg` + `favicon-32.png` + `apple-touch-icon.png`，全站統一引用。
 5. **API**：`https://sofa-engine-api.onrender.com`，呼叫時帶 `X-Sofa-UID` header。
 6. **部署**：直接 push main → GitHub Pages 自動部署，約 1 分鐘生效。
+7. **快取系統**：`scripts/build-cache.js` 每晚由 GitHub Action 跑，產出 `data/cache.json`。四頁前端（dashboard/practice/fill/quiz）載入時預載快取，`_fetchArticle(id)` 優先讀快取、fallback API。
+8. **免費版鎖定**：Drawer 第 5、6 段顯示前 3 行真實內容 + cream 漸層遮罩 + 升級 CTA（不是完全鎖死）。
+9. **Section 名稱匹配**：Notion 段落標題可能含年份前綴（如「2026 修法與聯覺備註」），前端用 `indexOf` 模糊匹配，不要改回完全比對。
+
+---
+
+## 收尾流程（每次 session 結束前）
+
+用戶說「結束」時，依序執行：
+
+1. **Commit + Push** 到 feature branch
+2. **開 PR** 到 main（如果有程式碼改動）
+3. **寫 Notion CHANGELOG_DB**（`collection://3456e707-a543-8165-aa10-000bd27266ab`）— 標題格式 `YYYY-MM-DD｜摘要`，是否公告=false
+4. **寫 Notion TASK_DB**（`collection://3476e707-a543-81c3-ad49-000b38f8abaf`）— 如有待辦事項
+5. 回覆用戶確認以上都完成
