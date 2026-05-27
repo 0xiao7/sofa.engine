@@ -546,11 +546,13 @@ function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 const _FREE_SECS=['規範意旨與條文解析','條文解析','考點整理','記憶技巧','相關條文'];
 function buildSections(sections,isPaid,wrapEl,beforeEl){
   wrapEl.querySelectorAll('.sec-block,.sec-lock').forEach(e=>e.remove());
+  const secKeys=Object.keys(sections);
   _FREE_SECS.forEach(name=>{
-    if(!sections[name])return;
+    const mk=secKeys.find(k=>k.indexOf(name)!==-1);
+    if(!mk)return;
     const d=document.createElement('div');d.className='sec-block';
     const lb=document.createElement('div');lb.className='sec-label';lb.textContent=name;
-    const tx=document.createElement('div');tx.className='sec-text';tx.textContent=sections[name];
+    const tx=document.createElement('div');tx.className='sec-text';tx.textContent=sections[mk];
     d.append(lb,tx);
     if(beforeEl)wrapEl.insertBefore(d,beforeEl);else wrapEl.appendChild(d);
   });

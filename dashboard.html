@@ -1567,10 +1567,13 @@ function _renderDrawer(d){
     '章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示',
     '核心摘要與記憶策略','修法與聯覺備註','相關法規及注意事項'
   ];
+  var secs = d.sections || {};
+  var secKeys = Object.keys(secs);
   var accHtml = '<div class="dr-acc">';
   SEC_NAMES.forEach(function(name, idx){
     var seg  = idx + 1;
-    var text = (d.sections || {})[name] || '';
+    var matchKey = secKeys.filter(function(k){ return k.indexOf(name) !== -1; })[0];
+    var text = matchKey ? secs[matchKey] : '';
     var locked = isFree && seg >= 5;
     if(locked){
       accHtml += '<div class="acc-item locked" data-seg="'+seg+'">'
