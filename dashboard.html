@@ -962,10 +962,27 @@
   .acc-item.open .acc-head .num{color:var(--peach-3)}
   .acc-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
   .acc-item.open .acc-body{max-height:600px}
-  /* locked segments (trial mode) */
-  .acc-item.locked{pointer-events:none;opacity:.55;position:relative}
-  .acc-item.locked .acc-head .ttl::after{content:" 🔒";font-size:12px;opacity:.7}
-  .acc-item.locked-cta{pointer-events:auto;opacity:1}
+  /* locked segments (trial mode) — show preview + fade */
+  .acc-item.locked{position:relative;pointer-events:auto}
+  .acc-item.locked .acc-body{max-height:120px;overflow:hidden;display:block;position:relative}
+  .acc-item.locked .acc-fade{
+    position:absolute;bottom:0;left:0;right:0;height:90px;
+    background:linear-gradient(to bottom,rgba(245,240,234,0) 0%,var(--cream) 85%);
+    pointer-events:none;
+  }
+  .acc-item.locked .acc-lock-cta{
+    position:relative;text-align:center;padding:10px 16px 18px;
+    font-family:var(--sans);font-size:13px;color:rgba(31,56,72,.55);
+    letter-spacing:.03em;
+  }
+  .acc-item.locked .acc-lock-cta a{
+    display:inline-block;margin-top:6px;
+    font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;
+    color:var(--peach-3);text-decoration:none;
+    padding:5px 14px;border:1px solid rgba(200,149,128,.3);border-radius:3px;
+    transition:.18s;
+  }
+  .acc-item.locked .acc-lock-cta a:hover{background:rgba(231,187,167,.12)}
   .acc-locked-banner{
     display:flex;align-items:center;justify-content:space-between;gap:12px;
     padding:12px 16px;margin:8px 0 4px;
@@ -1576,9 +1593,17 @@ function _renderDrawer(d){
     var text = matchKey ? secs[matchKey] : '';
     var locked = isFree && seg >= 5;
     if(locked){
-      accHtml += '<div class="acc-item locked" data-seg="'+seg+'">'
+      var preview = text ? text.split('\n').filter(Boolean).slice(0,3).map(function(l){
+        var escaped = l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        return '<p>'+_linkifyLaw(escaped)+'</p>';
+      }).join('') : '<p style="opacity:.45">內容載入中…</p>';
+      accHtml += '<div class="acc-item locked open" data-seg="'+seg+'">'
         + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span>'
-        + '<span class="ttl">'+name+'</span><span style="margin-left:auto;font-size:11px;opacity:.5">🔒 付費解鎖</span></div></div>';
+        + '<span class="ttl">'+name+'</span></div>'
+        + '<div class="acc-body"><div class="acc-inner">'+preview+'</div>'
+        + '<div class="acc-fade"></div></div>'
+        + '<div class="acc-lock-cta">升級解鎖完整內容<br><a href="checkout.html">查看方案 →</a></div>'
+        + '</div>';
     } else if(text){
       accHtml += '<div class="acc-item'+(seg===1?' open':'')+'" data-seg="'+seg+'" onclick="this.classList.toggle(\'open\')">'
         + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span><span class="ttl">'+name+'</span></div>'
@@ -1698,22 +1723,8 @@ function closeDrawer(){
     pill.innerHTML = '<span class="live"></span>免費版';
   }
 
-  // ── 免費版：鎖定 5+ 段，遮蓋個人資料 ──────────
+  // ── 免費版：遮蓋個人資料 ──────────
   if(isFree){
-    document.querySelectorAll('.acc-item').forEach(function(item){
-      var seg = parseInt(item.dataset.seg || '0');
-      if(seg >= 5){
-        item.classList.add('locked');
-        item.onclick = function(e){ e.stopPropagation(); };
-      }
-    });
-    var firstLocked = document.querySelector('.acc-item.locked');
-    if(firstLocked){
-      var banner = document.createElement('div');
-      banner.className = 'acc-locked-banner';
-      banner.innerHTML = '🔒 5 / 6 段為付費功能（修法備註 · 關聯法規）<a href="checkout.html">升級解鎖 →</a>';
-      firstLocked.parentNode.insertBefore(banner, firstLocked);
-    }
     var memberCard = document.querySelector('.member-card');
     if(memberCard){
       memberCard.innerHTML = '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版 · 完整會員資訊在升級後解鎖<br><a href="checkout.html" style="color:var(--peach);margin-top:8px;display:inline-block;">查看方案 →</a></div>';
