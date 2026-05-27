@@ -84,6 +84,6 @@ GitHub Pages 靜態網站，部署到 sofaengine.org。
 
 1. **Commit + Push** 到 feature branch
 2. **開 PR** 到 main（如果有程式碼改動）
-3. **寫 Notion CHANGELOG_DB**（`collection://3456e707-a543-8165-aa10-000bd27266ab`）— 標題格式 `YYYY-MM-DD｜摘要`，是否公告=false
-4. **寫 Notion TASK_DB**（`collection://3476e707-a543-81c3-ad49-000b38f8abaf`）— 如有待辦事項
+3. **寫 Notion 更新紀錄** — 用 Notion search 找到該專案的 Changelog / 更新紀錄 DB，新增一筆，標題格式 `YYYY-MM-DD｜摘要`
+4. **寫 Notion 任務** — 如有待辦，用 Notion search 找到該專案的 Task / 任務追蹤 DB，新增一筆
 5. 回覆用戶確認以上都完成
