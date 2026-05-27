@@ -405,6 +405,9 @@ function _authH(extra) {
   else if (uid) h['X-Sofa-UID'] = uid;
   return h;
 }
+var _articleCache=null;
+fetch('data/cache.json').then(function(r){return r.ok?r.json():null}).then(function(d){if(d)_articleCache=d}).catch(function(){});
+async function _fetchArticle(id){if(_articleCache&&_articleCache[id])return _articleCache[id];return fetch(`${API}/api/article/${encodeURIComponent(id)}`,{headers:_authH()}).then(r=>r.json());}
 const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
 if (!uid && !isFree) { window.location.href = 'login.html?redirect=fill.html'; }
 document.getElementById('navUid').textContent = isFree ? '免費版' : (localStorage.getItem('sofa_nickname') || uid);
@@ -738,8 +741,7 @@ function checkAnswers(){
     srcPanel.textContent='';
     (async()=>{
       try{
-        const h=_authH();
-        const art=await fetch(`${API}/api/article/${fillData.id}`,{headers:h}).then(r=>r.json());
+        const art=await _fetchArticle(fillData.id);
         srcPanel.textContent=art.original_text||'';
         buildSections(art.sections||{},art._plan!=='free',panel);
       }catch(e){}

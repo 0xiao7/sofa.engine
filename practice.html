@@ -424,6 +424,9 @@ function _authH(extra) {
   else if (uid) h['X-Sofa-UID'] = uid;
   return h;
 }
+var _articleCache=null;
+fetch('data/cache.json').then(function(r){return r.ok?r.json():null}).then(function(d){if(d)_articleCache=d}).catch(function(){});
+async function _fetchArticle(id){if(_articleCache&&_articleCache[id])return _articleCache[id];return fetch(`${API}/api/article/${encodeURIComponent(id)}`,{headers:_authH()}).then(r=>r.json());}
 const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
 if (!uid && !isFree) { window.location.href = 'login.html?redirect=practice.html'; }
 document.getElementById('navUid').textContent = isFree ? '免費版' : (localStorage.getItem('sofa_nickname') || uid);
@@ -664,7 +667,7 @@ async function loadNew(){
         return;
       }
       const pick=arts[Math.floor(Math.random()*arts.length)];
-      d=await fetch(`${API}/api/article/${pick.id}`,{headers:_authH()}).then(r=>r.json());
+      d=await _fetchArticle(pick.id);
       lawMeta=pick.law||'';
     } else if(law==='__bookmarks__'){
       const bm=await fetch(`${API}/api/me/bookmarks`,{headers:_authH()}).then(r=>r.json());
@@ -674,7 +677,7 @@ async function loadNew(){
         return;
       }
       const pick=ids[Math.floor(Math.random()*ids.length)];
-      d=await fetch(`${API}/api/article/${pick}`,{headers:_authH()}).then(r=>r.json());
+      d=await _fetchArticle(pick);
     } else if(law==='__mastered__'||law==='__review__'){
       const wantStatus=law==='__mastered__'?'mastered':'review';
       const mr=await fetch(`${API}/api/me/mastery`,{headers:_authH()}).then(r=>r.json());
@@ -685,7 +688,7 @@ async function loadNew(){
         return;
       }
       const pick=items[Math.floor(Math.random()*items.length)];
-      d=await fetch(`${API}/api/article/${pick.page_id}`,{headers:_authH()}).then(r=>r.json());
+      d=await _fetchArticle(pick.page_id);
       lawMeta=pick.law_name||'';
     } else {
       // 若有指定條號，直接取那條
@@ -693,7 +696,7 @@ async function loadNew(){
       if(artNum && law && _artCache[law]){
         const match=_artCache[law].find(a=>{const m=(a.title||'').match(/第(\d+(?:之\d+)?)條/);return m&&m[1]===artNum;});
         if(match){
-          d=await fetch(`${API}/api/article/${match.id}`,{headers:_authH()}).then(r=>r.json());
+          d=await _fetchArticle(match.id);
           lawMeta=law;
         }
       }
@@ -704,7 +707,7 @@ async function loadNew(){
           return;
         }
         const pick=filtered[Math.floor(Math.random()*filtered.length)];
-        d=await fetch(`${API}/api/article/${pick.id}`,{headers:_authH()}).then(r=>r.json());
+        d=await _fetchArticle(pick.id);
         lawMeta=law;
       }
       if(!d){

@@ -1,0 +1,28 @@
+name: Nightly Article Cache
+
+on:
+  schedule:
+    - cron: '0 18 * * *'   # UTC 18:00 = 台灣凌晨 02:00
+  workflow_dispatch:        # 手動觸發
+
+jobs:
+  build-cache:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build article cache
+        run: node scripts/build-cache.js
+
+      - name: Commit & push cache
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/cache.json
+          git diff --cached --quiet && echo "No changes" && exit 0
+          git commit -m "chore: nightly article cache update"
+          git push

@@ -1500,30 +1500,39 @@ function _authH(extra) {
   return h;
 }
 
+// ── 靜態快取預載（GitHub Action 每晚產生） ─────────────
+var _articleCache = null;
+(function(){
+  fetch('data/cache.json').then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){ if(d) _articleCache = d; })
+    .catch(function(){});
+})();
+
 // ── Drawer 動態開啟 ──────────────────────────────────────
 var _drPageId = '';
 var _drLawName = '';
 var _drArticle = '';
 
 function openDrawer(pageId, lawName, article){
-  // 統一去除可能的 § 前綴，避免 §§ 重複顯示
   var artClean = (article||'').replace(/^§+/, '');
   _drPageId  = pageId   || '';
   _drLawName = lawName  || '';
   _drArticle = artClean;
   document.querySelector('.drawer').classList.add('open');
   document.querySelector('.drawer-mask').classList.add('open');
-  // 先填入基本資訊
   var bc = document.getElementById('dr-breadcrumb');
   if(bc) bc.textContent = lawName ? (lawName + ' §' + artClean) : '——';
   var body = document.getElementById('dr-body');
-  if(body) body.innerHTML = '<div style="padding:48px 0;text-align:center;opacity:.4;font-size:.9rem;font-family:var(--sans)">載入中…</div>';
-  // 有 pageId 才拉內容；否則直接顯示 fallback，不卡在「載入中」
   if(!pageId){ _renderDrawerFallback(_drLawName, _drArticle); return; }
-  var uid  = localStorage.getItem('sofa_uid') || '';
-  var headers = _authH();
+
+  if(_articleCache && _articleCache[pageId]){
+    _renderDrawer(_articleCache[pageId]);
+    return;
+  }
+
+  if(body) body.innerHTML = '<div style="padding:48px 0;text-align:center;opacity:.4;font-size:.9rem;font-family:var(--sans)">載入中…</div>';
   fetch(API + '/api/article/' + encodeURIComponent(pageId), {
-    headers: headers
+    headers: _authH()
   }).then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){ _renderDrawer(d); })
     .catch(function(){ _renderDrawerFallback(lawName, article); });
