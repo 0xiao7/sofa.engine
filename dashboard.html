@@ -962,10 +962,27 @@
   .acc-item.open .acc-head .num{color:var(--peach-3)}
   .acc-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
   .acc-item.open .acc-body{max-height:600px}
-  /* locked segments (trial mode) */
-  .acc-item.locked{pointer-events:none;opacity:.55;position:relative}
-  .acc-item.locked .acc-head .ttl::after{content:" 🔒";font-size:12px;opacity:.7}
-  .acc-item.locked-cta{pointer-events:auto;opacity:1}
+  /* locked segments (trial mode) — show preview + fade */
+  .acc-item.locked{position:relative;pointer-events:auto}
+  .acc-item.locked .acc-body{max-height:120px;overflow:hidden;display:block;position:relative}
+  .acc-item.locked .acc-fade{
+    position:absolute;bottom:0;left:0;right:0;height:90px;
+    background:linear-gradient(to bottom,rgba(245,240,234,0) 0%,var(--cream) 85%);
+    pointer-events:none;
+  }
+  .acc-item.locked .acc-lock-cta{
+    position:relative;text-align:center;padding:10px 16px 18px;
+    font-family:var(--sans);font-size:13px;color:rgba(31,56,72,.55);
+    letter-spacing:.03em;
+  }
+  .acc-item.locked .acc-lock-cta a{
+    display:inline-block;margin-top:6px;
+    font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;
+    color:var(--peach-3);text-decoration:none;
+    padding:5px 14px;border:1px solid rgba(200,149,128,.3);border-radius:3px;
+    transition:.18s;
+  }
+  .acc-item.locked .acc-lock-cta a:hover{background:rgba(231,187,167,.12)}
   .acc-locked-banner{
     display:flex;align-items:center;justify-content:space-between;gap:12px;
     padding:12px 16px;margin:8px 0 4px;
@@ -1483,30 +1500,39 @@ function _authH(extra) {
   return h;
 }
 
+// ── 靜態快取預載（GitHub Action 每晚產生） ─────────────
+var _articleCache = null;
+(function(){
+  fetch('data/cache.json').then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){ if(d) _articleCache = d; })
+    .catch(function(){});
+})();
+
 // ── Drawer 動態開啟 ──────────────────────────────────────
 var _drPageId = '';
 var _drLawName = '';
 var _drArticle = '';
 
 function openDrawer(pageId, lawName, article){
-  // 統一去除可能的 § 前綴，避免 §§ 重複顯示
   var artClean = (article||'').replace(/^§+/, '');
   _drPageId  = pageId   || '';
   _drLawName = lawName  || '';
   _drArticle = artClean;
   document.querySelector('.drawer').classList.add('open');
   document.querySelector('.drawer-mask').classList.add('open');
-  // 先填入基本資訊
   var bc = document.getElementById('dr-breadcrumb');
   if(bc) bc.textContent = lawName ? (lawName + ' §' + artClean) : '——';
   var body = document.getElementById('dr-body');
-  if(body) body.innerHTML = '<div style="padding:48px 0;text-align:center;opacity:.4;font-size:.9rem;font-family:var(--sans)">載入中…</div>';
-  // 有 pageId 才拉內容；否則直接顯示 fallback，不卡在「載入中」
   if(!pageId){ _renderDrawerFallback(_drLawName, _drArticle); return; }
-  var uid  = localStorage.getItem('sofa_uid') || '';
-  var headers = _authH();
+
+  if(_articleCache && _articleCache[pageId]){
+    _renderDrawer(_articleCache[pageId]);
+    return;
+  }
+
+  if(body) body.innerHTML = '<div style="padding:48px 0;text-align:center;opacity:.4;font-size:.9rem;font-family:var(--sans)">載入中…</div>';
   fetch(API + '/api/article/' + encodeURIComponent(pageId), {
-    headers: headers
+    headers: _authH()
   }).then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){ _renderDrawer(d); })
     .catch(function(){ _renderDrawerFallback(lawName, article); });
@@ -1567,15 +1593,26 @@ function _renderDrawer(d){
     '章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示',
     '核心摘要與記憶策略','修法與聯覺備註','相關法規及注意事項'
   ];
+  var secs = d.sections || {};
+  var secKeys = Object.keys(secs);
   var accHtml = '<div class="dr-acc">';
   SEC_NAMES.forEach(function(name, idx){
     var seg  = idx + 1;
-    var text = (d.sections || {})[name] || '';
+    var matchKey = secKeys.filter(function(k){ return k.indexOf(name) !== -1; })[0];
+    var text = matchKey ? secs[matchKey] : '';
     var locked = isFree && seg >= 5;
     if(locked){
-      accHtml += '<div class="acc-item locked" data-seg="'+seg+'">'
+      var preview = text ? text.split('\n').filter(Boolean).slice(0,3).map(function(l){
+        var escaped = l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+        return '<p>'+_linkifyLaw(escaped)+'</p>';
+      }).join('') : '<p style="opacity:.45">內容載入中…</p>';
+      accHtml += '<div class="acc-item locked open" data-seg="'+seg+'">'
         + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span>'
-        + '<span class="ttl">'+name+'</span><span style="margin-left:auto;font-size:11px;opacity:.5">🔒 付費解鎖</span></div></div>';
+        + '<span class="ttl">'+name+'</span></div>'
+        + '<div class="acc-body"><div class="acc-inner">'+preview+'</div>'
+        + '<div class="acc-fade"></div></div>'
+        + '<div class="acc-lock-cta">升級解鎖完整內容<br><a href="checkout.html">查看方案 →</a></div>'
+        + '</div>';
     } else if(text){
       accHtml += '<div class="acc-item'+(seg===1?' open':'')+'" data-seg="'+seg+'" onclick="this.classList.toggle(\'open\')">'
         + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span><span class="ttl">'+name+'</span></div>'
@@ -1695,22 +1732,8 @@ function closeDrawer(){
     pill.innerHTML = '<span class="live"></span>免費版';
   }
 
-  // ── 免費版：鎖定 5+ 段，遮蓋個人資料 ──────────
+  // ── 免費版：遮蓋個人資料 ──────────
   if(isFree){
-    document.querySelectorAll('.acc-item').forEach(function(item){
-      var seg = parseInt(item.dataset.seg || '0');
-      if(seg >= 5){
-        item.classList.add('locked');
-        item.onclick = function(e){ e.stopPropagation(); };
-      }
-    });
-    var firstLocked = document.querySelector('.acc-item.locked');
-    if(firstLocked){
-      var banner = document.createElement('div');
-      banner.className = 'acc-locked-banner';
-      banner.innerHTML = '🔒 5 / 6 段為付費功能（修法備註 · 關聯法規）<a href="checkout.html">升級解鎖 →</a>';
-      firstLocked.parentNode.insertBefore(banner, firstLocked);
-    }
     var memberCard = document.querySelector('.member-card');
     if(memberCard){
       memberCard.innerHTML = '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版 · 完整會員資訊在升級後解鎖<br><a href="checkout.html" style="color:var(--peach);margin-top:8px;display:inline-block;">查看方案 →</a></div>';
