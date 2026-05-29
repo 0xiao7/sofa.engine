@@ -229,7 +229,11 @@
   .sec-panel .sec-hd{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--peach-3);font-weight:600;padding-bottom:12px;border-bottom:1px dashed rgba(31,56,72,.15);margin-bottom:4px}
   .sec-block{margin-top:16px;padding-top:14px;border-top:1px dashed rgba(31,56,72,.15)}
   .sec-label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--peach-3);font-weight:600;margin-bottom:6px}
-  .sec-text{font-size:13px;line-height:1.85;color:rgba(31,56,72,.78);white-space:pre-wrap}
+  .sec-text{font-size:13px;line-height:1.85;color:rgba(31,56,72,.78)}
+  .sec-text .sec-h{margin:10px 0 4px;color:var(--navy);font-weight:600}
+  .sec-text .sec-h:first-child{margin-top:0}
+  .sec-text .sec-i{position:relative;padding-left:18px;margin:3px 0}
+  .sec-text .sec-i::before{content:'◦';position:absolute;left:4px;top:-.04em;color:var(--peach-3);font-weight:700}
   .sec-lock{margin-top:16px;position:relative;border-radius:3px;overflow:hidden}
   .sec-lock-inner{padding:12px 0;border-top:1px dashed rgba(31,56,72,.15);filter:blur(4px);user-select:none;pointer-events:none}
   .sec-lock-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(245,240,234,.92);backdrop-filter:blur(2px)}
@@ -553,13 +557,29 @@ const ghost = document.getElementById('ghost');
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
 const _FREE_SECS=['規範意旨與條文解析','條文解析','考點整理','記憶技巧','相關條文'];
+function formatSection(text){
+  if(!text) return '';
+  var lines=String(text).replace(/\r\n?/g,'\n').split('\n'),out='';
+  lines.forEach(function(raw){
+    if(!raw||!raw.trim())return;
+    var lead=(raw.match(/^[ \t　]*/)||[''])[0],body=raw.slice(lead.length),isSub=false;
+    var bm=body.match(/^([•◦‣·▪])\s*/);
+    if(bm){isSub=(bm[1]==='◦');body=body.slice(bm[0].length);}
+    else if(lead.length>=2||/　/.test(lead)){isSub=true;}
+    body=body.trim();if(!body)return;
+    var esc=body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    esc=esc.replace(/^([^：:]{1,14}[：:])/,'<b>$1</b>');
+    out+='<p class="'+(isSub?'sec-i':'sec-h')+'">'+esc+'</p>';
+  });
+  return out;
+}
 function buildSections(sections,isPaid,wrapEl,beforeEl){
   wrapEl.querySelectorAll('.sec-block,.sec-lock').forEach(e=>e.remove());
   _FREE_SECS.forEach(name=>{
     if(!sections[name])return;
     const d=document.createElement('div');d.className='sec-block';
     const lb=document.createElement('div');lb.className='sec-label';lb.textContent=name;
-    const tx=document.createElement('div');tx.className='sec-text';tx.textContent=sections[name];
+    const tx=document.createElement('div');tx.className='sec-text';tx.innerHTML=formatSection(sections[name]);
     d.append(lb,tx);
     if(beforeEl)wrapEl.insertBefore(d,beforeEl);else wrapEl.appendChild(d);
   });

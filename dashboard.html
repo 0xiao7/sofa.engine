@@ -959,7 +959,7 @@
   .acc-item.open .acc-head .ttl{color:var(--navy)}
   .acc-item.open .acc-head .num{color:var(--peach-3)}
   .acc-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
-  .acc-item.open .acc-body{max-height:600px}
+  .acc-item.open .acc-body{max-height:2400px}
   /* locked segments (trial / expired) — 露引導句 + 模糊預覽 + 鎖 */
   .acc-item.locked{position:relative;border-color:rgba(231,187,167,.3)}
   .acc-item.locked .acc-head{cursor:default}
@@ -978,6 +978,10 @@
   .acc-inner p{margin-bottom:8px}
   .acc-inner b{color:var(--navy);font-weight:600}
   .acc-inner .kw{background:rgba(231,187,167,.32);padding:1px 5px;border-radius:2px;color:var(--navy);font-weight:500}
+  .acc-inner .sec-h{margin:13px 0 5px;color:var(--navy);font-weight:600}
+  .acc-inner .sec-h:first-child{margin-top:0}
+  .acc-inner .sec-i{position:relative;padding-left:20px;margin:4px 0}
+  .acc-inner .sec-i::before{content:'◦';position:absolute;left:5px;top:-.04em;color:var(--peach-3);font-weight:700}
 
   .dr-foot{padding:18px 28px;background:var(--cream-2);border-top:1px solid var(--cream-3);display:flex;gap:10px;flex-wrap:wrap}
   #dr-review-picker{display:none;width:100%;gap:8px;padding-top:4px}
@@ -1523,6 +1527,31 @@ function _linkifyLaw(escapedText){
   });
 }
 
+function formatSection(text){
+  if(!text) return '';
+  var lines = String(text).replace(/\r\n?/g,'\n').split('\n');
+  var out = '';
+  lines.forEach(function(raw){
+    if(!raw || !raw.trim()) return;
+    var lead = (raw.match(/^[ \t　]*/)||[''])[0];
+    var body = raw.slice(lead.length);
+    var isSub = false;
+    var bm = body.match(/^([•◦‣·▪])\s*/);
+    if(bm){ isSub = (bm[1]==='◦'); body = body.slice(bm[0].length); }
+    else if(lead.length>=2 || /　/.test(lead)){ isSub = true; }
+    body = body.trim();
+    if(!body) return;
+    var esc = body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    esc = esc.replace(/^([^：:]{1,14}[：:])/, '<b>$1</b>');
+    out += '<p class="'+(isSub?'sec-i':'sec-h')+'">'+_linkifyLaw(esc)+'</p>';
+  });
+  if(!out){
+    var e = String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    return '<p>'+_linkifyLaw(e)+'</p>';
+  }
+  return out;
+}
+
 function searchAndOpen(lawName, artNum){
   fetch(API + '/api/articles?law=' + encodeURIComponent(lawName))
     .then(function(r){ return r.ok ? r.json() : null; })
@@ -1592,10 +1621,7 @@ function _renderDrawer(d){
       accHtml += '<div class="acc-item'+(seg===1?' open':'')+'" data-seg="'+seg+'" onclick="this.classList.toggle(\'open\')">'
         + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span><span class="ttl">'+name+'</span></div>'
         + '<div class="acc-body"><div class="acc-inner">'
-        + text.split('\n').filter(Boolean).map(function(l){
-            var escaped = l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-            return '<p>'+_linkifyLaw(escaped)+'</p>';
-          }).join('')
+        + formatSection(text)
         + '</div></div></div>';
     }
   });
