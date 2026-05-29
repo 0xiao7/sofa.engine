@@ -1512,6 +1512,15 @@ function openDrawer(pageId, lawName, article){
     .catch(function(){ _renderDrawerFallback(lawName, article); });
 }
 
+function formatLawText(raw){
+  if(!raw) return '';
+  var t=String(raw).replace(/\r\n?/g,'\n').trim();
+  if(t.indexOf('\n')!==-1) return t;
+  t=t.replace(/(?<=\S)\s+(1[0-9]|[2-9])\s+(?=[一-鿿（【「])(?![萬億元個月年日人條項款號次倍種類份件名冊])/g,'\n$1 ');
+  t=t.replace(/[ 　]*(?<!第)([一二三四五六七八九十百千零兩]+、)/g,'\n$1');
+  return t.replace(/^\n+/,'').replace(/\n{2,}/g,'\n').trim();
+}
+
 function _linkifyLaw(escapedText){
   return escapedText.replace(/《([^》]+)》第(\d+)條/g, function(match, law, art){
     var safelaw = law.replace(/\\/g,'').replace(/'/g,"\\'");
@@ -1553,7 +1562,7 @@ function _renderDrawer(d){
   var origHtml = '';
   if(d.original_text){
     origHtml = '<div class="dr-text">'
-      + d.original_text.split('\n').filter(Boolean).map(function(l){
+      + formatLawText(d.original_text).split('\n').filter(Boolean).map(function(l){
           var escaped = l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
           return '<p>' + _linkifyLaw(escaped) + '</p>';
         }).join('')

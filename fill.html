@@ -399,6 +399,14 @@
 const API = 'https://sofa-engine-api.onrender.com';
 const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
 const tok = localStorage.getItem('sofa_token') || '';
+function formatLawText(raw){
+  if(!raw) return '';
+  let t=String(raw).replace(/\r\n?/g,'\n').trim();
+  if(t.indexOf('\n')!==-1) return t;
+  t=t.replace(/(?<=\S)\s+(1[0-9]|[2-9])\s+(?=[一-鿿（【「])(?![萬億元個月年日人條項款號次倍種類份件名冊])/g,'\n$1 ');
+  t=t.replace(/[ 　]*(?<!第)([一二三四五六七八九十百千零兩]+、)/g,'\n$1');
+  return t.replace(/^\n+/,'').replace(/\n{2,}/g,'\n').trim();
+}
 function _authH(extra) {
   const h = extra ? {...extra} : {};
   if (tok) h['Authorization'] = 'Bearer ' + tok;
@@ -738,7 +746,7 @@ function checkAnswers(){
       try{
         const h=_authH();
         const art=await fetch(`${API}/api/article/${fillData.id}`,{headers:h}).then(r=>r.json());
-        srcPanel.textContent=art.original_text||'';
+        srcPanel.textContent=formatLawText(art.original_text);
         buildSections(art.sections||{},art._plan!=='free',panel);
       }catch(e){}
     })();

@@ -418,6 +418,14 @@ const API = 'https://sofa-engine-api.onrender.com';
 const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
 const tok = localStorage.getItem('sofa_token') || '';
 // 過渡期：有 token 用 Bearer，否則 fallback X-Sofa-UID
+function formatLawText(raw){
+  if(!raw) return '';
+  let t=String(raw).replace(/\r\n?/g,'\n').trim();
+  if(t.indexOf('\n')!==-1) return t;
+  t=t.replace(/(?<=\S)\s+(1[0-9]|[2-9])\s+(?=[一-鿿（【「])(?![萬億元個月年日人條項款號次倍種類份件名冊])/g,'\n$1 ');
+  t=t.replace(/[ 　]*(?<!第)([一二三四五六七八九十百千零兩]+、)/g,'\n$1');
+  return t.replace(/^\n+/,'').replace(/\n{2,}/g,'\n').trim();
+}
 function _authH(extra) {
   const h = extra ? {...extra} : {};
   if (tok) h['Authorization'] = 'Bearer ' + tok;
@@ -836,7 +844,7 @@ function showFullArticleBtn(){
   const btn=document.getElementById('prSourceLink');
   const panel=document.getElementById('prArtInline');
   if(!btn||!panel)return;
-  panel.textContent=typeText||'';
+  panel.textContent=formatLawText(typeText);
   panel.style.display='none';
   btn.textContent='查看完整條文 →';
   btn.style.display='inline-block';
