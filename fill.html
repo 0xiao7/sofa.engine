@@ -405,6 +405,7 @@ function formatLawText(raw){
   if(t.indexOf('\n')!==-1) return t;
   t=t.replace(/(?<=\S)\s+(1[0-9]|[2-9])\s+(?=[一-鿿（【「])(?![萬億元個月年日人條項款號次倍種類份件名冊])/g,'\n$1 ');
   t=t.replace(/[ 　]*(?<!第)([一二三四五六七八九十百千零兩]+、)/g,'\n$1');
+  t=t.replace(/[ 　]*(（[一二三四五六七八九十百]+）)/g,'\n　$1');
   return t.replace(/^\n+/,'').replace(/\n{2,}/g,'\n').trim();
 }
 function _authH(extra) {
