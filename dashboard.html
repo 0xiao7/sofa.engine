@@ -960,24 +960,20 @@
   .acc-item.open .acc-head .num{color:var(--peach-3)}
   .acc-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
   .acc-item.open .acc-body{max-height:600px}
-  /* locked segments (trial mode) */
-  .acc-item.locked{pointer-events:none;opacity:.55;position:relative}
+  /* locked segments (trial / expired) — 露引導句 + 模糊預覽 + 鎖 */
+  .acc-item.locked{position:relative;border-color:rgba(231,187,167,.3)}
+  .acc-item.locked .acc-head{cursor:default}
   .acc-item.locked .acc-head .ttl::after{content:" 🔒";font-size:12px;opacity:.7}
-  .acc-item.locked-cta{pointer-events:auto;opacity:1}
-  .acc-locked-banner{
-    display:flex;align-items:center;justify-content:space-between;gap:12px;
-    padding:12px 16px;margin:8px 0 4px;
-    background:rgba(231,187,167,.08);
-    border:1px dashed rgba(231,187,167,.3);border-radius:4px;
-    font-size:12.5px;color:rgba(31,56,72,.7);
-  }
-  .acc-locked-banner a{
-    font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;
-    color:var(--peach-3);text-decoration:none;white-space:nowrap;
-    padding:4px 10px;border:1px solid var(--peach-dim);border-radius:2px;
-    transition:.18s;
-  }
-  .acc-locked-banner a:hover{background:var(--peach-dim)}
+  .acc-locked-body{padding:6px 22px 18px 28px}
+  .acc-locked-lead{font-size:13.5px;line-height:1.8;color:rgba(31,56,72,.6);margin-bottom:10px}
+  .acc-locked-blur{position:relative;overflow:hidden;margin-bottom:10px}
+  .acc-locked-blur .sk{height:10px;border-radius:3px;background:rgba(31,56,72,.13);margin-bottom:9px}
+  .acc-locked-blur .sk:nth-child(1){width:92%}
+  .acc-locked-blur .sk:nth-child(2){width:76%}
+  .acc-locked-blur::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(245,240,234,.04),var(--cream) 92%)}
+  .acc-locked-cta{display:flex;align-items:center;justify-content:center;gap:10px;padding:11px 16px;background:rgba(231,187,167,.1);border:1px dashed rgba(231,187,167,.4);border-radius:5px;font-size:12.5px;color:rgba(31,56,72,.72)}
+  .acc-locked-cta a{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--peach-3);text-decoration:none;padding:5px 12px;border:1px solid var(--peach-dim);border-radius:3px;white-space:nowrap;transition:.18s}
+  .acc-locked-cta a:hover{background:var(--peach-dim);color:var(--navy)}
   .acc-inner{padding:4px 22px 22px 28px;font-size:14px;line-height:1.85;color:rgba(31,56,72,.78)}
   .acc-inner p{margin-bottom:8px}
   .acc-inner b{color:var(--navy);font-weight:600}
@@ -1569,21 +1565,29 @@ function _renderDrawer(d){
   }
 
   // 分析段落（付費/體驗才顯示第5、6段）
-  var uid   = localStorage.getItem('sofa_uid') || '';
-  var isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
+  // 鎖定以「後端真實判定」為準：免費或體驗到期時 API 回 _plan==='free'
+  var planFree = (d._plan === 'free');
   var SEC_NAMES = [
     '章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示',
     '核心摘要與記憶策略','修法與聯覺備註','相關法規及注意事項'
   ];
+  var LEADS = {
+    5: '本段解析 2026 最新修法動向，以及與其他高權重考科的實務連動。',
+    6: '本段整理關聯條文、法規對比與常見行政函釋，幫你建立完整考點網絡。'
+  };
   var accHtml = '<div class="dr-acc">';
   SEC_NAMES.forEach(function(name, idx){
     var seg  = idx + 1;
     var text = (d.sections || {})[name] || '';
-    var locked = isFree && seg >= 5;
+    var locked = planFree && seg >= 5;
     if(locked){
       accHtml += '<div class="acc-item locked" data-seg="'+seg+'">'
-        + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span>'
-        + '<span class="ttl">'+name+'</span><span style="margin-left:auto;font-size:11px;opacity:.5">🔒 付費解鎖</span></div></div>';
+        + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span><span class="ttl">'+name+'</span></div>'
+        + '<div class="acc-locked-body">'
+        + '<div class="acc-locked-lead">'+(LEADS[seg]||'')+'</div>'
+        + '<div class="acc-locked-blur"><div class="sk"></div><div class="sk"></div></div>'
+        + '<div class="acc-locked-cta">🔒 升級解鎖完整內容<a href="checkout.html">查看方案 →</a></div>'
+        + '</div></div>';
     } else if(text){
       accHtml += '<div class="acc-item'+(seg===1?' open':'')+'" data-seg="'+seg+'" onclick="this.classList.toggle(\'open\')">'
         + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span><span class="ttl">'+name+'</span></div>'
@@ -1703,22 +1707,10 @@ function closeDrawer(){
     pill.innerHTML = '<span class="live"></span>免費版';
   }
 
-  // ── 免費版：鎖定 5+ 段，遮蓋個人資料 ──────────
+  // ── 免費版：遮蓋個人資料 ──────────
+  // 註：第 5、6 段的鎖定已改由 _renderDrawer 依後端 _plan 動態處理
+  //（抽屜內容開啟時才 render，這裡抓不到；且到期帳號用 _plan 才判得準）
   if(isFree){
-    document.querySelectorAll('.acc-item').forEach(function(item){
-      var seg = parseInt(item.dataset.seg || '0');
-      if(seg >= 5){
-        item.classList.add('locked');
-        item.onclick = function(e){ e.stopPropagation(); };
-      }
-    });
-    var firstLocked = document.querySelector('.acc-item.locked');
-    if(firstLocked){
-      var banner = document.createElement('div');
-      banner.className = 'acc-locked-banner';
-      banner.innerHTML = '🔒 5 / 6 段為付費功能（修法備註 · 關聯法規）<a href="checkout.html">升級解鎖 →</a>';
-      firstLocked.parentNode.insertBefore(banner, firstLocked);
-    }
     var memberCard = document.querySelector('.member-card');
     if(memberCard){
       memberCard.innerHTML = '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版 · 完整會員資訊在升級後解鎖<br><a href="checkout.html" style="color:var(--peach);margin-top:8px;display:inline-block;">查看方案 →</a></div>';
