@@ -2642,29 +2642,6 @@ function switchToFree(){
   }
   window.location.href='/';
 }
-
-// ── Deep link 支援 ?law=X (從 tree.html / 考運羅盤 link 過來) ──
-// 早期 persist 到 sessionStorage,即使 redirect login 也能在登入後 retry trigger
-(function(){
-  try {
-    var lp = new URLSearchParams(location.search).get('law');
-    if (lp) sessionStorage.setItem('sofa_pending_law', lp);
-  } catch(e){}
-})();
-// auth 通過後 trigger 搜尋
-window.addEventListener('load', function(){
-  setTimeout(function(){
-    var pending = sessionStorage.getItem('sofa_pending_law');
-    if (!pending) return;
-    var inp = document.getElementById('search-law');
-    if (!inp || typeof doSearch !== 'function') return;
-    inp.value = pending;
-    sessionStorage.removeItem('sofa_pending_law');
-    try { doSearch(); } catch(e){}
-    var anchor = document.getElementById('search');
-    if (anchor) anchor.scrollIntoView({behavior:'smooth', block:'start'});
-  }, 800);
-});
 </script>
 </body>
 </html>

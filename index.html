@@ -1571,27 +1571,37 @@
     </div>
   </section>
 
-  <!-- ============ STATS STRIP ============ -->
-  <div class="stats-strip">
-    <div class="row">
-      <div class="item">
-        <div class="v">2,000<span class="u">+ 條</span></div>
-        <div class="k">完整法條結構化</div>
-      </div>
-      <div class="item">
-        <div class="v">33<span class="u">部</span></div>
-        <div class="k">記帳士相關法規</div>
-      </div>
-      <div class="item">
-        <div class="v">4<span class="u">種</span></div>
-        <div class="k">練習模式可組合</div>
-      </div>
-      <div class="item">
-        <div class="v">45<span class="u">天</span></div>
-        <div class="k">早鳥最長使用</div>
-      </div>
-    </div>
-  </div>
+  <!-- ============ COMPASS WIDGET 「考運羅盤」(取代原 stats-strip) ============ -->
+  <!-- Mockup 用 iframe 嵌入,production stable 後可考慮 inline 整合 -->
+  <section class="compass-embed" data-screen-label="Compass" style="background:#F5F0EA;padding:0;margin:0;">
+    <iframe id="compassFrame"
+            src="compass-planner.html?embed=1"
+            style="width:100%;height:960px;border:0;display:block;background:transparent;"
+            scrolling="no"
+            title="考運羅盤"></iframe>
+  </section>
+  <script>
+    // Compass widget bridge: 收 widget 倒數完的 message → scroll 到 Modes section
+    (function(){
+      window.addEventListener('message', function(e){
+        if (e.data && e.data.type === 'compass-scroll-next' && e.data.source === 'compass-widget') {
+          var modes = document.querySelector('.modes');
+          if (modes) modes.scrollIntoView({behavior:'smooth', block:'start'});
+        }
+      });
+      // iframe 高度 RWD
+      var frame = document.getElementById('compassFrame');
+      function adjustCompassHeight(){
+        if (!frame) return;
+        var w = window.innerWidth;
+        if (w < 480) frame.style.height = '1100px';
+        else if (w < 768) frame.style.height = '1000px';
+        else frame.style.height = '960px';
+      }
+      adjustCompassHeight();
+      window.addEventListener('resize', adjustCompassHeight);
+    })();
+  </script>
 
   <!-- ============ MODES (4 practice modes) ============ -->
   <section class="modes" id="modes" data-screen-label="Modes">
