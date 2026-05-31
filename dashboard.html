@@ -1521,9 +1521,13 @@ function formatLawText(raw){
 }
 
 function _linkifyLaw(escapedText){
-  return escapedText.replace(/《([^》]+)》第(\d+)條/g, function(match, law, art){
-    var safelaw = law.replace(/\\/g,'').replace(/'/g,"\\'");
-    return '<a class="crossref" onclick="event.stopPropagation();searchAndOpen(\''+safelaw+'\',\''+art+'\')" style="color:var(--peach-3);text-decoration:underline;cursor:pointer">'+match+'</a>';
+  var lastLaw = null;
+  return escapedText.replace(/(?:《([^》]+)》)?第(\d+)條(?:之(\d+))?/g, function(match, law, art, sub){
+    if(law) lastLaw = law;
+    if(!lastLaw) return match;
+    var safelaw = lastLaw.replace(/\\/g,'').replace(/'/g,"\\'");
+    var fullArt = art + (sub ? '之' + sub : '');
+    return '<a class="crossref" onclick="event.stopPropagation();searchAndOpen(\''+safelaw+'\',\''+fullArt+'\')" style="color:var(--peach-3);text-decoration:underline;cursor:pointer">'+match+'</a>';
   });
 }
 
@@ -1558,8 +1562,10 @@ function searchAndOpen(lawName, artNum){
     .then(function(d){
       if(!d || !d.articles){ openDrawer('', lawName, artNum); return; }
       var found = d.articles.filter(function(a){
-        var m = (a.title||'').match(/第(\d+)條/);
-        return m && m[1] === artNum;
+        var m = (a.title||'').match(/第(\d+)條(?:之(\d+))?/);
+        if(!m) return false;
+        var t = m[1] + (m[2] ? '之' + m[2] : '');
+        return t === artNum;
       })[0];
       openDrawer(found ? found.id : '', lawName, artNum);
     })
