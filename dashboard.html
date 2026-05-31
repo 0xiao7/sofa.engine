@@ -2346,13 +2346,40 @@ function _populateSubFilter(opts){
   }).join('');
 }
 
+// 跨法規選項 cache（無 lawName 時用）
+var _crossOptsCache = { deadline: null, penalty: null };
+
+function _fetchCrossOpts(chip){
+  if(_crossOptsCache[chip]) return Promise.resolve(_crossOptsCache[chip]);
+  return fetch(API + '/api/chip_options?chip=' + encodeURIComponent(chip))
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if(!d || !d.options) return [{l:'全部', v:''}];
+      var opts = [{l:'全部', v:''}].concat(d.options.map(function(o){
+        return { l: o.label + (o.count > 1 ? ' ('+o.count+')' : ''), v: o.value };
+      }));
+      _crossOptsCache[chip] = opts;
+      return opts;
+    })
+    .catch(function(){ return [{l:'全部', v:''}]; });
+}
+
 function _refreshSubFilter(){
-  // 依當前 chip + _curLawArts 重算細篩選項
-  if(_curChip === 'deadline'){
-    _populateSubFilter(_extractDeadlineOpts(_curLawArts));
-  } else if(_curChip === 'penalty'){
-    _populateSubFilter(_extractPenaltyOpts(_curLawArts));
+  // 依當前 chip + _curLawArts 重算細篩選項；無 lawName 走全庫
+  if(_curChip !== 'deadline' && _curChip !== 'penalty') return;
+  if(_curLawArts.length){
+    var opts = _curChip === 'deadline'
+      ? _extractDeadlineOpts(_curLawArts)
+      : _extractPenaltyOpts(_curLawArts);
+    _populateSubFilter(opts);
+    return;
   }
+  // 無 lawName → 從全庫拿
+  var sel = document.getElementById('subFilterSel');
+  if(sel){ sel.disabled = true; sel.innerHTML = '<option value="">載入選項中…</option>'; }
+  _fetchCrossOpts(_curChip).then(function(opts){
+    if(_curChip === 'deadline' || _curChip === 'penalty') _populateSubFilter(opts);
+  });
 }
 
 function setChip(btn, key){
@@ -2498,8 +2525,21 @@ function doSearch(){
           _srSet(arts, '');
         })
         .catch(function(){ resEl.innerHTML = _MSG_FAIL; });
-    } else {
-      resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">請先輸入法規名稱，再使用分類篩選</div>';
+    } else if(chip === 'deadline' || chip === 'penalty'){
+      // 跨法規依 chip + sub 搜尋
+      var subVal = ((document.getElementById('subFilterSel')||{}).value||'').trim();
+      resEl.innerHTML = _MSG_LOADING;
+      var sec2 = document.getElementById('search');
+      if(sec2) sec2.scrollIntoView({behavior:'smooth', block:'start'});
+      fetch(API + '/api/cross_chip_search?chip=' + encodeURIComponent(chip)
+            + '&sub=' + encodeURIComponent(subVal))
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(d){
+          var arts = (d && d.articles) ? d.articles : [];
+          if(!arts.length){ resEl.innerHTML = _MSG_EMPTY; return; }
+          _srSet(arts, '');
+        })
+        .catch(function(){ resEl.innerHTML = _MSG_FAIL; });
     }
     return;
   }
