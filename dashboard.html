@@ -2288,28 +2288,71 @@ function _renderLawsToc(page){
     .catch(function(){});
 })();
 
-var _DEADLINE_OPTS = [
-  {l:'全部',v:''},{l:'1日',v:'一日'},{l:'2日',v:'二日'},{l:'3日',v:'三日'},
-  {l:'5日',v:'五日'},{l:'7日',v:'七日'},{l:'10日',v:'十日'},{l:'14日',v:'十四日'},
-  {l:'20日',v:'二十日'},{l:'30日',v:'三十日'},{l:'60日',v:'六十日'},
-  {l:'1個月',v:'一個月'},{l:'2個月',v:'二個月'},{l:'3個月',v:'三個月'},
-  {l:'6個月',v:'六個月'},{l:'1年',v:'一年'},{l:'2年',v:'二年'},
-  {l:'3年',v:'三年'},{l:'5年',v:'五年'},{l:'10年',v:'十年'}
-];
-var _PENALTY_OPTS = [
-  {l:'全部',v:''},{l:'3千元',v:'三千元'},{l:'5千元',v:'五千元'},
-  {l:'1萬元',v:'一萬元'},{l:'3萬元',v:'三萬元'},{l:'5萬元',v:'五萬元'},
-  {l:'10萬元',v:'十萬元'},{l:'15萬元',v:'十五萬元'},{l:'30萬元',v:'三十萬元'},
-  {l:'50萬元',v:'五十萬元'},{l:'100萬元',v:'一百萬元'},{l:'200萬元',v:'二百萬元'},
-  {l:'300萬元',v:'三百萬元'},{l:'500萬元',v:'五百萬元'}
-];
+// 細篩選項從當前法規的真實 articles 動態抽取（不再寫死、不再有虛構選項）
+var _curLawArts = [];
+
+function _extractDeadlineOpts(arts){
+  // 從 time_limit 抓所有「數字+單位」短語，依出現次數排序
+  var counts = {};
+  var rePat = /(\d+|[一二三四五六七八九十兩百千]+)(個月|日|月|年|小時|週)/g;
+  arts.forEach(function(a){
+    var tl = (a.time_limit||'').trim();
+    if(!tl || tl === '無') return;
+    rePat.lastIndex = 0;
+    var m;
+    while((m = rePat.exec(tl)) !== null){
+      var phrase = m[0];
+      counts[phrase] = (counts[phrase]||0) + 1;
+    }
+  });
+  var arr = Object.keys(counts).map(function(s){ return {l:s, v:s, n:counts[s]}; });
+  arr.sort(function(a,b){
+    if(b.n !== a.n) return b.n - a.n;
+    return a.l.localeCompare(b.l);
+  });
+  return [{l:'全部', v:''}].concat(arr.slice(0, 30));
+}
+
+function _extractPenaltyOpts(arts){
+  // 從 keywords 抓含「元」的金額關鍵字
+  var counts = {};
+  arts.forEach(function(a){
+    (a.keywords || []).forEach(function(k){
+      k = (k||'').trim();
+      if(!k || k.indexOf('元') === -1) return;
+      counts[k] = (counts[k]||0) + 1;
+    });
+  });
+  var arr = Object.keys(counts).map(function(s){ return {l:s, v:s, n:counts[s]}; });
+  arr.sort(function(a,b){
+    if(b.n !== a.n) return b.n - a.n;
+    return a.l.localeCompare(b.l);
+  });
+  return [{l:'全部', v:''}].concat(arr.slice(0, 30));
+}
 
 function _populateSubFilter(opts){
   var sel = document.getElementById('subFilterSel');
   if(!sel) return;
+  if(opts.length <= 1){
+    // 只有「全部」沒實際選項 → 這部法在此分類下沒資料可抽
+    sel.innerHTML = '<option value="">（這部法無此類資料）</option>';
+    sel.disabled = true;
+    return;
+  }
+  sel.disabled = false;
   sel.innerHTML = opts.map(function(o){
     return '<option value="'+esc(o.v)+'">'+esc(o.l)+'</option>';
   }).join('');
+}
+
+function _refreshSubFilter(){
+  // 依當前 chip + _curLawArts 重算細篩選項
+  if(_curChip === 'deadline'){
+    _populateSubFilter(_extractDeadlineOpts(_curLawArts));
+  } else if(_curChip === 'penalty'){
+    _populateSubFilter(_extractPenaltyOpts(_curLawArts));
+  }
 }
 
 function setChip(btn, key){
@@ -2317,11 +2360,8 @@ function setChip(btn, key){
   btn.classList.add('on');
   _curChip = key;
   var row = document.getElementById('subFilterRow');
-  if(key === 'deadline'){
-    _populateSubFilter(_DEADLINE_OPTS);
-    row.style.display = 'flex';
-  } else if(key === 'penalty'){
-    _populateSubFilter(_PENALTY_OPTS);
+  if(key === 'deadline' || key === 'penalty'){
+    _refreshSubFilter();
     row.style.display = 'flex';
   } else {
     row.style.display = 'none';
@@ -2329,34 +2369,39 @@ function setChip(btn, key){
   doSearch();
 }
 
-// 法規名稱 autocomplete
+// 法規名稱 autocomplete — focus 即展開（即使空字串）、打字篩選
+function _renderLawDD(filter){
+  var dd = document.getElementById('law-dropdown');
+  if(!dd) return;
+  var hits = filter
+    ? _allLaws.filter(function(l){ return (l.name||'').indexOf(filter) !== -1; })
+    : _allLaws.slice();
+  hits = hits.slice(0, 50);  // 上限 50 筆，避免一次 render 49 部太重
+  if(!hits.length){ dd.style.display = 'none'; return; }
+  dd.innerHTML = hits.map(function(l){
+    var escapedName = esc(l.name);
+    var highlighted = filter
+      ? escapedName.replace(esc(filter), '<b style="color:var(--peach)">'+esc(filter)+'</b>')
+      : escapedName;
+    return '<div style="padding:11px 16px;cursor:pointer;font-size:13.5px;color:var(--cream);'
+      +'border-bottom:1px solid var(--line);font-family:var(--sans);transition:.13s"'
+      +' onmousedown="event.preventDefault();selectLaw(this.dataset.law)"'
+      +' data-law="'+esc(l.name)+'"'
+      +' onmouseover="this.style.background=\'rgba(245,240,234,.08)\'"'
+      +' onmouseout="this.style.background=\'\'">'
+      + highlighted
+      + '</div>';
+  }).join('');
+  dd.style.display = 'block';
+}
+
 (function(){
   var inp = document.getElementById('search-law');
   var dd  = document.getElementById('law-dropdown');
   if(!inp || !dd) return;
 
-  inp.addEventListener('input', function(){
-    var v = this.value.trim();
-    if(!v){ dd.style.display = 'none'; return; }
-    var hits = _allLaws.filter(function(l){ return l.name.indexOf(v) !== -1; }).slice(0,10);
-    if(!hits.length){ dd.style.display = 'none'; return; }
-    dd.innerHTML = hits.map(function(l){
-      // escape 法規名稱與關鍵字再做高亮，避免 XSS
-      var escapedName = esc(l.name);
-      var escapedV    = esc(v);
-      var highlighted = escapedName.replace(escapedV, '<b style="color:var(--peach)">'+escapedV+'</b>');
-      return '<div style="padding:11px 16px;cursor:pointer;font-size:13.5px;color:var(--cream);'
-        +'border-bottom:1px solid var(--line);font-family:var(--sans);transition:.13s"'
-        +' onmousedown="event.preventDefault();selectLaw(this.dataset.law)"'
-        +' data-law="'+esc(l.name)+'"'
-        +' onmouseover="this.style.background=\'rgba(245,240,234,.08)\'"'
-        +' onmouseout="this.style.background=\'\'">'
-        + highlighted
-        + '</div>';
-    }).join('');
-    dd.style.display = 'block';
-  });
-
+  inp.addEventListener('focus', function(){ _renderLawDD(this.value.trim()); });
+  inp.addEventListener('input', function(){ _renderLawDD(this.value.trim()); });
   inp.addEventListener('keydown', function(e){
     if(e.key === 'Enter'){ dd.style.display = 'none'; doSearch(); }
     if(e.key === 'Escape'){ dd.style.display = 'none'; }
@@ -2384,26 +2429,20 @@ function selectLaw(nameOrEl){
 
 function _chipFilter(arts, chip){
   var subVal = ((document.getElementById('subFilterSel')||{}).value||'').trim();
-  function _subMatch(a){
-    if(!subVal) return true;
-    if((a.title||'').indexOf(subVal) !== -1) return true;
-    if((a.tags||[]).some(function(t){ return t.indexOf(subVal) !== -1; })) return true;
-    return false;
-  }
   if(chip === 'all') return arts;
   if(chip === '5star') return arts.filter(function(a){ return (a.importance||'').indexOf('★★★★★') !== -1; });
   if(chip === '4star') return arts.filter(function(a){ var imp = a.importance||''; return imp.indexOf('★★★★') !== -1 && imp.indexOf('★★★★★') === -1; });
   if(chip === 'deadline') return arts.filter(function(a){
-    var tags = a.tags||[];
-    var hasTag = tags.some(function(t){ return t.indexOf('期間') !== -1 || t.indexOf('時限') !== -1; });
-    var baseMatch = hasTag || (!tags.length && ((a.title||'').indexOf('期間') !== -1 || (a.title||'').indexOf('時限') !== -1));
-    return baseMatch && _subMatch(a);
+    var tl = (a.time_limit||'').trim();
+    if(!tl || tl === '無') return false;
+    return subVal ? tl.indexOf(subVal) !== -1 : true;
   });
   if(chip === 'penalty') return arts.filter(function(a){
-    var tags = a.tags||[];
-    var hasTag = tags.some(function(t){ return t.indexOf('罰則') !== -1 || t.indexOf('罰') !== -1; });
-    var baseMatch = hasTag || (a.title||'').indexOf('罰') !== -1;
-    return baseMatch && _subMatch(a);
+    var kws = a.keywords || [];
+    var hasPen = (a.title||'').indexOf('罰') !== -1 || kws.some(function(k){ return (k||'').indexOf('罰') !== -1; });
+    if(!hasPen) return false;
+    if(!subVal) return true;
+    return kws.some(function(k){ return (k||'').indexOf(subVal) !== -1; });
   });
   return arts;
 }
@@ -2475,9 +2514,12 @@ function doSearch(){
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){
       if(!d || !d.articles || !d.articles.length){
+        _curLawArts = [];
         resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">找不到「'+esc(lawName)+'」的條文</div>';
         return;
       }
+      _curLawArts = d.articles;
+      _refreshSubFilter();  // 用新法規的真實 articles 重算細篩選項
       var arts = d.articles;
       if(artFilter){
         arts = arts.filter(function(a){
