@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoFa Engine — IG Carousel Preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700;900&family=Noto+Serif+TC:wght@400;700;900&family=Zen+Kaku+Gothic+New:wght@300;400;500;700;900&family=DM+Sans:wght@300;400;500;700&family=Plus+Jakarta+Sans:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --font: 'Noto Sans TC', sans-serif; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0e0e12; padding: 0 0 48px; font-family: var(--font); }
+
+  /* ── Control Bar ── */
+  .bar {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(14,14,18,0.96);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid #1e1e26;
+    padding: 10px 16px;
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .bar-row { display: flex; gap: 6px; flex-wrap: wrap; align-items: center; }
+  .bar-label { font-size: 9px; letter-spacing: 0.18em; color: #333; text-transform: uppercase; width: 36px; flex-shrink: 0; }
+  .pick {
+    padding: 4px 11px; border-radius: 20px;
+    border: 1px solid #252530; background: transparent;
+    color: #555; font-size: 10px; cursor: pointer;
+    transition: all 0.15s; white-space: nowrap; font-family: var(--font);
+  }
+  .pick:hover { border-color: #e7bba7; color: #e7bba7; }
+  .pick.active { background: #e7bba7; color: #244658; border-color: #e7bba7; font-weight: 700; }
+  .pick.active.web { background: #E5B3B3; color: #1A1A2E; border-color: #E5B3B3; }
+
+  /* ── Carousel ── */
+  .track {
+    display: flex; gap: 16px;
+    overflow-x: auto; padding: 28px 20px 12px;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .track::-webkit-scrollbar { display: none; }
+
+  /* ── Slide base 320×320 ── */
+  .slide {
+    width: 320px; height: 320px; flex-shrink: 0;
+    scroll-snap-align: start; border-radius: 14px;
+    overflow: hidden; position: relative;
+    font-family: var(--font);
+    box-shadow: 0 16px 48px rgba(0,0,0,0.65);
+  }
+
+  /* ════════════════════════════════════
+     THEME P1 — Teal × Peach
+  ════════════════════════════════════ */
+
+  /* P1 — Slide 1 Cover */
+  .p1-s1 { background: #244658; display: flex; flex-direction: column; justify-content: flex-end; padding: 28px; }
+  .p1-s1 .bg { position: absolute; top: -10px; right: -8px; font-size: 130px; font-weight: 900; color: rgba(231,187,167,0.05); line-height: 1; letter-spacing: -4px; user-select: none; }
+  .p1-s1 .tag { font-size: 9px; letter-spacing: 0.22em; color: #e7bba7; opacity: 0.6; margin-bottom: 10px; text-transform: uppercase; }
+  .p1-s1 .title { font-size: 34px; font-weight: 900; color: #e7bba7; line-height: 1.08; margin-bottom: 14px; }
+  .p1-s1 .sub { font-size: 11.5px; color: rgba(231,187,167,0.55); line-height: 1.7; font-weight: 300; }
+
+  /* P1 — Slide 2 Problem */
+  .p1-s2 { background: #faf7f4; display: flex; flex-direction: column; padding: 28px; }
+  .p1-s2 .num { font-size: 68px; font-weight: 900; color: #e7bba7; line-height: 1; letter-spacing: -2px; }
+  .p1-s2 .numsub { font-size: 10px; letter-spacing: 0.16em; color: #cbaa9c; text-transform: uppercase; margin-bottom: 18px; }
+  .p1-s2 .q { font-size: 17px; font-weight: 700; color: #244658; line-height: 1.4; margin-bottom: 10px; }
+  .p1-s2 .body { font-size: 11px; color: #888; line-height: 1.7; font-weight: 300; }
+  .p1-s2 .badge { margin-top: auto; background: #244658; color: #e7bba7; border-radius: 8px; padding: 10px 14px; font-size: 11px; line-height: 1.5; }
+
+  /* P1 — Slide 3 Feature */
+  .p1-s3 { background: #faf7f4; display: flex; flex-direction: column; }
+  .p1-s3 .hero { background: #244658; padding: 22px 24px 18px; }
+  .p1-s3 .hero-tag { font-size: 9px; letter-spacing: 0.2em; color: #e7bba7; opacity: 0.55; text-transform: uppercase; margin-bottom: 6px; }
+  .p1-s3 .hero-title { font-size: 21px; font-weight: 900; color: #e7bba7; line-height: 1.2; }
+  .p1-s3 .body-area { padding: 18px 22px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+  .p1-s3 .row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 11px; }
+  .p1-s3 .ico { width: 28px; height: 28px; border-radius: 8px; background: #e7bba7; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .p1-s3 .desc { font-size: 11px; color: #666; line-height: 1.5; }
+  .p1-s3 .desc strong { color: #244658; display: block; font-size: 12px; margin-bottom: 1px; }
+  .p1-s3 .pill { display: inline-block; background: #244658; color: #e7bba7; border-radius: 20px; padding: 5px 14px; font-size: 10px; font-weight: 600; letter-spacing: 0.05em; }
+
+  /* P1 — Slide 4 Steps */
+  .p1-s4 { background: #244658; padding: 26px; display: flex; flex-direction: column; }
+  .p1-s4 .label { font-size: 9px; letter-spacing: 0.2em; color: #e7bba7; opacity: 0.4; text-transform: uppercase; margin-bottom: 14px; }
+  .p1-s4 .title { font-size: 20px; font-weight: 900; color: #e7bba7; line-height: 1.25; margin-bottom: 18px; }
+  .p1-s4 .line { background: rgba(231,187,167,0.12); height: 1px; margin-bottom: 16px; }
+  .p1-s4 .step { display: flex; gap: 11px; margin-bottom: 13px; align-items: flex-start; }
+  .p1-s4 .snum { width: 22px; height: 22px; border-radius: 50%; background: rgba(231,187,167,0.12); border: 1px solid rgba(231,187,167,0.25); color: #e7bba7; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .p1-s4 .sbody { font-size: 11px; color: rgba(231,187,167,0.65); line-height: 1.55; }
+  .p1-s4 .sbody strong { color: #e7bba7; display: block; font-size: 12px; }
+
+  /* P1 — Slide 5 CTA */
+  .p1-s5 { background: #e7bba7; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 28px; gap: 14px; }
+  .p1-s5 .logo { font-size: 20px; font-weight: 900; color: #244658; letter-spacing: -0.5px; }
+  .p1-s5 .big { font-size: 18px; font-weight: 900; color: #244658; line-height: 1.4; }
+  .p1-s5 .sub { font-size: 11px; color: rgba(36,70,88,0.55); line-height: 1.7; font-weight: 300; }
+  .p1-s5 .btn { background: #244658; color: #e7bba7; border-radius: 30px; padding: 10px 24px; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; }
+  .p1-s5 .id { font-size: 10px; color: rgba(36,70,88,0.38); letter-spacing: 0.08em; }
+
+  /* ════════════════════════════════════
+     THEME WEB — #1A1A2E × #E5B3B3
+  ════════════════════════════════════ */
+
+  /* WEB — Slide 1 Cover */
+  .w-s1 { background: #1A1A2E; display: flex; flex-direction: column; justify-content: flex-end; padding: 28px; }
+  .w-s1 .bg { position: absolute; top: -10px; right: -8px; font-size: 130px; font-weight: 900; color: rgba(229,179,179,0.05); line-height: 1; letter-spacing: -4px; user-select: none; }
+  .w-s1 .tag { font-size: 9px; letter-spacing: 0.22em; color: #E5B3B3; opacity: 0.6; margin-bottom: 10px; text-transform: uppercase; }
+  .w-s1 .title { font-size: 34px; font-weight: 900; color: #E5B3B3; line-height: 1.08; margin-bottom: 14px; }
+  .w-s1 .sub { font-size: 11.5px; color: rgba(229,179,179,0.45); line-height: 1.7; font-weight: 300; }
+
+  /* WEB — Slide 2 Problem */
+  .w-s2 { background: #22223a; display: flex; flex-direction: column; padding: 28px; }
+  .w-s2 .num { font-size: 68px; font-weight: 900; color: #E5B3B3; line-height: 1; letter-spacing: -2px; }
+  .w-s2 .numsub { font-size: 10px; letter-spacing: 0.16em; color: #9EB3C2; text-transform: uppercase; margin-bottom: 18px; }
+  .w-s2 .q { font-size: 17px; font-weight: 700; color: #F0EDE8; line-height: 1.4; margin-bottom: 10px; }
+  .w-s2 .body { font-size: 11px; color: #a8a8b8; line-height: 1.7; font-weight: 300; }
+  .w-s2 .badge { margin-top: auto; background: rgba(229,179,179,0.12); border: 1px solid rgba(229,179,179,0.2); color: #E5B3B3; border-radius: 8px; padding: 10px 14px; font-size: 11px; line-height: 1.5; }
+
+  /* WEB — Slide 3 Feature */
+  .w-s3 { background: #22223a; display: flex; flex-direction: column; }
+  .w-s3 .hero { background: #1A1A2E; padding: 22px 24px 18px; border-bottom: 1px solid rgba(229,179,179,0.12); }
+  .w-s3 .hero-tag { font-size: 9px; letter-spacing: 0.2em; color: #9EB3C2; opacity: 0.7; text-transform: uppercase; margin-bottom: 6px; }
+  .w-s3 .hero-title { font-size: 21px; font-weight: 900; color: #E5B3B3; line-height: 1.2; }
+  .w-s3 .body-area { padding: 18px 22px; flex: 1; display: flex; flex-direction: column; justify-content: space-between; }
+  .w-s3 .row { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 11px; }
+  .w-s3 .ico { width: 28px; height: 28px; border-radius: 8px; background: rgba(229,179,179,0.12); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .w-s3 .desc { font-size: 11px; color: #a8a8b8; line-height: 1.5; }
+  .w-s3 .desc strong { color: #E5B3B3; display: block; font-size: 12px; margin-bottom: 1px; }
+  .w-s3 .pill { display: inline-block; background: rgba(229,179,179,0.15); color: #E5B3B3; border: 1px solid rgba(229,179,179,0.3); border-radius: 20px; padding: 5px 14px; font-size: 10px; font-weight: 600; letter-spacing: 0.05em; }
+
+  /* WEB — Slide 4 Steps */
+  .w-s4 { background: #1A1A2E; padding: 26px; display: flex; flex-direction: column; }
+  .w-s4 .label { font-size: 9px; letter-spacing: 0.2em; color: #9EB3C2; opacity: 0.6; text-transform: uppercase; margin-bottom: 14px; }
+  .w-s4 .title { font-size: 20px; font-weight: 900; color: #E5B3B3; line-height: 1.25; margin-bottom: 18px; }
+  .w-s4 .line { background: rgba(229,179,179,0.1); height: 1px; margin-bottom: 16px; }
+  .w-s4 .step { display: flex; gap: 11px; margin-bottom: 13px; align-items: flex-start; }
+  .w-s4 .snum { width: 22px; height: 22px; border-radius: 50%; background: rgba(229,179,179,0.1); border: 1px solid rgba(229,179,179,0.2); color: #E5B3B3; font-size: 10px; font-weight: 700; display: flex; align-items: center; justify-content: center; flex-shrink: 0; margin-top: 1px; }
+  .w-s4 .sbody { font-size: 11px; color: rgba(240,237,232,0.5); line-height: 1.55; }
+  .w-s4 .sbody strong { color: #F0EDE8; display: block; font-size: 12px; }
+
+  /* WEB — Slide 5 CTA */
+  .w-s5 { background: #22223a; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 28px; gap: 14px; border: 1px solid rgba(229,179,179,0.1); }
+  .w-s5 .logo { font-size: 20px; font-weight: 900; color: #E5B3B3; letter-spacing: -0.5px; }
+  .w-s5 .big { font-size: 18px; font-weight: 900; color: #F0EDE8; line-height: 1.4; }
+  .w-s5 .sub { font-size: 11px; color: #a8a8b8; line-height: 1.7; font-weight: 300; }
+  .w-s5 .btn { background: #E5B3B3; color: #1A1A2E; border-radius: 30px; padding: 10px 24px; font-size: 12px; font-weight: 700; letter-spacing: 0.05em; }
+  .w-s5 .id { font-size: 10px; color: rgba(168,168,184,0.5); letter-spacing: 0.08em; }
+
+  /* nav dots */
+  .nav { display: flex; gap: 5px; justify-content: center; margin-top: 10px; }
+  .nav .d { width: 5px; height: 5px; border-radius: 50%; background: #252530; transition: all 0.2s; cursor: pointer; }
+  .nav .d.on { background: #e7bba7; width: 16px; border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<div class="bar">
+  <div class="bar-row">
+    <span class="bar-label">主題</span>
+    <button class="pick active" onclick="setTheme('p1')" data-t="p1">Teal × Peach（圖文條色）</button>
+    <button class="pick" onclick="setTheme('web')" data-t="web">深夜藍 × 霧玫瑰（網頁色）</button>
+  </div>
+  <div class="bar-row">
+    <span class="bar-label">字體</span>
+    <button class="pick active" onclick="setFont('Noto Sans TC')" data-f="Noto Sans TC">Noto Sans TC</button>
+    <button class="pick" onclick="setFont('Noto Serif TC')" data-f="Noto Serif TC">Noto Serif TC</button>
+    <button class="pick" onclick="setFont('Zen Kaku Gothic New')" data-f="Zen Kaku Gothic New">Zen Kaku</button>
+    <button class="pick" onclick="setFont('Plus Jakarta Sans')" data-f="Plus Jakarta Sans">Jakarta Sans</button>
+    <button class="pick" onclick="setFont('DM Sans')" data-f="DM Sans">DM Sans</button>
+  </div>
+</div>
+
+<!-- THEME P1 -->
+<div class="track" id="track-p1">
+  <div class="slide p1-s1">
+    <div class="bg">法</div>
+    <div class="tag">記帳士國考備考系統</div>
+    <div class="title">SoFa<br>Engine</div>
+    <div class="sub">2,138 條法規。<br>坐下來，一條一條來。</div>
+  </div>
+  <div class="slide p1-s2">
+    <div class="num">2,138</div>
+    <div class="numsub">條法規要背</div>
+    <div class="q">考試前才發現<br>根本來不及？</div>
+    <div class="body">記帳士國考 2026/11/14–15<br>33 部法規，每天只要 5 條<br>坐下來就能開始。</div>
+    <div class="badge">📖 每天 8:00 自動推播 · 不用找資料</div>
+  </div>
+  <div class="slide p1-s3">
+    <div class="hero">
+      <div class="hero-tag">Feature 01</div>
+      <div class="hero-title">每日法條<br>自動推播</div>
+    </div>
+    <div class="body-area">
+      <div>
+        <div class="row"><div class="ico">📖</div><div class="desc"><strong>每天 8:00 準時到</strong>LINE 直接收到，不用開 App</div></div>
+        <div class="row"><div class="ico">🔍</div><div class="desc"><strong>隨時查任何法條</strong>輸入法規名稱或條號即可</div></div>
+      </div>
+      <div class="pill">加入 LINE @928oakbo</div>
+    </div>
+  </div>
+  <div class="slide p1-s4">
+    <div class="label">How it works</div>
+    <div class="title">三步驟<br>開始備考</div>
+    <div class="line"></div>
+    <div class="step"><div class="snum">1</div><div class="sbody"><strong>加入 LINE</strong>搜尋 @928oakbo，免費加入</div></div>
+    <div class="step"><div class="snum">2</div><div class="sbody"><strong>每天 8:00 收法條</strong>Bot 自動推播，不漏接</div></div>
+    <div class="step"><div class="snum">3</div><div class="sbody"><strong>想查就查</strong>輸入法規名稱，秒找條文</div></div>
+  </div>
+  <div class="slide p1-s5">
+    <div class="logo">SoFa Engine</div>
+    <div class="big">現在加入<br>距考試還有<br>207 天</div>
+    <div class="sub">免費開始 · 無需下載<br>LINE 即可使用</div>
+    <div class="btn">立即加入 →</div>
+    <div class="id">LINE ID: @928oakbo</div>
+  </div>
+</div>
+
+<!-- THEME WEB -->
+<div class="track" id="track-web" style="display:none;">
+  <div class="slide w-s1">
+    <div class="bg">法</div>
+    <div class="tag">記帳士國考備考系統</div>
+    <div class="title">SoFa<br>Engine</div>
+    <div class="sub">2,138 條法規。<br>坐下來，一條一條來。</div>
+  </div>
+  <div class="slide w-s2">
+    <div class="num">2,138</div>
+    <div class="numsub">條法規要背</div>
+    <div class="q">考試前才發現<br>根本來不及？</div>
+    <div class="body">記帳士國考 2026/11/14–15<br>33 部法規，每天只要 5 條<br>坐下來就能開始。</div>
+    <div class="badge">📖 每天 8:00 自動推播 · 不用找資料</div>
+  </div>
+  <div class="slide w-s3">
+    <div class="hero">
+      <div class="hero-tag">Feature 01</div>
+      <div class="hero-title">每日法條<br>自動推播</div>
+    </div>
+    <div class="body-area">
+      <div>
+        <div class="row"><div class="ico">📖</div><div class="desc"><strong>每天 8:00 準時到</strong>LINE 直接收到，不用開 App</div></div>
+        <div class="row"><div class="ico">🔍</div><div class="desc"><strong>隨時查任何法條</strong>輸入法規名稱或條號即可</div></div>
+      </div>
+      <div class="pill">加入 LINE @928oakbo</div>
+    </div>
+  </div>
+  <div class="slide w-s4">
+    <div class="label">How it works</div>
+    <div class="title">三步驟<br>開始備考</div>
+    <div class="line"></div>
+    <div class="step"><div class="snum">1</div><div class="sbody"><strong>加入 LINE</strong>搜尋 @928oakbo，免費加入</div></div>
+    <div class="step"><div class="snum">2</div><div class="sbody"><strong>每天 8:00 收法條</strong>Bot 自動推播，不漏接</div></div>
+    <div class="step"><div class="snum">3</div><div class="sbody"><strong>想查就查</strong>輸入法規名稱，秒找條文</div></div>
+  </div>
+  <div class="slide w-s5">
+    <div class="logo">SoFa Engine</div>
+    <div class="big">現在加入<br>距考試還有<br>207 天</div>
+    <div class="sub">免費開始 · 無需下載<br>LINE 即可使用</div>
+    <div class="btn">立即加入 →</div>
+    <div class="id">LINE ID: @928oakbo</div>
+  </div>
+</div>
+
+<div class="nav" id="nav">
+  <div class="d on" onclick="goTo(0)"></div>
+  <div class="d" onclick="goTo(1)"></div>
+  <div class="d" onclick="goTo(2)"></div>
+  <div class="d" onclick="goTo(3)"></div>
+  <div class="d" onclick="goTo(4)"></div>
+</div>
+
+<script>
+let activeTheme = 'p1';
+let activeFont = 'Noto Sans TC';
+
+function setFont(f) {
+  activeFont = f;
+  document.documentElement.style.setProperty('--font', `'${f}', sans-serif`);
+  document.querySelectorAll('[data-f]').forEach(b => b.classList.toggle('active', b.dataset.f === f));
+}
+
+function setTheme(t) {
+  activeTheme = t;
+  document.querySelectorAll('[data-t]').forEach(b => {
+    b.classList.toggle('active', b.dataset.t === t);
+    if (b.dataset.t === t && t === 'web') b.classList.add('web');
+    else b.classList.remove('web');
+  });
+  document.getElementById('track-p1').style.display = t === 'p1' ? 'flex' : 'none';
+  document.getElementById('track-web').style.display = t === 'web' ? 'flex' : 'none';
+  syncDots();
+}
+
+function goTo(i) {
+  const track = document.getElementById('track-' + activeTheme);
+  const slides = track.querySelectorAll('.slide');
+  if (slides[i]) slides[i].scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+}
+
+function syncDots() {
+  const track = document.getElementById('track-' + activeTheme);
+  const i = Math.round(track.scrollLeft / (320 + 16));
+  document.querySelectorAll('.nav .d').forEach((d, j) => d.classList.toggle('on', j === i));
+}
+
+['track-p1', 'track-web'].forEach(id => {
+  document.getElementById(id).addEventListener('scroll', () => {
+    if (id !== 'track-' + activeTheme) return;
+    syncDots();
+  });
+});
+</script>
+</body>
+</html>

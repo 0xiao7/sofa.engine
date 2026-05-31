@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SoFa Engine — Rich Menu Preview</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #1a1a20;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    padding: 40px 20px;
+    color: #fff;
+  }
+  h1 {
+    text-align: center;
+    font-size: 13px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #5c676f;
+    margin-bottom: 6px;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 10px;
+    color: #38404a;
+    letter-spacing: 0.1em;
+    margin-bottom: 48px;
+  }
+  .section { margin-bottom: 60px; }
+  .label {
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #405763;
+    margin-bottom: 12px;
+    padding-left: 4px;
+  }
+  .note {
+    font-size: 10px;
+    color: #5c676f;
+    margin-bottom: 12px;
+    padding-left: 4px;
+    line-height: 1.6;
+  }
+  .note span { color: #e7bba7; }
+  .phone-wrap {
+    max-width: 360px;
+    margin: 0 auto;
+    background: #f0f0f0;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 24px 64px rgba(0,0,0,0.7);
+  }
+
+  /* ── Chat area ── */
+  .chat-area {
+    background: #b6d5e8;
+    padding: 12px 14px 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .msg-row { display: flex; align-items: flex-start; gap: 8px; }
+  .avatar {
+    width: 28px; height: 28px; border-radius: 50%;
+    background: #244658;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 11px; font-weight: 700; color: #e7bba7;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .bubble {
+    background: #fff;
+    border-radius: 0 10px 10px 10px;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: #222;
+    line-height: 1.55;
+    max-width: 230px;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+  }
+  .bubble .law-title { font-weight: 700; color: #244658; font-size: 11px; }
+  .bubble .law-art { font-size: 10px; color: #244658; opacity: 0.7; margin-bottom: 3px; }
+  .bubble .law-body { font-size: 10px; color: #444; margin-top: 4px; line-height: 1.6; }
+  .time { font-size: 9px; color: #999; margin-top: auto; padding-bottom: 2px; }
+
+  /* Quick Reply pills */
+  .qr-row {
+    display: flex; gap: 5px; flex-wrap: wrap;
+    padding: 6px 0 2px;
+  }
+  .qr-pill {
+    background: #fff;
+    border: 1.5px solid #244658;
+    color: #244658;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+
+  /* ── CURRENT Rich Menu: 粉藍粉 / 藍粉藍 ── */
+  .rm-now {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 80px 80px;
+    gap: 0;
+    background: #e7bba7;
+  }
+  .rm-now .btn {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 5px; cursor: pointer;
+    position: relative;
+  }
+  /* Row 1: 粉 藍 粉 */
+  .rm-now .r1p { background: #e7bba7; }
+  .rm-now .r1b { background: #244658; }
+  /* Row 2: 藍 粉 藍 */
+  .rm-now .r2b { background: #244658; }
+  .rm-now .r2p { background: #e7bba7; }
+  /* dim = coming soon */
+  .rm-now .dim { opacity: 0.35; }
+  .rm-now .dim .coming {
+    position: absolute;
+    bottom: 8px;
+    font-size: 8px;
+    letter-spacing: 0.06em;
+    color: #e7bba7;
+  }
+
+  .rm-now .btn .icon { font-size: 20px; }
+  .rm-now .r1p .text, .rm-now .r2p .text {
+    font-size: 9.5px; letter-spacing: 0.06em; font-weight: 700; color: #244658;
+  }
+  .rm-now .r1b .text, .rm-now .r2b .text {
+    font-size: 9.5px; letter-spacing: 0.06em; font-weight: 700; color: #e7bba7;
+  }
+  .rm-now .dim.r2b .text { color: #e7bba7; }
+  .rm-now .dim.r1p .text { color: #244658; }
+
+  /* palette */
+  .palette { display: flex; gap: 7px; margin-top: 14px; justify-content: center; }
+  .chip {
+    width: 26px; height: 26px; border-radius: 50%;
+    border: 1.5px solid rgba(255,255,255,0.07);
+  }
+  .divider { border: none; border-top: 1px solid #1e2228; margin: 12px 0 48px; }
+
+  .tag {
+    display: inline-block;
+    font-size: 9px; letter-spacing: 0.08em;
+    padding: 2px 7px; border-radius: 10px;
+    margin-left: 6px; vertical-align: middle;
+  }
+  .tag.now { background: #244658; color: #e7bba7; }
+  .tag.soon { background: #2a2420; color: #78787a; }
+</style>
+</head>
+<body>
+
+<h1>SoFa Engine · Rich Menu</h1>
+<p class="subtitle">粉藍粉 / 藍粉藍 · Palette 1 · 現有功能版</p>
+
+<!-- CURRENT VERSION -->
+<div class="section">
+  <div class="label">現有功能版 — 粉藍粉 / 藍粉藍</div>
+  <div class="note">
+    <span>✅ 現有</span>：今日法條 · 查法條 · 進度 · 下一批 · 幫助<br>
+    灰色格子 = 佔位，你決定放什麼（或留空）
+  </div>
+  <div class="phone-wrap">
+    <div class="chat-area">
+      <div class="msg-row">
+        <div class="avatar">S</div>
+        <div>
+          <div class="bubble">
+            <div class="law-title">SoFa Engine</div>
+            <div class="law-art">記帳士法 § 01</div>
+            <div class="law-body">為建立記帳士制度，規範記帳及報稅代理業務，以保障委託人權益，特制定本法。</div>
+          </div>
+          <div class="qr-row">
+            <div class="qr-pill">下一批 →</div>
+            <div class="qr-pill">查進度</div>
+          </div>
+        </div>
+        <div class="time">08:00</div>
+      </div>
+    </div>
+    <div class="rm-now">
+      <!-- Row 1: 粉 藍 粉 -->
+      <div class="btn r1p">
+        <span class="icon">📖</span>
+        <span class="text">今日法條</span>
+      </div>
+      <div class="btn r1b">
+        <span class="icon">🔍</span>
+        <span class="text">查法條</span>
+      </div>
+      <div class="btn r1p">
+        <span class="icon">📊</span>
+        <span class="text">進度</span>
+      </div>
+      <!-- Row 2: 藍 粉 藍 -->
+      <div class="btn r2b">
+        <span class="icon">⏭</span>
+        <span class="text">下一批</span>
+      </div>
+      <div class="btn r2p">
+        <span class="icon">❓</span>
+        <span class="text">幫助</span>
+      </div>
+      <div class="btn r2b">
+        <span class="icon">🔒</span>
+        <span class="text">即將開放</span>
+      </div>
+    </div>
+  </div>
+  <div class="palette">
+    <div class="chip" style="background:#e7bba7"></div>
+    <div class="chip" style="background:#cbaa9c"></div>
+    <div class="chip" style="background:#244658"></div>
+    <div class="chip" style="background:#405763"></div>
+    <div class="chip" style="background:#5c676f"></div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- OPTION: 3-button (simpler) -->
+<div class="section">
+  <div class="label">簡化版 — 3 格 半高（可考慮）</div>
+  <div class="note">
+    只放三個最常用的，畫面更乾淨
+  </div>
+  <div class="phone-wrap">
+    <div class="chat-area">
+      <div class="msg-row">
+        <div class="avatar">S</div>
+        <div>
+          <div class="bubble">
+            <div class="law-title">SoFa Engine</div>
+            <div class="law-art">記帳士法 § 01</div>
+            <div class="law-body">為建立記帳士制度，規範記帳及報稅代理業務。</div>
+          </div>
+          <div class="qr-row">
+            <div class="qr-pill">下一批 →</div>
+            <div class="qr-pill">查進度</div>
+          </div>
+        </div>
+        <div class="time">08:00</div>
+      </div>
+    </div>
+    <div class="rm-now" style="grid-template-rows: 72px; grid-template-columns: 1fr 1fr 1fr;">
+      <div class="btn r1p">
+        <span class="icon">📖</span>
+        <span class="text">今日法條</span>
+      </div>
+      <div class="btn r1b">
+        <span class="icon">🔍</span>
+        <span class="text">查法條</span>
+      </div>
+      <div class="btn r1p">
+        <span class="icon">❓</span>
+        <span class="text">幫助</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

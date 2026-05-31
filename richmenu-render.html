@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@600;700;900&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { width: 2500px; height: 1686px; overflow: hidden; }
+
+  .grid {
+    display: grid;
+    width: 2500px; height: 1686px;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+
+  /* ── tile base ── */
+  .btn {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 40px;
+    position: relative;
+    background: #1A2B35;
+    border: 1px solid rgba(231,187,167,0.10);
+    overflow: hidden;
+  }
+
+  /* ── bg grid texture (like landing page hero) ── */
+  .btn::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(231,187,167,.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(231,187,167,.04) 1px, transparent 1px);
+    background-size: 80px 80px;
+    pointer-events: none;
+  }
+
+  /* ── featured tile ── */
+  .btn.hi {
+    background: #1F3848;
+    border-color: rgba(231,187,167,0.22);
+  }
+  .btn.hi::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--peach, #E7BBA7);
+  }
+
+  /* ── icon ── */
+  .icon-wrap {
+    width: 160px; height: 160px;
+    display: flex; align-items: center; justify-content: center;
+    position: relative; z-index: 1;
+  }
+  .icon-wrap svg {
+    width: 120px; height: 120px;
+    fill: none;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .btn:not(.hi) .icon-wrap svg { stroke: rgba(231,187,167,0.45); stroke-width: 7; }
+  .btn.hi       .icon-wrap svg { stroke: #E7BBA7;               stroke-width: 7; }
+
+  /* ── label ── */
+  .label {
+    font-family: 'Noto Serif TC', serif;
+    font-weight: 700;
+    font-size: 104px;
+    letter-spacing: 0.04em;
+    position: relative; z-index: 1;
+    line-height: 1;
+  }
+  .btn:not(.hi) .label { color: rgba(245,240,234,0.65); }
+  .btn.hi       .label { color: #F0EDE8; }
+
+  /* ── eyebrow tag ── */
+  .tag {
+    position: absolute;
+    top: 52px; left: 58px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 30px; font-weight: 400;
+    letter-spacing: 0.20em;
+    text-transform: uppercase;
+    z-index: 1;
+  }
+  .btn:not(.hi) .tag { color: rgba(231,187,167,0.20); }
+  .btn.hi       .tag { color: rgba(231,187,167,0.55); }
+
+  /* ── peach accent line (bottom) ── */
+  .accent-line {
+    position: absolute; bottom: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, rgba(231,187,167,0.4), transparent);
+    z-index: 1;
+  }
+</style>
+</head>
+<body>
+<div class="grid">
+
+  <!-- 今日法條 -->
+  <div class="btn">
+    <span class="tag">DAILY</span>
+    <div class="icon-wrap">
+      <svg viewBox="0 0 120 120">
+        <rect x="12" y="20" width="96" height="84" rx="8"/>
+        <line x1="12" y1="46" x2="108" y2="46"/>
+        <line x1="38" y1="8"  x2="38"  y2="32"/>
+        <line x1="82" y1="8"  x2="82"  y2="32"/>
+        <line x1="32" y1="66" x2="88"  y2="66"/>
+        <line x1="32" y1="84" x2="66"  y2="84"/>
+      </svg>
+    </div>
+    <span class="label">今日法條</span>
+    <div class="accent-line"></div>
+  </div>
+
+  <!-- 查法條 (featured) -->
+  <div class="btn hi">
+    <span class="tag">SEARCH</span>
+    <div class="icon-wrap">
+      <svg viewBox="0 0 120 120">
+        <circle cx="50" cy="50" r="32"/>
+        <line x1="74" y1="74" x2="108" y2="108"/>
+      </svg>
+    </div>
+    <span class="label">查法條</span>
+  </div>
+
+  <!-- 進度 -->
+  <div class="btn">
+    <span class="tag">STATS</span>
+    <div class="icon-wrap">
+      <svg viewBox="0 0 120 120">
+        <rect x="10"  y="72" width="28" height="38" rx="3"/>
+        <rect x="46"  y="48" width="28" height="62" rx="3"/>
+        <rect x="82"  y="22" width="28" height="88" rx="3"/>
+      </svg>
+    </div>
+    <span class="label">進度</span>
+    <div class="accent-line"></div>
+  </div>
+
+  <!-- 下一批 -->
+  <div class="btn">
+    <span class="tag">NEXT</span>
+    <div class="icon-wrap">
+      <svg viewBox="0 0 120 120">
+        <polyline points="16,34 60,72 104,34"/>
+        <polyline points="16,62 60,100 104,62"/>
+      </svg>
+    </div>
+    <span class="label">下一批</span>
+    <div class="accent-line"></div>
+  </div>
+
+  <!-- 幫助 -->
+  <div class="btn">
+    <span class="tag">HELP</span>
+    <div class="icon-wrap">
+      <svg viewBox="0 0 120 120">
+        <circle cx="60" cy="60" r="48"/>
+        <path d="M42 46 c0-20 36-20 36 2 c0 14-18 18-18 30" fill="none"/>
+        <circle cx="60" cy="92" r="5" fill="rgba(231,187,167,0.45)" stroke="none"/>
+      </svg>
+    </div>
+    <span class="label">幫助</span>
+    <div class="accent-line"></div>
+  </div>
+
+  <!-- 我的紀錄 (featured) -->
+  <div class="btn hi">
+    <span class="tag">MEMBER</span>
+    <div class="icon-wrap">
+      <svg viewBox="0 0 120 120">
+        <circle cx="60" cy="38" r="24"/>
+        <path d="M10 112 c0-28 22-48 50-48 s50 20 50 48"/>
+      </svg>
+    </div>
+    <span class="label">我的紀錄</span>
+  </div>
+
+</div>
+</body>
+</html>
