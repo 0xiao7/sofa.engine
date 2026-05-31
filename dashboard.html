@@ -1710,12 +1710,12 @@ function closeDrawer(){
 
 // ── 登入狀態：讀取用戶名稱 ──────────────────────
 (function(){
-  // LINE Bot 推播連結帶 ?t= 時，用一次性 token 換取 session（舊 ?uid= 已停用）
+  // LINE Bot 推播連結帶 ?t= 時，用 HMAC magic token 換 session（與 /login.html?t= 同格式）
   var params = new URLSearchParams(location.search);
   var magicToken = params.get('t');
   if(magicToken){
     history.replaceState(null, '', location.pathname);
-    fetch('https://sofa-engine-api.onrender.com/api/redeem-magic-link', {
+    fetch('https://sofa-engine-api.onrender.com/api/auth/magic', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},
       credentials: 'include',
@@ -1723,7 +1723,7 @@ function closeDrawer(){
     }).then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); })
       .then(function(d){
         if(d.uid) localStorage.setItem('sofa_uid', d.uid);
-        if(d.name) localStorage.setItem('sofa_nickname', d.name);
+        if(d.token) localStorage.setItem('sofa_token', d.token);
         location.reload();
       })
       .catch(function(){ window.location.href = 'login.html'; });
