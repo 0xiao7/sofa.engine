@@ -625,8 +625,10 @@
   .chip.on{background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:600}
   .sub-filter-row{display:none;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(245,240,234,.1)}
   .sub-filter-row .sf-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(245,240,234,.4);white-space:nowrap}
-  .sub-filter-row select{background:var(--navy-2);border:1px solid var(--line-2);border-radius:3px;color:var(--cream);font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:5px 10px;cursor:pointer;outline:none}
-  .sub-filter-row select:focus{border-color:var(--peach-dim)}
+  .sub-filter-row input[list]{background:var(--navy-2);border:1px solid var(--line-2);border-radius:3px;color:var(--cream);font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:5px 10px;outline:none;min-width:180px}
+  .sub-filter-row input[list]::placeholder{color:rgba(245,240,234,.35)}
+  .sub-filter-row input[list]:focus{border-color:var(--peach-dim)}
+  .sub-filter-row input[list]:disabled{opacity:.35;cursor:not-allowed}
 
   .results{
     margin-top:24px;display:flex;flex-direction:column;
@@ -1288,9 +1290,8 @@
             </div>
             <div class="sub-filter-row" id="subFilterRow">
               <span class="sf-label">細篩</span>
-              <select id="subFilterSel" onchange="doSearch()">
-                <option value="">全部</option>
-              </select>
+              <input id="subFilterSel" list="subFilterList" placeholder="全部（可輸入任意關鍵字）" autocomplete="off" oninput="doSearch()" />
+              <datalist id="subFilterList"></datalist>
             </div>
 
             <div class="results" id="search-results">
@@ -2332,16 +2333,20 @@ function _extractPenaltyOpts(arts){
 }
 
 function _populateSubFilter(opts){
-  var sel = document.getElementById('subFilterSel');
-  if(!sel) return;
+  var inp = document.getElementById('subFilterSel');
+  var dl  = document.getElementById('subFilterList');
+  if(!inp || !dl) return;
   if(opts.length <= 1){
-    // 只有「全部」沒實際選項 → 這部法在此分類下沒資料可抽
-    sel.innerHTML = '<option value="">（這部法無此類資料）</option>';
-    sel.disabled = true;
+    inp.value = '';
+    inp.placeholder = '（這部法無此類資料）';
+    inp.disabled = true;
+    dl.innerHTML = '';
     return;
   }
-  sel.disabled = false;
-  sel.innerHTML = opts.map(function(o){
+  inp.disabled = false;
+  inp.placeholder = '全部（可輸入任意關鍵字）';
+  // 跳過第一個「全部」entry，datalist 只放實際選項
+  dl.innerHTML = opts.slice(1).map(function(o){
     return '<option value="'+esc(o.v)+'">'+esc(o.l)+'</option>';
   }).join('');
 }
