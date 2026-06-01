@@ -2127,4 +2127,56 @@ document.querySelectorAll('.qa').forEach(function(qa){
   if(el && d > 0) el.textContent = '距今 ' + d + ' 天';
 })();
 </script>
+
+<!-- ?target= URL parameter — 7 篇公告連結進來時 hero/stats 切換對應職能 variant -->
+<script>
+(function() {
+  const PROFILES = {
+    bookkeeper:   { name: '記帳士', laws: '33', articles: '2,157', highlight: '營利事業所得稅查核準則 143 條（記帳士獨家）' },
+    landadmin:    { name: '地政士', laws: '23', articles: '3,650', highlight: '民法 1,439 / 地籍測量規則 324 / 土地登記規則 184' },
+    realestate:   { name: '不動產經紀人', laws: '19', articles: '3,058', highlight: '民法 / 土地法 / 不動產經紀業管理條例' },
+    'tax-admin':  { name: '財稅行政', laws: '20', articles: '2,590', highlight: '貨物稅 / 印花稅 / 使用牌照稅 三細節稅法' },
+    'tax-law':    { name: '財稅法務', laws: '19', articles: '3,439', highlight: '民法 + 刑法 422 + 行政訴訟法 390 + 全套稅法' },
+    'elem-admin': { name: '初等一般行政', laws: '11', articles: '2,886', highlight: '公務員入門八大法 + 民刑法基底' },
+    'post-acc':   { name: '中華郵政會計類', laws: '10', articles: '1,349', highlight: '公司法 / 會計法 / 預算法 / 決算法 / 郵政法' }
+  };
+
+  function apply() {
+    const target = new URLSearchParams(window.location.search).get('target');
+    if (!target) return;
+    const p = PROFILES[target];
+    if (!p) return;
+
+    const set = (sel, fn) => { const el = document.querySelector(sel); if (el) fn(el); };
+
+    // hero eyebrow
+    set('.hero .eyebrow', el => el.innerHTML = '<span class="pulse"></span>SOFA ENGINE — 給 ' + p.name + ' 備考族');
+    // hero lede em
+    set('.hero .lede .em', el => el.textContent = p.articles + ' 條 / ' + p.laws + ' 部法規（' + p.name + '整套）');
+    // hero-meta cell 1 (條數)
+    set('.hero-meta .cell:nth-child(1) .num', el => el.innerHTML = p.articles + '<span class="u">條</span>');
+    // hero-meta cell 2 (法規部數)
+    set('.hero-meta .cell:nth-child(2) .num', el => el.innerHTML = p.laws + '<span class="u">部</span>');
+    set('.hero-meta .cell:nth-child(2) .lab', el => el.textContent = p.name + ' 整套');
+    // hero-card 招牌大法 hint
+    set('.hero-card .hc-tag', el => el.textContent = p.name + ' — 招牌大法');
+    // stats-strip item 1 (條數)
+    set('.stats-strip .item:nth-child(1) .v', el => el.innerHTML = p.articles + '<span class="u">+ 條</span>');
+    // stats-strip item 2 (法規部數)
+    set('.stats-strip .item:nth-child(2) .v', el => el.innerHTML = p.laws + '<span class="u">部</span>');
+    set('.stats-strip .item:nth-child(2) .k', el => el.textContent = p.name + ' 整套法規');
+
+    // postMessage prefill 給 compass iframe（widget 端若有 listener 可預選 chip）
+    const frame = document.getElementById('compassFrame');
+    if (frame) {
+      frame.addEventListener('load', function() {
+        try { frame.contentWindow.postMessage({ type: 'compass-prefill', target: target, profile: p }, '*'); } catch(e) {}
+      });
+    }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply);
+  else apply();
+})();
+</script>
 </body></html>
