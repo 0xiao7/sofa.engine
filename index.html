@@ -561,9 +561,9 @@
 
   /* ---------- Stats strip ---------- */
   .stats-strip{
-    background:var(--cream-2);
-    border-top:1px solid var(--cream-3);
-    border-bottom:1px solid var(--cream-3);
+    background:var(--navy);
+    border-top:none;
+    border-bottom:none;
   }
   .stats-strip .row{
     display:grid;grid-template-columns:repeat(4,1fr);
@@ -571,18 +571,18 @@
     max-width:1440px;margin:0 auto;
   }
   .stats-strip .item{
-    padding:8px 32px;border-right:1px solid var(--cream-3);
+    padding:8px 32px;border-right:1px solid rgba(255,247,235,0.12);
     display:flex;flex-direction:column;gap:6px;
   }
   .stats-strip .item:last-child{border-right:none}
   .stats-strip .item:first-child{padding-left:0}
   .stats-strip .v{
     font-family:var(--serif);font-weight:600;font-size:30px;
-    color:var(--navy);line-height:1;
+    color:var(--cream);line-height:1;
   }
-  .stats-strip .v .u{font-family:var(--mono);font-size:13px;color:var(--ink-2);margin-left:4px;font-weight:400}
+  .stats-strip .v .u{font-family:var(--mono);font-size:13px;color:var(--peach);margin-left:4px;font-weight:400}
   .stats-strip .k{
-    font-family:var(--mono);font-size:11px;color:var(--ink-2);
+    font-family:var(--mono);font-size:11px;color:var(--cream-2);
     letter-spacing:.12em;text-transform:uppercase;
   }
 
@@ -1571,7 +1571,36 @@
     </div>
   </section>
 
-  <!-- ============ STATS STRIP ============ -->
+  <!-- ============ COMPASS WIDGET v3.1 (考運羅盤 — 第二屏 funnel hook) ============ -->
+  <section class="compass-embed" data-screen-label="Compass" style="background:var(--cream-2);padding:0;margin:0;">
+    <iframe id="compassFrame"
+            src="compass-planner.html?embed=1"
+            style="width:100%;height:960px;border:0;display:block;background:transparent;"
+            scrolling="no"
+            title="考運羅盤"></iframe>
+  </section>
+  <script>
+    // 接收 iframe 內 postMessage 觸發 parent scroll 到下一段
+    window.addEventListener('message', function(e) {
+      if (e.data === 'compass-scroll-next') {
+        const next = document.querySelector('.stats-strip, #modes');
+        if (next) next.scrollIntoView({ behavior:'smooth', block:'start' });
+      }
+    });
+    // RWD iframe height: 480 / 768 / 1024 三斷點
+    (function() {
+      const frame = document.getElementById('compassFrame');
+      if (!frame) return;
+      function fit() {
+        const w = window.innerWidth;
+        frame.style.height = w < 480 ? '1100px' : (w < 768 ? '1000px' : '960px');
+      }
+      fit();
+      window.addEventListener('resize', fit);
+    })();
+  </script>
+
+  <!-- ============ STATS STRIP (navy — 跟 compass 交錯) ============ -->
   <div class="stats-strip">
     <div class="row">
       <div class="item">
