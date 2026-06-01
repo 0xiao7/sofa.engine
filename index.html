@@ -1587,16 +1587,32 @@
         if (next) next.scrollIntoView({ behavior:'smooth', block:'start' });
       }
     });
-    // RWD iframe height: 480 / 768 / 1024 三斷點
+    // iframe 高度 = widget 實際內容高度（消除中間空白 — widget body min-height:100vh 撐空）
     (function() {
       const frame = document.getElementById('compassFrame');
       if (!frame) return;
+      let timer = null;
       function fit() {
-        const w = window.innerWidth;
-        frame.style.height = w < 480 ? '1100px' : (w < 768 ? '1000px' : '960px');
+        try {
+          const doc = frame.contentDocument;
+          if (doc && doc.body) {
+            frame.style.height = (doc.body.scrollHeight + 8) + 'px';
+          }
+        } catch(e) {}
       }
-      fit();
+      frame.addEventListener('load', function() {
+        fit();
+        try {
+          const obs = new MutationObserver(() => { clearTimeout(timer); timer = setTimeout(fit, 100); });
+          obs.observe(frame.contentDocument.body, { childList:true, subtree:true, attributes:true });
+        } catch(e) {}
+      });
       window.addEventListener('resize', fit);
+      window.addEventListener('message', function(e) {
+        if (e.data && e.data.type === 'compass-resize') fit();
+      });
+      // 載入容錯：給 1.2s fallback 再 fit 一次（widget 內 async render 用）
+      setTimeout(fit, 1200);
     })();
   </script>
 
