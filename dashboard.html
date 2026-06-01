@@ -1193,7 +1193,7 @@
                 <button class="mc-nick-save" onclick="saveNickname()">儲存</button>
                 <button class="mc-nick-cancel" onclick="cancelNickname()">取消</button>
               </div>
-              <div class="mc-target">目標 · 記帳士國考 <span class="yr">2026</span></div>
+              <div class="mc-target">目標 · <span id="mc-exam-target">7 大職能</span> · 國考 <span class="yr">2026</span></div>
               <div class="mc-id">NO. <span class="sn" id="mc-serial">——</span><button class="sn-eye" onclick="toggleSerial()" title="顯示完整序號">◉</button></div>
               <div class="mc-email-row" id="mc-email-row" style="display:none">EMAIL · <span class="em" id="mc-email"></span></div>
               <div class="mc-divider"></div>
@@ -1216,7 +1216,7 @@
             <div class="mc-r">
               <span class="lab">SEAT · 學員座位</span>
               <div class="avatar" id="mc-avatar">—</div>
-              <div class="who"><b id="mc-who">——</b>記帳士 · 國考</div>
+              <div class="who"><b id="mc-who">——</b><span id="mc-who-exam">7 大職能</span> · 國考</div>
               <div class="barcode"></div>
             </div>
           </div>
@@ -2642,29 +2642,6 @@ function switchToFree(){
   }
   window.location.href='/';
 }
-
-// ── Deep link 支援 ?law=X (從 tree.html / 考運羅盤 link 過來) ──
-// 早期 persist 到 sessionStorage,即使 redirect login 也能在登入後 retry trigger
-(function(){
-  try {
-    var lp = new URLSearchParams(location.search).get('law');
-    if (lp) sessionStorage.setItem('sofa_pending_law', lp);
-  } catch(e){}
-})();
-// auth 通過後 trigger 搜尋
-window.addEventListener('load', function(){
-  setTimeout(function(){
-    var pending = sessionStorage.getItem('sofa_pending_law');
-    if (!pending) return;
-    var inp = document.getElementById('search-law');
-    if (!inp || typeof doSearch !== 'function') return;
-    inp.value = pending;
-    sessionStorage.removeItem('sofa_pending_law');
-    try { doSearch(); } catch(e){}
-    var anchor = document.getElementById('search');
-    if (anchor) anchor.scrollIntoView({behavior:'smooth', block:'start'});
-  }, 800);
-});
 </script>
 </body>
 </html>
