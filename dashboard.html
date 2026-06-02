@@ -1064,7 +1064,15 @@
     .laws-head{flex-direction:column;align-items:flex-start;gap:12px}
     .laws-search{width:100%}
   }
+  /* compass widget scoped vars (dashboard 缺的 token) */
+  .compass-embed{
+    --ink:#1A2B35;
+    --ink-2:rgba(26,43,53,.7);
+    --muted:rgba(26,43,53,.45);
+    --mauve:#B38BA7;
+  }
 </style>
+<link rel="stylesheet" href="compass-widget.css?v=2">
 </head>
 <body data-screen-label="01 Dashboard">
 
@@ -1443,6 +1451,18 @@
       </div>
     </main>
   </div>
+
+  <!-- ============ COMPASS WIDGET (考運羅盤 — 這張之後往哪) ============ -->
+  <section class="compass-embed" data-screen-label="Compass" style="background:var(--cream-2);padding:48px 0;margin:24px 0 0;">
+    <div class="compass-inline-shell" style="max-width:1100px;margin:0 auto;padding:0 40px;">
+      <div class="compass-section-eyebrow">考運羅盤</div>
+      <h2 class="compass-section-title">這張之後往哪</h2>
+      <p class="compass-section-subtitle">把你已會(或想考)的證照加進來,SoFa 幫你算累積多少法規、下一張最高效該往哪。</p>
+      <div id="compass-widget-mount"></div>
+      <a class="compass-explore-link" href="tree.html" target="_blank" rel="noopener">看完整考試地圖 ↗</a>
+      <div class="compass-disclaimer">* 法規覆蓋以國考樹狀圖資料為準,SoFa 實際法條庫對照中</div>
+    </div>
+  </section>
 
   <!-- ============ DRAWER ============ -->
   <div class="drawer-mask" onclick="closeDrawer()"></div>
@@ -2642,6 +2662,19 @@ function switchToFree(){
   }
   window.location.href='/';
 }
+</script>
+
+<!-- Compass widget 載入 (放最末避免阻塞 dashboard 主流程) -->
+<script src="exam-data.js?v=2"></script>
+<script src="compass-widget.js?v=2"></script>
+<script>
+(function(){
+  function init(){
+    if(window.CompassWidget) CompassWidget.mount('#compass-widget-mount');
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
+})();
 </script>
 </body>
 </html>

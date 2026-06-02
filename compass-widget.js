@@ -6,7 +6,26 @@
 (function() {
   'use strict';
 
-  let plannerSelected = ['n74'];  // 預載地政士
+  let plannerSelected = ['n74'];  // 預載地政士 (預設, mount 時可用 options.initialChips 蓋掉)
+
+  // 7 篇上線週公告 target slug → NODE ID (跟 index.html PROFILES 同源)
+  const TARGET_TO_NODE = {
+    'bookkeeper':  'n72',  // 記帳士
+    'landadmin':   'n74',  // 地政士
+    'realestate':  'n83',  // 不動產經紀人
+    'tax-admin':   'n79',  // 財稅行政
+    'tax-law':     'n43',  // 財稅法務
+    'elem-admin':  'n23',  // 初等考試一般行政
+    'post-acc':    'n89'   // 中華郵政會計類
+  };
+
+  function initialChipsFromURL() {
+    try {
+      const t = new URLSearchParams(window.location.search).get('target');
+      if (t && TARGET_TO_NODE[t]) return [TARGET_TO_NODE[t]];
+    } catch (e) {}
+    return null;
+  }
   let mountEl = null;
   let modalEl = null;
   let plannerBlock = null;
@@ -197,7 +216,7 @@
     }
   }
 
-  function mount(selectorOrEl) {
+  function mount(selectorOrEl, options) {
     mountEl = (typeof selectorOrEl === 'string')
       ? document.querySelector(selectorOrEl)
       : selectorOrEl;
@@ -209,6 +228,18 @@
       console.warn('[CompassWidget] exam-data.js not loaded — NODES/SECTIONS missing');
       return;
     }
+
+    // 決定初始 chip：明確傳入 > URL ?target= > default
+    const opts = options || {};
+    let initial = null;
+    if (Array.isArray(opts.initialChips) && opts.initialChips.length > 0) {
+      initial = opts.initialChips.filter(nid => window.NODES[nid]);
+    }
+    if (!initial || initial.length === 0) {
+      const fromURL = initialChipsFromURL();
+      if (fromURL) initial = fromURL;
+    }
+    if (initial && initial.length > 0) plannerSelected = initial;
 
     mountEl.innerHTML = `
       <section class="planner" id="cwPlannerBlock">
@@ -239,5 +270,5 @@
     render();
   }
 
-  window.CompassWidget = { mount };
+  window.CompassWidget = { mount, TARGET_TO_NODE };
 })();
