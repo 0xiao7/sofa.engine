@@ -1,0 +1,540 @@
+/* ===================================================================
+   COMPASS WIDGET — 考運羅盤 inline 嵌入版
+   從 compass-planner.html 抽出, 拿掉 iframe-only 的 embed-mode / mock-frame
+   依賴 index.html 已定義的 :root palette (--navy/--peach/--cream/--ink 等)
+   =================================================================== */
+
+/* ============== Section heading (eyebrow + title + subtitle) ============== */
+.compass-section-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .18em;
+  color: var(--peach-3);
+  margin-bottom: 6px;
+}
+.compass-section-title {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 28px;
+  color: var(--ink);
+  margin-bottom: 6px;
+  letter-spacing: -.01em;
+}
+.compass-section-subtitle {
+  color: var(--ink-2);
+  font-size: 14px;
+  margin-bottom: 20px;
+  line-height: 1.6;
+}
+
+.compass-explore-link {
+  display: block;
+  text-align: right;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--cream-3);
+  font-family: var(--mono);
+  font-size: 12px;
+  color: var(--peach-3);
+  text-decoration: none;
+  letter-spacing: .05em;
+}
+.compass-explore-link:hover { color: var(--peach); }
+
+.compass-disclaimer {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: .05em;
+  margin-top: 6px;
+  text-align: right;
+  opacity: .7;
+}
+
+.compass-label-hint {
+  font-family: var(--sans);
+  font-size: 12px;
+  color: var(--muted);
+  margin: 4px 0 -4px;
+  letter-spacing: .02em;
+}
+
+/* ============== Planner block ============== */
+.planner {
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  padding: 0;
+  margin: 0;
+  position: relative;
+}
+
+.planner-label {
+  display: inline-block;
+  border: 1px solid var(--peach);
+  background: var(--peach);
+  color: var(--navy);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  padding: 5px 14px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  margin-bottom: 10px;
+}
+
+.planner-sentence {
+  font-family: var(--serif);
+  font-size: 22px;
+  color: var(--ink);
+  line-height: 1.8;
+  margin: 10px 0;
+  font-weight: 500;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.planner-fixed {
+  color: var(--ink);
+  font-weight: 500;
+  font-family: var(--serif);
+}
+.planner-chip {
+  display: inline-flex;
+  align-items: center;
+  background: var(--navy);
+  color: var(--cream);
+  border: 1px solid var(--peach);
+  font-family: var(--sans);
+  font-size: 18px;
+  font-weight: 600;
+  padding: 6px 16px;
+  border-radius: 100px;
+  margin: 0 4px;
+  cursor: pointer;
+  transition: all .15s ease;
+}
+.planner-chip:hover { background: var(--navy-2); }
+.planner-chip::after {
+  content: '×';
+  margin-left: 6px;
+  font-size: 16px;
+  font-weight: 900;
+  color: var(--peach);
+  opacity: 0.85;
+}
+
+.planner-plus {
+  background: var(--peach);
+  color: var(--navy);
+  border: none;
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 18px;
+  width: 36px;
+  height: 36px;
+  border-radius: 100px;
+  cursor: pointer;
+  vertical-align: middle;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  transition: all .15s ease;
+}
+.planner-plus:hover { background: var(--peach-2); transform: scale(1.05); }
+
+.planner-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 16px;
+  width: 100%;
+}
+
+.planner-reset-btn {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--cream-3);
+  font-family: var(--mono);
+  font-size: 12px;
+  padding: 9px 16px;
+  border-radius: 3px;
+  cursor: pointer;
+  letter-spacing: .04em;
+  transition: all .15s ease;
+}
+.planner-reset-btn:hover {
+  background: var(--cream-3);
+  color: var(--ink-2);
+}
+
+/* ============== Result block ============== */
+.planner-result {
+  background: #fff;
+  border: 1px solid var(--cream-3);
+  border-left: 3px solid var(--peach);
+  padding: 18px 24px;
+  border-radius: 3px;
+  margin-top: 14px;
+  font-family: var(--serif);
+  color: var(--ink);
+}
+
+.planner-result-line {
+  font-family: var(--serif);
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--ink);
+  margin-bottom: 9px;
+  padding-bottom: 9px;
+  border-bottom: 1px dashed var(--cream-3);
+}
+.planner-result-line:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+.planner-result-line br { display: none; }
+
+.planner-result-rank {
+  background: transparent;
+  color: var(--peach-3);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: .14em;
+  padding: 0;
+  margin-right: 10px;
+  text-transform: uppercase;
+  display: inline-block;
+  vertical-align: middle;
+}
+
+.planner-result-target {
+  display: inline-block;
+  background: transparent;
+  color: var(--navy);
+  font-family: var(--serif);
+  font-size: 17px;
+  font-weight: 600;
+  padding: 0;
+  margin: 0 2px;
+  border: none;
+  border-bottom: 2px solid var(--peach);
+  cursor: pointer;
+  text-decoration: none;
+  letter-spacing: .01em;
+}
+.planner-result-target:hover {
+  color: var(--peach-3);
+  border-bottom-color: var(--peach-3);
+}
+.planner-result-target.rank-2 {
+  font-size: 16px;
+  border-bottom-color: var(--peach-2);
+  color: var(--ink-2);
+}
+.planner-result-target.rank-3 {
+  font-size: 16px;
+  border-bottom-color: var(--cream-3);
+  color: var(--ink-2);
+}
+
+.planner-result-count {
+  background: transparent;
+  color: var(--peach-3);
+  font-family: var(--mono);
+  font-weight: 700;
+  font-size: 17px;
+  margin: 0 3px;
+  line-height: 1;
+  vertical-align: baseline;
+}
+
+.planner-result-empty {
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ============== "我想考" (want) block ============== */
+.want-coverage {
+  font-family: var(--serif);
+  font-size: 15px;
+  color: var(--ink);
+  line-height: 1.7;
+}
+.want-check {
+  display: inline-block;
+  color: var(--peach-3);
+  font-weight: 700;
+  margin-right: 6px;
+  font-size: 18px;
+  font-family: var(--mono);
+}
+.want-extend-label {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--muted);
+  letter-spacing: .15em;
+  text-transform: uppercase;
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--cream-3);
+  margin-bottom: 2px;
+}
+
+/* ============== 跨體系 hint ============== */
+.planner-result-line.cross-section {
+  position: relative;
+  opacity: .85;
+}
+.planner-result-line.cross-section .planner-result-rank {
+  color: var(--mauve);
+  cursor: help;
+  border-bottom: 1px dotted var(--mauve);
+}
+.planner-result-line.cross-section .planner-result-rank::after {
+  content: ' · 跨體系';
+  color: var(--mauve);
+  font-weight: 400;
+  letter-spacing: .12em;
+}
+.planner-result-line.cross-section:hover::after {
+  content: '跨體系建議：這張考試不同分類,但有共同法規(例如公務員共同科目)。適合想轉軌或累積廣度的人。';
+  position: absolute;
+  top: calc(100% - 4px);
+  left: 16px;
+  right: 16px;
+  background: var(--mauve);
+  color: var(--cream);
+  padding: 10px 14px;
+  border-radius: 3px;
+  font-family: var(--sans);
+  font-size: 12px;
+  line-height: 1.7;
+  z-index: 100;
+  pointer-events: none;
+  box-shadow: 0 4px 12px rgba(31,56,72,.15);
+  letter-spacing: .02em;
+}
+
+/* ============== Tooltip (數字 hover) ============== */
+.planner-tip {
+  position: relative;
+  cursor: help;
+  border-bottom: 1px dotted var(--peach-3);
+}
+.planner-tip:hover::after {
+  content: attr(data-tip);
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--navy);
+  color: var(--cream);
+  padding: 14px 18px;
+  border-radius: 4px;
+  font-family: var(--sans);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.85;
+  white-space: pre;
+  min-width: 220px;
+  max-width: 360px;
+  z-index: 100;
+  box-shadow: 0 6px 20px rgba(31, 56, 72, 0.25);
+  text-align: left;
+  pointer-events: none;
+  letter-spacing: .02em;
+}
+.planner-tip:hover::before {
+  content: '';
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--navy);
+  z-index: 101;
+  pointer-events: none;
+}
+
+/* Mobile tap accordion */
+@media (hover: none) {
+  .planner-tip { cursor: pointer; }
+  .planner-tip.tip-open::after {
+    content: attr(data-tip);
+    position: absolute;
+    bottom: calc(100% + 10px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--navy);
+    color: var(--cream);
+    padding: 14px 18px;
+    border-radius: 4px;
+    font-family: var(--sans);
+    font-size: 12px;
+    line-height: 1.85;
+    white-space: pre;
+    min-width: 220px;
+    max-width: 320px;
+    z-index: 100;
+    box-shadow: 0 6px 20px rgba(31, 56, 72, 0.25);
+    text-align: left;
+    pointer-events: none;
+    letter-spacing: .02em;
+  }
+  .planner-tip.tip-open::before {
+    content: '';
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-top-color: var(--navy);
+    z-index: 101;
+    pointer-events: none;
+  }
+  .planner-result-line.cross-section.line-open::after {
+    content: '跨體系建議：這張考試不同分類,但有共同法規(例如公務員共同科目)。適合想轉軌或累積廣度的人。';
+    position: absolute;
+    top: calc(100% - 4px);
+    left: 16px;
+    right: 16px;
+    background: var(--mauve);
+    color: var(--cream);
+    padding: 10px 14px;
+    border-radius: 3px;
+    font-family: var(--sans);
+    font-size: 12px;
+    line-height: 1.7;
+    z-index: 100;
+    pointer-events: none;
+    box-shadow: 0 4px 12px rgba(31,56,72,.15);
+  }
+}
+
+/* ============== Modal (chip 選擇彈窗) ============== */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 28, 40, 0.85);
+  z-index: 1000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.active { display: flex; }
+.modal-box {
+  background: var(--cream);
+  border: 1px solid var(--cream-3);
+  border-radius: 4px;
+  max-width: 720px;
+  width: 100%;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+.modal-header {
+  background: var(--navy);
+  color: var(--cream);
+  padding: 18px 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-radius: 4px 4px 0 0;
+}
+.modal-title {
+  font-family: var(--serif);
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--cream);
+  letter-spacing: 0.5px;
+}
+.modal-close {
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: var(--cream);
+  width: 32px; height: 32px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 900;
+  cursor: pointer;
+}
+.modal-close:hover { color: var(--peach); background: rgba(255,255,255,0.15); }
+.modal-body {
+  overflow-y: auto;
+  padding: 20px 24px;
+  flex: 1;
+}
+.modal-section { margin-bottom: 18px; }
+.modal-section-title {
+  font-family: var(--serif);
+  color: var(--navy);
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--cream-3);
+  letter-spacing: 0.5px;
+}
+.modal-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.modal-option {
+  background: #fff;
+  color: var(--ink);
+  border: 1px solid var(--cream-3);
+  border-radius: 3px;
+  font-family: var(--sans);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 7px 14px;
+  cursor: pointer;
+  text-align: left;
+  transition: all .15s ease;
+}
+.modal-option:hover {
+  background: var(--peach-2);
+  border-color: var(--peach);
+  color: var(--navy);
+}
+
+/* ============== RWD ============== */
+@media (max-width: 1024px) {
+  .compass-section-title { font-size: 26px; }
+  .planner-sentence { font-size: 20px; }
+}
+@media (max-width: 768px) {
+  .compass-section-title { font-size: 22px; }
+  .compass-section-subtitle { font-size: 13px; margin-bottom: 16px; }
+  .planner-sentence { font-size: 17px; line-height: 1.9; margin: 10px 0; }
+  .planner-chip { font-size: 14px; padding: 4px 12px; }
+  .planner-plus { width: 30px; height: 30px; font-size: 16px; }
+  .planner-result { padding: 14px 18px; }
+  .planner-result-line { font-size: 13px; line-height: 1.8; margin-bottom: 8px; padding-bottom: 8px; }
+  .planner-result-count { font-size: 14px; }
+  .planner-result-target { font-size: 14px; }
+  .planner-result-target.rank-2,
+  .planner-result-target.rank-3 { font-size: 14px; }
+  .planner-result-rank { font-size: 9px; margin-right: 8px; letter-spacing: .1em; }
+  .want-coverage { font-size: 13px; }
+  .want-extend-label { font-size: 9px; padding-top: 8px; margin-top: 10px; }
+  .planner-reset-btn { font-size: 11px; padding: 7px 12px; }
+  .modal-options { flex-direction: column; }
+  .modal-option { width: 100%; }
+}
+@media (max-width: 480px) {
+  .compass-section-title { font-size: 20px; }
+  .planner-sentence { font-size: 15px; }
+  .planner-sentence .planner-chip { display: inline-block; margin: 3px 2px; }
+}

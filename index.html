@@ -1454,6 +1454,7 @@
   else init();
 })();
 </script>
+<link rel="stylesheet" href="compass-widget.css">
 </head>
 <body style="">
 <div class="page" data-screen-label="01 Home — Navy v3">
@@ -1571,48 +1572,26 @@
     </div>
   </section>
 
-  <!-- ============ COMPASS WIDGET v3.1 (考運羅盤 — 第二屏 funnel hook) ============ -->
+  <!-- ============ COMPASS WIDGET v4 (考運羅盤 — 第二屏 funnel hook, inline 嵌入) ============ -->
   <section class="compass-embed" data-screen-label="Compass" style="background:var(--cream-2);padding:0;margin:0;">
-    <iframe id="compassFrame"
-            src="compass-planner.html?embed=1"
-            style="width:100%;height:960px;border:0;display:block;background:transparent;"
-            scrolling="no"
-            title="考運羅盤"></iframe>
+    <div class="compass-inline-shell" style="max-width:1100px;margin:0 auto;padding:56px 40px;">
+      <div class="compass-section-eyebrow">02 — 你的考試路徑</div>
+      <h2 class="compass-section-title">考運羅盤</h2>
+      <p class="compass-section-subtitle">告訴 SoFa 你考過(或想考)的證照,SoFa 幫你算要準備什麼、下一張最高效該往哪。</p>
+      <div id="compass-widget-mount"></div>
+      <a class="compass-explore-link" href="tree.html" target="_blank" rel="noopener">看完整考試地圖 ↗</a>
+      <div class="compass-disclaimer">* 法規覆蓋以國考樹狀圖資料為準,SoFa 實際法條庫對照中</div>
+    </div>
   </section>
+  <script src="exam-data.js"></script>
+  <script src="compass-widget.js"></script>
   <script>
-    // 接收 iframe 內 postMessage 觸發 parent scroll 到下一段
-    window.addEventListener('message', function(e) {
-      if (e.data === 'compass-scroll-next') {
-        const next = document.querySelector('.stats-strip, #modes');
-        if (next) next.scrollIntoView({ behavior:'smooth', block:'start' });
-      }
-    });
-    // iframe 高度 = widget 實際內容高度（消除中間空白 — widget body min-height:100vh 撐空）
     (function() {
-      const frame = document.getElementById('compassFrame');
-      if (!frame) return;
-      let timer = null;
-      function fit() {
-        try {
-          const doc = frame.contentDocument;
-          if (doc && doc.body) {
-            frame.style.height = (doc.body.scrollHeight + 8) + 'px';
-          }
-        } catch(e) {}
+      function init() {
+        if (window.CompassWidget) CompassWidget.mount('#compass-widget-mount');
       }
-      frame.addEventListener('load', function() {
-        fit();
-        try {
-          const obs = new MutationObserver(() => { clearTimeout(timer); timer = setTimeout(fit, 100); });
-          obs.observe(frame.contentDocument.body, { childList:true, subtree:true, attributes:true });
-        } catch(e) {}
-      });
-      window.addEventListener('resize', fit);
-      window.addEventListener('message', function(e) {
-        if (e.data && e.data.type === 'compass-resize') fit();
-      });
-      // 載入容錯：給 1.2s fallback 再 fit 一次（widget 內 async render 用）
-      setTimeout(fit, 1200);
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+      else init();
     })();
   </script>
 
@@ -2181,14 +2160,6 @@ document.querySelectorAll('.qa').forEach(function(qa){
     // stats-strip item 2 (法規部數)
     set('.stats-strip .item:nth-child(2) .v', el => el.innerHTML = p.laws + '<span class="u">部</span>');
     set('.stats-strip .item:nth-child(2) .k', el => el.textContent = p.name + ' 整套法規');
-
-    // postMessage prefill 給 compass iframe（widget 端若有 listener 可預選 chip）
-    const frame = document.getElementById('compassFrame');
-    if (frame) {
-      frame.addEventListener('load', function() {
-        try { frame.contentWindow.postMessage({ type: 'compass-prefill', target: target, profile: p }, '*'); } catch(e) {}
-      });
-    }
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply);
