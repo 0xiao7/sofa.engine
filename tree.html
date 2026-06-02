@@ -1804,10 +1804,10 @@ function triggerAutoReset() {
 render();
 
 // SoFa: 法本 item 點擊行為
-//   已上線(SoFa 33 部) → 直接 window.open 新分頁去 SoFa 法規頁
+//   已上線(SoFa 33 部) → 直接 window.open 新分頁去法本試讀頁(無登入門檻)
 //   未上線 → toast 預告「即將上線」
-// 已上線法本跳到 dashboard 法條查詢頁 ?law=X (dashboard 內 deep link handler 自動 trigger 搜尋)
-const SOFA_READ_URL = (lawName) => `https://sofaengine.org/dashboard.html?law=${encodeURIComponent(lawName)}`;
+// 試讀頁直接從 Supabase API 拉條文 + 六段,使用者不會被 dashboard auth gate 擋
+const SOFA_READ_URL = (lawName) => `https://sofaengine.org/law-preview.html?law=${encodeURIComponent(lawName)}`;
 
 (function() {
   const origRenderDetail = window.renderDetail;
