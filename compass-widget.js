@@ -270,5 +270,9 @@
     render();
   }
 
-  window.CompassWidget = { mount, TARGET_TO_NODE };
+  window.CompassWidget = {
+    mount,
+    TARGET_TO_NODE,
+    getSelected: () => plannerSelected.slice(),
+  };
 })();

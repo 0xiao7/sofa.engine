@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>完整考試地圖 · SoFa Engine</title>
-<link rel="preload" href="exam-data.js?v=salary1" as="script">
+<link rel="preload" href="exam-data.js?v=chip1" as="script">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
 html, body {
@@ -1077,8 +1077,31 @@ html, body {
 .planner-stubborn-count { color: var(--sofa-peach-3) !important; font-family: var(--sofa-mono) !important; }
 
 /* lv1 體系卡 — 留白加大、SoFa 緩慢人設 */
-.lv1-card { background: #fff !important; border: 1px solid var(--sofa-cream-3) !important; border-radius: 4px !important; padding: 28px 26px !important; }
+.lv1-card { background: #fff !important; border: 1px solid var(--sofa-cream-3) !important; border-radius: 4px !important; padding: 28px 26px !important; position: relative; }
 .lv1-card:hover { border-color: var(--sofa-peach) !important; transform: translateY(-2px); }
+/* lv1 從羅盤帶來的體系 highlight */
+.lv1-card--from-compass {
+  border: 2px solid var(--sofa-peach) !important;
+  background: linear-gradient(135deg, #fff 0%, var(--sofa-cream-2) 100%) !important;
+  box-shadow: 0 2px 14px rgba(201,122,78,0.12) !important;
+}
+.lv1-corner-tag {
+  position: absolute;
+  top: -10px;
+  left: 14px;
+  background: var(--sofa-peach);
+  color: #fff;
+  font-family: var(--sofa-mono);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: .05em;
+  padding: 3px 10px;
+  border-radius: 12px;
+  white-space: nowrap;
+  max-width: calc(100% - 28px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
 .lv1-name { font-family: var(--sofa-serif) !important; color: var(--sofa-ink) !important; font-weight: 600 !important; }
 .lv1-meta { color: var(--sofa-muted) !important; font-family: var(--sofa-mono) !important; font-size: 11px !important; letter-spacing: .1em !important; }
 .lv1-arrow { color: var(--sofa-peach-3) !important; }
@@ -1326,7 +1349,7 @@ html, body {
   </div>
 </div>
 
-<script src="exam-data.js?v=salary1"></script>
+<script src="exam-data.js?v=chip1"></script>
 <script>
 // ===== 資料 =====
 
@@ -1368,12 +1391,28 @@ function setNav(crumbHtml, mainText) {
 function renderHome() {
   setNav('台灣國考職涯導航路徑', '慢慢挑一個方向');
   const wrap = document.getElementById('pageWrap');
+
+  // 從 plannerSelected 算「對應體系 → 該體系內被選的職能名」
+  const highlightSecs = new Map();  // section → [name, name, ...]
+  for (const nid of plannerSelected) {
+    const n = NODES[nid];
+    if (!n || !n.section) continue;
+    if (!highlightSecs.has(n.section)) highlightSecs.set(n.section, []);
+    highlightSecs.get(n.section).push(n.name);
+  }
+
   let cards = '';
   for (const s of SECTIONS) {
     const emoji = SEC_EMOJI[s] || '📁';
     const count = SEC_COUNTS[s];
+    const hits = highlightSecs.get(s);
+    const cls = hits ? 'lv1-card lv1-card--from-compass' : 'lv1-card';
+    const tag = hits
+      ? `<div class="lv1-corner-tag">← 你選的：${hits.join('、')}</div>`
+      : '';
     cards += `
-      <div class="lv1-card" onclick="enterSection('${s.replace(/'/g, "&#39;")}')">
+      <div class="${cls}" onclick="enterSection('${s.replace(/'/g, "&#39;")}')">
+        ${tag}
         <span class="lv1-dash"></span>
         <span class="lv1-emoji">${emoji}</span>
         <div class="lv1-name">${s}</div>
@@ -1604,7 +1643,16 @@ function jumpDetail(nid) {
 }
 
 // ===== Planner（我的職涯規劃）邏輯 =====
-let plannerSelected = [];   // 已準備好的職能 id 陣列
+function initialChipsFromURL() {
+  try {
+    const q = new URLSearchParams(window.location.search).get('chips');
+    if (!q) return [];
+    return q.split(',')
+      .map(s => s.trim())
+      .filter(id => id && window.NODES && window.NODES[id]);
+  } catch (e) { return []; }
+}
+let plannerSelected = initialChipsFromURL();   // 已準備好的職能 id 陣列(可從 ?chips= 預載)
 let plannerResult = null;   // { top: [{recId, overlapCount}, ...] } | { empty: true } | null
 let stubbornPick = null;    // 偏要考的單一職能 id
 let modalMode = 'planner';  // 'planner' | 'stubborn'
