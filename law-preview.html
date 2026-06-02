@@ -75,6 +75,55 @@ a{color:inherit;text-decoration:none}
 }
 .law-header .meta strong{color:var(--peach);font-weight:500}
 
+/* ── 考試脈絡 context bar ─────────────────── */
+.context-bar{
+  display:none;flex-wrap:wrap;gap:24px 36px;
+  padding:20px 0 4px;margin-top:18px;
+  border-top:1px solid var(--line);
+}
+.ctx-block{display:flex;flex-direction:column;gap:6px}
+.ctx-label{
+  font-size:10px;letter-spacing:.22em;color:var(--peach-dim);
+  text-transform:uppercase;
+}
+.ctx-value{
+  font-family:var(--serif);font-size:15px;color:var(--cream);
+}
+.ctx-value .stars{color:var(--peach);letter-spacing:-.05em;margin-right:6px}
+.ctx-value .avg-num{color:var(--peach-dim);font-size:13px;font-family:var(--sans)}
+.exam-chip{
+  display:inline-block;padding:3px 10px;margin:2px 4px 2px 0;
+  background:rgba(231,187,167,.08);color:var(--peach);
+  border:1px solid var(--line-2);border-radius:3px;
+  font-family:var(--sans);font-size:12px;letter-spacing:.04em;
+}
+
+/* ── 清單排序 toggle ─────────────────────── */
+.list-controls{
+  display:flex;gap:2px;padding:4px 20px 12px;
+  border-bottom:1px solid var(--line);
+  margin-bottom:6px;
+}
+.sort-btn{
+  background:none;border:none;cursor:pointer;
+  font-family:var(--sans);font-size:12px;letter-spacing:.05em;
+  color:var(--peach-dim);padding:6px 10px;
+  border-bottom:2px solid transparent;
+  transition:color .15s,border-color .15s;
+}
+.sort-btn:hover{color:var(--peach-2)}
+.sort-btn.active{
+  color:var(--peach);border-bottom-color:var(--peach);
+}
+
+/* ── 考古題 chip(未來 quiz_count 進來自動顯示) ── */
+.quiz-chip{
+  display:inline-block;padding:1px 6px;margin-left:6px;
+  background:rgba(217,176,132,.12);color:#D9B084;
+  border-radius:2px;font-size:10px;font-family:var(--sans);
+  letter-spacing:.05em;vertical-align:middle;
+}
+
 /* ── 主 layout ─────────────────────────── */
 .main{
   display:grid;grid-template-columns:280px 1fr;gap:0;
@@ -209,6 +258,9 @@ a{color:inherit;text-decoration:none}
   .topbar{padding:12px 18px}
   .law-header{padding:28px 18px 20px}
   .law-header h1{font-size:26px}
+  .context-bar{gap:14px 24px;padding-top:14px;margin-top:14px}
+  .ctx-value{font-size:14px}
+  .list-controls{padding:4px 14px 10px}
   .main{
     grid-template-columns:1fr;
   }
@@ -237,11 +289,29 @@ a{color:inherit;text-decoration:none}
   <div class="crumb" id="crumb">— · 法本</div>
   <h1 id="lawTitle">載入中⋯</h1>
   <div class="meta" id="lawMeta"></div>
+  <div class="context-bar" id="ctxBar">
+    <div class="ctx-block">
+      <span class="ctx-label">應考職能</span>
+      <span class="ctx-value" id="examTags">—</span>
+    </div>
+    <div class="ctx-block">
+      <span class="ctx-label">整部重要性</span>
+      <span class="ctx-value" id="avgStars">—</span>
+    </div>
+    <div class="ctx-block">
+      <span class="ctx-label">條數 · 預估</span>
+      <span class="ctx-value" id="readEstimate">—</span>
+    </div>
+  </div>
 </div>
 
 <div class="main">
   <aside class="article-list">
     <div class="list-label" id="listLabel">條文清單</div>
+    <div class="list-controls">
+      <button class="sort-btn active" data-sort="number">按條號</button>
+      <button class="sort-btn" data-sort="importance">按重要性</button>
+    </div>
     <div id="listBody"></div>
   </aside>
   <article class="detail" id="detail">
@@ -279,17 +349,71 @@ async function fetchJSON(url){
   return r.json();
 }
 
+// ── 重要性 helper ────────────────────────
+function starsCount(imp){ return (imp || '').match(/★/g)?.length || 0; }
+function starsStr(n){ return '★'.repeat(n); }
+
+// ── 整部平均星數 ────────────────────────
+function calcAvgStars(articles){
+  const arr = articles.map(a => starsCount(a.importance)).filter(n => n > 0);
+  if(!arr.length) return 0;
+  return arr.reduce((s,n) => s+n, 0) / arr.length;
+}
+
+// ── 預估閱讀時間(每條約 3 分鐘) ──────────
+function estimateReadTime(n){
+  const mins = n * 3;
+  if(mins < 60) return `${n} 條 · 約 ${mins} 分鐘`;
+  const h = mins / 60;
+  return `${n} 條 · 約 ${h % 1 === 0 ? h : h.toFixed(1)} 小時`;
+}
+
+// ── 動態載入 exam-data.js 反查職能 ─────────
+function loadScript(src){
+  return new Promise((resolve, reject) => {
+    const s = document.createElement('script');
+    s.src = src; s.async = true;
+    s.onload = resolve; s.onerror = reject;
+    document.head.appendChild(s);
+  });
+}
+async function findExamTags(lawName){
+  if(typeof window.NODES === 'undefined'){
+    try { await loadScript('/exam-data.js'); } catch(e) { return []; }
+  }
+  if(typeof window.NODES === 'undefined') return [];
+  const tags = new Set();
+  for(const id in window.NODES){
+    const n = window.NODES[id];
+    if(n.laws?.includes(lawName)) tags.add(n.name);
+  }
+  return [...tags].slice(0, 8);
+}
+
+// ── 排序 state + sortArticles ───────────────
+let sortMode = 'number';
+function sortArticles(arr){
+  const copy = [...arr];
+  if(sortMode === 'importance'){
+    copy.sort((a,b) => starsCount(b.importance) - starsCount(a.importance));
+  }
+  return copy;
+}
+
 function renderList(articles, activeId){
-  listLabel.textContent = `條文清單 · 共 ${articles.length} 條`;
-  listBody.innerHTML = articles.map(a => {
-    const stars = (a.importance || '').match(/★/g)?.join('') || '';
+  const sorted = sortArticles(articles);
+  listLabel.textContent = `條文清單 · 共 ${sorted.length} 條`;
+  listBody.innerHTML = sorted.map(a => {
+    const stars = starsStr(starsCount(a.importance));
     const numMatch = a.title.match(/§\s*(\S+?)｜/);
     const num = numMatch ? `§${numMatch[1]}` : '';
     const text = a.title.replace(/§\s*\S+?｜/, '');
     const active = a.id === activeId ? 'active' : '';
+    // 預留 quiz_count(未來考古題 API 加上即自動 render)
+    const quizChip = a.quiz_count > 0 ? `<span class="quiz-chip">考${a.quiz_count}</span>` : '';
     return `<div class="list-item ${active}" data-id="${a.id}">
       <span class="list-num">${num}</span>
-      <span class="list-title">${text}</span>
+      <span class="list-title">${text}${quizChip}</span>
       <span class="list-stars">${stars}</span>
     </div>`;
   }).join('');
@@ -357,10 +481,38 @@ async function loadArticle(id, pushUrl){
       return;
     }
     articlesCache = list.articles;
-    lawMeta.innerHTML = `共 <strong>${list.total}</strong> 條 · 點清單任一條可試讀完整六段`;
+    lawMeta.innerHTML = `點清單任一條可試讀完整六段`;
+
+    // ── context bar:立刻能算的(重要性 / 條數) ──
+    const ctxBar = document.getElementById('ctxBar');
+    ctxBar.style.display = 'flex';
+    const avg = calcAvgStars(articlesCache);
+    document.getElementById('avgStars').innerHTML = avg > 0
+      ? `<span class="stars">${starsStr(Math.round(avg))}</span><span class="avg-num">(平均 ${avg.toFixed(1)})</span>`
+      : '—';
+    document.getElementById('readEstimate').textContent = estimateReadTime(articlesCache.length);
+
+    // ── sort toggle handler ──
+    document.querySelectorAll('.sort-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b === btn));
+        sortMode = btn.dataset.sort;
+        const currentActiveId = document.querySelector('.list-item.active')?.dataset.id || articlesCache[0].id;
+        renderList(articlesCache, currentActiveId);
+      });
+    });
+
     const firstId = targetId && articlesCache.find(a => a.id === targetId) ? targetId : articlesCache[0].id;
     renderList(articlesCache, firstId);
     await loadArticle(firstId, false);
+
+    // ── 非阻塞:fetch exam-data.js 反查應考職能,完成後填 chip ──
+    findExamTags(lawName).then(tags => {
+      const ex = document.getElementById('examTags');
+      ex.innerHTML = tags.length
+        ? tags.map(t => `<span class="exam-chip">${escapeHtml(t)}</span>`).join('')
+        : '<span style="color:var(--peach-dim);font-size:13px">尚未對應職能</span>';
+    });
   } catch(e){
     detail.innerHTML = `<div class="error">載入失敗:${e.message}<br>請稍後再試或回 <a href="/" style="color:var(--peach);text-decoration:underline;">SoFa 首頁</a></div>`;
   }
