@@ -217,6 +217,15 @@ html, body {
   min-width: 0;
   letter-spacing: 0.3px;
 }
+.lv2-salary {
+  flex: 0 0 auto;
+  font-family: "JetBrains Mono", "Consolas", monospace;
+  font-size: 13px;
+  font-weight: 600;
+  color: #8B7E6B;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
 
 /* ===== Layer 3: 詳情卡片 ===== */
 .detail-card {
@@ -330,6 +339,46 @@ html, body {
 .detail-stats .stat-src {
   font-weight: 700;
   margin-left: 6px;
+}
+
+.detail-salary {
+  font-size: 14px;
+  color: #C97A4E;
+  font-weight: 800;
+  margin: 8px 0;
+  line-height: 1.7;
+  word-break: break-word;
+}
+.detail-salary b { color: #C97A4E; }
+.detail-salary .stat-sep { color: #C0B8A8; margin: 0 4px; font-weight: 400; }
+.detail-salary .salary-eff {
+  display: inline-block;
+  margin-left: 6px;
+  font-weight: 700;
+  font-size: 12px;
+  color: #8B7E6B;
+}
+.detail-salary .salary-src {
+  font-size: 12px;
+  font-weight: 500;
+  color: #8B7E6B;
+  margin-top: 4px;
+  line-height: 1.6;
+}
+.detail-salary .salary-src a {
+  color: #1F3A5C;
+  text-decoration: underline;
+  text-decoration-color: rgba(31,58,92,0.3);
+  text-underline-offset: 2px;
+}
+.detail-salary .salary-src a:hover { text-decoration-color: #1F3A5C; }
+.detail-salary .salary-note {
+  font-size: 12px;
+  font-weight: 500;
+  color: #8B7E6B;
+  margin-top: 4px;
+  line-height: 1.6;
+  font-style: italic;
 }
 
 .detail-law-inline {
@@ -934,6 +983,7 @@ html, body {
   .lv2-item { padding: 12px 14px; gap: 8px; }
   .lv2-name { font-size: 15px; }
   .lv2-indent { font-size: 11px; }
+  .lv2-salary { font-size: 11px; }
   .lv2-groups { gap: 14px; }
 
   .detail-header { padding: 16px 18px; }
@@ -1384,10 +1434,15 @@ function renderSection(s) {
       const depth = item.indent - minIndent;
       const pad = '··'.repeat(depth);
       const lvColor = LV_COLOR[item.level];
+      const fullNode = NODES[item.id] || item;
+      const salaryHtml = fullNode.salary
+        ? `<span class="lv2-salary">${fullNode.salary}</span>`
+        : '';
       items += `
         <div class="lv2-item" onclick="enterDetail('${item.id}')">
           <span class="lv2-indent">${pad}</span>
           <span class="lv2-name" style="color:${lvColor};">${item.name}</span>
+          ${salaryHtml}
         </div>
       `;
     }
@@ -1496,6 +1551,7 @@ function renderDetail(nid) {
             ┠ 報考<span class="stat-sep">｜</span><b>${node.apply}</b><span class="stat-sep">｜</span>到考<span class="stat-sep">｜</span><b>${node.attend}</b><span class="stat-sep">｜</span>錄取<span class="stat-sep">｜</span><b>${node.pass}</b><span class="stat-sep">｜</span>錄取率<span class="stat-sep">｜</span><b>${node.rate}</b>
             <span class="stat-src">【資料來源 ${node.data_src}】</span>
           </div>
+          ${renderSalary(node)}
           <div class="detail-law-inline">
             ┠ 應考法規 共 <b>${lawCount}</b> 部
           </div>
@@ -1520,6 +1576,24 @@ function renderDetail(nid) {
         <a href="https://sofaengine.org" target="_blank" rel="noopener" class="sofa-cta-btn">回 SoFa →</a>
       </aside>
     </article>
+  `;
+}
+
+// 薪資披露區塊（detail 頁）
+function renderSalary(node) {
+  if (!node.salary_detail) return '';
+  const d = node.salary_detail;
+  const srcLinks = (d.sources || []).map(s =>
+    `<a href="${s.url}" target="_blank" rel="noopener">${s.name}</a>`
+  ).join('、');
+  const effLine = d.effective ? `<span class="salary-eff">【${d.effective}】</span>` : '';
+  return `
+    <div class="detail-salary">
+      ┠ 起薪<span class="stat-sep">｜</span><b>${d.approx}</b><span class="stat-sep">｜</span>${d.grade}
+      ${effLine}
+      <div class="salary-src">來源：${srcLinks}</div>
+      <div class="salary-note">⚠ ${d.note}</div>
+    </div>
   `;
 }
 
