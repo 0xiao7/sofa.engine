@@ -281,7 +281,7 @@ input,select,textarea{font-family:inherit;color:inherit}
         <div class="brand-icon">§</div>
         法規查核
       </div>
-      <button class="btn-new" onclick="openCreateModal()">＋ 新增</button>
+      <button class="btn-new admin-only" onclick="openCreateModal()" style="display:none">＋ 新增</button>
     </div>
     <div class="task-list" id="taskList">
       <div style="padding:20px 16px;color:var(--plum-2);font-size:12px">載入中…</div>
@@ -292,7 +292,13 @@ input,select,textarea{font-family:inherit;color:inherit}
   <div class="main">
     <div class="topbar">
       <div class="topbar-title" id="pageTitle">法規更新查核</div>
-      <div class="topbar-sync" id="syncLabel"></div>
+      <div style="display:flex;align-items:center;gap:14px">
+        <div class="topbar-sync" id="syncLabel"></div>
+        <button id="adminToggleBtn" onclick="toggleAdmin()" style="font-size:11px;color:rgba(245,240,234,.25);font-family:var(--mono);letter-spacing:.06em;transition:color .15s" onmouseover="this.style.color='rgba(245,240,234,.5)'" onmouseout="this.style.color=_isAdmin?'var(--peach-3)':'rgba(245,240,234,.25)'">管理</button>
+      </div>
+    </div>
+    <div style="background:rgba(245,240,234,.04);border-bottom:1px solid var(--line);padding:8px 32px;font-size:11px;color:rgba(245,240,234,.38);line-height:1.5">
+      資料來源：<a href="https://law.moj.gov.tw" target="_blank" style="color:rgba(231,187,167,.5);text-decoration:underline">全國法規資料庫</a>（法務部）。本頁僅供追蹤法規是否有異動之參考，不構成法律意見，實際法律效力以官方公告為準。
     </div>
     <div class="content" id="mainContent">
       <div class="empty">
@@ -367,17 +373,18 @@ input,select,textarea{font-family:inherit;color:inherit}
 
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
-const KEY  = localStorage.getItem('monitorKey') || '';
+let _adminKey = localStorage.getItem('monitorKey') || '';
+let _isAdmin = false;
 
 let _tasks = [];
 let _activeTaskId = null;
 let _activeRunData = null;
 let _diffLaw = null;
 
-function h(key){return {'X-Monitor-Key': key || KEY}}
+function h(){ return _adminKey ? {'X-Monitor-Key': _adminKey, 'Content-Type':'application/json'} : {'Content-Type':'application/json'} }
 
 async function api(method, path, body){
-  const opts = {method, headers: {...h(), 'Content-Type':'application/json'}};
+  const opts = {method, headers: h()};
   if (body) opts.body = JSON.stringify(body);
   const r = await fetch(API + path, opts);
   if (!r.ok){
@@ -387,12 +394,30 @@ async function api(method, path, body){
   return r.json();
 }
 
-// ── Auth prompt ──────────────────────────────────────────────
-function ensureKey(){
-  if (!KEY){
-    const k = prompt('請輸入 Monitor 金鑰：');
-    if (k){ localStorage.setItem('monitorKey', k); location.reload(); }
+// ── Admin toggle ─────────────────────────────────────────────
+function toggleAdmin(){
+  if (_isAdmin){
+    _isAdmin = false; _adminKey = '';
+    localStorage.removeItem('monitorKey');
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = 'none');
+    document.getElementById('adminToggleBtn').style.color = 'rgba(245,240,234,.25)';
+    return;
   }
+  const k = prompt('管理金鑰：');
+  if (!k) return;
+  _adminKey = k; _isAdmin = true;
+  localStorage.setItem('monitorKey', k);
+  document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+  document.getElementById('adminToggleBtn').style.color = 'var(--peach-3)';
+}
+
+// 頁面載入時若已有 key 自動進入 admin 模式
+if (_adminKey){
+  _isAdmin = true;
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.admin-only').forEach(el => el.style.display = '');
+    document.getElementById('adminToggleBtn').style.color = 'var(--peach-3)';
+  });
 }
 
 // ── Task List ─────────────────────────────────────────────────
@@ -402,7 +427,6 @@ async function loadTasks(){
     _tasks = data.tasks || [];
     renderTaskList();
   } catch(e){
-    if(e.message === 'forbidden') ensureKey();
     console.error(e);
   }
 }
@@ -472,10 +496,10 @@ function renderTaskDetail(task, latestRun){
     <div class="task-header">
       <div class="task-title">${esc(task.name)}</div>
       <div class="task-actions">
-        <button class="btn-run" id="runBtn" onclick="runTask('${task.id}')">
+        <button class="btn-run admin-only" id="runBtn" onclick="runTask('${task.id}')" style="display:${_isAdmin?'':'none'}">
           執行查核
         </button>
-        <button class="btn-edit" onclick="openEditModal('${task.id}')">編輯</button>
+        <button class="btn-edit admin-only" onclick="openEditModal('${task.id}')" style="display:${_isAdmin?'':'none'}">編輯</button>
       </div>
     </div>
 
