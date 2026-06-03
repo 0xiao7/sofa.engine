@@ -1423,7 +1423,7 @@
               <span class="idx">08</span>
               <h2>法規目錄</h2>
             </div>
-            <div class="r"><span class="laws-count">共 <b>33</b> 部 · <b>2,000+</b> 條</span></div>
+            <div class="r"><span class="laws-count" id="laws-toc-header-count">共 <b>33</b> 部 · <b>2,000+</b> 條</span></div>
           </div>
 
           <div class="exam-chip-bar" id="exam-bar-08">
@@ -2246,6 +2246,15 @@ function setExamFilter(val){
   });
   _renderLawsToc(0);
   _renderLawDD((document.getElementById('search-law')||{}).value||'');
+  // 更新 Section 08 header 計數
+  var hdr = document.getElementById('laws-toc-header-count');
+  if(hdr){
+    var n = _getExamFilteredLaws().length;
+    var label = val === 'cpa' ? '記帳士' : val === 'land' ? '地政士' : '';
+    hdr.innerHTML = label
+      ? '共 <b>'+n+'</b> 部（'+label+'）'
+      : '共 <b>33</b> 部 · <b>2,000+</b> 條';
+  }
 }
 // 搜尋結果分頁
 var _srArts  = [];
@@ -2306,6 +2315,14 @@ function _renderLawsToc(page){
   if(label) label.innerHTML = total
     ? '顯示 <b>' + (start+1) + '–' + (start+slice.length) + '</b> / ' + total
     : '找不到符合的法規';
+  // 同步 header 計數
+  var hdrCount = document.getElementById('laws-toc-header-count');
+  if(hdrCount && _examFilter !== 'all'){
+    var examLabel = _examFilter === 'cpa' ? '記帳士' : '地政士';
+    hdrCount.innerHTML = '共 <b>' + examLaws.length + '</b> 部（' + examLabel + '）';
+  } else if(hdrCount && _allLaws.length) {
+    hdrCount.innerHTML = '共 <b>33</b> 部 · <b>2,000+</b> 條';
+  }
 
   if(tocEl){
     if(!slice.length){
