@@ -307,6 +307,7 @@
         <span class="lab">LAW</span>
         <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:500;font-size:15px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none;min-width:80px;max-width:200px"><option value="">全部法規</option></select>
         <span class="car">▾</span>
+        <span id="exam-mode-badge" style="display:none;font-family:var(--mono);font-size:10px;letter-spacing:.08em;background:var(--peach);color:var(--navy);border-radius:100px;padding:2px 8px;font-weight:600;margin-left:6px"></span>
       </div>
       <div class="pr-pick" id="artPickWrap" style="display:none">
         <span class="lab">§</span>
@@ -417,6 +418,7 @@
     </div>
   </main>
 
+<script src="exam-laws.js?v=1"></script>
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
 const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
@@ -470,7 +472,9 @@ if(isFree){
   }
   try {
     const d = await fetch(`${API}/api/laws`).then(r=>r.json());
-    (d.laws||[]).forEach(l=>{ const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o); });
+    examFilterLaws(d.laws||[]).forEach(l=>{ const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o); });
+    const _lbl=examFilterLabel(); const _bdg=document.getElementById('exam-mode-badge');
+    if(_bdg&&_lbl){_bdg.textContent=_lbl;_bdg.style.display='inline';}
   } catch{}
 })();
 
