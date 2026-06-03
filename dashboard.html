@@ -613,6 +613,7 @@
   .select-field .car{color:var(--peach);font-family:var(--mono);font-size:11px}
 
   .chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .exam-chip-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
   .chip{
     padding:7px 16px;border-radius:100px;
     font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;
@@ -1277,6 +1278,11 @@
             <div class="r"><span class="eb">2,000+ 條 · 33 部</span></div>
           </div>
 
+          <div class="exam-chip-bar" id="exam-bar-03">
+            <button class="chip on" id="exa-03-all" onclick="setExamFilter('all')">全部</button>
+            <button class="chip" id="exa-03-cpa" onclick="setExamFilter('cpa')">記帳士</button>
+            <button class="chip" id="exa-03-land" onclick="setExamFilter('land')">地政士</button>
+          </div>
           <div class="search-card">
             <div class="search-row">
               <div class="field" style="position:relative;overflow:visible">
@@ -1420,6 +1426,11 @@
             <div class="r"><span class="laws-count">共 <b>33</b> 部 · <b>2,000+</b> 條</span></div>
           </div>
 
+          <div class="exam-chip-bar" id="exam-bar-08">
+            <button class="chip on" id="exa-08-all" onclick="setExamFilter('all')">全部</button>
+            <button class="chip" id="exa-08-cpa" onclick="setExamFilter('cpa')">記帳士</button>
+            <button class="chip" id="exa-08-land" onclick="setExamFilter('land')">地政士</button>
+          </div>
           <div class="laws-head">
             <div class="laws-search">
               <span style="color:rgba(245,240,234,.45);font-family:var(--mono)">⌕</span>
@@ -2203,6 +2214,39 @@ var _lawsPage   = 0;
 var _lawsPerPg  = 12;
 var _curChip    = 'all';
 var _curLawName = '';
+
+// 考科篩選（純前端，localStorage 記憶）
+var _examFilter = (function(){
+  try{ return localStorage.getItem('sofa_exam_filter') || 'all'; }catch(e){ return 'all'; }
+})();
+var _examCpaSet  = null;
+var _examLandSet = null;
+
+function _initExamSets(){
+  if(_examCpaSet) return;
+  _examCpaSet  = (typeof NODES !== 'undefined' && NODES['n72']) ? new Set(NODES['n72'].laws) : new Set();
+  _examLandSet = (typeof NODES !== 'undefined' && NODES['n74']) ? new Set(NODES['n74'].laws) : new Set();
+}
+
+function _getExamFilteredLaws(){
+  _initExamSets();
+  if(_examFilter === 'cpa')  return _allLaws.filter(function(l){ return _examCpaSet.has(l.name); });
+  if(_examFilter === 'land') return _allLaws.filter(function(l){ return _examLandSet.has(l.name); });
+  return _allLaws;
+}
+
+function setExamFilter(val){
+  _examFilter = val;
+  try{ localStorage.setItem('sofa_exam_filter', val); }catch(e){}
+  ['all','cpa','land'].forEach(function(k){
+    ['03','08'].forEach(function(sec){
+      var btn = document.getElementById('exa-'+sec+'-'+k);
+      if(btn) btn.classList.toggle('on', k === val);
+    });
+  });
+  _renderLawsToc(0);
+  _renderLawDD((document.getElementById('search-law')||{}).value||'');
+}
 // 搜尋結果分頁
 var _srArts  = [];
 var _srLaw   = '';
@@ -2245,9 +2289,10 @@ function _srGoto(p){
 function _renderLawsToc(page){
   _lawsPage = page || 0;
   var filter = ((document.getElementById('laws-filter-inp')||{}).value||'').trim();
+  var examLaws = _getExamFilteredLaws();
   var list = filter
-    ? _allLaws.filter(function(l){ return (l.name||'').indexOf(filter) !== -1; })
-    : _allLaws;
+    ? examLaws.filter(function(l){ return (l.name||'').indexOf(filter) !== -1; })
+    : examLaws;
   var total = list.length;
   var totalPg = Math.max(1, Math.ceil(total / _lawsPerPg));
   if(_lawsPage >= totalPg) _lawsPage = totalPg - 1;
@@ -2426,9 +2471,10 @@ function setChip(btn, key){
 function _renderLawDD(filter){
   var dd = document.getElementById('law-dropdown');
   if(!dd) return;
+  var examLaws = _getExamFilteredLaws();
   var hits = filter
-    ? _allLaws.filter(function(l){ return (l.name||'').indexOf(filter) !== -1; })
-    : _allLaws.slice();
+    ? examLaws.filter(function(l){ return (l.name||'').indexOf(filter) !== -1; })
+    : examLaws.slice();
   hits = hits.slice(0, 50);  // 上限 50 筆，避免一次 render 49 部太重
   if(!hits.length){ dd.style.display = 'none'; return; }
   dd.innerHTML = hits.map(function(l){
@@ -2675,6 +2721,16 @@ function switchToFree(){
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
   else init();
+})();
+// 從 localStorage 同步考科篩選 chip 按鈕狀態
+(function(){
+  var ef = _examFilter;
+  ['all','cpa','land'].forEach(function(k){
+    ['03','08'].forEach(function(sec){
+      var btn = document.getElementById('exa-'+sec+'-'+k);
+      if(btn) btn.classList.toggle('on', k === ef);
+    });
+  });
 })();
 </script>
 </body>
