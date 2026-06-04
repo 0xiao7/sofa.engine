@@ -267,8 +267,8 @@
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
   .pr-chips{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 40px;background:var(--navy-2);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11.5px;letter-spacing:.08em}
-  .pr-chips .lab{color:rgba(245,240,234,.7);text-transform:uppercase;margin-right:4px}
-  .pr-chip{padding:6px 12px;border:1px solid rgba(245,240,234,.5);border-radius:100px;background:rgba(245,240,234,.06);color:var(--cream);cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.06em;transition:.18s}
+  .pr-chips .lab{color:rgba(245,240,234,.4);text-transform:uppercase;margin-right:4px}
+  .pr-chip{padding:6px 12px;border:1px solid var(--line-2);border-radius:100px;background:transparent;color:rgba(245,240,234,.55);cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.06em;transition:.18s}
   .pr-chip:hover{border-color:var(--peach-dim);color:var(--cream)}
   .pr-chip.on{background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:600}
   .pr-chips.is-locked .pr-chip{opacity:.4;cursor:not-allowed;border-color:var(--line-2)!important;color:rgba(245,240,234,.35)!important;background:transparent!important}
@@ -302,16 +302,6 @@
   <div class="pr-bar">
     <div class="l">
       <a href="dashboard.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:rgba(245,240,234,.55);text-transform:uppercase;padding:6px 10px;border:1px solid var(--line-2);border-radius:3px">← BACK</a>
-
-      <div class="pr-pick">
-        <span class="lab">考科</span>
-        <select id="examSelect" style="background:transparent;border:none;outline:none;font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none">
-          <option value="all">全部</option>
-          <option value="cpa">記帳士</option>
-          <option value="land">地政士</option>
-        </select>
-        <span class="car">▾</span>
-      </div>
 
       <div class="pr-pick">
         <span class="lab">LAW</span>
@@ -427,7 +417,6 @@
     </div>
   </main>
 
-<script src="exam-laws.js?v=1"></script>
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
 const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
@@ -470,41 +459,19 @@ if(isFree){
   }catch(e){}
 })();
 
-let _lawsCache = null;
-function _repopulateLaws(){
-  const sel = document.getElementById('lawSelect');
-  sel.querySelectorAll('[data-law-opt]').forEach(o => o.remove());
-  if(!_lawsCache || !_lawsCache.length) return;
-  if(uid){
-    const sep = document.createElement('option');
-    sep.disabled = true; sep.textContent = '──────'; sep.dataset.lawOpt = '1';
-    sel.appendChild(sep);
-  }
-  examFilterLaws(_lawsCache).forEach(l => {
-    const o = document.createElement('option');
-    o.value = l.name; o.textContent = l.name; o.dataset.lawOpt = '1';
-    sel.appendChild(o);
-  });
-  if(sel.value && !Array.from(sel.options).find(o => o.value === sel.value)) sel.value = '';
-}
 (async()=>{
   const sel = document.getElementById('lawSelect');
+  // Special filters
   if(uid){
     [['__starred__','★ 重點法條'],['__bookmarks__','♥ 我的收藏'],['__mastered__','✓ 已熟記'],['__review__','⏰ 待複習']].forEach(([v,t])=>{
       const o=document.createElement('option');o.value=v;o.textContent=t;sel.appendChild(o);
     });
+    const sep=document.createElement('option');sep.disabled=true;sep.textContent='──────';sel.appendChild(sep);
   }
   try {
     const d = await fetch(`${API}/api/laws`).then(r=>r.json());
-    _lawsCache = d.laws || [];
-    _repopulateLaws();
+    (d.laws||[]).forEach(l=>{ const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o); });
   } catch{}
-  const examSel = document.getElementById('examSelect');
-  examSel.value = localStorage.getItem('sofa_exam_filter') || 'all';
-  examSel.addEventListener('change', function(){
-    localStorage.setItem('sofa_exam_filter', this.value);
-    _repopulateLaws();
-  });
 })();
 
 // ── 條號選單：選法規後填入 datalist ────────────────────────────

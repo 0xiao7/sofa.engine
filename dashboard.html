@@ -613,7 +613,6 @@
   .select-field .car{color:var(--peach);font-family:var(--mono);font-size:11px}
 
   .chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
-  .exam-chip-bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
   .chip{
     padding:7px 16px;border-radius:100px;
     font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;
@@ -969,11 +968,8 @@
   .acc-item.locked .acc-head .ttl::after{content:" 🔒";font-size:12px;opacity:.7}
   .acc-locked-body{padding:6px 22px 18px 28px}
   .acc-locked-lead{font-size:13.5px;line-height:1.8;color:rgba(31,56,72,.6);margin-bottom:10px}
-  .acc-locked-blur{position:relative;overflow:hidden;margin-bottom:10px}
-  .acc-locked-blur .sk{height:10px;border-radius:3px;background:rgba(31,56,72,.13);margin-bottom:9px}
-  .acc-locked-blur .sk:nth-child(1){width:92%}
-  .acc-locked-blur .sk:nth-child(2){width:76%}
-  .acc-locked-blur::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(245,240,234,.04),var(--cream) 92%)}
+  .acc-locked-blur{position:relative;overflow:hidden;margin-bottom:10px;max-height:88px;padding:0 22px 0 28px;font-size:13.5px;line-height:1.8;color:rgba(31,56,72,.72)}
+  .acc-locked-blur::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(245,240,234,.0) 20%,var(--cream) 85%);pointer-events:none}
   .acc-locked-cta{display:flex;align-items:center;justify-content:center;gap:10px;padding:11px 16px;background:rgba(231,187,167,.1);border:1px dashed rgba(231,187,167,.4);border-radius:5px;font-size:12.5px;color:rgba(31,56,72,.72)}
   .acc-locked-cta a{font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--peach-3);text-decoration:none;padding:5px 12px;border:1px solid var(--peach-dim);border-radius:3px;white-space:nowrap;transition:.18s}
   .acc-locked-cta a:hover{background:var(--peach-dim);color:var(--navy)}
@@ -1134,7 +1130,6 @@
         坐下來，<br/>一條一條來。
         <div style="margin-top:14px"><b>2,000+ 條 · 33 部</b></div>
         <div style="margin-top:18px;display:flex;flex-direction:column;gap:6px;border-top:1px solid rgba(245,240,234,.08);padding-top:16px;">
-          <a href="law-monitor.html" style="font-family:var(--mono);font-size:11px;color:rgba(231,187,167,.45);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(231,187,167,.85)'" onmouseout="this.style.color='rgba(231,187,167,.45)'">法規更新查核 →</a>
           <a href="terms.html" style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.35);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(245,240,234,.7)'" onmouseout="this.style.color='rgba(245,240,234,.35)'">服務聲明 / 退費政策 →</a>
           <a href="mailto:hi@sofaengine.org" style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.35);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(245,240,234,.7)'" onmouseout="this.style.color='rgba(245,240,234,.35)'">hi@sofaengine.org</a>
           <span style="font-family:var(--mono);font-size:10px;color:rgba(245,240,234,.18);letter-spacing:.06em;margin-top:4px">v3.1.0 · 2026.05</span>
@@ -1278,11 +1273,6 @@
             <div class="r"><span class="eb">2,000+ 條 · 33 部</span></div>
           </div>
 
-          <div class="exam-chip-bar" id="exam-bar-03">
-            <button class="chip on" id="exa-03-all" onclick="setExamFilter('all')">全部</button>
-            <button class="chip" id="exa-03-cpa" onclick="setExamFilter('cpa')">記帳士</button>
-            <button class="chip" id="exa-03-land" onclick="setExamFilter('land')">地政士</button>
-          </div>
           <div class="search-card">
             <div class="search-row">
               <div class="field" style="position:relative;overflow:visible">
@@ -1423,14 +1413,9 @@
               <span class="idx">08</span>
               <h2>法規目錄</h2>
             </div>
-            <div class="r"><span class="laws-count" id="laws-toc-header-count">共 <b>33</b> 部 · <b>2,000+</b> 條</span></div>
+            <div class="r"><span class="laws-count">共 <b>33</b> 部 · <b>2,000+</b> 條</span></div>
           </div>
 
-          <div class="exam-chip-bar" id="exam-bar-08">
-            <button class="chip on" id="exa-08-all" onclick="setExamFilter('all')">全部</button>
-            <button class="chip" id="exa-08-cpa" onclick="setExamFilter('cpa')">記帳士</button>
-            <button class="chip" id="exa-08-land" onclick="setExamFilter('land')">地政士</button>
-          </div>
           <div class="laws-head">
             <div class="laws-search">
               <span style="color:rgba(245,240,234,.45);font-family:var(--mono)">⌕</span>
@@ -1649,11 +1634,14 @@ function _renderDrawer(d){
     var text = (d.sections || {})[name] || '';
     var locked = planFree && seg >= 5;
     if(locked){
+      var blurContent = text
+        ? '<div class="acc-locked-blur">'+formatSection(text)+'</div>'
+        : '<div class="acc-locked-blur" style="padding:0 22px 0 28px"><div style="height:10px;border-radius:3px;background:rgba(31,56,72,.13);margin-bottom:9px;width:92%"></div><div style="height:10px;border-radius:3px;background:rgba(31,56,72,.13);margin-bottom:9px;width:76%"></div></div>';
       accHtml += '<div class="acc-item locked" data-seg="'+seg+'">'
         + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span><span class="ttl">'+name+'</span></div>'
         + '<div class="acc-locked-body">'
-        + '<div class="acc-locked-lead">'+(LEADS[seg]||'')+'</div>'
-        + '<div class="acc-locked-blur"><div class="sk"></div><div class="sk"></div></div>'
+        + (!text ? '<div class="acc-locked-lead">'+(LEADS[seg]||'')+'</div>' : '')
+        + blurContent
         + '<div class="acc-locked-cta">🔒 升級解鎖完整內容<a href="checkout.html">查看方案 →</a></div>'
         + '</div></div>';
     } else if(text){
@@ -2214,48 +2202,6 @@ var _lawsPage   = 0;
 var _lawsPerPg  = 12;
 var _curChip    = 'all';
 var _curLawName = '';
-
-// 考科篩選（純前端，localStorage 記憶）
-var _examFilter = (function(){
-  try{ return localStorage.getItem('sofa_exam_filter') || 'all'; }catch(e){ return 'all'; }
-})();
-var _examCpaSet  = null;
-var _examLandSet = null;
-
-function _initExamSets(){
-  if(_examCpaSet) return;
-  _examCpaSet  = (typeof NODES !== 'undefined' && NODES['n72']) ? new Set(NODES['n72'].laws) : new Set();
-  _examLandSet = (typeof NODES !== 'undefined' && NODES['n74']) ? new Set(NODES['n74'].laws) : new Set();
-}
-
-function _getExamFilteredLaws(){
-  _initExamSets();
-  if(_examFilter === 'cpa')  return _allLaws.filter(function(l){ return _examCpaSet.has(l.name); });
-  if(_examFilter === 'land') return _allLaws.filter(function(l){ return _examLandSet.has(l.name); });
-  return _allLaws;
-}
-
-function setExamFilter(val){
-  _examFilter = val;
-  try{ localStorage.setItem('sofa_exam_filter', val); }catch(e){}
-  ['all','cpa','land'].forEach(function(k){
-    ['03','08'].forEach(function(sec){
-      var btn = document.getElementById('exa-'+sec+'-'+k);
-      if(btn) btn.classList.toggle('on', k === val);
-    });
-  });
-  _renderLawsToc(0);
-  _renderLawDD((document.getElementById('search-law')||{}).value||'');
-  // 更新 Section 08 header 計數
-  var hdr = document.getElementById('laws-toc-header-count');
-  if(hdr){
-    var n = _getExamFilteredLaws().length;
-    var label = val === 'cpa' ? '記帳士' : val === 'land' ? '地政士' : '';
-    hdr.innerHTML = label
-      ? '共 <b>'+n+'</b> 部（'+label+'）'
-      : '共 <b>33</b> 部 · <b>2,000+</b> 條';
-  }
-}
 // 搜尋結果分頁
 var _srArts  = [];
 var _srLaw   = '';
@@ -2298,10 +2244,9 @@ function _srGoto(p){
 function _renderLawsToc(page){
   _lawsPage = page || 0;
   var filter = ((document.getElementById('laws-filter-inp')||{}).value||'').trim();
-  var examLaws = _getExamFilteredLaws();
   var list = filter
-    ? examLaws.filter(function(l){ return (l.name||'').indexOf(filter) !== -1; })
-    : examLaws;
+    ? _allLaws.filter(function(l){ return (l.name||'').indexOf(filter) !== -1; })
+    : _allLaws;
   var total = list.length;
   var totalPg = Math.max(1, Math.ceil(total / _lawsPerPg));
   if(_lawsPage >= totalPg) _lawsPage = totalPg - 1;
@@ -2315,14 +2260,6 @@ function _renderLawsToc(page){
   if(label) label.innerHTML = total
     ? '顯示 <b>' + (start+1) + '–' + (start+slice.length) + '</b> / ' + total
     : '找不到符合的法規';
-  // 同步 header 計數
-  var hdrCount = document.getElementById('laws-toc-header-count');
-  if(hdrCount && _examFilter !== 'all'){
-    var examLabel = _examFilter === 'cpa' ? '記帳士' : '地政士';
-    hdrCount.innerHTML = '共 <b>' + examLaws.length + '</b> 部（' + examLabel + '）';
-  } else if(hdrCount && _allLaws.length) {
-    hdrCount.innerHTML = '共 <b>33</b> 部 · <b>2,000+</b> 條';
-  }
 
   if(tocEl){
     if(!slice.length){
@@ -2488,10 +2425,9 @@ function setChip(btn, key){
 function _renderLawDD(filter){
   var dd = document.getElementById('law-dropdown');
   if(!dd) return;
-  var examLaws = _getExamFilteredLaws();
   var hits = filter
-    ? examLaws.filter(function(l){ return (l.name||'').indexOf(filter) !== -1; })
-    : examLaws.slice();
+    ? _allLaws.filter(function(l){ return (l.name||'').indexOf(filter) !== -1; })
+    : _allLaws.slice();
   hits = hits.slice(0, 50);  // 上限 50 筆，避免一次 render 49 部太重
   if(!hits.length){ dd.style.display = 'none'; return; }
   dd.innerHTML = hits.map(function(l){
@@ -2738,16 +2674,6 @@ function switchToFree(){
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
   else init();
-})();
-// 從 localStorage 同步考科篩選 chip 按鈕狀態
-(function(){
-  var ef = _examFilter;
-  ['all','cpa','land'].forEach(function(k){
-    ['03','08'].forEach(function(sec){
-      var btn = document.getElementById('exa-'+sec+'-'+k);
-      if(btn) btn.classList.toggle('on', k === ef);
-    });
-  });
 })();
 </script>
 </body>
