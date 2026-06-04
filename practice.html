@@ -234,11 +234,11 @@
   .sec-text .sec-h:first-child{margin-top:0}
   .sec-text .sec-i{position:relative;padding-left:18px;margin:3px 0}
   .sec-text .sec-i::before{content:'◦';position:absolute;left:4px;top:-.04em;color:var(--peach-3);font-weight:700}
-  .sec-lock{margin-top:16px;position:relative;border-radius:3px;overflow:hidden}
-  .sec-lock-inner{padding:12px 0;border-top:1px dashed rgba(31,56,72,.15);filter:blur(4px);user-select:none;pointer-events:none}
-  .sec-lock-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(245,240,234,.92);backdrop-filter:blur(2px)}
-  .sec-lock-overlay p{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:rgba(27,43,75,.8);text-transform:uppercase;font-weight:600;margin:0}
-  .sec-lock-overlay a{display:inline-block;padding:7px 20px;background:var(--peach);color:var(--navy);font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;border-radius:2px;text-decoration:none}
+  .sec-lock{margin-top:16px;border-top:1px dashed rgba(31,56,72,.15)}
+  .sec-lock-preview{position:relative;max-height:80px;overflow:hidden;padding:10px 0 0;pointer-events:none;user-select:none;font-size:13.5px;line-height:1.8;color:rgba(31,56,72,.72)}
+  .sec-lock-preview::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(245,240,234,0) 15%,var(--cream) 82%);pointer-events:none}
+  .sec-lock-cta{display:flex;align-items:center;justify-content:center;gap:10px;padding:10px 0 4px;font-size:12.5px;color:rgba(31,56,72,.6)}
+  .sec-lock-cta a{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--peach);text-decoration:none;padding:5px 14px;border:1px solid rgba(213,154,120,.4);border-radius:2px;white-space:nowrap}
 
   /* === RWD === */
   @media (max-width:1100px){
@@ -556,7 +556,14 @@ const ti = document.getElementById('ti');
 const ghost = document.getElementById('ghost');
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-const _FREE_SECS=['規範意旨與條文解析','條文解析','考點整理','記憶技巧','相關條文'];
+const _FREE_SECS=[
+  '章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示','核心摘要與記憶策略',
+  '條文解析','考點整理','記憶技巧','相關條文'
+];
+const _LOCKED_SECS=[
+  {name:'修法與聯覺備註',  label:'修法與聯覺備註'},
+  {name:'相關法規及注意事項',label:'相關法規及注意事項'}
+];
 function formatSection(text){
   if(!text) return '';
   var lines=String(text).replace(/\r\n?/g,'\n').split('\n'),out='';
@@ -584,9 +591,14 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
     if(beforeEl)wrapEl.insertBefore(d,beforeEl);else wrapEl.appendChild(d);
   });
   if(!isPaid){
-    const lk=document.createElement('div');lk.className='sec-lock';
-    lk.innerHTML='<div class="sec-lock-inner"><div class="sec-label">修法與聯覺備註</div><div class="sec-text">本條文近期修法重點與考試常見出題方向完整分析，含記憶技巧與易混淆比較⋯⋯</div></div><div class="sec-lock-overlay"><p>🔒 付費版完整考情分析</p><a href="checkout.html">升級解鎖 修法備註 · 實務應用 · 常見錯誤 →</a></div>';
-    if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
+    _LOCKED_SECS.forEach(({name,label})=>{
+      const lk=document.createElement('div');lk.className='sec-lock';
+      const preview=sections[name]||'';
+      lk.innerHTML='<div class="sec-label">'+label+'</div>'
+        +'<div class="sec-lock-preview">'+(preview?formatSection(preview):'')+'</div>'
+        +'<div class="sec-lock-cta">🔒 升級解鎖完整內容 <a href="checkout.html">查看方案 →</a></div>';
+      if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
+    });
   }
 }
 let articleSections={}, articlePlan='free';
