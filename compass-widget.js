@@ -6,7 +6,7 @@
 (function() {
   'use strict';
 
-  let plannerSelected = ['n74'];  // 預載地政士 (預設, mount 時可用 options.initialChips 蓋掉)
+  let plannerSelected = [];  // 預設空白，等使用者自行選擇
 
   // 7 篇上線週公告 target slug → NODE ID (跟 index.html PROFILES 同源)
   const TARGET_TO_NODE = {
@@ -48,6 +48,7 @@
     // ===== Sentence: 我的證照: [chip][chip] [+] =====
     let parts = ['<span class="planner-fixed">我的證照：</span>'];
     if (plannerSelected.length === 0) {
+      parts.push('<span class="planner-hint">請點選你的目標證照</span>');
       parts.push('<button class="planner-plus" data-cw-action="add" type="button" title="加一張證照">+</button>');
     } else {
       plannerSelected.forEach(nid => {
