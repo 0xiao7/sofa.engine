@@ -640,7 +640,7 @@ body {
   <div class="auth-hero">
     <div class="eb"><span class="pulse"></span>BACK FOR ANOTHER ARTICLE</div>
     <h1>坐下來，<br/><em>一條一條</em>來。</h1>
-    <p>良心不安的時候，打開來看一條。2,000+ 條法規、33 部法典——你決定步調，我們陪你把它讀完。</p>
+    <p>良心不安的時候，打開來看一條。28,000+ 條文、404 部法規——你決定步調，我們陪你把它讀完。</p>
 
     <div class="auth-quote">「今天讀十條很好。
 讀一條也算數，有進度就很好。」
@@ -649,8 +649,8 @@ body {
 
   <div class="auth-foot">
     <div class="auth-stats">
-      <div class="s"><div class="v">14,000+</div><div class="k">ARTICLES</div></div>
-      <div class="s"><div class="v">145</div><div class="k">STATUTES</div></div>
+      <div class="s"><div class="v">28,000+</div><div class="k">ARTICLES</div></div>
+      <div class="s"><div class="v">404</div><div class="k">STATUTES</div></div>
       <div class="s"><div class="v" id="auth-exam-days">—</div><div class="k">UNTIL EXAM</div></div>
     </div>
     <div class="auth-foot-copy">© 2026<br/>SOFA ENGINE</div>
@@ -796,13 +796,12 @@ async function doLogin() {
   errEl.classList.remove('show');
 
   if (raw.length < 8) {
-    hintEl.textContent = '請輸入完整序號';
-    hintEl.classList.add('err');
+    showErr('序號不完整，請確認後再試');
     shakeField();
     serialEl.focus();
     return;
   }
-  // SOFA-T-XXXXXXXX 格式：T 開頭 + 8碼
+  // SOFA-T-XXXXXXXX 格式：T 開頭 + 9碼
   // SOFA-XXXX-XXXX 格式：8碼
   let serial;
   if (raw.startsWith('T') && raw.length === 9) {
@@ -810,8 +809,7 @@ async function doLogin() {
   } else if (raw.length === 8) {
     serial = 'SOFA-' + raw.slice(0, 4) + '-' + raw.slice(4, 8);
   } else {
-    hintEl.textContent = '序號格式不符，請確認後再試';
-    hintEl.classList.add('err');
+    showErr('序號格式不符，請重新確認');
     shakeField();
     serialEl.focus();
     return;
