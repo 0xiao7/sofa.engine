@@ -2165,8 +2165,30 @@ document.querySelectorAll('.qa').forEach(function(qa){
     set('.stats-strip .item:nth-child(2) .k', el => el.textContent = p.name + ' 整套法規');
   }
 
-  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', apply);
-  else apply();
+  function initExamBar() {
+    const target = new URLSearchParams(window.location.search).get('target');
+    if (target) return; // apply() 已處理
+    const now = Date.now();
+    let nearest = null, nearestMs = Infinity;
+    Object.values(PROFILES).forEach(p => {
+      if (!p.examDate) return;
+      const t = new Date(p.examDate.iso + 'T00:00:00+08:00').getTime();
+      if (t > now && t < nearestMs) { nearestMs = t; nearest = p; }
+    });
+    if (!nearest) return;
+    const bar = document.getElementById('exam-bar');
+    const label = document.getElementById('exam-bar-label');
+    const daysEl = document.getElementById('exam-days');
+    if (bar && label) {
+      label.textContent = nearest.examDate.display;
+      const d = Math.ceil((nearestMs - now) / 86400000);
+      if (daysEl && d > 0) daysEl.textContent = '距今 ' + d + ' 天';
+      bar.style.display = '';
+    }
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', function(){ apply(); initExamBar(); });
+  else { apply(); initExamBar(); }
 })();
 </script>
 </body></html>
