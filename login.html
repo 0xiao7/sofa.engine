@@ -691,10 +691,10 @@ body {
 
       <div class="serial-wrap">
         <span class="serial-prefix">SOFA-</span>
-        <input id="serial" type="text" placeholder="XXXX-XXXX" maxlength="9"
+        <input id="serial" type="text" placeholder="XXXX-XXXX 或 T-XXXXXXXX" maxlength="11"
           autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text">
       </div>
-      <div class="hint" id="hint">序號格式 SOFA-XXXX-XXXX · 8 位英數</div>
+      <div class="hint" id="hint">序號格式 SOFA-XXXX-XXXX 或 SOFA-T-XXXXXXXX</div>
     </div>
     </div>
 
@@ -788,13 +788,26 @@ async function doLogin() {
   errEl.classList.remove('show');
 
   if (raw.length < 8) {
-    hintEl.textContent = '請輸入完整的 8 位序號';
+    hintEl.textContent = '請輸入完整序號';
     hintEl.classList.add('err');
     shakeField();
     serialEl.focus();
     return;
   }
-  const serial = 'SOFA-' + raw.slice(0, 4) + '-' + raw.slice(4, 8);
+  // SOFA-T-XXXXXXXX 格式：T 開頭 + 8碼
+  // SOFA-XXXX-XXXX 格式：8碼
+  let serial;
+  if (raw.startsWith('T') && raw.length === 9) {
+    serial = 'SOFA-T-' + raw.slice(1);
+  } else if (raw.length === 8) {
+    serial = 'SOFA-' + raw.slice(0, 4) + '-' + raw.slice(4, 8);
+  } else {
+    hintEl.textContent = '序號格式不符，請確認後再試';
+    hintEl.classList.add('err');
+    shakeField();
+    serialEl.focus();
+    return;
+  }
 
   const original = btn.innerHTML;
   btn.disabled = true;
