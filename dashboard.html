@@ -2216,18 +2216,26 @@ function saveNickname(){
   ];
   const PICK_KEY = 'sofa.dash.exam.pick';
 
-  function loadIdx(){
-    try{
-      const k = localStorage.getItem(PICK_KEY);
-      if(k){ const i = EXAMS.findIndex(e=>e.key===k); if(i>=0) return i; }
-    }catch(e){}
+  function _nextFutureIdx(){
     const now = Date.now();
     const future = EXAMS.filter(e => new Date(e.date+'T00:00:00+08:00') > now);
-    if(future.length){
-      const next = future.reduce((a,b)=>new Date(a.date)<new Date(b.date)?a:b);
-      return EXAMS.indexOf(next);
-    }
-    return 0;
+    if(!future.length) return 0;
+    const next = future.reduce((a,b)=>new Date(a.date)<new Date(b.date)?a:b);
+    return EXAMS.indexOf(next);
+  }
+
+  function loadIdx(){
+    const now = Date.now();
+    try{
+      const k = localStorage.getItem(PICK_KEY);
+      if(k){
+        const i = EXAMS.findIndex(e=>e.key===k);
+        // 儲存的考科還沒過就用，過了就跳下一個
+        if(i>=0 && new Date(EXAMS[i].date+'T00:00:00+08:00') > now) return i;
+        try{ localStorage.removeItem(PICK_KEY); }catch(e){}
+      }
+    }catch(e){}
+    return _nextFutureIdx();
   }
 
   let _idx = loadIdx();
@@ -2236,6 +2244,11 @@ function saveNickname(){
   function calcDays(){ return Math.max(Math.ceil((examDate()-Date.now())/86400000),0); }
 
   function renderExam(){
+    // 倒數歸零後自動跳下一個
+    if(examDate() <= Date.now()){
+      const ni = _nextFutureIdx();
+      if(ni !== _idx){ _idx = ni; try{ localStorage.removeItem(PICK_KEY); }catch(e){} }
+    }
     const e = EXAMS[_idx];
     const nameEl = document.getElementById('cd-exam-name');
     const dateEl = document.getElementById('cd-exam-date');
