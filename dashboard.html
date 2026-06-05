@@ -1533,7 +1533,10 @@ function openDrawer(pageId, lawName, article){
   fetch(API + '/api/article/' + encodeURIComponent(pageId), {
     headers: headers
   }).then(function(r){ return r.ok ? r.json() : null; })
-    .then(function(d){ _renderDrawer(d); })
+    .then(function(d){
+      if(d && window.P) P.cache[pageId] = d;
+      _renderDrawer(d);
+    })
     .catch(function(){ _renderDrawerFallback(lawName, article); });
 }
 
@@ -2889,7 +2892,11 @@ function _playIdx(i){
       _speak(d?_extractText(d):(q.lawName+' §'+q.article), function(){ _playIdx(i+1); });
       _updateUI();
     })
-    .catch(function(){ _speak(q.lawName+' §'+q.article, function(){ _playIdx(i+1); }); });
+    .catch(function(){
+      if(!q.artTitle) q.artTitle = q.lawName+' §'+q.article;
+      _updateUI();
+      _speak(q.lawName+' §'+q.article, function(){ _playIdx(i+1); });
+    });
 }
 
 // Public
