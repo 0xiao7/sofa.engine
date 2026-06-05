@@ -1672,6 +1672,7 @@ function _renderDrawer(d){
     + '<button class="dr-chip" onclick="drToggleBookmark(this)"><span>☆</span>收藏</button>'
     + '<button class="dr-chip" onclick="drToggleMastered(this)"><span>○</span>已熟記</button>'
     + '<button class="dr-chip" onclick="drShowReviewPicker()"><span>⊙</span>待複習</button>'
+    + '<button class="dr-chip" onclick="playerPlayFrom(\''+esc(_drPageId)+'\',\''+esc(_drLawName)+'\',\''+esc(_drArticle)+'\')" style="color:#E7BBA7"><span>▶</span>快聽</button>'
     + '</div>'
     + origHtml
     + accHtml;
@@ -2673,6 +2674,237 @@ function switchToFree(){
   }
   window.location.href='/';
 }
+</script>
+
+<!-- ── SoFa Mini Player ──────────────────────────────────────── -->
+<style>
+#sofa-player{
+  position:fixed;bottom:0;left:0;right:0;z-index:9000;
+  font-family:var(--sans,sans-serif);
+}
+#player-bar{
+  display:flex;align-items:center;gap:12px;
+  background:#1A2B38;border-top:1px solid rgba(231,187,167,.2);
+  padding:0 16px;height:60px;
+}
+#player-info{flex:1;min-width:0;}
+#player-law{font-size:.7rem;color:#E7BBA7;letter-spacing:.12em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#player-title{font-size:.85rem;color:#F5F0EA;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+#player-controls{display:flex;gap:6px;flex-shrink:0;}
+#player-controls button{
+  background:none;border:none;color:#F5F0EA;cursor:pointer;
+  font-size:1.1rem;padding:6px 8px;border-radius:6px;
+  transition:background .15s;
+}
+#player-controls button:hover{background:rgba(245,240,234,.1);}
+#player-toggle{font-size:1.4rem !important;color:#E7BBA7 !important;}
+#player-right{display:flex;align-items:center;gap:8px;flex-shrink:0;}
+#player-rate{
+  background:rgba(245,240,234,.08);border:1px solid rgba(245,240,234,.15);
+  color:#F5F0EA;border-radius:6px;padding:4px 6px;font-size:.75rem;cursor:pointer;
+}
+#player-list-btn{
+  background:none;border:none;color:#E7BBA7;cursor:pointer;
+  font-size:1.1rem;padding:6px 8px;border-radius:6px;transition:background .15s;
+}
+#player-list-btn:hover{background:rgba(245,240,234,.1);}
+#player-list-btn.active{color:#F5F0EA;background:rgba(231,187,167,.15);}
+#player-queue{
+  background:#162230;border-top:1px solid rgba(231,187,167,.15);
+  max-height:260px;overflow-y:auto;
+}
+.pq-item{
+  display:flex;align-items:center;gap:10px;
+  padding:10px 16px;cursor:pointer;border-bottom:1px solid rgba(245,240,234,.05);
+  transition:background .12s;
+}
+.pq-item:hover{background:rgba(245,240,234,.06);}
+.pq-item.active{background:rgba(231,187,167,.12);}
+.pq-num{font-size:.7rem;color:#E7BBA7;min-width:32px;font-family:monospace;}
+.pq-law{font-size:.75rem;color:#E7BBA7;margin-right:4px;}
+.pq-art{font-size:.85rem;color:#F5F0EA;}
+.pq-playing{font-size:.7rem;color:#E7BBA7;margin-left:auto;}
+</style>
+
+<div id="sofa-player" style="display:none">
+  <div id="player-queue" style="display:none"></div>
+  <div id="player-bar">
+    <div id="player-info">
+      <div id="player-law">SoFa · 快聽模式</div>
+      <div id="player-title">——</div>
+    </div>
+    <div id="player-controls">
+      <button onclick="_pPrev()" title="上一條">⏮</button>
+      <button id="player-toggle" onclick="_pToggle()">▶</button>
+      <button onclick="_pNext()" title="下一條">⏭</button>
+    </div>
+    <div id="player-right">
+      <select id="player-rate" onchange="_pSetRate(this.value)">
+        <option value="0.8">0.8x</option>
+        <option value="1" selected>1x</option>
+        <option value="1.25">1.25x</option>
+        <option value="1.5">1.5x</option>
+      </select>
+      <button id="player-list-btn" onclick="_pToggleList()" title="播放清單">☰</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+var P = {
+  queue: [],   // [{pageId, lawName, article, artTitle}]
+  idx: -1,
+  playing: false,
+  rate: 1.0,
+  cache: {},   // pageId -> article data
+  utt: null
+};
+
+function _authH(){
+  var t = localStorage.getItem('sofa_token') || '';
+  var u = localStorage.getItem('sofa_uid') || '';
+  var h = {'Content-Type':'application/json'};
+  if(t) h['X-Magic-Token'] = t;
+  if(u) h['X-User-Id'] = u;
+  return h;
+}
+
+function _extractText(d){
+  var law = d.law_name || '';
+  var rawTitle = d.title || '';
+  var artNum = rawTitle.match(/([\d之]+)/)?.[1] || '';
+  var artTitle = rawTitle.replace(/第[\d之]+條\s*/,'').replace(/^§[\d之]+\s*[|｜]\s*/,'').trim();
+  var sec4 = (d.sections||{})['核心摘要與記憶策略'] || '';
+  var sec3 = (d.sections||{})['執業要點與考情提示'] || '';
+
+  var mnemo = '';
+  var mm = sec4.match(/專業口訣[：:][^\S\n]*([^\n\[（(]+)/);
+  if(mm) mnemo = mm[1].trim().replace(/\[.*?\]/g,'').replace(/（.*?）/g,'').trim();
+
+  var trap = '';
+  var tm = sec3.match(/陷阱[一二三1-3]?[：:][^\S\n]*([^\n◦•]{6,60})/);
+  if(tm) trap = tm[1].trim().replace(/[◦•]/g,'').trim();
+
+  var txt = law + '，第' + artNum + '條，' + artTitle + '。';
+  if(mnemo) txt += '口訣：' + mnemo + '。';
+  if(trap)  txt += '考點：' + trap  + '。';
+  return txt;
+}
+
+function _updateUI(){
+  var bar = document.getElementById('sofa-player');
+  if(!bar) return;
+  bar.style.display = P.queue.length ? '' : 'none';
+  var btn = document.getElementById('player-toggle');
+  if(btn) btn.textContent = P.playing ? '⏸' : '▶';
+  var q = P.queue[P.idx];
+  if(q){
+    document.getElementById('player-law').textContent =
+      (q.lawName||'') + ' §' + (q.article||'');
+    document.getElementById('player-title').textContent = q.artTitle || '——';
+  }
+  _renderQueue();
+}
+
+function _renderQueue(){
+  var el = document.getElementById('player-queue');
+  if(!el || el.style.display==='none') return;
+  var html = P.queue.map(function(q,i){
+    var cls = 'pq-item'+(i===P.idx?' active':'');
+    return '<div class="'+cls+'" onclick="_pJump('+i+')">'
+      +'<span class="pq-num">'+(i+1)+'</span>'
+      +'<span class="pq-law">'+esc(q.lawName||'')+'</span>'
+      +'<span class="pq-art">§'+esc(q.article||'')+(q.artTitle?' · '+esc(q.artTitle):'')+'</span>'
+      +(i===P.idx?'<span class="pq-playing">▶ 播放中</span>':'')
+      +'</div>';
+  }).join('');
+  el.innerHTML = html || '<div style="padding:16px;color:rgba(245,240,234,.4);font-size:.85rem;text-align:center">清單為空</div>';
+}
+
+function _speak(text, onEnd){
+  if(!window.speechSynthesis){ onEnd && onEnd(); return; }
+  window.speechSynthesis.cancel();
+  var utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'zh-TW';
+  utt.rate = P.rate;
+  utt.onend = function(){ onEnd && onEnd(); };
+  utt.onerror = function(){ onEnd && onEnd(); };
+  P.utt = utt;
+  window.speechSynthesis.speak(utt);
+}
+
+function _playIdx(i){
+  if(i < 0 || i >= P.queue.length){ P.playing=false; _updateUI(); return; }
+  P.idx = i;
+  P.playing = true;
+  _updateUI();
+  var q = P.queue[i];
+  if(!q.pageId){ _speak(q.lawName+' §'+q.article, function(){ _playIdx(i+1); }); return; }
+  if(P.cache[q.pageId]){
+    _speak(_extractText(P.cache[q.pageId]), function(){ _playIdx(i+1); });
+    return;
+  }
+  fetch((window.API||'') + '/api/article/'+encodeURIComponent(q.pageId), {headers:_authH()})
+    .then(function(r){ return r.ok?r.json():null; })
+    .then(function(d){
+      if(d){ P.cache[q.pageId]=d; if(d.title){ q.artTitle=(d.title||'').replace(/第[\d之]+條\s*/,'').replace(/^§[\d之]+\s*[|｜]\s*/,'').trim(); } }
+      _speak(d?_extractText(d):(q.lawName+' §'+q.article), function(){ _playIdx(i+1); });
+      _updateUI();
+    })
+    .catch(function(){ _speak(q.lawName+' §'+q.article, function(){ _playIdx(i+1); }); });
+}
+
+// Public
+window._pToggle = function(){
+  if(P.playing){ window.speechSynthesis && window.speechSynthesis.cancel(); P.playing=false; _updateUI(); }
+  else { if(P.idx<0) P.idx=0; _playIdx(P.idx); }
+};
+window._pNext = function(){ window.speechSynthesis && window.speechSynthesis.cancel(); _playIdx(P.idx+1); };
+window._pPrev = function(){ window.speechSynthesis && window.speechSynthesis.cancel(); _playIdx(Math.max(0,P.idx-1)); };
+window._pJump = function(i){ window.speechSynthesis && window.speechSynthesis.cancel(); _playIdx(i); };
+window._pSetRate = function(v){ P.rate=parseFloat(v)||1; };
+window._pToggleList = function(){
+  var el=document.getElementById('player-queue');
+  var btn=document.getElementById('player-list-btn');
+  if(!el) return;
+  var show = el.style.display==='none';
+  el.style.display = show?'':'none';
+  btn.classList.toggle('active', show);
+  if(show) _renderQueue();
+};
+
+// 從可見的條文卡片建立播放清單
+window.buildPlayerQueue = function(){
+  var cards = Array.from(document.querySelectorAll('[onclick*="openDrawer"]'));
+  var seen = {};
+  P.queue = [];
+  cards.forEach(function(c){
+    var m = (c.getAttribute('onclick')||'').match(/openDrawer\('([^']*)','([^']*)','([^']*)'\)/);
+    if(!m) return;
+    var key = m[1]||m[2]+m[3];
+    if(seen[key]) return;
+    seen[key] = true;
+    P.queue.push({pageId:m[1], lawName:m[2], article:m[3], artTitle:''});
+  });
+  P.idx = -1;
+  P.playing = false;
+  _updateUI();
+  return P.queue.length;
+};
+
+// 快聽按鈕：從 drawer 啟動，定位到當前條文
+window.playerPlayFrom = function(pageId, lawName, article){
+  var n = buildPlayerQueue();
+  var found = -1;
+  P.queue.forEach(function(q,i){ if(q.pageId===pageId||(q.lawName===lawName&&q.article===article)) found=i; });
+  if(found<0 && n===0){ P.queue=[{pageId:pageId,lawName:lawName,article:article,artTitle:''}]; found=0; }
+  if(found<0) found=0;
+  _playIdx(found);
+};
+
+function esc(s){ return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+})();
 </script>
 
 <!-- Compass widget 載入 (放最末避免阻塞 dashboard 主流程) -->
