@@ -739,9 +739,17 @@ const btn      = document.getElementById('btn');
 const errEl    = document.getElementById('err');
 
 serialEl.addEventListener('input', function() {
-  let raw = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 8);
+  let raw = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
   if (!raw) { this.value = ''; return; }
-  this.value = raw.length > 4 ? raw.slice(0, 4) + '-' + raw.slice(4) : raw;
+  if (raw.startsWith('T') && raw.length > 4) {
+    // 試用格式 T-XXXXXXXX，最多 9 碼
+    raw = raw.slice(0, 9);
+    this.value = 'T-' + raw.slice(1);
+  } else {
+    // 付費格式 XXXX-XXXX，最多 8 碼
+    raw = raw.slice(0, 8);
+    this.value = raw.length > 4 ? raw.slice(0, 4) + '-' + raw.slice(4) : raw;
+  }
   hintEl.textContent = DEFAULT_HINT;
   hintEl.classList.remove('err');
   errEl.classList.remove('show');
