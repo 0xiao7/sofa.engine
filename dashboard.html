@@ -52,7 +52,7 @@
     border-bottom:1px solid var(--line);
     padding:18px 44px;
     display:flex;align-items:center;justify-content:space-between;
-    position:sticky;top:0;z-index:50;
+    position:sticky;top:0;z-index:101;
   }
   .brand{
     font-family:var(--mono);font-weight:500;font-size:16px;
@@ -1771,6 +1771,20 @@ function closeDrawer(){
   const uid = localStorage.getItem('sofa_uid');
   const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
   if(!uid && !isFree) { window.location.href = 'login.html'; return; }
+
+  // ?law= deep link：自動帶入法規名稱並執行搜尋
+  (function(){
+    var lawParam = new URLSearchParams(location.search).get('law');
+    if(!lawParam) return;
+    history.replaceState(null, '', location.pathname);
+    // 等 DOM 就緒後執行（searchLaw 依賴 #search-law input）
+    var trySearch = function(tries){
+      var inp = document.getElementById('search-law');
+      if(inp){ searchLaw(decodeURIComponent(lawParam)); }
+      else if(tries > 0){ setTimeout(function(){ trySearch(tries-1); }, 200); }
+    };
+    setTimeout(function(){ trySearch(10); }, 300);
+  })();
 
   const pill = document.querySelector('.user-pill');
   if(pill && isFree){
