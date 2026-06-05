@@ -2244,10 +2244,17 @@ function saveNickname(){
   function calcDays(){ return Math.max(Math.ceil((examDate()-Date.now())/86400000),0); }
 
   function renderExam(){
-    // 倒數歸零後自動跳下一個
+    // 倒數歸零後自動跳下一個，並同步 examInput 顯示
     if(examDate() <= Date.now()){
       const ni = _nextFutureIdx();
-      if(ni !== _idx){ _idx = ni; try{ localStorage.removeItem(PICK_KEY); }catch(e){} }
+      if(ni !== _idx){
+        _idx = ni;
+        try{ localStorage.removeItem(PICK_KEY); }catch(e){}
+        var examInp = document.getElementById('examInput');
+        if(examInp && typeof _EXAM_KEY_TO_NAME !== 'undefined'){
+          examInp.value = EXAMS[_idx].key === 'all' ? '' : (_EXAM_KEY_TO_NAME[EXAMS[_idx].key] || '');
+        }
+      }
     }
     const e = EXAMS[_idx];
     const nameEl = document.getElementById('cd-exam-name');
@@ -2333,6 +2340,7 @@ var _EXAM_NAME_TO_KEY = (function(){
 })();
 
 function applyExamFilter(key){
+  if(_examFilter === key) return;
   _examFilter = key;
   var inp = document.getElementById('examInput');
   if(inp) inp.value = (key === 'all') ? '' : (_EXAM_KEY_TO_NAME[key] || '');
