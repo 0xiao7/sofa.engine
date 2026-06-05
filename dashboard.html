@@ -626,16 +626,12 @@
   .chip:hover{border-color:var(--peach-dim);color:var(--cream)}
   .chip.on{background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:600}
 
-  .exam-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
-  .exam-chip{
-    padding:6px 14px;border-radius:100px;
-    font-family:var(--mono);font-size:11px;letter-spacing:.06em;
-    border:1px solid rgba(245,240,234,.16);
-    background:transparent;color:rgba(245,240,234,.5);
-    cursor:pointer;transition:.15s;white-space:nowrap;
-  }
-  .exam-chip:hover{border-color:var(--peach-dim);color:var(--cream)}
-  .exam-chip.on{background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:600}
+  .exam-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .exam-row-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(245,240,234,.4);white-space:nowrap;flex-shrink:0}
+  .exam-input-wrap{flex:1;max-width:280px}
+  #examInput{width:100%;background:var(--navy-2);border:1px solid var(--line-2);border-radius:3px;color:var(--cream);font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:6px 12px;outline:none;box-sizing:border-box}
+  #examInput::placeholder{color:rgba(245,240,234,.35)}
+  #examInput:focus{border-color:var(--peach-dim)}
 
   .sub-filter-row{display:none;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(245,240,234,.1)}
   .sub-filter-row .sf-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(245,240,234,.4);white-space:nowrap}
@@ -1294,15 +1290,22 @@
             <div class="r"><span class="eb" id="search-law-count">2,000+ 條 · 33 部</span></div>
           </div>
 
-          <div class="exam-filter" id="examFilterBar">
-            <button class="exam-chip on" onclick="setExamChip(this,'all')">全部</button>
-            <button class="exam-chip" onclick="setExamChip(this,'bookkeeper')">記帳士</button>
-            <button class="exam-chip" onclick="setExamChip(this,'landadmin')">地政士</button>
-            <button class="exam-chip" onclick="setExamChip(this,'realestate')">不動產</button>
-            <button class="exam-chip" onclick="setExamChip(this,'tax-admin')">財稅行政</button>
-            <button class="exam-chip" onclick="setExamChip(this,'tax-law')">財稅法務</button>
-            <button class="exam-chip" onclick="setExamChip(this,'elem-admin')">初等行政</button>
-            <button class="exam-chip" onclick="setExamChip(this,'post-acc')">中華郵政</button>
+          <div class="exam-row" id="examFilterBar">
+            <span class="exam-row-label">考科</span>
+            <div class="exam-input-wrap">
+              <input id="examInput" list="examDL" placeholder="全部考科（可打字篩選）" autocomplete="off"
+                     oninput="onExamInput(this.value)" onchange="onExamInput(this.value)" />
+              <datalist id="examDL">
+                <option value="全部">
+                <option value="記帳士">
+                <option value="地政士">
+                <option value="不動產">
+                <option value="財稅行政">
+                <option value="財稅法務">
+                <option value="初等行政">
+                <option value="中華郵政">
+              </datalist>
+            </div>
           </div>
 
           <div class="search-card">
@@ -1927,6 +1930,11 @@ function closeDrawer(){
       if(pill){ pill.innerHTML = '<span class="live"></span>'; pill.appendChild(document.createTextNode(name)); }
       var greetEl = document.getElementById('greet-name');
       if(greetEl) greetEl.textContent = name;
+
+      // 套用個人考科偏好
+      if(profile.exam_key && typeof applyExamFilter === 'function'){
+        applyExamFilter(profile.exam_key);
+      }
     }
 
     // ── 啟用日（從 history 最舊一筆推算）──
@@ -2241,6 +2249,15 @@ function saveNickname(){
     renderExam();
   };
 
+  window.setExamByKey = function(key){
+    var i = EXAMS.findIndex(function(e){ return e.key === key; });
+    if(i >= 0 && i !== _idx){
+      _idx = i;
+      try{ localStorage.setItem(PICK_KEY, key); }catch(e){}
+      renderExam();
+    }
+  };
+
   renderExam();
   setInterval(renderExam, 60000);
 })();
@@ -2286,25 +2303,63 @@ function _examLawSet(key){
   if(!node || !node.laws) return null;
   return new Set(node.laws);
 }
-function setExamChip(btn, key){
-  document.querySelectorAll('#examFilterBar .exam-chip').forEach(function(c){ c.classList.remove('on'); });
-  btn.classList.add('on');
+var _EXAM_KEY_TO_NAME = {
+  'all':'全部','bookkeeper':'記帳士','landadmin':'地政士',
+  'realestate':'不動產','tax-admin':'財稅行政','tax-law':'財稅法務',
+  'elem-admin':'初等行政','post-acc':'中華郵政'
+};
+var _EXAM_NAME_TO_KEY = (function(){
+  var m = {};
+  Object.keys(_EXAM_KEY_TO_NAME).forEach(function(k){ m[_EXAM_KEY_TO_NAME[k]] = k; });
+  return m;
+})();
+
+function applyExamFilter(key){
   _examFilter = key;
-  var inp = document.getElementById('search-law');
-  if(inp){
+  var inp = document.getElementById('examInput');
+  if(inp) inp.value = (key === 'all') ? '' : (_EXAM_KEY_TO_NAME[key] || '');
+  var lawInp = document.getElementById('search-law');
+  if(lawInp){
     if(key === 'all'){
-      inp.placeholder = '輸入法規名稱…';
+      lawInp.placeholder = '輸入法規名稱…';
     } else {
       var nid = _EXAM_NODE[key];
-      var label = (typeof NODES !== 'undefined' && NODES[nid]) ? NODES[nid].name : btn.textContent;
-      inp.placeholder = label + ' 相關法規…';
+      var label = (typeof NODES !== 'undefined' && NODES[nid]) ? NODES[nid].name : (_EXAM_KEY_TO_NAME[key] || '');
+      lawInp.placeholder = label + ' 相關法規…';
     }
   }
   var dd = document.getElementById('law-dropdown');
-  if(dd && dd.style.display !== 'none' && inp){
-    _renderLawDD(inp.value.trim());
+  if(dd && dd.style.display !== 'none' && lawInp){
+    _renderLawDD(lawInp.value.trim());
+  }
+  if(key !== 'all' && typeof window.setExamByKey === 'function'){
+    window.setExamByKey(key);
   }
 }
+
+var _saveExamKeyTimer = null;
+function _saveExamKey(key){
+  if(_saveExamKeyTimer) clearTimeout(_saveExamKeyTimer);
+  _saveExamKeyTimer = setTimeout(function(){
+    var uid = localStorage.getItem('sofa_uid');
+    if(!uid || key === 'all') return;
+    fetch(API + '/api/me/profile', {
+      method: 'PATCH',
+      headers: _authH({'Content-Type':'application/json'}),
+      body: JSON.stringify({exam_key: key}),
+    }).catch(function(){});
+  }, 800);
+}
+
+function onExamInput(val){
+  val = (val || '').trim();
+  var key = _EXAM_NAME_TO_KEY[val] || (val === '' ? 'all' : null);
+  if(!key) return;
+  applyExamFilter(key);
+  _saveExamKey(key);
+}
+
+function setExamChip(btn, key){ applyExamFilter(key); }
 // 搜尋結果分頁
 var _srArts  = [];
 var _srLaw   = '';
