@@ -625,6 +625,18 @@
   }
   .chip:hover{border-color:var(--peach-dim);color:var(--cream)}
   .chip.on{background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:600}
+
+  .exam-filter{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+  .exam-chip{
+    padding:6px 14px;border-radius:100px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+    border:1px solid rgba(245,240,234,.16);
+    background:transparent;color:rgba(245,240,234,.5);
+    cursor:pointer;transition:.15s;white-space:nowrap;
+  }
+  .exam-chip:hover{border-color:var(--peach-dim);color:var(--cream)}
+  .exam-chip.on{background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:600}
+
   .sub-filter-row{display:none;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(245,240,234,.1)}
   .sub-filter-row .sf-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(245,240,234,.4);white-space:nowrap}
   .sub-filter-row input[list]{background:var(--navy-2);border:1px solid var(--line-2);border-radius:3px;color:var(--cream);font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:5px 10px;outline:none;min-width:180px}
@@ -1279,7 +1291,18 @@
               <span class="idx">03</span>
               <h2>直接查法條</h2>
             </div>
-            <div class="r"><span class="eb">2,000+ 條 · 33 部</span></div>
+            <div class="r"><span class="eb" id="search-law-count">2,000+ 條 · 33 部</span></div>
+          </div>
+
+          <div class="exam-filter" id="examFilterBar">
+            <button class="exam-chip on" onclick="setExamChip(this,'all')">全部</button>
+            <button class="exam-chip" onclick="setExamChip(this,'bookkeeper')">記帳士</button>
+            <button class="exam-chip" onclick="setExamChip(this,'landadmin')">地政士</button>
+            <button class="exam-chip" onclick="setExamChip(this,'realestate')">不動產</button>
+            <button class="exam-chip" onclick="setExamChip(this,'tax-admin')">財稅行政</button>
+            <button class="exam-chip" onclick="setExamChip(this,'tax-law')">財稅法務</button>
+            <button class="exam-chip" onclick="setExamChip(this,'elem-admin')">初等行政</button>
+            <button class="exam-chip" onclick="setExamChip(this,'post-acc')">中華郵政</button>
           </div>
 
           <div class="search-card">
@@ -2250,6 +2273,38 @@ var _lawsPage   = 0;
 var _lawsPerPg  = 12;
 var _curChip    = 'all';
 var _curLawName = '';
+var _examFilter = 'all';
+var _EXAM_NODE  = {
+  bookkeeper: 'n72', landadmin: 'n74', realestate: 'n83',
+  'tax-admin': 'n79', 'tax-law': 'n43', 'elem-admin': 'n23', 'post-acc': 'n89'
+};
+function _examLawSet(key){
+  if(key === 'all') return null;
+  var nid = _EXAM_NODE[key];
+  if(!nid || typeof NODES === 'undefined') return null;
+  var node = NODES[nid];
+  if(!node || !node.laws) return null;
+  return new Set(node.laws);
+}
+function setExamChip(btn, key){
+  document.querySelectorAll('#examFilterBar .exam-chip').forEach(function(c){ c.classList.remove('on'); });
+  btn.classList.add('on');
+  _examFilter = key;
+  var inp = document.getElementById('search-law');
+  if(inp){
+    if(key === 'all'){
+      inp.placeholder = '輸入法規名稱…';
+    } else {
+      var nid = _EXAM_NODE[key];
+      var label = (typeof NODES !== 'undefined' && NODES[nid]) ? NODES[nid].name : btn.textContent;
+      inp.placeholder = label + ' 相關法規…';
+    }
+  }
+  var dd = document.getElementById('law-dropdown');
+  if(dd && dd.style.display !== 'none' && inp){
+    _renderLawDD(inp.value.trim());
+  }
+}
 // 搜尋結果分頁
 var _srArts  = [];
 var _srLaw   = '';
@@ -2352,7 +2407,18 @@ function _renderLawsToc(page){
   fetch(API + '/api/laws')
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){
-      if(d && d.laws){ _allLaws = d.laws; _renderLawsToc(0); }
+      if(d && d.laws){
+        _allLaws = d.laws;
+        _renderLawsToc(0);
+        // 動態更新法規數字標籤
+        var cnt = _allLaws.length;
+        var artTotal = d.total || 0;
+        var artLabel = artTotal >= 10000 ? Math.floor(artTotal/1000)*1000+'+ 條' : (artTotal > 0 ? artTotal+'+ 條' : '多部');
+        var el1 = document.getElementById('search-law-count');
+        if(el1) el1.textContent = artLabel + ' · ' + cnt + ' 部';
+        var el2 = document.querySelector('.laws-count');
+        if(el2) el2.innerHTML = '共 <b>' + cnt + '</b> 部';
+      }
     })
     .catch(function(){});
 })();
@@ -2473,9 +2539,11 @@ function setChip(btn, key){
 function _renderLawDD(filter){
   var dd = document.getElementById('law-dropdown');
   if(!dd) return;
+  var _examSet = _examLawSet(_examFilter);
+  var _base = _examSet ? _allLaws.filter(function(l){ return _examSet.has(l.name); }) : _allLaws;
   var hits = filter
-    ? _allLaws.filter(function(l){ return (l.name||'').indexOf(filter) !== -1; })
-    : _allLaws.slice();
+    ? _base.filter(function(l){ return (l.name||'').indexOf(filter) !== -1; })
+    : _base.slice();
   hits = hits.slice(0, 50);  // 上限 50 筆，避免一次 render 49 部太重
   if(!hits.length){ dd.style.display = 'none'; return; }
   dd.innerHTML = hits.map(function(l){
