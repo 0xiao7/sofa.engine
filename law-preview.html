@@ -214,12 +214,6 @@ a{color:inherit;text-decoration:none}
   font-size:14.5px;line-height:1.85;color:var(--cream-2);
   white-space:pre-wrap;
 }
-.section-lock{margin-bottom:32px}
-.section-lock .section-label::after{content:" 🔒";font-size:11px;opacity:.65}
-.section-lock-preview{position:relative;max-height:80px;overflow:hidden;font-size:14.5px;line-height:1.85;color:var(--cream-2);white-space:pre-wrap;pointer-events:none;user-select:none}
-.section-lock-preview::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(20,40,54,0) 15%,var(--navy-3) 85%);pointer-events:none}
-.section-lock-cta{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:10px;padding:10px 16px;font-size:12.5px;color:rgba(231,187,167,.75);background:rgba(231,187,167,.06);border:1px dashed rgba(213,154,120,.3);border-radius:4px}
-.section-lock-cta a{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--peach);text-decoration:none;padding:5px 14px;border:1px solid rgba(213,154,120,.4);border-radius:2px;white-space:nowrap}
 
 /* loading + error */
 .loading,.error{
@@ -428,32 +422,16 @@ function renderList(articles, activeId){
   });
 }
 
-const _LOCKED_SECS = new Set(['修法與聯覺備註', '相關法規及注意事項']);
-
 function renderDetail(d){
   const stars = (d.importance || '').match(/★/g)?.join('') || '';
   const chapter = d.chapter ? `<div class="detail-chapter">${d.chapter}</div>` : '';
   const sections = d.sections || {};
-  const isPaid = !(!d._plan || d._plan === 'free');
-  let sectionHtml = '';
-  Object.entries(sections).forEach(([label, body]) => {
-    if(!isPaid && _LOCKED_SECS.has(label)){
-      sectionHtml += `
-        <div class="section-lock">
-          <div class="section-label">${label}</div>
-          <div class="section-lock-preview">${escapeHtml(body || '')}</div>
-          <div class="section-lock-cta">🔒 付費解鎖完整分析 <a href="https://sofaengine.org/checkout.html">查看方案 →</a></div>
-        </div>
-      `;
-    } else {
-      sectionHtml += `
-        <div class="section">
-          <div class="section-label">${label}</div>
-          <div class="section-body">${escapeHtml(body || '')}</div>
-        </div>
-      `;
-    }
-  });
+  const sectionHtml = Object.entries(sections).map(([label, body]) => `
+    <div class="section">
+      <div class="section-label">${label}</div>
+      <div class="section-body">${escapeHtml(body || '')}</div>
+    </div>
+  `).join('');
   detail.innerHTML = `
     ${chapter}
     <h2>${escapeHtml(d.title || '')}</h2>

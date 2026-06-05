@@ -640,7 +640,7 @@ body {
   <div class="auth-hero">
     <div class="eb"><span class="pulse"></span>BACK FOR ANOTHER ARTICLE</div>
     <h1>坐下來，<br/><em>一條一條</em>來。</h1>
-    <p>良心不安的時候，打開來看一條。28,000+ 條文、404 部法規——你決定步調，我們陪你把它讀完。</p>
+    <p>良心不安的時候，打開來看一條。2,000+ 條法規、33 部法典——你決定步調，我們陪你把它讀完。</p>
 
     <div class="auth-quote">「今天讀十條很好。
 讀一條也算數，有進度就很好。」
@@ -649,8 +649,8 @@ body {
 
   <div class="auth-foot">
     <div class="auth-stats">
-      <div class="s"><div class="v">28,000+</div><div class="k">ARTICLES</div></div>
-      <div class="s"><div class="v">404</div><div class="k">STATUTES</div></div>
+      <div class="s"><div class="v">14,000+</div><div class="k">ARTICLES</div></div>
+      <div class="s"><div class="v">145</div><div class="k">STATUTES</div></div>
       <div class="s"><div class="v" id="auth-exam-days">—</div><div class="k">UNTIL EXAM</div></div>
     </div>
     <div class="auth-foot-copy">© 2026<br/>SOFA ENGINE</div>
@@ -691,10 +691,10 @@ body {
 
       <div class="serial-wrap">
         <span class="serial-prefix">SOFA-</span>
-        <input id="serial" type="text" placeholder="XXXX-XXXX 或 T-XXXXXXXX" maxlength="11"
+        <input id="serial" type="text" placeholder="XXXX-XXXX" maxlength="9"
           autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text">
       </div>
-      <div class="hint" id="hint">序號格式 SOFA-XXXX-XXXX 或 SOFA-T-XXXXXXXX</div>
+      <div class="hint" id="hint">序號格式 SOFA-XXXX-XXXX · 8 位英數</div>
     </div>
     </div>
 
@@ -739,17 +739,9 @@ const btn      = document.getElementById('btn');
 const errEl    = document.getElementById('err');
 
 serialEl.addEventListener('input', function() {
-  let raw = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  let raw = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 8);
   if (!raw) { this.value = ''; return; }
-  if (raw.startsWith('T') && raw.length > 4) {
-    // 試用格式 T-XXXXXXXX，最多 9 碼
-    raw = raw.slice(0, 9);
-    this.value = 'T-' + raw.slice(1);
-  } else {
-    // 付費格式 XXXX-XXXX，最多 8 碼
-    raw = raw.slice(0, 8);
-    this.value = raw.length > 4 ? raw.slice(0, 4) + '-' + raw.slice(4) : raw;
-  }
+  this.value = raw.length > 4 ? raw.slice(0, 4) + '-' + raw.slice(4) : raw;
   hintEl.textContent = DEFAULT_HINT;
   hintEl.classList.remove('err');
   errEl.classList.remove('show');
@@ -796,24 +788,13 @@ async function doLogin() {
   errEl.classList.remove('show');
 
   if (raw.length < 8) {
-    showErr('序號不完整，請確認後再試');
+    hintEl.textContent = '請輸入完整的 8 位序號';
+    hintEl.classList.add('err');
     shakeField();
     serialEl.focus();
     return;
   }
-  // SOFA-T-XXXXXXXX 格式：T 開頭 + 9碼
-  // SOFA-XXXX-XXXX 格式：8碼
-  let serial;
-  if (raw.startsWith('T') && raw.length === 9) {
-    serial = 'SOFA-T-' + raw.slice(1);
-  } else if (raw.length === 8) {
-    serial = 'SOFA-' + raw.slice(0, 4) + '-' + raw.slice(4, 8);
-  } else {
-    showErr('序號格式不符，請重新確認');
-    shakeField();
-    serialEl.focus();
-    return;
-  }
+  const serial = 'SOFA-' + raw.slice(0, 4) + '-' + raw.slice(4, 8);
 
   const original = btn.innerHTML;
   btn.disabled = true;

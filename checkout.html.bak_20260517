@@ -3,9 +3,6 @@
 <head>
 <meta charset="utf-8" />
 <title>SoFa Engine — 結帳</title>
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
-<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -565,12 +562,9 @@
     .ck-r .bottom{flex-direction:column;gap:10px;align-items:flex-start}
     .pay-strip{flex-direction:column;align-items:flex-start;gap:10px}
   }
-  h1,h2,h3,h4{text-wrap:balance;}
-  p{text-wrap:pretty;}
 </style>
 </head>
 <body data-screen-label="08 Checkout">
-
 
 <!-- mobile-only brand strip (left panel is hidden on phones) -->
 <header class="ck-mb-brand">
@@ -599,14 +593,15 @@
         <li><span class="ix">04</span><span><b>上榜退 30% / 分享退 40%</b>——憑榜單退款；公開分享心得加 10%。</span></li>
       </ul>
 
-      <div class=”ck-quote”>”讀不完沒關係。考試當天你只需要想起來。<br/>備考不是衝刺。是每天都還在。<br/>不記得了沒關係。記過一次，就比沒讀過好一點。”
+      <div class="ck-quote">“讀不完沒關係。考試當天你只需要想起來。<br/>備考不是衝刺。是每天都還在。<br/>不記得了沒關係。記過一次，就比沒讀過好一點。”
+<span>SOFA · MANIFESTO</span>
 </div>
     </div>
 
     <div class="ck-foot">
       <div class="ck-stats">
-        <div class="s"><div class="v">14,000<em>+</em></div><div class="k">ARTICLES</div></div>
-        <div class="s"><div class="v">145</div><div class="k">STATUTES</div></div>
+        <div class="s"><div class="v">2,000<em>+</em></div><div class="k">ARTICLES</div></div>
+        <div class="s"><div class="v">33</div><div class="k">STATUTES</div></div>
         <div class="s"><div class="v" id="ck-exam-days">—<em>d</em></div><div class="k">UNTIL EXAM</div></div>
       </div>
       <div>© 2026 · <b>SOFA ENGINE</b> · v1.3.0</div>
@@ -614,8 +609,7 @@
   </div>
 
   <!-- ============ RIGHT — checkout form ============ -->
-  <div class="ck-r" style="position:relative;">
-
+  <div class="ck-r">
 
     <div class="top">
       <span>CHECKOUT — 結帳</span>
@@ -669,7 +663,7 @@
                 <span class="name">季訂閱</span>
                 <span class="meta" id="quarterly-meta">／ 90 天</span>
                 <span class="badge save">省 NT$ 150</span>
-                <span class="badge" id="quarterly-eb" style="display:none">EARLY +45d</span>
+                <span class="badge" id="quarterly-eb" style="display:none">EARLY +15d</span>
               </div>
               <div class="desc" id="quarterly-desc">90 天無限使用，平均 <b>NT$11／日</b>。適合準備進入備考節奏的你。</div>
             </div>
@@ -802,15 +796,15 @@
     // 早鳥期間
     const daysLeft = Math.ceil((EB_END - new Date()) / 86400000);
     if (countdown) countdown.textContent = "還剩 " + daysLeft + " 天";
-    // 季費早鳥 +45天
-    if (qMeta)    qMeta.textContent  = "／ 135 天";
-    if (qDesc)    qDesc.innerHTML    = '早鳥限定：90 天 + 贈 45 天 = <b>共 135 天</b>。適合進入備考節奏的你。';
+    // 季費早鳥 +15天
+    if (qMeta)    qMeta.textContent  = "／ 105 天";
+    if (qDesc)    qDesc.innerHTML    = '早鳥限定：90 天 + 贈 15 天 = <b>共 105 天</b>。適合進入備考節奏的你。';
     if (qEbBadge) qEbBadge.style.display = "";
   })();
 
   const PLAN_TEXT = {
     "月費": isEarlyBird ? "月訂閱 · 45 天（含早鳥 +15 天）" : "月訂閱 · 30 天",
-    "季費": isEarlyBird ? "季訂閱 · 135 天（含早鳥 +45 天）" : "季訂閱 · 90 天"
+    "季費": isEarlyBird ? "季訂閱 · 105 天（含早鳥 +15 天）" : "季訂閱 · 90 天"
   };
   const DEFAULT_HINT = "請確認信箱正確，序號僅寄送一次。";
 
@@ -839,25 +833,6 @@
   });
 
   function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
-
-  // ── Query string prefill：?plan=月費&email=xxx ──────────────
-  // 從 LINE bot 帶過來的連結會自動選方案 + 預填信箱，省去重輸
-  (function prefillFromQuery(){
-    const qs = new URLSearchParams(location.search);
-    const planParam  = (qs.get("plan")  || "").trim();
-    const emailParam = (qs.get("email") || "").trim();
-    if (planParam) {
-      const target = plansEl.querySelector('.plan[data-plan="' + planParam.replace(/"/g, '') + '"]');
-      if (target && !target.classList.contains("selected")) {
-        cards.forEach(x => x.classList.remove("selected"));
-        target.classList.add("selected");
-        refreshSummary();
-      }
-    }
-    if (emailParam && isEmail(emailParam) && !emailEl.value) {
-      emailEl.value = emailParam;
-    }
-  })();
   function showError(msg){ errorEl.textContent = msg; errorEl.classList.add("show"); }
   function clearError(){ errorEl.textContent = ""; errorEl.classList.remove("show"); }
 
@@ -890,14 +865,14 @@
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ plan: sel.plan, email })
       });
+      let data = null;
+      try { data = await res.json(); } catch(_){}
       if (!res.ok){
-        let msg = `付款服務暫時無法回應（${res.status}），請稍後再試一次。`;
-        try { const d = await res.json(); msg = d.error || d.message || d.detail || msg; } catch(_){}
+        const msg = (data && (data.error || data.message)) || `付款服務暫時無法回應（${res.status}），請稍後再試一次。`;
         throw new Error(msg);
       }
-      const html = await res.text();
-      document.open(); document.write(html); document.close();
-      return;
+      if (data && data.payment_url){ window.location.href = data.payment_url; return; }
+      throw new Error("付款連結沒有回傳，請稍後再試一次，或聯絡 hi@sofaengine.org。");
     } catch (err) {
       showError(err && err.message ? err.message : "連線發生問題，請確認網路後再試一次。");
       submitBtn.disabled = false;
