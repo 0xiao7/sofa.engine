@@ -170,9 +170,11 @@
     display:flex;justify-content:space-between;align-items:baseline;gap:8px;
     font-family:var(--mono);font-size:11.5px;
     color:rgba(245,240,234,.55);letter-spacing:.06em;
-    white-space:nowrap;
+    white-space:nowrap;cursor:pointer;transition:.15s;
   }
+  .cd-foot:hover{background:rgba(231,187,167,.05)}
   .cd-foot b{color:var(--cream);font-weight:500;letter-spacing:.04em;white-space:nowrap}
+  .cd-foot #cd-exam-name{color:var(--peach-dim)}
 
   .nav-section{margin-top:32px}
   .nav-section .lab{
@@ -1110,9 +1112,9 @@
           <div class="cd-num">187</div>
           <div class="cd-unit">天 倒 數 中</div>
         </div>
-        <div class="cd-foot">
-          <span>考試日</span>
-          <b>2026 / 11 / 14</b>
+        <div class="cd-foot" id="cd-foot" onclick="cycleExam()" title="點擊切換考科">
+          <span id="cd-exam-name">記帳士</span>
+          <b id="cd-exam-date">2026 / 11 / 14</b>
         </div>
       </div>
       <button class="cd-restore" id="cdRestore" onclick="showCountdown()">+ 顯示考試倒數</button>
@@ -2170,20 +2172,55 @@ function saveNickname(){
   setInterval(tick, 1000);
 })();
 
-// ── 動態倒數：考試日 2026/11/14 ──────────────────
+// ── 多考科動態倒數 ─────────────────────────────────
+// 新增考科：在 EXAMS 加一行 { key, name, date:'YYYY-MM-DD' } 即可
 (function(){
-  const EXAM = new Date('2026-11-14T00:00:00+08:00');
-  function calcDays(){
-    return Math.max(Math.ceil((EXAM - Date.now()) / 86400000), 0);
+  const EXAMS = [
+    { key: 'bookkeeper', name: '記帳士', date: '2026-11-14' },
+    // { key: 'landadmin',  name: '地政士',  date: '2026-11-??'  },  // 待確認
+  ];
+  const PICK_KEY = 'sofa.dash.exam.pick';
+
+  function loadIdx(){
+    try{
+      const k = localStorage.getItem(PICK_KEY);
+      if(k){ const i = EXAMS.findIndex(e=>e.key===k); if(i>=0) return i; }
+    }catch(e){}
+    const now = Date.now();
+    const future = EXAMS.filter(e => new Date(e.date+'T00:00:00+08:00') > now);
+    if(future.length){
+      const next = future.reduce((a,b)=>new Date(a.date)<new Date(b.date)?a:b);
+      return EXAMS.indexOf(next);
+    }
+    return 0;
   }
-  function update(){
+
+  let _idx = loadIdx();
+
+  function examDate(){ return new Date(EXAMS[_idx].date+'T00:00:00+08:00'); }
+  function calcDays(){ return Math.max(Math.ceil((examDate()-Date.now())/86400000),0); }
+
+  function renderExam(){
+    const e = EXAMS[_idx];
+    const nameEl = document.getElementById('cd-exam-name');
+    const dateEl = document.getElementById('cd-exam-date');
+    const numEl  = document.querySelector('.cd-num');
     const d = calcDays();
-    const el = document.querySelector('.cd-num');
-    if(el) el.textContent = d;
-    document.querySelectorAll('.greet-days').forEach(e => e.textContent = d);
+    if(nameEl) nameEl.textContent = e.name;
+    if(dateEl) dateEl.textContent = e.date.split('-').join(' / ');
+    if(numEl)  numEl.textContent  = d;
+    document.querySelectorAll('.greet-days').forEach(el=>el.textContent=d);
   }
-  update();
-  setInterval(update, 60000);
+
+  window.cycleExam = function(){
+    if(EXAMS.length<=1) return;
+    _idx = (_idx+1) % EXAMS.length;
+    try{ localStorage.setItem(PICK_KEY, EXAMS[_idx].key); }catch(e){}
+    renderExam();
+  };
+
+  renderExam();
+  setInterval(renderExam, 60000);
 })();
 
 // countdown toggle (persisted) — default OFF
