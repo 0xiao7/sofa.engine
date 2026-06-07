@@ -576,6 +576,32 @@
   }
   .prog-row .n b{color:var(--peach);font-weight:500}
 
+  /* === activity heatmap === */
+  .ah-wrap{margin:24px 0 4px;padding:0 2px}
+  .ah-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+  .ah-title{font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:rgba(245,240,234,.32);text-transform:uppercase}
+  .ah-right{font-family:var(--mono);font-size:10px;color:rgba(231,187,167,.45);letter-spacing:.06em}
+  .ah-bars{display:flex;gap:3px;align-items:flex-end;height:52px;padding-bottom:1px;border-bottom:1px solid rgba(245,240,234,.08)}
+  .ah-bar{
+    flex:1;border-radius:2px 2px 0 0;
+    background:rgba(245,240,234,.12);
+    min-height:6px;
+    transition:background .15s;
+    cursor:default;
+    position:relative;
+  }
+  .ah-bar.has-activity{background:rgba(231,187,167,.55)}
+  .ah-bar.today{background:var(--peach) !important;box-shadow:0 0 10px rgba(231,187,167,.45)}
+  .ah-bar:hover::after{
+    content:attr(data-tip);
+    position:absolute;bottom:calc(100%+5px);left:50%;transform:translateX(-50%);
+    background:var(--navy-4);border:1px solid var(--line-2);
+    font-family:var(--mono);font-size:10px;color:var(--cream);
+    padding:3px 8px;border-radius:2px;white-space:nowrap;z-index:20;
+    pointer-events:none;
+  }
+  .ah-empty{font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.2);align-self:center;padding:8px 0}
+
   /* === 03 SEARCH === */
   .search-card{
     background:var(--navy-2);
@@ -1275,6 +1301,16 @@
               </div>
             </div>
 
+            <div class="ah-wrap">
+              <div class="ah-head">
+                <span class="ah-title">近 14 天</span>
+                <span class="ah-right" id="ah-today-label"></span>
+              </div>
+              <div class="ah-bars" id="activity-bars">
+                <div class="ah-empty">載入中…</div>
+              </div>
+            </div>
+
             <div class="prog-list" id="prog-list">
               <div style="padding:24px 0;text-align:center;opacity:.45;font-size:.85rem;font-family:var(--sans);">載入中…</div>
             </div>
@@ -1868,6 +1904,38 @@ function closeDrawer(){
     return streak;
   }
 
+  // 近 14 天活動長條圖
+  function renderActivityBars(hist){
+    var el = document.getElementById('activity-bars');
+    if(!el) return;
+    var counts = {};
+    (hist||[]).forEach(function(h){
+      var d = (h.timestamp||h.queried_at||'').slice(0,10);
+      if(d) counts[d] = (counts[d]||0)+1;
+    });
+    var days = [];
+    var now = new Date();
+    for(var i=13; i>=0; i--){
+      var d = new Date(now);
+      d.setDate(d.getDate()-i);
+      var key = d.toISOString().slice(0,10);
+      days.push({key:key, count:counts[key]||0, isToday:i===0});
+    }
+    var maxCount = Math.max(1, Math.max.apply(null, days.map(function(d){return d.count;})));
+    var maxH = 48, minH = 4;
+    var html = days.map(function(d){
+      var h = d.count>0 ? Math.max(minH+6, Math.round(minH+(d.count/maxCount)*(maxH-minH))) : minH;
+      var cls = 'ah-bar'+(d.count>0?' has-activity':'')+(d.isToday?' today':'');
+      var label = d.key.slice(5).replace('-','/');
+      var tip = label+(d.count>0 ? '・'+d.count+' 次' : '・無紀錄');
+      return '<div class="'+cls+'" style="height:'+h+'px" data-tip="'+tip+'"></div>';
+    }).join('');
+    el.innerHTML = html;
+    var todayLabel = document.getElementById('ah-today-label');
+    var todayCount = days[days.length-1].count;
+    if(todayLabel) todayLabel.textContent = todayCount>0 ? '今天 '+todayCount+' 次' : '今天 尚無';
+  }
+
   // 格式化日期 2026-05-08 → 2026.05.08
   function fmtDate(s){
     if(!s) return '——';
@@ -1952,11 +2020,13 @@ function closeDrawer(){
       var streakHtml = streak + '<span class="u">天</span>';
       document.getElementById('mc-streak') && (document.getElementById('mc-streak').innerHTML = streakHtml);
       document.getElementById('ps-streak') && (document.getElementById('ps-streak').innerHTML = streakHtml);
+      renderActivityBars(hist);
     } else {
       setText('mc-start', '——');
       var zeroHtml = '0<span class="u">天</span>';
       document.getElementById('mc-streak') && (document.getElementById('mc-streak').innerHTML = zeroHtml);
       document.getElementById('ps-streak') && (document.getElementById('ps-streak').innerHTML = zeroHtml);
+      renderActivityBars([]);
     }
 
     // ── 進度統計 ──
