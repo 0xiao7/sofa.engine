@@ -2404,6 +2404,10 @@ var _EXAM_KEY_TO_NAME = {
   'realestate':'不動產','tax-admin':'財稅行政','tax-law':'財稅法務',
   'elem-admin':'初等行政','post-acc':'中華郵政'
 };
+var _EXAM_KEY_TO_YEAR = {
+  'bookkeeper':'2026','landadmin':'2026','realestate':'2026',
+  'tax-admin':'2026','tax-law':'2026','elem-admin':'2026','post-acc':'2026'
+};
 var _EXAM_NAME_TO_KEY = (function(){
   var m = {};
   Object.keys(_EXAM_KEY_TO_NAME).forEach(function(k){ m[_EXAM_KEY_TO_NAME[k]] = k; });
@@ -2427,6 +2431,8 @@ function applyExamFilter(key){
   if(tEl) tEl.textContent = label;
   var wEl = document.getElementById('mc-who-exam');
   if(wEl) wEl.textContent = label;
+  var yrEl = document.querySelector('.mc-target .yr');
+  if(yrEl) yrEl.textContent = _EXAM_KEY_TO_YEAR[key] || '2026';
   var inp = document.getElementById('examInput');
   if(inp) inp.value = (key === 'all') ? '' : (label === '全部' ? '' : label);
   var lawInp = document.getElementById('search-law');
