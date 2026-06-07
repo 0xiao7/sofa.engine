@@ -1243,6 +1243,7 @@
                 <button class="mc-nick-cancel" onclick="cancelNickname()">取消</button>
               </div>
               <div class="mc-target" onclick="focusExamInput()" title="點擊設定考科目標" style="cursor:pointer">目標 · <span id="mc-exam-target">全部</span> · 國考 <span class="yr">2026</span> <span style="font-size:10px;opacity:.5">✏</span></div>
+              <div id="mc-reg-alert" style="display:none;font-size:10px;letter-spacing:.06em;margin-top:2px;color:var(--peach)"></div>
               <div class="mc-id">NO. <span class="sn" id="mc-serial">——</span><button class="sn-eye" onclick="toggleSerial()" title="顯示完整序號">◉</button></div>
               <div class="mc-email-row" id="mc-email-row" style="display:none">EMAIL · <span class="em" id="mc-email"></span></div>
               <div class="mc-divider"></div>
@@ -2277,14 +2278,17 @@ function saveNickname(){
 // 新增考科：在 EXAMS 加一行 { key, name, date:'YYYY-MM-DD' } 即可
 (function(){
   const EXAMS = [
-    { key: 'bookkeeper', name: '記帳士',   date: '2026-11-14' },
-    { key: 'landadmin',  name: '地政士',   date: '2026-06-06' },
-    { key: 'realestate', name: '不動產',   date: '2026-11-14' },
-    { key: 'tax-admin',  name: '財稅行政', date: '2026-07-03' },
-    { key: 'tax-law',    name: '財稅法務', date: '2026-07-03' },
-    { key: 'elem-admin', name: '初等行政', date: '2026-01-10' },
-    { key: 'post-acc',   name: '中華郵政', date: '2026-07-19' },
+    { key: 'bookkeeper', name: '記帳士',   date: '2026-11-14', reg_end: '2026-08-13' },
+    { key: 'landadmin',  name: '地政士',   date: '2026-06-06', reg_end: '2026-03-05' },
+    { key: 'realestate', name: '不動產',   date: '2026-11-14', reg_end: '2026-08-13' },
+    { key: 'tax-admin',  name: '財稅行政', date: '2026-07-03', reg_end: '2026-03-19' },
+    { key: 'tax-law',    name: '財稅法務', date: '2026-07-03', reg_end: '2026-03-19' },
+    { key: 'elem-admin', name: '初等行政', date: '2026-01-10', reg_end: '2025-11-06' },
+    { key: 'post-acc',   name: '中華郵政', date: '2026-07-19', reg_end: '2026-06-10' },
   ];
+  // 把 reg_end 暴露給外部（給 applyExamFilter 用）
+  window._EXAM_REG_END = {};
+  EXAMS.forEach(function(e){ if(e.reg_end) window._EXAM_REG_END[e.key] = e.reg_end; });
   const PICK_KEY = 'sofa.dash.exam.pick';
 
   function _nextFutureIdx(){
@@ -2433,6 +2437,21 @@ function applyExamFilter(key){
   if(wEl) wEl.textContent = label;
   var yrEl = document.querySelector('.mc-target .yr');
   if(yrEl) yrEl.textContent = _EXAM_KEY_TO_YEAR[key] || '2026';
+  var regEl = document.getElementById('mc-reg-alert');
+  if(regEl){
+    var regEnd = window._EXAM_REG_END && window._EXAM_REG_END[key];
+    if(regEnd && key !== 'all'){
+      var daysLeft = Math.ceil((new Date(regEnd+'T00:00:00+08:00') - Date.now()) / 86400000);
+      if(daysLeft > 0){
+        regEl.textContent = '報名截止 ' + regEnd.slice(5).replace('-','/') + '（還有 ' + daysLeft + ' 天）';
+        regEl.style.display = '';
+      } else {
+        regEl.style.display = 'none';
+      }
+    } else {
+      regEl.style.display = 'none';
+    }
+  }
   var inp = document.getElementById('examInput');
   if(inp) inp.value = (key === 'all') ? '' : (label === '全部' ? '' : label);
   var lawInp = document.getElementById('search-law');
