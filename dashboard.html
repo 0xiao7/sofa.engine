@@ -465,6 +465,19 @@
     background:transparent;border:1px solid var(--line-2);
     color:rgba(245,240,234,.5);
   }
+  #mc-exam-picker{
+    display:none;margin-top:10px;flex-wrap:wrap;gap:8px;
+  }
+  #mc-exam-picker.open{display:flex}
+  .ep-chip{
+    font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+    padding:5px 12px;border-radius:2px;cursor:pointer;
+    background:rgba(255,255,255,.07);border:1px solid var(--line-2);
+    color:rgba(245,240,234,.7);transition:background .15s,color .15s;
+  }
+  .ep-chip:hover,.ep-chip.active{
+    background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:600;
+  }
   .mc-divider{
     margin:28px 0 22px;height:1px;
     background:linear-gradient(to right, var(--line-2), transparent 80%);
@@ -1242,7 +1255,17 @@
                 <button class="mc-nick-save" onclick="saveNickname()">儲存</button>
                 <button class="mc-nick-cancel" onclick="cancelNickname()">取消</button>
               </div>
-              <div class="mc-target" onclick="focusExamInput()" title="點擊設定考科目標" style="cursor:pointer">目標 · <span id="mc-exam-target">全部</span> · 國考 <span class="yr">2026</span> <span style="font-size:10px;opacity:.5">✏</span></div>
+              <div class="mc-target" onclick="toggleExamPicker()" title="點擊設定考科目標" style="cursor:pointer">目標 · <span id="mc-exam-target">全部</span> · 國考 <span class="yr">2026</span> <span style="font-size:10px;opacity:.5">✏</span></div>
+              <div id="mc-exam-picker">
+                <span class="ep-chip" data-key="bookkeeper" onclick="pickExam('bookkeeper')">記帳士</span>
+                <span class="ep-chip" data-key="landadmin" onclick="pickExam('landadmin')">地政士</span>
+                <span class="ep-chip" data-key="realestate" onclick="pickExam('realestate')">不動產</span>
+                <span class="ep-chip" data-key="tax-admin" onclick="pickExam('tax-admin')">財稅行政</span>
+                <span class="ep-chip" data-key="tax-law" onclick="pickExam('tax-law')">財稅法務</span>
+                <span class="ep-chip" data-key="elem-admin" onclick="pickExam('elem-admin')">初等行政</span>
+                <span class="ep-chip" data-key="post-acc" onclick="pickExam('post-acc')">中華郵政</span>
+                <span class="ep-chip" data-key="all" onclick="pickExam('all')" style="opacity:.55">全部</span>
+              </div>
               <div id="mc-reg-alert" style="display:none;font-size:10px;letter-spacing:.06em;margin-top:2px;color:var(--peach)"></div>
               <div class="mc-id">NO. <span class="sn" id="mc-serial">——</span><button class="sn-eye" onclick="toggleSerial()" title="顯示完整序號">◉</button></div>
               <div class="mc-email-row" id="mc-email-row" style="display:none">EMAIL · <span class="em" id="mc-email"></span></div>
@@ -2417,6 +2440,26 @@ var _EXAM_NAME_TO_KEY = (function(){
   Object.keys(_EXAM_KEY_TO_NAME).forEach(function(k){ m[_EXAM_KEY_TO_NAME[k]] = k; });
   return m;
 })();
+
+function toggleExamPicker(){
+  var picker = document.getElementById('mc-exam-picker');
+  if(!picker) return;
+  var isOpen = picker.classList.contains('open');
+  if(isOpen){ picker.classList.remove('open'); return; }
+  // highlight current exam
+  var cur = typeof _examFilter !== 'undefined' ? _examFilter : 'all';
+  picker.querySelectorAll('.ep-chip').forEach(function(c){
+    c.classList.toggle('active', c.dataset.key === cur);
+  });
+  picker.classList.add('open');
+}
+
+function pickExam(key){
+  var picker = document.getElementById('mc-exam-picker');
+  if(picker) picker.classList.remove('open');
+  applyExamFilter(key);
+  _saveExamKey(key);
+}
 
 function focusExamInput(){
   var sec = document.getElementById('search');
