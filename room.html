@@ -494,6 +494,24 @@ input[type=text], select, .btn-enter {
   from { opacity:0; transform:translateY(10px); }
   to   { opacity:1; transform:translateY(0); }
 }
+/* Wave 54: desk hover tooltip */
+#desk-tooltip {
+  position: fixed;
+  display: none;
+  background: rgba(10,20,30,0.92);
+  border: 1px solid rgba(91,175,214,0.35);
+  border-radius: 10px;
+  padding: 8px 12px;
+  pointer-events: none;
+  z-index: 100;
+  min-width: 120px;
+  backdrop-filter: blur(6px);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  font-family: 'Noto Sans TC', sans-serif;
+}
+#desk-tooltip .tt-name { color: #F0E8C8; font-size: 13px; font-weight: 600; }
+#desk-tooltip .tt-sub  { color: #5BAFD6; font-size: 11px; margin-top: 2px; }
+#desk-tooltip .tt-pom  { color: #D4A847; font-size: 11px; margin-top: 2px; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 </head>
@@ -2156,14 +2174,32 @@ function initThreeScene(canvas) {
         glow.position.z = h.object.position.z;
         glow.visible = true;
         foundDesk = true;
+        // Wave 54: show tooltip for occupied desk
+        const hoveredUser = _currentUsers[h.object.userData.deskIdx];
+        if(hoveredUser){
+          _showDeskTooltip(e.clientX, e.clientY, hoveredUser);
+        } else {
+          _hideDeskTooltip();
+        }
         break;
       }
     }
-    if(!foundDesk) glow.visible = false;
+    if(!foundDesk){
+      glow.visible = false;
+      _hideDeskTooltip();
+    } else {
+      // Keep tooltip position in sync while moving over same desk
+      const tt = document.getElementById('desk-tooltip');
+      if(tt && tt.style.display !== 'none'){
+        tt.style.left = (e.clientX + 14) + 'px';
+        tt.style.top  = (e.clientY - 10) + 'px';
+      }
+    }
   });
   canvas.addEventListener('mouseleave', () => {
     const glow = _threeScene.userData._deskGlow;
     if(glow) glow.visible = false;
+    _hideDeskTooltip();
   });
 
   _updateThreeAvatars([]);
@@ -2205,6 +2241,22 @@ function _makeLabel(name, color) {
   ctx2.font='bold 8px monospace'; ctx2.textAlign='center'; ctx2.textBaseline='middle';
   ctx2.fillText(name.substring(0,5), 32, 58);
   return new THREE.CanvasTexture(c);
+}
+
+// Wave 54: desk hover tooltip helpers
+function _showDeskTooltip(x, y, user) {
+  const tt = document.getElementById('desk-tooltip');
+  if(!tt || !user) return;
+  document.getElementById('tt-name').textContent = (user.isSelf ? '⭐ ' : '') + (user.name || '同學');
+  document.getElementById('tt-sub').textContent = user.subject ? '📚 ' + user.subject : '';
+  document.getElementById('tt-pom').textContent = user.pomodoro ? '⏱ 番茄鐘專注中' : '';
+  tt.style.display = 'block';
+  tt.style.left = (x + 14) + 'px';
+  tt.style.top  = (y - 10) + 'px';
+}
+function _hideDeskTooltip() {
+  const tt = document.getElementById('desk-tooltip');
+  if(tt) tt.style.display = 'none';
 }
 
 function _showEntryToast(name) {
@@ -4080,5 +4132,11 @@ setInterval(() => {
 }, 30_000);
 </script>
 <div id="toast-container"></div>
+<!-- Wave 54: desk hover tooltip -->
+<div id="desk-tooltip">
+  <div class="tt-name" id="tt-name"></div>
+  <div class="tt-sub"  id="tt-sub"></div>
+  <div class="tt-pom"  id="tt-pom"></div>
+</div>
 </body>
 </html>
