@@ -1298,6 +1298,59 @@ function initThreeScene(canvas) {
   const boardPinMesh = new THREE.Mesh(new THREE.SphereGeometry(0.06,6,6), new THREE.MeshBasicMaterial({color:0xFFDD00}));
   boardPinMesh.position.set(0,3.65,-7.73); _threeScene.add(boardPinMesh);
 
+  // Law posters on back wall
+  (function() {
+    const posterDefs = [
+      {
+        x: -3.2, title: '記帳士法',
+        lines: ['§1 立法宗旨', '§2 業務範圍', '§3 資格條件', '§4 懲戒規定'],
+      },
+      {
+        x:  3.2, title: '稅捐稽徵法',
+        lines: ['§1 課稅原則', '§6 優先受償', '§24 保全措施', '§48-1 加計利息'],
+      },
+    ];
+    posterDefs.forEach(def => {
+      // Build canvas texture 128×180
+      const pc = document.createElement('canvas'); pc.width = 128; pc.height = 180;
+      const pctx = pc.getContext('2d');
+      pctx.fillStyle = '#0D1E2C';
+      pctx.fillRect(0, 0, 128, 180);
+      // Gold header bar (top 28px)
+      pctx.fillStyle = '#D4A847';
+      pctx.fillRect(0, 0, 128, 28);
+      // Title in header
+      pctx.fillStyle = '#FFFFFF';
+      pctx.font = 'bold 18px sans-serif';
+      pctx.textAlign = 'center';
+      pctx.textBaseline = 'middle';
+      pctx.fillText(def.title, 64, 14);
+      // Content lines
+      pctx.fillStyle = '#AABBCC';
+      pctx.font = '12px sans-serif';
+      pctx.textAlign = 'left';
+      pctx.textBaseline = 'top';
+      def.lines.forEach((line, li) => {
+        pctx.fillText(line, 8, 36 + li * 20);
+      });
+      const pTex = new THREE.CanvasTexture(pc);
+      // Poster plane
+      const poster = new THREE.Mesh(
+        new THREE.PlaneGeometry(1.4, 1.8),
+        new THREE.MeshBasicMaterial({map: pTex, side: THREE.DoubleSide})
+      );
+      poster.position.set(def.x, 2.2, -7.75);
+      _threeScene.add(poster);
+      // Frame behind poster
+      const frame = new THREE.Mesh(
+        new THREE.BoxGeometry(1.44, 1.84, 0.02),
+        new THREE.MeshLambertMaterial({color: 0x2A4A6A})
+      );
+      frame.position.set(def.x, 2.2, -7.77);
+      _threeScene.add(frame);
+    });
+  })();
+
   // Click handler (raycasting)
   canvas.addEventListener('click', function(e) {
     const popup = document.getElementById('rpg-popup');
@@ -1380,12 +1433,12 @@ function _updateBoardNotes3D() {
   _threeScene.children.filter(c=>c.userData.isBoardNote).forEach(c=>_threeScene.remove(c));
 
   const notes = (typeof _boardNotes !== 'undefined') ? _boardNotes.slice(-6) : [];
-  const noteColors = ['#FFE566','#FFB347','#90EE90','#87CEEB','#FFB6C1','#DDA0DD'];
-  notes.forEach((note,i)=>{
+  const NOTE_COLORS = ['#FFFde7','#FFD6E0','#D6F5E0','#D6E8FF','#FFE8D6','#DDA0DD'];
+  notes.forEach((note,idx)=>{
     // Create canvas texture for this note
     const nc=document.createElement('canvas'); nc.width=128; nc.height=96;
     const nctx=nc.getContext('2d');
-    nctx.fillStyle=noteColors[i%noteColors.length];
+    nctx.fillStyle=NOTE_COLORS[idx%NOTE_COLORS.length];
     nctx.fillRect(0,0,128,96);
     // Shadow fold at bottom
     nctx.fillStyle='rgba(0,0,0,0.08)'; nctx.fillRect(0,82,128,14);
@@ -1409,7 +1462,7 @@ function _updateBoardNotes3D() {
       new THREE.MeshBasicMaterial({map:noteTex,side:THREE.DoubleSide})
     );
     // Arrange in 2 rows of 3
-    const col=i%3, row=Math.floor(i/3);
+    const col=idx%3, row=Math.floor(idx/3);
     noteM.position.set(-0.7+col*0.72, 3.25-row*0.48, -7.72);
     noteM.rotation.z=(Math.random()-0.5)*0.12;
     noteM.userData.isBoardNote=true;
@@ -1424,7 +1477,14 @@ function _updateThreeAvatars(users) {
 
   users.forEach((u, i) => {
     const pos = _DESK_POS_3D[i % _DESK_POS_3D.length];
-    const hue = u.isSelf ? 0.57 : (i * 0.11) % 1;
+    const SUBJECT_HUE = {
+      '記帳士':      0.57,
+      '地政士':      0.46,
+      '財稅行政':    0.09,
+      '不動產經紀人': 0.75,
+      '初等考試':    0.95,
+    };
+    const hue = u.isSelf ? 0.57 : (SUBJECT_HUE[u.subject] ?? ((i * 0.11) % 1));
     const color = new THREE.Color().setHSL(hue, 0.7, 0.55);
     const hexColor = '#' + color.getHexString();
 
@@ -1463,6 +1523,59 @@ function _updateThreeAvatars(users) {
       _threeScene.add(leg);
       _userAvatarLabels.push(leg);
     });
+
+    // Subject accessories (hat / marker / glasses / house / pencil / star)
+    const _addAcc = (mesh) => { _threeScene.add(mesh); _userAvatarLabels.push(mesh); };
+    const subj = u.subject || '';
+    if (subj === '記帳士') {
+      // Graduation cap: wide brim + square top
+      const brim = new THREE.Mesh(new THREE.BoxGeometry(0.48,0.04,0.48),
+        new THREE.MeshLambertMaterial({color:0x1A1A2E}));
+      brim.position.set(pos[0], 1.73, pos[1]+0.9);
+      _addAcc(brim);
+      const top = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.08,0.18),
+        new THREE.MeshLambertMaterial({color:0x1A1A2E}));
+      top.position.set(pos[0], 1.77, pos[1]+0.9);
+      _addAcc(top);
+    } else if (subj === '地政士') {
+      // Survey marker spike
+      const spike = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.22,0.06),
+        new THREE.MeshLambertMaterial({color:0x5BD6B0}));
+      spike.position.set(pos[0], 1.73+0.08, pos[1]+0.9);
+      _addAcc(spike);
+    } else if (subj === '財稅行政') {
+      // Glasses: two tiny boxes at face level
+      [-0.09, 0.09].forEach(gx => {
+        const lens = new THREE.Mesh(new THREE.BoxGeometry(0.12,0.05,0.04),
+          new THREE.MeshLambertMaterial({color:0x888888}));
+        lens.position.set(pos[0]+gx, 1.60, pos[1]+0.69);
+        _addAcc(lens);
+      });
+    } else if (subj === '不動產經紀人') {
+      // House body + roof
+      const hBody = new THREE.Mesh(new THREE.BoxGeometry(0.2,0.14,0.16),
+        new THREE.MeshLambertMaterial({color:0x9B5BD6}));
+      hBody.position.set(pos[0], 1.77, pos[1]+0.9);
+      _addAcc(hBody);
+      const hRoof = new THREE.Mesh(new THREE.ConeGeometry(0.14,0.1,4),
+        new THREE.MeshLambertMaterial({color:0x7A40B0}));
+      hRoof.position.set(pos[0], 1.77+0.12, pos[1]+0.9);
+      hRoof.rotation.y = Math.PI/4;
+      _addAcc(hRoof);
+    } else if (subj === '初等考試') {
+      // Pencil
+      const pencil = new THREE.Mesh(new THREE.BoxGeometry(0.05,0.22,0.05),
+        new THREE.MeshLambertMaterial({color:0xFFD700}));
+      pencil.position.set(pos[0], 1.78, pos[1]+0.9);
+      pencil.rotation.z = 0.3;
+      _addAcc(pencil);
+    } else {
+      // Default: small star (octahedron)
+      const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.08),
+        new THREE.MeshLambertMaterial({color:0xFFAA00}));
+      star.position.set(pos[0], 1.73, pos[1]+0.9);
+      _addAcc(star);
+    }
   });
 }
 
