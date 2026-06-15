@@ -526,6 +526,7 @@ input[type=text], select, .btn-enter {
             <div style="font-size:12px;letter-spacing:.1em;opacity:0.7;">自習室載入中…</div>
           </div>
         </div>
+        <button id="btn-sound" title="環境音" style="position:absolute;top:8px;right:8px;z-index:15;background:rgba(7,13,20,0.7);border:1px solid rgba(91,175,214,0.25);color:#5BAFD6;border-radius:8px;padding:5px 9px;font-size:16px;cursor:pointer;backdrop-filter:blur(4px);transition:background .2s;" onclick="toggleAmbientSound()">🔇</button>
         <canvas id="room-canvas"></canvas>
         <div id="dpad">
           <button class="dp" onclick="(()=>{const nx=rpgPlayer.tx,ny=rpgPlayer.ty-1;if(!isBlocked(nx,ny)){rpgPlayer.ty=ny;centerCam(document.getElementById('room-canvas'),nx,ny);}})()">▲</button>
@@ -2237,6 +2238,92 @@ async function saveNote(){
 const POM_FOCUS = 25 * 60, POM_BREAK = 5 * 60, POM_LONG = 15 * 60, POM_ROUNDS = 4;
 const pom = { state:'idle', prevState:'focus', remaining: POM_FOCUS, total: POM_FOCUS, round:1, tick:null };
 const CIRC = 213.6;
+
+// ── Ambient Soundscape ─────────────────────────────────────────────────
+let _audioCtx = null, _soundOn = false;
+let _ambGain = null, _droneGain = null, _noiseSource = null, _droneOsc = null;
+
+function _buildAmbientSound() {
+  if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const ctx = _audioCtx;
+  if (ctx.state === 'suspended') ctx.resume();
+
+  // Master gain
+  _ambGain = ctx.createGain();
+  _ambGain.gain.setValueAtTime(0, ctx.currentTime);
+  _ambGain.gain.linearRampToValueAtTime(0.08, ctx.currentTime + 2.0);
+  _ambGain.connect(ctx.destination);
+
+  // Brown noise via white noise → biquad lowpass
+  const bufSz = ctx.sampleRate * 4; // 4s looping buffer
+  const noiseBuf = ctx.createBuffer(1, bufSz, ctx.sampleRate);
+  const data = noiseBuf.getChannelData(0);
+  let lastOut = 0;
+  for (let i = 0; i < bufSz; i++) {
+    const white = Math.random() * 2 - 1;
+    lastOut = (lastOut + 0.02 * white) / 1.02;
+    data[i] = lastOut * 3.5; // brown-ish
+  }
+  _noiseSource = ctx.createBufferSource();
+  _noiseSource.buffer = noiseBuf;
+  _noiseSource.loop = true;
+
+  const lp = ctx.createBiquadFilter();
+  lp.type = 'lowpass';
+  lp.frequency.value = 220;
+  lp.Q.value = 0.5;
+  _noiseSource.connect(lp);
+  lp.connect(_ambGain);
+  _noiseSource.start();
+
+  // Low drone oscillator
+  _droneGain = ctx.createGain();
+  _droneGain.gain.value = 0.025;
+  _droneOsc = ctx.createOscillator();
+  _droneOsc.type = 'triangle';
+  _droneOsc.frequency.value = 55; // A1 — deep library hum
+  _droneOsc.connect(_droneGain);
+
+  // Subtle wobble on drone pitch (≈ 0.08 Hz, ±1.5 cents)
+  const wobble = ctx.createOscillator();
+  wobble.type = 'sine';
+  wobble.frequency.value = 0.08;
+  const wobGain = ctx.createGain();
+  wobGain.gain.value = 0.8;
+  wobble.connect(wobGain);
+  wobGain.connect(_droneOsc.frequency);
+  wobble.start();
+
+  _droneGain.connect(_ambGain);
+  _droneOsc.start();
+}
+
+function _teardownAmbientSound() {
+  if (!_audioCtx) return;
+  const ctx = _audioCtx;
+  if (_ambGain) {
+    _ambGain.gain.setValueAtTime(_ambGain.gain.value, ctx.currentTime);
+    _ambGain.gain.linearRampToValueAtTime(0, ctx.currentTime + 1.2);
+  }
+  setTimeout(() => {
+    try { _noiseSource?.stop(); } catch(e){}
+    try { _droneOsc?.stop(); } catch(e){}
+    _noiseSource = null; _droneOsc = null; _ambGain = null; _droneGain = null;
+  }, 1300);
+}
+
+function toggleAmbientSound() {
+  _soundOn = !_soundOn;
+  const btn = document.getElementById('btn-sound');
+  if (_soundOn) {
+    _buildAmbientSound();
+    if (btn) btn.textContent = '🔊';
+  } else {
+    _teardownAmbientSound();
+    if (btn) btn.textContent = '🔇';
+  }
+}
+// ── End Ambient Soundscape ──────────────────────────────────────────────
 
 function beep(type='done'){
   try{
