@@ -218,6 +218,45 @@ const ICONS = {
   '財稅行政':'📊','初等考試':'📝','其他':'📚'
 };
 
+// ── Ghost system ──────────────────────────────────────────────────────
+// 用時間視窗 seed 讓所有客戶端看到同一批人，每 5 分鐘自然輪替 1-2 位
+const GHOST_POOL = [
+  {n:'小雨',s:'記帳士'},{n:'阿明',s:'記帳士'},{n:'靜怡',s:'記帳士'},
+  {n:'小豪',s:'記帳士'},{n:'雅婷',s:'財稅行政'},{n:'文傑',s:'記帳士'},
+  {n:'怡君',s:'記帳士'},{n:'小玲',s:'地政士'},{n:'建宏',s:'記帳士'},
+  {n:'美慧',s:'記帳士'},{n:'承翰',s:'初等考試'},{n:'佳穎',s:'記帳士'},
+  {n:'志豪',s:'記帳士'},{n:'淑芬',s:'財稅行政'},{n:'冠宇',s:'記帳士'},
+  {n:'嘉玲',s:'地政士'},{n:'俊偉',s:'記帳士'},{n:'曉婷',s:'記帳士'},
+  {n:'宗翰',s:'初等考試'},{n:'芷萱',s:'記帳士'},{n:'柏翰',s:'記帳士'},
+  {n:'欣怡',s:'財稅行政'},{n:'哲維',s:'記帳士'},{n:'子晴',s:'地政士'},
+  {n:'義哲',s:'記帳士'},{n:'詩涵',s:'記帳士'},{n:'竣宇',s:'記帳士'},
+  {n:'佩君',s:'不動產經紀人'},{n:'奕翔',s:'記帳士'},{n:'芸瑄',s:'記帳士'},
+];
+
+function lcg(seed){
+  let s = seed >>> 0;
+  return ()=>{ s = Math.imul(s, 1664525) + 1013904223 >>> 0; return s / 0x100000000; };
+}
+
+function getGhosts(realCount){
+  const needed = Math.max(0, 20 - realCount);
+  if(!needed) return [];
+  const win = Math.floor(Date.now() / 300000); // 5-min window
+  const rng = lcg(win * 0x9e3779b9);
+  const pool = [...GHOST_POOL];
+  for(let i = pool.length - 1; i > 0; i--){
+    const j = Math.floor(rng() * (i + 1));
+    [pool[i], pool[j]] = [pool[j], pool[i]];
+  }
+  const now = Date.now();
+  return pool.slice(0, needed).map((g, i) => ({
+    key: `ghost_${i}_${win}`,
+    name: g.n, subject: g.s,
+    joined_at: now - Math.floor((rng() * 85 + 8) * 60000),
+    isGhost: true,
+  }));
+}
+
 // ── Supabase Realtime ─────────────────────────────────────────────────
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -259,9 +298,11 @@ function startPresence(name, subject){
 
 // ── Render ────────────────────────────────────────────────────────────
 function renderRoom(){
-  const state  = channel.presenceState();
-  const users  = Object.entries(state).map(([key, [u]]) => ({ key, ...u }));
-  const count  = users.length;
+  const state    = channel.presenceState();
+  const real     = Object.entries(state).map(([key, [u]]) => ({ key, ...u }));
+  const ghosts   = getGhosts(real.length);
+  const users    = [...real, ...ghosts];
+  const count    = users.length;
 
   document.getElementById('count-badge').textContent = `${count} 人在線`;
 
