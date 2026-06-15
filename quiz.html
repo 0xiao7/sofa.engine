@@ -303,6 +303,27 @@
   #quiz-citation.show{display:block;}
   #quiz-citation a{color:#5BAFD6;text-decoration:none;}
   @keyframes fadeInUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  #streak-badge {
+    display: none;
+    text-align: center;
+    padding: 6px 0 2px;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    transition: all 0.2s;
+  }
+  #streak-badge.show { display: block; }
+  #streak-badge.tier1 { color: #E8A840; }
+  #streak-badge.tier2 { color: #D4A847; font-size: 17px; }
+  #streak-badge.tier3 { color: #FFD700; font-size: 20px; animation: streakPulse 0.5s ease; }
+  #streak-badge.broken { color: #8ABED6; font-size: 13px; font-weight: 400; }
+  @keyframes streakPulse {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.3); }
+    70%  { transform: scale(0.95); }
+    100% { transform: scale(1); }
+  }
 </style>
 </head>
 <body>
@@ -377,6 +398,7 @@
         </div>
 
         <div class="opts" id="optionsBox"></div>
+        <div id="streak-badge"></div>
         <div id="quiz-citation"></div>
 
         <div class="explain" id="explainBox" style="display:none">
@@ -571,6 +593,9 @@ document.addEventListener('DOMContentLoaded',function(){
   if(_subSel)_subSel.addEventListener('change',_updateChipLock);
 });
 document.getElementById('lawSelect').addEventListener('change', async function(){
+  // Reset streak when changing law
+  _quizStreak = 0;
+  document.getElementById('streak-badge')?.classList.remove('show');
   const sprintBtn = document.getElementById('btnSprint');
   if(sprintBtn) sprintBtn.style.display = (this.value && !this.value.startsWith('__')) ? '' : 'none';
   const law = this.value;
@@ -689,6 +714,9 @@ let _sprintMode = false;  // true = countdown active
 let _sprintAnswers = []; // {chosen: idx, correct: idx, q: {text, options[]}}
 let _sprintStart = 0;    // Date.now() when sprint began
 
+// ── 連續答對計數器 ────────────────────────────────────────────────
+let _quizStreak = 0;
+
 // ── 音效（Web Audio，懶初始化）────────────────────────────────────
 let _quizAudioCtx = null;
 function _getQuizAudio() {
@@ -727,6 +755,39 @@ function _playWrong() {
       osc.stop(ctx.currentTime + delay + 0.10);
     });
   } catch(e){}
+}
+
+function _updateStreak(correct) {
+  const badge = document.getElementById('streak-badge');
+  if(!badge) return;
+  badge.className = ''; // clear classes
+  if(correct){
+    _quizStreak++;
+    if(_quizStreak < 3){
+      badge.classList.remove('show');
+      return;
+    }
+    badge.textContent = '🔥 ' + _quizStreak + ' 連！';
+    badge.classList.add('show');
+    if(_quizStreak >= 10){
+      void badge.offsetWidth; // force reflow for animation restart
+      badge.classList.add('tier3');
+    } else if(_quizStreak >= 5){
+      badge.classList.add('tier2');
+    } else {
+      badge.classList.add('tier1');
+    }
+  } else {
+    const prev = _quizStreak;
+    _quizStreak = 0;
+    if(prev >= 3){
+      badge.textContent = '💨 ' + prev + '連 破了';
+      badge.classList.add('show', 'broken');
+      setTimeout(() => badge.classList.remove('show'), 2000);
+    } else {
+      badge.classList.remove('show');
+    }
+  }
 }
 
 function _startCountdown() {
@@ -821,6 +882,9 @@ function startSession(n) {
   _sessionMode = true;
   _sessionTotal = n;
   _sessionDone = 0;
+  // Reset streak for new session
+  _quizStreak = 0;
+  document.getElementById('streak-badge')?.classList.remove('show');
   document.getElementById('sessionModal').classList.remove('open');
   document.getElementById('sessionProgressWrap').style.display = '';
   updateSessionProgress();
@@ -878,6 +942,7 @@ function showSessionSummary() {
 let answered=false,right=0,wrong=0,total=0,flagged=0;
 
 function _feedbackAnim(btn, isCorrect){
+  _updateStreak(isCorrect);
   // 動畫
   const cls = isCorrect ? 'flash' : 'shake';
   btn.classList.add(cls);
