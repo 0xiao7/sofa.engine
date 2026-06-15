@@ -641,6 +641,12 @@ let myKey, channel, shoutCooldown = false, joinedAt;
 let isMember = false, memberProfile = null;
 
 // ── 登入狀態偵測 ──────────────────────────────────────────────────────
+const EXAM_KEY_MAP = {
+  bookkeeper: '記帳士', landadmin: '地政士',
+  realestate: '不動產經紀人', taxadmin: '財稅行政',
+  entry: '初等考試',
+};
+
 async function detectMember(){
   const tok = localStorage.getItem('sofa_token');
   if(!tok) return;
@@ -655,6 +661,16 @@ async function detectMember(){
       memberProfile = p;
       document.getElementById('inp-name').value = p.nickname;
       document.getElementById('member-badge').classList.add('on');
+      // 沿用儀表板考科偏好
+      const subjectName = EXAM_KEY_MAP[p.exam_key] || '';
+      if(subjectName){
+        const sel = document.getElementById('inp-subject');
+        for(const opt of sel.options){
+          if(opt.value === subjectName){ sel.value = subjectName; break; }
+        }
+      }
+      // 暱稱已設定 → 直接進入，不顯示入場表單
+      enter();
     }
   }catch(e){}
 }
