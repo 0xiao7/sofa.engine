@@ -926,6 +926,7 @@ const _butterflyColors = ['#e87dff','#ffcc44','#ff8844','#88ddff','#ff88aa','#aa
 let _shoutLights = []; // Wave41: accent-blue PointLight flash on shout
 let _typingSprite = null, _typingHideAt = 0;
 let _moonlightPatch = null; // Wave90: moonlight floor glow
+let _lightningTimeout = null; // Wave116: lightning scheduler
 // Wave91: CNY red lanterns (January)
 let _lanternTx = null, _lanterns = [];
 // Wave92: 端午節粽子 (June)
@@ -4239,6 +4240,7 @@ function enter(){
   startThreeAnimation(document.getElementById('room-canvas'));
   _updateRainGlass(); // Wave 66: set initial rain-glass state
   _updateMoonlightPatch(); // Wave 90: set initial moonlight patch state
+  _scheduleLightning(); // Wave 116: start lightning scheduler
   setTimeout(()=>_updateBoardNotes3D(),500);
   if(isMember) initNote();
   startPresence(name, subject);
@@ -4882,6 +4884,56 @@ function _playBirdChirp() {
   } catch(e){}
 }
 
+// Wave 116 — Lightning flash + thunder (night rain mode) ──────────────────
+function _playThunder() {
+  if (!_audioCtx) return;
+  if (_audioPrefs && _audioPrefs.rain === false) return;
+  try {
+    const buf = _audioCtx.createBuffer(1, _audioCtx.sampleRate * 2.5, _audioCtx.sampleRate);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < data.length; i++) {
+      const t = i / _audioCtx.sampleRate;
+      const env = Math.exp(-t * 1.8) * (1 - Math.exp(-t * 15));
+      data[i] = (Math.random() * 2 - 1) * env * 0.6;
+    }
+    const src = _audioCtx.createBufferSource();
+    src.buffer = buf;
+    const lpf = _audioCtx.createBiquadFilter();
+    lpf.type = 'lowpass';
+    lpf.frequency.value = 180;
+    lpf.Q.value = 0.5;
+    const gain = _audioCtx.createGain();
+    gain.gain.value = 0.45;
+    src.connect(lpf);
+    lpf.connect(gain);
+    gain.connect(_audioCtx.destination);
+    src.start();
+  } catch(e) {}
+}
+
+function _doLightningFlash() {
+  const el = document.getElementById('lightning-flash');
+  if (!el) return;
+  el.style.background = 'rgba(220,235,255,0.55)';
+  setTimeout(() => { el.style.background = 'rgba(220,235,255,0)'; }, 80);
+  setTimeout(() => { el.style.background = 'rgba(220,235,255,0.25)'; }, 130);
+  setTimeout(() => { el.style.background = 'rgba(220,235,255,0)'; }, 220);
+  const delay = 500 + Math.random() * 1500;
+  setTimeout(_playThunder, delay);
+}
+
+function _scheduleLightning() {
+  const isNight = _timeOfDayPalette().fogDensity > 0.011;
+  const delay = isNight
+    ? (25000 + Math.random() * 55000)
+    : (60000 + Math.random() * 120000);
+  _lightningTimeout = setTimeout(() => {
+    if (isNight) _doLightningFlash();
+    _scheduleLightning();
+  }, delay);
+}
+// ── end Wave 116 ──────────────────────────────────────────────────────────
+
 function _playCrickets() {
   if (!_audioPrefs.crickets) return;
   if(!_audioCtx || _audioCtx.state === 'suspended') return;
@@ -5398,6 +5450,13 @@ setInterval(() => {
   <div id="greet-main"></div>
   <div id="greet-sub">準備好了，開始讀書吧</div>
 </div>
+<!-- Wave 116: lightning flash overlay (CSS-only, night rain mode) -->
+<div id="lightning-flash" style="
+  position:fixed;inset:0;z-index:999;
+  background:rgba(220,235,255,0);
+  pointer-events:none;
+  transition:none;
+"></div>
 <!-- Wave 71: study-time HUD -->
 <div id="study-hud">📚 今日 0分</div>
 <script>
