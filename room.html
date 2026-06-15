@@ -914,7 +914,7 @@ let _quoteSignTex = null, _quoteSignCtx = null, _quoteSignMesh = null;
 let _quoteIdx = 0, _quoteLastSwap = 0;
 // Wave70: 3D chalkboard — shout message wall
 let _chalkboardTex = null, _chalkboardCtx = null, _chalkboardMesh = null;
-let _chalkMessages = []; // max 3 recent shout messages
+let _chalkMessages = []; // max 8 recent shout messages (Wave111: persisted via localStorage)
 let _reactParticles = []; // {sprite, vy, life, maxLife}
 let _speechBubbles = []; // {sprite, life, maxLife, phase} phase: 'in'|'hold'|'out'
 // Wave78: Winter fireplace
@@ -2129,6 +2129,7 @@ function initThreeScene(canvas) {
 
   // Wave70: Chalkboard — shout message wall (left side of back wall)
   _buildChalkboard();
+  _restoreChalkMessages(); // Wave111: reload persisted messages from localStorage
 
   // Ceiling stars (night mode)
   {
@@ -2827,6 +2828,21 @@ function _buildChalkboard() {
   // Left side of back wall; quote sign is at x=0 z=-9.75, back wall face is z≈-7.85
   _chalkboardMesh.position.set(-4.5, 3.2, -7.85);
   _threeScene.add(_chalkboardMesh);
+}
+
+// Wave111: Persist chalkboard messages across page reloads (localStorage sofa_chalk_v1)
+function _saveChalkMessages() {
+  const toSave = _chalkMessages.slice(-8); // keep last 8
+  try { localStorage.setItem('sofa_chalk_v1', JSON.stringify(toSave)); } catch(e) {}
+}
+function _restoreChalkMessages() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('sofa_chalk_v1') || '[]');
+    if (saved.length === 0) return;
+    _chalkMessages.push(...saved);
+    _chalkboardDraw(); // redraw with restored messages
+    _chalkboardTex.needsUpdate = true;
+  } catch(e) {}
 }
 
 function _updateBoardNotes3D() {
@@ -4297,8 +4313,9 @@ function showShoutBanner({ text, from }){
   }
   // Wave70: update chalkboard with latest shout message
   _chalkMessages.push({ from: from || '匿名考生', text: text || '' });
-  if (_chalkMessages.length > 3) _chalkMessages.shift();
+  if (_chalkMessages.length > 8) _chalkMessages.splice(0, _chalkMessages.length - 8); // Wave111: cap at 8
   _chalkboardDraw();
+  _saveChalkMessages(); // Wave111: persist to localStorage
 }
 
 document.getElementById('board-post-btn')?.addEventListener('click', async () => {
