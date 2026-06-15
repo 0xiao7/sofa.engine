@@ -783,6 +783,7 @@ let _quoteSignTex = null, _quoteSignCtx = null, _quoteSignMesh = null;
 let _quoteIdx = 0, _quoteLastSwap = 0;
 let _reactParticles = []; // {sprite, vy, life, maxLife}
 let _speechBubbles = []; // {sprite, life, maxLife, phase} phase: 'in'|'hold'|'out'
+let _typingSprite = null, _typingHideAt = 0;
 let _threeTime = 0;
 let _flyInDone = false, _flyInStart = 0;
 
@@ -1117,6 +1118,32 @@ function _leafTex(){
       ctx.fillRect(x,y,4,4);
     }
   }, 64);
+}
+
+function roundRect(ctx, x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r, y);
+  ctx.lineTo(x+w-r, y); ctx.arcTo(x+w,y, x+w,y+r, r);
+  ctx.lineTo(x+w, y+h-r); ctx.arcTo(x+w,y+h, x+w-r,y+h, r);
+  ctx.lineTo(x+r, y+h); ctx.arcTo(x,y+h, x,y+h-r, r);
+  ctx.lineTo(x, y+r); ctx.arcTo(x,y, x+r,y, r);
+  ctx.closePath();
+}
+
+function _typingTex() {
+  const c = document.createElement('canvas'); c.width = 80; c.height = 36;
+  const ctx = c.getContext('2d');
+  // Bubble background
+  ctx.fillStyle = 'rgba(30,50,70,0.88)';
+  roundRect(ctx, 2, 2, 76, 30, 10); ctx.fill();
+  ctx.strokeStyle = 'rgba(91,175,214,0.6)'; ctx.lineWidth = 1.5;
+  roundRect(ctx, 2, 2, 76, 30, 10); ctx.stroke();
+  // Three dots
+  [22, 40, 58].forEach(x => {
+    ctx.fillStyle = '#5BAFD6';
+    ctx.beginPath(); ctx.arc(x, 17, 4, 0, Math.PI*2); ctx.fill();
+  });
+  return new THREE.CanvasTexture(c);
 }
 
 function initThreeScene(canvas) {
@@ -2178,6 +2205,25 @@ function _showEntryToast(name) {
   }, 2500);
 }
 
+function _showTypingIndicator() {
+  _typingHideAt = Date.now() + 2500;
+  if(_typingSprite) return; // already visible
+  const pos = _threeScene.userData._selfAvatarPos || {x:0, y:0.8, z:0};
+  const tm = new THREE.SpriteMaterial({map:_typingTex(), transparent:true, opacity:0, depthWrite:false});
+  _typingSprite = new THREE.Sprite(tm);
+  _typingSprite.scale.set(0.9, 0.4, 1);
+  _typingSprite.position.set(pos.x, pos.y + 1.9, pos.z);
+  _threeScene.add(_typingSprite);
+}
+
+function _hideTypingIndicator() {
+  if(_typingSprite){
+    _threeScene.remove(_typingSprite);
+    _typingSprite = null;
+  }
+  _typingHideAt = 0;
+}
+
 function _drawQuoteSign() {
   if(!_quoteSignCtx) return;
   const ctx = _quoteSignCtx;
@@ -2402,6 +2448,8 @@ function _updateThreeAvatars(users) {
       wire.position.copy(head.position);
       _threeScene.add(wire);
       _userAvatarLabels.push(wire);
+      // Store self position for typing indicator
+      _threeScene.userData._selfAvatarPos = { x: head.position.x, y: head.position.y, z: head.position.z };
     }
     _threeScene.add(head);
     _userAvatarLabels.push(head);
@@ -2781,6 +2829,19 @@ function startThreeAnimation(canvas) {
         sb.sprite.position.y = 2.5 + Math.sin(Date.now()*0.002)*0.04;
       sb.sprite.lookAt(_threeCamera.position);
     }
+    // Typing indicator lifecycle
+    if(_typingSprite){
+      const _tyNow = Date.now();
+      if(_tyNow > _typingHideAt){
+        _hideTypingIndicator();
+      } else {
+        // Fade in
+        if(_typingSprite.material.opacity < 0.95)
+          _typingSprite.material.opacity = Math.min(0.95, _typingSprite.material.opacity + 0.06);
+        // Gentle bob
+        _typingSprite.position.y = (_threeScene.userData._selfAvatarPos?.y||0.8) + 1.9 + 0.04*Math.sin(_threeTime*6);
+      }
+    }
     if(_threeScene.userData.updateParticles) _threeScene.userData.updateParticles();
     if(_threeScene.userData.clockHands){
       const {hourHand,minHand,secHand,cx,cy}=_threeScene.userData.clockHands;
@@ -3101,6 +3162,27 @@ document.getElementById('btn-shout').addEventListener('click', async () => {
     }
   }, 1000);
 });
+
+// Typing indicator — desktop shout input
+(function(){
+  const _shoutInput = document.getElementById('shout-input');
+  if(_shoutInput){
+    _shoutInput.addEventListener('input', () => {
+      if(_shoutInput.value.trim()) _showTypingIndicator();
+      else _hideTypingIndicator();
+    });
+    _shoutInput.addEventListener('blur', () => _hideTypingIndicator());
+  }
+  // Mobile shout input
+  const _shoutInputMob = document.getElementById('shout-input-mob');
+  if(_shoutInputMob){
+    _shoutInputMob.addEventListener('input', () => {
+      if(_shoutInputMob.value.trim()) _showTypingIndicator();
+      else _hideTypingIndicator();
+    });
+    _shoutInputMob.addEventListener('blur', () => _hideTypingIndicator());
+  }
+})();
 
 function showShoutBanner({ text, from }){
   const banner = document.getElementById('shout-banner');
