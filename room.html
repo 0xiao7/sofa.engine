@@ -743,7 +743,7 @@ input[type=text], select, .btn-enter {
 
 let _threeRenderer, _threeScene, _threeCamera, _threeRAF;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
-let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [];
+let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [];
 let _countSignTex = null, _countSignCtx = null;
 let _reactParticles = []; // {sprite, vy, life, maxLife}
 let _speechBubbles = []; // {sprite, life, maxLife, phase} phase: 'in'|'hold'|'out'
@@ -1281,9 +1281,11 @@ function initThreeScene(canvas) {
   const rugInner = new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,0.05,32), mLambert(0x4A2D8A));
   rugInner.position.set(0,0.03,-1); _threeScene.add(rugInner);
   // Foliage (low-poly icosahedra)
-  [[0,3.8,-1,1.4],[0.4,5.0,-0.8,1.0],[-0.3,4.3,-0.8,0.8],[0,5.9,-1,0.6]].forEach(([x,y,z,r]) => {
+  [[0,3.8,-1,1.4],[0.4,5.0,-0.8,1.0],[-0.3,4.3,-0.8,0.8],[0,5.9,-1,0.6]].forEach(([x,y,z,r],fi) => {
     const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(r,0), new THREE.MeshLambertMaterial({map:_leafTex(), flatShading:true}));
     leaf.position.set(x,y,z); _threeScene.add(leaf);
+    leaf.castShadow = true;
+    _foliageMeshes.push({ mesh: leaf, ox:x, oy:y, oz:z, phase: fi*0.9, amp:0.06+fi*0.01 });
   });
 
   // Magical fireflies around tree
@@ -1343,6 +1345,7 @@ function initThreeScene(canvas) {
     );
     tip.position.set(x + Math.sin(rx)*0.5, y+0.7, z + Math.cos(rx)*0.3);
     _threeScene.add(tip);
+    _foliageMeshes.push({ mesh: tip, ox: tip.position.x, oy: tip.position.y, oz: tip.position.z, phase: Math.random()*Math.PI*2, amp: 0.04 });
   });
 
   // Desks
@@ -2111,6 +2114,11 @@ function startThreeAnimation(canvas) {
       ff.sprite.position.z = -1 + Math.sin(ff.angle) * ff.radius;
       // Soft blink
       ff.sprite.material.opacity = 0.25 + 0.65 * (Math.sin(_threeTime * ff.blinkSpeed + ff.blinkOffset) * 0.5 + 0.5);
+    });
+    // Foliage sway (gentle wind effect)
+    _foliageMeshes.forEach(f => {
+      f.mesh.rotation.z = Math.sin(_threeTime * 0.35 + f.phase) * f.amp;
+      f.mesh.rotation.x = Math.sin(_threeTime * 0.28 + f.phase * 0.7) * (f.amp * 0.5);
     });
     // Name plates always face camera
     _namePlates.forEach(p => p.lookAt(_threeCamera.position));
