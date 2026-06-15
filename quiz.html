@@ -369,6 +369,7 @@
       <div class="seg" id="sessionProgressWrap" style="display:none">連刷 <b id="sessionProgress">0 / 0</b></div>
       <div class="seg" id="qCountdownWrap" style="display:none">⏱ <b id="qCountdown">30</b></div>
       <button class="btn btn-sec" style="padding:6px 12px;font-size:11px" id="btnSetSession">📋 設題數</button>
+      <button id="btn-stats" onclick="openStats()" title="個人統計" style="background:none;border:1px solid rgba(91,175,214,0.3);color:#5BAFD6;border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">📊</button>
     </div>
   </div>
   <div class="pr-chips">
@@ -716,6 +717,32 @@ let _sprintStart = 0;    // Date.now() when sprint began
 
 // ── 連續答對計數器 ────────────────────────────────────────────────
 let _quizStreak = 0;
+let _currentLawName = '';
+
+// ── 個人答題統計（localStorage）────────────────────────────────────
+const STATS_KEY = 'sofa_quiz_stats_v1';
+function _loadStats() {
+  try { return JSON.parse(localStorage.getItem(STATS_KEY)) || {}; } catch(e){ return {}; }
+}
+function _saveStats(s) { try { localStorage.setItem(STATS_KEY, JSON.stringify(s)); } catch(e){} }
+
+function _recordAnswer(isCorrect, lawName) {
+  const s = _loadStats();
+  const today = new Date().toISOString().slice(0,10);
+  s.total = (s.total||0) + 1;
+  s.correct = (s.correct||0) + (isCorrect?1:0);
+  if(s.today !== today){ s.today = today; s.todayTotal = 0; s.todayCorrect = 0; }
+  s.todayTotal = (s.todayTotal||0) + 1;
+  s.todayCorrect = (s.todayCorrect||0) + (isCorrect?1:0);
+  s.bestStreak = Math.max(s.bestStreak||0, _quizStreak);
+  if(lawName){
+    s.byLaw = s.byLaw || {};
+    s.byLaw[lawName] = s.byLaw[lawName] || {total:0,correct:0};
+    s.byLaw[lawName].total++;
+    if(isCorrect) s.byLaw[lawName].correct++;
+  }
+  _saveStats(s);
+}
 
 // ── 音效（Web Audio，懶初始化）────────────────────────────────────
 let _quizAudioCtx = null;
@@ -943,6 +970,7 @@ let answered=false,right=0,wrong=0,total=0,flagged=0;
 
 function _feedbackAnim(btn, isCorrect){
   _updateStreak(isCorrect);
+  _recordAnswer(isCorrect, _currentLawName);
   // 動畫
   const cls = isCorrect ? 'flash' : 'shake';
   btn.classList.add(cls);
@@ -1150,6 +1178,7 @@ async function loadQuiz(){
           _sprintAnswers.push({chosen:i, correct:correctIdx,
             q:{text:data.question||'', options:displayOpts}});
         }
+        _currentLawName = lawName;
         _feedbackAnim(btn,isCorrect);
         onAnswerDone(isCorrect);
         updateScore();
@@ -1323,6 +1352,7 @@ async function loadWrongQuiz() {
           removeFromWrongBank(pageId);
         }
         cur.correct = isCorrect;
+        _currentLawName = lawName;
         _feedbackAnim(btn, isCorrect);
         onAnswerDone(isCorrect);
         updateScore();
@@ -1378,6 +1408,11 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('sessionModal').classList.add('open');
   });
 
+  // 統計面板 open/close (also keyboard close)
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape') closeStats();
+  });
+
   // 再來一輪
   document.getElementById('sumRestart')?.addEventListener('click', () => {
     document.getElementById('summaryOverlay').classList.remove('open');
@@ -1385,6 +1420,69 @@ document.addEventListener('DOMContentLoaded', () => {
     startSession(_sessionTotal);
   });
 });
+</script>
+
+<!-- ── Wave 50: 個人答題統計面板 ─────────────────────────────────── -->
+<div id="stats-panel" style="display:none; position:fixed; inset:0; background:rgba(4,13,20,0.96); z-index:200; overflow-y:auto; padding:24px 16px;">
+  <div style="max-width:560px; margin:0 auto;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+      <h2 style="color:#F0E8C8; font-family:'Noto Serif TC',serif; margin:0; font-size:20px">📊 我的答題統計</h2>
+      <button onclick="closeStats()" style="background:none; border:1px solid rgba(91,175,214,0.4); color:#5BAFD6; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:16px">✕</button>
+    </div>
+    <div id="stats-content"></div>
+  </div>
+</div>
+
+<script>
+function openStats() {
+  const s = _loadStats();
+  const total = s.total||0, correct = s.correct||0;
+  const pct = total > 0 ? Math.round(correct/total*100) : 0;
+  const todayTotal = s.todayTotal||0, todayCorrect = s.todayCorrect||0;
+  const todayPct = todayTotal > 0 ? Math.round(todayCorrect/todayTotal*100) : 0;
+  const bestStreak = s.bestStreak||0;
+
+  let byLawHtml = '';
+  if(s.byLaw){
+    const laws = Object.entries(s.byLaw).sort((a,b) => b[1].total - a[1].total).slice(0,8);
+    if(laws.length > 0){
+      byLawHtml = '<div style="margin-top:20px"><div style="color:#8ABED6;font-size:12px;margin-bottom:10px">各法答題分布</div>' +
+        laws.map(([name,d]) => {
+          const p = Math.round(d.correct/d.total*100);
+          const bar = `<div style="height:4px;background:rgba(91,175,214,0.15);border-radius:2px;margin-top:4px"><div style="width:${p}%;height:100%;background:${p>=80?'#2ECC71':p>=60?'#5BAFD6':'#E74C3C'};border-radius:2px;transition:width 0.6s"></div></div>`;
+          return `<div style="background:#0D1F2D;border-radius:8px;padding:10px 12px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#C8DDE8">${name}</span><span style="color:#8ABED6">${d.correct}/${d.total} (${p}%)</span></div>${bar}</div>`;
+        }).join('') + '</div>';
+    }
+  }
+
+  document.getElementById('stats-content').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
+      <div style="background:#0D1F2D;border-radius:10px;padding:16px;text-align:center">
+        <div style="font-size:32px;font-weight:700;color:#D4A847">${pct}%</div>
+        <div style="color:#8ABED6;font-size:12px;margin-top:4px">累計答對率</div>
+        <div style="color:#5B7A8D;font-size:11px;margin-top:2px">${correct}/${total} 題</div>
+      </div>
+      <div style="background:#0D1F2D;border-radius:10px;padding:16px;text-align:center">
+        <div style="font-size:32px;font-weight:700;color:#5BAFD6">${todayPct}%</div>
+        <div style="color:#8ABED6;font-size:12px;margin-top:4px">今日答對率</div>
+        <div style="color:#5B7A8D;font-size:11px;margin-top:2px">${todayCorrect}/${todayTotal} 題</div>
+      </div>
+    </div>
+    <div style="background:#0D1F2D;border-radius:10px;padding:14px;text-align:center">
+      <span style="font-size:22px">🔥</span>
+      <span style="font-size:24px;font-weight:700;color:#FFD700;margin:0 8px">${bestStreak}</span>
+      <span style="color:#8ABED6;font-size:13px">最高連對紀錄</span>
+    </div>
+    ${byLawHtml}
+    <div style="text-align:center;margin-top:20px">
+      <button onclick="if(confirm('確定清除所有統計？')){localStorage.removeItem(STATS_KEY);closeStats();}" style="background:none;border:1px solid rgba(231,76,60,0.3);color:#E74C3C;border-radius:16px;padding:6px 16px;font-size:12px;cursor:pointer">清除紀錄</button>
+    </div>`;
+  document.getElementById('stats-panel').style.display = 'block';
+}
+
+function closeStats() {
+  document.getElementById('stats-panel').style.display = 'none';
+}
 </script>
 </body>
 </html>
