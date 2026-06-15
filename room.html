@@ -527,6 +527,7 @@ input[type=text], select, .btn-enter {
           </div>
         </div>
         <button id="btn-sound" title="環境音" style="position:absolute;top:8px;right:8px;z-index:15;background:rgba(7,13,20,0.7);border:1px solid rgba(91,175,214,0.25);color:#5BAFD6;border-radius:8px;padding:5px 9px;font-size:16px;cursor:pointer;backdrop-filter:blur(4px);transition:background .2s;" onclick="toggleAmbientSound()">🔇</button>
+        <div id="tod-label" style="position:absolute;top:8px;right:50px;z-index:15;font-size:9px;color:rgba(91,175,214,0.5);font-family:monospace;letter-spacing:.08em;pointer-events:none;"></div>
         <canvas id="room-canvas"></canvas>
         <div id="dpad">
           <button class="dp" onclick="(()=>{const nx=rpgPlayer.tx,ny=rpgPlayer.ty-1;if(!isBlocked(nx,ny)){rpgPlayer.ty=ny;centerCam(document.getElementById('room-canvas'),nx,ny);}})()">▲</button>
@@ -749,6 +750,24 @@ let _threeTime = 0;
 
 // ── Pixel texture generators ────────────────────────────────────────────
 function _rng(seed){ let s=seed|0; return ()=>{ s=Math.imul(s,1664525)+1013904223|0; return (s>>>0)/0xFFFFFFFF; }; }
+
+function _timeOfDayPalette() {
+  // Returns {ambR,ambG,ambB, torchMult, fogDensity} based on Asia/Taipei hour
+  const hour = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
+  if (hour >= 6 && hour < 11) {
+    // Morning: crisp cool blue
+    return { ambR:0.32, ambG:0.45, ambB:0.62, torchMult:0.7, fogDensity:0.008 };
+  } else if (hour >= 11 && hour < 17) {
+    // Afternoon: bright neutral
+    return { ambR:0.38, ambG:0.48, ambB:0.55, torchMult:0.8, fogDensity:0.007 };
+  } else if (hour >= 17 && hour < 21) {
+    // Evening: warm amber (SoFa default feel)
+    return { ambR:0.29, ambG:0.40, ambB:0.52, torchMult:1.0, fogDensity:0.010 };
+  } else {
+    // Night: deep blue-purple, brighter torches
+    return { ambR:0.18, ambG:0.28, ambB:0.52, torchMult:1.35, fogDensity:0.013 };
+  }
+}
 
 function _mkTex(drawFn, size=64, repeat=1){
   const c=document.createElement('canvas'); c.width=c.height=size;
@@ -1717,19 +1736,23 @@ function startThreeAnimation(canvas) {
     _threeCamera.position.x = Math.sin(_threeTime * 0.08) * 0.6;
     _threeCamera.position.y = 3.2 + Math.sin(_threeTime * 0.05) * 0.15;
     _threeCamera.lookAt(0, 2.2, -4);
-    // Torch flicker
+    // Torch flicker + time-of-day lighting
+    const tod = _timeOfDayPalette();
     _torchLights.forEach((tl, i) => {
-      tl.intensity = 0.9 + 0.35 * Math.sin(_threeTime * 4 + i * 1.3);
+      tl.intensity = (0.9 + 0.35 * Math.sin(_threeTime * 4 + i * 1.3)) * tod.torchMult;
     });
-    // Slow ambient mood shift (very subtle warm/cool breathing)
+    // Slow ambient mood shift rides on top of time-of-day palette
     const moodCycle = Math.sin(_threeTime * 0.04) * 0.5 + 0.5;
     const ambLight = _threeScene.children.find(c=>c.isAmbientLight);
     if(ambLight){
       ambLight.color.setRGB(
-        0.29 + moodCycle*0.04,
-        0.42 + moodCycle*0.03,
-        0.54 + moodCycle*0.05
+        tod.ambR + moodCycle*0.04,
+        tod.ambG + moodCycle*0.03,
+        tod.ambB + moodCycle*0.05
       );
+    }
+    if(Math.round(_threeTime*125) % 300 === 0 && _threeScene.fog){
+      _threeScene.fog.density = tod.fogDensity;
     }
     // Avatar bob (body only — head/legs stay fixed)
     _userAvatarMeshes.forEach((m, i) => {
@@ -1781,6 +1804,13 @@ function startThreeAnimation(canvas) {
       hourHand.rotation.z = -(h/12)*Math.PI*2;
     }
     _threeRenderer.render(_threeScene, _threeCamera);
+  }
+  // Set time-of-day label
+  const todEl = document.getElementById('tod-label');
+  if(todEl){
+    const hr = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
+    const labels = ['夜讀模式','夜讀模式','夜讀模式','夜讀模式','夜讀模式','夜讀模式','晨讀模式','晨讀模式','晨讀模式','晨讀模式','晨讀模式','午讀模式','午讀模式','午讀模式','午讀模式','午讀模式','午讀模式','午讀模式','暮讀模式','暮讀模式','暮讀模式','暮讀模式','夜讀模式','夜讀模式'];
+    todEl.textContent = labels[hr] || '';
   }
   loop();
 }
