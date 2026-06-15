@@ -259,6 +259,9 @@
     transition:background .2s, transform .2s;
   }
   .nav-cta:hover{background:var(--peach-2);transform:translateY(-1px)}
+  .room-nav-link{display:inline-flex;align-items:center;gap:5px;}
+  .room-live-dot{width:6px;height:6px;border-radius:50%;background:#9FB89F;flex-shrink:0;animation:pulse 2s infinite;}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
 
   /* ---------- Hero ---------- */
   .hero{
@@ -456,6 +459,14 @@
   .btn-ghost:hover{background:rgba(245,240,234,.06);border-color:var(--cream)}
 
   /* hero trial entry pill */
+  .hero-room-link{
+    display:inline-flex;align-items:center;gap:10px;
+    margin-top:14px;padding:9px 16px;border-radius:100px;
+    background:rgba(159,184,159,.1);border:1px solid rgba(159,184,159,.3);
+    color:rgba(245,240,234,.8);font-size:13px;text-decoration:none;
+    transition:background .2s,border-color .2s;
+  }
+  .hero-room-link:hover{background:rgba(159,184,159,.18);border-color:rgba(159,184,159,.5);}
   .hero-trial{
     margin-top:22px;
     display:inline-flex;align-items:center;gap:14px;
@@ -1488,6 +1499,7 @@
         <a href="#how">使用方式</a>
         <a href="#pricing">方案</a>
         <a href="#faq">FAQ</a>
+        <a href="room.html" class="ext room-nav-link"><span class="room-live-dot"></span>自習室</a>
         <a href="https://lin.ee/zUeMwo4" class="ext">加入 LINE Bot ↗</a><span style="font-size:.75rem;opacity:.6;margin-left:4px;">@928oakbo</span>
         <a href="login.html" class="nav-cta">登入 / 啟用</a>
       </div>
@@ -1547,6 +1559,11 @@
             </a>
             <a class="btn btn-ghost" href="dashboard.html" onclick="localStorage.setItem('sofa_free','FREE')">先試免費版 →</a>
           </div>
+          <a class="hero-room-link" href="room.html">
+            <span class="room-live-dot" style="width:7px;height:7px;"></span>
+            <span>自習室開放中 — 加入一起讀書</span>
+            <span style="opacity:.6">→</span>
+          </a>
           <a class="hero-trial" href="dashboard.html" onclick="localStorage.setItem('sofa_free','FREE')">
             <span class="htr-dot"></span>
             <span class="htr-text">免費版，永久可用——
