@@ -122,81 +122,67 @@ header{
 
 main{display:flex;flex:1;gap:0;min-height:0;}
 
-/* ── Desk grid ── */
-#desk-area{
-  flex:1;padding:0;overflow-y:auto;
-  background:
-    radial-gradient(ellipse 100% 40% at 50% 0%,rgba(107,74,40,.25) 0%,transparent 65%),
-    linear-gradient(to bottom,#2A1A09,#1E1408 30%,#191206);
-}
+/* ── Room scene + desk grid ── */
+#desk-area{flex:1;overflow-y:auto;background:#1A0E05;display:flex;flex-direction:column;}
 
-/* 書架裝飾條 */
-.shelf-wall{
-  width:100%;
-  background:linear-gradient(to bottom,#3D2410 0%,#4A2E16 50%,#3A2410 100%);
-  border-bottom:4px solid #7A5028;
-  padding:0 16px 0;
+/* SVG 場景容器 */
+#lib-scene-wrap{
+  width:100%;flex-shrink:0;overflow:hidden;
   position:relative;
-  box-shadow:0 4px 24px rgba(0,0,0,.6),inset 0 1px 0 rgba(200,151,74,.12);
 }
-.shelf-row{
-  display:flex;align-items:flex-end;gap:2px;
-  padding:12px 0 0;height:96px;overflow:hidden;
-}
-.shelf-plank{
-  position:absolute;bottom:0;left:0;right:0;height:10px;
-  background:linear-gradient(to bottom,#8A5C30,#6B4420);
-  border-top:1px solid rgba(200,151,74,.4);
-  box-shadow:0 2px 8px rgba(0,0,0,.5);
-}
-.bk{border-radius:2px 2px 0 0;flex-shrink:0;}
+#lib-scene-wrap svg{display:block;width:100%;height:auto;}
 
-.shelf-label{
-  position:absolute;right:24px;bottom:14px;
-  font-family:var(--serif);font-size:.72rem;
-  color:var(--amber);opacity:.5;letter-spacing:.16em;
+/* 燈光暈染覆蓋 */
+#lib-scene-wrap::after{
+  content:'';position:absolute;inset:0;
+  background:radial-gradient(ellipse 60% 40% at 50% 30%,rgba(255,200,80,.08) 0%,transparent 70%);
+  pointer-events:none;
 }
 
-.desk-area-inner{padding:20px 20px 24px;}
-.room-label{
-  font-size:.7rem;color:var(--cream-2);opacity:.35;
-  margin-bottom:16px;letter-spacing:.12em;text-transform:uppercase;
-  font-family:var(--mono);
+/* 分隔線 */
+.room-floor-label{
+  display:flex;align-items:center;gap:12px;
+  padding:10px 20px 6px;
+  font-size:.68rem;color:rgba(245,236,215,.3);letter-spacing:.14em;text-transform:uppercase;font-family:var(--mono);
 }
+.room-floor-label::before,.room-floor-label::after{content:'';flex:1;height:1px;background:rgba(245,236,215,.08);}
+
+/* 用戶格線 */
+#desk-grid-wrap{padding:12px 16px 24px;background:#1A0E05;}
 #desk-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(148px,1fr));
-  gap:14px;
+  grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
+  gap:10px;
 }
 .desk{
-  background:linear-gradient(160deg,#362010 0%,#2A1C10 100%);
-  border:1px solid rgba(92,61,37,.6);
-  border-top:2px solid var(--wood-2);
-  border-radius:6px;
-  padding:16px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;
-  transition:border-color .3s,box-shadow .3s;position:relative;
-  box-shadow:0 2px 8px rgba(0,0,0,.3),inset 0 1px 0 rgba(200,151,74,.06);
+  background:rgba(58,36,16,.85);
+  border:1px solid rgba(122,88,48,.5);
+  border-top:2px solid rgba(180,130,70,.4);
+  border-radius:8px;
+  padding:12px 10px;display:flex;flex-direction:column;align-items:center;gap:6px;
+  transition:border-color .25s,transform .25s;
+  position:relative;backdrop-filter:blur(2px);
 }
-.desk:hover{border-color:rgba(200,151,74,.4);box-shadow:0 4px 16px rgba(0,0,0,.4);}
+.desk:hover{border-color:rgba(200,151,74,.6);transform:translateY(-2px);}
 .desk.me{
   border-color:var(--amber);border-top-color:var(--amber-2);
-  box-shadow:0 0 0 1px var(--amber),0 4px 16px rgba(200,151,74,.2);
+  box-shadow:0 0 16px rgba(200,151,74,.25);
 }
 .desk.away{opacity:.35;}
-.desk-icon{font-size:1.8rem;line-height:1;}
-.desk-name{font-size:.82rem;font-weight:600;color:var(--cream);text-align:center;word-break:break-all;}
+.desk-icon{font-size:1.6rem;line-height:1;}
+.desk-name{font-size:.8rem;font-weight:600;color:var(--cream);text-align:center;word-break:break-all;}
 .desk-tag{
-  font-size:.66rem;padding:2px 9px;border-radius:20px;
-  background:rgba(92,61,37,.5);color:var(--amber);
-  border:1px solid rgba(200,151,74,.2);
+  font-size:.64rem;padding:2px 8px;border-radius:20px;
+  background:rgba(92,61,37,.6);color:var(--amber);
+  border:1px solid rgba(200,151,74,.25);
 }
-.desk-time{font-size:.65rem;color:var(--cream-2);opacity:.4;margin-top:2px;}
+.desk-time{font-size:.62rem;color:var(--cream-2);opacity:.4;}
 .desk-me-badge{
-  position:absolute;top:7px;right:8px;font-size:.58rem;
-  background:var(--amber);color:var(--navy-4);padding:1px 6px;border-radius:8px;font-weight:700;letter-spacing:.04em;
+  position:absolute;top:6px;right:7px;font-size:.56rem;
+  background:var(--amber);color:#1A0E05;padding:1px 5px;border-radius:6px;font-weight:700;
 }
 .desk-shout{
-  font-size:.7rem;color:var(--amber-2);text-align:center;font-style:italic;
+  font-size:.68rem;color:var(--amber-2);text-align:center;font-style:italic;
   animation:fadeShout 4s forwards;
 }
 @keyframes fadeShout{0%{opacity:1}80%{opacity:1}100%{opacity:0}}
@@ -511,13 +497,128 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 
   <main>
     <div id="desk-area">
-      <div class="shelf-wall">
-        <div class="shelf-row" id="shelf-books"></div>
-        <div class="shelf-plank"></div>
-        <span class="shelf-label">LIBRARY · 圖書館大廳</span>
+      <!-- 圖書館場景 SVG -->
+      <div id="lib-scene-wrap">
+        <svg id="lib-svg" viewBox="0 0 1000 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="lampG" cx="50%" cy="0%" r="80%">
+              <stop offset="0%" stop-color="#FFD060" stop-opacity=".35"/>
+              <stop offset="100%" stop-color="#FFD060" stop-opacity="0"/>
+            </radialGradient>
+            <linearGradient id="floorG" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#3A2008"/>
+              <stop offset="100%" stop-color="#6B4220"/>
+            </linearGradient>
+            <linearGradient id="winG" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="#1A2A4A"/>
+              <stop offset="60%" stop-color="#2A4A7A"/>
+              <stop offset="100%" stop-color="#3A5A8A"/>
+            </linearGradient>
+          </defs>
+
+          <!-- 天花板 -->
+          <rect x="0" y="0" width="1000" height="42" fill="#1A0C04"/>
+          <line x1="0" y1="14" x2="1000" y2="14" stroke="#110804" stroke-width="3"/>
+          <line x1="0" y1="28" x2="1000" y2="28" stroke="#110804" stroke-width="2"/>
+          <!-- 天花板橫樑 -->
+          <rect x="0"   y="0" width="16" height="42" fill="#110804"/>
+          <rect x="320" y="0" width="14" height="42" fill="#110804"/>
+          <rect x="660" y="0" width="14" height="42" fill="#110804"/>
+          <rect x="984" y="0" width="16" height="42" fill="#110804"/>
+          <!-- 吊燈 -->
+          <rect x="493" y="0" width="4" height="32" fill="#5A3A14"/>
+          <path d="M480 32 Q487 44 500 46 Q513 44 520 32 Z" fill="#C89030"/>
+          <ellipse cx="500" cy="42" rx="12" ry="5" fill="#FFE060" opacity=".9"/>
+          <ellipse cx="500" cy="120" rx="220" ry="80" fill="url(#lampG)"/>
+
+          <!-- 後牆 -->
+          <rect x="0" y="42" width="1000" height="210" fill="#D4C090"/>
+
+          <!-- ── 左書架 (0-310) ── -->
+          <rect x="0" y="42" width="310" height="210" fill="#5A3810"/>
+          <rect x="10" y="50" width="290" height="195" fill="#2A1808"/>
+          <!-- 層板 -->
+          <rect x="10" y="98"  width="290" height="7" fill="#6B4220"/><rect x="10" y="99"  width="290" height="2" fill="#7A5030"/>
+          <rect x="10" y="148" width="290" height="7" fill="#6B4220"/><rect x="10" y="149" width="290" height="2" fill="#7A5030"/>
+          <rect x="10" y="198" width="290" height="7" fill="#6B4220"/><rect x="10" y="199" width="290" height="2" fill="#7A5030"/>
+          <!-- 書本 row1 (y:52-96) -->
+          <g id="lb1"></g>
+          <!-- 書本 row2 (y:107-146) -->
+          <g id="lb2"></g>
+          <!-- 書本 row3 (y:157-196) -->
+          <g id="lb3"></g>
+
+          <!-- ── 窗戶 (320-680) ── -->
+          <!-- 窗框 -->
+          <rect x="320" y="50" width="360" height="200" fill="#3A2008"/>
+          <!-- 玻璃 -->
+          <rect x="332" y="60" width="168" height="182" fill="url(#winG)"/>
+          <rect x="508" y="60" width="164" height="182" fill="url(#winG)"/>
+          <!-- 窗框中間 -->
+          <rect x="496" y="60" width="16" height="182" fill="#3A2008"/>
+          <rect x="332" y="148" width="340" height="10" fill="#3A2008"/>
+          <!-- 星星/夜景 -->
+          <circle cx="370" cy="90"  r="1.5" fill="white" opacity=".7"/>
+          <circle cx="420" cy="75"  r="1"   fill="white" opacity=".6"/>
+          <circle cx="460" cy="100" r="1.5" fill="white" opacity=".8"/>
+          <circle cx="390" cy="115" r="1"   fill="white" opacity=".5"/>
+          <circle cx="550" cy="85"  r="1.5" fill="white" opacity=".7"/>
+          <circle cx="590" cy="70"  r="1"   fill="white" opacity=".6"/>
+          <circle cx="630" cy="100" r="1.5" fill="white" opacity=".9"/>
+          <circle cx="570" cy="120" r="1"   fill="white" opacity=".5"/>
+          <!-- 月亮 -->
+          <circle cx="640" cy="88" r="18" fill="#F0E090" opacity=".85"/>
+          <circle cx="648" cy="82" r="14" fill="url(#winG)" opacity=".9"/>
+          <!-- 窗台 -->
+          <rect x="320" y="248" width="360" height="10" fill="#6B4220"/>
+          <!-- 窗內反光 -->
+          <rect x="332" y="60" width="12" height="182" fill="white" opacity=".04"/>
+
+          <!-- ── 右書架 (690-1000) ── -->
+          <rect x="690" y="42" width="310" height="210" fill="#5A3810"/>
+          <rect x="700" y="50" width="290" height="195" fill="#2A1808"/>
+          <rect x="700" y="98"  width="290" height="7" fill="#6B4220"/><rect x="700" y="99"  width="290" height="2" fill="#7A5030"/>
+          <rect x="700" y="148" width="290" height="7" fill="#6B4220"/><rect x="700" y="149" width="290" height="2" fill="#7A5030"/>
+          <rect x="700" y="198" width="290" height="7" fill="#6B4220"/><rect x="700" y="199" width="290" height="2" fill="#7A5030"/>
+          <g id="rb1"></g>
+          <g id="rb2"></g>
+          <g id="rb3"></g>
+
+          <!-- ── 地板 ── -->
+          <rect x="0" y="252" width="1000" height="88" fill="url(#floorG)"/>
+          <!-- 地板木紋 -->
+          <line x1="0" y1="268" x2="1000" y2="268" stroke="#2A1606" stroke-width="2"/>
+          <line x1="0" y1="284" x2="1000" y2="284" stroke="#2A1606" stroke-width="2"/>
+          <line x1="0" y1="300" x2="1000" y2="300" stroke="#2A1606" stroke-width="2"/>
+          <line x1="0" y1="316" x2="1000" y2="316" stroke="#2A1606" stroke-width="1.5"/>
+          <!-- 地板板縫 -->
+          <line x1="120" y1="252" x2="80"  y2="340" stroke="#2A1606" stroke-width="1.5"/>
+          <line x1="280" y1="252" x2="240" y2="340" stroke="#2A1606" stroke-width="1.5"/>
+          <line x1="440" y1="252" x2="400" y2="340" stroke="#2A1606" stroke-width="1.5"/>
+          <line x1="600" y1="252" x2="560" y2="340" stroke="#2A1606" stroke-width="1.5"/>
+          <line x1="760" y1="252" x2="720" y2="340" stroke="#2A1606" stroke-width="1.5"/>
+          <line x1="920" y1="252" x2="880" y2="340" stroke="#2A1606" stroke-width="1.5"/>
+
+          <!-- 閱讀桌 -->
+          <rect x="60"  y="275" width="200" height="50" rx="4" fill="#5A3810"/>
+          <rect x="60"  y="270" width="200" height="10" rx="3" fill="#7A5028"/>
+          <rect x="400" y="275" width="200" height="50" rx="4" fill="#5A3810"/>
+          <rect x="400" y="270" width="200" height="10" rx="3" fill="#7A5028"/>
+          <rect x="740" y="275" width="200" height="50" rx="4" fill="#5A3810"/>
+          <rect x="740" y="270" width="200" height="10" rx="3" fill="#7A5028"/>
+          <!-- 桌上小燈 -->
+          <circle cx="240" cy="268" r="5" fill="#FFE060" opacity=".7"/>
+          <ellipse cx="240" cy="268" rx="25" ry="12" fill="#FFD060" opacity=".15"/>
+          <circle cx="580" cy="268" r="5" fill="#FFE060" opacity=".7"/>
+          <ellipse cx="580" cy="268" rx="25" ry="12" fill="#FFD060" opacity=".15"/>
+          <circle cx="920" cy="268" r="5" fill="#FFE060" opacity=".7"/>
+          <ellipse cx="920" cy="268" rx="25" ry="12" fill="#FFD060" opacity=".15"/>
+        </svg>
       </div>
-      <div class="desk-area-inner">
-        <div class="room-label">目前在線的考生</div>
+
+      <!-- 在線考生列表 -->
+      <div class="room-floor-label">目前在線的考生</div>
+      <div id="desk-grid-wrap">
         <div id="desk-grid"></div>
       </div>
     </div>
@@ -676,7 +777,7 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 </div>
 
 <script type="module">
-// ── 書架裝飾 ─────────────────────────────────────────────────────────
+// ── 書架裝飾 (SVG <rect> 填入) ─────────────────────────────────────
 function buildShelf(){
   const BOOK_COLORS=[
     '#C23A3A','#8B5BBB','#2E7AAA','#3A9A5A','#C87A2A',
@@ -684,20 +785,52 @@ function buildShelf(){
     '#B85A2A','#3A7BAA','#AA3A3A','#2AAA5A','#BB7A2A',
     '#7A2ABB','#2AAABB','#BB2A2A','#2ABB7A','#AA7A2A',
   ];
-  const el=document.getElementById('shelf-books');
-  if(!el)return;
-  const W=window.innerWidth||400;
-  const count=Math.max(30,Math.floor(W/13));
-  let html='';
-  for(let i=0;i<count;i++){
-    const c=BOOK_COLORS[i%BOOK_COLORS.length];
-    const h=50+Math.round(Math.sin(i*1.9)*14)+Math.round(Math.random()*10);
-    const w=9+Math.round(Math.random()*8);
-    const r=parseInt(c.slice(1,3),16),g=parseInt(c.slice(3,5),16),b=parseInt(c.slice(5,7),16);
-    const lighter=`rgb(${Math.min(255,r+50)},${Math.min(255,g+50)},${Math.min(255,b+50)})`;
-    html+=`<div class="bk" style="height:${h}px;width:${w}px;background:linear-gradient(to right,${c},${lighter})"></div>`;
-  }
-  el.innerHTML=html;
+  // shelf rows: [groupId, startX, shelfY_bottom, shelfWidth]
+  const ROWS=[
+    ['lb1', 12, 97,  286],
+    ['lb2', 12, 147, 286],
+    ['lb3', 12, 197, 286],
+    ['rb1',702, 97,  286],
+    ['rb2',702, 147, 286],
+    ['rb3',702, 197, 286],
+  ];
+  const NS='http://www.w3.org/2000/svg';
+  let seed=42;
+  const rng=()=>{ seed=Math.imul(seed,1664525)+1013904223>>>0; return seed/0x100000000; };
+  ROWS.forEach(([gid,startX,shelfY,shelfW])=>{
+    const g=document.getElementById(gid);
+    if(!g)return;
+    g.innerHTML='';
+    let x=startX+2;
+    let i=0;
+    while(x<startX+shelfW-4){
+      const c=BOOK_COLORS[(i+Math.floor(shelfY/40)*7)%BOOK_COLORS.length];
+      const w=10+Math.round(rng()*10);       // 10-20 px wide
+      const h=28+Math.round(rng()*20);       // 28-48 px tall
+      if(x+w>startX+shelfW-4) break;
+      // spine
+      const rect=document.createElementNS(NS,'rect');
+      rect.setAttribute('x',x);
+      rect.setAttribute('y',shelfY-h-1);
+      rect.setAttribute('width',w);
+      rect.setAttribute('height',h);
+      rect.setAttribute('fill',c);
+      rect.setAttribute('rx','1');
+      g.appendChild(rect);
+      // highlight stripe
+      const hi=document.createElementNS(NS,'rect');
+      hi.setAttribute('x',x+1);
+      hi.setAttribute('y',shelfY-h-1);
+      hi.setAttribute('width',Math.max(2,Math.round(w*0.25)));
+      hi.setAttribute('height',h);
+      hi.setAttribute('fill','rgba(255,255,255,.12)');
+      hi.setAttribute('rx','1');
+      g.appendChild(hi);
+      // narrow gap between books
+      x+=w+1+Math.round(rng()*2);
+      i++;
+    }
+  });
 }
 // ES module defer + requestAnimationFrame 確保 layout 已完成
 requestAnimationFrame(()=>requestAnimationFrame(buildShelf));
