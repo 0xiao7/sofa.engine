@@ -685,7 +685,7 @@ function buildShelf(){
   ];
   const el=document.getElementById('shelf-books');
   if(!el)return;
-  const W=el.closest('.shelf-wall')?.getBoundingClientRect().width||window.innerWidth||400;
+  const W=window.innerWidth||400;
   const count=Math.max(30,Math.floor(W/13));
   let html='';
   for(let i=0;i<count;i++){
@@ -807,6 +807,7 @@ function enter(){
   myKey = `user_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
   document.getElementById('entry').style.display = 'none';
   document.getElementById('room').style.display  = 'flex';
+  requestAnimationFrame(buildShelf);
   if(isMember) initNote();
   startPresence(name, subject);
 }
