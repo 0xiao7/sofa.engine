@@ -549,6 +549,9 @@
       <div id="sprint-score-sub" style="color:#8ABED6; margin-top:6px; font-size:14px;"></div>
     </div>
     <div id="sprint-wrong-list"></div>
+    <div id="sprint-retry-wrap" style="display:none; margin-top:16px;">
+      <button id="retry-wrong-btn" onclick="_retrySprintWrong()" style="margin-top:4px; padding:8px 20px; background:#1a2e3d; border:1px solid #4a9eff; border-radius:20px; color:#4a9eff; font-size:14px; cursor:pointer; display:block; width:100%;">🔄 重練錯題</button>
+    </div>
     <div style="text-align:center; margin-top:28px; display:flex; gap:12px; justify-content:center;">
       <button onclick="restartSprint()" style="background:#1A2E3D; border:1px solid #5BAFD6; color:#5BAFD6; padding:10px 28px; border-radius:20px; font-size:14px; cursor:pointer;">⚡ 再來一次</button>
       <button onclick="exitSprintResults()" style="background:#D4A847; border:none; color:#040D14; padding:10px 28px; border-radius:20px; font-size:14px; font-weight:600; cursor:pointer;">完成</button>
@@ -1016,6 +1019,18 @@ function showSprintResults(timeSec) {
       list.appendChild(div);
     });
   }
+  // Wave 77: 重練錯題按鈕
+  const retryWrap = document.getElementById('sprint-retry-wrap');
+  const retryBtn = document.getElementById('retry-wrong-btn');
+  if (retryWrap && retryBtn) {
+    const wrongCount = wrong.length;
+    if (wrongCount > 0) {
+      retryBtn.textContent = `🔄 重練錯題 (${wrongCount}題)`;
+      retryWrap.style.display = 'block';
+    } else {
+      retryWrap.style.display = 'none';
+    }
+  }
   document.getElementById('sprint-results').style.display = 'block';
 }
 
@@ -1027,6 +1042,16 @@ function restartSprint() {
   exitSprintResults();
   const btn = document.getElementById('btnSprint');
   if (btn) btn.click();
+}
+
+// Wave 77: 衝刺結果 → 直接進錯題模式
+function _retrySprintWrong() {
+  exitSprintResults();
+  // 啟用錯題模式
+  wrongMode = true;
+  const btn = document.getElementById('btnWrong');
+  if (btn) btn.classList.add('active');
+  loadWrongQuiz();
 }
 
 function startSession(n) {
