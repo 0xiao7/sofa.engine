@@ -456,7 +456,7 @@
       <div>
         <div class="q-head">
           <div>
-            <span class="eb">QUESTION · MULTIPLE CHOICE</span>
+            <span class="eb">QUESTION · MULTIPLE CHOICE<span id="q-timer" style="font-size:11px;color:rgba(245,240,234,.35);margin-left:12px;font-family:var(--mono);font-weight:400;letter-spacing:.06em"></span></span>
             <div class="n" style="margin-top:8px"><span id="qNumBig">—</span></div>
           </div>
 <div class="src" id="qSrc">—</div>
@@ -924,7 +924,7 @@ function _renderDailyChart() {
   }
 }
 
-function _recordAnswer(isCorrect, lawName) {
+function _recordAnswer(isCorrect, lawName, elapsedSec) {
   const _today = new Date().toISOString().slice(0,10);
   const _dayKey = 'sofa_quiz_daily_' + _today;
   const _dayCount = parseInt(localStorage.getItem(_dayKey)||'0',10) + 1;
@@ -942,6 +942,11 @@ function _recordAnswer(isCorrect, lawName) {
     s.byLaw[lawName] = s.byLaw[lawName] || {total:0,correct:0};
     s.byLaw[lawName].total++;
     if(isCorrect) s.byLaw[lawName].correct++;
+  }
+  // Wave 106: 累計答題時間
+  if(elapsedSec > 0){
+    s.totalTimeSec = (s.totalTimeSec||0) + elapsedSec;
+    s.timedQuestions = (s.timedQuestions||0) + 1;
   }
   _saveStats(s);
 }
@@ -1091,6 +1096,13 @@ function _startCountdown() {
       // Auto-fail: simulate wrong answer
       if(!answered) {
         answered = true;
+        // Wave 106: 停止計時器（倒數到期）
+        const _elapsed = _qStartTime > 0 ? (Date.now() - _qStartTime) / 1000 : 0;
+        _qStartTime = 0;
+        clearInterval(_qTimerInterval);
+        const _te = document.getElementById('q-timer');
+        if (_te) _te.textContent = '';
+        _recordAnswer(false, _currentLawName, _elapsed);
         wrong++; updateScore();
         // flash red briefly
         const qb = document.getElementById('questionBox');
@@ -1273,9 +1285,13 @@ function showSessionSummary() {
 
 let answered=false,right=0,wrong=0,total=0,flagged=0;
 
-function _feedbackAnim(btn, isCorrect){
+// ── Wave 106: 每題計時 ────────────────────────────────────────────
+let _qStartTime = 0;
+let _qTimerInterval = null;
+
+function _feedbackAnim(btn, isCorrect, elapsedSec){
   _updateStreak(isCorrect);
-  _recordAnswer(isCorrect, _currentLawName);
+  _recordAnswer(isCorrect, _currentLawName, elapsedSec||0);
   // 動畫
   const cls = isCorrect ? 'flash' : 'shake';
   btn.classList.add(cls);
@@ -1469,6 +1485,12 @@ async function loadQuiz(){
       btn.addEventListener('click',()=>{
         if(answered)return;
         answered=true;
+        // Wave 106: 停止計時，計算本題秒數
+        const _elapsed = _qStartTime > 0 ? (Date.now() - _qStartTime) / 1000 : 0;
+        _qStartTime = 0;
+        clearInterval(_qTimerInterval);
+        const _timerEl = document.getElementById('q-timer');
+        if (_timerEl) _timerEl.textContent = '';
         _stopCountdown();
         document.querySelectorAll('#optionsBox .opt').forEach((b,j)=>{
           b.style.pointerEvents='none';b.style.cursor='default';
@@ -1494,7 +1516,7 @@ async function loadQuiz(){
             q:{text:data.question||'', options:displayOpts}});
         }
         _currentLawName = lawName;
-        _feedbackAnim(btn,isCorrect);
+        _feedbackAnim(btn,isCorrect,_elapsed);
         onAnswerDone(isCorrect);
         updateScore();
         // 顯示出處條號
@@ -1535,6 +1557,13 @@ async function loadQuiz(){
       document.getElementById('optionsBox').appendChild(btn);
     });
     _startCountdown();
+    // Wave 106: 記錄本題開始時間 + 啟動計時顯示
+    _qStartTime = Date.now();
+    clearInterval(_qTimerInterval);
+    _qTimerInterval = setInterval(() => {
+      const el = document.getElementById('q-timer');
+      if (el && _qStartTime > 0) el.textContent = ((Date.now() - _qStartTime)/1000).toFixed(0) + 's';
+    }, 1000);
   }catch(e){
     document.getElementById('questionBox').textContent='載入失敗，請稍後再試';
     document.getElementById('questionBox').style.opacity='1';
@@ -1708,6 +1737,12 @@ async function loadWrongQuiz() {
       btn.addEventListener('click', () => {
         if (answered) return;
         answered = true;
+        // Wave 106: 停止計時，計算本題秒數
+        const _elapsed = _qStartTime > 0 ? (Date.now() - _qStartTime) / 1000 : 0;
+        _qStartTime = 0;
+        clearInterval(_qTimerInterval);
+        const _timerEl = document.getElementById('q-timer');
+        if (_timerEl) _timerEl.textContent = '';
         _stopCountdown();
         document.querySelectorAll('#optionsBox .opt').forEach((b,j) => {
           b.style.pointerEvents='none'; b.style.cursor='default';
@@ -1725,7 +1760,7 @@ async function loadWrongQuiz() {
         }
         cur.correct = isCorrect;
         _currentLawName = lawName;
-        _feedbackAnim(btn, isCorrect);
+        _feedbackAnim(btn, isCorrect, _elapsed);
         onAnswerDone(isCorrect);
         updateScore();
         // 顯示出處條號
@@ -1757,6 +1792,14 @@ async function loadWrongQuiz() {
       });
       document.getElementById('optionsBox').appendChild(btn);
     });
+    _startCountdown();
+    // Wave 106: 記錄本題開始時間 + 啟動計時顯示
+    _qStartTime = Date.now();
+    clearInterval(_qTimerInterval);
+    _qTimerInterval = setInterval(() => {
+      const el = document.getElementById('q-timer');
+      if (el && _qStartTime > 0) el.textContent = ((Date.now() - _qStartTime)/1000).toFixed(0) + 's';
+    }, 1000);
   } catch(e) {
     document.getElementById('questionBox').textContent = '載入失敗，請稍後再試';
     document.getElementById('questionBox').style.opacity = '1';
@@ -1839,6 +1882,8 @@ function openStats() {
   const todayTotal = s.todayTotal||0, todayCorrect = s.todayCorrect||0;
   const todayPct = todayTotal > 0 ? Math.round(todayCorrect/todayTotal*100) : 0;
   const bestStreak = s.bestStreak||0;
+  // Wave 106: 平均答題時間
+  const avgSec = (s.timedQuestions||0) > 0 ? (s.totalTimeSec / s.timedQuestions).toFixed(1) : '--';
 
   let byLawHtml = '';
   if(s.byLaw){
@@ -1877,10 +1922,16 @@ function openStats() {
         <div style="color:#5B7A8D;font-size:11px;margin-top:2px">${todayCorrect}/${todayTotal} 題</div>
       </div>
     </div>
-    <div style="background:#0D1F2D;border-radius:10px;padding:14px;text-align:center">
-      <span style="font-size:22px">🔥</span>
-      <span style="font-size:24px;font-weight:700;color:#FFD700;margin:0 8px">${bestStreak}</span>
-      <span style="color:#8ABED6;font-size:13px">最高連對紀錄</span>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:0">
+      <div style="background:#0D1F2D;border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:20px;font-weight:700;color:#FFD700">${bestStreak > 0 ? '🔥 ' + bestStreak : '—'}</div>
+        <div style="color:#8ABED6;font-size:11px;margin-top:4px">最高連對</div>
+      </div>
+      <div style="background:#0D1F2D;border-radius:10px;padding:14px;text-align:center">
+        <div style="font-size:20px;font-weight:700;color:#7ab8f5">${avgSec}s</div>
+        <div style="color:#8ABED6;font-size:11px;margin-top:4px">平均答題時間</div>
+        <div style="color:#5B7A8D;font-size:10px;margin-top:2px">${(s.timedQuestions||0) > 0 ? (s.timedQuestions + ' 題計時') : '尚無紀錄'}</div>
+      </div>
     </div>
     ${byLawHtml}
     ${weakestHtml}
