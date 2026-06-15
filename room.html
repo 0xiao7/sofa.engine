@@ -795,6 +795,8 @@ let _steamWisps = [];
 let _focusSparkles = [];
 let _arrivalBursts = []; // Wave 44: [{sprite, vx, vy, vz, born}]
 let _nextShootTime = 0;
+let _rainRipples = [];
+let _nextRippleTime = 0;
 let _studyRings = [];
 let _avatarBooks = [];
 let _greetingBob = null; // { born: timestamp, duration: ms }
@@ -1001,6 +1003,18 @@ function _sparkleTex() {
   g.addColorStop(1,'rgba(212,168,71,0)');
   ctx.fillStyle = g;
   ctx.fillRect(0,0,24,24);
+  return new THREE.CanvasTexture(c);
+}
+
+function _rippleTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(32,32,20, 32,32,30);
+  g.addColorStop(0,'rgba(150,200,255,0)');
+  g.addColorStop(0.7,'rgba(150,200,255,0.5)');
+  g.addColorStop(1,'rgba(150,200,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,64,64);
   return new THREE.CanvasTexture(c);
 }
 
@@ -2925,6 +2939,28 @@ function startThreeAnimation(canvas) {
         _shootingStars.splice(shi,1);
       }
     }
+    // Rain puddle ripples
+    const _rrTod = _timeOfDayPalette();
+    if(_rrTod.fogDensity >= 0.012){
+      const _rrNow = Date.now();
+      if(_rrNow > _nextRippleTime){
+        _spawnRainRipple();
+        _nextRippleTime = _rrNow + 400 + Math.random()*600; // 400–1000ms between ripples
+      }
+    }
+    for(let ri=_rainRipples.length-1; ri>=0; ri--){
+      const rr = _rainRipples[ri];
+      const t = (Date.now()-rr.userData.born) / rr.userData.lifetime;
+      const s = 0.15 + t * 1.8; // expand from 0.15 to 1.95 radius
+      rr.scale.setScalar(s);
+      rr.material.opacity = t < 0.3 ? (t/0.3)*0.55 : Math.max(0, 0.55*(1-(t-0.3)/0.7));
+      if(t >= 1){
+        _threeScene.remove(rr);
+        rr.material.dispose();
+        rr.geometry.dispose();
+        _rainRipples.splice(ri,1);
+      }
+    }
     // Coffee steam
     _steamWisps.forEach(w => {
       w.position.y += w.userData.speed;
@@ -3712,6 +3748,26 @@ function _spawnShootingStar() {
   ss.userData.life = 0;
   _threeScene.add(ss);
   _shootingStars.push(ss);
+}
+
+function _spawnRainRipple() {
+  if(_rainRipples.length >= 8) return; // cap
+  const tex = _rippleTex();
+  const mat = new THREE.MeshBasicMaterial({
+    map: tex, transparent: true, opacity: 0.6,
+    side: THREE.DoubleSide, depthWrite: false,
+  });
+  const ring = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.3), mat);
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.set(
+    (Math.random()-0.5)*14,
+    0.02, // just above floor
+    (Math.random()-0.5)*12
+  );
+  ring.userData.born = Date.now();
+  ring.userData.lifetime = 1600 + Math.random()*400;
+  _threeScene.add(ring);
+  _rainRipples.push(ring);
 }
 
 function _playBirdChirp() {
