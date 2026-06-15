@@ -2811,6 +2811,14 @@ function startThreeAnimation(canvas) {
         _playBellChime(1);
       }
     }
+    // Rain ambient audio fade (night mode ↔ day mode)
+    if (_rainGain && _soundOn) {
+      const _rTod = _timeOfDayPalette();
+      const _rTarget = _rTod.fogDensity >= 0.012 ? 0.18 : 0;
+      const _rCur = _rainGain.gain.value;
+      if (Math.abs(_rCur - _rTarget) > 0.001)
+        _rainGain.gain.setTargetAtTime(_rTarget, _audioCtx.currentTime, 3.0);
+    }
     _threeRenderer.render(_threeScene, _threeCamera);
   }
   // Set time-of-day label
@@ -3281,6 +3289,7 @@ const CIRC = 213.6;
 // ── Ambient Soundscape ─────────────────────────────────────────────────
 let _audioCtx = null, _soundOn = false;
 let _ambGain = null, _droneGain = null, _noiseSource = null, _droneOsc = null;
+let _rainSource = null, _rainGain = null, _rainFilter = null;
 let _lastChimeHour = -1, _lastChimeHalf = -1;
 
 function _buildAmbientSound() {
@@ -3357,6 +3366,7 @@ function toggleAmbientSound() {
   const btn = document.getElementById('btn-sound');
   if (_soundOn) {
     _buildAmbientSound();
+    _initRainAudio();
     if (btn) btn.textContent = '🔊';
   } else {
     _teardownAmbientSound();
@@ -3387,6 +3397,28 @@ function _spawnShootingStar() {
   ss.userData.life = 0;
   _threeScene.add(ss);
   _shootingStars.push(ss);
+}
+
+function _initRainAudio() {
+  if (!_audioCtx || _rainSource) return;
+  // White noise buffer (2s, looping)
+  const bufLen = _audioCtx.sampleRate * 2;
+  const buf = _audioCtx.createBuffer(1, bufLen, _audioCtx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufLen; i++) data[i] = Math.random() * 2 - 1;
+  _rainSource = _audioCtx.createBufferSource();
+  _rainSource.buffer = buf;
+  _rainSource.loop = true;
+  // Filter stack: highpass → bandpass → "rain on roof" hiss
+  const hp = _audioCtx.createBiquadFilter();
+  hp.type = 'highpass'; hp.frequency.value = 800;
+  const bp = _audioCtx.createBiquadFilter();
+  bp.type = 'bandpass'; bp.frequency.value = 3200; bp.Q.value = 0.4;
+  _rainGain = _audioCtx.createGain();
+  _rainGain.gain.value = 0;
+  _rainSource.connect(hp); hp.connect(bp); bp.connect(_rainGain);
+  _rainGain.connect(_ambGain);
+  _rainSource.start();
 }
 
 function _playBellChime(times) {
