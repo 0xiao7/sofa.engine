@@ -891,6 +891,53 @@ function _playWrong() {
   } catch(e){}
 }
 
+// Wave 82: 連對里程碑升調慶祝音效
+function _playStreakMilestone(streak) {
+  try {
+    const ctx = _getQuizAudio();
+    if (!ctx) return;
+    // C5=523, E5=659, G5=784, C6=1047, E6=1319
+    const sequences = {
+      3:  [[523,0.0],[659,0.1],[784,0.2]],
+      5:  [[523,0.0],[659,0.08],[784,0.16],[1047,0.25],[1319,0.35]],
+      10: [[523,0.0],[659,0.07],[784,0.14],[1047,0.21],[1319,0.29],[1047,0.4],[1319,0.5],[1047*1.5,0.6]]
+    };
+    const seq = sequences[streak];
+    if (!seq) return;
+    seq.forEach(([freq, delay]) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(0, ctx.currentTime + delay);
+      g.gain.linearRampToValueAtTime(0.18, ctx.currentTime + delay + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.35);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(ctx.currentTime + delay);
+      o.stop(ctx.currentTime + delay + 0.4);
+    });
+  } catch(e){}
+}
+
+// Wave 82: 連對破了降調音效
+function _playStreakBroken(prevStreak) {
+  if (prevStreak < 3) return;
+  try {
+    const ctx = _getQuizAudio();
+    if (!ctx) return;
+    // Descending two-note "aww" (G4=392, D4=294)
+    [[392,0.0],[294,0.15]].forEach(([freq, delay]) => {
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = freq;
+      g.gain.setValueAtTime(0.15, ctx.currentTime + delay);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.4);
+      o.connect(g); g.connect(ctx.destination);
+      o.start(ctx.currentTime + delay);
+      o.stop(ctx.currentTime + delay + 0.5);
+    });
+  } catch(e){}
+}
+
 function _updateStreak(correct) {
   const badge = document.getElementById('streak-badge');
   if(!badge) return;
@@ -911,6 +958,10 @@ function _updateStreak(correct) {
     } else {
       badge.classList.add('tier1');
     }
+    // Wave 82: 里程碑音效（3/5/10），延遲 100ms 避免與 _playCorrect 疊音）
+    if(_quizStreak === 3 || _quizStreak === 5 || _quizStreak === 10){
+      setTimeout(() => _playStreakMilestone(_quizStreak), 100);
+    }
   } else {
     const prev = _quizStreak;
     _quizStreak = 0;
@@ -918,6 +969,8 @@ function _updateStreak(correct) {
       badge.textContent = '💨 ' + prev + '連 破了';
       badge.classList.add('show', 'broken');
       setTimeout(() => badge.classList.remove('show'), 2000);
+      // Wave 82: 破連降調音效，延遲 100ms 避免與 _playWrong 疊音
+      setTimeout(() => _playStreakBroken(prev), 100);
     } else {
       badge.classList.remove('show');
     }
