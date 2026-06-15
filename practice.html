@@ -1364,12 +1364,52 @@ function openPracticeStats() {
     }
   }
 
+  // Wave 108: least-practiced law hint
+  const leastLaw = _getLeastPracticedLaw(s);
+  if (leastLaw) {
+    html += `
+      <div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.12);padding-top:10px">
+        <div style="font-size:11px;color:#aaa;margin-bottom:6px">📖 練習較少法規</div>
+        <div style="font-size:13px;color:#ffd700;margin-bottom:8px">📋 ${leastLaw}</div>
+        <button onclick="_drillLeastPracticedLaw('${leastLaw.replace(/'/g, "\\'")}')"
+          style="background:#2a4a7f;color:#fff;border:none;border-radius:6px;padding:6px 12px;
+                 font-size:12px;cursor:pointer">
+          🎯 練習此法規
+        </button>
+      </div>`;
+  }
+
   body.innerHTML = html;
   document.getElementById('practice-stats-panel').style.display = 'block';
 }
 
 function closePracticeStats() {
   document.getElementById('practice-stats-panel').style.display = 'none';
+}
+
+// === Wave 108: Least-practiced law helper ===
+function _getLeastPracticedLaw(stats) {
+  if (!stats.byLaw) return null;
+  let least = null, leastCount = Infinity;
+  for (const [name, d] of Object.entries(stats.byLaw)) {
+    if (d.total < 1) continue;
+    if (d.total < leastCount) { leastCount = d.total; least = name; }
+  }
+  // Only surface it if there are multiple laws (otherwise it's not a useful hint)
+  const lawCount = Object.keys(stats.byLaw).length;
+  return lawCount >= 2 ? least : null;
+}
+
+function _drillLeastPracticedLaw(lawName) {
+  const sel = document.getElementById('lawSelect');
+  if (sel) {
+    sel.value = lawName;
+    sel.dispatchEvent(new Event('change'));
+    localStorage.setItem('sofa_practice_law', lawName);
+  }
+  closePracticeStats();
+  // Trigger load of next article for the selected law
+  typeof loadNew === 'function' && loadNew();
 }
 
 document.addEventListener('click', e => {
