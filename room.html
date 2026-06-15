@@ -744,6 +744,7 @@ input[type=text], select, .btn-enter {
 let _threeRenderer, _threeScene, _threeCamera, _threeRAF;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [];
+let _countSignTex = null, _countSignCtx = null;
 let _reactParticles = []; // {sprite, vy, life, maxLife}
 let _speechBubbles = []; // {sprite, life, maxLife, phase} phase: 'in'|'hold'|'out'
 let _threeTime = 0;
@@ -1231,6 +1232,44 @@ function initThreeScene(canvas) {
     rung.rotation.z=Math.PI/2;
     _threeScene.add(rung);
   });
+
+  // Live online-count sign (foreground, near entrance)
+  const signCanvas = document.createElement('canvas');
+  signCanvas.width = 192; signCanvas.height = 80;
+  _countSignCtx = signCanvas.getContext('2d');
+  function _drawCountSign(n) {
+    const cx = _countSignCtx;
+    cx.clearRect(0,0,192,80);
+    cx.fillStyle = '#0D1E2C';
+    cx.beginPath();
+    const r=10; cx.moveTo(r,0); cx.lineTo(192-r,0); cx.arcTo(192,0,192,r,r);
+    cx.lineTo(192,80-r); cx.arcTo(192,80,192-r,80,r); cx.lineTo(r,80);
+    cx.arcTo(0,80,0,80-r,r); cx.lineTo(0,r); cx.arcTo(0,0,r,0,r); cx.closePath(); cx.fill();
+    cx.fillStyle = '#D4A847'; cx.fillRect(8,4,176,3); cx.fillRect(8,73,176,3);
+    cx.fillStyle = '#5BAFD6'; cx.font = '11px monospace'; cx.textAlign='center';
+    cx.fillText('SoFa 自習室 · 在線人數', 96, 22);
+    cx.fillStyle = '#E8DCC8'; cx.font = 'bold 28px serif'; cx.textAlign='center';
+    cx.fillText(`${n} 人`, 96, 58);
+    if(_countSignTex) _countSignTex.needsUpdate = true;
+  }
+  _countSignTex = new THREE.CanvasTexture(signCanvas);
+  _drawCountSign(0);
+  _threeScene.userData._drawCountSign = _drawCountSign;
+  const signMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.4, 0.58),
+    new THREE.MeshBasicMaterial({map: _countSignTex, transparent:true, side: THREE.DoubleSide})
+  );
+  signMesh.position.set(-7.5, 3.2, 5.5);
+  signMesh.rotation.y = Math.PI * 0.18; // angle toward room
+  _threeScene.add(signMesh);
+  // Thin gold frame
+  const signFrame = new THREE.Mesh(
+    new THREE.BoxGeometry(1.46, 0.64, 0.02),
+    new THREE.MeshBasicMaterial({color: 0xD4A847})
+  );
+  signFrame.position.set(-7.5, 3.2, 5.5);
+  signFrame.rotation.y = Math.PI * 0.18;
+  _threeScene.add(signFrame);
 
   // Central tree
   const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.25,2.5,8), tMat('trunk',_woodTex));
@@ -2310,6 +2349,7 @@ function renderRoom(){
     isGhost: !!u.isGhost,
   }));
   _updateThreeAvatars(_currentUsers);
+  if(_threeScene && _threeScene.userData._drawCountSign) _threeScene.userData._drawCountSign(count);
 
   document.getElementById('count-badge').textContent = `${count} 人在線`;
   const mobBadge = document.getElementById('mob-count-badge');
