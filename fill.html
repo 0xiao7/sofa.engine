@@ -505,6 +505,15 @@ function pushHistory(law, title){
     const d = await fetch(`${API}/api/laws`).then(r=>r.json());
     (d.laws||[]).forEach(l=>{const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);});
   } catch{}
+  // Wave 74: restore saved law preference and auto-load
+  const _savedFillLaw = localStorage.getItem('sofa_fill_law');
+  if(_savedFillLaw){
+    sel.value = _savedFillLaw;
+    if(sel.value === _savedFillLaw){
+      sel.dispatchEvent(new Event('change'));
+      loadNew();
+    }
+  }
 })();
 
 let _artCache = {};
@@ -558,6 +567,8 @@ document.addEventListener('DOMContentLoaded',function(){
   if(_subSel)_subSel.addEventListener('change',_updateChipLock);
 });
 document.getElementById('lawSelect').addEventListener('change', async function(){
+  // Wave 74: persist law selection to localStorage
+  localStorage.setItem('sofa_fill_law', this.value);
   const sfBtn = document.getElementById('btnFillSession');
   if(sfBtn) sfBtn.style.display = (this.value && !this.value.startsWith('__')) ? '' : 'none';
   const law = this.value;
