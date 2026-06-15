@@ -361,6 +361,14 @@
     margin-bottom: 4px; display: none;
   }
   #sprint-label.active { display: block; }
+
+  /* ── Wave 72: 自訂衝刺題數 ── */
+  #sprint-count-select {
+    background: rgba(10,20,30,0.7); color: #a0b8c8;
+    border: 1px solid #2a4060; border-radius: 8px;
+    padding: 4px 6px; font-size: 13px; cursor: pointer;
+    margin-right: 6px; vertical-align: middle;
+  }
 </style>
 </head>
 <body>
@@ -397,7 +405,13 @@
       </div>
       <button id="btnWrong" class="btn btn-ghost" style="padding:8px 14px;font-size:12px;border-color:var(--bad);color:var(--bad)">✗ 錯題本 <span id="wrongCount" style="display:none;background:#E74C3C;color:white;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;font-weight:700">0</span></button><button id="btn-clear-wrong" onclick="clearWrongBank()" style="display:none;background:none;border:1px solid rgba(231,76,60,0.4);color:#E74C3C;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;margin-left:4px">清空</button>
       <button id="btnNew" class="btn btn-sec" style="padding:8px 16px;font-size:13px">出題</button>
-      <button id="btnSprint" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(91,175,214,0.15);border-color:rgba(91,175,214,0.6)">⚡ 衝刺 20題</button>
+      <select id="sprint-count-select" title="衝刺題數" onchange="localStorage.setItem('sofa_sprint_n', this.value)" style="display:none">
+        <option value="10">10題</option>
+        <option value="20" selected>20題</option>
+        <option value="30">30題</option>
+        <option value="50">50題</option>
+      </select>
+      <button id="btnSprint" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(91,175,214,0.15);border-color:rgba(91,175,214,0.6)">⚡ 衝刺</button>
     </div>
     <div class="pr-meta">
       <div class="seg">第 <b id="qNum">—</b></div>
@@ -636,12 +650,24 @@ document.addEventListener('DOMContentLoaded',function(){
   var _subSel=document.getElementById('prSubSel');
   if(_subSel)_subSel.addEventListener('change',_updateChipLock);
 });
+// ── Wave 72: 還原衝刺題數偏好 ──
+(function() {
+  const saved = localStorage.getItem('sofa_sprint_n');
+  if (saved) {
+    const sel = document.getElementById('sprint-count-select');
+    if (sel) sel.value = saved;
+  }
+})();
+
 document.getElementById('lawSelect').addEventListener('change', async function(){
   // Reset streak when changing law
   _quizStreak = 0;
   document.getElementById('streak-badge')?.classList.remove('show');
   const sprintBtn = document.getElementById('btnSprint');
-  if(sprintBtn) sprintBtn.style.display = (this.value && !this.value.startsWith('__')) ? '' : 'none';
+  const sprintSel = document.getElementById('sprint-count-select');
+  const showSprint = (this.value && !this.value.startsWith('__')) ? '' : 'none';
+  if(sprintBtn) sprintBtn.style.display = showSprint;
+  if(sprintSel) sprintSel.style.display = showSprint;
   const law = this.value;
   const wrap = document.getElementById('artPickWrap');
   const dl   = document.getElementById('artDatalist');
@@ -670,7 +696,8 @@ document.getElementById('btnSprint')?.addEventListener('click', () => {
   _sprintMode = true;
   _sprintAnswers = [];
   _sprintStart = Date.now();
-  startSession(20);
+  const n = parseInt(document.getElementById('sprint-count-select')?.value || '20', 10);
+  startSession(n);
   _updateSprintBar();
 });
 
