@@ -553,6 +553,17 @@ input[type=text], select, .btn-enter {
   opacity: 0; transition: opacity 1s;
 }
 #study-hud.ready { opacity: 1; }
+/* Wave 88: milestone toast */
+#milestone-toast {
+  position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+  background: rgba(10,20,30,0.92); color: #e8d5a0;
+  padding: 10px 24px; border-radius: 20px; font-size: 15px;
+  border: 1px solid rgba(240,200,80,0.4);
+  z-index: 500; opacity: 0; pointer-events: none;
+  transition: opacity 0.4s;
+  white-space: nowrap;
+}
+#milestone-toast.show { opacity: 1; }
 /* Wave75 — Audio Settings Panel */
 #audio-settings-btn {
   background: none; border: none; cursor: pointer; color: #8899aa;
@@ -2787,6 +2798,13 @@ function _spawnConfettiBurst(ox, oy, oz) {
   }
 }
 
+// Wave 88: expose confetti trigger for milestone celebrations
+window._triggerConfetti = function() {
+  if (typeof _spawnConfettiBurst === 'function') {
+    _spawnConfettiBurst(0, 2.2, 0);
+  }
+};
+
 function _updateThreeAvatars(users) {
   // Detect new user joins (toast only after initial room load)
   const _isFirstRenderLocal = _seenUserIds.size === 0;
@@ -4727,6 +4745,8 @@ setInterval(() => {
 }, 30_000);
 </script>
 <div id="toast-container"></div>
+<!-- Wave 88: milestone toast -->
+<div id="milestone-toast"></div>
 <!-- Wave 54: desk hover tooltip -->
 <div id="desk-tooltip">
   <div class="tt-name" id="tt-name"></div>
@@ -4755,6 +4775,31 @@ setInterval(() => {
     return '今日 ' + Math.floor(m / 60) + 'h ' + (m % 60) + 'm';
   }
 
+  function _showMilestoneToast(msg) {
+    let t = document.getElementById('milestone-toast');
+    if (!t) { t = document.createElement('div'); t.id = 'milestone-toast'; document.body.appendChild(t); }
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(function() { t.classList.remove('show'); }, 3500);
+  }
+
+  function _checkMilestone() {
+    const milestones = [30, 60, 90, 120];
+    const mKey = 'sofa_study_milestones_' + today;
+    let done = [];
+    try { done = JSON.parse(localStorage.getItem(mKey) || '[]'); } catch {}
+    const mins = Math.floor(_seconds / 60);
+    milestones.forEach(function(m) {
+      if (mins >= m && !done.includes(m)) {
+        done.push(m);
+        localStorage.setItem(mKey, JSON.stringify(done));
+        const msgs = { 30: '🎯 已讀 30分鐘！', 60: '⭐ 讀滿一小時！', 90: '🔥 90分鐘！繼續衝！', 120: '🏆 兩小時！今天很認真！' };
+        _showMilestoneToast(msgs[m]);
+        if (window._triggerConfetti) window._triggerConfetti();
+      }
+    });
+  }
+
   function _tick() {
     if (!_active) { _lastTick = Date.now(); return; }
     const now = Date.now();
@@ -4762,6 +4807,7 @@ setInterval(() => {
     _lastTick = now;
     localStorage.setItem(KEY, String(_seconds));
     if (_hudEl) _hudEl.textContent = '📚 ' + _fmtTime(_seconds);
+    _checkMilestone();
   }
 
   document.addEventListener('visibilitychange', function() {
