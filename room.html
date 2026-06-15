@@ -512,6 +512,17 @@ input[type=text], select, .btn-enter {
 #desk-tooltip .tt-name { color: #F0E8C8; font-size: 13px; font-weight: 600; }
 #desk-tooltip .tt-sub  { color: #5BAFD6; font-size: 11px; margin-top: 2px; }
 #desk-tooltip .tt-pom  { color: #D4A847; font-size: 11px; margin-top: 2px; }
+/* Wave 64: time-of-day greeting overlay */
+#greet-overlay {
+  position: fixed; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  background: rgba(10,20,30,0.75); backdrop-filter: blur(4px);
+  z-index: 9000; opacity: 0; pointer-events: none;
+  transition: opacity 0.6s;
+}
+#greet-overlay.visible { opacity: 1; }
+#greet-main { font-size: 2rem; font-weight: 700; color: #e8d5a0; letter-spacing: 0.05em; margin-bottom: 10px; }
+#greet-sub { font-size: 1rem; color: #8899aa; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 </head>
@@ -2717,11 +2728,31 @@ function _updateThreeAvatars(users) {
   });
 }
 
+// Wave 64: time-of-day greeting
+function _showGreeting() {
+  const h = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
+  let msg;
+  if (h >= 6 && h < 11)       msg = '早安，備考中 ☀';
+  else if (h >= 11 && h < 17) msg = '午後充電 📚';
+  else if (h >= 17 && h < 21) msg = '黃昏衝刺 🌆';
+  else                         msg = '深夜苦讀 🌙';
+  const el = document.getElementById('greet-overlay');
+  const main = document.getElementById('greet-main');
+  if (!el || !main) return;
+  main.textContent = msg;
+  el.classList.add('visible');
+  setTimeout(() => {
+    el.style.transition = 'opacity 0.8s';
+    el.style.opacity = '0';
+    setTimeout(() => el.remove(), 800);
+  }, 2200);
+}
+
 function startThreeAnimation(canvas) {
   const loaderEl = document.getElementById('three-loader');
   if(loaderEl){ loaderEl.style.opacity='1'; loaderEl.style.display='flex'; }
   setTimeout(()=>{
-    if(loaderEl){ loaderEl.style.opacity='0'; setTimeout(()=>loaderEl.style.display='none',800); }
+    if(loaderEl){ loaderEl.style.opacity='0'; setTimeout(()=>{ loaderEl.style.display='none'; setTimeout(_showGreeting, 100); },800); }
   }, 600);
   if (!THREE) return;
   initThreeScene(canvas);
@@ -4254,6 +4285,11 @@ setInterval(() => {
   <div class="tt-name" id="tt-name"></div>
   <div class="tt-sub"  id="tt-sub"></div>
   <div class="tt-pom"  id="tt-pom"></div>
+</div>
+<!-- Wave 64: time-of-day greeting overlay -->
+<div id="greet-overlay">
+  <div id="greet-main"></div>
+  <div id="greet-sub">準備好了，開始讀書吧</div>
 </div>
 </body>
 </html>
