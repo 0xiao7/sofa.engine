@@ -834,6 +834,9 @@ let _nextBookSpawn = 0;
 let _countSignTex = null, _countSignCtx = null;
 let _quoteSignTex = null, _quoteSignCtx = null, _quoteSignMesh = null;
 let _quoteIdx = 0, _quoteLastSwap = 0;
+// Wave70: 3D chalkboard — shout message wall
+let _chalkboardTex = null, _chalkboardCtx = null, _chalkboardMesh = null;
+let _chalkMessages = []; // max 3 recent shout messages
 let _reactParticles = []; // {sprite, vy, life, maxLife}
 let _speechBubbles = []; // {sprite, life, maxLife, phase} phase: 'in'|'hold'|'out'
 let _shoutLights = []; // Wave41: accent-blue PointLight flash on shout
@@ -1764,6 +1767,9 @@ function initThreeScene(canvas) {
     _threeScene.add(_quoteSignMesh);
   }
 
+  // Wave70: Chalkboard — shout message wall (left side of back wall)
+  _buildChalkboard();
+
   // Ceiling stars (night mode)
   {
     const stexS = _starTex(8);
@@ -2400,6 +2406,67 @@ function _drawQuoteSign() {
   ctx.font = '16px sans-serif';
   ctx.fillText('SoFa 備考自習室', 256, 172);
   if(_quoteSignTex) _quoteSignTex.needsUpdate = true;
+}
+
+// Wave70: Chalkboard draw — renders recent shout messages as chalk text
+function _chalkboardDraw() {
+  const W = 512, H = 256;
+  if (!_chalkboardCtx) {
+    const cv = document.createElement('canvas');
+    cv.width = W; cv.height = H;
+    _chalkboardCtx = cv.getContext('2d');
+    _chalkboardTex = new THREE.CanvasTexture(cv);
+  }
+  const ctx = _chalkboardCtx;
+  // Dark green chalkboard background
+  ctx.fillStyle = '#1a3a2a';
+  ctx.fillRect(0, 0, W, H);
+  // Chalk border
+  ctx.strokeStyle = 'rgba(200,220,200,0.3)';
+  ctx.lineWidth = 4;
+  ctx.strokeRect(8, 8, W - 16, H - 16);
+  // Title
+  ctx.font = 'bold 18px serif';
+  ctx.fillStyle = 'rgba(220,240,220,0.55)';
+  ctx.textAlign = 'center';
+  ctx.fillText('📋 討論板', W / 2, 32);
+  // Messages (oldest first, newest at bottom = brightest)
+  const msgs = _chalkMessages.slice(-3);
+  msgs.forEach((m, i) => {
+    const y = 65 + i * 62;
+    const alpha = 0.5 + (i / Math.max(msgs.length - 1, 1)) * 0.5;
+    // Sender name
+    ctx.font = 'bold 14px sans-serif';
+    ctx.fillStyle = `rgba(160,220,160,${alpha * 0.85})`;
+    ctx.textAlign = 'left';
+    ctx.fillText(m.from, 20, y);
+    // Message text (truncate at 55 chars)
+    ctx.font = '15px sans-serif';
+    ctx.fillStyle = `rgba(235,245,235,${alpha})`;
+    const line = m.text.length > 55 ? m.text.slice(0, 53) + '…' : m.text;
+    ctx.fillText(line, 20, y + 22);
+    // Separator line
+    if (i < msgs.length - 1) {
+      ctx.strokeStyle = `rgba(150,200,150,0.18)`;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(20, y + 38);
+      ctx.lineTo(W - 20, y + 38);
+      ctx.stroke();
+    }
+  });
+  if (_chalkboardTex) _chalkboardTex.needsUpdate = true;
+}
+
+// Wave70: Build chalkboard mesh on back wall (left side, clear of center quote sign)
+function _buildChalkboard() {
+  _chalkboardDraw();
+  const geo = new THREE.PlaneGeometry(3.2, 1.6);
+  const mat = new THREE.MeshBasicMaterial({ map: _chalkboardTex, transparent: true });
+  _chalkboardMesh = new THREE.Mesh(geo, mat);
+  // Left side of back wall; quote sign is at x=0 z=-9.75, back wall face is z≈-7.85
+  _chalkboardMesh.position.set(-4.5, 3.2, -7.85);
+  _threeScene.add(_chalkboardMesh);
 }
 
 function _updateBoardNotes3D() {
@@ -3536,6 +3603,10 @@ function showShoutBanner({ text, from }){
     const _slPos = _DESK_POS_3D[seatIdx >= 0 ? seatIdx % _DESK_POS_3D.length : 0];
     _spawnShoutLight(_slPos[0], _slPos[1]);
   }
+  // Wave70: update chalkboard with latest shout message
+  _chalkMessages.push({ from: from || '匿名考生', text: text || '' });
+  if (_chalkMessages.length > 3) _chalkMessages.shift();
+  _chalkboardDraw();
 }
 
 document.getElementById('board-post-btn')?.addEventListener('click', async () => {
