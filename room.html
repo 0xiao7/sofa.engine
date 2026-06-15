@@ -712,7 +712,7 @@ input[type=text], select, .btn-enter {
 <script type="module">
 // ── Minecraft 等角 3D 圖書館場景 ──────────────────────────────────────
 
-const TW = 40, TH = 20, BH = 22; // tile width, half-height, block height
+const TW = 52, TH = 26, BH = 28; // tile width, half-height, block height
 
 const MC = {
   bookshelf_top:   '#1D3A28',
@@ -727,6 +727,9 @@ const MC = {
   stone_right: '#071320',
   torch_stick: '#8B6B3E',
   torch_fire:  '#FF8C00', torch_bright: '#FFDD00',
+  desk_top:   '#243C4F',
+  desk_left:  '#142535',
+  desk_right: '#1C3042',
 };
 
 function isoXY(bx, by, bz, offX, offY) {
@@ -889,7 +892,7 @@ function drawTorch(ctx, bx, by, bz, offX, offY, phase) {
 function drawScene(ctx, canvas, torchPhase) {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const W = canvas.width, H = canvas.height;
-  const offX = W / 2, offY = H * 0.35;
+  const offX = W / 2, offY = H * 0.38;
 
   // 背景漸層
   const bg = ctx.createLinearGradient(0, 0, 0, H);
@@ -898,10 +901,36 @@ function drawScene(ctx, canvas, torchPhase) {
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
+  // 背景星塵
+  const starRng = (seed => { let s=seed; return ()=>{ s=Math.imul(s,1664525)+1013904223>>>0; return s/0x100000000; }; })(42);
+  ctx.fillStyle = 'rgba(91,175,214,0.35)';
+  for (let i = 0; i < 40; i++) {
+    const sx = starRng() * W;
+    const sy = starRng() * H * 0.5;
+    const sr = starRng() * 1.2 + 0.3;
+    ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI*2); ctx.fill();
+  }
+
   // 地板 Oak Planks (bz=0, 6×5 區域)
   for (let bx = 0; bx <= 5; bx++)
     for (let by = 0; by <= 4; by++)
       drawBlock(ctx, bx, by, 0, 'oak', offX, offY);
+
+  // 地板格線（讓地板可見）
+  ctx.strokeStyle = 'rgba(91,175,214,0.12)';
+  ctx.lineWidth = 0.8;
+  for (let bx = 0; bx <= 5; bx++) {
+    for (let by = 0; by <= 4; by++) {
+      const {x, y} = isoXY(bx, by, 0, offX, offY);
+      ctx.beginPath();
+      ctx.moveTo(x,        y       );
+      ctx.lineTo(x+TW/2,   y+TH/2 );
+      ctx.lineTo(x,        y+TH   );
+      ctx.lineTo(x-TW/2,   y+TH/2 );
+      ctx.closePath();
+      ctx.stroke();
+    }
+  }
 
   // 後牆 Stone (by=0, bx=0..7, bz=1..3)
   for (let bx = 0; bx <= 7; bx++)
@@ -918,6 +947,12 @@ function drawScene(ctx, canvas, torchPhase) {
     for (let bz = 1; bz <= 2; bz++)
       drawBlock(ctx, 0, by, bz, 'bookshelf', offX, offY);
 
+  // 桌子（bx=2..3, by=2, bz=1 — 學生讀書桌）
+  for (let bx = 2; bx <= 3; bx++)
+    drawBlock(ctx, bx, 2, 1, 'desk', offX, offY);
+  for (let bx = 2; bx <= 3; bx++)
+    drawBlock(ctx, bx, 3, 1, 'desk', offX, offY);
+
   // 火把（書架上方 bz=3，等距分佈）
   const torchPositions = [{bx:1,by:1},{bx:3,by:1},{bx:5,by:1},{bx:7,by:1}];
   torchPositions.forEach((tp, i) => {
@@ -931,7 +966,7 @@ let torchPhase = 0;
 let animRAF = null;
 
 // ── 玩家走動系統 ──────────────────────────────────────────────────────
-let player = { bx: 3, by: 3 };
+let player = { bx: 4, by: 3 };
 const _keys = {};
 document.addEventListener('keydown', e => {
   if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(e.key)) e.preventDefault();
@@ -944,6 +979,7 @@ function isWalkable(bx, by) {
   if (bx < 0 || bx > 5 || by < 0 || by > 4) return false;
   if (by === 1) return false;
   if (bx === 0 && by >= 2) return false;
+  if ((bx === 2 || bx === 3) && (by === 2 || by === 3)) return false; // desk
   return true;
 }
 function tryMovePlayer(dx, dy) {
@@ -982,7 +1018,7 @@ function resizeCanvas() {
   const wrap = document.getElementById('lib-scene-wrap');
   if (!canvas || !wrap) return;
   canvas.width  = wrap.clientWidth;
-  canvas.height = Math.min(260, Math.max(160, wrap.clientWidth * 0.28));
+  canvas.height = Math.min(500, Math.max(300, wrap.clientWidth * 0.44));
   drawScene(canvas.getContext('2d'), canvas, torchPhase);
 }
 window.addEventListener('resize', resizeCanvas);
