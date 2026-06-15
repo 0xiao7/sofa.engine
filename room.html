@@ -743,7 +743,7 @@ input[type=text], select, .btn-enter {
 
 let _threeRenderer, _threeScene, _threeCamera, _threeRAF;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
-let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [];
+let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [];
 let _studyRings = [];
 let _countSignTex = null, _countSignCtx = null;
 let _reactParticles = []; // {sprite, vy, life, maxLife}
@@ -883,6 +883,19 @@ function _deskTex(){
     }
     ctx.fillStyle='#351E0F'; ctx.fillRect(0,0,s,3);
   }, 64);
+}
+
+function _petalTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 32;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(16,16,0, 16,16,14);
+  g.addColorStop(0,'rgba(255,220,230,0.95)');
+  g.addColorStop(0.6,'rgba(255,180,200,0.6)');
+  g.addColorStop(1,'rgba(255,150,180,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.ellipse(16,12,9,14,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(16,20,6,10,-0.3,0,Math.PI*2); ctx.fill();
+  const t = new THREE.CanvasTexture(c); return t;
 }
 
 function _leafTex(){
@@ -1326,6 +1339,24 @@ function initThreeScene(canvas) {
       blinkOffset: _ffRng() * Math.PI * 2,
       blinkSpeed: 0.8 + _ffRng() * 1.4,
     });
+  }
+
+  // Seasonal petals (June–Aug)
+  const _mo = new Date().getMonth();
+  if(_mo >= 5 && _mo <= 7){
+    const ptex = _petalTex();
+    for(let pi=0; pi<25; pi++){
+      const pm = new THREE.SpriteMaterial({map:ptex, transparent:true, opacity:0.75, depthWrite:false});
+      const ps = new THREE.Sprite(pm);
+      ps.scale.set(0.28,0.28,1);
+      ps.position.set((Math.random()-0.5)*18, 5+Math.random()*4, (Math.random()-0.5)*14);
+      ps.userData.vx = (Math.random()-0.5)*0.003;
+      ps.userData.vy = -(0.003 + Math.random()*0.004);
+      ps.userData.phase = Math.random()*Math.PI*2;
+      ps.userData.rot = (Math.random()-0.5)*0.02;
+      _threeScene.add(ps);
+      _petalParticles.push(ps);
+    }
   }
 
   // Diagonal branches
@@ -2153,6 +2184,17 @@ function startThreeAnimation(canvas) {
       ff.sprite.position.z = -1 + Math.sin(ff.angle) * ff.radius;
       // Soft blink
       ff.sprite.material.opacity = 0.25 + 0.65 * (Math.sin(_threeTime * ff.blinkSpeed + ff.blinkOffset) * 0.5 + 0.5);
+    });
+    // Seasonal petals
+    _petalParticles.forEach(p => {
+      p.position.x += p.userData.vx + 0.004*Math.sin(_threeTime*0.7 + p.userData.phase);
+      p.position.y += p.userData.vy;
+      p.material.rotation = (p.material.rotation||0) + p.userData.rot;
+      if(p.position.y < -0.5){
+        p.position.y = 5 + Math.random()*4;
+        p.position.x = (Math.random()-0.5)*18;
+        p.position.z = (Math.random()-0.5)*14;
+      }
     });
     // Foliage sway (gentle wind effect)
     _foliageMeshes.forEach(f => {
