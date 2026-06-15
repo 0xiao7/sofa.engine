@@ -1343,6 +1343,32 @@ function initThreeScene(canvas) {
   _threeScene.add(_dustSystem);
   let _dustT=0;
 
+  // Night rain mist (visible only in 夜讀模式)
+  const RAIN_COUNT = 90;
+  const _rainGeo = new THREE.BufferGeometry();
+  const _rainPos = new Float32Array(RAIN_COUNT * 3);
+  const _rainVy  = new Float32Array(RAIN_COUNT);
+  const _rainRng = _rng(99);
+  for(let ri=0; ri<RAIN_COUNT; ri++){
+    _rainPos[ri*3]   = (_rainRng()-0.5)*20;    // x: full room width
+    _rainPos[ri*3+1] = _rainRng()*7 + 0.5;     // y: 0.5–7.5
+    _rainPos[ri*3+2] = (_rainRng()-0.5)*18;    // z: full room depth
+    _rainVy[ri] = 0.03 + _rainRng()*0.03;      // fall speed per frame
+  }
+  _rainGeo.setAttribute('position', new THREE.BufferAttribute(_rainPos, 3));
+  const _rainMat = new THREE.PointsMaterial({
+    size: 0.05, color: 0x8BBFD6, transparent: true, opacity: 0.28,
+    depthWrite: false, blending: THREE.AdditiveBlending
+  });
+  const _rainSystem = new THREE.Points(_rainGeo, _rainMat);
+  _rainSystem.visible = false;
+  _threeScene.add(_rainSystem);
+  // Store references so updateParticles can access them
+  _threeScene.userData._rainSystem = _rainSystem;
+  _threeScene.userData._rainPos    = _rainPos;
+  _threeScene.userData._rainVy     = _rainVy;
+  _threeScene.userData.RAIN_COUNT  = RAIN_COUNT;
+
   // Expose particle update to animation loop via scene userData
   _threeScene.userData.updateParticles = function(){
     _particleData.forEach((p,i)=>{
@@ -1374,6 +1400,22 @@ function initThreeScene(canvas) {
       dpAttr.array[i*3+2] = _dPos0[i*3+2] + Math.cos(_dustT*0.35+i*0.6)*0.2;
     }
     dpAttr.needsUpdate=true;
+    // Rain mist (night only)
+    const rs = _threeScene.userData._rainSystem;
+    if(rs){
+      const isNight = _timeOfDayPalette().fogDensity > 0.011;
+      rs.visible = isNight;
+      if(isNight){
+        const rp = _threeScene.userData._rainPos;
+        const rv = _threeScene.userData._rainVy;
+        const rc = _threeScene.userData.RAIN_COUNT;
+        for(let ri=0; ri<rc; ri++){
+          rp[ri*3+1] -= rv[ri];
+          if(rp[ri*3+1] < 0) rp[ri*3+1] = 7.5;
+        }
+        rs.geometry.attributes.position.needsUpdate = true;
+      }
+    }
   };
 
   // Bulletin board (clickable)
