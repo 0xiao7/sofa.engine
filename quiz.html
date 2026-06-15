@@ -615,7 +615,14 @@ if(isFree){
   }
   try{
     const d=await fetch(`${API}/api/laws`).then(r=>r.json());
-    (d.laws||[]).forEach(l=>{const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);});
+    // Wave 109: insert 🎲 全部法規 as first real option (after special __ options)
+    const allOpt=document.createElement('option');allOpt.value='__all__';allOpt.textContent='🎲 全部法規';sel.appendChild(allOpt);
+    const sep2=document.createElement('option');sep2.disabled=true;sep2.textContent='──────';sel.appendChild(sep2);
+    _allLawNames = [];
+    (d.laws||[]).forEach(l=>{
+      _allLawNames.push(l.name);
+      const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);
+    });
   }catch{}
   // Wave 73: restore last selected law
   function _restoreLastLaw() {
@@ -630,6 +637,7 @@ if(isFree){
 })();
 
 let _artCache = {};
+let _allLawNames = []; // Wave 109: populated when law dropdown is filled
 
 // ── 練習區 chip 細篩（期限 / 罰則）─────────────────────────
 var _PR_DEADLINE_OPTS=[{l:'全部',v:''},{l:'1日',v:'一日'},{l:'2日',v:'二日'},{l:'3日',v:'三日'},{l:'5日',v:'五日'},{l:'7日',v:'七日'},{l:'10日',v:'十日'},{l:'14日',v:'十四日'},{l:'20日',v:'二十日'},{l:'30日',v:'三十日'},{l:'60日',v:'六十日'},{l:'1個月',v:'一個月'},{l:'2個月',v:'二個月'},{l:'3個月',v:'三個月'},{l:'6個月',v:'六個月'},{l:'1年',v:'一年'},{l:'2年',v:'二年'},{l:'3年',v:'三年'},{l:'5年',v:'五年'},{l:'10年',v:'十年'}];
@@ -697,7 +705,8 @@ document.getElementById('lawSelect').addEventListener('change', async function()
   const sprintBtn = document.getElementById('btnSprint');
   const sprintSel = document.getElementById('sprint-count-select');
   const dailyBtn = document.getElementById('btnDaily');
-  const showSprint = (this.value && !this.value.startsWith('__')) ? '' : 'none';
+  // Wave 109: __all__ (🎲 全部法規) should also show sprint/daily buttons
+  const showSprint = (this.value && (!this.value.startsWith('__') || this.value === '__all__')) ? '' : 'none';
   if(sprintBtn) sprintBtn.style.display = showSprint;
   if(sprintSel) sprintSel.style.display = showSprint;
   if(dailyBtn) dailyBtn.style.display = showSprint;
@@ -761,7 +770,8 @@ function _updateDailyBtn() {
 }
 function startDailyChallenge() {
   const law = document.getElementById('lawSelect').value;
-  if (!law || law.startsWith('__')) {
+  // Wave 109: __all__ is allowed for daily challenge (random mix per day)
+  if (!law || (law.startsWith('__') && law !== '__all__')) {
     alert('請先選擇一部法規再開始今日挑戰！');
     return;
   }
@@ -1387,6 +1397,14 @@ async function loadQuiz(){
   updateScore();
 
   let law=document.getElementById('lawSelect').value;
+  // Wave 109: 🎲 全部法規 — pick a random law each question
+  if(law==='__all__'){
+    if(_allLawNames.length){
+      law=_allLawNames[Math.floor(Math.random()*_allLawNames.length)];
+    } else {
+      law='';
+    }
+  }
   try{
     let pickedPageId='';
     if(law==='__starred__'){
