@@ -1206,6 +1206,7 @@ function initThreeScene(canvas) {
     const desk = new THREE.Mesh(box(1.6,0.08,0.9), deskMat);
     desk.position.set(x,0.76,z); _threeScene.add(desk);
     desk.castShadow = true; desk.receiveShadow = true;
+    desk.userData.deskIdx = dIdx;
     const leg1 = new THREE.Mesh(box(0.06,0.76,0.06), deskMat);
     leg1.position.set(x-0.65,0.38,z+0.35); _threeScene.add(leg1);
     const leg2 = leg1.clone(); leg2.position.set(x+0.65,0.38,z+0.35); _threeScene.add(leg2);
@@ -1282,6 +1283,20 @@ function initThreeScene(canvas) {
     _threeScene.add(deskLight);
     _deskLampLights.push(deskLight);
   });
+
+  // Shared desk hover glow pad
+  const _deskGlow = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.9, 1.1),
+    new THREE.MeshBasicMaterial({
+      color: 0x5BAFD6, transparent: true, opacity: 0.18,
+      blending: THREE.AdditiveBlending, depthWrite: false, side: THREE.DoubleSide
+    })
+  );
+  _deskGlow.rotation.x = -Math.PI / 2;
+  _deskGlow.position.y = 0.82;
+  _deskGlow.visible = false;
+  _threeScene.add(_deskGlow);
+  _threeScene.userData._deskGlow = _deskGlow;
 
   // Torch wall sconces
   _torchLights.forEach(tl => {
@@ -1518,6 +1533,36 @@ function initThreeScene(canvas) {
         return;
       }
     }
+  });
+
+  // Desk hover glow — mousemove raycasting
+  const _hoverRay = new THREE.Raycaster();
+  const _hoverMouse = new THREE.Vector2();
+  canvas.addEventListener('mousemove', function(e) {
+    const glow = _threeScene.userData._deskGlow;
+    if (!glow) return;
+    const rect = canvas.getBoundingClientRect();
+    _hoverMouse.set(
+      ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      -((e.clientY - rect.top) / rect.height) * 2 + 1
+    );
+    _hoverRay.setFromCamera(_hoverMouse, _threeCamera);
+    const hits = _hoverRay.intersectObjects(_threeScene.children, false);
+    let foundDesk = false;
+    for(const h of hits){
+      if(h.object.userData.deskIdx !== undefined){
+        glow.position.x = h.object.position.x;
+        glow.position.z = h.object.position.z;
+        glow.visible = true;
+        foundDesk = true;
+        break;
+      }
+    }
+    if(!foundDesk) glow.visible = false;
+  });
+  canvas.addEventListener('mouseleave', () => {
+    const glow = _threeScene.userData._deskGlow;
+    if(glow) glow.visible = false;
   });
 
   _updateThreeAvatars([]);
@@ -1848,6 +1893,11 @@ function startThreeAnimation(canvas) {
     });
     // Name plates always face camera
     _namePlates.forEach(p => p.lookAt(_threeCamera.position));
+    // Desk hover glow pulse
+    const dg = _threeScene.userData._deskGlow;
+    if(dg && dg.visible){
+      dg.material.opacity = 0.12 + 0.08 * Math.sin(_threeTime * 4);
+    }
     // Floating emoji reactions
     for(let ri=_reactParticles.length-1; ri>=0; ri--){
       const rp=_reactParticles[ri];
