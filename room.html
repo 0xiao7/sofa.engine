@@ -136,7 +136,7 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 /* 燈光暈染覆蓋 */
 #lib-scene-wrap::after{
   content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse 60% 40% at 50% 30%,rgba(255,200,80,.08) 0%,transparent 70%);
+  background:radial-gradient(ellipse 60% 40% at 50% 30%,rgba(91,175,214,.07) 0%,transparent 70%);
   pointer-events:none;
 }
 
@@ -700,14 +700,18 @@ input[type=text], select, .btn-enter {
 const TW = 40, TH = 20, BH = 22; // tile width, half-height, block height
 
 const MC = {
-  bookshelf_top:   '#574025',
-  bookshelf_left:  '#3D2A15',
-  bookshelf_right: '#4A3118',
-  book_colors: ['#B02020','#2050B0','#20A030','#C09020','#7020B0','#B07020','#20A0A0','#B03060','#508020','#C04040'],
-  oak_top:   '#BC9862', oak_left: '#8B6B3E', oak_right: '#A37848',
-  stone_top: '#7A7A7A', stone_left: '#4A4A4A', stone_right: '#5E5E5E',
-  torch_stick: '#5C3D1E',
-  torch_fire: '#FF6B00', torch_bright: '#FFDD00',
+  bookshelf_top:   '#1D3A28',
+  bookshelf_left:  '#0D2018',
+  bookshelf_right: '#142D20',
+  book_colors: ['#E85D5D','#5D8AE8','#5DE87A','#E8C45D','#A05DE8','#E8855D','#5DD6E8','#E85D8A','#85E85D','#D4A850'],
+  oak_top:   '#1A2E3D',
+  oak_left:  '#0E1E2A',
+  oak_right: '#132433',
+  stone_top: '#0A1929',
+  stone_left: '#040D14',
+  stone_right: '#071320',
+  torch_stick: '#8B6B3E',
+  torch_fire:  '#FF8C00', torch_bright: '#FFDD00',
 };
 
 function isoXY(bx, by, bz, offX, offY) {
@@ -836,8 +840,8 @@ function drawScene(ctx, canvas, torchPhase) {
 
   // 背景漸層
   const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, '#0D0904');
-  bg.addColorStop(1, '#1A1208');
+  bg.addColorStop(0, '#040D14');
+  bg.addColorStop(1, '#0A1B28');
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
