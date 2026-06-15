@@ -720,6 +720,13 @@
   }
   .star{color:var(--peach);font-size:16px;cursor:pointer;line-height:1}
   .star.off{color:rgba(245,240,234,.22)}
+  /* Wave 60 — copy button */
+  .copy-btn{
+    background:none;border:none;cursor:pointer;
+    font-size:14px;color:#8899aa;padding:2px 4px;
+    opacity:0;transition:opacity .16s;line-height:1;
+  }
+  .res-row:hover .copy-btn{opacity:1}
 
   /* === 04/05/06 CARDS === */
   .card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
@@ -1960,6 +1967,46 @@ function toggleBkPanel() {
   _renderBkPanel();
 })();
 
+// ── Wave 60 — copy article ────────────────────
+function _dashToast(msg) {
+  var el = document.createElement('div');
+  el.textContent = msg;
+  el.style.cssText = 'position:fixed;bottom:80px;right:20px;background:#1A2E3D;color:#fff;'
+    + 'padding:8px 16px;border-radius:20px;font-size:14px;z-index:9999;'
+    + 'transition:opacity 0.3s;opacity:1;pointer-events:none;'
+    + 'font-family:var(--mono,monospace);letter-spacing:.04em;';
+  document.body.appendChild(el);
+  setTimeout(function() { el.style.opacity = '0'; }, 1600);
+  setTimeout(function() { el.parentNode && el.parentNode.removeChild(el); }, 2000);
+}
+
+function _copyArticle(btn, lawName, artNo, text) {
+  var content = lawName + ' 第' + artNo + '條\n' + text;
+  var orig = btn.textContent;
+  function onSuccess() {
+    btn.textContent = '✅';
+    _dashToast('📋 已複製');
+    setTimeout(function() { btn.textContent = orig; }, 1500);
+  }
+  function onError() {
+    try {
+      var ta = document.createElement('textarea');
+      ta.value = content;
+      ta.style.cssText = 'position:fixed;opacity:0;top:0;left:0;';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      onSuccess();
+    } catch(e) { _dashToast('複製失敗'); }
+  }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(content).then(onSuccess, onError);
+  } else {
+    onError();
+  }
+}
+
 // ── 登入狀態：讀取用戶名稱 ──────────────────────
 (function(){
   // LINE Bot 推播連結帶 ?t= 時，用 HMAC magic token 換 session（與 /login.html?t= 同格式）
@@ -3045,12 +3092,14 @@ function _renderResRows(arts, lawName){
     var lnEsc   = (dispLaw||'').replace(/'/g,'');
     var isActive = _bookmarks[pid] ? ' active' : '';
     var bkTitle = _bookmarks[pid] ? '移除書籤' : '加入待復習';
+    var fullTextEsc = (a.original_text || artTtl || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n');
     return '<div class="res-row" data-article-id="'+pid+'" onclick="openDrawer(\''+pid+'\',\''+lnSafe+'\',\''+artNum+'\')">'
       + '<span class="law">'+esc(dispLaw)+'</span>'
       + '<span class="art">§'+esc(artNum)+'</span>'
       + '<span class="ttl">'+esc(artTtl)+'</span>'
       + '<button class="bk-btn'+isActive+'" data-id="'+pid+'" title="'+bkTitle+'"'
       + ' onclick="event.stopPropagation();toggleBookmark(\''+pid+'\',\''+lnEsc+'\',\''+artNum+'\',\''+snippet+'\')">★</button>'
+      + '<button class="copy-btn" title="複製法條" onclick="event.stopPropagation();_copyArticle(this,\''+lnEsc+'\',\''+artNum+'\',\''+fullTextEsc+'\')">📋</button>'
       + '</div>';
   }).join('');
 }
