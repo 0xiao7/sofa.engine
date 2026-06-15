@@ -133,6 +133,31 @@
     font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--bad);font-weight:600;
   }
 
+  /* ── 答題反饋動畫 ── */
+  @keyframes rightFlash{
+    0%{transform:scale(1);}
+    35%{transform:scale(1.025);box-shadow:0 0 0 8px rgba(159,184,159,.22);}
+    100%{transform:scale(1);box-shadow:none;}
+  }
+  @keyframes wrongShake{
+    0%,100%{transform:translateX(0);}
+    20%{transform:translateX(-7px);}
+    40%{transform:translateX(7px);}
+    60%{transform:translateX(-4px);}
+    80%{transform:translateX(4px);}
+  }
+  .opt.flash{animation:rightFlash .42s ease-out;}
+  .opt.shake{animation:wrongShake .38s ease-out;}
+  #ans-toast{
+    position:fixed;top:76px;left:50%;transform:translateX(-50%);z-index:200;
+    padding:9px 22px;border-radius:24px;
+    font-family:var(--mono);font-size:12px;font-weight:700;letter-spacing:.14em;
+    pointer-events:none;opacity:0;transition:opacity .15s;white-space:nowrap;
+  }
+  #ans-toast.show{opacity:1;}
+  #ans-toast.ok{background:var(--good);color:#1B2B4B;}
+  #ans-toast.bad{background:var(--bad);color:#FAF8F5;}
+
   /* explanation */
   .explain{
     margin-top:24px;background:var(--cream);color:var(--navy);
@@ -260,6 +285,7 @@
 </style>
 </head>
 <body>
+<div id="ans-toast"></div>
 
   <header class="topbar">
     <a class="brand" href="index.html"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
@@ -542,6 +568,36 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
 }
 
 let answered=false,right=0,wrong=0,total=0,flagged=0;
+
+function _feedbackAnim(btn, isCorrect){
+  // 動畫
+  const cls = isCorrect ? 'flash' : 'shake';
+  btn.classList.add(cls);
+  btn.addEventListener('animationend', ()=>btn.classList.remove(cls), {once:true});
+  // Toast
+  const t = document.getElementById('ans-toast');
+  t.textContent = isCorrect ? '✓  答對了' : '✗  答錯了';
+  t.className = 'show ' + (isCorrect ? 'ok' : 'bad');
+  clearTimeout(t._tid);
+  t._tid = setTimeout(()=>t.classList.remove('show'), 1100);
+  // 音效
+  try{
+    const ctx = new (window.AudioContext||window.webkitAudioContext)();
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    if(isCorrect){
+      o.frequency.setValueAtTime(440,ctx.currentTime);
+      o.frequency.linearRampToValueAtTime(660,ctx.currentTime+.12);
+    }else{
+      o.type='sawtooth';
+      o.frequency.setValueAtTime(280,ctx.currentTime);
+      o.frequency.linearRampToValueAtTime(140,ctx.currentTime+.18);
+    }
+    g.gain.setValueAtTime(.12,ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0,ctx.currentTime+.22);
+    o.start(ctx.currentTime); o.stop(ctx.currentTime+.22);
+  }catch(e){}
+}
 let quizData=null;
 // 本次作答紀錄
 let sessionHistory=[]; // [{num, correct:null|true|false, flagged:false, law:'', title:''}]
@@ -720,6 +776,7 @@ async function loadQuiz(){
         const isCorrect=isOptCorrect;
         if(!isCorrect){btn.classList.add('wrong');wrong++;}else{right++;}
         cur.correct=isCorrect;
+        _feedbackAnim(btn,isCorrect);
         updateScore();
         // 寫入練習紀錄
         if(pageId&&uid&&uid!=='PREVIEW'&&!isFree){
