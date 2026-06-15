@@ -3266,6 +3266,7 @@ function startPresence(name, subject){
     })
     .on('broadcast', { event:'react' }, ({ payload }) => {
       _spawnReactEmoji(payload.emoji, payload.deskIdx);
+      _playReactionSound(payload.emoji);
     })
     .subscribe(async status => {
       if(status === 'SUBSCRIBED'){
@@ -3796,6 +3797,66 @@ function _initRainAudio() {
   _rainSource.connect(hp); hp.connect(bp); bp.connect(_rainGain);
   _rainGain.connect(_ambGain);
   _rainSource.start();
+}
+
+function _playReactionSound(emoji) {
+  if(!_audioCtx || !_soundOn || _audioCtx.state === 'suspended') return;
+  try {
+    const ctx = _audioCtx;
+    const t = ctx.currentTime;
+    switch(emoji) {
+      case '🔥': {
+        // Crackling: short filtered noise burst
+        const bufLen = Math.floor(ctx.sampleRate * 0.25);
+        const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+        const d = buf.getChannelData(0);
+        for(let i=0; i<bufLen; i++) d[i] = (Math.random()*2-1) * Math.pow(1-i/bufLen, 1.5);
+        const src = ctx.createBufferSource();
+        src.buffer = buf;
+        const bp = ctx.createBiquadFilter(); bp.type='bandpass'; bp.frequency.value=1800; bp.Q.value=1.2;
+        const g = ctx.createGain(); g.gain.value=0.18;
+        src.connect(bp); bp.connect(g); g.connect(ctx.destination);
+        src.start(t); break;
+      }
+      case '👏': {
+        // Clap: noise burst with body resonance
+        const bufLen = Math.floor(ctx.sampleRate * 0.12);
+        const buf = ctx.createBuffer(1, bufLen, ctx.sampleRate);
+        const d = buf.getChannelData(0);
+        for(let i=0; i<bufLen; i++) d[i] = (Math.random()*2-1) * Math.exp(-i/(bufLen*0.35));
+        const src = ctx.createBufferSource(); src.buffer = buf;
+        const hp = ctx.createBiquadFilter(); hp.type='highpass'; hp.frequency.value=600;
+        const g = ctx.createGain(); g.gain.value=0.22;
+        src.connect(hp); hp.connect(g); g.connect(ctx.destination);
+        src.start(t); break;
+      }
+      case '📖': {
+        // Page flip: rapid frequency sweep
+        const osc = ctx.createOscillator();
+        const env = ctx.createGain();
+        osc.connect(env); env.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(2200, t);
+        osc.frequency.exponentialRampToValueAtTime(800, t+0.18);
+        env.gain.setValueAtTime(0.12, t);
+        env.gain.exponentialRampToValueAtTime(0.0001, t+0.22);
+        osc.start(t); osc.stop(t+0.23); break;
+      }
+      case '✨': {
+        // Sparkle: triple high chime
+        [0, 0.08, 0.16].forEach((delay, i) => {
+          const osc = ctx.createOscillator();
+          const env = ctx.createGain();
+          osc.connect(env); env.connect(ctx.destination);
+          osc.type = 'sine';
+          osc.frequency.value = 2000 + i*400;
+          env.gain.setValueAtTime(0.10, t+delay);
+          env.gain.exponentialRampToValueAtTime(0.0001, t+delay+0.28);
+          osc.start(t+delay); osc.stop(t+delay+0.29);
+        }); break;
+      }
+    }
+  } catch(e){}
 }
 
 function _playBellChime(times) {
