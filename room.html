@@ -2364,6 +2364,18 @@ function startThreeAnimation(canvas) {
       _quoteIdx = (_quoteIdx + 1) % _QUOTES.length;
       _drawQuoteSign();
     }
+    // Hour / half-hour bell chime
+    {
+      const _cn = new Date(new Date().toLocaleString('en-US', {timeZone: 'Asia/Taipei'}));
+      const _ch = _cn.getHours(), _cm = _cn.getMinutes();
+      if (_cm === 0 && _ch !== _lastChimeHour) {
+        _lastChimeHour = _ch;
+        _playBellChime(Math.min(_ch % 12 || 12, 4));
+      } else if (_cm === 30 && _ch !== _lastChimeHalf) {
+        _lastChimeHalf = _ch;
+        _playBellChime(1);
+      }
+    }
     _threeRenderer.render(_threeScene, _threeCamera);
   }
   // Set time-of-day label
@@ -2834,6 +2846,7 @@ const CIRC = 213.6;
 // ── Ambient Soundscape ─────────────────────────────────────────────────
 let _audioCtx = null, _soundOn = false;
 let _ambGain = null, _droneGain = null, _noiseSource = null, _droneOsc = null;
+let _lastChimeHour = -1, _lastChimeHalf = -1;
 
 function _buildAmbientSound() {
   if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -2916,6 +2929,32 @@ function toggleAmbientSound() {
   }
 }
 // ── End Ambient Soundscape ──────────────────────────────────────────────
+
+function _playBellChime(times) {
+  if (!_audioCtx || _audioCtx.state === 'suspended') return;
+  // Skip if ambient sound is off (ambGain faded out or null)
+  try { if (_ambGain && _ambGain.gain.value < 0.01) return; } catch(e){}
+  if (!_soundOn) return;
+  const baseFreq = 622; // D#5 — warm bell tone
+  const harmonics = [1, 2.756, 5.404]; // bell partial ratios
+  for (let ring = 0; ring < times; ring++) {
+    const delay = ring * 0.55;
+    harmonics.forEach((ratio, hi) => {
+      const osc = _audioCtx.createOscillator();
+      const env = _audioCtx.createGain();
+      osc.connect(env);
+      env.connect(_audioCtx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = baseFreq * ratio;
+      const t = _audioCtx.currentTime + delay;
+      env.gain.setValueAtTime(0, t);
+      env.gain.linearRampToValueAtTime(0.08 / (hi + 1), t + 0.01);
+      env.gain.exponentialRampToValueAtTime(0.0001, t + 2.2);
+      osc.start(t);
+      osc.stop(t + 2.3);
+    });
+  }
+}
 
 function beep(type='done'){
   try{
