@@ -1202,7 +1202,7 @@ function initThreeScene(canvas) {
     [-3,-5],[3,-5],
     [-3,4.5],[3,4.5],
   ];
-  DESK_POSITIONS.forEach(([x,z]) => {
+  DESK_POSITIONS.forEach(([x,z], dIdx) => {
     const desk = new THREE.Mesh(box(1.6,0.08,0.9), deskMat);
     desk.position.set(x,0.76,z); _threeScene.add(desk);
     desk.castShadow = true; desk.receiveShadow = true;
@@ -1230,6 +1230,52 @@ function initThreeScene(canvas) {
     lampHead.position.set(x+0.5, 1.35, z+0.1);
     lampHead.rotation.z = Math.PI; // point downward
     _threeScene.add(lampHead);
+    // Desk prop (cycles by desk index)
+    const propType = dIdx % 4;
+    if(propType === 0) {
+      // Coffee cup — mug body + handle ring
+      const mugMat = mLambert(0xF5F0EA);
+      const mug = new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.06,0.11,10), mugMat);
+      mug.position.set(x-0.35, 0.88, z+0.1); _threeScene.add(mug);
+      // Coffee liquid (dark circle on top)
+      const coffee = new THREE.Mesh(new THREE.CylinderGeometry(0.048,0.048,0.01,10), mLambert(0x3B1F0A));
+      coffee.position.set(x-0.35, 0.945, z+0.1); _threeScene.add(coffee);
+      // Handle (flat torus-ish: two small cylinders)
+      const h1 = new THREE.Mesh(new THREE.CylinderGeometry(0.01,0.01,0.07,6), mugMat);
+      h1.position.set(x-0.295, 0.91, z+0.1); h1.rotation.z = Math.PI/2; _threeScene.add(h1);
+    } else if(propType === 1) {
+      // Book stack — 3 flat boxes at slight angles
+      const stackColors = [0xE85D5D, 0x5D8AE8, 0x5DE87A];
+      stackColors.forEach((c,si) => {
+        const bk = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.04,0.15), mLambert(c));
+        bk.position.set(x-0.38, 0.845 + si*0.045, z+0.12);
+        bk.rotation.y = (si-1)*0.12;
+        _threeScene.add(bk);
+      });
+    } else if(propType === 2) {
+      // Pencil holder + 4 pencils
+      const holder = new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.05,0.09,8), mLambert(0x1A2E3D));
+      holder.position.set(x-0.36, 0.875, z+0.1); _threeScene.add(holder);
+      [-0.02,-0.01,0.01,0.02].forEach((ox,pi)=>{
+        const pencil = new THREE.Mesh(new THREE.BoxGeometry(0.012,0.14,0.012), mLambert([0xFFD700,0xFF8C00,0x5D8AE8,0xE85D5D][pi]));
+        pencil.position.set(x-0.36+ox*1.5, 0.96, z+0.1+ox);
+        _threeScene.add(pencil);
+        const tip = new THREE.Mesh(new THREE.ConeGeometry(0.008,0.02,4), mLambert(0xF5DEB3));
+        tip.position.set(x-0.36+ox*1.5, 1.04, z+0.1+ox);
+        _threeScene.add(tip);
+      });
+    } else {
+      // Notebook + pen
+      const nb = new THREE.Mesh(new THREE.BoxGeometry(0.28,0.018,0.20), mLambert(0xFAF0E6));
+      nb.position.set(x-0.35, 0.84, z+0.1); _threeScene.add(nb);
+      // Lines on notebook (dark thin plane on top)
+      const lines = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.002,0.14), mLambert(0x5BAFD6));
+      lines.position.set(x-0.35, 0.85, z+0.1); _threeScene.add(lines);
+      // Pen
+      const pen = new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.24,6), mLambert(0x1A2E3D));
+      pen.position.set(x-0.22, 0.842, z+0.22);
+      pen.rotation.z = 0.3; _threeScene.add(pen);
+    }
     // Lamp glow — all desks dim by default; brightened per occupant in _updateThreeAvatars
     const deskLight = new THREE.PointLight(0x7AC3E4, 0.15, 3.0);
     deskLight.position.set(x+0.5, 1.2, z+0.1);
