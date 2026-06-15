@@ -743,7 +743,7 @@ input[type=text], select, .btn-enter {
 
 let _threeRenderer, _threeScene, _threeCamera, _threeRAF;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
-let _namePlates = [], _deskLampLights = [];
+let _namePlates = [], _deskLampLights = [], _avatarHeads = [];
 let _reactParticles = []; // {sprite, vy, life, maxLife}
 let _speechBubbles = []; // {sprite, life, maxLife, phase} phase: 'in'|'hold'|'out'
 let _threeTime = 0;
@@ -1792,7 +1792,7 @@ function _updateThreeAvatars(users) {
   _userAvatarLabels.forEach(m => _threeScene.remove(m));
   _namePlates.forEach(m => _threeScene.remove(m));
   _userAvatarMeshes.length = 0; _userAvatarLabels.length = 0;
-  _namePlates.length = 0;
+  _namePlates.length = 0; _avatarHeads.length = 0;
 
   users.forEach((u, i) => {
     const pos = _DESK_POS_3D[i % _DESK_POS_3D.length];
@@ -1833,6 +1833,7 @@ function _updateThreeAvatars(users) {
     }
     _threeScene.add(head);
     _userAvatarLabels.push(head);
+    _avatarHeads.push({ mesh: head, baseX: pos[0], baseZ: pos[1]+0.9, phase: i * 1.37 });
 
     // Legs (two small boxes)
     const legMat = new THREE.MeshLambertMaterial({color: new THREE.Color().setHSL(hue,0.5,0.3)});
@@ -1967,6 +1968,15 @@ function startThreeAnimation(canvas) {
     // Avatar bob (body only — head/legs stay fixed)
     _userAvatarMeshes.forEach((m, i) => {
       m.position.y = 0.98 + 0.05 * Math.sin(_threeTime * 1.5 + i * 0.8);
+    });
+    // Avatar head idle look-around
+    _avatarHeads.forEach((h, i) => {
+      // Slow yaw (left-right): period ~8s, amplitude ±18°
+      h.mesh.rotation.y = Math.sin(_threeTime * 0.8 + h.phase) * 0.32;
+      // Very slight nod: period ~5s, amplitude ±5°
+      h.mesh.rotation.x = Math.sin(_threeTime * 1.2 + h.phase * 0.7) * 0.09;
+      // Keep head Y position synced with body bob (body bobs, head should follow)
+      h.mesh.position.y = 1.45 + 0.05 * Math.sin(_threeTime * 1.5 + i * 0.8);
     });
     // Name plates always face camera
     _namePlates.forEach(p => p.lookAt(_threeCamera.position));
