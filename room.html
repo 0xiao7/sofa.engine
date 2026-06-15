@@ -126,25 +126,21 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 /* ── Room scene + desk grid ── */
 #desk-area{flex:1;overflow-y:auto;background:#0F1E2A;display:flex;flex-direction:column;}
 
-/* SVG 場景容器 */
+/* RPG 頂視角場景容器 */
 #lib-scene-wrap{
   width:100%;flex-shrink:0;overflow:hidden;
   position:relative;
+  border-radius:12px;
+  border:1px solid rgba(91,175,214,0.15);
 }
-#room-canvas{display:block;width:100%;image-rendering:pixelated;image-rendering:crisp-edges;}
+#room-canvas{display:block;width:100%;cursor:crosshair;}
 
-/* 燈光暈染覆蓋 */
-#lib-scene-wrap::after{
-  content:'';position:absolute;inset:0;
-  background:radial-gradient(ellipse 60% 40% at 50% 30%,rgba(91,175,214,.07) 0%,transparent 70%);
-  pointer-events:none;
-}
-#dpad{position:absolute;bottom:10px;right:10px;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0.7;}
+#dpad{position:absolute;bottom:12px;right:12px;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0.75;}
 #dpad:hover{opacity:1;}
-.dp{width:32px;height:32px;background:rgba(26,46,61,0.85);color:#5BAFD6;border:1px solid #2D7DA8;border-radius:6px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
-.dp:active{background:#1A2E3D;transform:scale(0.92);}
-#dpad-hint{position:absolute;bottom:8px;left:10px;font-size:10px;color:rgba(91,175,214,0.5);letter-spacing:.03em;}
-@media(min-width:600px){#dpad{display:none;}#dpad-hint{display:none;}}
+.dp{width:34px;height:34px;background:rgba(26,46,61,0.88);color:#5BAFD6;border:1px solid rgba(91,175,214,0.4);border-radius:8px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;touch-action:manipulation;}
+.dp:active{background:#1A2E3D;transform:scale(0.9);}
+#dpad-hint{position:absolute;bottom:8px;left:10px;font-size:10px;color:rgba(91,175,214,0.55);letter-spacing:.03em;}
+@media(min-width:600px){#dpad{display:none;}#dpad-hint{font-size:10px;}}
 
 /* 分隔線 */
 .room-floor-label{
@@ -518,18 +514,18 @@ input[type=text], select, .btn-enter {
 
   <main>
     <div id="desk-area">
-      <!-- 等角圖書館場景 Canvas -->
+      <!-- RPG 頂視角自習室 Canvas -->
       <div id="lib-scene-wrap">
         <canvas id="room-canvas"></canvas>
         <div id="dpad">
-          <button class="dp" onclick="tryMovePlayer(0,-1)">▲</button>
+          <button class="dp" onclick="(()=>{const nx=rpgPlayer.tx,ny=rpgPlayer.ty-1;if(!isBlocked(nx,ny)){rpgPlayer.ty=ny;centerCam(document.getElementById('room-canvas'),nx,ny);}})()">▲</button>
           <div style="display:flex;gap:4px;">
-            <button class="dp" onclick="tryMovePlayer(-1,0)">◀</button>
-            <button class="dp" onclick="tryMovePlayer(0,1)">▼</button>
-            <button class="dp" onclick="tryMovePlayer(1,0)">▶</button>
+            <button class="dp" onclick="(()=>{const nx=rpgPlayer.tx-1,ny=rpgPlayer.ty;if(!isBlocked(nx,ny)){rpgPlayer.tx=nx;centerCam(document.getElementById('room-canvas'),nx,ny);}})()">◀</button>
+            <button class="dp" onclick="(()=>{const nx=rpgPlayer.tx,ny=rpgPlayer.ty+1;if(!isBlocked(nx,ny)){rpgPlayer.ty=ny;centerCam(document.getElementById('room-canvas'),nx,ny);}})()">▼</button>
+            <button class="dp" onclick="(()=>{const nx=rpgPlayer.tx+1,ny=rpgPlayer.ty;if(!isBlocked(nx,ny)){rpgPlayer.tx=nx;centerCam(document.getElementById('room-canvas'),nx,ny);}})()">▶</button>
           </div>
         </div>
-        <div id="dpad-hint">方向鍵 / WASD 移動</div>
+        <div id="dpad-hint">方向鍵 / WASD 移動・點地板走路</div>
       </div>
 
       <!-- 在線考生列表 -->
@@ -710,336 +706,246 @@ input[type=text], select, .btn-enter {
 </div>
 
 <script type="module">
-// ── Minecraft 等角 3D 圖書館場景 ──────────────────────────────────────
+// ── RPG 頂視角自習室場景 ─────────────────────────────────────────────
 
-const TW = 52, TH = 26, BH = 28; // tile width, half-height, block height
+const TS = 44;          // tile size px
+const RW = 20, RH = 16; // room width/height in tiles
 
-const MC = {
-  bookshelf_top:   '#1D3A28',
-  bookshelf_left:  '#0D2018',
-  bookshelf_right: '#142D20',
-  book_colors: ['#E85D5D','#5D8AE8','#5DE87A','#E8C45D','#A05DE8','#E8855D','#5DD6E8','#E85D8A','#85E85D','#D4A850'],
-  oak_top:   '#1A2E3D',
-  oak_left:  '#0E1E2A',
-  oak_right: '#132433',
-  stone_top: '#0A1929',
-  stone_left: '#040D14',
-  stone_right: '#071320',
-  torch_stick: '#8B6B3E',
-  torch_fire:  '#FF8C00', torch_bright: '#FFDD00',
-  desk_top:   '#243C4F',
-  desk_left:  '#142535',
-  desk_right: '#1C3042',
-};
+// --- Layout ---
+// DESK positions (tile x,y of the desk block itself)
+const DESKS = [
+  {tx:2,ty:2},{tx:3,ty:2},   {tx:7,ty:2},{tx:8,ty:2},
+  {tx:13,ty:2},{tx:14,ty:2}, {tx:17,ty:2},{tx:18,ty:2},
+  {tx:2,ty:6},{tx:3,ty:6},   {tx:7,ty:6},{tx:8,ty:6},
+  {tx:13,ty:6},{tx:14,ty:6}, {tx:17,ty:6},{tx:18,ty:6},
+  {tx:2,ty:10},{tx:3,ty:10}, {tx:7,ty:10},{tx:8,ty:10},
+  {tx:13,ty:10},{tx:14,ty:10},{tx:17,ty:10},{tx:18,ty:10},
+];
+// Character seat positions (in front of each desk)
+const SEATS = DESKS.map(d => ({tx: d.tx, ty: d.ty + 1}));
+// Plant positions
+const PLANTS = [{tx:0,ty:0},{tx:19,ty:0},{tx:0,ty:15},{tx:19,ty:15},{tx:9,ty:4},{tx:10,ty:4},{tx:9,ty:8},{tx:10,ty:12}];
 
-function isoXY(bx, by, bz, offX, offY) {
-  return {
-    x: offX + (bx - by) * TW / 2,
-    y: offY + (bx + by) * TH / 2 - bz * BH
-  };
+// Blocked tiles (desks + plants block movement)
+function isBlocked(tx,ty) {
+  if (tx<0||tx>=RW||ty<0||ty>=RH) return true;
+  if (DESKS.some(d=>d.tx===tx&&d.ty===ty)) return true;
+  if (PLANTS.some(p=>p.tx===tx&&p.ty===ty)) return true;
+  return false;
 }
 
-function drawTopFace(ctx, bx, by, bz, color, offX, offY) {
-  const {x, y} = isoXY(bx, by, bz, offX, offY);
-  ctx.beginPath();
-  ctx.moveTo(x,        y       );
-  ctx.lineTo(x+TW/2,   y+TH/2 );
-  ctx.lineTo(x,        y+TH   );
-  ctx.lineTo(x-TW/2,   y+TH/2 );
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.fill();
+// --- Camera ---
+let cam = {x:0, y:0};
+function centerCam(canvas, px, py) {
+  cam.x = px*TS - canvas.width/2 + TS/2;
+  cam.y = py*TS - canvas.height/2 + TS/2;
+  cam.x = Math.max(0, Math.min(RW*TS - canvas.width, cam.x));
+  cam.y = Math.max(0, Math.min(RH*TS - canvas.height, cam.y));
 }
 
-function drawLeftFace(ctx, bx, by, bz, color, offX, offY) {
-  const {x, y} = isoXY(bx, by, bz, offX, offY);
-  ctx.beginPath();
-  ctx.moveTo(x-TW/2, y+TH/2    );
-  ctx.lineTo(x,      y+TH      );
-  ctx.lineTo(x,      y+TH+BH   );
-  ctx.lineTo(x-TW/2, y+TH/2+BH );
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.fill();
-}
-
-function drawRightFace(ctx, bx, by, bz, color, offX, offY) {
-  const {x, y} = isoXY(bx, by, bz, offX, offY);
-  ctx.beginPath();
-  ctx.moveTo(x,      y+TH      );
-  ctx.lineTo(x+TW/2, y+TH/2   );
-  ctx.lineTo(x+TW/2, y+TH/2+BH);
-  ctx.lineTo(x,      y+TH+BH   );
-  ctx.closePath();
-  ctx.fillStyle = color;
-  ctx.fill();
-}
-
-function drawBlock(ctx, bx, by, bz, type, offX, offY) {
-  drawTopFace  (ctx, bx, by, bz, MC[type+'_top'],   offX, offY);
-  drawLeftFace (ctx, bx, by, bz, MC[type+'_left'],  offX, offY);
-  drawRightFace(ctx, bx, by, bz, MC[type+'_right'], offX, offY);
-  if (type === 'bookshelf') drawBookshelfTexture(ctx, bx, by, bz, offX, offY);
-}
-
-function drawBookshelfTexture(ctx, bx, by, bz, offX, offY) {
-  const {x, y} = isoXY(bx, by, bz, offX, offY);
-  const bColors = MC.book_colors;
-  const topStrip = 3, botStrip = 3;
-  const faceH = BH;
-  const midH = faceH - topStrip - botStrip;
-
-  // 左臉書脊
-  for (let i = 0; i < 6; i++) {
-    const t = i / 6;
-    const t2 = (i+1) / 6;
-    const col = bColors[i % bColors.length];
-    const lx1 = x - TW/2 + t * TW/2,  ly1 = y + TH/2 + t * TH/2;
-    const lx2 = x - TW/2 + t2 * TW/2, ly2 = y + TH/2 + t2 * TH/2;
-    ctx.beginPath();
-    ctx.moveTo(lx1, ly1 + topStrip);
-    ctx.lineTo(lx2, ly2 + topStrip);
-    ctx.lineTo(lx2, ly2 + topStrip + midH);
-    ctx.lineTo(lx1, ly1 + topStrip + midH);
-    ctx.closePath();
-    ctx.fillStyle = col;
-    ctx.fill();
-  }
-  // 右臉書脊
-  for (let i = 0; i < 6; i++) {
-    const t = i / 6;
-    const t2 = (i+1) / 6;
-    const col = bColors[(i + 3) % bColors.length];
-    const rx1 = x + t * TW/2,      ry1 = y + TH - t * TH/2;
-    const rx2 = x + t2 * TW/2,     ry2 = y + TH - t2 * TH/2;
-    ctx.beginPath();
-    ctx.moveTo(rx1, ry1 + topStrip);
-    ctx.lineTo(rx2, ry2 + topStrip);
-    ctx.lineTo(rx2, ry2 + topStrip + midH);
-    ctx.lineTo(rx1, ry1 + topStrip + midH);
-    ctx.closePath();
-    ctx.fillStyle = col;
-    ctx.fill();
-  }
-}
-
-function drawPlayer(ctx, bx, by, offX, offY) {
-  const PW = TW * 0.55, PH = TH * 0.55, PBH = BH * 0.85;
-  const {x, y} = isoXY(bx, by, 1, offX, offY);
-  const ox = x, oy = y + TH * 0.22;
-  // top
-  ctx.beginPath();
-  ctx.moveTo(ox,        oy       );
-  ctx.lineTo(ox+PW/2,   oy+PH/2 );
-  ctx.lineTo(ox,        oy+PH   );
-  ctx.lineTo(ox-PW/2,   oy+PH/2 );
-  ctx.closePath();
-  ctx.fillStyle = '#5BAFD6';
-  ctx.fill();
-  // left
-  ctx.beginPath();
-  ctx.moveTo(ox-PW/2, oy+PH/2    );
-  ctx.lineTo(ox,      oy+PH      );
-  ctx.lineTo(ox,      oy+PH+PBH  );
-  ctx.lineTo(ox-PW/2, oy+PH/2+PBH);
-  ctx.closePath();
-  ctx.fillStyle = '#2D7DA8';
-  ctx.fill();
-  // right
-  ctx.beginPath();
-  ctx.moveTo(ox,      oy+PH      );
-  ctx.lineTo(ox+PW/2, oy+PH/2   );
-  ctx.lineTo(ox+PW/2, oy+PH/2+PBH);
-  ctx.lineTo(ox,      oy+PH+PBH  );
-  ctx.closePath();
-  ctx.fillStyle = '#3D8DB8';
-  ctx.fill();
-  // face dot
-  ctx.fillStyle = '#FFDD99';
-  ctx.beginPath();
-  ctx.arc(ox - PW*0.15, oy + PH*0.6 + PBH*0.35, 2.5, 0, Math.PI*2);
-  ctx.fill();
-}
-
-function drawTorch(ctx, bx, by, bz, offX, offY, phase) {
-  const {x, y} = isoXY(bx, by, bz, offX, offY);
-  const cx = x, cy = y + TH / 2;
-
-  // 光暈
-  const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 18);
-  const alpha = 0.15 + 0.08 * Math.sin(phase * 3);
-  glow.addColorStop(0, `rgba(255,150,0,${alpha})`);
-  glow.addColorStop(1, 'rgba(255,150,0,0)');
-  ctx.fillStyle = glow;
-  ctx.fillRect(cx - 18, cy - 18, 36, 36);
-
-  // 火把棍
-  ctx.fillStyle = MC.torch_stick;
-  ctx.fillRect(cx - 1, cy - 6, 2, 10);
-
-  // 火焰
-  const flicker = 1 + 0.2 * Math.sin(phase * 5);
-  const fh = 5 * flicker;
-  const fireGrad = ctx.createLinearGradient(cx, cy - 6, cx, cy - 6 - fh);
-  fireGrad.addColorStop(0, MC.torch_fire);
-  fireGrad.addColorStop(1, MC.torch_bright);
-  ctx.fillStyle = fireGrad;
-  ctx.beginPath();
-  ctx.ellipse(cx, cy - 6 - fh/2, 2.5, fh/2, 0, 0, Math.PI*2);
-  ctx.fill();
-}
-
-function drawScene(ctx, canvas, torchPhase) {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  const W = canvas.width, H = canvas.height;
-  const offX = W / 2, offY = H * 0.38;
-
-  // 背景漸層
-  const bg = ctx.createLinearGradient(0, 0, 0, H);
-  bg.addColorStop(0, '#040D14');
-  bg.addColorStop(1, '#0A1B28');
-  ctx.fillStyle = bg;
-  ctx.fillRect(0, 0, W, H);
-
-  // 背景星塵
-  const starRng = (seed => { let s=seed; return ()=>{ s=Math.imul(s,1664525)+1013904223>>>0; return s/0x100000000; }; })(42);
-  ctx.fillStyle = 'rgba(91,175,214,0.35)';
-  for (let i = 0; i < 40; i++) {
-    const sx = starRng() * W;
-    const sy = starRng() * H * 0.5;
-    const sr = starRng() * 1.2 + 0.3;
-    ctx.beginPath(); ctx.arc(sx, sy, sr, 0, Math.PI*2); ctx.fill();
-  }
-
-  // 地板 Oak Planks (bz=0, 6×5 區域)
-  for (let bx = 0; bx <= 5; bx++)
-    for (let by = 0; by <= 4; by++)
-      drawBlock(ctx, bx, by, 0, 'oak', offX, offY);
-
-  // 地板格線（讓地板可見）
-  ctx.strokeStyle = 'rgba(91,175,214,0.12)';
-  ctx.lineWidth = 0.8;
-  for (let bx = 0; bx <= 5; bx++) {
-    for (let by = 0; by <= 4; by++) {
-      const {x, y} = isoXY(bx, by, 0, offX, offY);
-      ctx.beginPath();
-      ctx.moveTo(x,        y       );
-      ctx.lineTo(x+TW/2,   y+TH/2 );
-      ctx.lineTo(x,        y+TH   );
-      ctx.lineTo(x-TW/2,   y+TH/2 );
-      ctx.closePath();
-      ctx.stroke();
+// --- Drawing ---
+function drawFloor(ctx, canvas) {
+  for (let ty=0; ty<RH; ty++) {
+    for (let tx=0; tx<RW; tx++) {
+      const sx = tx*TS - cam.x, sy = ty*TS - cam.y;
+      if (sx+TS<0||sx>canvas.width||sy+TS<0||sy>canvas.height) continue;
+      // Base tile
+      const shade = ((tx+ty)%2===0) ? '#CEC0A0' : '#C8B898';
+      ctx.fillStyle = shade;
+      ctx.fillRect(sx, sy, TS, TS);
+      // Grout lines
+      ctx.strokeStyle = 'rgba(150,130,100,0.4)';
+      ctx.lineWidth = 1;
+      ctx.strokeRect(sx+0.5, sy+0.5, TS-1, TS-1);
     }
   }
+}
 
-  // 後牆 Stone (by=0, bx=0..7, bz=1..3)
-  for (let bx = 0; bx <= 7; bx++)
-    for (let bz = 1; bz <= 3; bz++)
-      drawBlock(ctx, bx, 0, bz, 'stone', offX, offY);
+function drawDesk(ctx, tx, ty) {
+  const sx = tx*TS - cam.x, sy = ty*TS - cam.y;
+  // Desk surface
+  ctx.fillStyle = '#8B5E3C';
+  ctx.fillRect(sx+2, sy+4, TS*2-4, TS-8);
+  // Wood grain
+  ctx.fillStyle = '#7A5235';
+  ctx.fillRect(sx+2, sy+4, TS*2-4, 3);
+  // Monitor/book on desk
+  ctx.fillStyle = '#2C3E50';
+  ctx.fillRect(sx+TS/2-8, sy+6, 16, 10);
+  ctx.fillStyle = '#3498DB';
+  ctx.fillRect(sx+TS/2-6, sy+8, 12, 6);
+}
 
-  // 書架（後牆前一格 by=1, bz=1..2）
-  for (let bx = 0; bx <= 7; bx++)
-    for (let bz = 1; bz <= 2; bz++)
-      drawBlock(ctx, bx, 1, bz, 'bookshelf', offX, offY);
+function drawPlant(ctx, tx, ty) {
+  const sx = tx*TS - cam.x + TS/2, sy = ty*TS - cam.y + TS/2;
+  // Pot
+  ctx.fillStyle = '#C0622D';
+  ctx.beginPath();
+  ctx.moveTo(sx-8, sy+4); ctx.lineTo(sx+8, sy+4);
+  ctx.lineTo(sx+6, sy+14); ctx.lineTo(sx-6, sy+14);
+  ctx.closePath(); ctx.fill();
+  // Soil
+  ctx.fillStyle = '#5C3317';
+  ctx.fillRect(sx-8, sy+4, 16, 3);
+  // Leaves
+  ctx.fillStyle = '#2D8A4E';
+  ctx.beginPath(); ctx.arc(sx, sy-4, 10, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle = '#3DAA5E';
+  ctx.beginPath(); ctx.arc(sx-5, sy+0, 7, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(sx+5, sy+0, 7, 0, Math.PI*2); ctx.fill();
+}
 
-  // 左側牆書架 (bx=0, by=2..4, bz=1..2)
-  for (let by = 2; by <= 4; by++)
-    for (let bz = 1; bz <= 2; bz++)
-      drawBlock(ctx, 0, by, bz, 'bookshelf', offX, offY);
+// Hue array for ghost characters (one per slot)
+const CHAR_HUES = [0,30,60,120,180,210,240,270,300,330,15,45,75,135,165,225,255,285,315,345,10,50,90,150,195];
+function hslToHex(h,s,l){
+  s/=100; l/=100;
+  const a=s*Math.min(l,1-l);
+  const f=n=>{const k=(n+h/30)%12;const c=l-a*Math.max(Math.min(k-3,9-k,1),-1);return Math.round(255*c).toString(16).padStart(2,'0')};
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
 
-  // 桌子（bx=2..3, by=2, bz=1 — 學生讀書桌）
-  for (let bx = 2; bx <= 3; bx++)
-    drawBlock(ctx, bx, 2, 1, 'desk', offX, offY);
-  for (let bx = 2; bx <= 3; bx++)
-    drawBlock(ctx, bx, 3, 1, 'desk', offX, offY);
+function drawCharacter(ctx, sx, sy, colorHex, name, isSelf, isGhost) {
+  // Shadow
+  ctx.fillStyle = 'rgba(0,0,0,0.2)';
+  ctx.beginPath(); ctx.ellipse(sx, sy+14, 11, 5, 0, 0, Math.PI*2); ctx.fill();
+  // Body
+  ctx.fillStyle = colorHex;
+  ctx.beginPath(); ctx.arc(sx, sy, 13, 0, Math.PI*2); ctx.fill();
+  if (isSelf) {
+    ctx.strokeStyle = '#FFDD00';
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+  }
+  // Face
+  ctx.fillStyle = '#FFCC88';
+  ctx.beginPath(); ctx.arc(sx, sy-1, 9, 0, Math.PI*2); ctx.fill();
+  // Eyes
+  ctx.fillStyle = '#333';
+  ctx.beginPath(); ctx.arc(sx-3.5, sy-3, 1.8, 0, Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(sx+3.5, sy-3, 1.8, 0, Math.PI*2); ctx.fill();
+  // Smile
+  ctx.strokeStyle = '#333'; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.arc(sx, sy+0, 4, 0.2, Math.PI-0.2); ctx.stroke();
+  // Name tag
+  const tw = Math.max(name.length * 6 + 8, 30);
+  ctx.fillStyle = isSelf ? 'rgba(26,46,61,0.92)' : 'rgba(0,0,0,0.65)';
+  ctx.beginPath();
+  const tx2=sx-tw/2, ty2=sy+17;
+  ctx.roundRect(tx2,ty2,tw,14,3);
+  ctx.fill();
+  ctx.fillStyle = isSelf ? '#FFDD00' : (isGhost ? '#AAC5D4' : '#FFFFFF');
+  ctx.font = `bold 9px "Noto Sans TC", sans-serif`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(name, sx, ty2+7);
+}
 
-  // 火把（書架上方 bz=3，等距分佈）
-  const torchPositions = [{bx:1,by:1},{bx:3,by:1},{bx:5,by:1},{bx:7,by:1}];
-  torchPositions.forEach((tp, i) => {
-    drawTorch(ctx, tp.bx, tp.by, 3, offX, offY, torchPhase + i * Math.PI * 0.6);
+// --- Player ---
+let rpgPlayer = {tx:9, ty:12};
+const _rpgKeys = {};
+document.addEventListener('keydown', e=>{
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(e.key)) e.preventDefault();
+  _rpgKeys[e.key]=true;
+});
+document.addEventListener('keyup', e=>{ delete _rpgKeys[e.key]; });
+let _rpgLastMove=0;
+function processRpgInput(now, canvas) {
+  if(now-_rpgLastMove<200) return;
+  let dx=0,dy=0;
+  if(_rpgKeys['ArrowUp']   ||_rpgKeys['w']||_rpgKeys['W']) dy=-1;
+  else if(_rpgKeys['ArrowDown'] ||_rpgKeys['s']||_rpgKeys['S']) dy=1;
+  else if(_rpgKeys['ArrowLeft'] ||_rpgKeys['a']||_rpgKeys['A']) dx=-1;
+  else if(_rpgKeys['ArrowRight']||_rpgKeys['d']||_rpgKeys['D']) dx=1;
+  if(dx||dy){
+    const nx=rpgPlayer.tx+dx, ny=rpgPlayer.ty+dy;
+    if(!isBlocked(nx,ny)){ rpgPlayer.tx=nx; rpgPlayer.ty=ny; centerCam(canvas,nx,ny); _rpgLastMove=now; }
+  }
+}
+
+// Touch/swipe
+(function(){
+  let _tx2=0,_ty2=0;
+  const el=()=>document.getElementById('room-canvas');
+  document.addEventListener('touchstart',e=>{if(e.target!==el())return;_tx2=e.touches[0].clientX;_ty2=e.touches[0].clientY;},{passive:true});
+  document.addEventListener('touchend',e=>{
+    if(e.target!==el())return;
+    const dx=e.changedTouches[0].clientX-_tx2, dy=e.changedTouches[0].clientY-_ty2;
+    if(Math.abs(dx)<20&&Math.abs(dy)<20)return;
+    const canvas=el();
+    if(Math.abs(dx)>Math.abs(dy)) { const nx=rpgPlayer.tx+(dx>0?1:-1); if(!isBlocked(nx,rpgPlayer.ty)){rpgPlayer.tx=nx;centerCam(canvas,rpgPlayer.tx,rpgPlayer.ty);} }
+    else { const ny=rpgPlayer.ty+(dy>0?1:-1); if(!isBlocked(rpgPlayer.tx,ny)){rpgPlayer.ty=ny;centerCam(canvas,rpgPlayer.tx,rpgPlayer.ty);} }
+  },{passive:true});
+})();
+
+// Click-to-walk
+document.getElementById('room-canvas').addEventListener('click', function(e){
+  const rect=this.getBoundingClientRect();
+  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
+  const tx=Math.floor((mx+cam.x)/TS), ty=Math.floor((my+cam.y)/TS);
+  if(!isBlocked(tx,ty)){
+    rpgPlayer.tx=tx; rpgPlayer.ty=ty;
+    centerCam(this, tx, ty);
+  }
+});
+
+// --- Main draw ---
+let _rpgRAF=null;
+function drawRpgScene(canvas, users) {
+  const ctx = canvas.getContext('2d');
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+
+  drawFloor(ctx, canvas);
+
+  // Plants (behind desks)
+  PLANTS.forEach(p=>drawPlant(ctx, p.tx, p.ty));
+
+  // Desks (draw pairs)
+  for(let i=0;i<DESKS.length;i+=2){
+    if(DESKS[i+1]) drawDesk(ctx, DESKS[i].tx, DESKS[i].ty);
+  }
+
+  // Users at seats
+  users.forEach((u, i)=>{
+    if(i>=SEATS.length) return;
+    const seat=SEATS[i];
+    const sx=seat.tx*TS - cam.x + TS/2;
+    const sy=seat.ty*TS - cam.y + TS/2;
+    if(sx+20<0||sx-20>canvas.width||sy+30<0||sy-30>canvas.height) return;
+    const color = u.isSelf ? '#1A6B9A' : hslToHex(CHAR_HUES[i%CHAR_HUES.length],60,50);
+    drawCharacter(ctx, sx, sy, color, u.name, !!u.isSelf, !!u.isGhost);
   });
 
-  drawPlayer(ctx, player.bx, player.by, offX, offY);
+  // Player (you, if not already shown as a user)
+  const psx=rpgPlayer.tx*TS - cam.x + TS/2;
+  const psy=rpgPlayer.ty*TS - cam.y + TS/2;
+  drawCharacter(ctx, psx, psy, '#5BAFD6', '你', true, false);
+
+  // Map border shadow
+  ctx.shadowBlur=0;
 }
 
-let torchPhase = 0;
-let animRAF = null;
-
-// ── 玩家走動系統 ──────────────────────────────────────────────────────
-let player = { bx: 4, by: 3 };
-const _keys = {};
-document.addEventListener('keydown', e => {
-  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(e.key)) e.preventDefault();
-  _keys[e.key] = true;
-});
-document.addEventListener('keyup', e => { delete _keys[e.key]; });
-
-let _lastMove = 0;
-function isWalkable(bx, by) {
-  if (bx < 0 || bx > 5 || by < 0 || by > 4) return false;
-  if (by === 1) return false;
-  if (bx === 0 && by >= 2) return false;
-  if ((bx === 2 || bx === 3) && (by === 2 || by === 3)) return false; // desk
-  return true;
-}
-function tryMovePlayer(dx, dy) {
-  const nx = player.bx + dx, ny = player.by + dy;
-  if (isWalkable(nx, ny)) { player.bx = nx; player.by = ny; }
-}
-window.tryMovePlayer = tryMovePlayer;
-function processInput(now) {
-  if (now - _lastMove < 220) return;
-  let dx = 0, dy = 0;
-  if (_keys['ArrowUp']    || _keys['w'] || _keys['W']) dy = -1;
-  else if (_keys['ArrowDown']  || _keys['s'] || _keys['S']) dy = 1;
-  else if (_keys['ArrowLeft']  || _keys['a'] || _keys['A']) dx = -1;
-  else if (_keys['ArrowRight'] || _keys['d'] || _keys['D']) dx = 1;
-  if (dx || dy) { tryMovePlayer(dx, dy); _lastMove = now; }
-}
-
-function startSceneAnimation(canvas) {
-  const ctx = canvas.getContext('2d');
-  function loop(now) {
-    processInput(now);
-    torchPhase += 0.06;
-    drawScene(ctx, canvas, torchPhase);
-    animRAF = requestAnimationFrame(loop);
+function startRpgAnimation(canvas, getUsersFn) {
+  if(_rpgRAF){ cancelAnimationFrame(_rpgRAF); _rpgRAF=null; }
+  centerCam(canvas, rpgPlayer.tx, rpgPlayer.ty);
+  function loop(now){
+    processRpgInput(now, canvas);
+    drawRpgScene(canvas, getUsersFn());
+    _rpgRAF=requestAnimationFrame(loop);
   }
-  if (animRAF) cancelAnimationFrame(animRAF);
-  animRAF = requestAnimationFrame(loop);
+  _rpgRAF=requestAnimationFrame(loop);
 }
+function stopRpgAnimation(){ if(_rpgRAF){cancelAnimationFrame(_rpgRAF);_rpgRAF=null;} }
 
-function stopSceneAnimation() {
-  if (animRAF) { cancelAnimationFrame(animRAF); animRAF = null; }
+function resizeRpgCanvas(){
+  const canvas=document.getElementById('room-canvas');
+  const wrap=document.getElementById('lib-scene-wrap');
+  if(!canvas||!wrap) return;
+  canvas.width=wrap.clientWidth;
+  canvas.height=Math.min(520, Math.max(340, wrap.clientWidth*0.52));
 }
+window.addEventListener('resize', resizeRpgCanvas);
 
-function resizeCanvas() {
-  const canvas = document.getElementById('room-canvas');
-  const wrap = document.getElementById('lib-scene-wrap');
-  if (!canvas || !wrap) return;
-  canvas.width  = wrap.clientWidth;
-  canvas.height = Math.min(500, Math.max(300, wrap.clientWidth * 0.44));
-  drawScene(canvas.getContext('2d'), canvas, torchPhase);
-}
-window.addEventListener('resize', resizeCanvas);
-
-// 手機滑動控制
-(function() {
-  let _tx = 0, _ty = 0;
-  const el = () => document.getElementById('room-canvas');
-  document.addEventListener('touchstart', e => {
-    if (e.target !== el()) return;
-    _tx = e.touches[0].clientX; _ty = e.touches[0].clientY;
-  }, {passive:true});
-  document.addEventListener('touchend', e => {
-    if (e.target !== el()) return;
-    const dx = e.changedTouches[0].clientX - _tx;
-    const dy = e.changedTouches[0].clientY - _ty;
-    if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
-    if (Math.abs(dx) > Math.abs(dy)) tryMovePlayer(dx > 0 ? 1 : -1, 0);
-    else tryMovePlayer(0, dy > 0 ? 1 : -1);
-  }, {passive:true});
-})();
+let _currentUsers = [];
 
 // ── 設定 ──────────────────────────────────────────────────────────────
 const SUPABASE_URL  = 'https://azyougvutvbladgzdiar.supabase.co';
@@ -1147,8 +1053,8 @@ function enter(){
   myKey = `user_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
   document.getElementById('entry').style.display = 'none';
   document.getElementById('room').style.display  = 'flex';
-  resizeCanvas();
-  startSceneAnimation(document.getElementById('room-canvas'));
+  resizeRpgCanvas();
+  startRpgAnimation(document.getElementById('room-canvas'), () => _currentUsers || []);
   if(isMember) initNote();
   startPresence(name, subject);
 }
@@ -1176,6 +1082,13 @@ function renderRoom(){
   const ghosts   = getGhosts(real.length);
   const users    = [...real, ...ghosts];
   const count    = users.length;
+
+  // 更新 RPG 場景用戶列表
+  _currentUsers = users.map((u, i) => ({
+    name: u.name || u.display_name || '匿名',
+    isSelf: u.key === myKey,
+    isGhost: !!u.isGhost,
+  }));
 
   document.getElementById('count-badge').textContent = `${count} 人在線`;
   const mobBadge = document.getElementById('mob-count-badge');
