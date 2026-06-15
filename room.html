@@ -3042,6 +3042,8 @@ function startThreeAnimation(canvas) {
     }
     // Wave 66: update rain-glass once per ~60s (7500 ticks at 125 units/s)
     if(Math.round(_threeTime*125) % 7500 === 0){ _updateRainGlass(); }
+    // Wave 81: update cicada loop once per ~60s (offset by 1 to avoid same tick as rain-glass)
+    if(Math.round(_threeTime*125) % 7500 === 1){ _updateCicadas(); }
     // Avatar bob (body only — head/legs stay fixed)
     _userAvatarMeshes.forEach((m, i) => {
       m.position.y = 0.98 + 0.05 * Math.sin(_threeTime * 1.5 + i * 0.8);
@@ -3958,6 +3960,7 @@ let _rainSource = null, _rainGain = null, _rainFilter = null;
 let _lastChimeHour = -1, _lastChimeHalf = -1;
 let _nextChirpTime = 0;
 let _nextCricketTime = 0;
+let _cicadaSource = null, _cicadaGain = null; // Wave81: summer cicada
 
 // Wave75 — per-layer audio preferences
 const AUDIO_PREFS_KEY = 'sofa_audio_prefs';
@@ -3996,6 +3999,8 @@ function _applyAudioPrefs() {
     _rainGain.gain.setTargetAtTime(target, _audioCtx.currentTime, 0.3);
   }
   // Birds, crickets, bell: guarded at play-time
+  // Wave81: cicada respects ambient toggle
+  _updateCicadas();
 }
 
 document.addEventListener('click', e => {
@@ -4082,8 +4087,11 @@ function toggleAmbientSound() {
     if (btn) btn.textContent = '🔊';
     // Wave75: apply per-layer prefs after a brief ramp-up delay
     setTimeout(_applyAudioPrefs, 300);
+    // Wave81: start cicadas if conditions match (slight delay to let audioCtx warm up)
+    setTimeout(_updateCicadas, 500);
   } else {
     _teardownAmbientSound();
+    if (_cicadaSource) _stopCicadaAudio(); // Wave81: stop cicadas on master mute
     if (btn) btn.textContent = '🔇';
   }
 }
@@ -4218,6 +4226,56 @@ function _initRainAudio() {
   _rainSource.connect(hp); hp.connect(bp); bp.connect(_rainGain);
   _rainGain.connect(_ambGain);
   _rainSource.start();
+}
+
+// Wave81 — 夏日蟬鳴（AM合成，5–8月白天自動播放）
+function _initCicadaAudio() {
+  if (_cicadaSource || !_audioCtx) return;
+  // Carrier: high-frequency sawtooth buzz ~3800Hz
+  const osc = _audioCtx.createOscillator();
+  osc.type = 'sawtooth';
+  osc.frequency.value = 3800;
+  // AM modulator: ~120Hz tremolo for the pulsing quality
+  const lfo = _audioCtx.createOscillator();
+  lfo.frequency.value = 120;
+  const lfoGain = _audioCtx.createGain();
+  lfoGain.gain.value = 0.5;
+  // Output gain (starts at 0, faded in by _updateCicadas)
+  _cicadaGain = _audioCtx.createGain();
+  _cicadaGain.gain.value = 0;
+  // Bandpass to shape the tone
+  const bp = _audioCtx.createBiquadFilter();
+  bp.type = 'bandpass';
+  bp.frequency.value = 3800;
+  bp.Q.value = 8;
+  lfo.connect(lfoGain);
+  lfoGain.connect(_cicadaGain.gain); // AM modulation
+  osc.connect(bp);
+  bp.connect(_cicadaGain);
+  _cicadaGain.connect(_audioCtx.destination);
+  osc.start(); lfo.start();
+  _cicadaSource = osc; // keep reference for teardown
+}
+function _stopCicadaAudio() {
+  if (_cicadaGain && _audioCtx) _cicadaGain.gain.setTargetAtTime(0, _audioCtx.currentTime, 0.5);
+  setTimeout(() => {
+    try { _cicadaSource?.stop(); } catch(e) {}
+    _cicadaSource = null; _cicadaGain = null;
+  }, 1500);
+}
+function _updateCicadas() {
+  const mo = new Date().getMonth();
+  const h = new Date().getHours();
+  const isSummer = [4,5,6,7].includes(mo); // May–August
+  const isDay = h >= 6 && h < 21;
+  const shouldPlay = _soundOn && _audioPrefs.ambient && isSummer && isDay;
+  if (shouldPlay && !_cicadaSource) {
+    if (!_audioCtx) return;
+    _initCicadaAudio();
+    if (_cicadaGain) _cicadaGain.gain.setTargetAtTime(0.04, _audioCtx.currentTime, 3);
+  } else if (!shouldPlay && _cicadaSource) {
+    _stopCicadaAudio();
+  }
 }
 
 function _playReactionSound(emoji) {
