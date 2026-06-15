@@ -380,6 +380,13 @@
         <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:500;font-size:15px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none;min-width:80px;max-width:200px"><option value="">全部法規</option></select>
         <span class="car">▾</span>
       </div>
+      <div id="practice-status-bar" style="
+        margin-top:4px;padding:6px 10px;
+        background:rgba(255,255,255,0.04);
+        border-radius:6px;border:1px solid rgba(100,160,220,0.15);
+        font-size:11px;color:#aaa;min-height:28px;
+        transition:opacity 0.2s;display:none
+      "></div>
       <div class="pr-pick" id="artPickWrap" style="display:none">
         <span class="lab">§</span>
         <input id="artNumInput" list="artDatalist" placeholder="條號"
@@ -595,6 +602,7 @@ if(isFree){
     sel.value = _saved;
     sel.dispatchEvent(new Event('change'));
   }
+  _updatePracticeStatusBar(sel.value);
 })();
 
 // ── 條號選單：選法規後填入 datalist ────────────────────────────
@@ -651,6 +659,7 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 document.getElementById('lawSelect').addEventListener('change', async function(){
   localStorage.setItem('sofa_practice_law', this.value);
+  _updatePracticeStatusBar(this.value);
   const law = this.value;
   const wrap = document.getElementById('artPickWrap');
   const dl   = document.getElementById('artDatalist');
@@ -1328,6 +1337,44 @@ function _recordPracticeStat(lawName, charCount) {
     s.byLaw[lawName].chars = (s.byLaw[lawName].chars || 0) + (charCount || 0);
   }
   localStorage.setItem(PRACTICE_STATS_KEY, JSON.stringify(s));
+  _updatePracticeStatusBar((document.getElementById('lawSelect') || {}).value || '');
+}
+
+// === Wave 120: Law proficiency status bar ===
+function _updatePracticeStatusBar(lawName) {
+  const bar = document.getElementById('practice-status-bar');
+  if (!bar) return;
+
+  if (!lawName || lawName.startsWith('__')) {
+    bar.style.display = 'none';
+    return;
+  }
+
+  const s = JSON.parse(localStorage.getItem('sofa_practice_stats_v1') || '{}');
+  const d = (s.byLaw || {})[lawName];
+
+  if (!d || d.total === 0) {
+    bar.style.display = 'block';
+    bar.innerHTML = '<span style="color:#667">尚未練習此法規</span>';
+    return;
+  }
+
+  const count = d.total;
+  const kchars = Math.round((d.chars || 0) / 100) / 10; // in k
+  const color = count >= 20 ? '#4d4' : count >= 8 ? '#fa4' : '#7ab8f5';
+  const label = count >= 20 ? '熟練' : count >= 8 ? '練習中' : '起步中';
+  const barPct = Math.min(100, Math.round(count / 25 * 100)); // 25 articles = full bar
+
+  bar.style.display = 'block';
+  bar.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <span>已練 <b style="color:#ddd">${count}</b> 條 &nbsp;•&nbsp; ${kchars}k 字</span>
+      <span style="color:${color};font-weight:600">${label}</span>
+    </div>
+    <div style="background:rgba(255,255,255,0.1);border-radius:3px;height:4px">
+      <div style="background:${color};border-radius:3px;height:4px;width:${barPct}%;transition:width 0.4s"></div>
+    </div>
+  `;
 }
 
 function openPracticeStats() {
