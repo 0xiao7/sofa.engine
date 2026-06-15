@@ -556,6 +556,12 @@ if(isFree){
     const d = await fetch(`${API}/api/laws`).then(r=>r.json());
     (d.laws||[]).forEach(l=>{ const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o); });
   } catch{}
+  // Wave 80 — restore last selected law
+  const _saved = localStorage.getItem('sofa_practice_law');
+  if (_saved && sel.querySelector(`option[value="${CSS.escape(_saved)}"]`)) {
+    sel.value = _saved;
+    sel.dispatchEvent(new Event('change'));
+  }
 })();
 
 // ── 條號選單：選法規後填入 datalist ────────────────────────────
@@ -611,6 +617,7 @@ document.addEventListener('DOMContentLoaded',function(){
   if(_subSel)_subSel.addEventListener('change',_updateChipLock);
 });
 document.getElementById('lawSelect').addEventListener('change', async function(){
+  localStorage.setItem('sofa_practice_law', this.value);
   const law = this.value;
   const wrap = document.getElementById('artPickWrap');
   const dl   = document.getElementById('artDatalist');
