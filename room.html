@@ -25,6 +25,7 @@
   --bad:   #C76B6B;
   --peach: #C8974A;   /* 統一用 amber 當品牌色 */
   --peach-2:#D4A85A;
+  --plum:  rgba(58,36,16,.65);
   --line:  rgba(245,236,215,.07);
   --line-2:rgba(245,236,215,.16);
   --line-3:rgba(245,236,215,.30);
@@ -1129,7 +1130,7 @@ function resetAwayTimer(){
   awayTimer = setTimeout(showAway, AWAY_MS);
 }
 function showAway(){
-  if(document.getElementById('lock-screen').classList.contains('active')) return;
+  if(document.getElementById('lock-screen').classList.contains('on')) return;
   isAway = true;
   document.getElementById('away-overlay').classList.add('show');
 }
@@ -1196,7 +1197,7 @@ async function saveNote(){
 
 // ── Pomodoro ──────────────────────────────────────────────────────────
 const POM_FOCUS = 25 * 60, POM_BREAK = 5 * 60, POM_LONG = 15 * 60, POM_ROUNDS = 4;
-const pom = { state:'idle', remaining: POM_FOCUS, total: POM_FOCUS, round:1, tick:null };
+const pom = { state:'idle', prevState:'focus', remaining: POM_FOCUS, total: POM_FOCUS, round:1, tick:null };
 const CIRC = 213.6;
 
 function beep(type='done'){
@@ -1277,9 +1278,10 @@ function pomTick(){
 
 function pomToggle(){
   if(pom.state === 'focus' || pom.state === 'break' || pom.state === 'longbreak'){
+    pom.prevState = pom.state;
     clearInterval(pom.tick); pom.tick = null; pom.state = 'paused';
   } else if(pom.state === 'paused'){
-    pom.state = pom.remaining <= POM_BREAK ? 'break' : 'focus';
+    pom.state = pom.prevState;
     pom.tick = setInterval(pomTick, 1000);
   } else {
     pom.state = 'focus'; pom.total = POM_FOCUS; pom.remaining = POM_FOCUS;
@@ -1364,7 +1366,8 @@ setInterval(()=>{ if(locked) lockTick(); }, 30000);
 function openSheet(id){
   document.getElementById('sheet-overlay').classList.add('open');
   document.getElementById(id).classList.add('open');
-  document.getElementById(id === 'sheet-list' ? 'mob-list-btn' : 'mob-shout-btn').classList.add('active');
+  const btnMap = { 'sheet-list':'mob-list-btn', 'sheet-pom':'mob-pom-btn', 'sheet-shout':'mob-shout-btn' };
+  document.getElementById(btnMap[id])?.classList.add('active');
 }
 function closeAllSheets(){
   document.getElementById('sheet-overlay').classList.remove('open');
