@@ -897,6 +897,8 @@ const _butterflyColors = ['#e87dff','#ffcc44','#ff8844','#88ddff','#ff88aa','#aa
 let _shoutLights = []; // Wave41: accent-blue PointLight flash on shout
 let _typingSprite = null, _typingHideAt = 0;
 let _moonlightPatch = null; // Wave90: moonlight floor glow
+// Wave91: CNY red lanterns (January)
+let _lanternTx = null, _lanterns = [];
 let _threeTime = 0;
 let _flyInDone = false, _flyInStart = 0;
 
@@ -1879,6 +1881,12 @@ function initThreeScene(canvas) {
     }
     // Wave78: Winter fireplace
     _buildFireplace();
+    // Wave91: CNY red lanterns — January only
+    if (_moW === 0) {
+      _buildLanterns();
+    } else {
+      _destroyLanterns();
+    }
   }
 
   // Spring sakura (Mar–May)
@@ -3097,6 +3105,52 @@ function _updateMoonlightPatch() {
   else if (!isNight && _moonlightPatch) _destroyMoonlightPatch();
 }
 
+// Wave91: CNY red lanterns — canvas texture
+function _lanternTex() {
+  const cv = document.createElement('canvas'); cv.width = 64; cv.height = 96;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,64,96);
+  // Lantern body (oval)
+  const g = ctx.createRadialGradient(32,44,4,32,44,26);
+  g.addColorStop(0, '#ff6a00'); g.addColorStop(0.5, '#cc1a00'); g.addColorStop(1, '#880000');
+  ctx.beginPath(); ctx.ellipse(32,44,22,30,0,0,Math.PI*2);
+  ctx.fillStyle = g; ctx.fill();
+  // Gold top cap
+  ctx.fillStyle = '#ffd700';
+  ctx.fillRect(22,14,20,6); // top bar
+  ctx.fillRect(28,8,8,8);   // hook
+  // Gold bottom cap
+  ctx.fillRect(22,72,20,5);
+  // Gold ribs
+  ctx.strokeStyle = 'rgba(255,215,0,0.5)'; ctx.lineWidth = 1.5;
+  [-12,-6,0,6,12].forEach(dx => {
+    ctx.beginPath(); ctx.moveTo(32+dx,16); ctx.lineTo(32+dx,72); ctx.stroke();
+  });
+  // Tassel
+  ctx.strokeStyle = '#ffcc00'; ctx.lineWidth = 1;
+  for (let i=0; i<5; i++) {
+    ctx.beginPath(); ctx.moveTo(28+i*2,77); ctx.lineTo(26+i*2,88); ctx.stroke();
+  }
+  return new THREE.CanvasTexture(cv);
+}
+function _buildLanterns() {
+  if (_lanterns.length > 0) return;
+  if (!_lanternTx) _lanternTx = _lanternTex();
+  [[-3,6.5,0],[0,7,1],[3,6.5,-1]].forEach((pos, i) => {
+    const mat = new THREE.SpriteMaterial({ map: _lanternTx, transparent: true });
+    const sp = new THREE.Sprite(mat);
+    sp.scale.set(0.55, 0.82, 1);
+    sp.position.set(...pos);
+    sp.userData = { phase: i * Math.PI * 0.6, baseX: pos[0] };
+    _threeScene.add(sp);
+    _lanterns.push(sp);
+  });
+}
+function _destroyLanterns() {
+  _lanterns.forEach(sp => { _threeScene.remove(sp); sp.material.dispose(); });
+  _lanterns = [];
+}
+
 function _updateRainGlass() {
   const h = new Date().getHours();
   const isNight = h >= 21 || h < 6;
@@ -3322,6 +3376,13 @@ function startThreeAnimation(canvas) {
         // Wing flap: oscillate x scale
         b.scale.x = 0.15 + Math.abs(Math.sin(t * u.flapSpd)) * 0.3;
         b.scale.y = 0.25;
+      });
+    }
+    // Wave91: CNY lantern pendulum sway
+    if (_lanterns.length > 0) {
+      const t = _threeTime * 0.016;
+      _lanterns.forEach(l => {
+        l.position.x = l.userData.baseX + Math.sin(t * 0.7 + l.userData.phase) * 0.18;
       });
     }
     _mapleParticles.forEach(p => {
