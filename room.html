@@ -56,6 +56,23 @@ select option{background:var(--navy-3);}
 
 /* ── Room layout ── */
 #room{display:none;min-height:100dvh;flex-direction:column;}
+/* ── 離席偵測 ── */
+#away-overlay{
+  display:none;position:fixed;inset:0;z-index:120;
+  background:rgba(10,22,30,.82);backdrop-filter:blur(6px);
+  align-items:center;justify-content:center;flex-direction:column;gap:16px;
+}
+#away-overlay.show{display:flex;}
+.away-icon{font-size:2.4rem;}
+.away-title{font-size:1.1rem;font-weight:700;color:var(--cream);font-family:var(--serif);}
+.away-sub{font-size:.82rem;color:var(--cream-2);opacity:.6;}
+.away-btn{
+  margin-top:8px;padding:12px 32px;border-radius:12px;
+  background:var(--peach);color:var(--navy);
+  font-size:.9rem;font-weight:700;font-family:var(--serif);
+  border:none;cursor:pointer;transition:opacity .2s;
+}
+.away-btn:hover{opacity:.85;}
 header{
   display:flex;align-items:center;justify-content:space-between;
   padding:14px 20px;border-bottom:1px solid var(--line-2);
@@ -542,6 +559,14 @@ main{display:flex;flex:1;gap:0;min-height:0;}
   </div>
 </div>
 
+<!-- ── 離席偵測 overlay ── -->
+<div id="away-overlay">
+  <div class="away-icon">🕯️</div>
+  <div class="away-title">桌子變暗了</div>
+  <div class="away-sub">你離開超過 5 分鐘，自習室燈光自動調暗</div>
+  <button class="away-btn" id="btn-away-back">我回來了</button>
+</div>
+
 <!-- ── Lock screen ── -->
 <div id="lock-screen">
   <div class="lock-clock" id="lock-clock">00:00</div>
@@ -824,6 +849,31 @@ async function doLeave(){
   document.getElementById('room').style.display  = 'none';
   document.getElementById('entry').style.display = 'flex';
 }
+
+// ── 離席偵測（5 分鐘無動作 → 燈光變暗） ──────────────────────────────
+const AWAY_MS = 5 * 60 * 1000;
+let awayTimer, isAway = false;
+
+function resetAwayTimer(){
+  if(isAway) return;
+  clearTimeout(awayTimer);
+  awayTimer = setTimeout(showAway, AWAY_MS);
+}
+function showAway(){
+  if(document.getElementById('lock-screen').classList.contains('active')) return;
+  isAway = true;
+  document.getElementById('away-overlay').classList.add('show');
+}
+function hideAway(){
+  isAway = false;
+  document.getElementById('away-overlay').classList.remove('show');
+  resetAwayTimer();
+}
+document.getElementById('btn-away-back')?.addEventListener('click', hideAway);
+['mousemove','keydown','touchstart','click'].forEach(ev =>
+  document.addEventListener(ev, resetAwayTimer, { passive: true })
+);
+resetAwayTimer();
 
 // ── 今日記錄 ─────────────────────────────────────────────────────────
 function todayStr(){ return new Date().toISOString().slice(0,10); }
