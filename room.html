@@ -542,6 +542,17 @@ input[type=text], select, .btn-enter {
   80%  { opacity: 0.6; }
   100% { transform: translateY(200px); opacity: 0; }
 }
+/* Wave 71: study-time HUD */
+#study-hud {
+  position: fixed; top: 14px; right: 14px;
+  background: rgba(10,20,30,0.65); backdrop-filter: blur(4px);
+  color: #a0b8c8; font-size: 13px; font-family: monospace;
+  padding: 5px 12px; border-radius: 14px;
+  border: 1px solid rgba(255,255,255,0.08);
+  z-index: 200; pointer-events: none;
+  opacity: 0; transition: opacity 1s;
+}
+#study-hud.ready { opacity: 1; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 </head>
@@ -2863,7 +2874,7 @@ function startThreeAnimation(canvas) {
   const loaderEl = document.getElementById('three-loader');
   if(loaderEl){ loaderEl.style.opacity='1'; loaderEl.style.display='flex'; }
   setTimeout(()=>{
-    if(loaderEl){ loaderEl.style.opacity='0'; setTimeout(()=>{ loaderEl.style.display='none'; setTimeout(_showGreeting, 100); },800); }
+    if(loaderEl){ loaderEl.style.opacity='0'; setTimeout(()=>{ loaderEl.style.display='none'; setTimeout(_showGreeting, 100); window._startStudyHud(); },800); }
   }, 600);
   if (!THREE) return;
   initThreeScene(canvas);
@@ -4409,5 +4420,48 @@ setInterval(() => {
   <div id="greet-main"></div>
   <div id="greet-sub">準備好了，開始讀書吧</div>
 </div>
+<!-- Wave 71: study-time HUD -->
+<div id="study-hud">📚 今日 0分</div>
+<script>
+(function _initStudyTimer() {
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const KEY = 'sofa_study_time_' + today;
+  let _seconds = parseInt(localStorage.getItem(KEY) || '0', 10);
+  let _active = !document.hidden;
+  let _lastTick = Date.now();
+  let _hudEl = null;
+
+  function _fmtTime(sec) {
+    const m = Math.floor(sec / 60);
+    if (m < 60) return '今日 ' + m + '分';
+    return '今日 ' + Math.floor(m / 60) + 'h ' + (m % 60) + 'm';
+  }
+
+  function _tick() {
+    if (!_active) { _lastTick = Date.now(); return; }
+    const now = Date.now();
+    _seconds += Math.round((now - _lastTick) / 1000);
+    _lastTick = now;
+    localStorage.setItem(KEY, String(_seconds));
+    if (_hudEl) _hudEl.textContent = '📚 ' + _fmtTime(_seconds);
+  }
+
+  document.addEventListener('visibilitychange', function() {
+    _active = !document.hidden;
+    _lastTick = Date.now();
+  });
+
+  // Called by startThreeAnimation after scene loads
+  window._startStudyHud = function() {
+    _hudEl = document.getElementById('study-hud');
+    if (_hudEl) {
+      _hudEl.textContent = '📚 ' + _fmtTime(_seconds);
+      setTimeout(function() { if (_hudEl) _hudEl.classList.add('ready'); }, 3000);
+    }
+    _lastTick = Date.now();
+    setInterval(_tick, 30000); // save every 30s
+  };
+})();
+</script>
 </body>
 </html>
