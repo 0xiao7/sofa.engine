@@ -9,16 +9,34 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
 :root{
-  --navy:#1F3848;--navy-2:#19303E;--navy-3:#142836;--navy-4:#0D1C28;
-  --plum:#2C4A5C;--plum-2:#4A6373;
-  --peach:#E7BBA7;--peach-2:#F0CDBD;
-  --cream:#F5F0EA;--cream-2:#ECE5DB;
-  --good:#9FB89F;--warn:#D9B084;
-  --line:rgba(245,240,234,.08);--line-2:rgba(245,240,234,.18);--line-3:rgba(245,240,234,.30);
+  /* 圖書館木質色調 */
+  --navy:  #2A1C10;
+  --navy-2:#362010;
+  --navy-3:#1E1409;
+  --navy-4:#120D05;
+  --wood:  #5C3D25;
+  --wood-2:#6B4A2C;
+  --amber: #C8974A;
+  --amber-2:#D4A85A;
+  --cream: #F5ECD7;
+  --cream-2:#EAD9BE;
+  --good:  #8FAD8F;
+  --warn:  #C8974A;
+  --bad:   #C76B6B;
+  --peach: #C8974A;   /* 統一用 amber 當品牌色 */
+  --peach-2:#D4A85A;
+  --line:  rgba(245,236,215,.07);
+  --line-2:rgba(245,236,215,.16);
+  --line-3:rgba(245,236,215,.30);
   --serif:"Noto Serif TC",serif;--sans:"Noto Sans TC",system-ui,sans-serif;
+  --mono:"JetBrains Mono","Courier New",monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--navy-3);min-height:100dvh;font-family:var(--sans);color:var(--cream);-webkit-font-smoothing:antialiased}
+html,body{
+  background:var(--navy-3);
+  min-height:100dvh;font-family:var(--sans);color:var(--cream);
+  -webkit-font-smoothing:antialiased;
+}
 
 /* ── Entry overlay ── */
 #entry{
@@ -27,12 +45,16 @@ html,body{background:var(--navy-3);min-height:100dvh;font-family:var(--sans);col
   background:rgba(13,28,40,.92);backdrop-filter:blur(6px);
 }
 .entry-card{
-  background:var(--navy-2);border:1px solid var(--line-3);border-radius:16px;
+  background:linear-gradient(160deg,#362010,#2A1C10);
+  border:1px solid var(--wood);border-top:2px solid var(--wood-2);
+  border-radius:12px;
   padding:36px 32px;width:min(420px,92vw);
+  box-shadow:0 8px 40px rgba(0,0,0,.5);
 }
 .entry-card h1{
   font-family:var(--serif);font-size:1.5rem;font-weight:700;
-  color:var(--peach);margin-bottom:6px;letter-spacing:.02em;
+  color:var(--amber);margin-bottom:6px;letter-spacing:.04em;
+  text-shadow:0 0 24px rgba(200,151,74,.25);
 }
 .entry-card p{font-size:.85rem;color:var(--cream-2);opacity:.7;margin-bottom:28px;}
 label{display:block;font-size:.78rem;color:var(--cream-2);opacity:.65;margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;}
@@ -75,54 +97,115 @@ select option{background:var(--navy-3);}
 .away-btn:hover{opacity:.85;}
 header{
   display:flex;align-items:center;justify-content:space-between;
-  padding:14px 20px;border-bottom:1px solid var(--line-2);
-  background:var(--navy-4);position:sticky;top:0;z-index:10;
+  padding:14px 20px;
+  background:linear-gradient(to bottom,#120D05,#1E1409);
+  border-bottom:2px solid var(--wood);
+  position:sticky;top:0;z-index:10;
+  box-shadow:0 2px 16px rgba(0,0,0,.4);
 }
-.logo{font-family:var(--serif);font-size:1rem;font-weight:700;color:var(--peach);letter-spacing:.06em;}
+.logo{
+  font-family:var(--serif);font-size:1rem;font-weight:700;
+  color:var(--amber);letter-spacing:.12em;
+  text-shadow:0 0 20px rgba(200,151,74,.3);
+}
 .online-badge{
   display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--good);
 }
 .dot{width:7px;height:7px;border-radius:50%;background:var(--good);animation:pulse 2s infinite;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
-.btn-leave{font-size:.75rem;color:var(--cream-2);opacity:.5;padding:4px 10px;border:1px solid var(--line-2);border-radius:20px;cursor:pointer;transition:opacity .2s;}
+.btn-leave{
+  font-size:.75rem;color:var(--cream-2);opacity:.45;
+  padding:4px 10px;border:1px solid rgba(245,236,215,.15);border-radius:20px;
+  cursor:pointer;transition:opacity .2s;
+}
 .btn-leave:hover{opacity:1;}
 
 main{display:flex;flex:1;gap:0;min-height:0;}
 
 /* ── Desk grid ── */
-#desk-area{flex:1;padding:24px 20px;overflow-y:auto;}
-.room-label{font-size:.78rem;color:var(--cream-2);opacity:.45;margin-bottom:16px;letter-spacing:.08em;text-transform:uppercase;}
+#desk-area{
+  flex:1;padding:0;overflow-y:auto;
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%,rgba(92,61,37,.18) 0%,transparent 70%),
+    var(--navy-3);
+}
+
+/* 書架裝飾條 */
+.shelf-wall{
+  width:100%;
+  background:linear-gradient(to bottom,#1E1409 0%,#2A1C10 40%,#362010 100%);
+  border-bottom:3px solid var(--wood);
+  padding:0 20px 0;
+  position:relative;
+  box-shadow:0 4px 20px rgba(0,0,0,.5);
+}
+.shelf-row{
+  display:flex;align-items:flex-end;gap:3px;
+  padding:10px 0 0;height:90px;overflow:hidden;
+}
+.shelf-plank{
+  position:absolute;bottom:0;left:0;right:0;height:8px;
+  background:linear-gradient(to bottom,var(--wood-2),var(--wood));
+  border-top:1px solid rgba(200,151,74,.25);
+}
+.bk{border-radius:2px 2px 0 0;flex-shrink:0;}
+
+.shelf-label{
+  position:absolute;right:24px;bottom:14px;
+  font-family:var(--serif);font-size:.72rem;
+  color:var(--amber);opacity:.5;letter-spacing:.16em;
+}
+
+.desk-area-inner{padding:20px 20px 24px;}
+.room-label{
+  font-size:.7rem;color:var(--cream-2);opacity:.35;
+  margin-bottom:16px;letter-spacing:.12em;text-transform:uppercase;
+  font-family:var(--mono);
+}
 #desk-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
-  gap:12px;
+  grid-template-columns:repeat(auto-fill,minmax(148px,1fr));
+  gap:14px;
 }
 .desk{
-  background:var(--navy-2);border:1px solid var(--line-2);border-radius:12px;
+  background:linear-gradient(160deg,#362010 0%,#2A1C10 100%);
+  border:1px solid rgba(92,61,37,.6);
+  border-top:2px solid var(--wood-2);
+  border-radius:6px;
   padding:16px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;
-  transition:border-color .3s;position:relative;
+  transition:border-color .3s,box-shadow .3s;position:relative;
+  box-shadow:0 2px 8px rgba(0,0,0,.3),inset 0 1px 0 rgba(200,151,74,.06);
 }
-.desk.me{border-color:var(--peach);box-shadow:0 0 0 1px var(--peach);}
-.desk.away{opacity:.45;}
+.desk:hover{border-color:rgba(200,151,74,.4);box-shadow:0 4px 16px rgba(0,0,0,.4);}
+.desk.me{
+  border-color:var(--amber);border-top-color:var(--amber-2);
+  box-shadow:0 0 0 1px var(--amber),0 4px 16px rgba(200,151,74,.2);
+}
+.desk.away{opacity:.35;}
 .desk-icon{font-size:1.8rem;line-height:1;}
 .desk-name{font-size:.82rem;font-weight:600;color:var(--cream);text-align:center;word-break:break-all;}
-.desk-tag{font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--navy-3);color:var(--warn);border:1px solid rgba(217,176,132,.25);}
-.desk-time{font-size:.65rem;color:var(--cream-2);opacity:.45;margin-top:2px;}
+.desk-tag{
+  font-size:.66rem;padding:2px 9px;border-radius:20px;
+  background:rgba(92,61,37,.5);color:var(--amber);
+  border:1px solid rgba(200,151,74,.2);
+}
+.desk-time{font-size:.65rem;color:var(--cream-2);opacity:.4;margin-top:2px;}
 .desk-me-badge{
-  position:absolute;top:8px;right:8px;font-size:.6rem;
-  background:var(--peach);color:var(--navy-4);padding:1px 5px;border-radius:8px;font-weight:700;
+  position:absolute;top:7px;right:8px;font-size:.58rem;
+  background:var(--amber);color:var(--navy-4);padding:1px 6px;border-radius:8px;font-weight:700;letter-spacing:.04em;
 }
 .desk-shout{
-  font-size:.7rem;color:var(--peach-2);text-align:center;font-style:italic;
+  font-size:.7rem;color:var(--amber-2);text-align:center;font-style:italic;
   animation:fadeShout 4s forwards;
 }
 @keyframes fadeShout{0%{opacity:1}80%{opacity:1}100%{opacity:0}}
 
 /* ── Sidebar ── */
 #sidebar{
-  width:220px;border-left:1px solid var(--line-2);
+  width:220px;border-left:2px solid var(--wood);
   padding:18px 14px;display:flex;flex-direction:column;gap:12px;
-  background:var(--navy-4);overflow-y:auto;
+  background:linear-gradient(to bottom,#120D05,#1A1107);
+  overflow-y:auto;
 }
 .sidebar-section{font-size:.7rem;color:var(--cream-2);opacity:.45;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
 .shout-form textarea{
@@ -184,10 +267,12 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 }
 #retain-modal.open{display:flex;}
 .retain-card{
-  background:var(--navy-2);border:1px solid var(--line-3);
+  background:linear-gradient(160deg,#362010,#2A1C10);
+  border:1px solid var(--wood);border-top:2px solid var(--wood-2);
   border-radius:20px 20px 0 0;
   padding:28px 24px max(28px,env(safe-area-inset-bottom));
   width:100%;max-width:480px;
+  box-shadow:0 -4px 32px rgba(0,0,0,.5);
 }
 .retain-mins{font-size:2rem;font-weight:700;color:var(--peach);font-family:var(--serif);text-align:center;line-height:1.1;}
 .retain-sub{font-size:.85rem;color:var(--cream-2);opacity:.65;text-align:center;margin:6px 0 24px;}
@@ -425,8 +510,15 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 
   <main>
     <div id="desk-area">
-      <div class="room-label">圖書館大廳</div>
-      <div id="desk-grid"></div>
+      <div class="shelf-wall">
+        <div class="shelf-row" id="shelf-books"></div>
+        <div class="shelf-plank"></div>
+        <span class="shelf-label">LIBRARY · 圖書館大廳</span>
+      </div>
+      <div class="desk-area-inner">
+        <div class="room-label">目前在線的考生</div>
+        <div id="desk-grid"></div>
+      </div>
     </div>
     <div id="sidebar">
       <!-- 今日記錄（已登入才顯示） -->
@@ -583,6 +675,28 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 </div>
 
 <script type="module">
+// ── 書架裝飾 ─────────────────────────────────────────────────────────
+(function(){
+  const BOOK_COLORS=[
+    '#8B3A3A','#6B4A8B','#2B5B7A','#4A7A4A','#8B6B2B',
+    '#7A3B5A','#3B6B8B','#8B5B2B','#4A8B6B','#6B3B8B',
+    '#3B5B4A','#8B4B2B','#5B3B8B','#2B7A5B','#8B7B3B',
+  ];
+  const el=document.getElementById('shelf-books');
+  if(!el)return;
+  let html='';
+  const W=el.closest('.shelf-wall').offsetWidth||360;
+  const count=Math.floor(W/14);
+  for(let i=0;i<count;i++){
+    const c=BOOK_COLORS[i%BOOK_COLORS.length];
+    const h=52+Math.floor(Math.sin(i*1.7)*16+Math.random()*12);
+    const w=8+Math.floor(Math.random()*10);
+    const lighter=c.replace(/[0-9a-f]{2}$/i,d=>Math.min(255,parseInt(d,16)+40).toString(16).padStart(2,'0'));
+    html+=`<div class="bk" style="height:${h}px;width:${w}px;background:linear-gradient(to right,${c},${lighter})"></div>`;
+  }
+  el.innerHTML=html;
+})();
+
 // ── 設定 ──────────────────────────────────────────────────────────────
 const SUPABASE_URL  = 'https://azyougvutvbladgzdiar.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6eW91Z3Z1dHZibGFkZ3pkaWFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NTc1OTYsImV4cCI6MjA5NTUzMzU5Nn0._8JtTK49sVc_P0_UvlaStNSLQwcFLaW9rcQVPYkx7L0';
