@@ -746,6 +746,7 @@ let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [];
 let _snowParticles = [];
 let _sakuraParticles = [];
+let _mapleParticles = [];
 let _lightShafts = [];
 let _ceilStars = [];
 let _moonSprite = null;
@@ -1034,6 +1035,32 @@ function _sakuraTex() {
   ctx.beginPath(); ctx.arc(20,20,3.5,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='rgba(220,100,130,0.7)';
   ctx.beginPath(); ctx.arc(20,20,2,0,Math.PI*2); ctx.fill();
+  return new THREE.CanvasTexture(c);
+}
+
+function _mapleTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 40;
+  const ctx = c.getContext('2d');
+  // Random autumn color per leaf (orange/red/gold)
+  const hue = 15 + Math.floor(Math.random()*35); // 15–50: orange to gold
+  ctx.fillStyle = `hsla(${hue},85%,52%,0.92)`;
+  // Simple 5-lobe maple leaf shape using bezier
+  ctx.save(); ctx.translate(20,22); ctx.scale(1.1,1.1);
+  ctx.beginPath();
+  ctx.moveTo(0,-12);
+  ctx.bezierCurveTo(3,-8,8,-10,7,-5);
+  ctx.bezierCurveTo(12,-6,12,-2,8,0);
+  ctx.bezierCurveTo(11,3,9,7,5,5);
+  ctx.bezierCurveTo(4,9,1,10,0,14);
+  ctx.bezierCurveTo(-1,10,-4,9,-5,5);
+  ctx.bezierCurveTo(-9,7,-11,3,-8,0);
+  ctx.bezierCurveTo(-12,-2,-12,-6,-7,-5);
+  ctx.bezierCurveTo(-8,-10,-3,-8,0,-12);
+  ctx.closePath(); ctx.fill();
+  // Stem
+  ctx.strokeStyle=`hsla(${hue-5},70%,40%,0.8)`; ctx.lineWidth=1.5;
+  ctx.beginPath(); ctx.moveTo(0,14); ctx.lineTo(0,18); ctx.stroke();
+  ctx.restore();
   return new THREE.CanvasTexture(c);
 }
 
@@ -1533,6 +1560,24 @@ function initThreeScene(canvas) {
       ss.userData.rot = (Math.random()-0.5)*0.025;
       _threeScene.add(ss);
       _sakuraParticles.push(ss);
+    }
+  }
+
+  // Autumn maple (Sep–Nov)
+  const _moA = new Date().getMonth();
+  if(_moA >= 8 && _moA <= 10){
+    for(let mi=0; mi<35; mi++){
+      const mm = new THREE.SpriteMaterial({map:_mapleTex(), transparent:true, opacity:0.88, depthWrite:false});
+      const ms = new THREE.Sprite(mm);
+      const sc = 0.18 + Math.random()*0.14;
+      ms.scale.set(sc, sc, 1);
+      ms.position.set((Math.random()-0.5)*18, 5+Math.random()*2, (Math.random()-0.5)*14);
+      ms.userData.vx = (Math.random()-0.5)*0.007; // more sideways tumble
+      ms.userData.vy = -(0.003 + Math.random()*0.004);
+      ms.userData.phase = Math.random()*Math.PI*2;
+      ms.userData.rot = (Math.random()-0.5)*0.04; // faster spin
+      _threeScene.add(ms);
+      _mapleParticles.push(ms);
     }
   }
 
@@ -2529,6 +2574,16 @@ function startThreeAnimation(canvas) {
       p.material.rotation = (p.material.rotation||0) + p.userData.rot;
       if(p.position.y < -0.5){
         p.position.y = 5 + Math.random()*2.5;
+        p.position.x = (Math.random()-0.5)*18;
+        p.position.z = (Math.random()-0.5)*14;
+      }
+    });
+    _mapleParticles.forEach(p => {
+      p.position.x += p.userData.vx + 0.008*Math.sin(_threeTime*0.8 + p.userData.phase);
+      p.position.y += p.userData.vy;
+      p.material.rotation = (p.material.rotation||0) + p.userData.rot;
+      if(p.position.y < -0.5){
+        p.position.y = 5 + Math.random()*2;
         p.position.x = (Math.random()-0.5)*18;
         p.position.z = (Math.random()-0.5)*14;
       }
