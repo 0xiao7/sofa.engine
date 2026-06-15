@@ -553,6 +553,23 @@ input[type=text], select, .btn-enter {
   opacity: 0; transition: opacity 1s;
 }
 #study-hud.ready { opacity: 1; }
+/* Wave75 — Audio Settings Panel */
+#audio-settings-btn {
+  background: none; border: none; cursor: pointer; color: #8899aa;
+  font-size: 16px; padding: 4px 6px; transition: color 0.2s;
+  position: absolute; top: 8px; right: 48px; z-index: 15;
+}
+#audio-settings-btn:hover { color: #aabbcc; }
+#audio-panel {
+  display: none; position: fixed; bottom: 60px; right: 14px;
+  background: rgba(10,20,30,0.92); backdrop-filter: blur(8px);
+  border: 1px solid #2a4060; border-radius: 12px;
+  padding: 12px 16px; z-index: 300; min-width: 170px;
+}
+#audio-panel.open { display: block; }
+.ap-row { display: flex; justify-content: space-between; align-items: center; margin: 6px 0; }
+.ap-label { color: #8899aa; font-size: 13px; }
+.ap-toggle { cursor: pointer; font-size: 18px; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 </head>
@@ -607,6 +624,15 @@ input[type=text], select, .btn-enter {
           </div>
         </div>
         <button id="btn-sound" title="環境音" style="position:absolute;top:8px;right:8px;z-index:15;background:rgba(7,13,20,0.7);border:1px solid rgba(91,175,214,0.25);color:#5BAFD6;border-radius:8px;padding:5px 9px;font-size:16px;cursor:pointer;backdrop-filter:blur(4px);transition:background .2s;" onclick="toggleAmbientSound()">🔇</button>
+        <button id="audio-settings-btn" title="音效設定" onclick="_toggleAudioPanel()">⚙</button>
+        <div id="audio-panel">
+          <div style="color:#a0b8c8;font-size:13px;font-weight:bold;margin-bottom:8px;">音效設定</div>
+          <div class="ap-row"><span class="ap-label">🌫 環境音</span><span class="ap-toggle" id="apt-ambient" onclick="_toggleLayer('ambient')"></span></div>
+          <div class="ap-row"><span class="ap-label">🦜 鳥鳴</span><span class="ap-toggle" id="apt-birds" onclick="_toggleLayer('birds')"></span></div>
+          <div class="ap-row"><span class="ap-label">🦗 蟋蟀</span><span class="ap-toggle" id="apt-crickets" onclick="_toggleLayer('crickets')"></span></div>
+          <div class="ap-row"><span class="ap-label">🌧 雨聲</span><span class="ap-toggle" id="apt-rain" onclick="_toggleLayer('rain')"></span></div>
+          <div class="ap-row"><span class="ap-label">🔔 整點報時</span><span class="ap-toggle" id="apt-bell" onclick="_toggleLayer('bell')"></span></div>
+        </div>
         <div id="tod-label" style="position:absolute;top:8px;right:50px;z-index:15;font-size:9px;color:rgba(91,175,214,0.5);font-family:monospace;letter-spacing:.08em;pointer-events:none;"></div>
         <canvas id="room-canvas"></canvas>
         <div id="dpad">
@@ -3262,13 +3288,14 @@ function startThreeAnimation(canvas) {
     // Rain ambient audio fade (night mode ↔ day mode)
     if (_rainGain && _soundOn) {
       const _rTod = _timeOfDayPalette();
-      const _rTarget = _rTod.fogDensity >= 0.012 ? 0.18 : 0;
+      const _rNightTarget = _rTod.fogDensity >= 0.012 ? 0.18 : 0;
+      const _rTarget = _audioPrefs.rain ? _rNightTarget : 0; // Wave75: per-layer pref
       const _rCur = _rainGain.gain.value;
       if (Math.abs(_rCur - _rTarget) > 0.001)
         _rainGain.gain.setTargetAtTime(_rTarget, _audioCtx.currentTime, 3.0);
     }
     // Morning bird chirps (晨讀 6–11am, every 35–65s)
-    if(_soundOn && _soundCtx){
+    if(_soundOn && _audioCtx){
       const _bTod = _timeOfDayPalette();
       if(_bTod.fogDensity === 0.008){ // morning only
         const _bNow = Date.now();
@@ -3282,7 +3309,7 @@ function startThreeAnimation(canvas) {
       }
     }
     // Dusk cricket chirps (暮讀 17–21h, every 18–33s)
-    if(_soundOn && _soundCtx){
+    if(_soundOn && _audioCtx){
       const _crTod = _timeOfDayPalette();
       if(_crTod.fogDensity === 0.010){ // dusk palette only
         const _crNow = Date.now();
@@ -3803,6 +3830,51 @@ let _lastChimeHour = -1, _lastChimeHalf = -1;
 let _nextChirpTime = 0;
 let _nextCricketTime = 0;
 
+// Wave75 — per-layer audio preferences
+const AUDIO_PREFS_KEY = 'sofa_audio_prefs';
+function _getAudioPrefs() {
+  try { return JSON.parse(localStorage.getItem(AUDIO_PREFS_KEY) || '{}'); } catch { return {}; }
+}
+let _audioPrefs = { ambient: true, birds: true, crickets: true, rain: true, bell: true };
+Object.assign(_audioPrefs, _getAudioPrefs());
+function _saveAudioPrefs() { localStorage.setItem(AUDIO_PREFS_KEY, JSON.stringify(_audioPrefs)); }
+
+function _toggleAudioPanel() {
+  document.getElementById('audio-panel').classList.toggle('open');
+  _renderAudioPanel();
+}
+function _renderAudioPanel() {
+  ['ambient','birds','crickets','rain','bell'].forEach(k => {
+    const el = document.getElementById('apt-'+k);
+    if (el) el.textContent = _audioPrefs[k] ? '🔊' : '🔇';
+  });
+}
+function _toggleLayer(key) {
+  _audioPrefs[key] = !_audioPrefs[key];
+  _saveAudioPrefs();
+  _renderAudioPanel();
+  _applyAudioPrefs();
+}
+function _applyAudioPrefs() {
+  // Ambient: fade _ambGain in/out
+  if (_ambGain && _audioCtx) {
+    const target = _audioPrefs.ambient ? 0.08 : 0;
+    _ambGain.gain.setTargetAtTime(target, _audioCtx.currentTime, 0.5);
+  }
+  // Rain: fade _rainGain in/out (respects night-mode target via tick)
+  if (_rainGain && _audioCtx) {
+    const target = _audioPrefs.rain ? 0.18 : 0;
+    _rainGain.gain.setTargetAtTime(target, _audioCtx.currentTime, 0.3);
+  }
+  // Birds, crickets, bell: guarded at play-time
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#audio-panel') && !e.target.closest('#audio-settings-btn')) {
+    document.getElementById('audio-panel')?.classList.remove('open');
+  }
+});
+
 function _buildAmbientSound() {
   if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
   const ctx = _audioCtx;
@@ -3879,6 +3951,8 @@ function toggleAmbientSound() {
     _buildAmbientSound();
     _initRainAudio();
     if (btn) btn.textContent = '🔊';
+    // Wave75: apply per-layer prefs after a brief ramp-up delay
+    setTimeout(_applyAudioPrefs, 300);
   } else {
     _teardownAmbientSound();
     if (btn) btn.textContent = '🔇';
@@ -3931,21 +4005,22 @@ function _spawnRainRipple() {
 }
 
 function _playBirdChirp() {
-  if(!_soundCtx || _soundCtx.state === 'suspended') return;
+  if (!_audioPrefs.birds) return;
+  if(!_audioCtx || _audioCtx.state === 'suspended') return;
   try {
-    const g = _soundCtx.createGain();
-    g.connect(_soundCtx.destination);
+    const g = _audioCtx.createGain();
+    g.connect(_audioCtx.destination);
     g.gain.value = 0.07;
     // 2–3 chips with slight pitch variation
     const chips = 2 + (Math.random() > 0.5 ? 1 : 0);
     for(let c=0; c<chips; c++){
       const delay = c * 0.11;
       const pitchBase = 2800 + Math.random()*600;
-      const osc = _soundCtx.createOscillator();
-      const env = _soundCtx.createGain();
+      const osc = _audioCtx.createOscillator();
+      const env = _audioCtx.createGain();
       osc.connect(env); env.connect(g);
       osc.type = 'sine';
-      const t0 = _soundCtx.currentTime + delay;
+      const t0 = _audioCtx.currentTime + delay;
       osc.frequency.setValueAtTime(pitchBase, t0);
       osc.frequency.linearRampToValueAtTime(pitchBase * 1.45, t0 + 0.06);
       osc.frequency.linearRampToValueAtTime(pitchBase * 1.1, t0 + 0.12);
@@ -3959,17 +4034,18 @@ function _playBirdChirp() {
 }
 
 function _playCrickets() {
-  if(!_soundCtx || _soundCtx.state === 'suspended') return;
+  if (!_audioPrefs.crickets) return;
+  if(!_audioCtx || _audioCtx.state === 'suspended') return;
   try {
-    const masterG = _soundCtx.createGain();
-    masterG.connect(_soundCtx.destination);
+    const masterG = _audioCtx.createGain();
+    masterG.connect(_audioCtx.destination);
     masterG.gain.value = 0.055;
     // 3 slightly detuned cricket voices for realism
     [4300, 4380, 4260].forEach((freq, vi) => {
-      const osc = _soundCtx.createOscillator();
-      const trem = _soundCtx.createOscillator(); // tremolo LFO
-      const tremGain = _soundCtx.createGain();
-      const env = _soundCtx.createGain();
+      const osc = _audioCtx.createOscillator();
+      const trem = _audioCtx.createOscillator(); // tremolo LFO
+      const tremGain = _audioCtx.createGain();
+      const env = _audioCtx.createGain();
       trem.connect(tremGain);
       tremGain.connect(env.gain);
       osc.connect(env);
@@ -3980,7 +4056,7 @@ function _playCrickets() {
       trem.frequency.value = 17 + vi*1.5; // slightly different rates
       tremGain.gain.value = 0.5; // modulation depth
       env.gain.value = 0.5; // base gain (modulated around this)
-      const t0 = _soundCtx.currentTime + vi*0.04; // slight stagger
+      const t0 = _audioCtx.currentTime + vi*0.04; // slight stagger
       const dur = 1.6 + Math.random()*0.4;
       // Fade in/out envelope
       env.gain.setValueAtTime(0, t0);
@@ -4076,6 +4152,7 @@ function _playReactionSound(emoji) {
 }
 
 function _playBellChime(times) {
+  if (!_audioPrefs.bell) return;
   if (!_audioCtx || _audioCtx.state === 'suspended') return;
   // Skip if ambient sound is off (ambGain faded out or null)
   try { if (_ambGain && _ambGain.gain.value < 0.01) return; } catch(e){}
@@ -4462,6 +4539,8 @@ setInterval(() => {
     setInterval(_tick, 30000); // save every 30s
   };
 })();
+// Wave75: init audio panel toggle states on load
+_renderAudioPanel();
 </script>
 </body>
 </html>
