@@ -133,6 +133,60 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 .online-item-name{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .online-item-tag{font-size:.65rem;color:var(--warn);opacity:.7;}
 
+/* ── Pomodoro widget ── */
+.pom-widget{display:flex;flex-direction:column;align-items:center;gap:8px;padding-bottom:16px;border-bottom:1px solid var(--line);}
+.pom-ring-wrap{position:relative;width:80px;height:80px;}
+.pom-ring{width:80px;height:80px;}
+#pom-progress{transition:stroke-dashoffset .9s linear;stroke:var(--peach);}
+.pom-center{
+  position:absolute;inset:0;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+}
+.pom-time{font-size:1.1rem;font-weight:700;font-variant-numeric:tabular-nums;color:var(--cream);letter-spacing:.02em;}
+.pom-mode{font-size:.58rem;color:var(--warn);text-transform:uppercase;letter-spacing:.08em;margin-top:1px;}
+.pom-round{font-size:.7rem;color:var(--cream-2);opacity:.5;}
+.pom-btns{display:flex;gap:6px;}
+.pom-btn{
+  padding:5px 14px;border-radius:20px;font-size:.75rem;font-family:var(--sans);
+  border:1px solid var(--line-3);background:none;color:var(--cream-2);cursor:pointer;transition:all .2s;
+}
+.pom-btn.primary{background:var(--peach);color:var(--navy-4);border-color:var(--peach);font-weight:600;}
+.pom-btn:hover{opacity:.8;}
+/* lock button in header */
+#btn-lock{
+  font-size:.75rem;color:var(--cream-2);opacity:.5;padding:4px 10px;
+  border:1px solid var(--line-2);border-radius:20px;cursor:pointer;transition:opacity .2s;
+  background:none;
+}
+#btn-lock:hover{opacity:1;}
+/* ── Lock screen ── */
+#lock-screen{
+  position:fixed;inset:0;z-index:200;
+  background:var(--navy-4);
+  display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;
+}
+#lock-screen.on{display:flex;}
+.lock-clock{font-size:4rem;font-weight:700;font-variant-numeric:tabular-nums;color:var(--cream);letter-spacing:-.02em;line-height:1;}
+.lock-date{font-size:.85rem;color:var(--cream-2);opacity:.5;}
+.lock-study{font-size:.95rem;color:var(--peach);margin-top:4px;}
+.lock-pom{font-size:.8rem;color:var(--warn);margin-top:2px;}
+.lock-hint{font-size:.7rem;color:var(--cream-2);opacity:.35;margin-top:16px;}
+/* hold-to-unlock button */
+.unlock-wrap{position:relative;margin-top:8px;}
+#btn-unlock{
+  padding:14px 32px;border-radius:40px;
+  background:rgba(245,240,234,.08);border:1px solid var(--line-3);
+  color:var(--cream);font-size:.9rem;font-family:var(--sans);cursor:pointer;
+  position:relative;overflow:hidden;user-select:none;-webkit-user-select:none;
+  transition:border-color .2s;
+}
+#btn-unlock:active{border-color:var(--peach);}
+#unlock-fill{
+  position:absolute;left:0;top:0;height:100%;width:0%;
+  background:rgba(231,187,167,.2);transition:none;pointer-events:none;
+  border-radius:40px;
+}
+
 /* ── Shout banner ── */
 #shout-banner{
   position:fixed;top:70px;left:50%;transform:translateX(-50%);
@@ -258,7 +312,10 @@ main{display:flex;flex:1;gap:0;min-height:0;}
       <span class="dot"></span>
       <span id="count-badge">1 人在線</span>
     </span>
-    <button class="btn-leave" id="btn-leave">離開</button>
+    <div style="display:flex;gap:6px;align-items:center;">
+      <button id="btn-lock">🔒 鎖定</button>
+      <button class="btn-leave" id="btn-leave">離開</button>
+    </div>
   </header>
 
   <div id="shout-banner"></div>
@@ -269,6 +326,27 @@ main{display:flex;flex:1;gap:0;min-height:0;}
       <div id="desk-grid"></div>
     </div>
     <div id="sidebar">
+      <!-- Pomodoro desktop -->
+      <div class="pom-widget" id="pom-desktop">
+        <div class="pom-ring-wrap">
+          <svg class="pom-ring" viewBox="0 0 80 80">
+            <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(245,240,234,.08)" stroke-width="5"/>
+            <circle id="pom-progress" cx="40" cy="40" r="34" fill="none" stroke-width="5"
+              stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="213.6"
+              transform="rotate(-90 40 40)"/>
+          </svg>
+          <div class="pom-center">
+            <div class="pom-time" id="pom-display">25:00</div>
+            <div class="pom-mode" id="pom-mode-label">準備好了嗎</div>
+          </div>
+        </div>
+        <div class="pom-round" id="pom-round-label">第 1 / 4 輪</div>
+        <div class="pom-btns">
+          <button class="pom-btn primary" id="pom-start">開始</button>
+          <button class="pom-btn" id="pom-reset">重設</button>
+        </div>
+      </div>
+
       <div>
         <div class="sidebar-section">喊話</div>
         <div class="shout-form">
@@ -291,6 +369,10 @@ main{display:flex;flex:1;gap:0;min-height:0;}
       <span id="mob-count-badge" class="mob-count">20</span>
       <span>名單</span>
     </button>
+    <button id="mob-pom-btn">
+      <span class="mob-icon">🍅</span>
+      <span id="mob-pom-label">25:00</span>
+    </button>
     <button id="mob-shout-btn">
       <span class="mob-icon">📣</span>
       <span>喊話</span>
@@ -306,6 +388,33 @@ main{display:flex;flex:1;gap:0;min-height:0;}
     <div class="sheet-body"><div id="online-list-mob"></div></div>
   </div>
 
+  <div id="sheet-pom" class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">番茄鐘</div>
+    <div class="sheet-body" style="display:flex;flex-direction:column;align-items:center;gap:16px;padding-top:20px;">
+      <div class="pom-ring-wrap" style="width:120px;height:120px;">
+        <svg class="pom-ring" viewBox="0 0 80 80" style="width:120px;height:120px;">
+          <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(245,240,234,.08)" stroke-width="5"/>
+          <circle id="pom-progress-mob" cx="40" cy="40" r="34" fill="none" stroke-width="5"
+            stroke-linecap="round" stroke-dasharray="213.6" stroke-dashoffset="213.6"
+            transform="rotate(-90 40 40)"/>
+        </svg>
+        <div class="pom-center">
+          <div class="pom-time" id="pom-display-mob" style="font-size:1.6rem;">25:00</div>
+          <div class="pom-mode" id="pom-mode-mob">準備好了嗎</div>
+        </div>
+      </div>
+      <div class="pom-round" id="pom-round-mob">第 1 / 4 輪</div>
+      <div class="pom-btns">
+        <button class="pom-btn primary" id="pom-start-mob">開始</button>
+        <button class="pom-btn" id="pom-reset-mob">重設</button>
+      </div>
+      <div style="font-size:.72rem;color:var(--cream-2);opacity:.4;text-align:center;line-height:1.6;">
+        25 分鐘專注 → 5 分鐘休息<br>完成 4 輪後長休息 15 分鐘
+      </div>
+    </div>
+  </div>
+
   <div id="sheet-shout" class="sheet">
     <div class="sheet-handle"></div>
     <div class="sheet-title">廣播喊話</div>
@@ -314,6 +423,19 @@ main{display:flex;flex:1;gap:0;min-height:0;}
       <button id="btn-shout-mob">廣播</button>
       <div class="shout-hint">30 秒冷卻，最多 40 字</div>
     </div>
+  </div>
+<!-- ── Lock screen ── -->
+<div id="lock-screen">
+  <div class="lock-clock" id="lock-clock">00:00</div>
+  <div class="lock-date" id="lock-date"></div>
+  <div class="lock-study" id="lock-study"></div>
+  <div class="lock-pom" id="lock-pom"></div>
+  <div class="lock-hint">長按下方按鈕解鎖</div>
+  <div class="unlock-wrap">
+    <button id="btn-unlock">
+      <span id="unlock-fill"></span>
+      解鎖自習室
+    </button>
   </div>
 </div>
 
@@ -512,6 +634,172 @@ async function leave(){
   document.getElementById('entry').style.display = 'flex';
 }
 
+// ── Pomodoro ──────────────────────────────────────────────────────────
+const POM_FOCUS = 25 * 60, POM_BREAK = 5 * 60, POM_LONG = 15 * 60, POM_ROUNDS = 4;
+const pom = { state:'idle', remaining: POM_FOCUS, total: POM_FOCUS, round:1, tick:null };
+const CIRC = 213.6;
+
+function beep(type='done'){
+  try{
+    const ctx = new AudioContext();
+    const freqs = type === 'done' ? [523,659,784] : [659,523];
+    freqs.forEach((f,i)=>{
+      const o = ctx.createOscillator(), g = ctx.createGain();
+      o.connect(g); g.connect(ctx.destination);
+      o.frequency.value = f; o.type = 'sine';
+      const t = ctx.currentTime + i * 0.18;
+      g.gain.setValueAtTime(0, t);
+      g.gain.linearRampToValueAtTime(0.25, t + 0.05);
+      g.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
+      o.start(t); o.stop(t + 0.35);
+    });
+  }catch(e){}
+}
+
+function fmtTime(s){ return `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`; }
+
+function pomSync(){
+  const t = fmtTime(pom.remaining);
+  const offset = CIRC * (1 - pom.remaining / pom.total);
+  const mode = pom.state === 'break' || pom.state === 'longbreak' ? '休息中 ☕' :
+                pom.state === 'focus' ? '專注中 🍅' :
+                pom.state === 'paused' ? '暫停中' : '準備好了嗎';
+  const round = `第 ${pom.round} / ${POM_ROUNDS} 輪`;
+
+  ['pom-display','pom-display-mob'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.textContent = t;
+  });
+  ['pom-mode-label','pom-mode-mob'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.textContent = mode;
+  });
+  ['pom-round-label','pom-round-mob'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.textContent = round;
+  });
+  ['pom-progress','pom-progress-mob'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.style.strokeDashoffset = CIRC - offset;
+  });
+  const mobLabel = document.getElementById('mob-pom-label');
+  if(mobLabel) mobLabel.textContent = t;
+
+  const lockPom = document.getElementById('lock-pom');
+  if(lockPom) lockPom.textContent = pom.state === 'idle' ? '' : `🍅 ${mode} ${t}`;
+
+  const startBtns = ['pom-start','pom-start-mob'].map(id=>document.getElementById(id));
+  startBtns.forEach(b=>{
+    if(!b) return;
+    b.textContent = pom.state === 'focus' || pom.state === 'break' || pom.state === 'longbreak'
+      ? '暫停' : pom.state === 'paused' ? '繼續' : '開始';
+    b.className = 'pom-btn primary';
+  });
+}
+
+function pomTick(){
+  pom.remaining--;
+  if(pom.remaining <= 0){
+    clearInterval(pom.tick); pom.tick = null;
+    if(pom.state === 'focus'){
+      beep('done');
+      if(pom.round >= POM_ROUNDS){
+        pom.state = 'longbreak'; pom.total = POM_LONG; pom.remaining = POM_LONG;
+      } else {
+        pom.state = 'break'; pom.total = POM_BREAK; pom.remaining = POM_BREAK;
+      }
+      pom.tick = setInterval(pomTick, 1000);
+    } else {
+      beep('start');
+      pom.round = pom.state === 'longbreak' ? 1 : pom.round + 1;
+      pom.state = 'idle'; pom.total = POM_FOCUS; pom.remaining = POM_FOCUS;
+    }
+  }
+  pomSync();
+}
+
+function pomToggle(){
+  if(pom.state === 'focus' || pom.state === 'break' || pom.state === 'longbreak'){
+    clearInterval(pom.tick); pom.tick = null; pom.state = 'paused';
+  } else if(pom.state === 'paused'){
+    pom.state = pom.remaining <= POM_BREAK ? 'break' : 'focus';
+    pom.tick = setInterval(pomTick, 1000);
+  } else {
+    pom.state = 'focus'; pom.total = POM_FOCUS; pom.remaining = POM_FOCUS;
+    pom.tick = setInterval(pomTick, 1000);
+    beep('start');
+  }
+  pomSync();
+}
+
+function pomReset(){
+  clearInterval(pom.tick); pom.tick = null;
+  pom.state='idle'; pom.round=1; pom.total=POM_FOCUS; pom.remaining=POM_FOCUS;
+  pomSync();
+}
+
+['pom-start','pom-start-mob'].forEach(id=>
+  document.getElementById(id)?.addEventListener('click', pomToggle)
+);
+['pom-reset','pom-reset-mob'].forEach(id=>
+  document.getElementById(id)?.addEventListener('click', pomReset)
+);
+pomSync();
+
+// ── Lock screen ───────────────────────────────────────────────────────
+let locked = false, unlockTimer = null;
+const UNLOCK_MS = 1500;
+
+function lockTick(){
+  const now = new Date();
+  const h = String(now.getHours()).padStart(2,'0');
+  const m = String(now.getMinutes()).padStart(2,'0');
+  document.getElementById('lock-clock').textContent = `${h}:${m}`;
+  const days = ['日','一','二','三','四','五','六'];
+  document.getElementById('lock-date').textContent =
+    `${now.getMonth()+1} 月 ${now.getDate()} 日（週${days[now.getDay()]}）`;
+  if(joinedAt){
+    const mins = Math.floor((Date.now()-joinedAt)/60000);
+    document.getElementById('lock-study').textContent = mins < 1 ? '剛進自習室' : `已讀書 ${mins} 分鐘`;
+  }
+}
+
+function lock(){
+  locked = true;
+  lockTick();
+  document.getElementById('lock-screen').classList.add('on');
+  lockTick();
+}
+
+function unlock(){
+  locked = false;
+  document.getElementById('lock-screen').classList.remove('on');
+}
+
+document.getElementById('btn-lock')?.addEventListener('click', lock);
+
+const btnUnlock = document.getElementById('btn-unlock');
+const unlockFill = document.getElementById('unlock-fill');
+let unlockStart = null, unlockRAF = null;
+
+function unlockPress(){
+  unlockStart = performance.now();
+  function step(t){
+    const pct = Math.min((t - unlockStart) / UNLOCK_MS * 100, 100);
+    unlockFill.style.width = pct + '%';
+    if(pct < 100) unlockRAF = requestAnimationFrame(step);
+    else unlock();
+  }
+  unlockRAF = requestAnimationFrame(step);
+}
+function unlockRelease(){
+  cancelAnimationFrame(unlockRAF);
+  unlockFill.style.width = '0%';
+}
+btnUnlock?.addEventListener('mousedown',  unlockPress);
+btnUnlock?.addEventListener('touchstart', unlockPress, {passive:true});
+btnUnlock?.addEventListener('mouseup',    unlockRelease);
+btnUnlock?.addEventListener('mouseleave', unlockRelease);
+btnUnlock?.addEventListener('touchend',   unlockRelease);
+setInterval(()=>{ if(locked) lockTick(); }, 30000);
+
 // ── Mobile sheet 控制 ────────────────────────────────────────────────
 function openSheet(id){
   document.getElementById('sheet-overlay').classList.add('open');
@@ -528,6 +816,11 @@ document.getElementById('mob-list-btn')?.addEventListener('click', () => {
   const isOpen = document.getElementById('sheet-list').classList.contains('open');
   closeAllSheets();
   if(!isOpen) openSheet('sheet-list');
+});
+document.getElementById('mob-pom-btn')?.addEventListener('click', () => {
+  const isOpen = document.getElementById('sheet-pom').classList.contains('open');
+  closeAllSheets();
+  if(!isOpen) openSheet('sheet-pom');
 });
 document.getElementById('mob-shout-btn')?.addEventListener('click', () => {
   const isOpen = document.getElementById('sheet-shout').classList.contains('open');
