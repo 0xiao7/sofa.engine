@@ -733,6 +733,7 @@ input[type=text], select, .btn-enter {
 
 let _threeRenderer, _threeScene, _threeCamera, _threeRAF;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
+let _namePlates = [], _deskLampLights = [];
 let _threeTime = 0;
 
 // ── Pixel texture generators ────────────────────────────────────────────
@@ -989,6 +990,19 @@ function initThreeScene(canvas) {
   secHand.position.set(8.5,4.5,-7.74);
   _threeScene.add(secHand);
   _threeScene.userData.clockHands = {hourHand, minHand, secHand, cx:8.5, cy:4.5};
+  // Clock tick marks (12 hour positions)
+  for(let ti=0; ti<12; ti++){
+    const angle = (ti/12)*Math.PI*2 - Math.PI/2;
+    const r = 0.62;
+    const isMajor = ti%3===0;
+    const tick = new THREE.Mesh(
+      new THREE.BoxGeometry(0.025, isMajor?0.14:0.08, 0.015),
+      new THREE.MeshBasicMaterial({color: isMajor ? 0xD4A847 : 0x5BAFD6})
+    );
+    tick.position.set(8.5 + Math.cos(angle)*r, 4.5 + Math.sin(angle)*r, -7.77);
+    tick.rotation.z = angle + Math.PI/2;
+    _threeScene.add(tick);
+  }
   const lWall = new THREE.Mesh(box(0.3,8,20), wallMat);
   lWall.position.set(-9, 4, 0); _threeScene.add(lWall);
   const rWall = lWall.clone(); rWall.position.set(9,4,0); _threeScene.add(rWall);
@@ -1186,12 +1200,11 @@ function initThreeScene(canvas) {
     lampHead.position.set(x+0.5, 1.35, z+0.1);
     lampHead.rotation.z = Math.PI; // point downward
     _threeScene.add(lampHead);
-    // Lamp glow (very small point light, not all desks or it's too many)
-    if(Math.abs(x) < 4) {
-      const deskLight = new THREE.PointLight(0x7AC3E4, 0.4, 2.5);
-      deskLight.position.set(x+0.5, 1.2, z+0.1);
-      _threeScene.add(deskLight);
-    }
+    // Lamp glow — all desks dim by default; brightened per occupant in _updateThreeAvatars
+    const deskLight = new THREE.PointLight(0x7AC3E4, 0.15, 3.0);
+    deskLight.position.set(x+0.5, 1.2, z+0.1);
+    _threeScene.add(deskLight);
+    _deskLampLights.push(deskLight);
   });
 
   // Torch wall sconces
@@ -1473,7 +1486,9 @@ function _updateBoardNotes3D() {
 function _updateThreeAvatars(users) {
   _userAvatarMeshes.forEach(m => _threeScene.remove(m));
   _userAvatarLabels.forEach(m => _threeScene.remove(m));
+  _namePlates.forEach(m => _threeScene.remove(m));
   _userAvatarMeshes.length = 0; _userAvatarLabels.length = 0;
+  _namePlates.length = 0;
 
   users.forEach((u, i) => {
     const pos = _DESK_POS_3D[i % _DESK_POS_3D.length];
@@ -1576,6 +1591,38 @@ function _updateThreeAvatars(users) {
       star.position.set(pos[0], 1.73, pos[1]+0.9);
       _addAcc(star);
     }
+
+    // Billboard name plate
+    const npCanvas = document.createElement('canvas');
+    npCanvas.width = 192; npCanvas.height = 40;
+    const npCtx = npCanvas.getContext('2d');
+    npCtx.fillStyle = 'rgba(7,13,20,0.82)';
+    const npR = 6;
+    npCtx.beginPath(); npCtx.moveTo(npR,0); npCtx.lineTo(192-npR,0);
+    npCtx.arcTo(192,0,192,npR,npR); npCtx.lineTo(192,40-npR);
+    npCtx.arcTo(192,40,192-npR,40,npR); npCtx.lineTo(npR,40);
+    npCtx.arcTo(0,40,0,40-npR,npR); npCtx.lineTo(0,npR);
+    npCtx.arcTo(0,0,npR,0,npR); npCtx.closePath(); npCtx.fill();
+    npCtx.font = 'bold 15px monospace';
+    npCtx.fillStyle = hexColor;
+    npCtx.textAlign = 'center';
+    npCtx.fillText(u.name, 96, 17);
+    npCtx.font = '11px monospace';
+    npCtx.fillStyle = 'rgba(180,210,230,0.7)';
+    npCtx.fillText(u.subject || '', 96, 32);
+    const npTex = new THREE.CanvasTexture(npCanvas);
+    const npMat = new THREE.MeshBasicMaterial({ map: npTex, transparent: true, depthWrite: false });
+    const npMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.19), npMat);
+    npMesh.position.set(pos[0], 1.85, pos[1]+0.9);
+    _threeScene.add(npMesh);
+    _namePlates.push(npMesh);
+  });
+
+  // Dim all desk lamps, brighten occupied ones
+  _deskLampLights.forEach((dl, di) => { dl.intensity = 0.12; });
+  users.forEach((u, i) => {
+    const di = i % _DESK_POS_3D.length;
+    if(_deskLampLights[di]) _deskLampLights[di].intensity = 0.65;
   });
 }
 
@@ -1613,6 +1660,8 @@ function startThreeAnimation(canvas) {
     _userAvatarMeshes.forEach((m, i) => {
       m.position.y = 0.98 + 0.05 * Math.sin(_threeTime * 1.5 + i * 0.8);
     });
+    // Name plates always face camera
+    _namePlates.forEach(p => p.lookAt(_threeCamera.position));
     if(_threeScene.userData.updateParticles) _threeScene.userData.updateParticles();
     if(_threeScene.userData.clockHands){
       const {hourHand,minHand,secHand,cx,cy}=_threeScene.userData.clockHands;
