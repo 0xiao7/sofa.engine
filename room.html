@@ -743,6 +743,7 @@ let _threeRenderer, _threeScene, _threeCamera, _threeRAF;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _namePlates = [], _deskLampLights = [];
 let _reactParticles = []; // {sprite, vy, life, maxLife}
+let _speechBubbles = []; // {sprite, life, maxLife, phase} phase: 'in'|'hold'|'out'
 let _threeTime = 0;
 
 // ── Pixel texture generators ────────────────────────────────────────────
@@ -1511,6 +1512,51 @@ function _spawnReactEmoji(emoji, deskIdx) {
   _reactParticles.push({ sprite: esp, vy: 0.008, life: 1.0, maxLife: 1.0 });
 }
 
+function _spawnSpeechBubble(text, senderName) {
+  // Find sender's desk position
+  const idx = _currentUsers.findIndex(u => u.name === senderName);
+  const pos = _DESK_POS_3D[idx >= 0 ? idx % _DESK_POS_3D.length : 0];
+
+  // Canvas: white speech bubble with text
+  const W = 256, H = 80;
+  const bc = document.createElement('canvas');
+  bc.width = W; bc.height = H;
+  const bx = bc.getContext('2d');
+
+  // Bubble body
+  const R = 12;
+  bx.fillStyle = 'rgba(255,255,255,0.93)';
+  bx.beginPath();
+  bx.moveTo(R, 0); bx.lineTo(W-R, 0);
+  bx.arcTo(W, 0, W, R, R); bx.lineTo(W, H-20-R);
+  bx.arcTo(W, H-20, W-R, H-20, R); bx.lineTo(W/2+12, H-20);
+  bx.lineTo(W/2, H); bx.lineTo(W/2-12, H-20);
+  bx.lineTo(R, H-20);
+  bx.arcTo(0, H-20, 0, H-20-R, R); bx.lineTo(0, R);
+  bx.arcTo(0, 0, R, 0, R); bx.closePath();
+  bx.fill();
+
+  // Sender name
+  bx.fillStyle = '#1A2E3D';
+  bx.font = 'bold 13px monospace';
+  bx.fillText(senderName, 12, 18);
+
+  // Message text (truncate at 22 chars)
+  const msg = text.length > 22 ? text.slice(0, 21) + '…' : text;
+  bx.fillStyle = '#0A1520';
+  bx.font = '14px sans-serif';
+  bx.fillText(msg, 12, 40);
+
+  const btex = new THREE.CanvasTexture(bc);
+  const bmat = new THREE.SpriteMaterial({ map: btex, transparent: true, depthWrite: false });
+  const bsp = new THREE.Sprite(bmat);
+  bsp.scale.set(1.6, 0.5, 1.0);
+  bsp.position.set(pos[0], 2.5, pos[1]+0.9);
+  bsp.material.opacity = 0;
+  _threeScene.add(bsp);
+  _speechBubbles.push({ sprite: bsp, life: 1.0, maxLife: 1.0, phase: 'in' });
+}
+
 function _updateThreeAvatars(users) {
   _userAvatarMeshes.forEach(m => _threeScene.remove(m));
   _userAvatarLabels.forEach(m => _threeScene.remove(m));
@@ -1700,6 +1746,27 @@ function startThreeAnimation(canvas) {
         _threeScene.remove(rp.sprite);
         _reactParticles.splice(ri,1);
       }
+    }
+    // Speech bubbles: fade in → hold → fade out
+    for(let si=_speechBubbles.length-1; si>=0; si--){
+      const sb=_speechBubbles[si];
+      if(sb.phase==='in'){
+        sb.sprite.material.opacity = Math.min(1, sb.sprite.material.opacity + 0.06);
+        if(sb.sprite.material.opacity >= 0.98){ sb.phase='hold'; sb._holdTimer=0; }
+      } else if(sb.phase==='hold'){
+        sb._holdTimer = (sb._holdTimer||0) + 1;
+        if(sb._holdTimer > 210) sb.phase='out'; // ~3.5s at 60fps
+      } else {
+        sb.sprite.material.opacity -= 0.025;
+        if(sb.sprite.material.opacity <= 0){
+          _threeScene.remove(sb.sprite);
+          _speechBubbles.splice(si,1);
+        }
+      }
+      // Gentle bob
+      if(sb.sprite.material.opacity > 0)
+        sb.sprite.position.y = 2.5 + Math.sin(Date.now()*0.002)*0.04;
+      sb.sprite.lookAt(_threeCamera.position);
     }
     if(_threeScene.userData.updateParticles) _threeScene.userData.updateParticles();
     if(_threeScene.userData.clockHands){
@@ -1993,6 +2060,7 @@ function showShoutBanner({ text, from }){
   banner.style.display = 'block';
   clearTimeout(banner._t);
   banner._t = setTimeout(() => { banner.style.display = 'none'; }, 4000);
+  if (typeof _spawnSpeechBubble === 'function') _spawnSpeechBubble(text, from);
 }
 
 document.getElementById('board-post-btn')?.addEventListener('click', async () => {
