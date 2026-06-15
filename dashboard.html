@@ -1437,6 +1437,13 @@
                 <span class="ic">⌕</span>
                 <input id="search-law" placeholder="輸入法規名稱…" autocomplete="off" />
                 <div id="law-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:-1px;right:-1px;background:var(--navy);border:1px solid var(--line-2);border-radius:3px;z-index:30;max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.4)"></div>
+                <div id="search-history" style="display:none;position:absolute;top:calc(100% + 4px);left:-1px;right:-1px;background:#1A2E3D;border:1px solid #2a4060;border-radius:8px;margin-top:0;padding:8px 10px;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.4);">
+                  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                    <span style="font-size:11px;color:#556677;">最近搜尋</span>
+                    <button onclick="_clearHistory()" style="background:none;border:none;color:#556677;cursor:pointer;font-size:11px;">✕ 清除</button>
+                  </div>
+                  <div id="history-chips"></div>
+                </div>
               </div>
               <div class="field">
                 <span class="ic">§</span>
@@ -3112,6 +3119,53 @@ var _MSG_LOADING = '<div style="padding:20px;text-align:center;font-family:var(-
 var _MSG_EMPTY   = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">沒有符合條件的條文</div>';
 var _MSG_FAIL    = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢失敗，請稍後再試</div>';
 
+// ── Wave 63: 搜尋歷史記錄 ──
+var HIST_KEY = 'sofa_search_history';
+function _getHistory() { try { return JSON.parse(localStorage.getItem(HIST_KEY)||'[]'); } catch(e){ return []; } }
+function _addHistory(q) {
+  if (!q || !q.trim()) return;
+  var h = _getHistory().filter(function(x){ return x !== q.trim(); });
+  h.unshift(q.trim());
+  localStorage.setItem(HIST_KEY, JSON.stringify(h.slice(0,8)));
+}
+function _clearHistory() { localStorage.removeItem(HIST_KEY); _renderHistoryDropdown(); }
+function _renderHistoryDropdown() {
+  var h = _getHistory();
+  var box = document.getElementById('search-history');
+  var chips = document.getElementById('history-chips');
+  if (!box || !chips) return;
+  if (h.length === 0) { box.style.display = 'none'; return; }
+  chips.innerHTML = h.map(function(q){
+    var safe = q.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    return '<span onclick="_reSearch(\'' + safe + '\')" style="display:inline-block;background:#243850;color:#aabbcc;padding:3px 10px;border-radius:12px;margin:2px 3px;font-size:13px;cursor:pointer;">' + q + '</span>';
+  }).join('');
+}
+function _reSearch(q) {
+  var inp = document.getElementById('search-law');
+  var histBox = document.getElementById('search-history');
+  var dd = document.getElementById('law-dropdown');
+  if (inp) { inp.value = q; }
+  if (histBox) histBox.style.display = 'none';
+  if (dd) dd.style.display = 'none';
+  doSearch();
+}
+(function(){
+  var inp = document.getElementById('search-law');
+  var histBox = document.getElementById('search-history');
+  if (!inp || !histBox) return;
+  inp.addEventListener('focus', function(){
+    var h = _getHistory();
+    if (h.length > 0) { _renderHistoryDropdown(); histBox.style.display = 'block'; }
+  });
+  inp.addEventListener('input', function(){
+    // Hide history when user is actively typing (law-dropdown takes over)
+    if (histBox) histBox.style.display = 'none';
+  });
+  inp.addEventListener('blur', function(){
+    setTimeout(function(){ if(histBox) histBox.style.display = 'none'; }, 200);
+  });
+})();
+
 function doSearch(){
   var lawName = (document.getElementById('search-law')||{}).value||'';
   lawName = lawName.trim();
@@ -3158,6 +3212,7 @@ function doSearch(){
   }
 
   // ── 有法規名稱：撈全部條文 → chip 過濾 → 分頁顯示 ──
+  _addHistory(lawName);
   _curLawName = lawName;
   resEl.innerHTML = _MSG_LOADING;
   var sec = document.getElementById('search');
