@@ -294,6 +294,10 @@
   .pr-sub.show{display:flex}
   .pr-sub select{background:var(--navy-3);border:1px solid var(--line-2);border-radius:3px;color:var(--cream);font-family:var(--mono);font-size:11.5px;padding:5px 10px;cursor:pointer;outline:none}
   @media (max-width:760px){.pr-chips{padding:10px 18px}}
+
+  #qCountdown{display:none;font-size:.78rem;font-variant-numeric:tabular-nums;color:var(--warn);letter-spacing:.04em;font-family:var(--mono);}
+  #qCountdown.urgent{color:var(--bad);animation:countdown-pulse .5s ease-in-out infinite alternate;}
+  @keyframes countdown-pulse{from{opacity:1}to{opacity:.4}}
 </style>
 </head>
 <body>
@@ -329,6 +333,7 @@
       </div>
       <button id="btnWrong" class="btn btn-ghost" style="padding:8px 14px;font-size:12px;border-color:var(--bad);color:var(--bad)">✗ 錯題本 <span id="wrongCount">0</span></button>
       <button id="btnNew" class="btn btn-sec" style="padding:8px 16px;font-size:13px">出題</button>
+      <button id="btnSprint" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(91,175,214,0.15);border-color:rgba(91,175,214,0.6)">⚡ 衝刺 20題</button>
     </div>
     <div class="pr-meta">
       <div class="seg">第 <b id="qNum">—</b></div>
@@ -336,6 +341,7 @@
       <div class="seg">錯誤 <b id="scoreWrong" style="color:var(--bad)">0</b></div>
       <div class="seg timer">TIMER <b id="topTimer">0:00</b></div>
       <div class="seg" id="sessionProgressWrap" style="display:none">連刷 <b id="sessionProgress">0 / 0</b></div>
+      <div class="seg" id="qCountdownWrap" style="display:none">⏱ <b id="qCountdown">30</b></div>
       <button class="btn btn-sec" style="padding:6px 12px;font-size:11px" id="btnSetSession">📋 設題數</button>
     </div>
   </div>
@@ -544,6 +550,8 @@ document.addEventListener('DOMContentLoaded',function(){
   if(_subSel)_subSel.addEventListener('change',_updateChipLock);
 });
 document.getElementById('lawSelect').addEventListener('change', async function(){
+  const sprintBtn = document.getElementById('btnSprint');
+  if(sprintBtn) sprintBtn.style.display = (this.value && !this.value.startsWith('__')) ? '' : 'none';
   const law = this.value;
   const wrap = document.getElementById('artPickWrap');
   const dl   = document.getElementById('artDatalist');
@@ -566,6 +574,11 @@ document.getElementById('lawSelect').addEventListener('change', async function()
     opt.label = a.title.replace(/第[\d之]+條\s*/,'').trim();
     dl.appendChild(opt);
   });
+});
+
+document.getElementById('btnSprint')?.addEventListener('click', () => {
+  _sprintMode = true;
+  startSession(20);
 });
 
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -648,6 +661,47 @@ function refreshWrongCount() {
 let wrongMode = false;
 let _sessionMode = false, _sessionTotal = 0, _sessionDone = 0;
 
+let _countdownInterval = null, _countdownSecs = 0;
+let _sprintMode = false;  // true = countdown active
+
+function _startCountdown() {
+  if (!_sprintMode) return;
+  _stopCountdown();
+  _countdownSecs = 30;
+  const el = document.getElementById('qCountdown');
+  const wrap = document.getElementById('qCountdownWrap');
+  if(el) el.textContent = _countdownSecs;
+  if(wrap) wrap.style.display = '';
+  _countdownInterval = setInterval(() => {
+    _countdownSecs--;
+    if(el) {
+      el.textContent = _countdownSecs;
+      el.className = _countdownSecs <= 8 ? 'urgent' : '';
+    }
+    if(_countdownSecs <= 0) {
+      _stopCountdown();
+      // Auto-fail: simulate wrong answer
+      if(!answered) {
+        answered = true;
+        wrong++; updateScore();
+        // flash red briefly
+        const qb = document.getElementById('questionBox');
+        if(qb){ qb.style.color='var(--bad)'; setTimeout(()=>qb.style.color='',600); }
+        onAnswerDone(false);
+        if(sessionHistory.length) sessionHistory[sessionHistory.length-1].correct=false;
+      }
+    }
+  }, 1000);
+}
+
+function _stopCountdown() {
+  if(_countdownInterval){ clearInterval(_countdownInterval); _countdownInterval=null; }
+  const el = document.getElementById('qCountdown');
+  const wrap = document.getElementById('qCountdownWrap');
+  if(el){ el.textContent='30'; el.className=''; }
+  if(wrap) wrap.style.display = 'none';
+}
+
 function startSession(n) {
   _sessionMode = true;
   _sessionTotal = n;
@@ -696,6 +750,7 @@ function showSessionSummary() {
   }
   document.getElementById('summaryOverlay').classList.add('open');
   _sessionMode = false;
+  _sprintMode = false; _stopCountdown();
   document.getElementById('sessionProgressWrap').style.display = 'none';
 }
 
@@ -899,6 +954,7 @@ async function loadQuiz(){
       btn.addEventListener('click',()=>{
         if(answered)return;
         answered=true;
+        _stopCountdown();
         document.querySelectorAll('#optionsBox .opt').forEach((b,j)=>{
           b.style.pointerEvents='none';b.style.cursor='default';
           const jOpt=data.options[j];
@@ -945,6 +1001,7 @@ async function loadQuiz(){
       });
       document.getElementById('optionsBox').appendChild(btn);
     });
+    _startCountdown();
   }catch(e){
     document.getElementById('questionBox').textContent='載入失敗，請稍後再試';
     document.getElementById('questionBox').style.opacity='1';
@@ -1060,6 +1117,7 @@ async function loadWrongQuiz() {
       btn.addEventListener('click', () => {
         if (answered) return;
         answered = true;
+        _stopCountdown();
         document.querySelectorAll('#optionsBox .opt').forEach((b,j) => {
           b.style.pointerEvents='none'; b.style.cursor='default';
           const jOpt=data.options[j];
