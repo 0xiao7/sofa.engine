@@ -727,6 +727,21 @@
     opacity:0;transition:opacity .16s;line-height:1;
   }
   .res-row:hover .copy-btn{opacity:1}
+  /* Wave 67 — TTS button */
+  .tts-btn{
+    background:none;border:none;cursor:pointer;
+    font-size:14px;color:#8899aa;padding:2px 4px;
+    opacity:0;transition:opacity .2s;line-height:1;
+  }
+  .res-row:hover .tts-btn{opacity:1}
+  .tts-btn.speaking{
+    color:#4a9eff;
+    animation:ttsPulse 1s ease-in-out infinite;
+  }
+  @keyframes ttsPulse{
+    0%,100%{opacity:.7}
+    50%{opacity:1}
+  }
 
   /* === 04/05/06 CARDS === */
   .card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
@@ -2014,6 +2029,55 @@ function _copyArticle(btn, lawName, artNo, text) {
   }
 }
 
+// ── Wave 67 — TTS (朗讀法條) ──────────────────────
+var _ttsBtn = null; // currently active TTS button
+
+function _readArticle(btn, text) {
+  // If already speaking this button — stop
+  if (_ttsBtn === btn) {
+    speechSynthesis.cancel();
+    btn.textContent = '🔊';
+    btn.classList.remove('speaking');
+    _ttsBtn = null;
+    return;
+  }
+  // Stop any previous
+  if (_ttsBtn) {
+    speechSynthesis.cancel();
+    _ttsBtn.textContent = '🔊';
+    _ttsBtn.classList.remove('speaking');
+  }
+  if (!('speechSynthesis' in window)) {
+    _dashToast('⚠ 瀏覽器不支援朗讀');
+    return;
+  }
+  var utt = new SpeechSynthesisUtterance(text);
+  utt.lang = 'zh-TW';
+  utt.rate = 0.95;
+  utt.pitch = 1;
+  // Prefer zh-TW voice if available
+  var voices = speechSynthesis.getVoices();
+  var twVoice = voices.find(function(v){ return v.lang === 'zh-TW'; })
+             || voices.find(function(v){ return v.lang.startsWith('zh'); });
+  if (twVoice) utt.voice = twVoice;
+
+  utt.onend = function() {
+    btn.textContent = '🔊';
+    btn.classList.remove('speaking');
+    if (_ttsBtn === btn) _ttsBtn = null;
+  };
+  utt.onerror = function() {
+    btn.textContent = '🔊';
+    btn.classList.remove('speaking');
+    if (_ttsBtn === btn) _ttsBtn = null;
+  };
+
+  btn.textContent = '⏹';
+  btn.classList.add('speaking');
+  _ttsBtn = btn;
+  speechSynthesis.speak(utt);
+}
+
 // ── 登入狀態：讀取用戶名稱 ──────────────────────
 (function(){
   // LINE Bot 推播連結帶 ?t= 時，用 HMAC magic token 換 session（與 /login.html?t= 同格式）
@@ -3107,6 +3171,7 @@ function _renderResRows(arts, lawName){
       + '<button class="bk-btn'+isActive+'" data-id="'+pid+'" title="'+bkTitle+'"'
       + ' onclick="event.stopPropagation();toggleBookmark(\''+pid+'\',\''+lnEsc+'\',\''+artNum+'\',\''+snippet+'\')">★</button>'
       + '<button class="copy-btn" title="複製法條" onclick="event.stopPropagation();_copyArticle(this,\''+lnEsc+'\',\''+artNum+'\',\''+fullTextEsc+'\')">📋</button>'
+      + '<button class="tts-btn" title="朗讀法條" onclick="(function(e){e.stopPropagation();_readArticle(this,\''+fullTextEsc+'\')}).call(this,event)">🔊</button>'
       + '</div>';
   }).join('');
 }
