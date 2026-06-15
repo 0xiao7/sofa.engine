@@ -685,6 +685,10 @@ main{display:flex;flex:1;gap:0;min-height:0;}
       <span class="mob-icon">📣</span>
       <span>喊話</span>
     </button>
+    <button id="mob-note-btn" style="display:none">
+      <span class="mob-icon">📝</span>
+      <span>記錄</span>
+    </button>
   </div>
 
   <!-- ── Bottom sheets ── -->
@@ -730,6 +734,19 @@ main{display:flex;flex:1;gap:0;min-height:0;}
       <textarea id="shout-input-mob" placeholder="對自習室的人說句話…" maxlength="40"></textarea>
       <button id="btn-shout-mob">廣播</button>
       <div class="shout-hint">30 秒冷卻，最多 40 字</div>
+    </div>
+  </div>
+
+  <div id="sheet-note" class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">今日記錄</div>
+    <div class="sheet-body" style="display:flex;flex-direction:column;gap:10px;">
+      <textarea class="note-textarea" id="note-input-mob" placeholder="今天讀了什麼？有什麼收穫？" maxlength="200" style="height:120px;font-size:.92rem;"></textarea>
+      <div class="note-footer">
+        <span class="note-saved" id="note-saved-mob">已儲存</span>
+        <span class="note-count" id="note-count-mob">0 / 200</span>
+      </div>
+      <div style="font-size:.72rem;color:var(--cream-2);opacity:.35;line-height:1.6;">自動儲存至雲端，下次進來可繼續查閱。</div>
     </div>
   </div>
 <!-- ── 訪客挽留 modal ── -->
@@ -1153,31 +1170,49 @@ function authHeaders(){ return { 'Authorization': `Bearer ${localStorage.getItem
 async function initNote(){
   const sec = document.getElementById('note-section');
   sec.classList.add('visible');
-  const ta = document.getElementById('note-input');
+  // 顯示行動版記錄按鈕
+  const mobNoteBtn = document.getElementById('mob-note-btn');
+  if(mobNoteBtn) mobNoteBtn.style.display = '';
+
+  const ta    = document.getElementById('note-input');
+  const taMob = document.getElementById('note-input-mob');
+
+  function setVal(v){
+    if(ta)    ta.value    = v;
+    if(taMob) taMob.value = v;
+    updateNoteCount();
+  }
 
   // 先用 localStorage 填入（速度快），再用雲端覆蓋
-  ta.value = localStorage.getItem(todayKey()) || '';
-  updateNoteCount();
+  setVal(localStorage.getItem(todayKey()) || '');
 
   try{
     const r = await fetch(`${API}/api/me/study-note?date=${todayStr()}`, { headers: authHeaders() });
     if(r.ok){
       const d = await r.json();
-      if(d.content){ ta.value = d.content; localStorage.setItem(todayKey(), d.content); updateNoteCount(); }
+      if(d.content){ setVal(d.content); localStorage.setItem(todayKey(), d.content); }
     }
   }catch(e){}
 
   let saveTimer;
-  ta.addEventListener('input', ()=>{
+  function onInput(src){
+    const other = src === ta ? taMob : ta;
+    if(other) other.value = src.value;
     updateNoteCount();
     clearTimeout(saveTimer);
     saveTimer = setTimeout(saveNote, 1200);
-  });
+  }
+  if(ta)    ta.addEventListener('input',    () => onInput(ta));
+  if(taMob) taMob.addEventListener('input', () => onInput(taMob));
 }
 
 function updateNoteCount(){
-  const ta = document.getElementById('note-input');
-  document.getElementById('note-count').textContent = `${ta.value.length} / 200`;
+  const ta    = document.getElementById('note-input');
+  const taMob = document.getElementById('note-input-mob');
+  const v = (ta || taMob)?.value.length || 0;
+  ['note-count','note-count-mob'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.textContent = `${v} / 200`;
+  });
 }
 
 async function saveNote(){
@@ -1190,9 +1225,10 @@ async function saveNote(){
       body: JSON.stringify({ date: todayStr(), content: val, study_minutes: mins })
     });
   }catch(e){}
-  const badge = document.getElementById('note-saved');
-  badge.classList.add('show');
-  setTimeout(()=> badge.classList.remove('show'), 1800);
+  ['note-saved','note-saved-mob'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el){ el.classList.add('show'); setTimeout(()=>el.classList.remove('show'), 1800); }
+  });
 }
 
 // ── Pomodoro ──────────────────────────────────────────────────────────
@@ -1366,7 +1402,7 @@ setInterval(()=>{ if(locked) lockTick(); }, 30000);
 function openSheet(id){
   document.getElementById('sheet-overlay').classList.add('open');
   document.getElementById(id).classList.add('open');
-  const btnMap = { 'sheet-list':'mob-list-btn', 'sheet-pom':'mob-pom-btn', 'sheet-shout':'mob-shout-btn' };
+  const btnMap = { 'sheet-list':'mob-list-btn', 'sheet-pom':'mob-pom-btn', 'sheet-shout':'mob-shout-btn', 'sheet-note':'mob-note-btn' };
   document.getElementById(btnMap[id])?.classList.add('active');
 }
 function closeAllSheets(){
@@ -1391,6 +1427,11 @@ document.getElementById('mob-shout-btn')?.addEventListener('click', () => {
   if(!isOpen){ openSheet('sheet-shout'); setTimeout(()=>document.getElementById('shout-input-mob')?.focus(),300); }
 });
 document.getElementById('sheet-overlay')?.addEventListener('click', closeAllSheets);
+document.getElementById('mob-note-btn')?.addEventListener('click', () => {
+  const isOpen = document.getElementById('sheet-note').classList.contains('open');
+  closeAllSheets();
+  if(!isOpen){ openSheet('sheet-note'); setTimeout(()=>document.getElementById('note-input-mob')?.focus(),300); }
+});
 
 // ── Mobile shout ──────────────────────────────────────────────────────
 let mobShoutCooldown = false;
