@@ -302,12 +302,14 @@
         <datalist id="artDatalist"></datalist>
       </div>
       <button id="btnNext" class="btn btn-sec" style="padding:8px 16px;font-size:13px">換一條</button>
+      <button id="btnFillSession" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(91,175,214,0.15);border-color:rgba(91,175,214,0.6)">⚡ 連刷模式</button>
     </div>
     <div class="pr-meta">
       <div class="seg">已填 <b id="filled">— / —</b></div>
       <div class="seg">正確 <b id="metaRight" style="color:var(--good)">0</b></div>
       <div class="seg">提示 <b id="metaHint">0</b></div>
       <div class="seg">TIME <b id="metaTime">00:00</b></div>
+      <div class="seg" id="fillSessionWrap" style="display:none">連刷 <b id="fillSessionProg">0 / 0</b></div>
     </div>
   </div>
   <div class="pr-chips">
@@ -539,6 +541,8 @@ document.addEventListener('DOMContentLoaded',function(){
   if(_subSel)_subSel.addEventListener('change',_updateChipLock);
 });
 document.getElementById('lawSelect').addEventListener('change', async function(){
+  const sfBtn = document.getElementById('btnFillSession');
+  if(sfBtn) sfBtn.style.display = (this.value && !this.value.startsWith('__')) ? '' : 'none';
   const law = this.value;
   const wrap = document.getElementById('artPickWrap');
   const dl   = document.getElementById('artDatalist');
@@ -608,6 +612,30 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
         +'<div class="sec-lock-cta">🔒 升級解鎖完整內容 <a href="checkout.html">查看方案 →</a></div>';
       if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
     });
+  }
+}
+
+let _fillSession = false, _fillSessionTotal = 0, _fillSessionDone = 0;
+
+function startFillSession(n){
+  _fillSession = true; _fillSessionTotal = n; _fillSessionDone = 0;
+  document.getElementById('fillSessionModal').style.display = 'none';
+  document.getElementById('fillSessionWrap').style.display = '';
+  _updateFillSessionProg();
+  loadNew();
+}
+function _updateFillSessionProg(){
+  const el = document.getElementById('fillSessionProg');
+  if(el) el.textContent = `${_fillSessionDone} / ${_fillSessionTotal}`;
+}
+function _onFillDone(){
+  if(!_fillSession) return;
+  _fillSessionDone++;
+  _updateFillSessionProg();
+  if(_fillSessionDone >= _fillSessionTotal){
+    _fillSession = false;
+    document.getElementById('fillSessionWrap').style.display = 'none';
+    setTimeout(()=>alert(`連刷完成！共 ${_fillSessionTotal} 題，提示使用 ${_sessionHint} 次。`), 800);
   }
 }
 
@@ -764,6 +792,18 @@ function checkAnswers(){
   if(fillData.id&&uid&&uid!=='PREVIEW'&&!isFree){
     fetch(`${API}/api/me/history`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({page_id:fillData.id,law_name:fillData.law_name||'',article:fillData.title||''})}).catch(()=>{});
   }
+  // Auto-advance after perfect score (2s delay with countdown)
+  if(cor === inputs.length && inputs.length > 0){
+    const msg2 = document.getElementById('resultMsg');
+    let secs = 2;
+    const countdown = setInterval(()=>{
+      secs--;
+      if(msg2) msg2.textContent = `✓ 全對！${cor}/${inputs.length} — ${secs}s 後自動換題…`;
+      if(secs <= 0){ clearInterval(countdown); loadNew(); }
+    }, 1000);
+    // Cancel auto-advance if user clicks Next manually
+    document.getElementById('btnNext')?.addEventListener('click', ()=>clearInterval(countdown), {once:true});
+  }
   // 載入條文解析 sections
   if(fillData.id){
     const panel=document.getElementById('sectionsBox');
@@ -784,6 +824,7 @@ function checkAnswers(){
       }catch(e){}
     })();
   }
+  _onFillDone();
 }
 
 document.getElementById('fillSourceLink').addEventListener('click',()=>{
@@ -891,6 +932,19 @@ document.getElementById('hintReveal').addEventListener('click',()=>useHint(()=>{
 }));
 document.getElementById('btnCheck').addEventListener('click',checkAnswers);
 document.getElementById('btnNext').addEventListener('click',loadNew);
+// Global keyboard shortcuts (H/C/R/N) — skip when typing in an input
+document.addEventListener('keydown', function(e){
+  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  const k = e.key.toLowerCase();
+  if(k==='h'){ document.getElementById('hintFirst')?.click(); }
+  else if(k==='c'){ document.getElementById('hintCount')?.click(); }
+  else if(k==='r'){ document.getElementById('hintReveal')?.click(); }
+  else if(k==='n'){ document.getElementById('btnNext')?.click(); }
+});
+document.getElementById('btnFillSession')?.addEventListener('click', ()=>{
+  document.getElementById('fillSessionModal').style.display = 'flex';
+});
 document.getElementById('btnReset').addEventListener('click',()=>{
   document.getElementById('fillText').querySelectorAll('input').forEach(inp=>{inp.disabled=false;inp.value='';inp.classList.remove('ok','bad');inp.classList.add('empty');});
   document.getElementById('resultMsg').style.display='none';
@@ -918,5 +972,16 @@ document.getElementById('btnReveal').addEventListener('click',()=>{
   }
 })();
 </script>
+<div id="fillSessionModal" style="display:none;position:fixed;inset:0;background:rgba(7,13,20,0.8);align-items:center;justify-content:center;z-index:50;">
+  <div style="background:var(--navy-2,#0D1E2C);border:1px solid rgba(91,175,214,0.3);border-radius:8px;padding:28px 32px;min-width:240px;text-align:center">
+    <div style="font-family:monospace;font-size:11px;letter-spacing:.2em;color:#5BAFD6;margin-bottom:16px">選擇題數</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+      <button class="btn btn-sec" onclick="startFillSession(10)">10 題</button>
+      <button class="btn btn-sec" onclick="startFillSession(20)">20 題</button>
+      <button class="btn btn-sec" onclick="startFillSession(30)">30 題</button>
+    </div>
+    <button class="btn btn-ghost" onclick="document.getElementById('fillSessionModal').style.display='none'">取消</button>
+  </div>
+</div>
 </body>
 </html>
