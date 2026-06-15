@@ -858,6 +858,7 @@ function initThreeScene(canvas) {
   _threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
   _threeRenderer.setSize(canvas.width, canvas.height);
   _threeRenderer.shadowMap.enabled = true;
+  _threeRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   _threeScene = new THREE.Scene();
   _threeScene.background = new THREE.Color(0x040D14);
@@ -876,6 +877,14 @@ function initThreeScene(canvas) {
   const keyLight = new THREE.DirectionalLight(0x5BAFD6, 1.1);
   keyLight.position.set(3, 8, 5);
   _threeScene.add(keyLight);
+  keyLight.castShadow = true;
+  keyLight.shadow.mapSize.width  = 1024;
+  keyLight.shadow.mapSize.height = 1024;
+  keyLight.shadow.camera.near = 0.5;
+  keyLight.shadow.camera.far  = 50;
+  keyLight.shadow.camera.left = keyLight.shadow.camera.bottom = -12;
+  keyLight.shadow.camera.right = keyLight.shadow.camera.top = 12;
+  keyLight.shadow.bias = -0.001;
 
   // Window blue fill lights
   [[-6, 4, -6.5], [6, 4, -6.5]].forEach(([x,y,z]) => {
@@ -909,6 +918,7 @@ function initThreeScene(canvas) {
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(22, 20), tMat('floor',_floorTex,11,10));
   floor.rotation.x = -Math.PI / 2;
   _threeScene.add(floor);
+  floor.receiveShadow = true;
   const grid = new THREE.GridHelper(22, 22, 0x2D4A5E, 0x1E3545);
   grid.position.y = 0.01;
   _threeScene.add(grid);
@@ -932,12 +942,35 @@ function initThreeScene(canvas) {
     frame.position.set(x,y,z-0.1); _threeScene.add(frame);
   });
 
+  // Volumetric light shafts from windows
+  const shaftMat = new THREE.MeshBasicMaterial({
+    color: 0x5BAFD6, transparent: true, opacity: 0.04,
+    side: THREE.DoubleSide, depthWrite: false,
+    blending: THREE.AdditiveBlending
+  });
+  [[-5,4,-7],[5,4,-7]].forEach(([wx,wy,wz])=>{
+    // Primary shaft (angled beam going into the room)
+    const shaft = new THREE.Mesh(new THREE.BoxGeometry(2.2,3.0,8), shaftMat);
+    shaft.position.set(wx, wy-0.5, wz+4);
+    shaft.rotation.x = 0.12;
+    _threeScene.add(shaft);
+    // Dust mote glow (wider, more transparent)
+    const diffuse = new THREE.Mesh(new THREE.BoxGeometry(3.5,4,6), shaftMat);
+    diffuse.material = new THREE.MeshBasicMaterial({
+      color:0x87CEEB, transparent:true, opacity:0.02,
+      side:THREE.DoubleSide, depthWrite:false, blending:THREE.AdditiveBlending
+    });
+    diffuse.position.set(wx, wy, wz+3);
+    _threeScene.add(diffuse);
+  });
+
   // Bookshelves
   const shelfMat = tMat('shelf',_shelfTex);
   const bookColors = [0xE85D5D,0x5D8AE8,0x5DE87A,0xE8C45D,0xA05DE8,0xE8855D,0x5DD6E8];
   [-6,-3,0,3,6].forEach(x => {
     const shelf = new THREE.Mesh(box(2.2,4.5,0.55), shelfMat);
     shelf.position.set(x, 2.25, -7.72); _threeScene.add(shelf);
+    shelf.castShadow = true; shelf.receiveShadow = true;
     // Shelves horizontal planks
     [1,2,3].forEach(row => {
       const plank = new THREE.Mesh(box(2.0,0.07,0.48), mLambert(0x0F2318));
@@ -960,6 +993,7 @@ function initThreeScene(canvas) {
   [-6,-2,2,6].forEach(z => {
     const shelf = new THREE.Mesh(box(0.55,4.0,2.0), shelfMat);
     shelf.position.set(-10.72, 2, z); _threeScene.add(shelf);
+    shelf.castShadow = true; shelf.receiveShadow = true;
     for (let b=0; b<5; b++) {
       const bk = new THREE.Mesh(box(0.4,0.85,0.32), mLambert(bookColors[b%bookColors.length]));
       bk.position.set(-10.48, 1.6+Math.random()*0.1, z-0.8+b*0.38); _threeScene.add(bk);
@@ -973,6 +1007,7 @@ function initThreeScene(canvas) {
   [-6,-2,2,6].forEach(z => {
     const shelf = new THREE.Mesh(box(0.55,4.0,2.0), shelfMat);
     shelf.position.set(10.72, 2, z); _threeScene.add(shelf);
+    shelf.castShadow = true; shelf.receiveShadow = true;
     for (let b=0; b<5; b++) {
       const bk = new THREE.Mesh(box(0.4,0.85,0.32), mLambert(bookColors[(b+2)%bookColors.length]));
       bk.position.set(10.48, 1.6+Math.random()*0.1, z-0.8+b*0.38); _threeScene.add(bk);
@@ -986,6 +1021,7 @@ function initThreeScene(canvas) {
   // Central tree
   const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.25,2.5,8), tMat('trunk',_woodTex));
   trunk.position.set(0,1.4,-1); _threeScene.add(trunk);
+  trunk.castShadow = true;
   // Circular rug under tree
   const rug = new THREE.Mesh(new THREE.CylinderGeometry(2,2,0.04,32), mLambert(0x2D1A5A));
   rug.position.set(0,0.02,-1); _threeScene.add(rug);
@@ -995,6 +1031,27 @@ function initThreeScene(canvas) {
   [[0,3.8,-1,1.4],[0.4,5.0,-0.8,1.0],[-0.3,4.3,-0.8,0.8],[0,5.9,-1,0.6]].forEach(([x,y,z,r]) => {
     const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(r,0), new THREE.MeshLambertMaterial({map:_leafTex(), flatShading:true}));
     leaf.position.set(x,y,z); _threeScene.add(leaf);
+  });
+
+  // Diagonal branches
+  const branchMat = tMat('trunk', _woodTex);
+  [
+    [0.8,3.0,-0.4,  Math.PI*0.18, 0, Math.PI*0.1],
+    [-0.7,2.8,-1.5, -Math.PI*0.18, 0, -Math.PI*0.08],
+    [0.4,3.5,-1.8,  Math.PI*0.12, Math.PI*0.3, 0],
+    [-0.5,3.2,-0.2, -Math.PI*0.10, -Math.PI*0.2, 0],
+  ].forEach(([x,y,z,rx,ry,rz])=>{
+    const br = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.09,1.2,6), branchMat);
+    br.position.set(x,y,z); br.rotation.set(rx,ry,rz);
+    br.castShadow = true;
+    _threeScene.add(br);
+    // Small leaf cluster at branch tip
+    const tip = new THREE.Mesh(
+      new THREE.IcosahedronGeometry(0.4,0),
+      new THREE.MeshLambertMaterial({map:_leafTex(),flatShading:true})
+    );
+    tip.position.set(x + Math.sin(rx)*0.5, y+0.7, z + Math.cos(rx)*0.3);
+    _threeScene.add(tip);
   });
 
   // Desks
@@ -1011,6 +1068,7 @@ function initThreeScene(canvas) {
   DESK_POSITIONS.forEach(([x,z]) => {
     const desk = new THREE.Mesh(box(1.6,0.08,0.9), deskMat);
     desk.position.set(x,0.76,z); _threeScene.add(desk);
+    desk.castShadow = true; desk.receiveShadow = true;
     const leg1 = new THREE.Mesh(box(0.06,0.76,0.06), deskMat);
     leg1.position.set(x-0.65,0.38,z+0.35); _threeScene.add(leg1);
     const leg2 = leg1.clone(); leg2.position.set(x+0.65,0.38,z+0.35); _threeScene.add(leg2);
@@ -1150,18 +1208,32 @@ const _DESK_POS_3D = [
 
 function _makeLabel(name, color) {
   const c = document.createElement('canvas');
-  c.width=128; c.height=32;
-  const ctx2=c.getContext('2d');
+  c.width = 64; c.height = 64;
+  const ctx2 = c.getContext('2d');
+  // Face background
+  ctx2.fillStyle = color || '#5BAFD6';
+  ctx2.fillRect(0, 0, 64, 64);
+  // Pixel noise for skin texture
+  ctx2.fillStyle = 'rgba(0,0,0,0.15)';
+  for(let i=0;i<64;i+=8) for(let j=0;j<64;j+=8){
+    if((i+j)%16===0) ctx2.fillRect(i,j,8,8);
+  }
+  // Eyes (white + black pupil, Minecraft style)
+  [[14,22],[38,22]].forEach(([ex,ey])=>{
+    ctx2.fillStyle='#fff'; ctx2.fillRect(ex,ey,12,8);
+    ctx2.fillStyle='#1A2E3D'; ctx2.fillRect(ex+4,ey+2,6,5);
+    ctx2.fillStyle='#000'; ctx2.fillRect(ex+6,ey+3,3,3);
+  });
+  // Mouth
+  ctx2.fillStyle='#8B4513'; ctx2.fillRect(18,42,28,6);
+  ctx2.fillStyle='#FF6B6B'; ctx2.fillRect(20,43,24,4);
+  // Name tag below face
   ctx2.fillStyle='rgba(10,21,32,0.88)';
-  ctx2.roundRect(0,0,128,32,6); ctx2.fill();
-  ctx2.fillStyle=color||'#fff';
-  ctx2.font='bold 14px sans-serif'; ctx2.textAlign='center'; ctx2.textBaseline='middle';
-  ctx2.fillText(name.substring(0,8),64,16);
-  const tex = new THREE.CanvasTexture(c);
-  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
-  const sp = new THREE.Sprite(mat);
-  sp.scale.set(1.2, 0.32, 1);
-  return sp;
+  ctx2.fillRect(0,52,64,12);
+  ctx2.fillStyle='#fff';
+  ctx2.font='bold 8px monospace'; ctx2.textAlign='center'; ctx2.textBaseline='middle';
+  ctx2.fillText(name.substring(0,5), 32, 58);
+  return new THREE.CanvasTexture(c);
 }
 
 function _updateThreeAvatars(users) {
@@ -1173,19 +1245,43 @@ function _updateThreeAvatars(users) {
     const pos = _DESK_POS_3D[i % _DESK_POS_3D.length];
     const hue = u.isSelf ? 0.57 : (i * 0.11) % 1;
     const color = new THREE.Color().setHSL(hue, 0.7, 0.55);
-    const sphere = new THREE.Mesh(
-      new THREE.SphereGeometry(0.28, 8, 8),
-      new THREE.MeshLambertMaterial({ color })
-    );
-    sphere.position.set(pos[0], 1.1, pos[1] + 0.9);
-    sphere.userData.userIndex = i;
-    _threeScene.add(sphere);
-    _userAvatarMeshes.push(sphere);
+    const hexColor = '#' + color.getHexString();
 
-    const label = _makeLabel(u.name, u.isSelf ? '#FFDD00' : '#fff');
-    label.position.set(pos[0], 1.62, pos[1] + 0.9);
-    _threeScene.add(label);
-    _userAvatarLabels.push(label);
+    // Minecraft cube body
+    const bodyMat = new THREE.MeshLambertMaterial({ color });
+    const body = new THREE.Mesh(new THREE.BoxGeometry(0.35,0.45,0.22), bodyMat);
+    body.position.set(pos[0], 0.98, pos[1]+0.9);
+    body.castShadow = true;
+    body.userData.userIndex = i;
+    _threeScene.add(body);
+    _userAvatarMeshes.push(body);
+
+    // Cube head with pixel face texture
+    const headTex = _makeLabel(u.name, hexColor);
+    const headMat = new THREE.MeshLambertMaterial({ map: headTex });
+    const head = new THREE.Mesh(new THREE.BoxGeometry(0.42,0.42,0.42), headMat);
+    head.position.set(pos[0], 1.45, pos[1]+0.9);
+    head.castShadow = true;
+    head.userData.userIndex = i;
+    if(u.isSelf){
+      // Gold outline for self — add a slightly larger wireframe
+      const wire = new THREE.Mesh(new THREE.BoxGeometry(0.46,0.46,0.46),
+        new THREE.MeshBasicMaterial({color:0xFFDD00, wireframe:true}));
+      wire.position.copy(head.position);
+      _threeScene.add(wire);
+      _userAvatarLabels.push(wire);
+    }
+    _threeScene.add(head);
+    _userAvatarLabels.push(head);
+
+    // Legs (two small boxes)
+    const legMat = new THREE.MeshLambertMaterial({color: new THREE.Color().setHSL(hue,0.5,0.3)});
+    [[-0.09,0],[0.09,0]].forEach(([lx])=>{
+      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.14,0.35,0.18), legMat);
+      leg.position.set(pos[0]+lx, 0.57, pos[1]+0.9);
+      _threeScene.add(leg);
+      _userAvatarLabels.push(leg);
+    });
   });
 }
 
@@ -1204,12 +1300,9 @@ function startThreeAnimation(canvas) {
     _torchLights.forEach((tl, i) => {
       tl.intensity = 0.9 + 0.35 * Math.sin(_threeTime * 4 + i * 1.3);
     });
-    // Avatar bob
+    // Avatar bob (body only — head/legs stay fixed)
     _userAvatarMeshes.forEach((m, i) => {
-      m.position.y = 1.1 + 0.06 * Math.sin(_threeTime * 1.5 + i * 0.8);
-    });
-    _userAvatarLabels.forEach((l, i) => {
-      l.position.y = 1.62 + 0.06 * Math.sin(_threeTime * 1.5 + i * 0.8);
+      m.position.y = 0.98 + 0.05 * Math.sin(_threeTime * 1.5 + i * 0.8);
     });
     if(_threeScene.userData.updateParticles) _threeScene.userData.updateParticles();
     _threeRenderer.render(_threeScene, _threeCamera);
