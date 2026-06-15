@@ -598,6 +598,16 @@ if(isFree){
     const d=await fetch(`${API}/api/laws`).then(r=>r.json());
     (d.laws||[]).forEach(l=>{const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);});
   }catch{}
+  // Wave 73: restore last selected law
+  function _restoreLastLaw() {
+    const saved = localStorage.getItem('sofa_last_law');
+    if (!saved) return;
+    const opt = Array.from(sel.options).find(o => o.value === saved);
+    if (!opt) return;
+    sel.value = saved;
+    sel.dispatchEvent(new Event('change'));
+  }
+  _restoreLastLaw();
 })();
 
 let _artCache = {};
@@ -660,6 +670,8 @@ document.addEventListener('DOMContentLoaded',function(){
 })();
 
 document.getElementById('lawSelect').addEventListener('change', async function(){
+  // Wave 73: save selected law to localStorage
+  localStorage.setItem('sofa_last_law', this.value);
   // Reset streak when changing law
   _quizStreak = 0;
   document.getElementById('streak-badge')?.classList.remove('show');
