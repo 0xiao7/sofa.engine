@@ -3038,6 +3038,20 @@ function startThreeAnimation(canvas) {
         _nextChirpTime = 0; // reset when not morning so first chirp has 5s delay on re-entry
       }
     }
+    // Dusk cricket chirps (暮讀 17–21h, every 18–33s)
+    if(_soundOn && _soundCtx){
+      const _crTod = _timeOfDayPalette();
+      if(_crTod.fogDensity === 0.010){ // dusk palette only
+        const _crNow = Date.now();
+        if(_nextCricketTime === 0) _nextCricketTime = _crNow + 8000;
+        if(_crNow > _nextCricketTime){
+          _playCrickets();
+          _nextCricketTime = _crNow + 18000 + Math.random()*15000; // 18–33s interval
+        }
+      } else {
+        _nextCricketTime = 0;
+      }
+    }
     _threeRenderer.render(_threeScene, _threeCamera);
   }
   // Set time-of-day label
@@ -3538,6 +3552,7 @@ let _ambGain = null, _droneGain = null, _noiseSource = null, _droneOsc = null;
 let _rainSource = null, _rainGain = null, _rainFilter = null;
 let _lastChimeHour = -1, _lastChimeHalf = -1;
 let _nextChirpTime = 0;
+let _nextCricketTime = 0;
 
 function _buildAmbientSound() {
   if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -3671,6 +3686,41 @@ function _playBirdChirp() {
       osc.start(t0);
       osc.stop(t0 + 0.14);
     }
+  } catch(e){}
+}
+
+function _playCrickets() {
+  if(!_soundCtx || _soundCtx.state === 'suspended') return;
+  try {
+    const masterG = _soundCtx.createGain();
+    masterG.connect(_soundCtx.destination);
+    masterG.gain.value = 0.055;
+    // 3 slightly detuned cricket voices for realism
+    [4300, 4380, 4260].forEach((freq, vi) => {
+      const osc = _soundCtx.createOscillator();
+      const trem = _soundCtx.createOscillator(); // tremolo LFO
+      const tremGain = _soundCtx.createGain();
+      const env = _soundCtx.createGain();
+      trem.connect(tremGain);
+      tremGain.connect(env.gain);
+      osc.connect(env);
+      env.connect(masterG);
+      osc.type = 'sine';
+      osc.frequency.value = freq + (Math.random()-0.5)*80;
+      trem.type = 'sine';
+      trem.frequency.value = 17 + vi*1.5; // slightly different rates
+      tremGain.gain.value = 0.5; // modulation depth
+      env.gain.value = 0.5; // base gain (modulated around this)
+      const t0 = _soundCtx.currentTime + vi*0.04; // slight stagger
+      const dur = 1.6 + Math.random()*0.4;
+      // Fade in/out envelope
+      env.gain.setValueAtTime(0, t0);
+      env.gain.linearRampToValueAtTime(0.5, t0 + 0.12);
+      env.gain.setValueAtTime(0.5, t0 + dur - 0.15);
+      env.gain.linearRampToValueAtTime(0, t0 + dur);
+      osc.start(t0); osc.stop(t0 + dur);
+      trem.start(t0); trem.stop(t0 + dur);
+    });
   } catch(e){}
 }
 
