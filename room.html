@@ -525,7 +525,12 @@ input[type=text], select, .btn-enter {
             <button class="dp" onclick="(()=>{const nx=rpgPlayer.tx+1,ny=rpgPlayer.ty;if(!isBlocked(nx,ny)){rpgPlayer.tx=nx;centerCam(document.getElementById('room-canvas'),nx,ny);}})()">▶</button>
           </div>
         </div>
-        <div id="dpad-hint">方向鍵 / WASD 移動・點地板走路</div>
+        <div id="dpad-hint">方向鍵 / WASD・點地板走路・拖曳移動視角・Enter 回座位</div>
+        <div id="rpg-popup" style="display:none;position:absolute;background:rgba(10,21,32,0.95);border:1px solid rgba(91,175,214,0.3);border-radius:10px;padding:12px 14px;min-width:155px;pointer-events:none;z-index:10;">
+          <div id="rpg-popup-name" style="font-weight:700;font-size:13px;color:#fff;margin-bottom:3px;"></div>
+          <div id="rpg-popup-subject" style="color:#5BAFD6;font-size:11px;margin-bottom:3px;"></div>
+          <div id="rpg-popup-time" style="color:#8AA5B8;font-size:10px;"></div>
+        </div>
       </div>
 
       <!-- 在線考生列表 -->
@@ -725,6 +730,13 @@ const DESKS = [
 const SEATS = DESKS.map(d => ({tx: d.tx, ty: d.ty + 1}));
 // Plant positions
 const PLANTS = [{tx:0,ty:0},{tx:19,ty:0},{tx:0,ty:15},{tx:19,ty:15},{tx:9,ty:4},{tx:10,ty:4},{tx:9,ty:8},{tx:10,ty:12}];
+// Floor cushions (decorative ovals between desks)
+const CUSHIONS = [
+  {tx:5,ty:3},{tx:11,ty:3},{tx:16,ty:3},
+  {tx:5,ty:7},{tx:11,ty:7},{tx:16,ty:7},
+  {tx:5,ty:11},{tx:11,ty:11},{tx:16,ty:11},
+  {tx:1,ty:8},{tx:19,ty:5}
+];
 
 // Blocked tiles (desks + plants block movement)
 function isBlocked(tx,ty) {
@@ -793,6 +805,18 @@ function drawPlant(ctx, tx, ty) {
   ctx.fillStyle = '#3DAA5E';
   ctx.beginPath(); ctx.arc(sx-5, sy+0, 7, 0, Math.PI*2); ctx.fill();
   ctx.beginPath(); ctx.arc(sx+5, sy+0, 7, 0, Math.PI*2); ctx.fill();
+}
+
+function drawCushion(ctx, tx, ty) {
+  const sx = tx*TS - cam.x + TS/2, sy = ty*TS - cam.y + TS*0.72;
+  ctx.fillStyle = 'rgba(155,95,55,0.42)';
+  ctx.beginPath(); ctx.ellipse(sx, sy, 15, 7, 0, 0, Math.PI*2); ctx.fill();
+  ctx.strokeStyle = 'rgba(190,130,80,0.55)'; ctx.lineWidth = 1;
+  ctx.stroke();
+  // cross stitch lines
+  ctx.strokeStyle = 'rgba(200,150,90,0.3)'; ctx.lineWidth = 0.7;
+  ctx.beginPath(); ctx.moveTo(sx-10,sy); ctx.lineTo(sx+10,sy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(sx,sy-5); ctx.lineTo(sx,sy+5); ctx.stroke();
 }
 
 // Hue array for ghost characters (one per slot)
@@ -877,14 +901,59 @@ function processRpgInput(now, canvas) {
   },{passive:true});
 })();
 
-// Click-to-walk
-document.getElementById('room-canvas').addEventListener('click', function(e){
+// 拖曳移動視角
+let _dragStart=null, _camAtDrag=null, _wasDrag=false;
+(function(){
+  const el=()=>document.getElementById('room-canvas');
+  el().addEventListener('mousedown',function(e){
+    if(e.button!==0)return;
+    _dragStart={x:e.clientX,y:e.clientY}; _camAtDrag={...cam}; _wasDrag=false;
+  });
+  document.addEventListener('mousemove',function(e){
+    if(!_dragStart)return;
+    const dist=Math.abs(e.clientX-_dragStart.x)+Math.abs(e.clientY-_dragStart.y);
+    if(dist>6){
+      _wasDrag=true;
+      const c=el(); const sx=c.width/c.getBoundingClientRect().width;
+      cam.x=Math.max(0,Math.min(RW*TS-c.width,  _camAtDrag.x-(e.clientX-_dragStart.x)*sx));
+      cam.y=Math.max(0,Math.min(RH*TS-c.height, _camAtDrag.y-(e.clientY-_dragStart.y)*sx));
+    }
+  });
+  document.addEventListener('mouseup',()=>{ _dragStart=null; });
+})();
+
+// 點角色彈窗 + 點地板走路
+let _popupDismiss=null;
+document.getElementById('room-canvas').addEventListener('click',function(e){
+  if(_wasDrag){_wasDrag=false;return;}
   const rect=this.getBoundingClientRect();
-  const mx=e.clientX-rect.left, my=e.clientY-rect.top;
-  const tx=Math.floor((mx+cam.x)/TS), ty=Math.floor((my+cam.y)/TS);
-  if(!isBlocked(tx,ty)){
-    rpgPlayer.tx=tx; rpgPlayer.ty=ty;
-    centerCam(this, tx, ty);
+  const sx=this.width/rect.width, sy=this.height/rect.height;
+  const mx=(e.clientX-rect.left)*sx+cam.x, my=(e.clientY-rect.top)*sy+cam.y;
+  const popup=document.getElementById('rpg-popup');
+  let hitChar=false;
+  _currentUsers.forEach((u,i)=>{
+    if(i>=SEATS.length||hitChar)return;
+    const seat=SEATS[i];
+    const cx=seat.tx*TS+TS/2, cy=seat.ty*TS+TS/2;
+    if(Math.abs(mx-cx)<TS*0.65&&Math.abs(my-cy)<TS*0.75){
+      hitChar=true;
+      const secs=Math.floor((Date.now()-(u.joinedAt||Date.now()))/1000);
+      const t=secs<60?'剛到':secs<3600?`已讀 ${Math.floor(secs/60)} 分鐘`:`已讀 ${Math.floor(secs/3600)} 小時 ${Math.floor((secs%3600)/60)} 分`;
+      document.getElementById('rpg-popup-name').textContent=u.name;
+      document.getElementById('rpg-popup-subject').textContent=(ICONS[u.subject]||'📚')+' '+(u.subject||'記帳士');
+      document.getElementById('rpg-popup-time').textContent=t+(u.isGhost?' · 鬼魂用功中':' · 專注中');
+      const px=(seat.tx*TS+TS-cam.x)/sx; const py=(seat.ty*TS-cam.y)/sy;
+      popup.style.left=Math.min(px,this.clientWidth-178)+'px';
+      popup.style.top=Math.max(4,py-90)+'px';
+      popup.style.display='block';
+      clearTimeout(_popupDismiss);
+      _popupDismiss=setTimeout(()=>{popup.style.display='none';},4000);
+    }
+  });
+  if(!hitChar){
+    if(popup) popup.style.display='none';
+    const tx=Math.floor(mx/TS), ty=Math.floor(my/TS);
+    if(!isBlocked(tx,ty)){ rpgPlayer.tx=tx; rpgPlayer.ty=ty; centerCam(this,tx,ty); }
   }
 });
 
@@ -898,6 +967,8 @@ function drawRpgScene(canvas, users) {
 
   // Plants (behind desks)
   PLANTS.forEach(p=>drawPlant(ctx, p.tx, p.ty));
+  // Floor cushions
+  CUSHIONS.forEach(c=>drawCushion(ctx, c.tx, c.ty));
 
   // Desks (draw pairs)
   for(let i=0;i<DESKS.length;i+=2){
@@ -944,6 +1015,20 @@ function resizeRpgCanvas(){
   canvas.height=Math.min(520, Math.max(340, wrap.clientWidth*0.52));
 }
 window.addEventListener('resize', resizeRpgCanvas);
+
+// Enter 鍵回座位
+document.addEventListener('keydown', e=>{
+  if(e.key!=='Enter') return;
+  const active=document.activeElement;
+  if(active&&(active.tagName==='INPUT'||active.tagName==='TEXTAREA')) return;
+  const selfIdx=_currentUsers.findIndex(u=>u.isSelf);
+  if(selfIdx>=0&&selfIdx<SEATS.length){
+    const seat=SEATS[selfIdx];
+    rpgPlayer.tx=seat.tx; rpgPlayer.ty=seat.ty+1;
+    const c=document.getElementById('room-canvas');
+    if(c) centerCam(c,rpgPlayer.tx,rpgPlayer.ty);
+  }
+});
 
 let _currentUsers = [];
 
@@ -1086,6 +1171,8 @@ function renderRoom(){
   // 更新 RPG 場景用戶列表
   _currentUsers = users.map((u, i) => ({
     name: u.name || u.display_name || '匿名',
+    subject: u.subject || '記帳士',
+    joinedAt: u.joined_at || Date.now(),
     isSelf: u.key === myKey,
     isGhost: !!u.isGhost,
   }));
