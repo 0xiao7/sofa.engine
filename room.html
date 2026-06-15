@@ -927,6 +927,15 @@ function initThreeScene(canvas) {
   floor.rotation.x = -Math.PI / 2;
   _threeScene.add(floor);
   floor.receiveShadow = true;
+  // Fake reflection plane (very subtle, slightly above floor)
+  const reflMat = new THREE.MeshBasicMaterial({
+    color: 0x2D4A5E, transparent: true, opacity: 0.08,
+    side: THREE.FrontSide, depthWrite: false, blending: THREE.AdditiveBlending
+  });
+  const reflPlane = new THREE.Mesh(new THREE.PlaneGeometry(22, 20), reflMat);
+  reflPlane.rotation.x = -Math.PI/2;
+  reflPlane.position.y = 0.015;
+  _threeScene.add(reflPlane);
   const grid = new THREE.GridHelper(22, 22, 0x2D4A5E, 0x1E3545);
   grid.position.y = 0.01;
   _threeScene.add(grid);
@@ -940,6 +949,20 @@ function initThreeScene(canvas) {
   const rWall = lWall.clone(); rWall.position.set(9,4,0); _threeScene.add(rWall);
   const ceil = new THREE.Mesh(new THREE.PlaneGeometry(22,20), mLambert(0x060E18));
   ceil.rotation.x = Math.PI/2; ceil.position.y = 8; _threeScene.add(ceil);
+  // Ceiling wooden beams
+  const beamMat = new THREE.MeshLambertMaterial({ color: 0x2A1508 });
+  [-7,-3.5,0,3.5,7].forEach(bx => {
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.4, 20), beamMat);
+    beam.position.set(bx, 7.8, 0);
+    beam.castShadow = true;
+    _threeScene.add(beam);
+  });
+  // Cross beams
+  [-5, 0, 5].forEach(bz => {
+    const cross = new THREE.Mesh(new THREE.BoxGeometry(22, 0.3, 0.3), beamMat);
+    cross.position.set(0, 7.6, bz);
+    _threeScene.add(cross);
+  });
 
   // Windows
   [[-5,4,-7.8],[5,4,-7.8]].forEach(([x,y,z]) => {
@@ -1090,6 +1113,23 @@ function initThreeScene(canvas) {
     // Monitor stand
     const stand = new THREE.Mesh(box(0.06,0.2,0.06), monMat);
     stand.position.set(x,0.9,z-0.28); _threeScene.add(stand);
+    // Desk lamp
+    const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,0.05,8), mLambert(0x1A2E3D));
+    lampBase.position.set(x+0.5, 0.83, z+0.1);
+    _threeScene.add(lampBase);
+    const lampArm = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.5,6), mLambert(0x1A2E3D));
+    lampArm.position.set(x+0.5, 1.08, z+0.1);
+    _threeScene.add(lampArm);
+    const lampHead = new THREE.Mesh(new THREE.ConeGeometry(0.12,0.12,8), mLambert(0x243C4F));
+    lampHead.position.set(x+0.5, 1.35, z+0.1);
+    lampHead.rotation.z = Math.PI; // point downward
+    _threeScene.add(lampHead);
+    // Lamp glow (very small point light, not all desks or it's too many)
+    if(Math.abs(x) < 4) {
+      const deskLight = new THREE.PointLight(0x7AC3E4, 0.4, 2.5);
+      deskLight.position.set(x+0.5, 1.2, z+0.1);
+      _threeScene.add(deskLight);
+    }
   });
 
   // Torch wall sconces
@@ -1365,6 +1405,11 @@ function _updateThreeAvatars(users) {
 }
 
 function startThreeAnimation(canvas) {
+  // Fade in canvas
+  const canvasEl = canvas;
+  canvasEl.style.opacity = '0';
+  canvasEl.style.transition = 'opacity 1.2s ease';
+  setTimeout(() => { canvasEl.style.opacity = '1'; }, 100);
   if (!THREE) return;
   initThreeScene(canvas);
   if (_threeRAF) cancelAnimationFrame(_threeRAF);
