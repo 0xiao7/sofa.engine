@@ -931,6 +931,8 @@ let _lanternTx = null, _lanterns = [];
 let _zongziTx = null, _zongzis = [];
 // Wave97: Christmas tree (December)
 let _xmastreeTx = null, _xmastree = null;
+// Wave104: Valentine's Day hearts (Feb 14)
+let _heartTx = null, _hearts = [];
 let _threeTime = 0;
 let _flyInDone = false, _flyInStart = 0;
 
@@ -2034,6 +2036,9 @@ function initThreeScene(canvas) {
     // Wave97: Christmas tree — December only
     if (_moW === 11) { _buildXmasTree(); }
     else { _destroyXmasTree(); }
+    // Wave104: Valentine's Day hearts — Feb 14 only
+    const _now104 = new Date(); const _isVDay = (_now104.getMonth() === 1 && _now104.getDate() === 14);
+    if (_isVDay) _buildHearts(); else _destroyHearts();
   }
 
   // Spring sakura (Mar–May)
@@ -3413,6 +3418,69 @@ function _destroyZongzis() {
   _zongzis = [];
 }
 
+// Wave104: Valentine's Day floating hearts (Feb 14 only)
+function _heartTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 64;
+  const ctx = c.getContext('2d');
+  ctx.save();
+  ctx.translate(32, 36);
+  ctx.scale(1, 1);
+  ctx.beginPath();
+  ctx.moveTo(0, -10);
+  ctx.bezierCurveTo(0, -18, -14, -18, -14, -6);
+  ctx.bezierCurveTo(-14, 4, 0, 14, 0, 22);
+  ctx.bezierCurveTo(0, 14, 14, 4, 14, -6);
+  ctx.bezierCurveTo(14, -18, 0, -18, 0, -10);
+  ctx.closePath();
+  const grd = ctx.createRadialGradient(-4, -8, 2, 0, 0, 18);
+  grd.addColorStop(0, '#ff85a2');
+  grd.addColorStop(1, '#cc2255');
+  ctx.fillStyle = grd;
+  ctx.fill();
+  ctx.restore();
+  return new THREE.CanvasTexture(c);
+}
+
+function _buildHearts() {
+  if (_hearts.length) return;
+  _heartTx = _heartTx || _heartTex();
+  for (let i = 0; i < 18; i++) {
+    const mat = new THREE.SpriteMaterial({ map: _heartTx, transparent: true, opacity: 0.75 + Math.random() * 0.2, depthWrite: false });
+    const sp = new THREE.Sprite(mat);
+    const s = 0.25 + Math.random() * 0.35;
+    sp.scale.set(s, s, 1);
+    sp.position.set(
+      (Math.random() - 0.5) * 14,
+      Math.random() * 5,
+      (Math.random() - 0.5) * 12
+    );
+    sp.userData.speed = 0.004 + Math.random() * 0.006;
+    sp.userData.drift = (Math.random() - 0.5) * 0.002;
+    sp.userData.wobble = Math.random() * Math.PI * 2;
+    _threeScene.add(sp);
+    _hearts.push(sp);
+  }
+}
+
+function _destroyHearts() {
+  _hearts.forEach(h => { _threeScene.remove(h); h.material.dispose(); });
+  _hearts = [];
+}
+
+function _animHearts() {
+  const t = _threeTime;
+  _hearts.forEach(h => {
+    h.position.y += h.userData.speed;
+    h.position.x += h.userData.drift + Math.sin(t * 0.8 + h.userData.wobble) * 0.001;
+    h.material.opacity = 0.55 + 0.3 * Math.sin(t * 1.5 + h.userData.wobble);
+    if (h.position.y > 7.5) {
+      h.position.y = -0.5;
+      h.position.x = (Math.random() - 0.5) * 14;
+      h.position.z = (Math.random() - 0.5) * 12;
+    }
+  });
+}
+
 function _updateRainGlass() {
   const h = new Date().getHours();
   const isNight = h >= 21 || h < 6;
@@ -3624,6 +3692,8 @@ function startThreeAnimation(canvas) {
         p.position.z = (Math.random()-0.5)*14;
       }
     });
+    // Wave104: Valentine's Day hearts — float upward with wobble
+    if (_hearts.length) _animHearts();
     // Wave79: Spring butterflies — figure-8 orbit + wing flap
     if (_butterflies.length > 0) {
       const t = _threeTime * 0.016;
