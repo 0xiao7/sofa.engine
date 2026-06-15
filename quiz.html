@@ -304,6 +304,21 @@
   #quiz-citation a{color:#5BAFD6;text-decoration:none;}
   @keyframes fadeInUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
+  /* ── Wave 68: 查看法條按鈕 ── */
+  #view-article-btn {
+    display: none;
+    margin-top: 10px;
+    padding: 6px 14px;
+    background: none;
+    border: 1px solid #2a4060;
+    border-radius: 16px;
+    color: #8899aa;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.2s, color 0.2s;
+  }
+  #view-article-btn:hover { border-color: #4a9eff; color: #4a9eff; }
+
   /* ── Wave 61: 鍵盤提示徽章 ── */
   #kb-hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(26,46,61,0.85);color:#8899aa;font-size:12px;padding:5px 14px;border-radius:12px;pointer-events:none;transition:opacity 0.5s;z-index:100;font-family:var(--mono);letter-spacing:.06em;}
 
@@ -427,6 +442,7 @@
         <div class="opts" id="optionsBox"></div>
         <div id="streak-badge"></div>
         <div id="quiz-citation"></div>
+        <div style="text-align:center"><button id="view-article-btn" onclick="_openArticleDashboard()">📖 查看法條</button></div>
 
         <div class="explain" id="explainBox" style="display:none">
           <span class="eb">答對了</span>
@@ -1054,6 +1070,15 @@ function _feedbackAnim(btn, isCorrect){
   t._tid = setTimeout(()=>t.classList.remove('show'), 1100);
   // 音效
   if(isCorrect){ _playCorrect(); } else { _playWrong(); }
+  // Wave 68: 顯示「查看法條」按鈕
+  document.getElementById('view-article-btn').style.display = 'inline-block';
+}
+
+// Wave 68: 開啟 dashboard.html 並帶入法規名稱
+function _openArticleDashboard() {
+  if (!_currentLawName) return;
+  const url = 'dashboard.html?q=' + encodeURIComponent(_currentLawName);
+  window.open(url, '_blank');
 }
 let quizData=null;
 // 本次作答紀錄
@@ -1122,6 +1147,7 @@ async function loadQuiz(){
   document.getElementById('questionBox').style.opacity='.45';
   document.getElementById('optionsBox').innerHTML='';
   (function(){const _cit=document.getElementById('quiz-citation');if(_cit)_cit.classList.remove('show');})();
+  document.getElementById('view-article-btn').style.display='none';
   document.getElementById('explainBox').style.display='none';
   document.getElementById('qSrc').innerHTML='—';
   updateScore();
@@ -1419,6 +1445,7 @@ async function loadWrongQuiz() {
   document.getElementById('questionBox').style.opacity='.45';
   document.getElementById('optionsBox').innerHTML='';
   (function(){const _cit=document.getElementById('quiz-citation');if(_cit)_cit.classList.remove('show');})();
+  document.getElementById('view-article-btn').style.display='none';
   document.getElementById('explainBox').style.display='none';
   document.getElementById('qSrc').innerHTML='—';
   updateScore();
