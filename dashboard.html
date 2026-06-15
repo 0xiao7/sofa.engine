@@ -1036,6 +1036,11 @@
   .dr-chip:hover{border-color:var(--peach-3);color:var(--navy)}
   .dr-chip.on{background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:600}
 
+  .drawer-tabs{display:flex;gap:8px;margin-bottom:14px}
+  .drawer-tab{padding:5px 14px;border-radius:14px;border:1px solid #2a4060;background:none;color:#8899aa;font-size:13px;cursor:pointer;transition:all 0.2s}
+  .drawer-tab.active{background:#1a3050;border-color:#4a9eff;color:#cce0ff}
+  #drawer-original{display:none;line-height:1.9;font-size:15px;color:#c8d8e8;white-space:pre-wrap;padding:4px 0}
+  #drawer-analysis{display:block}
   .dr-acc{margin-top:24px;border-top:1px solid var(--cream-3)}
   .acc-item{border-bottom:1px solid var(--cream-3)}
   .acc-head{display:flex;align-items:center;gap:14px;padding:16px 6px;cursor:pointer;transition:.18s}
@@ -1806,6 +1811,17 @@ function searchAndOpen(lawName, artNum){
     .catch(function(){ openDrawer('', lawName, artNum); });
 }
 
+function _switchDrawerTab(tab){
+  localStorage.setItem('sofa_drawer_tab', tab);
+  var origEl = document.getElementById('drawer-original');
+  var anaEl  = document.getElementById('drawer-analysis');
+  if(origEl) origEl.style.display = tab === 'original' ? 'block' : 'none';
+  if(anaEl)  anaEl.style.display  = tab === 'analysis'  ? 'block' : 'none';
+  document.querySelectorAll('.drawer-tab').forEach(function(b){ b.classList.remove('active'); });
+  var active = document.getElementById('dtab-' + tab);
+  if(active) active.classList.add('active');
+}
+
 function _renderDrawer(d){
   var body = document.getElementById('dr-body');
   if(!body || !d) { _renderDrawerFallback(_drLawName, _drArticle); return; }
@@ -1874,6 +1890,15 @@ function _renderDrawer(d){
   });
   accHtml += '</div>';
 
+  var rawText = (d.original_text || d.artTtl || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  var tabHtml =
+    '<div class="drawer-tabs">'
+    + '<button class="drawer-tab" id="dtab-original" onclick="_switchDrawerTab(\'original\')">📖 原文</button>'
+    + '<button class="drawer-tab" id="dtab-analysis" onclick="_switchDrawerTab(\'analysis\')">🔍 分析</button>'
+    + '</div>'
+    + '<div id="drawer-original">' + rawText + '</div>'
+    + '<div id="drawer-analysis">' + origHtml + accHtml + '</div>';
+
   body.innerHTML =
     '<span class="dr-eyebrow">ARTICLE' + (imp ? ' · ' + esc(imp) : '') + '</span>'
     + '<div class="dr-title"><span class="n">' + esc(artNum) + '</span><span class="tt">' + esc(artTitle) + '</span></div>'
@@ -1882,9 +1907,10 @@ function _renderDrawer(d){
     + '<button class="dr-chip" onclick="drToggleMastered(this)"><span>○</span>已熟記</button>'
     + '<button class="dr-chip" onclick="drShowReviewPicker()"><span>⊙</span>待複習</button>'
     + '</div>'
-    + origHtml
-    + accHtml;
-  _initSectionToggle(body);
+    + tabHtml;
+  _initSectionToggle(document.getElementById('drawer-analysis'));
+  var savedTab = localStorage.getItem('sofa_drawer_tab') || 'analysis';
+  _switchDrawerTab(savedTab);
 }
 
 function _renderDrawerFallback(lawName, article){
