@@ -531,6 +531,16 @@ input[type=text], select, .btn-enter {
           <div id="rpg-popup-subject" style="color:#5BAFD6;font-size:11px;margin-bottom:3px;"></div>
           <div id="rpg-popup-time" style="color:#8AA5B8;font-size:10px;"></div>
         </div>
+        <div id="board-modal" style="display:none;position:absolute;inset:0;background:rgba(7,13,20,0.82);align-items:center;justify-content:center;z-index:20;">
+          <div style="background:#1A2E3D;border:1px solid rgba(91,175,214,0.3);border-radius:12px;padding:20px;width:260px;">
+            <div style="color:#fff;font-weight:700;margin-bottom:10px;">📌 貼在布告欄</div>
+            <textarea id="board-input" maxlength="40" placeholder="今天的讀書目標、鼓勵的話…（40字）" style="width:100%;height:80px;background:#0F1A26;color:#CBD5E0;border:1px solid rgba(91,175,214,0.3);border-radius:8px;padding:8px;font-size:13px;resize:none;box-sizing:border-box;"></textarea>
+            <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
+              <button onclick="document.getElementById('board-modal').style.display='none'" style="background:transparent;color:#8AA5B8;border:none;cursor:pointer;padding:6px 12px;">取消</button>
+              <button id="board-post-btn" style="background:#2D7DA8;color:#fff;border:none;border-radius:6px;padding:6px 16px;cursor:pointer;font-weight:600;">貼上去</button>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 在線考生列表 -->
@@ -738,11 +748,14 @@ const CUSHIONS = [
   {tx:1,ty:8},{tx:19,ty:5}
 ];
 
+const BOARD = {tx:9, ty:1}; // top-center of room, against back wall
+
 // Blocked tiles (desks + plants block movement)
 function isBlocked(tx,ty) {
   if (tx<0||tx>=RW||ty<0||ty>=RH) return true;
   if (DESKS.some(d=>d.tx===tx&&d.ty===ty)) return true;
   if (PLANTS.some(p=>p.tx===tx&&p.ty===ty)) return true;
+  if(tx===BOARD.tx&&ty===BOARD.ty) return true;
   return false;
 }
 
@@ -805,6 +818,37 @@ function drawPlant(ctx, tx, ty) {
   ctx.fillStyle = '#3DAA5E';
   ctx.beginPath(); ctx.arc(sx-5, sy+0, 7, 0, Math.PI*2); ctx.fill();
   ctx.beginPath(); ctx.arc(sx+5, sy+0, 7, 0, Math.PI*2); ctx.fill();
+}
+
+function drawBoard(ctx, notes) {
+  const sx = BOARD.tx*TS - cam.x, sy = BOARD.ty*TS - cam.y;
+  // Cork board background
+  ctx.fillStyle = '#3D2510';
+  ctx.fillRect(sx+2, sy+2, TS*2-4, TS-4);
+  ctx.strokeStyle = '#5C3820'; ctx.lineWidth = 2;
+  ctx.strokeRect(sx+2, sy+2, TS*2-4, TS-4);
+  // Border frame
+  ctx.fillStyle = '#6B4520';
+  ctx.fillRect(sx, sy, TS*2, 4);
+  ctx.fillRect(sx, sy+TS-4, TS*2, 4);
+  ctx.fillRect(sx, sy, 4, TS);
+  ctx.fillRect(sx+TS*2-4, sy, 4, TS);
+  // Show up to 3 mini sticky notes
+  const colors = ['#FFE066','#FFB347','#90EE90'];
+  notes.slice(-3).forEach((n, i) => {
+    const nx = sx + 8 + i*(TS*0.58);
+    const ny = sy + 8;
+    ctx.fillStyle = colors[i];
+    ctx.fillRect(nx, ny, TS*0.5, TS*0.55);
+    ctx.fillStyle = 'rgba(0,0,0,0.6)';
+    ctx.font = '6px sans-serif'; ctx.textAlign='left';
+    const words = n.content.substring(0,12);
+    ctx.fillText(words, nx+3, ny+10);
+  });
+  // "Click to post" hint
+  ctx.fillStyle = 'rgba(255,220,100,0.7)';
+  ctx.font = 'bold 7px sans-serif'; ctx.textAlign='center';
+  ctx.fillText('📌', sx+TS-4, sy+TS-6);
 }
 
 function drawCushion(ctx, tx, ty) {
@@ -950,6 +994,13 @@ document.getElementById('room-canvas').addEventListener('click',function(e){
       _popupDismiss=setTimeout(()=>{popup.style.display='none';},4000);
     }
   });
+  // Check board click
+  const bx=BOARD.tx*TS+TS, by=BOARD.ty*TS+TS/2;
+  if(!hitChar && Math.abs(mx-bx)<TS*1.2 && Math.abs(my-by)<TS*0.8) {
+    document.getElementById('board-modal').style.display='flex';
+    return;
+  }
+
   if(!hitChar){
     if(popup) popup.style.display='none';
     const tx=Math.floor(mx/TS), ty=Math.floor(my/TS);
@@ -993,6 +1044,9 @@ function drawRpgScene(canvas, users) {
   const psy=rpgPlayer.ty*TS - cam.y + TS/2;
   drawCharacter(ctx, psx, psy, '#5BAFD6', '你', true, false);
 
+  // Bulletin board
+  drawBoard(ctx, _boardNotes);
+
   // Map border shadow
   ctx.shadowBlur=0;
 }
@@ -1033,6 +1087,7 @@ document.addEventListener('keydown', e=>{
 });
 
 let _currentUsers = [];
+let _boardNotes = [];
 
 // ── 設定 ──────────────────────────────────────────────────────────────
 const SUPABASE_URL  = 'https://azyougvutvbladgzdiar.supabase.co';
@@ -1155,6 +1210,10 @@ function startPresence(name, subject){
   channel
     .on('presence', { event:'sync' }, renderRoom)
     .on('broadcast', { event:'shout' }, ({ payload }) => showShoutBanner(payload))
+    .on('broadcast', {event:'board_note'}, ({payload}) => {
+      _boardNotes.push(payload);
+      if (_boardNotes.length > 20) _boardNotes.shift();
+    })
     .subscribe(async status => {
       if(status === 'SUBSCRIBED'){
         await channel.track({ name, subject, joined_at: joinedAt });
@@ -1265,6 +1324,19 @@ function showShoutBanner({ text, from }){
   clearTimeout(banner._t);
   banner._t = setTimeout(() => { banner.style.display = 'none'; }, 4000);
 }
+
+document.getElementById('board-post-btn')?.addEventListener('click', async () => {
+  const txt = document.getElementById('board-input').value.trim();
+  if (!txt) return;
+  const myName = document.getElementById('inp-name').value.trim() || '匿名';
+  const note = { content: txt, user_name: myName, ts: Date.now() };
+  // broadcast via realtime channel (same channel as shout)
+  await channel.send({ type:'broadcast', event:'board_note', payload: note });
+  _boardNotes.push(note);
+  if (_boardNotes.length > 20) _boardNotes.shift();
+  document.getElementById('board-input').value = '';
+  document.getElementById('board-modal').style.display = 'none';
+});
 
 // ── Leave ─────────────────────────────────────────────────────────────
 document.getElementById('btn-leave').addEventListener('click', () => {
