@@ -762,11 +762,11 @@ function drawFloor(ctx, canvas) {
       const sx = tx*TS - cam.x, sy = ty*TS - cam.y;
       if (sx+TS<0||sx>canvas.width||sy+TS<0||sy>canvas.height) continue;
       // Base tile
-      const shade = ((tx+ty)%2===0) ? '#CEC0A0' : '#C8B898';
+      const shade = ((tx+ty)%2===0) ? '#1A2535' : '#172030';
       ctx.fillStyle = shade;
       ctx.fillRect(sx, sy, TS, TS);
       // Grout lines
-      ctx.strokeStyle = 'rgba(150,130,100,0.4)';
+      ctx.strokeStyle = 'rgba(91,175,214,0.1)';
       ctx.lineWidth = 1;
       ctx.strokeRect(sx+0.5, sy+0.5, TS-1, TS-1);
     }
@@ -776,15 +776,15 @@ function drawFloor(ctx, canvas) {
 function drawDesk(ctx, tx, ty) {
   const sx = tx*TS - cam.x, sy = ty*TS - cam.y;
   // Desk surface
-  ctx.fillStyle = '#8B5E3C';
+  ctx.fillStyle = '#4A2E1A';
   ctx.fillRect(sx+2, sy+4, TS*2-4, TS-8);
   // Wood grain
-  ctx.fillStyle = '#7A5235';
+  ctx.fillStyle = '#3A2210';
   ctx.fillRect(sx+2, sy+4, TS*2-4, 3);
   // Monitor/book on desk
-  ctx.fillStyle = '#2C3E50';
+  ctx.fillStyle = '#1A2E3D';
   ctx.fillRect(sx+TS/2-8, sy+6, 16, 10);
-  ctx.fillStyle = '#3498DB';
+  ctx.fillStyle = '#2D7DA8';
   ctx.fillRect(sx+TS/2-6, sy+8, 12, 6);
 }
 
@@ -809,12 +809,12 @@ function drawPlant(ctx, tx, ty) {
 
 function drawCushion(ctx, tx, ty) {
   const sx = tx*TS - cam.x + TS/2, sy = ty*TS - cam.y + TS*0.72;
-  ctx.fillStyle = 'rgba(155,95,55,0.42)';
+  ctx.fillStyle = 'rgba(45,125,168,0.25)';
   ctx.beginPath(); ctx.ellipse(sx, sy, 15, 7, 0, 0, Math.PI*2); ctx.fill();
-  ctx.strokeStyle = 'rgba(190,130,80,0.55)'; ctx.lineWidth = 1;
+  ctx.strokeStyle = 'rgba(91,175,214,0.4)'; ctx.lineWidth = 1;
   ctx.stroke();
   // cross stitch lines
-  ctx.strokeStyle = 'rgba(200,150,90,0.3)'; ctx.lineWidth = 0.7;
+  ctx.strokeStyle = 'rgba(91,175,214,0.2)'; ctx.lineWidth = 0.7;
   ctx.beginPath(); ctx.moveTo(sx-10,sy); ctx.lineTo(sx+10,sy); ctx.stroke();
   ctx.beginPath(); ctx.moveTo(sx,sy-5); ctx.lineTo(sx,sy+5); ctx.stroke();
 }
@@ -962,6 +962,8 @@ let _rpgRAF=null;
 function drawRpgScene(canvas, users) {
   const ctx = canvas.getContext('2d');
   ctx.clearRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle = '#0F1A26';
+  ctx.fillRect(0,0,canvas.width,canvas.height);
 
   drawFloor(ctx, canvas);
 
