@@ -411,6 +411,7 @@
         <span class="lab">LAW</span>
         <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:600;font-size:17px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none"><option value="">全部法規</option></select>
       </div>
+      <div id="law-status-bar" style="margin-top:4px;padding:6px 10px;background:rgba(255,255,255,0.04);border-radius:6px;border:1px solid rgba(100,160,220,0.15);font-size:11px;color:#aaa;min-height:28px;transition:opacity 0.2s;display:none"></div>
       <div class="title" id="artPickWrap" style="display:none">
         <span class="lab">§</span>
         <input id="artNumInput" list="artDatalist" placeholder="條號"
@@ -632,6 +633,8 @@ if(isFree){
     if (!opt) return;
     sel.value = saved;
     sel.dispatchEvent(new Event('change'));
+    // Wave 117: update status bar on page load after law is restored
+    _updateLawStatusBar(saved);
   }
   _restoreLastLaw();
 })();
@@ -711,6 +714,8 @@ document.getElementById('lawSelect').addEventListener('change', async function()
   if(sprintSel) sprintSel.style.display = showSprint;
   if(dailyBtn) dailyBtn.style.display = showSprint;
   _updateDailyBtn();
+  // Wave 117: update law status bar
+  _updateLawStatusBar(this.value);
   const law = this.value;
   const wrap = document.getElementById('artPickWrap');
   const dl   = document.getElementById('artDatalist');
@@ -959,6 +964,44 @@ function _recordAnswer(isCorrect, lawName, elapsedSec) {
     s.timedQuestions = (s.timedQuestions||0) + 1;
   }
   _saveStats(s);
+  // Wave 117: update law status bar in real time after each answer
+  if(lawName) _updateLawStatusBar(lawName);
+}
+
+// ── Wave 117: 法規學習狀態列 ────────────────────────────────────────
+function _updateLawStatusBar(lawName) {
+  const bar = document.getElementById('law-status-bar');
+  if (!bar) return;
+  if (!lawName || lawName === '__all__' || lawName.startsWith('__')) {
+    if (lawName === '__all__') {
+      bar.style.display = 'block';
+      bar.innerHTML = '<span style="color:#7ab8f5">🎲 全部法規混題模式</span>';
+    } else {
+      bar.style.display = 'none';
+    }
+    return;
+  }
+  const s = JSON.parse(localStorage.getItem('sofa_quiz_stats_v1') || '{}');
+  const lawData = (s.byLaw || {})[lawName];
+  if (!lawData || lawData.total === 0) {
+    bar.style.display = 'block';
+    bar.innerHTML = '<span style="color:#667">尚未練習此法規</span>';
+    return;
+  }
+  const { total, correct } = lawData;
+  const pct = Math.round(correct / total * 100);
+  const color = pct >= 80 ? '#4af' : pct >= 60 ? '#fa4' : '#f64';
+  const label = pct >= 80 ? '優秀' : pct >= 60 ? '進步中' : '需加強';
+  bar.style.display = 'block';
+  bar.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <span>已答 <b style="color:#ddd">${total}</b> 題 &nbsp;•&nbsp; 答對 <b style="color:#ddd">${correct}</b> 題</span>
+      <span style="color:${color};font-weight:600">${pct}% ${label}</span>
+    </div>
+    <div style="background:rgba(255,255,255,0.1);border-radius:3px;height:4px">
+      <div style="background:${color};border-radius:3px;height:4px;width:${pct}%;transition:width 0.4s"></div>
+    </div>
+  `;
 }
 
 // ── 音效（Web Audio，懶初始化）────────────────────────────────────
