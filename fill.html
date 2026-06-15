@@ -616,9 +616,12 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
 }
 
 let _fillSession = false, _fillSessionTotal = 0, _fillSessionDone = 0;
+let _sessionStats = [];   // Wave 40: per-article stats
+let _currentHintUsed = false;
 
 function startFillSession(n){
   _fillSession = true; _fillSessionTotal = n; _fillSessionDone = 0;
+  _sessionStats = [];   // Wave 40: reset stats
   document.getElementById('fillSessionModal').style.display = 'none';
   document.getElementById('fillSessionWrap').style.display = '';
   _updateFillSessionProg();
@@ -635,8 +638,43 @@ function _onFillDone(){
   if(_fillSessionDone >= _fillSessionTotal){
     _fillSession = false;
     document.getElementById('fillSessionWrap').style.display = 'none';
-    setTimeout(()=>alert(`連刷完成！共 ${_fillSessionTotal} 題，提示使用 ${_sessionHint} 次。`), 800);
+    setTimeout(()=>showFillResults(), 800);  // Wave 40: show results modal
   }
+}
+
+// Wave 40: Fill session results functions
+function showFillResults() {
+  const total = _sessionStats.length;
+  const totalBlanks = _sessionStats.reduce((s,a)=>s+a.totalBlanks,0);
+  const correctBlanks = _sessionStats.reduce((s,a)=>s+a.correctBlanks,0);
+  const cleanCount = _sessionStats.filter(a=>!a.usedHint && a.correctBlanks===a.totalBlanks).length;
+  const pct = totalBlanks > 0 ? Math.round(correctBlanks/totalBlanks*100) : 0;
+  const emoji = pct >= 80 ? '🎉' : pct >= 60 ? '💪' : '📖';
+  document.getElementById('fill-res-score').textContent = correctBlanks + ' / ' + totalBlanks + ' 格';
+  document.getElementById('fill-res-sub').textContent = emoji + '  答對率 ' + pct + '%　全對無提示: ' + cleanCount + '/' + total + ' 篇';
+  const list = document.getElementById('fill-res-list');
+  list.innerHTML = '';
+  _sessionStats.forEach((s,i) => {
+    const perfect = s.correctBlanks === s.totalBlanks && !s.usedHint;
+    const ok = s.correctBlanks === s.totalBlanks;
+    const color = perfect ? '#2ECC71' : ok ? '#5BAFD6' : '#E74C3C';
+    const icon = perfect ? '✓' : ok ? '△' : '✗';
+    const div = document.createElement('div');
+    div.style.cssText = 'background:#0D1F2D;border-radius:8px;padding:10px 12px;border-left:3px solid '+color;
+    div.innerHTML = '<span style="color:'+color+';font-weight:700">'+icon+'</span> <span style="color:#C8DDE8;font-size:13px">第 '+(i+1)+' 題　'+s.correctBlanks+'/'+s.totalBlanks+'格'+(s.usedHint?' 🔍':'')+'</span>';
+    list.appendChild(div);
+  });
+  document.getElementById('fill-results').style.display = 'block';
+}
+
+function exitFillResults() {
+  document.getElementById('fill-results').style.display = 'none';
+}
+
+function restartFillSession() {
+  exitFillResults();
+  const n = _fillSessionTotal || 10;
+  startFillSession(n);
 }
 
 let fillData = null;
@@ -709,6 +747,7 @@ function useHint(fn){
   fn();
   updateHintUI();
   incMetaHint();
+  _currentHintUsed = true;  // Wave 40: track hint usage per article
 }
 
 function renderFill(){
@@ -783,6 +822,7 @@ function renderFill(){
   if(box.querySelector('input'))box.querySelector('input').focus();
   hintsLeft=3;
   updateHintUI();
+  _currentHintUsed = false;  // Wave 40: reset per-article hint flag
 }
 
 function updateBlankList(){
@@ -875,6 +915,10 @@ function checkAnswers(){
         buildSections(art.sections||{},art._plan!=='free',panel);
       }catch(e){}
     })();
+  }
+  // Wave 40: record per-article stats for session results
+  if(_fillSession){
+    _sessionStats.push({ correctBlanks: cor, totalBlanks: inputs.length, usedHint: _currentHintUsed });
   }
   _onFillDone();
 }
@@ -1024,6 +1068,21 @@ document.getElementById('btnReveal').addEventListener('click',()=>{
   }
 })();
 </script>
+<!-- Wave 40: Fill session results modal -->
+<div id="fill-results" style="display:none; position:fixed; inset:0; background:rgba(4,13,20,0.95); z-index:200; overflow-y:auto; padding:24px 16px;">
+  <div style="max-width:640px; margin:0 auto;">
+    <div style="text-align:center; margin-bottom:24px;">
+      <div id="fill-res-score" style="font-size:48px; font-weight:700; color:#D4A847; font-family:'Noto Serif TC',serif;"></div>
+      <div id="fill-res-sub" style="color:#8ABED6; margin-top:8px; font-size:14px;"></div>
+    </div>
+    <div id="fill-res-list" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
+    <div style="text-align:center; margin-top:28px; display:flex; gap:12px; justify-content:center;">
+      <button onclick="restartFillSession()" style="background:#1A2E3D; border:1px solid #5BAFD6; color:#5BAFD6; padding:10px 28px; border-radius:20px; font-size:14px; cursor:pointer;">🔄 再來一次</button>
+      <button onclick="exitFillResults()" style="background:#D4A847; border:none; color:#040D14; padding:10px 28px; border-radius:20px; font-size:14px; font-weight:600; cursor:pointer;">完成</button>
+    </div>
+  </div>
+</div>
+
 <div id="fillSessionModal" style="display:none;position:fixed;inset:0;background:rgba(7,13,20,0.8);align-items:center;justify-content:center;z-index:50;">
   <div style="background:var(--navy-2,#0D1E2C);border:1px solid rgba(91,175,214,0.3);border-radius:8px;padding:28px 32px;min-width:240px;text-align:center">
     <div style="font-family:monospace;font-size:11px;letter-spacing:.2em;color:#5BAFD6;margin-bottom:16px">選擇題數</div>
