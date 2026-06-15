@@ -369,6 +369,20 @@
     padding: 4px 6px; font-size: 13px; cursor: pointer;
     margin-right: 6px; vertical-align: middle;
   }
+
+  /* ── Wave 85: 今日挑戰 ── */
+  #btnDaily {
+    display: none;
+    padding: 8px 16px; border-radius: 18px;
+    background: linear-gradient(135deg, #1a3a5c, #0d2540);
+    border: 1px solid #4a7fff; color: #8ab4ff;
+    font-size: 14px; cursor: pointer; transition: all 0.2s;
+  }
+  #btnDaily:hover { border-color: #6a9fff; color: #aaccff; }
+  #btnDaily.done { border-color: #44cc88; color: #66ddaa; }
+  #daily-badge {
+    font-size: 11px; color: #44cc88; margin-left: 4px; display: none;
+  }
 </style>
 </head>
 <body>
@@ -412,6 +426,8 @@
         <option value="50">50題</option>
       </select>
       <button id="btnSprint" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(91,175,214,0.15);border-color:rgba(91,175,214,0.6)">⚡ 衝刺</button>
+      <button id="btnDaily" onclick="startDailyChallenge()">📅 今日挑戰</button>
+      <span id="daily-badge"></span>
     </div>
     <div class="pr-meta">
       <div class="seg">第 <b id="qNum">—</b></div>
@@ -680,9 +696,12 @@ document.getElementById('lawSelect').addEventListener('change', async function()
   document.getElementById('streak-badge')?.classList.remove('show');
   const sprintBtn = document.getElementById('btnSprint');
   const sprintSel = document.getElementById('sprint-count-select');
+  const dailyBtn = document.getElementById('btnDaily');
   const showSprint = (this.value && !this.value.startsWith('__')) ? '' : 'none';
   if(sprintBtn) sprintBtn.style.display = showSprint;
   if(sprintSel) sprintSel.style.display = showSprint;
+  if(dailyBtn) dailyBtn.style.display = showSprint;
+  _updateDailyBtn();
   const law = this.value;
   const wrap = document.getElementById('artPickWrap');
   const dl   = document.getElementById('artDatalist');
@@ -709,12 +728,50 @@ document.getElementById('lawSelect').addEventListener('change', async function()
 
 document.getElementById('btnSprint')?.addEventListener('click', () => {
   _sprintMode = true;
+  _isDailyMode = false;
   _sprintAnswers = [];
   _sprintStart = Date.now();
   const n = parseInt(document.getElementById('sprint-count-select')?.value || '20', 10);
   startSession(n);
   _updateSprintBar();
 });
+
+// ── Wave 85: 今日挑戰 ──────────────────────────────────────────
+const _today = new Date().toISOString().slice(0,10);
+const _dailyKey = 'sofa_daily_' + _today;
+let _isDailyMode = false;
+
+function _getDailyResult() {
+  try { return JSON.parse(localStorage.getItem(_dailyKey) || 'null'); } catch { return null; }
+}
+function _updateDailyBtn() {
+  const btn = document.getElementById('btnDaily');
+  const badge = document.getElementById('daily-badge');
+  if (!btn) return;
+  const r = _getDailyResult();
+  if (r) {
+    btn.classList.add('done');
+    btn.textContent = '📅 今日挑戰';
+    if (badge) { badge.textContent = '✅ ' + r.score + '/' + r.total; badge.style.display = 'inline'; }
+  } else {
+    btn.classList.remove('done');
+    btn.textContent = '📅 今日挑戰';
+    if (badge) badge.style.display = 'none';
+  }
+}
+function startDailyChallenge() {
+  const law = document.getElementById('lawSelect').value;
+  if (!law || law.startsWith('__')) {
+    alert('請先選擇一部法規再開始今日挑戰！');
+    return;
+  }
+  _isDailyMode = true;
+  _sprintMode = true;
+  _sprintAnswers = [];
+  _sprintStart = Date.now();
+  startSession(10);
+  _updateSprintBar();
+}
 
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
@@ -1083,6 +1140,12 @@ function showSprintResults(timeSec) {
     } else {
       retryWrap.style.display = 'none';
     }
+  }
+  // Wave 85: 今日挑戰完成 → 儲存結果
+  if (_isDailyMode) {
+    localStorage.setItem(_dailyKey, JSON.stringify({ score: correct, total: total }));
+    _updateDailyBtn();
+    _isDailyMode = false;
   }
   document.getElementById('sprint-results').style.display = 'block';
 }
@@ -1666,6 +1729,7 @@ async function loadWrongQuiz() {
 // ── DOMContentLoaded 事件綁定 ─────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
   refreshWrongCount();
+  _updateDailyBtn();
 
   // 錯題本按鈕 toggle
   document.getElementById('btnWrong')?.addEventListener('click', () => {
