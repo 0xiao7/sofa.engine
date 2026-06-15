@@ -878,6 +878,9 @@ let _reactParticles = []; // {sprite, vy, life, maxLife}
 let _speechBubbles = []; // {sprite, life, maxLife, phase} phase: 'in'|'hold'|'out'
 // Wave78: Winter fireplace
 let _fireTx = null, _fireParticles = [], _fireLamp = null;
+// Wave79: Spring butterflies
+let _butterflies = [];
+const _butterflyColors = ['#e87dff','#ffcc44','#ff8844','#88ddff','#ff88aa','#aaff88'];
 let _shoutLights = []; // Wave41: accent-blue PointLight flash on shout
 let _typingSprite = null, _typingHideAt = 0;
 let _threeTime = 0;
@@ -1221,6 +1224,48 @@ function _sakuraTex() {
   ctx.fillStyle='rgba(220,100,130,0.7)';
   ctx.beginPath(); ctx.arc(20,20,2,0,Math.PI*2); ctx.fill();
   return new THREE.CanvasTexture(c);
+}
+
+// Wave79: Spring butterfly texture + build/destroy helpers
+function _butterflyTex(hue) {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 48;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,48,48);
+  // Left wing
+  ctx.beginPath(); ctx.ellipse(14,24,12,8,Math.PI*0.3,0,Math.PI*2);
+  ctx.fillStyle = hue; ctx.globalAlpha=0.85; ctx.fill();
+  // Right wing
+  ctx.beginPath(); ctx.ellipse(34,24,12,8,Math.PI*0.7,0,Math.PI*2);
+  ctx.fillStyle = hue; ctx.fill();
+  // Body
+  ctx.beginPath(); ctx.ellipse(24,24,2,8,0,0,Math.PI*2);
+  ctx.fillStyle='#333'; ctx.globalAlpha=1; ctx.fill();
+  return new THREE.CanvasTexture(cv);
+}
+function _buildButterflies() {
+  if (_butterflies.length > 0) return;
+  for (let i = 0; i < 6; i++) {
+    const tex = _butterflyTex(_butterflyColors[i % _butterflyColors.length]);
+    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+    const sp = new THREE.Sprite(mat);
+    sp.scale.set(0.35, 0.25, 1);
+    sp.userData = {
+      cx: (Math.random()-0.5) * 10,
+      cz: (Math.random()-0.5) * 10,
+      ry: 1.2 + Math.random() * 1.5,
+      rx: 2 + Math.random() * 2,
+      rz: 1.5 + Math.random() * 2,
+      spd: 0.003 + Math.random()*0.004,
+      phase: Math.random() * Math.PI * 2,
+      flapSpd: 8 + Math.random() * 6,
+    };
+    _threeScene.add(sp);
+    _butterflies.push(sp);
+  }
+}
+function _destroyButterflies() {
+  _butterflies.forEach(sp => { _threeScene.remove(sp); sp.material.map?.dispose(); sp.material.dispose(); });
+  _butterflies = [];
 }
 
 function _mapleTex() {
@@ -1791,6 +1836,10 @@ function initThreeScene(canvas) {
       _threeScene.add(ss);
       _sakuraParticles.push(ss);
     }
+    // Wave79: spring butterflies
+    _buildButterflies();
+  } else {
+    if (_butterflies.length > 0) _destroyButterflies();
   }
 
   // Autumn maple (Sep–Nov)
@@ -3135,6 +3184,22 @@ function startThreeAnimation(canvas) {
         p.position.z = (Math.random()-0.5)*14;
       }
     });
+    // Wave79: Spring butterflies — figure-8 orbit + wing flap
+    if (_butterflies.length > 0) {
+      const t = _threeTime * 0.016;
+      _butterflies.forEach(b => {
+        const u = b.userData;
+        const a = t * u.spd * 60 + u.phase;
+        b.position.set(
+          u.cx + Math.cos(a) * u.rx,
+          u.ry + Math.sin(t * 0.5 + u.phase) * 0.3,
+          u.cz + Math.sin(a * 0.7) * u.rz
+        );
+        // Wing flap: oscillate x scale
+        b.scale.x = 0.15 + Math.abs(Math.sin(t * u.flapSpd)) * 0.3;
+        b.scale.y = 0.25;
+      });
+    }
     _mapleParticles.forEach(p => {
       p.position.x += p.userData.vx + 0.008*Math.sin(_threeTime*0.8 + p.userData.phase);
       p.position.y += p.userData.vy;
