@@ -743,7 +743,7 @@ input[type=text], select, .btn-enter {
 
 let _threeRenderer, _threeScene, _threeCamera, _threeRAF;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
-let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [];
+let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [];
 let _reactParticles = []; // {sprite, vy, life, maxLife}
 let _speechBubbles = []; // {sprite, life, maxLife, phase} phase: 'in'|'hold'|'out'
 let _threeTime = 0;
@@ -1246,6 +1246,44 @@ function initThreeScene(canvas) {
     const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(r,0), new THREE.MeshLambertMaterial({map:_leafTex(), flatShading:true}));
     leaf.position.set(x,y,z); _threeScene.add(leaf);
   });
+
+  // Magical fireflies around tree
+  const _ffRng = _rng(33);
+  const FIREFLY_COUNT = 30;
+  for(let fi=0; fi<FIREFLY_COUNT; fi++){
+    const fc = document.createElement('canvas');
+    fc.width = 16; fc.height = 16;
+    const fctx = fc.getContext('2d');
+    const gradient = fctx.createRadialGradient(8,8,0,8,8,7);
+    gradient.addColorStop(0, 'rgba(200,255,180,1)');
+    gradient.addColorStop(0.4, 'rgba(140,220,80,0.7)');
+    gradient.addColorStop(1, 'rgba(80,180,40,0)');
+    fctx.fillStyle = gradient;
+    fctx.beginPath(); fctx.arc(8,8,8,0,Math.PI*2); fctx.fill();
+    const fTex = new THREE.CanvasTexture(fc);
+    const fMat = new THREE.SpriteMaterial({
+      map: fTex, transparent: true, depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    const fSp = new THREE.Sprite(fMat);
+    fSp.scale.set(0.14, 0.14, 0.14);
+    // Initial position: random orbit around tree
+    const angle = _ffRng() * Math.PI * 2;
+    const radius = 0.6 + _ffRng() * 1.2;
+    const fy = 2.0 + _ffRng() * 3.5;
+    fSp.position.set(Math.cos(angle)*radius, fy, -1 + Math.sin(angle)*radius);
+    fSp.material.opacity = _ffRng() * 0.8 + 0.1;
+    _threeScene.add(fSp);
+    _fireflies.push({
+      sprite: fSp,
+      angle: angle,
+      radius: radius,
+      vy: (_ffRng() - 0.5) * 0.003,
+      speed: 0.004 + _ffRng() * 0.006,  // orbit speed
+      blinkOffset: _ffRng() * Math.PI * 2,
+      blinkSpeed: 0.8 + _ffRng() * 1.4,
+    });
+  }
 
   // Diagonal branches
   const branchMat = tMat('trunk', _woodTex);
@@ -2023,6 +2061,18 @@ function startThreeAnimation(canvas) {
         _confettiParticles.splice(ci,1);
       }
     }
+    // Firefly orbit & blink
+    _fireflies.forEach((ff, fi) => {
+      ff.angle += ff.speed;
+      // Gentle y drift, wrapping within foliage zone
+      ff.sprite.position.y += ff.vy;
+      if(ff.sprite.position.y > 5.6) ff.vy = -Math.abs(ff.vy);
+      if(ff.sprite.position.y < 1.8) ff.vy =  Math.abs(ff.vy);
+      ff.sprite.position.x = Math.cos(ff.angle) * ff.radius;
+      ff.sprite.position.z = -1 + Math.sin(ff.angle) * ff.radius;
+      // Soft blink
+      ff.sprite.material.opacity = 0.25 + 0.65 * (Math.sin(_threeTime * ff.blinkSpeed + ff.blinkOffset) * 0.5 + 0.5);
+    });
     // Name plates always face camera
     _namePlates.forEach(p => p.lookAt(_threeCamera.position));
     // Desk hover glow pulse
