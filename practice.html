@@ -277,6 +277,41 @@
   .pr-sub.show{display:flex}
   .pr-sub select{background:var(--navy-3);border:1px solid var(--line-2);border-radius:3px;color:var(--cream);font-family:var(--mono);font-size:11.5px;padding:5px 10px;cursor:pointer;outline:none}
   @media (max-width:760px){.pr-chips{padding:10px 18px}}
+
+  /* === Wave 45: Answer reveal + completion animations === */
+  @keyframes blank-correct{
+    0%  { background:rgba(212,168,71,.22); border-bottom-color:var(--gold,#D4A847); color:#D4A847; }
+    50% { background:rgba(212,168,71,.42); border-bottom-color:#D4A847; color:#D4A847; box-shadow:0 0 12px rgba(212,168,71,.35); }
+    100%{ background:rgba(159,184,159,.10); border-bottom-color:var(--good); color:var(--good); box-shadow:none; }
+  }
+  @keyframes blank-wrong{
+    0%  { background:rgba(199,123,106,.10); border-bottom-color:var(--bad); }
+    30% { background:rgba(199,123,106,.32); border-bottom-color:#E87B6B; box-shadow:0 0 8px rgba(199,123,106,.4); }
+    100%{ background:rgba(199,123,106,.10); border-bottom-color:var(--bad); box-shadow:none; }
+  }
+  .blank.reveal-ok  { animation: blank-correct .55s ease forwards; }
+  .blank.reveal-bad { animation: blank-wrong   .45s ease forwards; }
+
+  @keyframes card-flash{
+    0%  { box-shadow: 0 0 0 0 rgba(212,168,71,0); }
+    30% { box-shadow: 0 0 0 6px rgba(212,168,71,.35); border-color: rgba(212,168,71,.55); }
+    100%{ box-shadow: 0 0 0 0 rgba(212,168,71,0);  }
+  }
+  .type-card.celebrate { animation: card-flash .8s ease forwards; }
+
+  @keyframes done-slide{
+    from { opacity:0; transform:translateY(10px); }
+    to   { opacity:1; transform:translateY(0); }
+  }
+  .pr-done-banner{
+    display:flex; align-items:center; gap:12px;
+    margin-top:18px; padding:14px 20px;
+    background:rgba(212,168,71,.10); border:1px solid rgba(212,168,71,.35);
+    border-radius:4px; font-family:var(--mono); font-size:12.5px;
+    letter-spacing:.06em; color:#D4A847;
+    animation: done-slide .4s ease forwards;
+  }
+  .pr-done-banner .icon{ font-size:18px; line-height:1; }
 </style>
 </head>
 <body>
@@ -634,6 +669,10 @@ function render(){
   if(typeInput.length>=typeText.length&&typeText.length>0){
     stopTimer();
     ghost.innerHTML+=`<div style="margin-top:16px;font-family:var(--mono);font-size:13px;color:var(--good);letter-spacing:.1em">✓ 完成 · 正確率 ${acc}%</div>`;
+    // celebrate card + banner
+    const card=document.querySelector('.type-card');
+    if(card){ card.classList.add('celebrate'); card.addEventListener('animationend',()=>card.classList.remove('celebrate'),{once:true}); }
+    showDoneBanner(acc,null,'m1');
     const sp=document.getElementById('sectionsBox');
     if(sp.style.display==='none'){
       sp.innerHTML='<div class="sec-hd">條文解析</div>';
@@ -680,8 +719,40 @@ function startTimer(){
 }
 function stopTimer(){ if(timerIv){clearInterval(timerIv);timerIv=null;} }
 
+// Wave 45 — done banner helper (shown after any mode completes)
+function showDoneBanner(cor, total, mode){
+  // remove any previous banner
+  const old=document.getElementById('prDoneBanner');
+  if(old)old.remove();
+  let msg='';
+  if(mode==='m1'){
+    // cor = accuracy %
+    const star=cor===100?'★':cor>=90?'◆':'◇';
+    msg=`${star} 正確率 ${cor}%　按 ⌘K 換一條`;
+  } else if(mode==='m2'){
+    // cor = correct sentences, total = total sentences
+    const pct=total?Math.round(cor/total*100):0;
+    const star=pct===100?'★':pct>=80?'◆':'◇';
+    msg=`${star} ${cor}/${total} 句正確（${pct}%）　按 ⌘K 換一條`;
+  } else {
+    // m3
+    const pct=total?Math.round(cor/total*100):0;
+    const star=pct===100?'★':pct>=80?'◆':'◇';
+    msg=`${star} ${cor}/${total} 關鍵字正確（${pct}%）　按 ⌘K 換一條`;
+  }
+  const banner=document.createElement('div');
+  banner.id='prDoneBanner';
+  banner.className='pr-done-banner';
+  banner.innerHTML=`<span class="icon">✓</span><span>${msg}</span>`;
+  // insert after type-card
+  const card=document.querySelector('.type-card');
+  if(card&&card.parentNode) card.parentNode.insertBefore(banner,card.nextSibling);
+}
+
 async function loadNew(){
   stopTimer();startTime=null;typeInput='';typeText='';ti.value='';
+  // clear done banner from previous round
+  const _ob=document.getElementById('prDoneBanner');if(_ob)_ob.remove();
   ghost.innerHTML='<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.4);letter-spacing:.1em">載入中…</span>';
   const sp=document.getElementById('sectionsBox');sp.innerHTML='';sp.style.display='none';
   const _srcBtn=document.getElementById('prSourceLink');if(_srcBtn)_srcBtn.style.display='none';
@@ -863,6 +934,10 @@ function advanceSentence(){
     stopTimer();
     const totalCor=sentDone.filter(Boolean).length;
     ghost.innerHTML+=`<div style="margin-top:16px;font-family:var(--mono);font-size:13px;color:var(--good);letter-spacing:.1em">✓ 完成 · ${totalCor}/${sentences.length} 句正確</div>`;
+    // celebrate card + banner
+    const card=document.querySelector('.type-card');
+    if(card){ card.classList.add('celebrate'); card.addEventListener('animationend',()=>card.classList.remove('celebrate'),{once:true}); }
+    showDoneBanner(totalCor,sentences.length,'m2');
     // 顯示條文解析 sections
     const sp=document.getElementById('sectionsBox');
     sp.innerHTML='<div class="sec-hd">條文解析</div>';
@@ -1001,17 +1076,35 @@ function checkMode3(){
   let cor=0;
   box.querySelectorAll('.blank').forEach((inp,i)=>{
     inp.disabled=true;
-    if(inp.value.trim()===inp.dataset.ans){inp.classList.add('ok');cor++;}
-    else{
-      inp.classList.add('bad');
-      const sp=document.createElement('span');
-      sp.textContent=`（${inp.dataset.ans}）`;
-      sp.style.cssText='color:var(--good);font-size:.75rem;font-family:var(--mono);margin-left:.25rem;';
-      inp.after(sp);
+    if(inp.value.trim()===inp.dataset.ans){
+      // stagger each correct blank by 60ms for cascade effect
+      setTimeout(()=>{
+        inp.classList.remove('ok','bad');
+        inp.classList.add('reveal-ok');
+        inp.addEventListener('animationend',()=>{ inp.classList.remove('reveal-ok'); inp.classList.add('ok'); },{once:true});
+      }, i*60);
+      cor++;
+    } else {
+      setTimeout(()=>{
+        inp.classList.remove('ok','bad');
+        inp.classList.add('reveal-bad');
+        inp.addEventListener('animationend',()=>{ inp.classList.remove('reveal-bad'); inp.classList.add('bad'); },{once:true});
+        const sp=document.createElement('span');
+        sp.textContent=`（${inp.dataset.ans}）`;
+        sp.style.cssText='color:var(--good);font-size:.75rem;font-family:var(--mono);margin-left:.25rem;opacity:0;transition:opacity .3s ease;';
+        inp.after(sp);
+        setTimeout(()=>{ sp.style.opacity='1'; }, 80);
+      }, i*60);
     }
   });
-  document.getElementById('stat-acc').textContent=m3Blanks.length?Math.round(cor/m3Blanks.length*100)+'%':'—';
+  const total=m3Blanks.length;
+  document.getElementById('stat-acc').textContent=total?Math.round(cor/total*100)+'%':'—';
   document.getElementById('stat-prog').textContent='✓';
+  // celebrate card border flash
+  const card=document.querySelector('.type-card');
+  if(card){ card.classList.add('celebrate'); card.addEventListener('animationend',()=>card.classList.remove('celebrate'),{once:true}); }
+  // show done banner
+  showDoneBanner(cor,total,'m3');
   const sp=document.getElementById('sectionsBox');
   if(sp.style.display==='none'){
     sp.innerHTML='<div class="sec-hd">條文解析</div>';
