@@ -745,6 +745,7 @@ let _threeRenderer, _threeScene, _threeCamera, _threeRAF;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [];
 let _lightShafts = [];
+let _ceilStars = [];
 let _studyRings = [];
 let _countSignTex = null, _countSignCtx = null;
 let _quoteSignTex = null, _quoteSignCtx = null, _quoteSignMesh = null;
@@ -910,6 +911,18 @@ function _lightShaftTex() {
   g.addColorStop(1,'rgba(255,248,220,0)');
   ctx.fillStyle = g;
   ctx.fillRect(0,0,64,256);
+  return new THREE.CanvasTexture(c);
+}
+
+function _starTex(r) {
+  const c = document.createElement('canvas'); c.width = c.height = 32;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(16,16,0, 16,16,r||10);
+  g.addColorStop(0,'rgba(255,255,240,1)');
+  g.addColorStop(0.25,'rgba(200,220,255,0.8)');
+  g.addColorStop(1,'rgba(150,180,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,32,32);
   return new THREE.CanvasTexture(c);
 }
 
@@ -1422,6 +1435,33 @@ function initThreeScene(canvas) {
     _quoteSignMesh = new THREE.Mesh(qg, qm);
     _quoteSignMesh.position.set(0, 4.2, -9.75);
     _threeScene.add(_quoteSignMesh);
+  }
+
+  // Ceiling stars (night mode)
+  {
+    const stexS = _starTex(8);
+    const stexL = _starTex(12);
+    for(let si=0; si<60; si++){
+      const big = si < 8;
+      const sm = new THREE.SpriteMaterial({
+        map: big ? stexL : stexS,
+        transparent: true, opacity: 0,
+        blending: THREE.AdditiveBlending, depthWrite: false,
+      });
+      const ss = new THREE.Sprite(sm);
+      const scale = big ? 0.22 : (0.06 + Math.random()*0.10);
+      ss.scale.set(scale, scale, 1);
+      ss.position.set(
+        (Math.random()-0.5)*17,
+        5.85 + Math.random()*0.12,
+        (Math.random()-0.5)*16
+      );
+      ss.userData.phase  = Math.random()*Math.PI*2;
+      ss.userData.speed  = 0.4 + Math.random()*1.2;
+      ss.userData.bright = big ? 0.85 : (0.35 + Math.random()*0.5);
+      _threeScene.add(ss);
+      _ceilStars.push(ss);
+    }
   }
 
   // Diagonal branches
@@ -2301,6 +2341,14 @@ function startThreeAnimation(canvas) {
     _lightShafts.forEach(s => {
       const target = _lsVisible ? (0.55 + 0.25*Math.sin(_threeTime*0.4 + s.userData.phase)) : 0;
       s.material.opacity += (target - s.material.opacity) * 0.02;
+    });
+    // Ceiling stars
+    const _stTod = _timeOfDayPalette();
+    const _stNight = _stTod.fogDensity >= 0.012;
+    _ceilStars.forEach(s => {
+      const targetBase = _stNight ? s.userData.bright : 0;
+      const twinkle = targetBase * (0.6 + 0.4*Math.sin(_threeTime*s.userData.speed + s.userData.phase));
+      s.material.opacity += (twinkle - s.material.opacity) * 0.03;
     });
     // Foliage sway (gentle wind effect)
     _foliageMeshes.forEach(f => {
