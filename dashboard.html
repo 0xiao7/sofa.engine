@@ -1122,6 +1122,13 @@
   .bk-item:hover { background: rgba(91,175,214,0.12); }
   .bk-item-law { font-size: 11px; color: #5BAFD6; margin-bottom: 3px; }
 
+  #bk-export-btn {
+    background: none; border: 1px solid #2a4060; color: #8899aa;
+    padding: 4px 12px; border-radius: 12px; font-size: 12px;
+    cursor: pointer;
+  }
+  #bk-export-btn:hover { border-color: #4a9eff; color: #4a9eff; }
+
   #bk-toggle {
     position: fixed; right: 16px; bottom: 80px; z-index: 151;
     background: #1A2E3D; border: 1px solid #D4A847; color: #D4A847;
@@ -2065,6 +2072,32 @@ function toggleBkPanel() {
 (function() {
   _renderBkPanel();
 })();
+
+// ── Wave 94 — export bookmarks ────────────────
+function _exportBookmarks() {
+  var bks = Object.values(_bookmarks);
+  if (bks.length === 0) { _dashToast('尚無書籤'); return; }
+
+  var text = 'SoFa 法條書籤 — 匯出日期：' + new Date().toLocaleDateString('zh-TW') + '\n';
+  text += '='.repeat(40) + '\n\n';
+
+  bks.forEach(function(b) {
+    text += '【' + (b.lawName || '') + '】第 ' + (b.articleNo || '') + ' 條\n';
+    text += (b.snippet || '').trim() + '\n';
+    text += '\n' + '-'.repeat(30) + '\n\n';
+  });
+
+  var blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'SoFa書籤_' + new Date().toISOString().slice(0, 10) + '.txt';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  _dashToast('📥 已匯出 ' + bks.length + ' 筆書籤');
+}
 
 // ── Wave 60 — copy article ────────────────────
 function _dashToast(msg) {
@@ -3478,7 +3511,10 @@ function switchToFree(){
 <div id="bk-panel">
   <div id="bk-panel-header">
     <span style="color:#F0E8C8;font-size:15px;font-weight:600">★ 待復習</span>
-    <button onclick="toggleBkPanel()" style="background:none;border:none;color:#8ABED6;cursor:pointer;font-size:18px">✕</button>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button id="bk-export-btn" onclick="_exportBookmarks()" title="下載書籤清單">📥 匯出</button>
+      <button onclick="toggleBkPanel()" style="background:none;border:none;color:#8ABED6;cursor:pointer;font-size:18px">✕</button>
+    </div>
   </div>
   <div id="bk-list"></div>
 </div>
