@@ -744,6 +744,7 @@ input[type=text], select, .btn-enter {
 let _threeRenderer, _threeScene, _threeCamera, _threeRAF;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [];
+let _lightShafts = [];
 let _studyRings = [];
 let _countSignTex = null, _countSignCtx = null;
 let _reactParticles = []; // {sprite, vy, life, maxLife}
@@ -883,6 +884,20 @@ function _deskTex(){
     }
     ctx.fillStyle='#351E0F'; ctx.fillRect(0,0,s,3);
   }, 64);
+}
+
+function _lightShaftTex() {
+  const c = document.createElement('canvas'); c.width = 64; c.height = 256;
+  const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0,0,64,0);
+  g.addColorStop(0,'rgba(255,248,220,0)');
+  g.addColorStop(0.3,'rgba(255,248,220,0.18)');
+  g.addColorStop(0.5,'rgba(255,252,235,0.28)');
+  g.addColorStop(0.7,'rgba(255,248,220,0.18)');
+  g.addColorStop(1,'rgba(255,248,220,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,64,256);
+  return new THREE.CanvasTexture(c);
 }
 
 function _petalTex() {
@@ -1357,6 +1372,30 @@ function initThreeScene(canvas) {
       _threeScene.add(ps);
       _petalParticles.push(ps);
     }
+  }
+
+  // Window light shafts (god rays)
+  {
+    const stex = _lightShaftTex();
+    const shaftDefs = [
+      { x:-7, y:4.5, z:-3, rotZ: 0.45, scaleX:1.2, scaleY:5.5, phase:0 },
+      { x: 7, y:4.5, z:-2, rotZ:-0.40, scaleX:1.0, scaleY:5.0, phase:1.1 },
+      { x:-6, y:3.8, z: 2, rotZ: 0.35, scaleX:0.8, scaleY:4.5, phase:2.3 },
+    ];
+    shaftDefs.forEach(d => {
+      const sm = new THREE.SpriteMaterial({
+        map: stex, transparent: true, opacity: 0.0,
+        blending: THREE.AdditiveBlending, depthWrite: false,
+      });
+      const ss = new THREE.Sprite(sm);
+      ss.scale.set(d.scaleX, d.scaleY, 1);
+      ss.position.set(d.x, d.y, d.z);
+      // Sprites always face camera; use material.rotation for tilt
+      sm.rotation = d.rotZ;
+      ss.userData.phase = d.phase;
+      _threeScene.add(ss);
+      _lightShafts.push(ss);
+    });
   }
 
   // Diagonal branches
@@ -2195,6 +2234,13 @@ function startThreeAnimation(canvas) {
         p.position.x = (Math.random()-0.5)*18;
         p.position.z = (Math.random()-0.5)*14;
       }
+    });
+    // Light shafts — visible only in non-night palette
+    const _lsTod = _timeOfDayPalette();
+    const _lsVisible = _lsTod.fogDensity < 0.012;
+    _lightShafts.forEach(s => {
+      const target = _lsVisible ? (0.55 + 0.25*Math.sin(_threeTime*0.4 + s.userData.phase)) : 0;
+      s.material.opacity += (target - s.material.opacity) * 0.02;
     });
     // Foliage sway (gentle wind effect)
     _foliageMeshes.forEach(f => {
