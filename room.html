@@ -760,20 +760,32 @@ async function doLeave(){
 }
 
 // ── 今日記錄 ─────────────────────────────────────────────────────────
-function todayKey(){ return `sofa_room_note_${new Date().toISOString().slice(0,10)}`; }
+function todayStr(){ return new Date().toISOString().slice(0,10); }
+function todayKey(){ return `sofa_room_note_${todayStr()}`; }
+function authHeaders(){ return { 'Authorization': `Bearer ${localStorage.getItem('sofa_token')||''}`, 'Content-Type':'application/json' }; }
 
-function initNote(){
+async function initNote(){
   const sec = document.getElementById('note-section');
   sec.classList.add('visible');
   const ta = document.getElementById('note-input');
+
+  // 先用 localStorage 填入（速度快），再用雲端覆蓋
   ta.value = localStorage.getItem(todayKey()) || '';
   updateNoteCount();
+
+  try{
+    const r = await fetch(`${API}/api/me/study-note?date=${todayStr()}`, { headers: authHeaders() });
+    if(r.ok){
+      const d = await r.json();
+      if(d.content){ ta.value = d.content; localStorage.setItem(todayKey(), d.content); updateNoteCount(); }
+    }
+  }catch(e){}
 
   let saveTimer;
   ta.addEventListener('input', ()=>{
     updateNoteCount();
     clearTimeout(saveTimer);
-    saveTimer = setTimeout(saveNote, 800);
+    saveTimer = setTimeout(saveNote, 1200);
   });
 }
 
@@ -782,12 +794,19 @@ function updateNoteCount(){
   document.getElementById('note-count').textContent = `${ta.value.length} / 200`;
 }
 
-function saveNote(){
+async function saveNote(){
   const val = document.getElementById('note-input').value;
   localStorage.setItem(todayKey(), val);
+  const mins = joinedAt ? Math.floor((Date.now()-joinedAt)/60000) : 0;
+  try{
+    await fetch(`${API}/api/me/study-note`, {
+      method:'POST', headers: authHeaders(),
+      body: JSON.stringify({ date: todayStr(), content: val, study_minutes: mins })
+    });
+  }catch(e){}
   const badge = document.getElementById('note-saved');
   badge.classList.add('show');
-  setTimeout(()=> badge.classList.remove('show'), 1500);
+  setTimeout(()=> badge.classList.remove('show'), 1800);
 }
 
 // ── Pomodoro ──────────────────────────────────────────────────────────
