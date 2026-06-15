@@ -1807,6 +1807,31 @@ document.addEventListener('DOMContentLoaded', () => {
 </div>
 
 <script>
+function _getWeakestLaw(stats) {
+  const MIN_Q = 5;
+  let worst = null, worstPct = 100;
+  Object.entries(stats.byLaw || {}).forEach(([law, data]) => {
+    const total = data.total || 0;
+    if (total < MIN_Q) return;
+    const pct = total > 0 ? Math.round((data.correct||0)/total*100) : 0;
+    if (pct < worstPct) { worstPct = pct; worst = law; }
+  });
+  return worst ? { law: worst, pct: worstPct } : null;
+}
+
+function _practiceWeakestLaw() {
+  const stats = _loadStats();
+  const w = _getWeakestLaw(stats);
+  if (!w) return;
+  closeStats();
+  const lawSelect = document.getElementById('lawSelect');
+  const opt = Array.from(lawSelect.options).find(o => o.text === w.law || o.value === w.law);
+  if (opt) {
+    lawSelect.value = opt.value;
+    lawSelect.dispatchEvent(new Event('change'));
+  }
+}
+
 function openStats() {
   const s = _loadStats();
   const total = s.total||0, correct = s.correct||0;
@@ -1828,6 +1853,17 @@ function openStats() {
     }
   }
 
+  const weakest = _getWeakestLaw(s);
+  let weakestHtml = '';
+  if (weakest) {
+    weakestHtml = `<div id="weakest-law-section" style="margin-top:16px; padding:10px 12px; background:rgba(255,80,60,0.08); border:1px solid rgba(255,80,60,0.25); border-radius:10px;">
+      <div style="color:#ff9988;font-size:12px;margin-bottom:6px;">⚠ 最需加強</div>
+      <div id="weakest-law-name" style="color:#ffbbaa;font-size:14px;font-weight:bold;">${esc(weakest.law)}</div>
+      <div id="weakest-law-pct" style="color:#ff9988;font-size:12px;margin:3px 0 8px;">正確率 ${weakest.pct}%</div>
+      <button onclick="_practiceWeakestLaw()" style="background:#1a2e3d;border:1px solid #ff6644;color:#ff9977;padding:5px 14px;border-radius:12px;font-size:13px;cursor:pointer;">立即練習 →</button>
+    </div>`;
+  }
+
   document.getElementById('stats-content').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
       <div style="background:#0D1F2D;border-radius:10px;padding:16px;text-align:center">
@@ -1847,6 +1883,7 @@ function openStats() {
       <span style="color:#8ABED6;font-size:13px">最高連對紀錄</span>
     </div>
     ${byLawHtml}
+    ${weakestHtml}
     <div style="margin-top:14px;">
       <div style="color:#8899aa;font-size:12px;margin-bottom:5px;">📅 近14天答題</div>
       <canvas id="daily-chart" width="280" height="40" style="border-radius:4px;display:block;"></canvas>
