@@ -1477,6 +1477,13 @@
                 <input id="search-art" placeholder="條號（選填）" type="text" inputmode="numeric" />
               </div>
               <button id="search-btn" onclick="doSearch()" style="background:var(--peach);color:var(--navy);border:none;border-radius:3px;padding:0 28px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:.18s;letter-spacing:.04em;flex-shrink:0" onmouseover="this.style.background='var(--peach-2)'" onmouseout="this.style.background='var(--peach)'">搜尋</button>
+              <!-- Wave 119: 隨機法條按鈕 -->
+              <button id="random-article-btn" onclick="loadRandomArticle()" title="隨機法條"
+                style="background:rgba(255,255,255,0.07);border:1px solid rgba(100,160,220,0.3);
+                       color:#7ab8f5;border-radius:3px;padding:0 14px;font-size:16px;cursor:pointer;
+                       flex-shrink:0;height:100%;min-height:40px;transition:background 0.2s;letter-spacing:0"
+                onmouseover="this.style.background='rgba(100,160,220,0.18)'"
+                onmouseout="this.style.background='rgba(255,255,255,0.07)'">🎲</button>
             </div>
             <div class="chip-row">
               <button class="chip on" onclick="setChip(this,'all')">全部</button>
@@ -2262,6 +2269,40 @@ function _dashToast(msg) {
   document.body.appendChild(el);
   setTimeout(function() { el.style.opacity = '0'; }, 1600);
   setTimeout(function() { el.parentNode && el.parentNode.removeChild(el); }, 2000);
+}
+
+// Wave 119: 隨機法條 — 從已載入的 _allLaws 選一部，呼叫 fill API 取隨機條文，直接開抽屜
+async function loadRandomArticle() {
+  var btn = document.getElementById('random-article-btn');
+  if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
+  try {
+    // 用已載入的 _allLaws（頁面啟動時就 fetch 好了），不需重複拉取
+    var laws = (_allLaws && _allLaws.length > 0) ? _allLaws : [];
+    if (laws.length === 0) {
+      // 萬一 _allLaws 尚未就緒，臨時補抓
+      var r0 = await fetch(API + '/api/laws');
+      var d0 = await r0.json();
+      laws = (d0 && d0.laws) ? d0.laws : [];
+    }
+    if (laws.length === 0) { _dashToast('法規清單尚未載入，請稍後再試'); return; }
+
+    // 隨機選一部法規
+    var randomLaw = laws[Math.floor(Math.random() * laws.length)];
+    var lawName = randomLaw.name || randomLaw;
+
+    // 呼叫 fill API 取隨機條文（回傳頂層 { id, law_name, title, ... }）
+    var r1 = await fetch(API + '/api/fill?law=' + encodeURIComponent(lawName));
+    var fillData = await r1.json();
+
+    if (!fillData || !fillData.id) { _dashToast('無法取得隨機法條，請再試一次'); return; }
+
+    // openDrawer 會自行呼叫 /api/article/{id} 取完整資料並開啟抽屜
+    openDrawer(fillData.id, fillData.law_name || lawName, fillData.title || '');
+  } catch(e) {
+    _dashToast('無法載入隨機法條');
+  } finally {
+    if (btn) { btn.textContent = '🎲'; btn.disabled = false; }
+  }
 }
 
 function _copyArticle(btn, lawName, artNo, text) {
