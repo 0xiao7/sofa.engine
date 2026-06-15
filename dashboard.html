@@ -2593,6 +2593,12 @@ function _srGoto(p){
 }
 
 // 法規目錄渲染（分頁 + filter）
+function _hlMatch(text, q){
+  if(!q) return text;
+  var i = text.indexOf(q);
+  if(i < 0) return text;
+  return text.slice(0,i)+'<mark style="background:rgba(91,175,214,0.28);color:inherit;border-radius:2px;padding:0 1px">'+text.slice(i,i+q.length)+'</mark>'+text.slice(i+q.length);
+}
 function _renderLawsToc(page){
   _lawsPage = page || 0;
   var filter = ((document.getElementById('laws-filter-inp')||{}).value||'').trim();
@@ -2619,12 +2625,13 @@ function _renderLawsToc(page){
     } else {
       tocEl.innerHTML = slice.map(function(l, i){
         var nm  = esc(l.name||'');
+        var nmHl = _hlMatch(nm, esc(filter));
         var ct  = l.article_count ? l.article_count + ' 條' : '— 條';
         var star = l.starred ? '<span class="star-mark">★ 高頻</span>' : '';
         var idx = String(start + i + 1).padStart(2,'0');
         return '<div class="toc-row" onclick="searchLaw(\''+nm+'\')">'
           + '<span class="idx">'+idx+'</span>'
-          + '<span class="nm">'+nm+star+'<span class="leader"></span></span>'
+          + '<span class="nm">'+nmHl+star+'<span class="leader"></span></span>'
           + '<span class="ct">'+ct+'</span>'
           + '<span class="arrow">→</span></div>';
       }).join('');
