@@ -131,7 +131,7 @@ main{display:flex;flex:1;gap:0;min-height:0;}
   width:100%;flex-shrink:0;overflow:hidden;
   position:relative;
 }
-#lib-scene-wrap svg{display:block;width:100%;height:auto;}
+#room-canvas{display:block;width:100%;image-rendering:pixelated;image-rendering:crisp-edges;}
 
 /* 燈光暈染覆蓋 */
 #lib-scene-wrap::after{
@@ -454,6 +454,20 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 @media(min-width:641px){
   #mob-bar,#sheet-overlay,.sheet{display:none!important;}
 }
+
+/* Minecraft 像素塊感 */
+.desk {
+  border-radius: 2px !important;
+}
+.desk:hover {
+  box-shadow: inset 0 0 0 2px rgba(200,151,74,.6);
+}
+.entry-card {
+  border-radius: 4px;
+}
+input[type=text], select, .btn-enter {
+  border-radius: 2px;
+}
 </style>
 </head>
 <body>
@@ -498,123 +512,9 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 
   <main>
     <div id="desk-area">
-      <!-- 圖書館場景 SVG -->
+      <!-- 等角圖書館場景 Canvas -->
       <div id="lib-scene-wrap">
-        <svg id="lib-svg" viewBox="0 0 1000 340" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-          <defs>
-            <radialGradient id="lampG" cx="50%" cy="0%" r="80%">
-              <stop offset="0%" stop-color="#FFD060" stop-opacity=".35"/>
-              <stop offset="100%" stop-color="#FFD060" stop-opacity="0"/>
-            </radialGradient>
-            <linearGradient id="floorG" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#3A2008"/>
-              <stop offset="100%" stop-color="#6B4220"/>
-            </linearGradient>
-            <linearGradient id="winG" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#1A2A4A"/>
-              <stop offset="60%" stop-color="#2A4A7A"/>
-              <stop offset="100%" stop-color="#3A5A8A"/>
-            </linearGradient>
-          </defs>
-
-          <!-- 天花板 -->
-          <rect x="0" y="0" width="1000" height="42" fill="#1A0C04"/>
-          <line x1="0" y1="14" x2="1000" y2="14" stroke="#110804" stroke-width="3"/>
-          <line x1="0" y1="28" x2="1000" y2="28" stroke="#110804" stroke-width="2"/>
-          <!-- 天花板橫樑 -->
-          <rect x="0"   y="0" width="16" height="42" fill="#110804"/>
-          <rect x="320" y="0" width="14" height="42" fill="#110804"/>
-          <rect x="660" y="0" width="14" height="42" fill="#110804"/>
-          <rect x="984" y="0" width="16" height="42" fill="#110804"/>
-          <!-- 吊燈 -->
-          <rect x="493" y="0" width="4" height="32" fill="#5A3A14"/>
-          <path d="M480 32 Q487 44 500 46 Q513 44 520 32 Z" fill="#C89030"/>
-          <ellipse cx="500" cy="42" rx="12" ry="5" fill="#FFE060" opacity=".9"/>
-          <ellipse cx="500" cy="120" rx="220" ry="80" fill="url(#lampG)"/>
-
-          <!-- 後牆 -->
-          <rect x="0" y="42" width="1000" height="210" fill="#D4C090"/>
-
-          <!-- ── 左書架 (0-310) ── -->
-          <rect x="0" y="42" width="310" height="210" fill="#5A3810"/>
-          <rect x="10" y="50" width="290" height="195" fill="#2A1808"/>
-          <!-- 層板 -->
-          <rect x="10" y="98"  width="290" height="7" fill="#6B4220"/><rect x="10" y="99"  width="290" height="2" fill="#7A5030"/>
-          <rect x="10" y="148" width="290" height="7" fill="#6B4220"/><rect x="10" y="149" width="290" height="2" fill="#7A5030"/>
-          <rect x="10" y="198" width="290" height="7" fill="#6B4220"/><rect x="10" y="199" width="290" height="2" fill="#7A5030"/>
-          <!-- 書本 row1 (y:52-96) -->
-          <g id="lb1"></g>
-          <!-- 書本 row2 (y:107-146) -->
-          <g id="lb2"></g>
-          <!-- 書本 row3 (y:157-196) -->
-          <g id="lb3"></g>
-
-          <!-- ── 窗戶 (320-680) ── -->
-          <!-- 窗框 -->
-          <rect x="320" y="50" width="360" height="200" fill="#3A2008"/>
-          <!-- 玻璃 -->
-          <rect x="332" y="60" width="168" height="182" fill="url(#winG)"/>
-          <rect x="508" y="60" width="164" height="182" fill="url(#winG)"/>
-          <!-- 窗框中間 -->
-          <rect x="496" y="60" width="16" height="182" fill="#3A2008"/>
-          <rect x="332" y="148" width="340" height="10" fill="#3A2008"/>
-          <!-- 星星/夜景 -->
-          <circle cx="370" cy="90"  r="1.5" fill="white" opacity=".7"/>
-          <circle cx="420" cy="75"  r="1"   fill="white" opacity=".6"/>
-          <circle cx="460" cy="100" r="1.5" fill="white" opacity=".8"/>
-          <circle cx="390" cy="115" r="1"   fill="white" opacity=".5"/>
-          <circle cx="550" cy="85"  r="1.5" fill="white" opacity=".7"/>
-          <circle cx="590" cy="70"  r="1"   fill="white" opacity=".6"/>
-          <circle cx="630" cy="100" r="1.5" fill="white" opacity=".9"/>
-          <circle cx="570" cy="120" r="1"   fill="white" opacity=".5"/>
-          <!-- 月亮 -->
-          <circle cx="640" cy="88" r="18" fill="#F0E090" opacity=".85"/>
-          <circle cx="648" cy="82" r="14" fill="url(#winG)" opacity=".9"/>
-          <!-- 窗台 -->
-          <rect x="320" y="248" width="360" height="10" fill="#6B4220"/>
-          <!-- 窗內反光 -->
-          <rect x="332" y="60" width="12" height="182" fill="white" opacity=".04"/>
-
-          <!-- ── 右書架 (690-1000) ── -->
-          <rect x="690" y="42" width="310" height="210" fill="#5A3810"/>
-          <rect x="700" y="50" width="290" height="195" fill="#2A1808"/>
-          <rect x="700" y="98"  width="290" height="7" fill="#6B4220"/><rect x="700" y="99"  width="290" height="2" fill="#7A5030"/>
-          <rect x="700" y="148" width="290" height="7" fill="#6B4220"/><rect x="700" y="149" width="290" height="2" fill="#7A5030"/>
-          <rect x="700" y="198" width="290" height="7" fill="#6B4220"/><rect x="700" y="199" width="290" height="2" fill="#7A5030"/>
-          <g id="rb1"></g>
-          <g id="rb2"></g>
-          <g id="rb3"></g>
-
-          <!-- ── 地板 ── -->
-          <rect x="0" y="252" width="1000" height="88" fill="url(#floorG)"/>
-          <!-- 地板木紋 -->
-          <line x1="0" y1="268" x2="1000" y2="268" stroke="#2A1606" stroke-width="2"/>
-          <line x1="0" y1="284" x2="1000" y2="284" stroke="#2A1606" stroke-width="2"/>
-          <line x1="0" y1="300" x2="1000" y2="300" stroke="#2A1606" stroke-width="2"/>
-          <line x1="0" y1="316" x2="1000" y2="316" stroke="#2A1606" stroke-width="1.5"/>
-          <!-- 地板板縫 -->
-          <line x1="120" y1="252" x2="80"  y2="340" stroke="#2A1606" stroke-width="1.5"/>
-          <line x1="280" y1="252" x2="240" y2="340" stroke="#2A1606" stroke-width="1.5"/>
-          <line x1="440" y1="252" x2="400" y2="340" stroke="#2A1606" stroke-width="1.5"/>
-          <line x1="600" y1="252" x2="560" y2="340" stroke="#2A1606" stroke-width="1.5"/>
-          <line x1="760" y1="252" x2="720" y2="340" stroke="#2A1606" stroke-width="1.5"/>
-          <line x1="920" y1="252" x2="880" y2="340" stroke="#2A1606" stroke-width="1.5"/>
-
-          <!-- 閱讀桌 -->
-          <rect x="60"  y="275" width="200" height="50" rx="4" fill="#5A3810"/>
-          <rect x="60"  y="270" width="200" height="10" rx="3" fill="#7A5028"/>
-          <rect x="400" y="275" width="200" height="50" rx="4" fill="#5A3810"/>
-          <rect x="400" y="270" width="200" height="10" rx="3" fill="#7A5028"/>
-          <rect x="740" y="275" width="200" height="50" rx="4" fill="#5A3810"/>
-          <rect x="740" y="270" width="200" height="10" rx="3" fill="#7A5028"/>
-          <!-- 桌上小燈 -->
-          <circle cx="240" cy="268" r="5" fill="#FFE060" opacity=".7"/>
-          <ellipse cx="240" cy="268" rx="25" ry="12" fill="#FFD060" opacity=".15"/>
-          <circle cx="580" cy="268" r="5" fill="#FFE060" opacity=".7"/>
-          <ellipse cx="580" cy="268" rx="25" ry="12" fill="#FFD060" opacity=".15"/>
-          <circle cx="920" cy="268" r="5" fill="#FFE060" opacity=".7"/>
-          <ellipse cx="920" cy="268" rx="25" ry="12" fill="#FFD060" opacity=".15"/>
-        </svg>
+        <canvas id="room-canvas"></canvas>
       </div>
 
       <!-- 在線考生列表 -->
@@ -795,63 +695,206 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 </div>
 
 <script type="module">
-// ── 書架裝飾 (SVG <rect> 填入) ─────────────────────────────────────
-function buildShelf(){
-  const BOOK_COLORS=[
-    '#C23A3A','#8B5BBB','#2E7AAA','#3A9A5A','#C87A2A',
-    '#AA3B6A','#2A6BAA','#BB5B2A','#2A9A7A','#8B3BAA',
-    '#B85A2A','#3A7BAA','#AA3A3A','#2AAA5A','#BB7A2A',
-    '#7A2ABB','#2AAABB','#BB2A2A','#2ABB7A','#AA7A2A',
-  ];
-  // shelf rows: [groupId, startX, shelfY_bottom, shelfWidth]
-  const ROWS=[
-    ['lb1', 12, 97,  286],
-    ['lb2', 12, 147, 286],
-    ['lb3', 12, 197, 286],
-    ['rb1',702, 97,  286],
-    ['rb2',702, 147, 286],
-    ['rb3',702, 197, 286],
-  ];
-  const NS='http://www.w3.org/2000/svg';
-  let seed=42;
-  const rng=()=>{ seed=Math.imul(seed,1664525)+1013904223>>>0; return seed/0x100000000; };
-  ROWS.forEach(([gid,startX,shelfY,shelfW])=>{
-    const g=document.getElementById(gid);
-    if(!g)return;
-    g.innerHTML='';
-    let x=startX+2;
-    let i=0;
-    while(x<startX+shelfW-4){
-      const c=BOOK_COLORS[(i+Math.floor(shelfY/40)*7)%BOOK_COLORS.length];
-      const w=10+Math.round(rng()*10);       // 10-20 px wide
-      const h=28+Math.round(rng()*20);       // 28-48 px tall
-      if(x+w>startX+shelfW-4) break;
-      // spine
-      const rect=document.createElementNS(NS,'rect');
-      rect.setAttribute('x',x);
-      rect.setAttribute('y',shelfY-h-1);
-      rect.setAttribute('width',w);
-      rect.setAttribute('height',h);
-      rect.setAttribute('fill',c);
-      rect.setAttribute('rx','1');
-      g.appendChild(rect);
-      // highlight stripe
-      const hi=document.createElementNS(NS,'rect');
-      hi.setAttribute('x',x+1);
-      hi.setAttribute('y',shelfY-h-1);
-      hi.setAttribute('width',Math.max(2,Math.round(w*0.25)));
-      hi.setAttribute('height',h);
-      hi.setAttribute('fill','rgba(255,255,255,.12)');
-      hi.setAttribute('rx','1');
-      g.appendChild(hi);
-      // narrow gap between books
-      x+=w+1+Math.round(rng()*2);
-      i++;
-    }
+// ── Minecraft 等角 3D 圖書館場景 ──────────────────────────────────────
+
+const TW = 40, TH = 20, BH = 22; // tile width, half-height, block height
+
+const MC = {
+  bookshelf_top:   '#574025',
+  bookshelf_left:  '#3D2A15',
+  bookshelf_right: '#4A3118',
+  book_colors: ['#B02020','#2050B0','#20A030','#C09020','#7020B0','#B07020','#20A0A0','#B03060','#508020','#C04040'],
+  oak_top:   '#BC9862', oak_left: '#8B6B3E', oak_right: '#A37848',
+  stone_top: '#7A7A7A', stone_left: '#4A4A4A', stone_right: '#5E5E5E',
+  torch_stick: '#5C3D1E',
+  torch_fire: '#FF6B00', torch_bright: '#FFDD00',
+};
+
+function isoXY(bx, by, bz, offX, offY) {
+  return {
+    x: offX + (bx - by) * TW / 2,
+    y: offY + (bx + by) * TH / 2 - bz * BH
+  };
+}
+
+function drawTopFace(ctx, bx, by, bz, color, offX, offY) {
+  const {x, y} = isoXY(bx, by, bz, offX, offY);
+  ctx.beginPath();
+  ctx.moveTo(x,        y       );
+  ctx.lineTo(x+TW/2,   y+TH/2 );
+  ctx.lineTo(x,        y+TH   );
+  ctx.lineTo(x-TW/2,   y+TH/2 );
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+function drawLeftFace(ctx, bx, by, bz, color, offX, offY) {
+  const {x, y} = isoXY(bx, by, bz, offX, offY);
+  ctx.beginPath();
+  ctx.moveTo(x-TW/2, y+TH/2    );
+  ctx.lineTo(x,      y+TH      );
+  ctx.lineTo(x,      y+TH+BH   );
+  ctx.lineTo(x-TW/2, y+TH/2+BH );
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+function drawRightFace(ctx, bx, by, bz, color, offX, offY) {
+  const {x, y} = isoXY(bx, by, bz, offX, offY);
+  ctx.beginPath();
+  ctx.moveTo(x,      y+TH      );
+  ctx.lineTo(x+TW/2, y+TH/2   );
+  ctx.lineTo(x+TW/2, y+TH/2+BH);
+  ctx.lineTo(x,      y+TH+BH   );
+  ctx.closePath();
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+function drawBlock(ctx, bx, by, bz, type, offX, offY) {
+  drawTopFace  (ctx, bx, by, bz, MC[type+'_top'],   offX, offY);
+  drawLeftFace (ctx, bx, by, bz, MC[type+'_left'],  offX, offY);
+  drawRightFace(ctx, bx, by, bz, MC[type+'_right'], offX, offY);
+  if (type === 'bookshelf') drawBookshelfTexture(ctx, bx, by, bz, offX, offY);
+}
+
+function drawBookshelfTexture(ctx, bx, by, bz, offX, offY) {
+  const {x, y} = isoXY(bx, by, bz, offX, offY);
+  const bColors = MC.book_colors;
+  const topStrip = 3, botStrip = 3;
+  const faceH = BH;
+  const midH = faceH - topStrip - botStrip;
+
+  // 左臉書脊
+  for (let i = 0; i < 6; i++) {
+    const t = i / 6;
+    const t2 = (i+1) / 6;
+    const col = bColors[i % bColors.length];
+    const lx1 = x - TW/2 + t * TW/2,  ly1 = y + TH/2 + t * TH/2;
+    const lx2 = x - TW/2 + t2 * TW/2, ly2 = y + TH/2 + t2 * TH/2;
+    ctx.beginPath();
+    ctx.moveTo(lx1, ly1 + topStrip);
+    ctx.lineTo(lx2, ly2 + topStrip);
+    ctx.lineTo(lx2, ly2 + topStrip + midH);
+    ctx.lineTo(lx1, ly1 + topStrip + midH);
+    ctx.closePath();
+    ctx.fillStyle = col;
+    ctx.fill();
+  }
+  // 右臉書脊
+  for (let i = 0; i < 6; i++) {
+    const t = i / 6;
+    const t2 = (i+1) / 6;
+    const col = bColors[(i + 3) % bColors.length];
+    const rx1 = x + t * TW/2,      ry1 = y + TH - t * TH/2;
+    const rx2 = x + t2 * TW/2,     ry2 = y + TH - t2 * TH/2;
+    ctx.beginPath();
+    ctx.moveTo(rx1, ry1 + topStrip);
+    ctx.lineTo(rx2, ry2 + topStrip);
+    ctx.lineTo(rx2, ry2 + topStrip + midH);
+    ctx.lineTo(rx1, ry1 + topStrip + midH);
+    ctx.closePath();
+    ctx.fillStyle = col;
+    ctx.fill();
+  }
+}
+
+function drawTorch(ctx, bx, by, bz, offX, offY, phase) {
+  const {x, y} = isoXY(bx, by, bz, offX, offY);
+  const cx = x, cy = y + TH / 2;
+
+  // 光暈
+  const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, 18);
+  const alpha = 0.15 + 0.08 * Math.sin(phase * 3);
+  glow.addColorStop(0, `rgba(255,150,0,${alpha})`);
+  glow.addColorStop(1, 'rgba(255,150,0,0)');
+  ctx.fillStyle = glow;
+  ctx.fillRect(cx - 18, cy - 18, 36, 36);
+
+  // 火把棍
+  ctx.fillStyle = MC.torch_stick;
+  ctx.fillRect(cx - 1, cy - 6, 2, 10);
+
+  // 火焰
+  const flicker = 1 + 0.2 * Math.sin(phase * 5);
+  const fh = 5 * flicker;
+  const fireGrad = ctx.createLinearGradient(cx, cy - 6, cx, cy - 6 - fh);
+  fireGrad.addColorStop(0, MC.torch_fire);
+  fireGrad.addColorStop(1, MC.torch_bright);
+  ctx.fillStyle = fireGrad;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy - 6 - fh/2, 2.5, fh/2, 0, 0, Math.PI*2);
+  ctx.fill();
+}
+
+function drawScene(ctx, canvas, torchPhase) {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  const W = canvas.width, H = canvas.height;
+  const offX = W / 2, offY = H * 0.35;
+
+  // 背景漸層
+  const bg = ctx.createLinearGradient(0, 0, 0, H);
+  bg.addColorStop(0, '#0D0904');
+  bg.addColorStop(1, '#1A1208');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // 地板 Oak Planks (bz=0, 6×5 區域)
+  for (let bx = 0; bx <= 5; bx++)
+    for (let by = 0; by <= 4; by++)
+      drawBlock(ctx, bx, by, 0, 'oak', offX, offY);
+
+  // 後牆 Stone (by=0, bx=0..7, bz=1..3)
+  for (let bx = 0; bx <= 7; bx++)
+    for (let bz = 1; bz <= 3; bz++)
+      drawBlock(ctx, bx, 0, bz, 'stone', offX, offY);
+
+  // 書架（後牆前一格 by=1, bz=1..2）
+  for (let bx = 0; bx <= 7; bx++)
+    for (let bz = 1; bz <= 2; bz++)
+      drawBlock(ctx, bx, 1, bz, 'bookshelf', offX, offY);
+
+  // 左側牆書架 (bx=0, by=2..4, bz=1..2)
+  for (let by = 2; by <= 4; by++)
+    for (let bz = 1; bz <= 2; bz++)
+      drawBlock(ctx, 0, by, bz, 'bookshelf', offX, offY);
+
+  // 火把（書架上方 bz=3，等距分佈）
+  const torchPositions = [{bx:1,by:1},{bx:3,by:1},{bx:5,by:1},{bx:7,by:1}];
+  torchPositions.forEach((tp, i) => {
+    drawTorch(ctx, tp.bx, tp.by, 3, offX, offY, torchPhase + i * Math.PI * 0.6);
   });
 }
-// ES module defer + requestAnimationFrame 確保 layout 已完成
-requestAnimationFrame(()=>requestAnimationFrame(buildShelf));
+
+let torchPhase = 0;
+let animRAF = null;
+
+function startSceneAnimation(canvas) {
+  const ctx = canvas.getContext('2d');
+  function loop() {
+    torchPhase += 0.06;
+    drawScene(ctx, canvas, torchPhase);
+    animRAF = requestAnimationFrame(loop);
+  }
+  if (animRAF) cancelAnimationFrame(animRAF);
+  animRAF = requestAnimationFrame(loop);
+}
+
+function stopSceneAnimation() {
+  if (animRAF) { cancelAnimationFrame(animRAF); animRAF = null; }
+}
+
+function resizeCanvas() {
+  const canvas = document.getElementById('room-canvas');
+  const wrap = document.getElementById('lib-scene-wrap');
+  if (!canvas || !wrap) return;
+  canvas.width  = wrap.clientWidth;
+  canvas.height = Math.min(260, Math.max(160, wrap.clientWidth * 0.28));
+  drawScene(canvas.getContext('2d'), canvas, torchPhase);
+}
+window.addEventListener('resize', resizeCanvas);
 
 // ── 設定 ──────────────────────────────────────────────────────────────
 const SUPABASE_URL  = 'https://azyougvutvbladgzdiar.supabase.co';
@@ -959,7 +1002,8 @@ function enter(){
   myKey = `user_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
   document.getElementById('entry').style.display = 'none';
   document.getElementById('room').style.display  = 'flex';
-  requestAnimationFrame(buildShelf);
+  resizeCanvas();
+  startSceneAnimation(document.getElementById('room-canvas'));
   if(isMember) initNote();
   startPresence(name, subject);
 }
