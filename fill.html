@@ -283,6 +283,16 @@
 
   /* ── Wave 62: 鍵盤提示徽章 ── */
   #kb-hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(26,46,61,0.85);color:#8899aa;font-size:12px;padding:5px 14px;border-radius:12px;pointer-events:none;transition:opacity 0.5s;z-index:100;font-family:var(--mono);letter-spacing:.06em;}
+
+  /* ── Wave 93: 每日填空挑戰 ── */
+  #btnFillDaily {
+    padding: 7px 15px; border-radius: 16px;
+    background: rgba(10,20,40,0.7);
+    border: 1px solid #4a7fff; color: #8ab4ff;
+    font-size: 14px; cursor: pointer; transition: all 0.2s;
+  }
+  #btnFillDaily.done { border-color: #44cc88; color: #66ddaa; }
+  #fill-daily-badge { font-size: 11px; color: #44cc88; margin-left: 4px; display: none; }
 </style>
 </head>
 <body>
@@ -320,6 +330,8 @@
       <button id="btnNext" class="btn btn-sec" style="padding:8px 16px;font-size:13px">換一條</button>
       <button id="btnFillSession" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(91,175,214,0.15);border-color:rgba(91,175,214,0.6)">⚡ 連刷模式</button>
       <button onclick="openFillStats()" title="個人填空統計" style="background:none;border:1px solid rgba(91,175,214,0.3);color:#5BAFD6;border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">📊</button>
+      <button id="btnFillDaily" onclick="startFillDailyChallenge()">📅 今日填空</button>
+      <span id="fill-daily-badge"></span>
     </div>
     <div class="pr-meta">
       <div class="seg">已填 <b id="filled">— / —</b></div>
@@ -648,6 +660,32 @@ let _sessionStats = [];   // Wave 40: per-article stats
 let _currentHintUsed = false;
 let _fillStreak = 0;      // Wave 87: consecutive perfect-fill streak
 
+// Wave 93: 每日填空挑戰
+const _fillToday = new Date().toISOString().slice(0,10);
+const _fillDailyKey = 'sofa_fill_daily_' + _fillToday;
+let _isFillDailyMode = false;
+
+function _getFillDailyResult() {
+  try { return JSON.parse(localStorage.getItem(_fillDailyKey)||'null'); } catch { return null; }
+}
+function _updateFillDailyBtn() {
+  const btn = document.getElementById('btnFillDaily');
+  const badge = document.getElementById('fill-daily-badge');
+  if (!btn) return;
+  const r = _getFillDailyResult();
+  if (r) {
+    btn.classList.add('done');
+    if (badge) { badge.textContent = `✅ ${r.pct}%`; badge.style.display='inline'; }
+  } else {
+    btn.classList.remove('done');
+    if (badge) badge.style.display='none';
+  }
+}
+function startFillDailyChallenge() {
+  _isFillDailyMode = true;
+  startFillSession(5);
+}
+
 // Wave 55: cumulative fill stats (localStorage)
 const FILL_STATS_KEY = 'sofa_fill_stats_v1';
 function _loadFillStats() { try { return JSON.parse(localStorage.getItem(FILL_STATS_KEY) || '{}'); } catch(e){ return {}; } }
@@ -704,6 +742,14 @@ function showFillResults() {
   const correctBlanks = _sessionStats.reduce((s,a)=>s+a.correctBlanks,0);
   const cleanCount = _sessionStats.filter(a=>!a.usedHint && a.correctBlanks===a.totalBlanks).length;
   const pct = totalBlanks > 0 ? Math.round(correctBlanks/totalBlanks*100) : 0;
+  // Wave 93: save daily challenge result
+  if (_isFillDailyMode && _sessionStats.length > 0) {
+    const totalCorrect = correctBlanks;
+    const pctSave = pct;
+    localStorage.setItem(_fillDailyKey, JSON.stringify({pct: pctSave, articles: _sessionStats.length}));
+    _updateFillDailyBtn();
+    _isFillDailyMode = false;
+  }
   const emoji = pct >= 80 ? '🎉' : pct >= 60 ? '💪' : '📖';
   document.getElementById('fill-res-score').textContent = correctBlanks + ' / ' + totalBlanks + ' 格';
   document.getElementById('fill-res-sub').textContent = emoji + '  答對率 ' + pct + '%　全對無提示: ' + cleanCount + '/' + total + ' 篇';
@@ -1229,6 +1275,9 @@ setTimeout(() => {
     setTimeout(() => h?.remove(), 500);
   }
 }, 4000);
+
+// Wave 93: init daily challenge button state on page load
+_updateFillDailyBtn();
 </script>
 <!-- Wave 40: Fill session results modal -->
 <div id="fill-results" style="display:none; position:fixed; inset:0; background:rgba(4,13,20,0.95); z-index:200; overflow-y:auto; padding:24px 16px;">
