@@ -1760,6 +1760,36 @@ function formatSection(text){
   return out;
 }
 
+/* ── Wave 76: per-section collapse with localStorage ── */
+var SEC_PREFS_KEY = 'sofa_sec_prefs';
+function _getSecPrefs(){ try{ return JSON.parse(localStorage.getItem(SEC_PREFS_KEY)||'{}'); }catch(e){ return {}; } }
+
+function _toggleAccItem(el){
+  el.classList.toggle('open');
+  var seg = el.dataset.seg;
+  if(seg){
+    var p = _getSecPrefs();
+    p['§'+seg] = el.classList.contains('open'); // true = expanded
+    localStorage.setItem(SEC_PREFS_KEY, JSON.stringify(p));
+  }
+}
+
+function _initSectionToggle(containerEl){
+  var prefs = _getSecPrefs();
+  containerEl.querySelectorAll('.acc-item:not(.locked)').forEach(function(item){
+    var seg = item.dataset.seg;
+    if(!seg) return;
+    var key = '§' + seg;
+    if(key in prefs){
+      // Restore saved state: prefs[key]=true → open, false → collapsed
+      if(prefs[key]){ item.classList.add('open'); }
+      else { item.classList.remove('open'); }
+    }
+    // Default: seg===1 is open (already set in innerHTML), others closed
+  });
+}
+/* ──────────────────────────────────────────────────── */
+
 function searchAndOpen(lawName, artNum){
   fetch(API + '/api/articles?law=' + encodeURIComponent(lawName))
     .then(function(r){ return r.ok ? r.json() : null; })
@@ -1835,7 +1865,7 @@ function _renderDrawer(d){
         + '<div class="acc-locked-cta">🔒 升級解鎖完整內容<a href="checkout.html">查看方案 →</a></div>'
         + '</div></div>';
     } else if(text){
-      accHtml += '<div class="acc-item'+(seg===1?' open':'')+'" data-seg="'+seg+'" onclick="this.classList.toggle(\'open\')">'
+      accHtml += '<div class="acc-item'+(seg===1?' open':'')+'" data-seg="'+seg+'" onclick="_toggleAccItem(this)">'
         + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span><span class="ttl">'+name+'</span></div>'
         + '<div class="acc-body"><div class="acc-inner">'
         + formatSection(text)
@@ -1854,6 +1884,7 @@ function _renderDrawer(d){
     + '</div>'
     + origHtml
     + accHtml;
+  _initSectionToggle(body);
 }
 
 function _renderDrawerFallback(lawName, article){
