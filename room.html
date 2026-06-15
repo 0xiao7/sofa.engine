@@ -748,6 +748,7 @@ let _lightShafts = [];
 let _ceilStars = [];
 let _moonSprite = null;
 let _shootingStars = [];
+let _steamWisps = [];
 let _nextShootTime = 0;
 let _studyRings = [];
 let _countSignTex = null, _countSignCtx = null;
@@ -924,6 +925,18 @@ function _starTex(r) {
   g.addColorStop(0,'rgba(255,255,240,1)');
   g.addColorStop(0.25,'rgba(200,220,255,0.8)');
   g.addColorStop(1,'rgba(150,180,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,32,32);
+  return new THREE.CanvasTexture(c);
+}
+
+function _steamTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 32;
+  const ctx = c.getContext('2d');
+  const g = ctx.createRadialGradient(16,16,0, 16,16,14);
+  g.addColorStop(0,'rgba(230,230,240,0.7)');
+  g.addColorStop(0.5,'rgba(210,215,230,0.3)');
+  g.addColorStop(1,'rgba(200,210,230,0)');
   ctx.fillStyle = g;
   ctx.fillRect(0,0,32,32);
   return new THREE.CanvasTexture(c);
@@ -1503,6 +1516,34 @@ function initThreeScene(canvas) {
     _moonSprite.position.set(-7.5, 5.3, -8.5);
     _threeScene.add(_moonSprite);
     _nextShootTime = Date.now() + 45000 + Math.random()*45000;
+  }
+
+  // Coffee steam wisps
+  {
+    const stm = _steamTex();
+    const coffeeDeskXZ = [[-5,-3],[-5,0],[-3,-5]]; // deskIdx%4===0
+    coffeeDeskXZ.forEach(([dx,dz]) => {
+      for(let wi=0; wi<3; wi++){
+        const wm = new THREE.SpriteMaterial({
+          map: stm, transparent: true, opacity: 0,
+          depthWrite: false,
+        });
+        const ws = new THREE.Sprite(wm);
+        const scale = 0.10 + Math.random()*0.08;
+        ws.scale.set(scale, scale*1.4, 1);
+        // Stagger start heights so they don't all rise together
+        const startY = 0.82 + wi * 0.28;
+        ws.position.set(dx + (Math.random()-0.5)*0.2, startY, dz + (Math.random()-0.5)*0.2);
+        ws.userData.baseX = ws.position.x;
+        ws.userData.baseZ = ws.position.z;
+        ws.userData.startY = 0.82;
+        ws.userData.topY   = 1.55;
+        ws.userData.speed  = 0.003 + Math.random()*0.002;
+        ws.userData.phase  = Math.random()*Math.PI*2;
+        _threeScene.add(ws);
+        _steamWisps.push(ws);
+      }
+    });
   }
 
   // Diagonal branches
@@ -2415,6 +2456,21 @@ function startThreeAnimation(canvas) {
         _shootingStars.splice(shi,1);
       }
     }
+    // Coffee steam
+    _steamWisps.forEach(w => {
+      w.position.y += w.userData.speed;
+      w.position.x = w.userData.baseX + 0.06*Math.sin(_threeTime*1.5 + w.userData.phase);
+      // Fade: in from 0→0.3 of travel, hold, out from 0.7→1.0
+      const t = (w.position.y - w.userData.startY) / (w.userData.topY - w.userData.startY);
+      if(t < 0.3) w.material.opacity = (t/0.3)*0.55;
+      else if(t < 0.7) w.material.opacity = 0.55;
+      else w.material.opacity = Math.max(0, 0.55*(1-(t-0.7)/0.3));
+      if(w.position.y >= w.userData.topY){
+        w.position.y = w.userData.startY;
+        w.position.x = w.userData.baseX + (Math.random()-0.5)*0.15;
+        w.material.opacity = 0;
+      }
+    });
     // Foliage sway (gentle wind effect)
     _foliageMeshes.forEach(f => {
       f.mesh.rotation.z = Math.sin(_threeTime * 0.35 + f.phase) * f.amp;
