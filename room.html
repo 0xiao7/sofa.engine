@@ -139,6 +139,12 @@ main{display:flex;flex:1;gap:0;min-height:0;}
   background:radial-gradient(ellipse 60% 40% at 50% 30%,rgba(91,175,214,.07) 0%,transparent 70%);
   pointer-events:none;
 }
+#dpad{position:absolute;bottom:10px;right:10px;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0.7;}
+#dpad:hover{opacity:1;}
+.dp{width:32px;height:32px;background:rgba(26,46,61,0.85);color:#5BAFD6;border:1px solid #2D7DA8;border-radius:6px;font-size:13px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;}
+.dp:active{background:#1A2E3D;transform:scale(0.92);}
+#dpad-hint{position:absolute;bottom:8px;left:10px;font-size:10px;color:rgba(91,175,214,0.5);letter-spacing:.03em;}
+@media(min-width:600px){#dpad{display:none;}#dpad-hint{display:none;}}
 
 /* 分隔線 */
 .room-floor-label{
@@ -515,6 +521,15 @@ input[type=text], select, .btn-enter {
       <!-- 等角圖書館場景 Canvas -->
       <div id="lib-scene-wrap">
         <canvas id="room-canvas"></canvas>
+        <div id="dpad">
+          <button class="dp" onclick="tryMovePlayer(0,-1)">▲</button>
+          <div style="display:flex;gap:4px;">
+            <button class="dp" onclick="tryMovePlayer(-1,0)">◀</button>
+            <button class="dp" onclick="tryMovePlayer(0,1)">▼</button>
+            <button class="dp" onclick="tryMovePlayer(1,0)">▶</button>
+          </div>
+        </div>
+        <div id="dpad-hint">方向鍵 / WASD 移動</div>
       </div>
 
       <!-- 在線考生列表 -->
@@ -805,6 +820,44 @@ function drawBookshelfTexture(ctx, bx, by, bz, offX, offY) {
   }
 }
 
+function drawPlayer(ctx, bx, by, offX, offY) {
+  const PW = TW * 0.55, PH = TH * 0.55, PBH = BH * 0.85;
+  const {x, y} = isoXY(bx, by, 1, offX, offY);
+  const ox = x, oy = y + TH * 0.22;
+  // top
+  ctx.beginPath();
+  ctx.moveTo(ox,        oy       );
+  ctx.lineTo(ox+PW/2,   oy+PH/2 );
+  ctx.lineTo(ox,        oy+PH   );
+  ctx.lineTo(ox-PW/2,   oy+PH/2 );
+  ctx.closePath();
+  ctx.fillStyle = '#5BAFD6';
+  ctx.fill();
+  // left
+  ctx.beginPath();
+  ctx.moveTo(ox-PW/2, oy+PH/2    );
+  ctx.lineTo(ox,      oy+PH      );
+  ctx.lineTo(ox,      oy+PH+PBH  );
+  ctx.lineTo(ox-PW/2, oy+PH/2+PBH);
+  ctx.closePath();
+  ctx.fillStyle = '#2D7DA8';
+  ctx.fill();
+  // right
+  ctx.beginPath();
+  ctx.moveTo(ox,      oy+PH      );
+  ctx.lineTo(ox+PW/2, oy+PH/2   );
+  ctx.lineTo(ox+PW/2, oy+PH/2+PBH);
+  ctx.lineTo(ox,      oy+PH+PBH  );
+  ctx.closePath();
+  ctx.fillStyle = '#3D8DB8';
+  ctx.fill();
+  // face dot
+  ctx.fillStyle = '#FFDD99';
+  ctx.beginPath();
+  ctx.arc(ox - PW*0.15, oy + PH*0.6 + PBH*0.35, 2.5, 0, Math.PI*2);
+  ctx.fill();
+}
+
 function drawTorch(ctx, bx, by, bz, offX, offY, phase) {
   const {x, y} = isoXY(bx, by, bz, offX, offY);
   const cx = x, cy = y + TH / 2;
@@ -870,14 +923,48 @@ function drawScene(ctx, canvas, torchPhase) {
   torchPositions.forEach((tp, i) => {
     drawTorch(ctx, tp.bx, tp.by, 3, offX, offY, torchPhase + i * Math.PI * 0.6);
   });
+
+  drawPlayer(ctx, player.bx, player.by, offX, offY);
 }
 
 let torchPhase = 0;
 let animRAF = null;
 
+// ── 玩家走動系統 ──────────────────────────────────────────────────────
+let player = { bx: 3, by: 3 };
+const _keys = {};
+document.addEventListener('keydown', e => {
+  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(e.key)) e.preventDefault();
+  _keys[e.key] = true;
+});
+document.addEventListener('keyup', e => { delete _keys[e.key]; });
+
+let _lastMove = 0;
+function isWalkable(bx, by) {
+  if (bx < 0 || bx > 5 || by < 0 || by > 4) return false;
+  if (by === 1) return false;
+  if (bx === 0 && by >= 2) return false;
+  return true;
+}
+function tryMovePlayer(dx, dy) {
+  const nx = player.bx + dx, ny = player.by + dy;
+  if (isWalkable(nx, ny)) { player.bx = nx; player.by = ny; }
+}
+window.tryMovePlayer = tryMovePlayer;
+function processInput(now) {
+  if (now - _lastMove < 220) return;
+  let dx = 0, dy = 0;
+  if (_keys['ArrowUp']    || _keys['w'] || _keys['W']) dy = -1;
+  else if (_keys['ArrowDown']  || _keys['s'] || _keys['S']) dy = 1;
+  else if (_keys['ArrowLeft']  || _keys['a'] || _keys['A']) dx = -1;
+  else if (_keys['ArrowRight'] || _keys['d'] || _keys['D']) dx = 1;
+  if (dx || dy) { tryMovePlayer(dx, dy); _lastMove = now; }
+}
+
 function startSceneAnimation(canvas) {
   const ctx = canvas.getContext('2d');
-  function loop() {
+  function loop(now) {
+    processInput(now);
     torchPhase += 0.06;
     drawScene(ctx, canvas, torchPhase);
     animRAF = requestAnimationFrame(loop);
@@ -899,6 +986,24 @@ function resizeCanvas() {
   drawScene(canvas.getContext('2d'), canvas, torchPhase);
 }
 window.addEventListener('resize', resizeCanvas);
+
+// 手機滑動控制
+(function() {
+  let _tx = 0, _ty = 0;
+  const el = () => document.getElementById('room-canvas');
+  document.addEventListener('touchstart', e => {
+    if (e.target !== el()) return;
+    _tx = e.touches[0].clientX; _ty = e.touches[0].clientY;
+  }, {passive:true});
+  document.addEventListener('touchend', e => {
+    if (e.target !== el()) return;
+    const dx = e.changedTouches[0].clientX - _tx;
+    const dy = e.changedTouches[0].clientY - _ty;
+    if (Math.abs(dx) < 20 && Math.abs(dy) < 20) return;
+    if (Math.abs(dx) > Math.abs(dy)) tryMovePlayer(dx > 0 ? 1 : -1, 0);
+    else tryMovePlayer(0, dy > 0 ? 1 : -1);
+  }, {passive:true});
+})();
 
 // ── 設定 ──────────────────────────────────────────────────────────────
 const SUPABASE_URL  = 'https://azyougvutvbladgzdiar.supabase.co';
