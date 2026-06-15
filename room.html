@@ -523,6 +523,25 @@ input[type=text], select, .btn-enter {
 #greet-overlay.visible { opacity: 1; }
 #greet-main { font-size: 2rem; font-weight: 700; color: #e8d5a0; letter-spacing: 0.05em; margin-bottom: 10px; }
 #greet-sub { font-size: 1rem; color: #8899aa; }
+/* Wave 66 — rain-on-glass streaks (night mode overlay) */
+#rain-glass {
+  position: fixed; top: 0; left: 0; right: 0; height: 120px;
+  pointer-events: none; z-index: 50; opacity: 0;
+  transition: opacity 2s ease;
+}
+#rain-glass.active { opacity: 1; }
+.rg-streak {
+  position: absolute; top: 0; width: 1px;
+  background: linear-gradient(180deg, rgba(180,210,255,0.55) 0%, rgba(180,210,255,0) 100%);
+  border-radius: 1px;
+  animation: rgDrop linear infinite;
+}
+@keyframes rgDrop {
+  0%   { transform: translateY(-100%); opacity: 0; }
+  10%  { opacity: 1; }
+  80%  { opacity: 0.6; }
+  100% { transform: translateY(200px); opacity: 0; }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 </head>
@@ -2748,6 +2767,31 @@ function _showGreeting() {
   }, 2200);
 }
 
+// Wave 66 — rain-on-glass overlay helpers
+function _buildRainGlass() {
+  const wrap = document.createElement('div');
+  wrap.id = 'rain-glass';
+  for (let i = 0; i < 22; i++) {
+    const s = document.createElement('div');
+    s.className = 'rg-streak';
+    s.style.left = (Math.random() * 100) + '%';
+    s.style.height = (40 + Math.random() * 70) + 'px';
+    s.style.animationDuration = (1.2 + Math.random() * 2.5) + 's';
+    s.style.animationDelay = (-Math.random() * 3) + 's';
+    s.style.width = (Math.random() < 0.3 ? 2 : 1) + 'px';
+    wrap.appendChild(s);
+  }
+  document.body.appendChild(wrap);
+  return wrap;
+}
+function _updateRainGlass() {
+  const h = new Date().getHours();
+  const isNight = h >= 21 || h < 6;
+  let el = document.getElementById('rain-glass');
+  if (!el) el = _buildRainGlass();
+  el.classList.toggle('active', isNight);
+}
+
 function startThreeAnimation(canvas) {
   const loaderEl = document.getElementById('three-loader');
   if(loaderEl){ loaderEl.style.opacity='1'; loaderEl.style.display='flex'; }
@@ -2799,6 +2843,8 @@ function startThreeAnimation(canvas) {
     if(Math.round(_threeTime*125) % 300 === 0 && _threeScene.fog){
       _threeScene.fog.density = tod.fogDensity;
     }
+    // Wave 66: update rain-glass once per ~60s (7500 ticks at 125 units/s)
+    if(Math.round(_threeTime*125) % 7500 === 0){ _updateRainGlass(); }
     // Avatar bob (body only — head/legs stay fixed)
     _userAvatarMeshes.forEach((m, i) => {
       m.position.y = 0.98 + 0.05 * Math.sin(_threeTime * 1.5 + i * 0.8);
@@ -3312,6 +3358,7 @@ function enter(){
   document.getElementById('room').style.display  = 'flex';
   resizeThreeCanvas();
   startThreeAnimation(document.getElementById('room-canvas'));
+  _updateRainGlass(); // Wave 66: set initial rain-glass state
   setTimeout(()=>_updateBoardNotes3D(),500);
   if(isMember) initNote();
   startPresence(name, subject);
