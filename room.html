@@ -754,6 +754,8 @@ let _shootingStars = [];
 let _steamWisps = [];
 let _nextShootTime = 0;
 let _studyRings = [];
+let _avatarBooks = [];
+let _nextBookSpawn = 0;
 let _countSignTex = null, _countSignCtx = null;
 let _quoteSignTex = null, _quoteSignCtx = null, _quoteSignMesh = null;
 let _quoteIdx = 0, _quoteLastSwap = 0;
@@ -1061,6 +1063,23 @@ function _mapleTex() {
   ctx.strokeStyle=`hsla(${hue-5},70%,40%,0.8)`; ctx.lineWidth=1.5;
   ctx.beginPath(); ctx.moveTo(0,14); ctx.lineTo(0,18); ctx.stroke();
   ctx.restore();
+  return new THREE.CanvasTexture(c);
+}
+
+function _bookTex() {
+  const c = document.createElement('canvas'); c.width = 28; c.height = 36;
+  const ctx = c.getContext('2d');
+  // Random cover color
+  const covers = ['#8B2252','#1A5276','#145A32','#784212','#4A235A'];
+  ctx.fillStyle = covers[Math.floor(Math.random()*covers.length)];
+  ctx.fillRect(1,0,27,36);
+  // Spine
+  ctx.fillStyle='rgba(0,0,0,0.3)'; ctx.fillRect(1,0,4,36);
+  // Pages edge
+  ctx.fillStyle='#F5F5DC'; ctx.fillRect(25,1,2,34);
+  // Title lines
+  ctx.fillStyle='rgba(255,255,255,0.6)';
+  [8,14,20].forEach(y=>{ ctx.fillRect(6,y,16,2); });
   return new THREE.CanvasTexture(c);
 }
 
@@ -2519,6 +2538,35 @@ function startThreeAnimation(canvas) {
       r.material.opacity = 0.5 + 0.45 * Math.sin(_threeTime * 3 + r.userData.phase);
       r.scale.setScalar(0.9 + 0.15 * Math.sin(_threeTime * 2.5 + r.userData.phase));
     });
+    // Avatar book reading micro-animation
+    const _bkNow = Date.now();
+    if(_userAvatarMeshes.length > 0 && _bkNow > _nextBookSpawn){
+      _nextBookSpawn = _bkNow + 8000 + Math.random()*7000;
+      const _bkIdx = Math.floor(Math.random()*_userAvatarMeshes.length);
+      const _bkAv = _userAvatarMeshes[_bkIdx];
+      if(_bkAv){
+        const bm = new THREE.SpriteMaterial({map:_bookTex(), transparent:true, opacity:0, depthWrite:false});
+        const bs = new THREE.Sprite(bm);
+        bs.scale.set(0.22, 0.28, 1);
+        bs.position.set(_bkAv.position.x + 0.28, _bkAv.position.y + 0.55, _bkAv.position.z + 0.1);
+        bs.userData.born = _bkNow;
+        bs.userData.life = 5500 + Math.random()*2000; // 5.5–7.5s
+        _threeScene.add(bs);
+        _avatarBooks.push(bs);
+      }
+    }
+    for(let bi=_avatarBooks.length-1; bi>=0; bi--){
+      const bk = _avatarBooks[bi];
+      const age = Date.now() - bk.userData.born;
+      const t = age / bk.userData.life;
+      if(t < 0.12) bk.material.opacity = (t/0.12)*0.92;
+      else if(t < 0.88) bk.material.opacity = 0.92;
+      else bk.material.opacity = Math.max(0, 0.92*(1-(t-0.88)/0.12));
+      if(t >= 1){
+        _threeScene.remove(bk);
+        _avatarBooks.splice(bi,1);
+      }
+    }
     // Confetti burst particles
     for(let ci=_confettiParticles.length-1; ci>=0; ci--){
       const cp=_confettiParticles[ci];
