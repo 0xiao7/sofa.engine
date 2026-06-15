@@ -270,6 +270,18 @@
   }
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
+
+  /* ── 錯題本按鈕 ── */
+  #btnWrong.active{background:rgba(199,107,107,.25);font-weight:700}
+
+  /* ── 連刷 Session Modal 共用 ── */
+  .overlay-modal{
+    display:none;position:fixed;inset:0;z-index:300;
+    background:rgba(0,0,0,.65);
+    align-items:center;justify-content:center;
+  }
+  .overlay-modal.open{display:flex}
+
   .pr-chips{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 40px;background:var(--navy-2);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11.5px;letter-spacing:.08em}
   .pr-chips .lab{color:rgba(245,240,234,.4);text-transform:uppercase;margin-right:4px}
   .pr-chip{padding:6px 12px;border:1px solid var(--line-2);border-radius:100px;background:transparent;color:rgba(245,240,234,.55);cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.06em;transition:.18s}
@@ -315,6 +327,7 @@
           style="background:transparent;border:none;outline:none;font-family:var(--mono);font-size:14px;color:var(--cream);width:64px;cursor:text">
         <datalist id="artDatalist"></datalist>
       </div>
+      <button id="btnWrong" class="btn btn-ghost" style="padding:8px 14px;font-size:12px;border-color:var(--bad);color:var(--bad)">✗ 錯題本 <span id="wrongCount">0</span></button>
       <button id="btnNew" class="btn btn-sec" style="padding:8px 16px;font-size:13px">出題</button>
     </div>
     <div class="pr-meta">
@@ -322,6 +335,8 @@
       <div class="seg">正確 <b id="scoreRight" style="color:var(--good)">0</b></div>
       <div class="seg">錯誤 <b id="scoreWrong" style="color:var(--bad)">0</b></div>
       <div class="seg timer">TIMER <b id="topTimer">0:00</b></div>
+      <div class="seg" id="sessionProgressWrap" style="display:none">連刷 <b id="sessionProgress">0 / 0</b></div>
+      <button class="btn btn-sec" style="padding:6px 12px;font-size:11px" id="btnSetSession">📋 設題數</button>
     </div>
   </div>
   <div class="pr-chips">
@@ -399,6 +414,40 @@
 
     </div>
   </main>
+
+<!-- 設題數 Modal -->
+<div id="sessionModal" class="overlay-modal" role="dialog" aria-modal="true">
+  <div style="background:var(--navy-2);border:1px solid var(--line-2);border-radius:6px;padding:28px 32px;min-width:240px;text-align:center">
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--peach);margin-bottom:16px">選擇題數</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
+      <button class="btn btn-sec" onclick="startSession(10)">10 題</button>
+      <button class="btn btn-sec" onclick="startSession(20)">20 題</button>
+      <button class="btn btn-sec" onclick="startSession(50)">50 題</button>
+    </div>
+    <button class="btn btn-ghost" onclick="document.getElementById('sessionModal').classList.remove('open')">取消</button>
+  </div>
+</div>
+
+<!-- Session 結束報告 -->
+<div id="summaryOverlay" class="overlay-modal" role="dialog" aria-modal="true">
+  <div style="background:var(--navy-2);border:1px solid var(--peach);border-radius:8px;padding:36px 40px;min-width:300px;max-width:90vw;text-align:center">
+    <div style="font-family:var(--mono);font-size:10px;letter-spacing:.22em;color:var(--peach);margin-bottom:8px">SESSION COMPLETE</div>
+    <div id="sumTitle" style="font-family:var(--serif);font-size:1.5rem;color:var(--cream);margin-bottom:24px"></div>
+    <div style="display:flex;gap:28px;justify-content:center;margin-bottom:24px">
+      <div><div id="sumRight" style="font-family:var(--mono);font-size:2rem;color:var(--good)">0</div><div style="font-size:11px;color:rgba(245,240,234,.45);margin-top:4px">答對</div></div>
+      <div><div id="sumWrong" style="font-family:var(--mono);font-size:2rem;color:var(--bad)">0</div><div style="font-size:11px;color:rgba(245,240,234,.45);margin-top:4px">答錯</div></div>
+      <div><div id="sumAcc" style="font-family:var(--mono);font-size:2rem;color:var(--peach)">—</div><div style="font-size:11px;color:rgba(245,240,234,.45);margin-top:4px">命中率</div></div>
+    </div>
+    <div style="text-align:left;margin-bottom:20px;max-height:120px;overflow-y:auto">
+      <div style="font-size:10px;letter-spacing:.14em;color:var(--bad);margin-bottom:8px;text-transform:uppercase">弱點法規</div>
+      <div id="sumWeakLaws"></div>
+    </div>
+    <div style="display:flex;gap:12px;justify-content:center">
+      <button class="btn btn-pri" id="sumRestart">再來一輪</button>
+      <button class="btn btn-sec" onclick="window.location.href='dashboard.html'">回儀表板</button>
+    </div>
+  </div>
+</div>
 
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
@@ -565,6 +614,89 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
       if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
     });
   }
+}
+
+// ── 錯題本（localStorage 持久化）──────────────────────────────
+const WRONG_KEY = 'sofa_wrong_ids';
+const WRONG_MAX = 200;
+
+function loadWrongBank() {
+  try { return JSON.parse(localStorage.getItem(WRONG_KEY) || '[]'); }
+  catch { return []; }
+}
+function saveWrongBank(bank) {
+  localStorage.setItem(WRONG_KEY, JSON.stringify(bank.slice(-WRONG_MAX)));
+}
+function addToWrongBank(articleId, lawName, artTitle) {
+  if (!articleId) return;
+  const bank = loadWrongBank().filter(e => e.id !== articleId);
+  bank.push({ id: articleId, law: lawName || '', art: artTitle || '', ts: Date.now() });
+  saveWrongBank(bank);
+  refreshWrongCount();
+}
+function removeFromWrongBank(articleId) {
+  if (!articleId) return;
+  saveWrongBank(loadWrongBank().filter(e => e.id !== articleId));
+  refreshWrongCount();
+}
+function refreshWrongCount() {
+  const el = document.getElementById('wrongCount');
+  if (el) el.textContent = loadWrongBank().length;
+}
+
+// ── 連刷模式 ──────────────────────────────────────────────────
+let wrongMode = false;
+let _sessionMode = false, _sessionTotal = 0, _sessionDone = 0;
+
+function startSession(n) {
+  _sessionMode = true;
+  _sessionTotal = n;
+  _sessionDone = 0;
+  document.getElementById('sessionModal').classList.remove('open');
+  document.getElementById('sessionProgressWrap').style.display = '';
+  updateSessionProgress();
+  // 自動出第一題
+  setTimeout(() => { wrongMode ? loadWrongQuiz() : loadQuiz(); }, 50);
+}
+
+function updateSessionProgress() {
+  const el = document.getElementById('sessionProgress');
+  if (el) el.textContent = `${_sessionDone} / ${_sessionTotal}`;
+}
+
+function onAnswerDone(isCorrect) {
+  if (!_sessionMode) return;
+  _sessionDone++;
+  updateSessionProgress();
+  if (_sessionDone >= _sessionTotal) {
+    setTimeout(showSessionSummary, 700);
+  } else {
+    // 連刷：答完自動出下一題（延遲讓動畫/toast 跑完）
+    setTimeout(() => { wrongMode ? loadWrongQuiz() : loadQuiz(); }, 1200);
+  }
+}
+
+function showSessionSummary() {
+  const answeredN = right + wrong;
+  const acc = answeredN > 0 ? Math.round(right / answeredN * 100) : 0;
+  document.getElementById('sumAcc').textContent = acc + '%';
+  document.getElementById('sumRight').textContent = right;
+  document.getElementById('sumWrong').textContent = wrong;
+  document.getElementById('sumTitle').textContent =
+    acc >= 80 ? '太猛了 🎉' : acc >= 60 ? '繼續加油 💪' : '再多練幾次 📚';
+  // 顯示弱點法規（從本 session 錯題中取）
+  const bank = loadWrongBank();
+  const recent = bank.slice(-_sessionTotal);
+  const weakLaws = [...new Set(recent.map(e => e.law))].filter(Boolean);
+  const weakEl = document.getElementById('sumWeakLaws');
+  if (weakEl) {
+    weakEl.innerHTML = weakLaws.length
+      ? weakLaws.map(l => `<div style="padding:3px 0;border-bottom:1px dashed rgba(245,240,234,.1);font-size:13px">${esc(l)}</div>`).join('')
+      : '<div style="opacity:.4;font-size:13px">這輪全對，沒有弱點法規！</div>';
+  }
+  document.getElementById('summaryOverlay').classList.add('open');
+  _sessionMode = false;
+  document.getElementById('sessionProgressWrap').style.display = 'none';
 }
 
 let answered=false,right=0,wrong=0,total=0,flagged=0;
@@ -774,9 +906,16 @@ async function loadQuiz(){
           if(jCorrect)b.classList.add('right');
         });
         const isCorrect=isOptCorrect;
-        if(!isCorrect){btn.classList.add('wrong');wrong++;}else{right++;}
+        if(!isCorrect){
+          btn.classList.add('wrong');wrong++;
+          addToWrongBank(pageId, lawName, artTitle);
+        }else{
+          right++;
+          removeFromWrongBank(pageId);
+        }
         cur.correct=isCorrect;
         _feedbackAnim(btn,isCorrect);
+        onAnswerDone(isCorrect);
         updateScore();
         // 寫入練習紀錄
         if(pageId&&uid&&uid!=='PREVIEW'&&!isFree){
@@ -841,13 +980,153 @@ document.getElementById('sourceLink').addEventListener('click',()=>{
   btn.textContent=open?'收起條文 ↑':'查看完整條文 →';
 });
 document.getElementById('btnFlag').addEventListener('click',doFlag);
-document.getElementById('btnNew').addEventListener('click',loadQuiz);
-document.getElementById('btnNext').addEventListener('click',loadQuiz);
+document.getElementById('btnNew').addEventListener('click',()=>{
+  if(wrongMode){
+    loadWrongQuiz();
+  } else {
+    loadQuiz();
+  }
+});
+document.getElementById('btnNext').addEventListener('click',()=>{
+  if(wrongMode){
+    loadWrongQuiz();
+  } else {
+    loadQuiz();
+  }
+});
 document.addEventListener('keydown',e=>{
-  if(e.key==='Enter')loadQuiz();
+  if(e.key==='Enter'){ wrongMode ? loadWrongQuiz() : loadQuiz(); return; }
   if(e.key.toLowerCase()==='f'){doFlag();return;}
   const idx={'a':0,'b':1,'c':2,'d':3}[e.key.toLowerCase()];
   if(idx!==undefined){const opts=document.querySelectorAll('.opt');if(opts[idx])opts[idx].click();}
+});
+
+// ── 錯題模式出題 ──────────────────────────────────────────────
+async function loadWrongQuiz() {
+  const bank = loadWrongBank();
+  if (!bank.length) {
+    alert('錯題本是空的！先做幾題再來吧。');
+    return;
+  }
+  const pick = bank[Math.floor(Math.random() * bank.length)];
+  // 暫時切回非 wrong-url 模式，用 page_id 出題
+  const origLoadQuiz = loadQuiz;
+  answered = false; total++;
+  sessionHistory.push({num:total, correct:null, flagged:false, law:'', title:''});
+  startSessionTimer();
+
+  document.getElementById('questionBox').textContent='載入中…';
+  document.getElementById('questionBox').style.opacity='.45';
+  document.getElementById('optionsBox').innerHTML='';
+  document.getElementById('explainBox').style.display='none';
+  document.getElementById('qSrc').innerHTML='—';
+  updateScore();
+
+  try {
+    const url = `${API}/api/quiz?page_id=${encodeURIComponent(pick.id)}`;
+    const data = await fetch(url, {headers:_authH()}).then(r=>r.json());
+    if (data.error || data.detail) {
+      // 此條文可能已刪除，從錯題本移除
+      removeFromWrongBank(pick.id);
+      document.getElementById('questionBox').textContent='此題已失效，已從錯題本移除';
+      document.getElementById('questionBox').style.opacity='1';
+      sessionHistory.pop(); total--; updateScore(); return;
+    }
+    quizData = data;
+    const isNewFmt = typeof (data.options||[])[0] !== 'object';
+    const correctAnswer = isNewFmt ? data.answer : null;
+    const pageId = data.page_id || data.correct_id || null;
+    const lawName = data.law_name || pick.law || '';
+    const artTitle = data.title || data.correct_title || pick.art || '';
+    const cur = sessionHistory[sessionHistory.length-1];
+    cur.law = lawName; cur.title = artTitle;
+
+    if (lawName || artTitle) {
+      document.getElementById('qSrc').innerHTML =
+        `<span style="color:var(--bad);font-family:var(--mono);font-size:11px;letter-spacing:.1em">✗ 錯題複習</span>&nbsp;&nbsp;<span style="color:var(--peach)">${esc(lawName)}</span>${artTitle?` <b>${esc(artTitle)}</b>`:''}`;
+    }
+    document.getElementById('questionBox').textContent = data.question || '出題失敗';
+    document.getElementById('questionBox').style.opacity = '1';
+    document.getElementById('btnFlag').classList.remove('flagged');
+    document.getElementById('btnFlag').textContent = '⚑ 標記';
+
+    const labels = ['A','B','C','D'];
+    (data.options||[]).forEach((opt,i) => {
+      const btn = document.createElement('div');
+      btn.className = 'opt';
+      const displayText = isNewFmt ? opt : (opt.snippet||'');
+      const isOptCorrect = isNewFmt ? (opt===correctAnswer) : !!opt.is_correct;
+      btn.innerHTML = `<div class="key">${labels[i]}</div><div class="body">${esc(displayText)}</div>`;
+      btn.addEventListener('click', () => {
+        if (answered) return;
+        answered = true;
+        document.querySelectorAll('#optionsBox .opt').forEach((b,j) => {
+          b.style.pointerEvents='none'; b.style.cursor='default';
+          const jOpt=data.options[j];
+          const jCorrect=isNewFmt?(jOpt===correctAnswer):!!jOpt?.is_correct;
+          if(jCorrect)b.classList.add('right');
+        });
+        const isCorrect = isOptCorrect;
+        if (!isCorrect) {
+          btn.classList.add('wrong'); wrong++;
+          addToWrongBank(pageId, lawName, artTitle);
+        } else {
+          right++;
+          removeFromWrongBank(pageId);
+        }
+        cur.correct = isCorrect;
+        _feedbackAnim(btn, isCorrect);
+        onAnswerDone(isCorrect);
+        updateScore();
+        if (pageId && uid && uid!=='PREVIEW' && !isFree) {
+          fetch(`${API}/api/me/history`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({page_id:pageId,law_name:lawName,article:artTitle})}).catch(()=>{});
+        }
+        const eb = document.querySelector('#explainBox .eb');
+        if (eb) eb.textContent = isCorrect ? '✓ 答對了' : '✗ 答錯了，正確答案已標綠';
+        document.getElementById('artInline').style.display = 'none';
+        document.getElementById('explainBox').style.display = 'block';
+        if (pageId) {
+          (async()=>{
+            try {
+              const art = await fetch(`${API}/api/article/${pageId}`,{headers:_authH()}).then(r=>r.json());
+              document.getElementById('artInline').textContent = formatLawText(art.original_text);
+              buildSections(art.sections||{},art._plan!=='free',
+                document.getElementById('explainBox'),document.getElementById('sourceBox'));
+            } catch(e){}
+          })();
+        }
+      });
+      document.getElementById('optionsBox').appendChild(btn);
+    });
+  } catch(e) {
+    document.getElementById('questionBox').textContent = '載入失敗，請稍後再試';
+    document.getElementById('questionBox').style.opacity = '1';
+    sessionHistory.pop(); total--; updateScore();
+  }
+}
+
+// ── DOMContentLoaded 事件綁定 ─────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  refreshWrongCount();
+
+  // 錯題本按鈕 toggle
+  document.getElementById('btnWrong')?.addEventListener('click', () => {
+    wrongMode = !wrongMode;
+    const btn = document.getElementById('btnWrong');
+    btn.classList.toggle('active', wrongMode);
+  });
+
+  // 設題數按鈕
+  document.getElementById('btnSetSession')?.addEventListener('click', () => {
+    document.getElementById('sessionModal').classList.add('open');
+  });
+
+  // 再來一輪
+  document.getElementById('sumRestart')?.addEventListener('click', () => {
+    document.getElementById('summaryOverlay').classList.remove('open');
+    right = 0; wrong = 0;
+    startSession(_sessionTotal);
+  });
 });
 </script>
 </body>
