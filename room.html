@@ -142,10 +142,88 @@ main{display:flex;flex:1;gap:0;min-height:0;}
   box-shadow:0 4px 20px rgba(0,0,0,.4);
 }
 
-/* mobile */
+/* ── Desktop desk hover ── */
+.desk{cursor:default;}
+@media(hover:hover){
+  .desk:not(.me):hover{border-color:var(--line-3);background:var(--plum);}
+}
+/* 自己的桌子顯示讀書計時 */
+.desk-timer{font-size:.7rem;color:var(--peach);font-weight:600;margin-top:2px;font-variant-numeric:tabular-nums;}
+
+/* ── Mobile ── */
 @media(max-width:640px){
   #sidebar{display:none;}
-  #desk-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));}
+  #desk-area{padding:16px 12px 100px;}
+  #desk-grid{grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px;}
+  .desk{padding:14px 10px;gap:6px;}
+  .desk-icon{font-size:1.5rem;}
+
+  /* bottom bar */
+  #mob-bar{
+    display:flex;position:fixed;bottom:0;left:0;right:0;z-index:20;
+    background:var(--navy-4);border-top:1px solid var(--line-2);
+    padding:8px 0 max(8px,env(safe-area-inset-bottom));
+  }
+  #mob-bar button{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;
+    background:none;border:none;color:var(--cream-2);font-size:.68rem;
+    font-family:var(--sans);cursor:pointer;padding:4px 0;transition:color .2s;
+  }
+  #mob-bar button .mob-icon{font-size:1.3rem;line-height:1;}
+  #mob-bar button:active,#mob-bar button.active{color:var(--peach);}
+  #mob-bar .mob-count{
+    font-size:.58rem;background:var(--good);color:var(--navy-4);
+    border-radius:8px;padding:0 5px;min-width:16px;text-align:center;
+    font-weight:700;margin-top:-2px;
+  }
+
+  /* sheet overlay */
+  #sheet-overlay{
+    display:none;position:fixed;inset:0;z-index:29;
+    background:rgba(13,28,40,.6);backdrop-filter:blur(2px);
+  }
+  #sheet-overlay.open{display:block;}
+
+  /* bottom sheet */
+  .sheet{
+    position:fixed;bottom:0;left:0;right:0;z-index:30;
+    background:var(--navy-2);border-top:1px solid var(--line-3);
+    border-radius:16px 16px 0 0;
+    padding:0 0 max(20px,env(safe-area-inset-bottom));
+    transform:translateY(100%);transition:transform .3s cubic-bezier(.32,.72,0,1);
+    max-height:70dvh;display:flex;flex-direction:column;
+  }
+  .sheet.open{transform:translateY(0);}
+  .sheet-handle{
+    width:36px;height:4px;border-radius:2px;background:var(--line-3);
+    margin:10px auto 0;flex-shrink:0;
+  }
+  .sheet-title{
+    font-family:var(--serif);font-size:.95rem;font-weight:700;
+    color:var(--peach);padding:14px 20px 10px;flex-shrink:0;
+    border-bottom:1px solid var(--line);
+  }
+  .sheet-body{padding:16px 20px;overflow-y:auto;flex:1;}
+
+  /* shout sheet */
+  #sheet-shout .sheet-body textarea{
+    width:100%;height:72px;padding:10px 12px;resize:none;
+    background:var(--navy-3);border:1px solid var(--line-3);
+    border-radius:10px;color:var(--cream);font-size:.9rem;
+    font-family:var(--sans);outline:none;
+  }
+  #sheet-shout .sheet-body textarea:focus{border-color:var(--peach);}
+  #btn-shout-mob{
+    width:100%;margin-top:10px;padding:12px;border-radius:10px;
+    background:var(--peach);color:var(--navy-4);
+    font-size:.9rem;font-weight:700;font-family:var(--serif);
+    border:none;cursor:pointer;transition:opacity .2s;
+  }
+  #btn-shout-mob:disabled{opacity:.4;cursor:not-allowed;}
+  .shout-hint{font-size:.7rem;color:var(--cream-2);opacity:.4;margin-top:8px;text-align:center;}
+}
+@media(min-width:641px){
+  #mob-bar,#sheet-overlay,.sheet{display:none!important;}
 }
 </style>
 </head>
@@ -205,6 +283,38 @@ main{display:flex;flex:1;gap:0;min-height:0;}
       </div>
     </div>
   </main>
+
+  <!-- ── Mobile bottom bar ── -->
+  <div id="mob-bar">
+    <button id="mob-list-btn">
+      <span class="mob-icon">👥</span>
+      <span id="mob-count-badge" class="mob-count">20</span>
+      <span>名單</span>
+    </button>
+    <button id="mob-shout-btn">
+      <span class="mob-icon">📣</span>
+      <span>喊話</span>
+    </button>
+  </div>
+
+  <!-- ── Bottom sheets ── -->
+  <div id="sheet-overlay"></div>
+
+  <div id="sheet-list" class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">現在在線</div>
+    <div class="sheet-body"><div id="online-list-mob"></div></div>
+  </div>
+
+  <div id="sheet-shout" class="sheet">
+    <div class="sheet-handle"></div>
+    <div class="sheet-title">廣播喊話</div>
+    <div class="sheet-body">
+      <textarea id="shout-input-mob" placeholder="對自習室的人說句話…" maxlength="40"></textarea>
+      <button id="btn-shout-mob">廣播</button>
+      <div class="shout-hint">30 秒冷卻，最多 40 字</div>
+    </div>
+  </div>
 </div>
 
 <script type="module">
@@ -305,14 +415,20 @@ function renderRoom(){
   const count    = users.length;
 
   document.getElementById('count-badge').textContent = `${count} 人在線`;
+  const mobBadge = document.getElementById('mob-count-badge');
+  if(mobBadge) mobBadge.textContent = count;
+
+  const now = Date.now();
 
   // Desk grid
   const grid = document.getElementById('desk-grid');
   grid.innerHTML = '';
   users.forEach(u => {
     const isMe = u.key === myKey;
-    const mins = Math.floor((Date.now() - u.joined_at) / 60000);
-    const timeLabel = mins < 1 ? '剛到' : `已讀 ${mins} 分鐘`;
+    const secs = Math.floor((now - u.joined_at) / 1000);
+    const timeLabel = secs < 60 ? '剛到' : secs < 3600
+      ? `已讀 ${Math.floor(secs/60)} 分鐘`
+      : `已讀 ${Math.floor(secs/3600)} 小時 ${Math.floor((secs%3600)/60)} 分`;
     const icon = ICONS[u.subject] || '📚';
 
     const el = document.createElement('div');
@@ -323,28 +439,28 @@ function renderRoom(){
       <div class="desk-icon">${icon}</div>
       <div class="desk-name">${esc(u.name)}</div>
       <div class="desk-tag">${esc(u.subject)}</div>
-      <div class="desk-time">${timeLabel}</div>
+      ${isMe
+        ? `<div class="desk-timer" id="my-timer">${timeLabel}</div>`
+        : `<div class="desk-time">${timeLabel}</div>`}
     `;
     grid.appendChild(el);
   });
 
-  // Online list
-  const list = document.getElementById('online-list');
-  list.innerHTML = '';
-  users.forEach(u => {
+  // Online list (desktop sidebar + mobile sheet)
+  const listHTML = users.map(u => {
     const isMe = u.key === myKey;
     const icon = ICONS[u.subject] || '📚';
-    const el = document.createElement('div');
-    el.className = 'online-item' + (isMe ? ' me-item' : '');
-    el.innerHTML = `
+    return `<div class="online-item${isMe?' me-item':''}">
       <span class="online-item-avatar">${icon}</span>
       <div class="online-item-info">
-        <div class="online-item-name">${esc(u.name)}${isMe ? '（我）' : ''}</div>
+        <div class="online-item-name">${esc(u.name)}${isMe?'（我）':''}</div>
         <div class="online-item-tag">${esc(u.subject)}</div>
       </div>
-    `;
-    list.appendChild(el);
-  });
+    </div>`;
+  }).join('');
+  document.getElementById('online-list').innerHTML = listHTML;
+  const mobList = document.getElementById('online-list-mob');
+  if(mobList) mobList.innerHTML = listHTML;
 }
 
 // ── Shout ─────────────────────────────────────────────────────────────
@@ -396,13 +512,72 @@ async function leave(){
   document.getElementById('entry').style.display = 'flex';
 }
 
+// ── Mobile sheet 控制 ────────────────────────────────────────────────
+function openSheet(id){
+  document.getElementById('sheet-overlay').classList.add('open');
+  document.getElementById(id).classList.add('open');
+  document.getElementById(id === 'sheet-list' ? 'mob-list-btn' : 'mob-shout-btn').classList.add('active');
+}
+function closeAllSheets(){
+  document.getElementById('sheet-overlay').classList.remove('open');
+  document.querySelectorAll('.sheet').forEach(s => s.classList.remove('open'));
+  document.querySelectorAll('#mob-bar button').forEach(b => b.classList.remove('active'));
+}
+
+document.getElementById('mob-list-btn')?.addEventListener('click', () => {
+  const isOpen = document.getElementById('sheet-list').classList.contains('open');
+  closeAllSheets();
+  if(!isOpen) openSheet('sheet-list');
+});
+document.getElementById('mob-shout-btn')?.addEventListener('click', () => {
+  const isOpen = document.getElementById('sheet-shout').classList.contains('open');
+  closeAllSheets();
+  if(!isOpen){ openSheet('sheet-shout'); setTimeout(()=>document.getElementById('shout-input-mob')?.focus(),300); }
+});
+document.getElementById('sheet-overlay')?.addEventListener('click', closeAllSheets);
+
+// ── Mobile shout ──────────────────────────────────────────────────────
+let mobShoutCooldown = false;
+document.getElementById('btn-shout-mob')?.addEventListener('click', async () => {
+  if(mobShoutCooldown || shoutCooldown) return;
+  const ta = document.getElementById('shout-input-mob');
+  const text = ta.value.trim();
+  if(!text) return;
+
+  mobShoutCooldown = true;
+  shoutCooldown = true;
+  const btn = document.getElementById('btn-shout-mob');
+  const btnD = document.getElementById('btn-shout');
+  btn.disabled = true; if(btnD) btnD.disabled = true;
+
+  await channel.send({
+    type:'broadcast', event:'shout',
+    payload:{ text, from: document.getElementById('inp-name').value.trim() || '匿名考生' }
+  });
+  ta.value = '';
+  closeAllSheets();
+
+  let cd = 30;
+  const timer = setInterval(()=>{
+    cd--;
+    btn.textContent = `冷卻中 ${cd}s`;
+    if(btnD) btnD.textContent = `冷卻中 ${cd}s`;
+    if(cd<=0){
+      clearInterval(timer);
+      btn.textContent='廣播'; btn.disabled=false;
+      if(btnD){btnD.textContent='廣播';btnD.disabled=false;}
+      mobShoutCooldown=false; shoutCooldown=false;
+    }
+  },1000);
+});
+
 // ── Utils ─────────────────────────────────────────────────────────────
 function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-// ── Heartbeat：每分鐘更新在線時間，讓 desk 時間走動 ──────────────────
+// ── Heartbeat：每 30 秒更新計時，讓桌子時間走動 ─────────────────────
 setInterval(() => {
   if(channel) renderRoom();
-}, 60_000);
+}, 30_000);
 </script>
 </body>
 </html>
