@@ -787,10 +787,18 @@ function _shelfTex(){
     ctx.fillStyle='#2A1A08'; ctx.fillRect(0,0,s,s);
     const cols=['#E85D5D','#5D8AE8','#5DE87A','#E8C45D','#A05DE8','#E8855D','#5DD6E8','#D4A850'];
     const bw=s/8;
+    const lawNames=['稅稽','保險','地政','土地','記帳','民法','商業','公司','所得','遺贈','加值','房稅'];
     cols.forEach((c,i)=>{
       ctx.fillStyle=c; ctx.fillRect(i*bw+1,4,bw-2,s-8);
-      // Book title line
-      ctx.fillStyle='rgba(0,0,0,0.4)'; ctx.fillRect(i*bw+3,s*0.3,bw-6,2);
+      // Book title (vertical, rotated)
+      ctx.save();
+      ctx.translate(i*bw+bw/2, s/2);
+      ctx.rotate(-Math.PI/2);
+      ctx.fillStyle='rgba(255,255,255,0.75)';
+      ctx.font=`bold ${Math.floor(bw*0.55)}px monospace`;
+      ctx.textAlign='center'; ctx.textBaseline='middle';
+      ctx.fillText(lawNames[i%lawNames.length],0,0);
+      ctx.restore();
     });
     // Top/bottom shelf board
     ctx.fillStyle='#1A0E04'; ctx.fillRect(0,0,s,4); ctx.fillRect(0,s-4,s,4);
@@ -1124,6 +1132,26 @@ function initThreeScene(canvas) {
     });
   }
 
+  // Ambient dust motes
+  const DUST_COUNT = 120;
+  const _dustGeo = new THREE.BufferGeometry();
+  const _dPos = new Float32Array(DUST_COUNT*3);
+  const _dPos0 = new Float32Array(DUST_COUNT*3); // reset positions
+  const _dustRng = _rng(77);
+  for(let i=0;i<DUST_COUNT;i++){
+    const x=(_dustRng()-0.5)*18, y=_dustRng()*5+0.5, z=(_dustRng()-0.5)*16;
+    _dPos[i*3]=x; _dPos[i*3+1]=y; _dPos[i*3+2]=z;
+    _dPos0[i*3]=x; _dPos0[i*3+1]=y; _dPos0[i*3+2]=z;
+  }
+  _dustGeo.setAttribute('position', new THREE.BufferAttribute(_dPos.slice(),3));
+  const _dustMat = new THREE.PointsMaterial({
+    size:0.055, color:0x8BBFD6, transparent:true, opacity:0.45,
+    depthWrite:false, blending:THREE.AdditiveBlending
+  });
+  const _dustSystem = new THREE.Points(_dustGeo, _dustMat);
+  _threeScene.add(_dustSystem);
+  let _dustT=0;
+
   // Expose particle update to animation loop via scene userData
   _threeScene.userData.updateParticles = function(){
     _particleData.forEach((p,i)=>{
@@ -1146,6 +1174,15 @@ function initThreeScene(canvas) {
     _particleGeo.attributes.position.needsUpdate=true;
     _particleGeo.attributes.color.needsUpdate=true;
     _particleGeo.attributes.size.needsUpdate=true;
+    // Animate dust
+    _dustT+=0.003;
+    const dpAttr = _dustGeo.attributes.position;
+    for(let i=0;i<DUST_COUNT;i++){
+      dpAttr.array[i*3]   = _dPos0[i*3]   + Math.sin(_dustT*0.4+i*0.7)*0.3;
+      dpAttr.array[i*3+1] = _dPos0[i*3+1] + Math.sin(_dustT*0.25+i*0.5)*0.15 - (_dustT*0.01)%3;
+      dpAttr.array[i*3+2] = _dPos0[i*3+2] + Math.cos(_dustT*0.35+i*0.6)*0.2;
+    }
+    dpAttr.needsUpdate=true;
   };
 
   // Bulletin board (clickable)
@@ -1234,6 +1271,48 @@ function _makeLabel(name, color) {
   ctx2.font='bold 8px monospace'; ctx2.textAlign='center'; ctx2.textBaseline='middle';
   ctx2.fillText(name.substring(0,5), 32, 58);
   return new THREE.CanvasTexture(c);
+}
+
+function _updateBoardNotes3D() {
+  // Remove old note meshes
+  _threeScene.children.filter(c=>c.userData.isBoardNote).forEach(c=>_threeScene.remove(c));
+
+  const notes = (typeof _boardNotes !== 'undefined') ? _boardNotes.slice(-6) : [];
+  const noteColors = ['#FFE566','#FFB347','#90EE90','#87CEEB','#FFB6C1','#DDA0DD'];
+  notes.forEach((note,i)=>{
+    // Create canvas texture for this note
+    const nc=document.createElement('canvas'); nc.width=128; nc.height=96;
+    const nctx=nc.getContext('2d');
+    nctx.fillStyle=noteColors[i%noteColors.length];
+    nctx.fillRect(0,0,128,96);
+    // Shadow fold at bottom
+    nctx.fillStyle='rgba(0,0,0,0.08)'; nctx.fillRect(0,82,128,14);
+    // Pin dot
+    nctx.fillStyle='#E8414D'; nctx.beginPath(); nctx.arc(64,10,5,0,Math.PI*2); nctx.fill();
+    // Text
+    nctx.fillStyle='#333'; nctx.font='bold 11px sans-serif';
+    nctx.textAlign='center'; nctx.textBaseline='top';
+    const words=note.content||'';
+    const lines=[]; let cur='';
+    for(const ch of words){ cur+=ch; if(cur.length>=8){lines.push(cur);cur='';} }
+    if(cur) lines.push(cur);
+    lines.slice(0,4).forEach((l,li)=>nctx.fillText(l,64,22+li*16));
+    // Author
+    nctx.fillStyle='#666'; nctx.font='9px sans-serif';
+    nctx.fillText((note.user_name||'').substring(0,6),64,78);
+
+    const noteTex=new THREE.CanvasTexture(nc);
+    const noteM=new THREE.Mesh(
+      new THREE.PlaneGeometry(0.55,0.42),
+      new THREE.MeshBasicMaterial({map:noteTex,side:THREE.DoubleSide})
+    );
+    // Arrange in 2 rows of 3
+    const col=i%3, row=Math.floor(i/3);
+    noteM.position.set(-0.7+col*0.72, 3.25-row*0.48, -7.72);
+    noteM.rotation.z=(Math.random()-0.5)*0.12;
+    noteM.userData.isBoardNote=true;
+    _threeScene.add(noteM);
+  });
 }
 
 function _updateThreeAvatars(users) {
@@ -1439,6 +1518,7 @@ function enter(){
   document.getElementById('room').style.display  = 'flex';
   resizeThreeCanvas();
   startThreeAnimation(document.getElementById('room-canvas'));
+  setTimeout(()=>_updateBoardNotes3D(),500);
   if(isMember) initNote();
   startPresence(name, subject);
 }
@@ -1455,6 +1535,7 @@ function startPresence(name, subject){
     .on('broadcast', {event:'board_note'}, ({payload}) => {
       _boardNotes.push(payload);
       if (_boardNotes.length > 20) _boardNotes.shift();
+      _updateBoardNotes3D();
     })
     .subscribe(async status => {
       if(status === 'SUBSCRIBED'){
@@ -1577,6 +1658,7 @@ document.getElementById('board-post-btn')?.addEventListener('click', async () =>
   await channel.send({ type:'broadcast', event:'board_note', payload: note });
   _boardNotes.push(note);
   if (_boardNotes.length > 20) _boardNotes.shift();
+  _updateBoardNotes3D();
   document.getElementById('board-input').value = '';
   document.getElementById('board-modal').style.display = 'none';
 });
