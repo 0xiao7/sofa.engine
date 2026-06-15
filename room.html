@@ -775,6 +775,7 @@ let _moonSprite = null;
 let _shootingStars = [];
 let _steamWisps = [];
 let _focusSparkles = [];
+let _arrivalBursts = []; // Wave 44: [{sprite, vx, vy, vz, born}]
 let _nextShootTime = 0;
 let _studyRings = [];
 let _avatarBooks = [];
@@ -2229,6 +2230,29 @@ function _spawnShoutLight(x, z) {
   _shoutLights.push(light);
 }
 
+// Wave 44: golden sparkle burst when a new user materializes at their desk
+function _spawnArrivalBurst(x, z) {
+  const stx = _sparkleTex(); // reuse Wave 43 sparkle texture
+  for(let i = 0; i < 14; i++){
+    const angle = (i / 14) * Math.PI * 2;
+    const speed = 0.022 + Math.random() * 0.018;
+    const bm = new THREE.SpriteMaterial({
+      map: stx, transparent: true, opacity: 0.9,
+      blending: THREE.AdditiveBlending, depthWrite: false,
+    });
+    const bs = new THREE.Sprite(bm);
+    const sc = 0.12 + Math.random() * 0.10;
+    bs.scale.set(sc, sc, 1);
+    bs.position.set(x, 0.9 + Math.random() * 0.4, z);
+    bs.userData.vx = Math.cos(angle) * speed;
+    bs.userData.vy = 0.012 + Math.random() * 0.010;
+    bs.userData.vz = Math.sin(angle) * speed;
+    bs.userData.born = Date.now();
+    _threeScene.add(bs);
+    _arrivalBursts.push(bs);
+  }
+}
+
 function _showTypingIndicator() {
   _typingHideAt = Date.now() + 2500;
   if(_typingSprite) return; // already visible
@@ -2418,15 +2442,17 @@ function _spawnConfettiBurst(ox, oy, oz) {
 
 function _updateThreeAvatars(users) {
   // Detect new user joins (toast only after initial room load)
-  const _isFirstRender = _seenUserIds.size === 0;
-  users.forEach(u => {
+  const _isFirstRenderLocal = _seenUserIds.size === 0;
+  const _newArrivals = new Set(); // Wave 44: track indices of newly-joined users
+  users.forEach((u, i) => {
     const uid = u.id || u.name;
     if(!uid) return;
     if(!_seenUserIds.has(uid)){
       _seenUserIds.add(uid);
-      if(!_isFirstRender && !u.isSelf) {
+      if(!_isFirstRenderLocal && !u.isSelf) {
         _showEntryToast(u.name || '同學');
         if(!_greetingBob) _greetingBob = { born: Date.now(), duration: 700 };
+        _newArrivals.add(i); // Wave 44: remember this user's slot index
       }
     }
   });
@@ -2443,6 +2469,12 @@ function _updateThreeAvatars(users) {
 
   users.forEach((u, i) => {
     const pos = _DESK_POS_3D[i % _DESK_POS_3D.length];
+
+    // Wave 44: spawn golden arrival burst for newly-joined users
+    if(_newArrivals.has(i)){
+      _spawnArrivalBurst(pos[0], pos[1]);
+    }
+
     const SUBJECT_HUE = {
       '記帳士':      0.57,
       '地政士':      0.46,
@@ -2870,6 +2902,20 @@ function startThreeAnimation(canvas) {
         s.material.opacity = 0;
       }
     });
+    // Wave 44: Arrival bursts — golden sparkles radiating from new user desk position
+    for(let ai = _arrivalBursts.length - 1; ai >= 0; ai--){
+      const ab = _arrivalBursts[ai];
+      const t = (Date.now() - ab.userData.born) / 900;
+      ab.position.x += ab.userData.vx;
+      ab.position.y += ab.userData.vy;
+      ab.position.z += ab.userData.vz;
+      ab.userData.vy -= 0.0004; // gentle gravity
+      ab.material.opacity = Math.max(0, 0.9 * (1 - t));
+      if(t >= 1){
+        _threeScene.remove(ab);
+        _arrivalBursts.splice(ai, 1);
+      }
+    }
     // Foliage sway (gentle wind effect)
     _foliageMeshes.forEach(f => {
       f.mesh.rotation.z = Math.sin(_threeTime * 0.35 + f.phase) * f.amp;
