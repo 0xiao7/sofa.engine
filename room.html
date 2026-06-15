@@ -581,6 +581,27 @@ input[type=text], select, .btn-enter {
 .ap-row { display: flex; justify-content: space-between; align-items: center; margin: 6px 0; }
 .ap-label { color: #8899aa; font-size: 13px; }
 .ap-toggle { cursor: pointer; font-size: 18px; }
+/* Wave100 — Achievement Badge System */
+#achieve-btn {
+  background:none; border:none; cursor:pointer; font-size:18px;
+  padding:4px 6px; color:#8899aa; transition:color 0.2s;
+  position: absolute; top: 8px; right: 80px; z-index: 15;
+}
+#achieve-btn:hover { color:#ffd700; }
+#achieve-panel {
+  display:none; position:fixed; bottom:60px; left:14px;
+  background:rgba(10,20,30,0.92); backdrop-filter:blur(8px);
+  border:1px solid #2a4060; border-radius:12px;
+  padding:14px 16px; z-index:300; min-width:200px;
+}
+#achieve-panel.open { display:block; }
+.ach-row { display:flex; align-items:center; gap:10px; margin:7px 0; }
+.ach-icon { font-size:20px; width:28px; text-align:center; }
+.ach-info { flex:1; }
+.ach-name { font-size:13px; font-weight:bold; }
+.ach-desc { font-size:11px; color:#556677; }
+.ach-locked .ach-icon { filter:grayscale(1); opacity:0.4; }
+.ach-locked .ach-name { color:#445566; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 </head>
@@ -636,6 +657,11 @@ input[type=text], select, .btn-enter {
         </div>
         <button id="btn-sound" title="環境音" style="position:absolute;top:8px;right:8px;z-index:15;background:rgba(7,13,20,0.7);border:1px solid rgba(91,175,214,0.25);color:#5BAFD6;border-radius:8px;padding:5px 9px;font-size:16px;cursor:pointer;backdrop-filter:blur(4px);transition:background .2s;" onclick="toggleAmbientSound()">🔇</button>
         <button id="audio-settings-btn" title="音效設定" onclick="_toggleAudioPanel()">⚙</button>
+        <button id="achieve-btn" title="學習成就" onclick="_toggleAchievePanel()">🏆</button>
+        <div id="achieve-panel">
+          <div style="color:#ffd700;font-size:13px;font-weight:bold;margin-bottom:10px;">🏆 學習成就</div>
+          <div id="achieve-list"></div>
+        </div>
         <div id="audio-panel">
           <div style="color:#a0b8c8;font-size:13px;font-weight:bold;margin-bottom:8px;">音效設定</div>
           <div class="ap-row"><span class="ap-label">🌫 環境音</span><span class="ap-toggle" id="apt-ambient" onclick="_toggleLayer('ambient')"></span></div>
@@ -3340,7 +3366,7 @@ function startThreeAnimation(canvas) {
   const loaderEl = document.getElementById('three-loader');
   if(loaderEl){ loaderEl.style.opacity='1'; loaderEl.style.display='flex'; }
   setTimeout(()=>{
-    if(loaderEl){ loaderEl.style.opacity='0'; setTimeout(()=>{ loaderEl.style.display='none'; setTimeout(_showGreeting, 100); window._startStudyHud(); },800); }
+    if(loaderEl){ loaderEl.style.opacity='0'; setTimeout(()=>{ loaderEl.style.display='none'; setTimeout(_showGreeting, 100); window._startStudyHud(); setTimeout(_checkAchievements, 2000); },800); }
   }, 600);
   if (!THREE) return;
   initThreeScene(canvas);
@@ -4375,6 +4401,73 @@ document.addEventListener('click', e => {
   if (!e.target.closest('#audio-panel') && !e.target.closest('#audio-settings-btn')) {
     document.getElementById('audio-panel')?.classList.remove('open');
   }
+});
+
+/* ── Wave100: Achievement Badge System ── */
+const BADGES = [
+  { key:'first_quiz',  icon:'🌱', name:'初心者',    desc:'首次答題',           check: s => (s.quiz?.total||0)>=1 },
+  { key:'streak10',   icon:'🔥', name:'連對達人',  desc:'達成10連對',          check: s => (s.quiz?.bestStreak||0)>=10 },
+  { key:'q100',       icon:'📚', name:'百題挑戰',  desc:'累計答題100+',        check: s => (s.quiz?.total||0)>=100 },
+  { key:'daily_done', icon:'📅', name:'今日達陣',  desc:'完成今日挑戰',        check: s => !!s.dailyQuiz },
+  { key:'fill10',     icon:'⭐', name:'填空達人',  desc:'完成10篇填空',        check: s => (s.fill?.total||0)>=10 },
+  { key:'fill_perf',  icon:'💯', name:'完美填空',  desc:'單次填空100%',        check: s => (s.fill?.perfect||0)>=1 },
+  { key:'hour_study', icon:'⏰', name:'讀書一小時',desc:'單日自習達60分鐘',    check: s => (s.studySecs||0)>=3600 },
+  { key:'w100',       icon:'🏆', name:'百波傳說',  desc:'見證第100個功能',     check: () => true },
+];
+
+function _loadAchieveData() {
+  const today = new Date().toISOString().slice(0,10);
+  const tryParse = k => { try { return JSON.parse(localStorage.getItem(k)||'null'); } catch { return null; } };
+  return {
+    quiz:       tryParse('sofa_quiz_stats_v1'),
+    fill:       tryParse('sofa_fill_stats_v1'),
+    studySecs:  parseInt(localStorage.getItem('sofa_study_time_'+today)||'0',10),
+    dailyQuiz:  tryParse('sofa_daily_'+today),
+  };
+}
+
+function _checkAchievements() {
+  const s = _loadAchieveData();
+  const saved = JSON.parse(localStorage.getItem('sofa_achievements')||'{}');
+  const newlyUnlocked = [];
+  BADGES.forEach(b => {
+    if (!saved[b.key] && b.check(s)) {
+      saved[b.key] = Date.now();
+      newlyUnlocked.push(b);
+    }
+  });
+  if (newlyUnlocked.length > 0) {
+    localStorage.setItem('sofa_achievements', JSON.stringify(saved));
+    newlyUnlocked.forEach((b,i) => {
+      setTimeout(() => _showMilestoneToast(`${b.icon} 成就解鎖：${b.name}`), i*1200);
+    });
+  }
+  return saved;
+}
+
+function _renderAchievePanel() {
+  const s = _loadAchieveData();
+  const saved = JSON.parse(localStorage.getItem('sofa_achievements')||'{}');
+  const list = document.getElementById('achieve-list');
+  if (!list) return;
+  list.innerHTML = BADGES.map(b => {
+    const unlocked = b.check(s) || !!saved[b.key];
+    return `<div class="ach-row${unlocked ? '' : ' ach-locked'}">
+      <span class="ach-icon">${b.icon}</span>
+      <span class="ach-info"><div class="ach-name" style="color:${unlocked?'#e8d5a0':'#445566'}">${b.name}</div><div class="ach-desc">${b.desc}</div></span>
+    </div>`;
+  }).join('');
+}
+
+function _toggleAchievePanel() {
+  const p = document.getElementById('achieve-panel');
+  p.classList.toggle('open');
+  if (p.classList.contains('open')) _renderAchievePanel();
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#achieve-panel') && !e.target.closest('#achieve-btn'))
+    document.getElementById('achieve-panel')?.classList.remove('open');
 });
 
 function _buildAmbientSound() {
