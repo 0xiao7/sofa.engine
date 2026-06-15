@@ -642,6 +642,53 @@ function _onFillDone(){
 let fillData = null;
 let hintsLeft = 3;
 
+// ── Wave 38: Web Audio feedback ──────────────────────────────────────────────
+let _fillAudioCtx = null;
+function _getFillAudio() {
+  if(!_fillAudioCtx) _fillAudioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  if(_fillAudioCtx.state === 'suspended') _fillAudioCtx.resume();
+  return _fillAudioCtx;
+}
+function _fillSoundPerfect() {
+  try {
+    const ctx = _getFillAudio();
+    [0, 0.18].forEach((d, i) => {
+      const osc = ctx.createOscillator(); const env = ctx.createGain();
+      osc.connect(env); env.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(i===0 ? 520 : 780, ctx.currentTime+d);
+      env.gain.setValueAtTime(0.16, ctx.currentTime+d);
+      env.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+d+0.3);
+      osc.start(ctx.currentTime+d); osc.stop(ctx.currentTime+d+0.31);
+    });
+  } catch(e){}
+}
+function _fillSoundPartial() {
+  try {
+    const ctx = _getFillAudio();
+    const osc = ctx.createOscillator(); const env = ctx.createGain();
+    osc.connect(env); env.connect(ctx.destination);
+    osc.type = 'sine'; osc.frequency.value = 440;
+    env.gain.setValueAtTime(0.12, ctx.currentTime);
+    env.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.4);
+    osc.start(ctx.currentTime); osc.stop(ctx.currentTime+0.41);
+  } catch(e){}
+}
+function _fillSoundWrong() {
+  try {
+    const ctx = _getFillAudio();
+    [0, 0.13].forEach(d => {
+      const osc = ctx.createOscillator(); const env = ctx.createGain();
+      osc.connect(env); env.connect(ctx.destination);
+      osc.type = 'sawtooth'; osc.frequency.value = 160;
+      env.gain.setValueAtTime(0.10, ctx.currentTime+d);
+      env.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+d+0.09);
+      osc.start(ctx.currentTime+d); osc.stop(ctx.currentTime+d+0.10);
+    });
+  } catch(e){}
+}
+// ─────────────────────────────────────────────────────────────────────────────
+
 function updateHintUI(){
   const el=document.getElementById('hintRemain');
   if(el)el.textContent=hintsLeft>0?`REMAIN ${hintsLeft}`:'USED UP';
@@ -769,6 +816,11 @@ function checkAnswers(){
     if(answerMatch(inp.value,ans)){inp.classList.add('ok');cor++;}
     else{inp.classList.add('bad');const sp=document.createElement('span');sp.textContent=`（${ans}）`;sp.style.cssText='color:var(--good);font-size:.78rem;font-family:var(--mono);margin-left:.3rem;';inp.after(sp);}
   });
+  // Wave 38: play audio feedback based on score
+  if(cor === inputs.length) _fillSoundPerfect();
+  else if(cor > 0) _fillSoundPartial();
+  else _fillSoundWrong();
+
   const msg=document.getElementById('resultMsg');
   msg.style.display='block';
   msg.style.color=cor===inputs.length?'var(--good)':'var(--warn)';
