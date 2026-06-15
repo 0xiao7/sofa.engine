@@ -777,6 +777,7 @@ let _steamWisps = [];
 let _nextShootTime = 0;
 let _studyRings = [];
 let _avatarBooks = [];
+let _greetingBob = null; // { born: timestamp, duration: ms }
 let _nextBookSpawn = 0;
 let _countSignTex = null, _countSignCtx = null;
 let _quoteSignTex = null, _quoteSignCtx = null, _quoteSignMesh = null;
@@ -2410,7 +2411,10 @@ function _updateThreeAvatars(users) {
     if(!uid) return;
     if(!_seenUserIds.has(uid)){
       _seenUserIds.add(uid);
-      if(!_isFirstRender && !u.isSelf) _showEntryToast(u.name || '同學');
+      if(!_isFirstRender && !u.isSelf) {
+        _showEntryToast(u.name || '同學');
+        if(!_greetingBob) _greetingBob = { born: Date.now(), duration: 700 };
+      }
     }
   });
 
@@ -2442,6 +2446,7 @@ function _updateThreeAvatars(users) {
     body.castShadow = true;
     body.userData.userIndex = i;
     _threeScene.add(body);
+    body.userData.baseScaleY = body.scale.y;
     _userAvatarMeshes.push(body);
 
     // Cube head with pixel face texture
@@ -2643,6 +2648,22 @@ function startThreeAnimation(canvas) {
       r.material.opacity = 0.5 + 0.45 * Math.sin(_threeTime * 3 + r.userData.phase);
       r.scale.setScalar(0.9 + 0.15 * Math.sin(_threeTime * 2.5 + r.userData.phase));
     });
+    // Greeting bob on new user entry
+    if(_greetingBob){
+      const _gbt = Math.min(1, (Date.now()-_greetingBob.born) / _greetingBob.duration);
+      // Sine arch: 0 → peak at 0.4 → 0 at 1.0, with slight overshoot
+      const _gbScale = 1 + 0.28 * Math.sin(_gbt * Math.PI) * (1 - _gbt * 0.3);
+      _userAvatarMeshes.forEach(m => {
+        m.scale.y = m.userData.baseScaleY ? m.userData.baseScaleY * _gbScale : _gbScale;
+      });
+      if(_gbt >= 1){
+        // Restore base scale
+        _userAvatarMeshes.forEach(m => {
+          m.scale.y = m.userData.baseScaleY || 1;
+        });
+        _greetingBob = null;
+      }
+    }
     // Avatar book reading micro-animation
     const _bkNow = Date.now();
     if(_userAvatarMeshes.length > 0 && _bkNow > _nextBookSpawn){
