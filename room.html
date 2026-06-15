@@ -1,0 +1,367 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"/>
+<title>SoFa 自習室 — 一起讀書</title>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --navy:#1F3848;--navy-2:#19303E;--navy-3:#142836;--navy-4:#0D1C28;
+  --plum:#2C4A5C;--plum-2:#4A6373;
+  --peach:#E7BBA7;--peach-2:#F0CDBD;
+  --cream:#F5F0EA;--cream-2:#ECE5DB;
+  --good:#9FB89F;--warn:#D9B084;
+  --line:rgba(245,240,234,.08);--line-2:rgba(245,240,234,.18);--line-3:rgba(245,240,234,.30);
+  --serif:"Noto Serif TC",serif;--sans:"Noto Sans TC",system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--navy-3);min-height:100dvh;font-family:var(--sans);color:var(--cream);-webkit-font-smoothing:antialiased}
+
+/* ── Entry overlay ── */
+#entry{
+  position:fixed;inset:0;z-index:100;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(13,28,40,.92);backdrop-filter:blur(6px);
+}
+.entry-card{
+  background:var(--navy-2);border:1px solid var(--line-3);border-radius:16px;
+  padding:36px 32px;width:min(420px,92vw);
+}
+.entry-card h1{
+  font-family:var(--serif);font-size:1.5rem;font-weight:700;
+  color:var(--peach);margin-bottom:6px;letter-spacing:.02em;
+}
+.entry-card p{font-size:.85rem;color:var(--cream-2);opacity:.7;margin-bottom:28px;}
+label{display:block;font-size:.78rem;color:var(--cream-2);opacity:.65;margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;}
+input[type=text],select{
+  width:100%;padding:10px 14px;border-radius:8px;
+  background:var(--navy-3);border:1px solid var(--line-3);
+  color:var(--cream);font-size:.95rem;font-family:inherit;
+  outline:none;transition:border .2s;margin-bottom:18px;
+}
+input[type=text]:focus,select:focus{border-color:var(--peach);}
+select option{background:var(--navy-3);}
+.btn-enter{
+  width:100%;padding:12px;border-radius:8px;
+  background:var(--peach);color:var(--navy-4);
+  font-size:1rem;font-weight:600;font-family:var(--serif);
+  cursor:pointer;border:none;transition:opacity .2s;
+  letter-spacing:.04em;
+}
+.btn-enter:hover{opacity:.88;}
+.entry-tip{margin-top:14px;font-size:.76rem;color:var(--cream-2);opacity:.45;text-align:center;}
+
+/* ── Room layout ── */
+#room{display:none;min-height:100dvh;flex-direction:column;}
+header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:14px 20px;border-bottom:1px solid var(--line-2);
+  background:var(--navy-4);position:sticky;top:0;z-index:10;
+}
+.logo{font-family:var(--serif);font-size:1rem;font-weight:700;color:var(--peach);letter-spacing:.06em;}
+.online-badge{
+  display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--good);
+}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--good);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.btn-leave{font-size:.75rem;color:var(--cream-2);opacity:.5;padding:4px 10px;border:1px solid var(--line-2);border-radius:20px;cursor:pointer;transition:opacity .2s;}
+.btn-leave:hover{opacity:1;}
+
+main{display:flex;flex:1;gap:0;min-height:0;}
+
+/* ── Desk grid ── */
+#desk-area{flex:1;padding:24px 20px;overflow-y:auto;}
+.room-label{font-size:.78rem;color:var(--cream-2);opacity:.45;margin-bottom:16px;letter-spacing:.08em;text-transform:uppercase;}
+#desk-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(140px,1fr));
+  gap:12px;
+}
+.desk{
+  background:var(--navy-2);border:1px solid var(--line-2);border-radius:12px;
+  padding:16px 14px;display:flex;flex-direction:column;align-items:center;gap:8px;
+  transition:border-color .3s;position:relative;
+}
+.desk.me{border-color:var(--peach);box-shadow:0 0 0 1px var(--peach);}
+.desk.away{opacity:.45;}
+.desk-icon{font-size:1.8rem;line-height:1;}
+.desk-name{font-size:.82rem;font-weight:600;color:var(--cream);text-align:center;word-break:break-all;}
+.desk-tag{font-size:.68rem;padding:2px 8px;border-radius:20px;background:var(--navy-3);color:var(--warn);border:1px solid rgba(217,176,132,.25);}
+.desk-time{font-size:.65rem;color:var(--cream-2);opacity:.45;margin-top:2px;}
+.desk-me-badge{
+  position:absolute;top:8px;right:8px;font-size:.6rem;
+  background:var(--peach);color:var(--navy-4);padding:1px 5px;border-radius:8px;font-weight:700;
+}
+.desk-shout{
+  font-size:.7rem;color:var(--peach-2);text-align:center;font-style:italic;
+  animation:fadeShout 4s forwards;
+}
+@keyframes fadeShout{0%{opacity:1}80%{opacity:1}100%{opacity:0}}
+
+/* ── Sidebar ── */
+#sidebar{
+  width:220px;border-left:1px solid var(--line-2);
+  padding:18px 14px;display:flex;flex-direction:column;gap:12px;
+  background:var(--navy-4);overflow-y:auto;
+}
+.sidebar-section{font-size:.7rem;color:var(--cream-2);opacity:.45;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
+.shout-form textarea{
+  width:100%;height:60px;padding:8px 10px;border-radius:8px;resize:none;
+  background:var(--navy-3);border:1px solid var(--line-2);
+  color:var(--cream);font-size:.8rem;font-family:inherit;outline:none;
+}
+.shout-form textarea:focus{border-color:var(--peach);}
+.btn-shout{
+  width:100%;margin-top:6px;padding:8px;border-radius:8px;
+  background:rgba(231,187,167,.15);border:1px solid var(--peach);
+  color:var(--peach);font-size:.8rem;font-weight:600;cursor:pointer;transition:background .2s;
+}
+.btn-shout:hover{background:rgba(231,187,167,.25);}
+.btn-shout:disabled{opacity:.4;cursor:not-allowed;}
+
+#online-list{display:flex;flex-direction:column;gap:4px;}
+.online-item{
+  display:flex;align-items:center;gap:8px;font-size:.78rem;
+  padding:6px 8px;border-radius:6px;
+}
+.online-item.me-item{background:rgba(231,187,167,.08);}
+.online-item-avatar{font-size:1rem;}
+.online-item-info{flex:1;min-width:0;}
+.online-item-name{font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.online-item-tag{font-size:.65rem;color:var(--warn);opacity:.7;}
+
+/* ── Shout banner ── */
+#shout-banner{
+  position:fixed;top:70px;left:50%;transform:translateX(-50%);
+  background:var(--navy);border:1px solid var(--peach);border-radius:10px;
+  padding:10px 20px;font-size:.85rem;color:var(--peach-2);
+  z-index:50;display:none;max-width:90vw;text-align:center;
+  box-shadow:0 4px 20px rgba(0,0,0,.4);
+}
+
+/* mobile */
+@media(max-width:640px){
+  #sidebar{display:none;}
+  #desk-grid{grid-template-columns:repeat(auto-fill,minmax(110px,1fr));}
+}
+</style>
+</head>
+<body>
+
+<!-- ── Entry ── -->
+<div id="entry">
+  <div class="entry-card">
+    <h1>SoFa 自習室</h1>
+    <p>和備考同學一起讀書，不孤單。</p>
+    <label for="inp-name">你的暱稱</label>
+    <input type="text" id="inp-name" placeholder="考生甲" maxlength="12" autocomplete="off"/>
+    <label for="inp-subject">備考科目</label>
+    <select id="inp-subject">
+      <option value="記帳士">📒 記帳士</option>
+      <option value="地政士">🏠 地政士</option>
+      <option value="不動產經紀人">🔑 不動產經紀人</option>
+      <option value="財稅行政">📊 財稅行政</option>
+      <option value="初等考試">📝 初等考試</option>
+      <option value="其他">📚 其他</option>
+    </select>
+    <button class="btn-enter" id="btn-enter">進入自習室</button>
+    <p class="entry-tip">暱稱僅在本次在線期間顯示，不儲存帳號資料。</p>
+  </div>
+</div>
+
+<!-- ── Room ── -->
+<div id="room">
+  <header>
+    <span class="logo">S·O·F·A 自習室</span>
+    <span class="online-badge">
+      <span class="dot"></span>
+      <span id="count-badge">1 人在線</span>
+    </span>
+    <button class="btn-leave" id="btn-leave">離開</button>
+  </header>
+
+  <div id="shout-banner"></div>
+
+  <main>
+    <div id="desk-area">
+      <div class="room-label">圖書館大廳</div>
+      <div id="desk-grid"></div>
+    </div>
+    <div id="sidebar">
+      <div>
+        <div class="sidebar-section">喊話</div>
+        <div class="shout-form">
+          <textarea id="shout-input" placeholder="對自習室裡的人說句話…" maxlength="40"></textarea>
+          <button class="btn-shout" id="btn-shout">廣播</button>
+        </div>
+        <div style="font-size:.65rem;color:var(--cream-2);opacity:.35;margin-top:4px;">30 秒冷卻，最多 40 字</div>
+      </div>
+      <div>
+        <div class="sidebar-section">在線名單</div>
+        <div id="online-list"></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script type="module">
+// ── 設定 ──────────────────────────────────────────────────────────────
+const SUPABASE_URL  = 'https://azyougvutvbladgzdiar.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImF6eW91Z3Z1dHZibGFkZ3pkaWFyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk5NTc1OTYsImV4cCI6MjA5NTUzMzU5Nn0._8JtTK49sVc_P0_UvlaStNSLQwcFLaW9rcQVPYkx7L0';
+
+// 考科 icon 對照
+const ICONS = {
+  '記帳士':'📒','地政士':'🏠','不動產經紀人':'🔑',
+  '財稅行政':'📊','初等考試':'📝','其他':'📚'
+};
+
+// ── Supabase Realtime ─────────────────────────────────────────────────
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+let myKey, channel, shoutCooldown = false, joinedAt;
+let lastShoutTimestamp = 0;
+
+// ── Entry ─────────────────────────────────────────────────────────────
+document.getElementById('inp-name').addEventListener('keydown', e => {
+  if(e.key === 'Enter') enter();
+});
+document.getElementById('btn-enter').addEventListener('click', enter);
+
+function enter(){
+  const name    = document.getElementById('inp-name').value.trim() || '匿名考生';
+  const subject = document.getElementById('inp-subject').value;
+  joinedAt = Date.now();
+  myKey = `user_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+  document.getElementById('entry').style.display = 'none';
+  document.getElementById('room').style.display  = 'flex';
+  startPresence(name, subject);
+}
+
+// ── Presence ──────────────────────────────────────────────────────────
+function startPresence(name, subject){
+  channel = sb.channel('sofa-study-room', {
+    config:{ presence:{ key: myKey } }
+  });
+
+  channel
+    .on('presence', { event:'sync' }, renderRoom)
+    .on('broadcast', { event:'shout' }, ({ payload }) => showShoutBanner(payload))
+    .subscribe(async status => {
+      if(status === 'SUBSCRIBED'){
+        await channel.track({ name, subject, joined_at: joinedAt });
+      }
+    });
+}
+
+// ── Render ────────────────────────────────────────────────────────────
+function renderRoom(){
+  const state  = channel.presenceState();
+  const users  = Object.entries(state).map(([key, [u]]) => ({ key, ...u }));
+  const count  = users.length;
+
+  document.getElementById('count-badge').textContent = `${count} 人在線`;
+
+  // Desk grid
+  const grid = document.getElementById('desk-grid');
+  grid.innerHTML = '';
+  users.forEach(u => {
+    const isMe = u.key === myKey;
+    const mins = Math.floor((Date.now() - u.joined_at) / 60000);
+    const timeLabel = mins < 1 ? '剛到' : `已讀 ${mins} 分鐘`;
+    const icon = ICONS[u.subject] || '📚';
+
+    const el = document.createElement('div');
+    el.className = 'desk' + (isMe ? ' me' : '');
+    el.dataset.key = u.key;
+    el.innerHTML = `
+      ${isMe ? '<span class="desk-me-badge">我</span>' : ''}
+      <div class="desk-icon">${icon}</div>
+      <div class="desk-name">${esc(u.name)}</div>
+      <div class="desk-tag">${esc(u.subject)}</div>
+      <div class="desk-time">${timeLabel}</div>
+    `;
+    grid.appendChild(el);
+  });
+
+  // Online list
+  const list = document.getElementById('online-list');
+  list.innerHTML = '';
+  users.forEach(u => {
+    const isMe = u.key === myKey;
+    const icon = ICONS[u.subject] || '📚';
+    const el = document.createElement('div');
+    el.className = 'online-item' + (isMe ? ' me-item' : '');
+    el.innerHTML = `
+      <span class="online-item-avatar">${icon}</span>
+      <div class="online-item-info">
+        <div class="online-item-name">${esc(u.name)}${isMe ? '（我）' : ''}</div>
+        <div class="online-item-tag">${esc(u.subject)}</div>
+      </div>
+    `;
+    list.appendChild(el);
+  });
+}
+
+// ── Shout ─────────────────────────────────────────────────────────────
+document.getElementById('btn-shout').addEventListener('click', async () => {
+  if(shoutCooldown) return;
+  const text = document.getElementById('shout-input').value.trim();
+  if(!text) return;
+
+  shoutCooldown = true;
+  const btn = document.getElementById('btn-shout');
+  btn.disabled = true;
+
+  await channel.send({
+    type:'broadcast', event:'shout',
+    payload:{ text, from: document.getElementById('inp-name').value.trim() || '匿名考生' }
+  });
+
+  document.getElementById('shout-input').value = '';
+
+  let cd = 30;
+  const timer = setInterval(() => {
+    cd--;
+    btn.textContent = `冷卻中 ${cd}s`;
+    if(cd <= 0){
+      clearInterval(timer);
+      btn.textContent = '廣播';
+      btn.disabled = false;
+      shoutCooldown = false;
+    }
+  }, 1000);
+});
+
+function showShoutBanner({ text, from }){
+  const banner = document.getElementById('shout-banner');
+  banner.textContent = `${from}：${text}`;
+  banner.style.display = 'block';
+  clearTimeout(banner._t);
+  banner._t = setTimeout(() => { banner.style.display = 'none'; }, 4000);
+}
+
+// ── Leave ─────────────────────────────────────────────────────────────
+document.getElementById('btn-leave').addEventListener('click', leave);
+window.addEventListener('beforeunload', () => channel?.untrack());
+
+async function leave(){
+  await channel?.untrack();
+  await channel?.unsubscribe();
+  document.getElementById('room').style.display  = 'none';
+  document.getElementById('entry').style.display = 'flex';
+}
+
+// ── Utils ─────────────────────────────────────────────────────────────
+function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+// ── Heartbeat：每分鐘更新在線時間，讓 desk 時間走動 ──────────────────
+setInterval(() => {
+  if(channel) renderRoom();
+}, 60_000);
+</script>
+</body>
+</html>
