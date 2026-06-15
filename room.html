@@ -1109,6 +1109,83 @@ function initThreeScene(canvas) {
     }
   });
 
+  // Bookshelf category labels (back wall)
+  const SHELF_LABELS = ['民法\n基礎', '稅捐\n稽徵', '記帳士\n法規', '不動產\n法規', '地政士\n法規'];
+  [-6,-3,0,3,6].forEach((x, si) => {
+    const lc = document.createElement('canvas');
+    lc.width = 128; lc.height = 48;
+    const lctx = lc.getContext('2d');
+    lctx.fillStyle = '#0D1E2C';
+    lctx.fillRect(0,0,128,48);
+    lctx.fillStyle = '#D4A847';
+    lctx.fillRect(0,0,128,4); // gold top bar
+    lctx.fillStyle = '#E8DCC8';
+    lctx.font = 'bold 16px monospace';
+    lctx.textAlign = 'center';
+    const lines = SHELF_LABELS[si].split('\n');
+    lines.forEach((ln,li) => lctx.fillText(ln, 64, 22 + li*18));
+    const lTex = new THREE.CanvasTexture(lc);
+    const lMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.6, 0.36),
+      new THREE.MeshBasicMaterial({map: lTex, side: THREE.DoubleSide})
+    );
+    lMesh.position.set(x, 4.62, -7.68);
+    _threeScene.add(lMesh);
+    // Thin gold frame behind label
+    const lFrame = new THREE.Mesh(
+      new THREE.BoxGeometry(1.65, 0.40, 0.02),
+      new THREE.MeshBasicMaterial({color: 0xD4A847})
+    );
+    lFrame.position.set(x, 4.62, -7.70);
+    _threeScene.add(lFrame);
+  });
+
+  // Hanging banners from ceiling (decorative)
+  [
+    { x: -3.5, z: -2, text: ['SoFa', '自習室'], sub: '法律人的備考空間' },
+    { x:  3.5, z: -2, text: ['讀書', '加油💪'], sub: '每天進步一點點' },
+  ].forEach(def => {
+    const bc = document.createElement('canvas');
+    bc.width = 96; bc.height = 192;
+    const bctx = bc.getContext('2d');
+    // Banner background — deep navy with subtle border
+    bctx.fillStyle = '#0D1E2C';
+    bctx.fillRect(0,0,96,192);
+    bctx.strokeStyle = '#2A4A6A';
+    bctx.lineWidth = 3;
+    bctx.strokeRect(4,4,88,184);
+    // Gold accent line at top
+    bctx.fillStyle = '#D4A847';
+    bctx.fillRect(8,12,80,3);
+    // Main text (vertical style)
+    bctx.fillStyle = '#E8DCC8';
+    bctx.font = 'bold 32px serif';
+    bctx.textAlign = 'center';
+    def.text.forEach((t,ti) => bctx.fillText(t, 48, 70 + ti*48));
+    // Subtitle
+    bctx.fillStyle = '#5BAFD6';
+    bctx.font = '11px monospace';
+    bctx.fillText(def.sub, 48, 172);
+    // Bottom gold line
+    bctx.fillStyle = '#D4A847';
+    bctx.fillRect(8,177,80,3);
+    const bTex = new THREE.CanvasTexture(bc);
+    const bMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.7, 1.4),
+      new THREE.MeshBasicMaterial({map: bTex, side: THREE.DoubleSide, transparent: true})
+    );
+    bMesh.position.set(def.x, 5.6, def.z);
+    _threeScene.add(bMesh);
+    // Thin wooden rod at top
+    const rod = new THREE.Mesh(
+      new THREE.CylinderGeometry(0.025, 0.025, 0.85, 6),
+      new THREE.MeshLambertMaterial({color: 0x3A2010})
+    );
+    rod.rotation.z = Math.PI / 2;
+    rod.position.set(def.x, 6.32, def.z);
+    _threeScene.add(rod);
+  });
+
   // Left wall bookshelves
   [-6,-2,2,6].forEach(z => {
     const shelf = new THREE.Mesh(box(0.55,4.0,2.0), shelfMat);
