@@ -867,6 +867,8 @@ let _sakuraParticles = [];
 let _mapleParticles = [];
 // Wave84: Autumn pumpkin props
 let _pumpkinTx = null, _pumpkins = [];
+// Wave95: Mid-Autumn mooncake props
+let _mooncakeTx = null, _mooncakes = [];
 let _lightShafts = [];
 let _ceilStars = [];
 let _moonSprite = null;
@@ -1333,6 +1335,55 @@ function _mapleTex() {
   ctx.beginPath(); ctx.moveTo(0,14); ctx.lineTo(0,18); ctx.stroke();
   ctx.restore();
   return new THREE.CanvasTexture(c);
+}
+
+// Wave95: Mooncake canvas texture
+function _mooncakeTex() {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 64;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,64,64);
+  // Mooncake base (round, golden brown radial gradient)
+  const g = ctx.createRadialGradient(32,32,4,32,32,28);
+  g.addColorStop(0,  '#e8a840');
+  g.addColorStop(0.6,'#c07820');
+  g.addColorStop(1,  '#904a00');
+  ctx.beginPath(); ctx.arc(32,32,28,0,Math.PI*2);
+  ctx.fillStyle=g; ctx.fill();
+  // Side edge darker ring
+  ctx.beginPath(); ctx.arc(32,32,28,0,Math.PI*2);
+  ctx.strokeStyle='#703800'; ctx.lineWidth=3; ctx.stroke();
+  // Top carved floral pattern — outer ring
+  ctx.beginPath(); ctx.arc(32,32,20,0,Math.PI*2);
+  ctx.strokeStyle='rgba(80,30,0,0.6)'; ctx.lineWidth=1; ctx.stroke();
+  // 8 petal circles around centre
+  for(let i=0;i<8;i++){
+    const a = i*Math.PI/4;
+    const x = 32+Math.cos(a)*12, y = 32+Math.sin(a)*12;
+    ctx.beginPath(); ctx.arc(x,y,4,0,Math.PI*2);
+    ctx.strokeStyle='rgba(80,30,0,0.4)'; ctx.lineWidth=1; ctx.stroke();
+  }
+  // Centre dot
+  ctx.beginPath(); ctx.arc(32,32,4,0,Math.PI*2);
+  ctx.fillStyle='rgba(80,30,0,0.5)'; ctx.fill();
+  return new THREE.CanvasTexture(cv);
+}
+function _buildMooncakes() {
+  if (_mooncakes.length > 0) return;
+  if (!_mooncakeTx) _mooncakeTx = _mooncakeTex();
+  // Place on first 4 desks from _DESK_POS_3D (x, z pairs)
+  _DESK_POS_3D.slice(0, 4).forEach((d) => {
+    const mat = new THREE.SpriteMaterial({ map: _mooncakeTx, transparent: true });
+    const sp = new THREE.Sprite(mat);
+    sp.scale.set(0.28, 0.28, 1);
+    // y=0.85 ≈ desk surface height; slight x/z offset to avoid overlapping name plates
+    sp.position.set(d[0] + 0.3, 0.85, d[1] - 0.2);
+    _threeScene.add(sp);
+    _mooncakes.push(sp);
+  });
+}
+function _destroyMooncakes() {
+  _mooncakes.forEach(sp => { _threeScene.remove(sp); sp.material.dispose(); });
+  _mooncakes = [];
 }
 
 // Wave84: Jack-o-lantern canvas texture
@@ -1936,8 +1987,12 @@ function initThreeScene(canvas) {
     }
     // Wave84: pumpkin props alongside maple leaves
     _buildPumpkins();
+    // Wave95: mooncakes only for Sep–Oct (month 8–9)
+    if (_moA >= 8 && _moA <= 9) { _buildMooncakes(); }
+    else { if (_mooncakes.length > 0) _destroyMooncakes(); }
   } else {
     if (_pumpkins.length > 0) _destroyPumpkins();
+    if (_mooncakes.length > 0) _destroyMooncakes();
   }
 
   // Window light shafts (god rays)
