@@ -854,6 +854,8 @@ let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticle
 let _snowParticles = [];
 let _sakuraParticles = [];
 let _mapleParticles = [];
+// Wave84: Autumn pumpkin props
+let _pumpkinTx = null, _pumpkins = [];
 let _lightShafts = [];
 let _ceilStars = [];
 let _moonSprite = null;
@@ -1268,6 +1270,29 @@ function _destroyButterflies() {
   _butterflies = [];
 }
 
+// Wave84: Autumn pumpkin props
+function _buildPumpkins() {
+  if (_pumpkins.length > 0) return;
+  if (!_pumpkinTx) _pumpkinTx = _pumpkinTex();
+  const positions = [
+    [-5.5, 0.15, 5.5], [5.5, 0.15, 5.5], [-6, 0.15, 2],
+    [6, 0.15, 0], [-4, 0.15, 6.5]
+  ];
+  positions.forEach((pos, i) => {
+    const mat = new THREE.SpriteMaterial({ map: _pumpkinTx, transparent: true });
+    const sp = new THREE.Sprite(mat);
+    const s = 0.35 + (i % 2) * 0.12;
+    sp.scale.set(s, s, 1);
+    sp.position.set(...pos);
+    _threeScene.add(sp);
+    _pumpkins.push(sp);
+  });
+}
+function _destroyPumpkins() {
+  _pumpkins.forEach(sp => { _threeScene.remove(sp); sp.material.dispose(); });
+  _pumpkins = [];
+}
+
 function _mapleTex() {
   const c = document.createElement('canvas'); c.width = c.height = 40;
   const ctx = c.getContext('2d');
@@ -1292,6 +1317,31 @@ function _mapleTex() {
   ctx.beginPath(); ctx.moveTo(0,14); ctx.lineTo(0,18); ctx.stroke();
   ctx.restore();
   return new THREE.CanvasTexture(c);
+}
+
+// Wave84: Jack-o-lantern canvas texture
+function _pumpkinTex() {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 64;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,64,64);
+  // Stem
+  ctx.fillStyle = '#3a6b2a'; ctx.fillRect(29,4,6,10);
+  // Pumpkin body (3 lobes)
+  const drawLobe = (cx, w) => {
+    ctx.beginPath(); ctx.ellipse(cx,38,w,20,0,0,Math.PI*2);
+    ctx.fillStyle='#e07020'; ctx.fill();
+    ctx.strokeStyle='#c05010'; ctx.lineWidth=1.5; ctx.stroke();
+  };
+  drawLobe(32,18); drawLobe(16,12); drawLobe(48,12);
+  // Eyes (triangle cutouts)
+  [20,44].forEach(ex => {
+    ctx.beginPath(); ctx.moveTo(ex,32); ctx.lineTo(ex-4,38); ctx.lineTo(ex+4,38); ctx.closePath();
+    ctx.fillStyle='#2a1200'; ctx.fill();
+  });
+  // Smile
+  ctx.beginPath(); ctx.arc(32,42,8,0.2,Math.PI-0.2);
+  ctx.strokeStyle='#2a1200'; ctx.lineWidth=2; ctx.stroke();
+  return new THREE.CanvasTexture(cv);
 }
 
 function _bookTex() {
@@ -1858,6 +1908,10 @@ function initThreeScene(canvas) {
       _threeScene.add(ms);
       _mapleParticles.push(ms);
     }
+    // Wave84: pumpkin props alongside maple leaves
+    _buildPumpkins();
+  } else {
+    if (_pumpkins.length > 0) _destroyPumpkins();
   }
 
   // Window light shafts (god rays)
