@@ -739,14 +739,14 @@ function initThreeScene(canvas) {
 
   _threeScene = new THREE.Scene();
   _threeScene.background = new THREE.Color(0x040D14);
-  _threeScene.fog = new THREE.FogExp2(0x040D14, 0.045);
+  _threeScene.fog = new THREE.FogExp2(0x040D14, 0.016);
 
-  _threeCamera = new THREE.PerspectiveCamera(55, canvas.width / canvas.height, 0.1, 80);
-  _threeCamera.position.set(0, 7, 12);
-  _threeCamera.lookAt(0, 1.5, 0);
+  _threeCamera = new THREE.PerspectiveCamera(62, canvas.width / canvas.height, 0.1, 100);
+  _threeCamera.position.set(0, 5, 14);
+  _threeCamera.lookAt(0, 2, -3);
 
   // Lights
-  _threeScene.add(new THREE.AmbientLight(0x3A5A7A, 0.6));
+  _threeScene.add(new THREE.AmbientLight(0x4A6A8A, 1.0));
   const keyLight = new THREE.DirectionalLight(0x5BAFD6, 0.8);
   keyLight.position.set(3, 8, 5);
   _threeScene.add(keyLight);
@@ -978,9 +978,12 @@ function startThreeAnimation(canvas) {
     _threeRAF = requestAnimationFrame(loop);
     _threeTime += 0.008;
     // Gentle camera orbit
-    _threeCamera.position.x = Math.sin(_threeTime * 0.3) * 1.5;
-    _threeCamera.position.y = 6.5 + Math.sin(_threeTime * 0.15) * 0.4;
-    _threeCamera.lookAt(0, 2, 0);
+    // 緩慢環繞：繞 Y 軸旋轉，視角對準房間中心稍後方
+    const r = 14, orbitAngle = _threeTime * 0.15;
+    _threeCamera.position.x = Math.sin(orbitAngle) * r * 0.55;
+    _threeCamera.position.z = Math.cos(orbitAngle) * r;
+    _threeCamera.position.y = 5 + Math.sin(_threeTime * 0.1) * 0.5;
+    _threeCamera.lookAt(0, 2, -2);
     // Torch flicker
     _torchLights.forEach((tl, i) => {
       tl.intensity = 0.9 + 0.35 * Math.sin(_threeTime * 4 + i * 1.3);
