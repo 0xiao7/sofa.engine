@@ -133,7 +133,8 @@ main{display:flex;flex:1;gap:0;min-height:0;}
   border-radius:12px;
   border:1px solid rgba(91,175,214,0.15);
 }
-#room-canvas{display:block;width:100%;cursor:crosshair;}
+#room-canvas{display:block;width:100%;cursor:default;}
+#dpad,#dpad-hint{display:none!important;}
 
 #dpad{position:absolute;bottom:12px;right:12px;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0.75;}
 #dpad:hover{opacity:1;}
@@ -471,6 +472,7 @@ input[type=text], select, .btn-enter {
   border-radius: 2px;
 }
 </style>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 </head>
 <body>
 
@@ -721,370 +723,297 @@ input[type=text], select, .btn-enter {
 </div>
 
 <script type="module">
-// ── RPG 頂視角自習室場景 ─────────────────────────────────────────────
+// ── Three.js 3D 低多邊形圖書館場景 ────────────────────────────────────
 
-const TS = 44;          // tile size px
-const RW = 20, RH = 16; // room width/height in tiles
+let _threeRenderer, _threeScene, _threeCamera, _threeRAF;
+let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
+let _threeTime = 0;
 
-// --- Layout ---
-// DESK positions (tile x,y of the desk block itself)
-const DESKS = [
-  {tx:2,ty:2},{tx:3,ty:2},   {tx:7,ty:2},{tx:8,ty:2},
-  {tx:13,ty:2},{tx:14,ty:2}, {tx:17,ty:2},{tx:18,ty:2},
-  {tx:2,ty:6},{tx:3,ty:6},   {tx:7,ty:6},{tx:8,ty:6},
-  {tx:13,ty:6},{tx:14,ty:6}, {tx:17,ty:6},{tx:18,ty:6},
-  {tx:2,ty:10},{tx:3,ty:10}, {tx:7,ty:10},{tx:8,ty:10},
-  {tx:13,ty:10},{tx:14,ty:10},{tx:17,ty:10},{tx:18,ty:10},
+function initThreeScene(canvas) {
+  if (_threeRenderer) return;
+
+  _threeRenderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: false });
+  _threeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  _threeRenderer.setSize(canvas.width, canvas.height);
+  _threeRenderer.shadowMap.enabled = true;
+
+  _threeScene = new THREE.Scene();
+  _threeScene.background = new THREE.Color(0x040D14);
+  _threeScene.fog = new THREE.FogExp2(0x040D14, 0.045);
+
+  _threeCamera = new THREE.PerspectiveCamera(55, canvas.width / canvas.height, 0.1, 80);
+  _threeCamera.position.set(0, 7, 12);
+  _threeCamera.lookAt(0, 1.5, 0);
+
+  // Lights
+  _threeScene.add(new THREE.AmbientLight(0x3A5A7A, 0.6));
+  const keyLight = new THREE.DirectionalLight(0x5BAFD6, 0.8);
+  keyLight.position.set(3, 8, 5);
+  _threeScene.add(keyLight);
+
+  // Window blue fill lights
+  [[-6, 4, -6.5], [6, 4, -6.5]].forEach(([x,y,z]) => {
+    const wl = new THREE.PointLight(0x87CEEB, 0.7, 12);
+    wl.position.set(x, y, z);
+    _threeScene.add(wl);
+  });
+
+  // Torch point lights (flicker in animation loop)
+  [[-5.5, 2, -5], [5.5, 2, -5], [-5.5, 2, 2], [5.5, 2, 2]].forEach(([x,y,z]) => {
+    const tl = new THREE.PointLight(0xFF8C00, 1.0, 7);
+    tl.position.set(x, y, z);
+    _threeScene.add(tl);
+    _torchLights.push(tl);
+  });
+
+  const mLambert = (hex, flat=false) => new THREE.MeshLambertMaterial({ color: hex, flatShading: flat });
+  const box = (w,h,d) => new THREE.BoxGeometry(w,h,d);
+
+  // Floor
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(18, 16), mLambert(0x1A2535));
+  floor.rotation.x = -Math.PI / 2;
+  _threeScene.add(floor);
+  const grid = new THREE.GridHelper(18, 18, 0x2D4A5E, 0x1E3545);
+  grid.position.y = 0.01;
+  _threeScene.add(grid);
+
+  // Walls
+  const wallMat = mLambert(0x0D1929);
+  const bWall = new THREE.Mesh(box(18,8,0.3), wallMat);
+  bWall.position.set(0, 4, -8); _threeScene.add(bWall);
+  const lWall = new THREE.Mesh(box(0.3,8,16), wallMat);
+  lWall.position.set(-9, 4, 0); _threeScene.add(lWall);
+  const rWall = lWall.clone(); rWall.position.set(9,4,0); _threeScene.add(rWall);
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(18,16), mLambert(0x081018));
+  ceil.rotation.x = Math.PI/2; ceil.position.y = 8; _threeScene.add(ceil);
+
+  // Windows
+  [[-5,4,-7.8],[5,4,-7.8]].forEach(([x,y,z]) => {
+    const wm = new THREE.MeshBasicMaterial({ color:0x5BAFD6, transparent:true, opacity:0.22 });
+    const ww = new THREE.Mesh(new THREE.PlaneGeometry(2.8,3.2), wm);
+    ww.position.set(x,y,z); _threeScene.add(ww);
+    const frame = new THREE.Mesh(box(2.9,3.3,0.08), mLambert(0x142535));
+    frame.position.set(x,y,z-0.1); _threeScene.add(frame);
+  });
+
+  // Bookshelves
+  const shelfMat = mLambert(0x1D3A28);
+  const bookColors = [0xE85D5D,0x5D8AE8,0x5DE87A,0xE8C45D,0xA05DE8,0xE8855D,0x5DD6E8];
+  [-6,-3,0,3,6].forEach(x => {
+    const shelf = new THREE.Mesh(box(2.2,4.5,0.55), shelfMat);
+    shelf.position.set(x, 2.25, -7.72); _threeScene.add(shelf);
+    // Shelves horizontal planks
+    [1,2,3].forEach(row => {
+      const plank = new THREE.Mesh(box(2.0,0.07,0.48), mLambert(0x0F2318));
+      plank.position.set(x, row*1.2, -7.70); _threeScene.add(plank);
+    });
+    // Books
+    for (let b=0; b<6; b++) {
+      const bk = new THREE.Mesh(box(0.22,0.9,0.38), mLambert(bookColors[b%bookColors.length]));
+      bk.position.set(x - 0.52 + b*0.21, 1.65+Math.random()*0.1, -7.70);
+      _threeScene.add(bk);
+    }
+    for (let b=0; b<6; b++) {
+      const bk = new THREE.Mesh(box(0.22,0.9,0.38), mLambert(bookColors[(b+3)%bookColors.length]));
+      bk.position.set(x - 0.52 + b*0.21, 2.85+Math.random()*0.1, -7.70);
+      _threeScene.add(bk);
+    }
+  });
+
+  // Central tree
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.25,2.5,8), mLambert(0x5C3D1E));
+  trunk.position.set(0,1.25,1); _threeScene.add(trunk);
+  // Circular rug under tree
+  const rug = new THREE.Mesh(new THREE.CylinderGeometry(2,2,0.04,32), mLambert(0x2D1A5A));
+  rug.position.set(0,0.02,1); _threeScene.add(rug);
+  const rugInner = new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,0.05,32), mLambert(0x4A2D8A));
+  rugInner.position.set(0,0.03,1); _threeScene.add(rugInner);
+  // Foliage (low-poly icosahedra)
+  [[0,3.8,1,1.4],[0.4,5.0,0.8,1.0],[-0.3,4.3,1.3,0.8],[0,5.9,1,0.6]].forEach(([x,y,z,r]) => {
+    const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(r,0), mLambert(0x2D8A4E, true));
+    leaf.position.set(x,y,z); _threeScene.add(leaf);
+  });
+
+  // Desks
+  const deskMat = mLambert(0x4A2E1A);
+  const monMat = mLambert(0x1A2E3D);
+  const scrMat = new THREE.MeshBasicMaterial({ color: 0x2D7DA8 });
+  const DESK_POSITIONS = [
+    [-5,-3],[-3,-3],[3,-3],[5,-3],
+    [-5,0],[5,0],
+    [-5,3],[5,3],
+    [-3,-5],[3,-5],
+    [-3,4.5],[3,4.5],
+  ];
+  DESK_POSITIONS.forEach(([x,z]) => {
+    const desk = new THREE.Mesh(box(1.6,0.08,0.9), deskMat);
+    desk.position.set(x,0.76,z); _threeScene.add(desk);
+    const leg1 = new THREE.Mesh(box(0.06,0.76,0.06), deskMat);
+    leg1.position.set(x-0.65,0.38,z+0.35); _threeScene.add(leg1);
+    const leg2 = leg1.clone(); leg2.position.set(x+0.65,0.38,z+0.35); _threeScene.add(leg2);
+    const leg3 = leg1.clone(); leg3.position.set(x-0.65,0.38,z-0.35); _threeScene.add(leg3);
+    const leg4 = leg1.clone(); leg4.position.set(x+0.65,0.38,z-0.35); _threeScene.add(leg4);
+    // Monitor
+    const mon = new THREE.Mesh(box(0.9,0.55,0.06), monMat);
+    mon.position.set(x,1.1,z-0.28); _threeScene.add(mon);
+    const scr = new THREE.Mesh(box(0.75,0.42,0.02), scrMat);
+    scr.position.set(x,1.1,z-0.30); _threeScene.add(scr);
+    // Monitor stand
+    const stand = new THREE.Mesh(box(0.06,0.2,0.06), monMat);
+    stand.position.set(x,0.9,z-0.28); _threeScene.add(stand);
+  });
+
+  // Torch wall sconces
+  _torchLights.forEach(tl => {
+    const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.4,6), mLambert(0x5C3D1E));
+    stick.position.copy(tl.position).y -= 0.1; _threeScene.add(stick);
+    const flame = new THREE.Mesh(new THREE.SphereGeometry(0.09,6,4), new THREE.MeshBasicMaterial({color:0xFFDD00}));
+    flame.position.copy(tl.position); _threeScene.add(flame);
+  });
+
+  // Bulletin board (clickable)
+  const boardMesh = new THREE.Mesh(box(2.4,1.6,0.12), mLambert(0x3D2510));
+  boardMesh.position.set(0,3,-7.8);
+  boardMesh.userData.isBoard = true;
+  _threeScene.add(boardMesh);
+  const boardFrame = new THREE.Mesh(box(2.6,1.8,0.08), mLambert(0x6B4520));
+  boardFrame.position.set(0,3,-7.85); _threeScene.add(boardFrame);
+  // Board label
+  const boardPinMesh = new THREE.Mesh(new THREE.SphereGeometry(0.06,6,6), new THREE.MeshBasicMaterial({color:0xFFDD00}));
+  boardPinMesh.position.set(0,3.65,-7.73); _threeScene.add(boardPinMesh);
+
+  // Click handler (raycasting)
+  canvas.addEventListener('click', function(e) {
+    const popup = document.getElementById('rpg-popup');
+    if (popup) popup.style.display = 'none';
+    const rect = canvas.getBoundingClientRect();
+    const mouse = new THREE.Vector2(
+      ((e.clientX - rect.left) / rect.width) * 2 - 1,
+      -((e.clientY - rect.top) / rect.height) * 2 + 1
+    );
+    const ray = new THREE.Raycaster();
+    ray.setFromCamera(mouse, _threeCamera);
+    const hits = ray.intersectObjects(_threeScene.children, false);
+    for (const hit of hits) {
+      if (hit.object.userData.isBoard) {
+        document.getElementById('board-modal').style.display = 'flex';
+        return;
+      }
+      if (hit.object.userData.userIndex !== undefined) {
+        const u = _currentUsers[hit.object.userData.userIndex];
+        if (u) {
+          const secs = Math.floor((Date.now()-(u.joinedAt||Date.now()))/1000);
+          const t = secs<60?'剛到':secs<3600?`已讀 ${Math.floor(secs/60)} 分鐘`:`已讀 ${Math.floor(secs/3600)} 小時 ${Math.floor((secs%3600)/60)} 分`;
+          document.getElementById('rpg-popup-name').textContent = u.name;
+          document.getElementById('rpg-popup-subject').textContent = (ICONS[u.subject]||'📚')+' '+(u.subject||'記帳士');
+          document.getElementById('rpg-popup-time').textContent = t+(u.isGhost?' · 鬼魂用功中':' · 專注中');
+          const popup2 = document.getElementById('rpg-popup');
+          popup2.style.left = (e.clientX - rect.left + 10) + 'px';
+          popup2.style.top  = (e.clientY - rect.top  - 60) + 'px';
+          popup2.style.display = 'block';
+          setTimeout(() => { popup2.style.display='none'; }, 3500);
+        }
+        return;
+      }
+    }
+  });
+
+  _updateThreeAvatars([]);
+}
+
+const _DESK_POS_3D = [
+  [-5,-3],[-3,-3],[3,-3],[5,-3],
+  [-5,0],[5,0],
+  [-5,3],[5,3],
+  [-3,-5],[3,-5],
+  [-3,4.5],[3,4.5],
 ];
-// Character seat positions (in front of each desk)
-const SEATS = DESKS.map(d => ({tx: d.tx, ty: d.ty + 1}));
-// Plant positions
-const PLANTS = [{tx:0,ty:0},{tx:19,ty:0},{tx:0,ty:15},{tx:19,ty:15},{tx:9,ty:4},{tx:10,ty:4},{tx:9,ty:8},{tx:10,ty:12}];
-// Floor cushions (decorative ovals between desks)
-const CUSHIONS = [
-  {tx:5,ty:3},{tx:11,ty:3},{tx:16,ty:3},
-  {tx:5,ty:7},{tx:11,ty:7},{tx:16,ty:7},
-  {tx:5,ty:11},{tx:11,ty:11},{tx:16,ty:11},
-  {tx:1,ty:8},{tx:19,ty:5}
-];
 
-const BOARD = {tx:9, ty:1}; // top-center of room, against back wall
-
-// Blocked tiles (desks + plants block movement)
-function isBlocked(tx,ty) {
-  if (tx<0||tx>=RW||ty<0||ty>=RH) return true;
-  if (DESKS.some(d=>d.tx===tx&&d.ty===ty)) return true;
-  if (PLANTS.some(p=>p.tx===tx&&p.ty===ty)) return true;
-  if(tx===BOARD.tx&&ty===BOARD.ty) return true;
-  return false;
+function _makeLabel(name, color) {
+  const c = document.createElement('canvas');
+  c.width=128; c.height=32;
+  const ctx2=c.getContext('2d');
+  ctx2.fillStyle='rgba(10,21,32,0.88)';
+  ctx2.roundRect(0,0,128,32,6); ctx2.fill();
+  ctx2.fillStyle=color||'#fff';
+  ctx2.font='bold 14px sans-serif'; ctx2.textAlign='center'; ctx2.textBaseline='middle';
+  ctx2.fillText(name.substring(0,8),64,16);
+  const tex = new THREE.CanvasTexture(c);
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true });
+  const sp = new THREE.Sprite(mat);
+  sp.scale.set(1.2, 0.32, 1);
+  return sp;
 }
 
-// --- Camera ---
-let cam = {x:0, y:0};
-function centerCam(canvas, px, py) {
-  cam.x = px*TS - canvas.width/2 + TS/2;
-  cam.y = py*TS - canvas.height/2 + TS/2;
-  cam.x = Math.max(0, Math.min(RW*TS - canvas.width, cam.x));
-  cam.y = Math.max(0, Math.min(RH*TS - canvas.height, cam.y));
-}
+function _updateThreeAvatars(users) {
+  _userAvatarMeshes.forEach(m => _threeScene.remove(m));
+  _userAvatarLabels.forEach(m => _threeScene.remove(m));
+  _userAvatarMeshes.length = 0; _userAvatarLabels.length = 0;
 
-// --- Drawing ---
-function drawFloor(ctx, canvas) {
-  for (let ty=0; ty<RH; ty++) {
-    for (let tx=0; tx<RW; tx++) {
-      const sx = tx*TS - cam.x, sy = ty*TS - cam.y;
-      if (sx+TS<0||sx>canvas.width||sy+TS<0||sy>canvas.height) continue;
-      // Base tile
-      const shade = ((tx+ty)%2===0) ? '#1A2535' : '#172030';
-      ctx.fillStyle = shade;
-      ctx.fillRect(sx, sy, TS, TS);
-      // Grout lines
-      ctx.strokeStyle = 'rgba(91,175,214,0.1)';
-      ctx.lineWidth = 1;
-      ctx.strokeRect(sx+0.5, sy+0.5, TS-1, TS-1);
-    }
-  }
-}
+  users.forEach((u, i) => {
+    const pos = _DESK_POS_3D[i % _DESK_POS_3D.length];
+    const hue = u.isSelf ? 0.57 : (i * 0.11) % 1;
+    const color = new THREE.Color().setHSL(hue, 0.7, 0.55);
+    const sphere = new THREE.Mesh(
+      new THREE.SphereGeometry(0.28, 8, 8),
+      new THREE.MeshLambertMaterial({ color })
+    );
+    sphere.position.set(pos[0], 1.1, pos[1] + 0.9);
+    sphere.userData.userIndex = i;
+    _threeScene.add(sphere);
+    _userAvatarMeshes.push(sphere);
 
-function drawDesk(ctx, tx, ty) {
-  const sx = tx*TS - cam.x, sy = ty*TS - cam.y;
-  // Desk surface
-  ctx.fillStyle = '#4A2E1A';
-  ctx.fillRect(sx+2, sy+4, TS*2-4, TS-8);
-  // Wood grain
-  ctx.fillStyle = '#3A2210';
-  ctx.fillRect(sx+2, sy+4, TS*2-4, 3);
-  // Monitor/book on desk
-  ctx.fillStyle = '#1A2E3D';
-  ctx.fillRect(sx+TS/2-8, sy+6, 16, 10);
-  ctx.fillStyle = '#2D7DA8';
-  ctx.fillRect(sx+TS/2-6, sy+8, 12, 6);
-}
-
-function drawPlant(ctx, tx, ty) {
-  const sx = tx*TS - cam.x + TS/2, sy = ty*TS - cam.y + TS/2;
-  // Pot
-  ctx.fillStyle = '#C0622D';
-  ctx.beginPath();
-  ctx.moveTo(sx-8, sy+4); ctx.lineTo(sx+8, sy+4);
-  ctx.lineTo(sx+6, sy+14); ctx.lineTo(sx-6, sy+14);
-  ctx.closePath(); ctx.fill();
-  // Soil
-  ctx.fillStyle = '#5C3317';
-  ctx.fillRect(sx-8, sy+4, 16, 3);
-  // Leaves
-  ctx.fillStyle = '#2D8A4E';
-  ctx.beginPath(); ctx.arc(sx, sy-4, 10, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle = '#3DAA5E';
-  ctx.beginPath(); ctx.arc(sx-5, sy+0, 7, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(sx+5, sy+0, 7, 0, Math.PI*2); ctx.fill();
-}
-
-function drawBoard(ctx, notes) {
-  const sx = BOARD.tx*TS - cam.x, sy = BOARD.ty*TS - cam.y;
-  // Cork board background
-  ctx.fillStyle = '#3D2510';
-  ctx.fillRect(sx+2, sy+2, TS*2-4, TS-4);
-  ctx.strokeStyle = '#5C3820'; ctx.lineWidth = 2;
-  ctx.strokeRect(sx+2, sy+2, TS*2-4, TS-4);
-  // Border frame
-  ctx.fillStyle = '#6B4520';
-  ctx.fillRect(sx, sy, TS*2, 4);
-  ctx.fillRect(sx, sy+TS-4, TS*2, 4);
-  ctx.fillRect(sx, sy, 4, TS);
-  ctx.fillRect(sx+TS*2-4, sy, 4, TS);
-  // Show up to 3 mini sticky notes
-  const colors = ['#FFE066','#FFB347','#90EE90'];
-  notes.slice(-3).forEach((n, i) => {
-    const nx = sx + 8 + i*(TS*0.58);
-    const ny = sy + 8;
-    ctx.fillStyle = colors[i];
-    ctx.fillRect(nx, ny, TS*0.5, TS*0.55);
-    ctx.fillStyle = 'rgba(0,0,0,0.6)';
-    ctx.font = '6px sans-serif'; ctx.textAlign='left';
-    const words = n.content.substring(0,12);
-    ctx.fillText(words, nx+3, ny+10);
+    const label = _makeLabel(u.name, u.isSelf ? '#FFDD00' : '#fff');
+    label.position.set(pos[0], 1.62, pos[1] + 0.9);
+    _threeScene.add(label);
+    _userAvatarLabels.push(label);
   });
-  // "Click to post" hint
-  ctx.fillStyle = 'rgba(255,220,100,0.7)';
-  ctx.font = 'bold 7px sans-serif'; ctx.textAlign='center';
-  ctx.fillText('📌', sx+TS-4, sy+TS-6);
 }
 
-function drawCushion(ctx, tx, ty) {
-  const sx = tx*TS - cam.x + TS/2, sy = ty*TS - cam.y + TS*0.72;
-  ctx.fillStyle = 'rgba(45,125,168,0.25)';
-  ctx.beginPath(); ctx.ellipse(sx, sy, 15, 7, 0, 0, Math.PI*2); ctx.fill();
-  ctx.strokeStyle = 'rgba(91,175,214,0.4)'; ctx.lineWidth = 1;
-  ctx.stroke();
-  // cross stitch lines
-  ctx.strokeStyle = 'rgba(91,175,214,0.2)'; ctx.lineWidth = 0.7;
-  ctx.beginPath(); ctx.moveTo(sx-10,sy); ctx.lineTo(sx+10,sy); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(sx,sy-5); ctx.lineTo(sx,sy+5); ctx.stroke();
-}
-
-// Hue array for ghost characters (one per slot)
-const CHAR_HUES = [0,30,60,120,180,210,240,270,300,330,15,45,75,135,165,225,255,285,315,345,10,50,90,150,195];
-function hslToHex(h,s,l){
-  s/=100; l/=100;
-  const a=s*Math.min(l,1-l);
-  const f=n=>{const k=(n+h/30)%12;const c=l-a*Math.max(Math.min(k-3,9-k,1),-1);return Math.round(255*c).toString(16).padStart(2,'0')};
-  return `#${f(0)}${f(8)}${f(4)}`;
-}
-
-function drawCharacter(ctx, sx, sy, colorHex, name, isSelf, isGhost) {
-  // Shadow
-  ctx.fillStyle = 'rgba(0,0,0,0.2)';
-  ctx.beginPath(); ctx.ellipse(sx, sy+14, 11, 5, 0, 0, Math.PI*2); ctx.fill();
-  // Body
-  ctx.fillStyle = colorHex;
-  ctx.beginPath(); ctx.arc(sx, sy, 13, 0, Math.PI*2); ctx.fill();
-  if (isSelf) {
-    ctx.strokeStyle = '#FFDD00';
-    ctx.lineWidth = 2.5;
-    ctx.stroke();
+function startThreeAnimation(canvas) {
+  if (!THREE) return;
+  initThreeScene(canvas);
+  if (_threeRAF) cancelAnimationFrame(_threeRAF);
+  function loop() {
+    _threeRAF = requestAnimationFrame(loop);
+    _threeTime += 0.008;
+    // Gentle camera orbit
+    _threeCamera.position.x = Math.sin(_threeTime * 0.3) * 1.5;
+    _threeCamera.position.y = 6.5 + Math.sin(_threeTime * 0.15) * 0.4;
+    _threeCamera.lookAt(0, 2, 0);
+    // Torch flicker
+    _torchLights.forEach((tl, i) => {
+      tl.intensity = 0.9 + 0.35 * Math.sin(_threeTime * 4 + i * 1.3);
+    });
+    // Avatar bob
+    _userAvatarMeshes.forEach((m, i) => {
+      m.position.y = 1.1 + 0.06 * Math.sin(_threeTime * 1.5 + i * 0.8);
+    });
+    _userAvatarLabels.forEach((l, i) => {
+      l.position.y = 1.62 + 0.06 * Math.sin(_threeTime * 1.5 + i * 0.8);
+    });
+    _threeRenderer.render(_threeScene, _threeCamera);
   }
-  // Face
-  ctx.fillStyle = '#FFCC88';
-  ctx.beginPath(); ctx.arc(sx, sy-1, 9, 0, Math.PI*2); ctx.fill();
-  // Eyes
-  ctx.fillStyle = '#333';
-  ctx.beginPath(); ctx.arc(sx-3.5, sy-3, 1.8, 0, Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(sx+3.5, sy-3, 1.8, 0, Math.PI*2); ctx.fill();
-  // Smile
-  ctx.strokeStyle = '#333'; ctx.lineWidth = 1.2;
-  ctx.beginPath(); ctx.arc(sx, sy+0, 4, 0.2, Math.PI-0.2); ctx.stroke();
-  // Name tag
-  const tw = Math.max(name.length * 6 + 8, 30);
-  ctx.fillStyle = isSelf ? 'rgba(26,46,61,0.92)' : 'rgba(0,0,0,0.65)';
-  ctx.beginPath();
-  const tx2=sx-tw/2, ty2=sy+17;
-  ctx.roundRect(tx2,ty2,tw,14,3);
-  ctx.fill();
-  ctx.fillStyle = isSelf ? '#FFDD00' : (isGhost ? '#AAC5D4' : '#FFFFFF');
-  ctx.font = `bold 9px "Noto Sans TC", sans-serif`;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  ctx.fillText(name, sx, ty2+7);
+  loop();
 }
 
-// --- Player ---
-let rpgPlayer = {tx:9, ty:12};
-const _rpgKeys = {};
-document.addEventListener('keydown', e=>{
-  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','w','a','s','d','W','A','S','D'].includes(e.key)) e.preventDefault();
-  _rpgKeys[e.key]=true;
-});
-document.addEventListener('keyup', e=>{ delete _rpgKeys[e.key]; });
-let _rpgLastMove=0;
-function processRpgInput(now, canvas) {
-  if(now-_rpgLastMove<200) return;
-  let dx=0,dy=0;
-  if(_rpgKeys['ArrowUp']   ||_rpgKeys['w']||_rpgKeys['W']) dy=-1;
-  else if(_rpgKeys['ArrowDown'] ||_rpgKeys['s']||_rpgKeys['S']) dy=1;
-  else if(_rpgKeys['ArrowLeft'] ||_rpgKeys['a']||_rpgKeys['A']) dx=-1;
-  else if(_rpgKeys['ArrowRight']||_rpgKeys['d']||_rpgKeys['D']) dx=1;
-  if(dx||dy){
-    const nx=rpgPlayer.tx+dx, ny=rpgPlayer.ty+dy;
-    if(!isBlocked(nx,ny)){ rpgPlayer.tx=nx; rpgPlayer.ty=ny; centerCam(canvas,nx,ny); _rpgLastMove=now; }
+function stopThreeAnimation() {
+  if (_threeRAF) { cancelAnimationFrame(_threeRAF); _threeRAF = null; }
+}
+
+function resizeThreeCanvas() {
+  const canvas = document.getElementById('room-canvas');
+  const wrap = document.getElementById('lib-scene-wrap');
+  if (!canvas || !wrap) return;
+  canvas.width  = wrap.clientWidth;
+  canvas.height = Math.min(520, Math.max(340, wrap.clientWidth * 0.52));
+  if (_threeRenderer) {
+    _threeRenderer.setSize(canvas.width, canvas.height);
+    if (_threeCamera) _threeCamera.aspect = canvas.width / canvas.height;
+    if (_threeCamera) _threeCamera.updateProjectionMatrix();
   }
 }
-
-// Touch/swipe
-(function(){
-  let _tx2=0,_ty2=0;
-  const el=()=>document.getElementById('room-canvas');
-  document.addEventListener('touchstart',e=>{if(e.target!==el())return;_tx2=e.touches[0].clientX;_ty2=e.touches[0].clientY;},{passive:true});
-  document.addEventListener('touchend',e=>{
-    if(e.target!==el())return;
-    const dx=e.changedTouches[0].clientX-_tx2, dy=e.changedTouches[0].clientY-_ty2;
-    if(Math.abs(dx)<20&&Math.abs(dy)<20)return;
-    const canvas=el();
-    if(Math.abs(dx)>Math.abs(dy)) { const nx=rpgPlayer.tx+(dx>0?1:-1); if(!isBlocked(nx,rpgPlayer.ty)){rpgPlayer.tx=nx;centerCam(canvas,rpgPlayer.tx,rpgPlayer.ty);} }
-    else { const ny=rpgPlayer.ty+(dy>0?1:-1); if(!isBlocked(rpgPlayer.tx,ny)){rpgPlayer.ty=ny;centerCam(canvas,rpgPlayer.tx,rpgPlayer.ty);} }
-  },{passive:true});
-})();
-
-// 拖曳移動視角
-let _dragStart=null, _camAtDrag=null, _wasDrag=false;
-(function(){
-  const el=()=>document.getElementById('room-canvas');
-  el().addEventListener('mousedown',function(e){
-    if(e.button!==0)return;
-    _dragStart={x:e.clientX,y:e.clientY}; _camAtDrag={...cam}; _wasDrag=false;
-  });
-  document.addEventListener('mousemove',function(e){
-    if(!_dragStart)return;
-    const dist=Math.abs(e.clientX-_dragStart.x)+Math.abs(e.clientY-_dragStart.y);
-    if(dist>6){
-      _wasDrag=true;
-      const c=el(); const sx=c.width/c.getBoundingClientRect().width;
-      cam.x=Math.max(0,Math.min(RW*TS-c.width,  _camAtDrag.x-(e.clientX-_dragStart.x)*sx));
-      cam.y=Math.max(0,Math.min(RH*TS-c.height, _camAtDrag.y-(e.clientY-_dragStart.y)*sx));
-    }
-  });
-  document.addEventListener('mouseup',()=>{ _dragStart=null; });
-})();
-
-// 點角色彈窗 + 點地板走路
-let _popupDismiss=null;
-document.getElementById('room-canvas').addEventListener('click',function(e){
-  if(_wasDrag){_wasDrag=false;return;}
-  const rect=this.getBoundingClientRect();
-  const sx=this.width/rect.width, sy=this.height/rect.height;
-  const mx=(e.clientX-rect.left)*sx+cam.x, my=(e.clientY-rect.top)*sy+cam.y;
-  const popup=document.getElementById('rpg-popup');
-  let hitChar=false;
-  _currentUsers.forEach((u,i)=>{
-    if(i>=SEATS.length||hitChar)return;
-    const seat=SEATS[i];
-    const cx=seat.tx*TS+TS/2, cy=seat.ty*TS+TS/2;
-    if(Math.abs(mx-cx)<TS*0.65&&Math.abs(my-cy)<TS*0.75){
-      hitChar=true;
-      const secs=Math.floor((Date.now()-(u.joinedAt||Date.now()))/1000);
-      const t=secs<60?'剛到':secs<3600?`已讀 ${Math.floor(secs/60)} 分鐘`:`已讀 ${Math.floor(secs/3600)} 小時 ${Math.floor((secs%3600)/60)} 分`;
-      document.getElementById('rpg-popup-name').textContent=u.name;
-      document.getElementById('rpg-popup-subject').textContent=(ICONS[u.subject]||'📚')+' '+(u.subject||'記帳士');
-      document.getElementById('rpg-popup-time').textContent=t+(u.isGhost?' · 鬼魂用功中':' · 專注中');
-      const px=(seat.tx*TS+TS-cam.x)/sx; const py=(seat.ty*TS-cam.y)/sy;
-      popup.style.left=Math.min(px,this.clientWidth-178)+'px';
-      popup.style.top=Math.max(4,py-90)+'px';
-      popup.style.display='block';
-      clearTimeout(_popupDismiss);
-      _popupDismiss=setTimeout(()=>{popup.style.display='none';},4000);
-    }
-  });
-  // Check board click
-  const bx=BOARD.tx*TS+TS, by=BOARD.ty*TS+TS/2;
-  if(!hitChar && Math.abs(mx-bx)<TS*1.2 && Math.abs(my-by)<TS*0.8) {
-    document.getElementById('board-modal').style.display='flex';
-    return;
-  }
-
-  if(!hitChar){
-    if(popup) popup.style.display='none';
-    const tx=Math.floor(mx/TS), ty=Math.floor(my/TS);
-    if(!isBlocked(tx,ty)){ rpgPlayer.tx=tx; rpgPlayer.ty=ty; centerCam(this,tx,ty); }
-  }
-});
-
-// --- Main draw ---
-let _rpgRAF=null;
-function drawRpgScene(canvas, users) {
-  const ctx = canvas.getContext('2d');
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle = '#0F1A26';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  drawFloor(ctx, canvas);
-
-  // Plants (behind desks)
-  PLANTS.forEach(p=>drawPlant(ctx, p.tx, p.ty));
-  // Floor cushions
-  CUSHIONS.forEach(c=>drawCushion(ctx, c.tx, c.ty));
-
-  // Desks (draw pairs)
-  for(let i=0;i<DESKS.length;i+=2){
-    if(DESKS[i+1]) drawDesk(ctx, DESKS[i].tx, DESKS[i].ty);
-  }
-
-  // Users at seats
-  users.forEach((u, i)=>{
-    if(i>=SEATS.length) return;
-    const seat=SEATS[i];
-    const sx=seat.tx*TS - cam.x + TS/2;
-    const sy=seat.ty*TS - cam.y + TS/2;
-    if(sx+20<0||sx-20>canvas.width||sy+30<0||sy-30>canvas.height) return;
-    const color = u.isSelf ? '#1A6B9A' : hslToHex(CHAR_HUES[i%CHAR_HUES.length],60,50);
-    drawCharacter(ctx, sx, sy, color, u.name, !!u.isSelf, !!u.isGhost);
-  });
-
-  // Player (you, if not already shown as a user)
-  const psx=rpgPlayer.tx*TS - cam.x + TS/2;
-  const psy=rpgPlayer.ty*TS - cam.y + TS/2;
-  drawCharacter(ctx, psx, psy, '#5BAFD6', '你', true, false);
-
-  // Bulletin board
-  drawBoard(ctx, _boardNotes);
-
-  // Map border shadow
-  ctx.shadowBlur=0;
-}
-
-function startRpgAnimation(canvas, getUsersFn) {
-  if(_rpgRAF){ cancelAnimationFrame(_rpgRAF); _rpgRAF=null; }
-  centerCam(canvas, rpgPlayer.tx, rpgPlayer.ty);
-  function loop(now){
-    processRpgInput(now, canvas);
-    drawRpgScene(canvas, getUsersFn());
-    _rpgRAF=requestAnimationFrame(loop);
-  }
-  _rpgRAF=requestAnimationFrame(loop);
-}
-function stopRpgAnimation(){ if(_rpgRAF){cancelAnimationFrame(_rpgRAF);_rpgRAF=null;} }
-
-function resizeRpgCanvas(){
-  const canvas=document.getElementById('room-canvas');
-  const wrap=document.getElementById('lib-scene-wrap');
-  if(!canvas||!wrap) return;
-  canvas.width=wrap.clientWidth;
-  canvas.height=Math.min(520, Math.max(340, wrap.clientWidth*0.52));
-}
-window.addEventListener('resize', resizeRpgCanvas);
-
-// Enter 鍵回座位
-document.addEventListener('keydown', e=>{
-  if(e.key!=='Enter') return;
-  const active=document.activeElement;
-  if(active&&(active.tagName==='INPUT'||active.tagName==='TEXTAREA')) return;
-  const selfIdx=_currentUsers.findIndex(u=>u.isSelf);
-  if(selfIdx>=0&&selfIdx<SEATS.length){
-    const seat=SEATS[selfIdx];
-    rpgPlayer.tx=seat.tx; rpgPlayer.ty=seat.ty+1;
-    const c=document.getElementById('room-canvas');
-    if(c) centerCam(c,rpgPlayer.tx,rpgPlayer.ty);
-  }
-});
+window.addEventListener('resize', resizeThreeCanvas);
 
 let _currentUsers = [];
 let _boardNotes = [];
@@ -1195,8 +1124,8 @@ function enter(){
   myKey = `user_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
   document.getElementById('entry').style.display = 'none';
   document.getElementById('room').style.display  = 'flex';
-  resizeRpgCanvas();
-  startRpgAnimation(document.getElementById('room-canvas'), () => _currentUsers || []);
+  resizeThreeCanvas();
+  startThreeAnimation(document.getElementById('room-canvas'));
   if(isMember) initNote();
   startPresence(name, subject);
 }
@@ -1229,7 +1158,7 @@ function renderRoom(){
   const users    = [...real, ...ghosts];
   const count    = users.length;
 
-  // 更新 RPG 場景用戶列表
+  // 更新 3D 場景用戶列表
   _currentUsers = users.map((u, i) => ({
     name: u.name || u.display_name || '匿名',
     subject: u.subject || '記帳士',
@@ -1237,6 +1166,7 @@ function renderRoom(){
     isSelf: u.key === myKey,
     isGhost: !!u.isGhost,
   }));
+  _updateThreeAvatars(_currentUsers);
 
   document.getElementById('count-badge').textContent = `${count} 人在線`;
   const mobBadge = document.getElementById('mob-count-badge');
