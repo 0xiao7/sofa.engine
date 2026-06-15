@@ -455,6 +455,21 @@
   </div>
 </div>
 
+<!-- 衝刺結果複習畫面 -->
+<div id="sprint-results" style="display:none; position:fixed; inset:0; background:rgba(4,13,20,0.95); z-index:200; overflow-y:auto; padding:24px 16px;">
+  <div style="max-width:680px; margin:0 auto;">
+    <div id="sprint-results-header" style="text-align:center; margin-bottom:24px;">
+      <div id="sprint-score-big" style="font-size:48px; font-weight:700; color:#D4A847; font-family:'Noto Serif TC',serif;"></div>
+      <div id="sprint-score-sub" style="color:#8ABED6; margin-top:6px; font-size:14px;"></div>
+    </div>
+    <div id="sprint-wrong-list"></div>
+    <div style="text-align:center; margin-top:28px; display:flex; gap:12px; justify-content:center;">
+      <button onclick="restartSprint()" style="background:#1A2E3D; border:1px solid #5BAFD6; color:#5BAFD6; padding:10px 28px; border-radius:20px; font-size:14px; cursor:pointer;">⚡ 再來一次</button>
+      <button onclick="exitSprintResults()" style="background:#D4A847; border:none; color:#040D14; padding:10px 28px; border-radius:20px; font-size:14px; font-weight:600; cursor:pointer;">完成</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
 const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
@@ -578,6 +593,8 @@ document.getElementById('lawSelect').addEventListener('change', async function()
 
 document.getElementById('btnSprint')?.addEventListener('click', () => {
   _sprintMode = true;
+  _sprintAnswers = [];
+  _sprintStart = Date.now();
   startSession(20);
 });
 
@@ -663,6 +680,8 @@ let _sessionMode = false, _sessionTotal = 0, _sessionDone = 0;
 
 let _countdownInterval = null, _countdownSecs = 0;
 let _sprintMode = false;  // true = countdown active
+let _sprintAnswers = []; // {chosen: idx, correct: idx, q: {text, options[]}}
+let _sprintStart = 0;    // Date.now() when sprint began
 
 // ── 音效（Web Audio，懶初始化）────────────────────────────────────
 let _quizAudioCtx = null;
@@ -727,6 +746,15 @@ function _startCountdown() {
         // flash red briefly
         const qb = document.getElementById('questionBox');
         if(qb){ qb.style.color='var(--bad)'; setTimeout(()=>qb.style.color='',600); }
+        // Track auto-fail for sprint review
+        if(_sprintMode && quizData){
+          const _isNewFmt=typeof(quizData.options||[])[0]!=='object';
+          const _correctIdx=_isNewFmt?(quizData.options||[]).indexOf(quizData.answer):
+            (quizData.options||[]).findIndex(o=>!!o.is_correct);
+          const _opts=_isNewFmt?(quizData.options||[]):((quizData.options||[]).map(o=>o.snippet||''));
+          _sprintAnswers.push({chosen:-1, correct:_correctIdx,
+            q:{text:quizData.question||'', options:_opts}});
+        }
         onAnswerDone(false);
         if(sessionHistory.length) sessionHistory[sessionHistory.length-1].correct=false;
       }
@@ -740,6 +768,47 @@ function _stopCountdown() {
   const wrap = document.getElementById('qCountdownWrap');
   if(el){ el.textContent='30'; el.className=''; }
   if(wrap) wrap.style.display = 'none';
+}
+
+function showSprintResults(timeSec) {
+  const total = _sprintAnswers.length;
+  const correct = _sprintAnswers.filter(a => a.chosen === a.correct).length;
+  const wrong = _sprintAnswers.filter(a => a.chosen !== a.correct);
+  document.getElementById('sprint-score-big').textContent = correct + ' / ' + total;
+  const pct = total > 0 ? Math.round(correct / total * 100) : 0;
+  const emoji = pct >= 80 ? '🎉' : pct >= 60 ? '💪' : '📖';
+  document.getElementById('sprint-score-sub').textContent = emoji + '  答對率 ' + pct + '%　用時 ' + timeSec + ' 秒';
+  const list = document.getElementById('sprint-wrong-list');
+  list.innerHTML = '';
+  if (wrong.length === 0) {
+    list.innerHTML = '<div style="text-align:center;color:#5BAFD6;font-size:16px;padding:20px">🏆 全對！太厲害了！</div>';
+  } else {
+    wrong.forEach((a, i) => {
+      const div = document.createElement('div');
+      div.style.cssText = 'background:#0D1F2D;border-radius:10px;padding:14px 16px;margin-bottom:12px;border-left:3px solid #E74C3C';
+      let html = '<div style="color:#C8DDE8;font-size:13px;margin-bottom:10px;line-height:1.6">' + (i + 1) + '. ' + (a.q.text || '').replace(/\n/g, '<br>') + '</div>';
+      (a.q.options || []).forEach((opt, oi) => {
+        const isChosen = oi === a.chosen, isCorrect = oi === a.correct;
+        const bg = isCorrect ? 'rgba(46,204,113,0.15)' : isChosen ? 'rgba(231,76,60,0.15)' : 'transparent';
+        const border = isCorrect ? '#2ECC71' : isChosen ? '#E74C3C' : 'rgba(255,255,255,0.08)';
+        const mark = isCorrect ? ' ✓' : isChosen ? ' ✗' : '';
+        html += '<div style="border:1px solid ' + border + ';background:' + bg + ';border-radius:6px;padding:6px 10px;margin-top:5px;font-size:13px;color:#B0C8D4">' + ['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][oi] + '  ' + esc(opt) + '<span style="float:right;font-weight:700">' + mark + '</span></div>';
+      });
+      div.innerHTML = html;
+      list.appendChild(div);
+    });
+  }
+  document.getElementById('sprint-results').style.display = 'block';
+}
+
+function exitSprintResults() {
+  document.getElementById('sprint-results').style.display = 'none';
+}
+
+function restartSprint() {
+  exitSprintResults();
+  const btn = document.getElementById('btnSprint');
+  if (btn) btn.click();
 }
 
 function startSession(n) {
@@ -771,6 +840,8 @@ function onAnswerDone(isCorrect) {
 }
 
 function showSessionSummary() {
+  const wasSprint = _sprintMode;
+  const timeSec = wasSprint ? Math.round((Date.now() - _sprintStart) / 1000) : 0;
   const answeredN = right + wrong;
   const acc = answeredN > 0 ? Math.round(right / answeredN * 100) : 0;
   document.getElementById('sumAcc').textContent = acc + '%';
@@ -788,10 +859,14 @@ function showSessionSummary() {
       ? weakLaws.map(l => `<div style="padding:3px 0;border-bottom:1px dashed rgba(245,240,234,.1);font-size:13px">${esc(l)}</div>`).join('')
       : '<div style="opacity:.4;font-size:13px">這輪全對，沒有弱點法規！</div>';
   }
-  document.getElementById('summaryOverlay').classList.add('open');
   _sessionMode = false;
   _sprintMode = false; _stopCountdown();
   document.getElementById('sessionProgressWrap').style.display = 'none';
+  if (wasSprint) {
+    showSprintResults(timeSec);
+  } else {
+    document.getElementById('summaryOverlay').classList.add('open');
+  }
 }
 
 let answered=false,right=0,wrong=0,total=0,flagged=0;
@@ -995,6 +1070,14 @@ async function loadQuiz(){
           removeFromWrongBank(pageId);
         }
         cur.correct=isCorrect;
+        // Track sprint answers for review modal
+        if(_sprintMode){
+          const correctIdx=isNewFmt?(data.options||[]).indexOf(correctAnswer):
+            (data.options||[]).findIndex(o=>!!o.is_correct);
+          const displayOpts=isNewFmt?(data.options||[]):((data.options||[]).map(o=>o.snippet||''));
+          _sprintAnswers.push({chosen:i, correct:correctIdx,
+            q:{text:data.question||'', options:displayOpts}});
+        }
         _feedbackAnim(btn,isCorrect);
         onAnswerDone(isCorrect);
         updateScore();
