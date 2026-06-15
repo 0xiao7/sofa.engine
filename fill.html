@@ -185,6 +185,17 @@
   .pill.good{color:var(--good);border-color:rgba(159,184,159,.4)}
   .pill.bad{color:var(--bad);border-color:rgba(199,123,106,.4)}
 
+  /* Wave 52 — difficulty badge */
+  #diff-badge {
+    display:inline-flex;align-items:center;gap:5px;
+    padding:3px 10px;border-radius:12px;font-size:12px;
+    font-weight:600;vertical-align:middle;
+    transition:all 0.3s;font-family:var(--mono);letter-spacing:.04em;
+  }
+  #diff-badge.easy   { background:rgba(46,204,113,0.15);  color:#2ECC71; border:1px solid rgba(46,204,113,0.3); }
+  #diff-badge.medium { background:rgba(212,168,71,0.15);   color:#D4A847; border:1px solid rgba(212,168,71,0.3); }
+  #diff-badge.hard   { background:rgba(231,76,60,0.15);    color:#E74C3C; border:1px solid rgba(231,76,60,0.3); }
+
   /* blank list */
   .blank-list{display:flex;flex-direction:column;gap:8px}
   .bl-row{
@@ -331,7 +342,7 @@
           <h2><span class="n" id="artNum">—</span><span id="artTitle">選擇法規後換一條開始</span></h2>
           <div class="row">
             <span class="pill" id="lawName" style="display:none"></span>
-            <span class="pill" id="diffPill">—</span>
+            <span id="diff-badge"></span>
             <span id="blankCount">—</span>
           </div>
         </div>
@@ -750,6 +761,26 @@ function useHint(fn){
   _currentHintUsed = true;  // Wave 40: track hint usage per article
 }
 
+// Wave 52: difficulty badge — 1-2 blanks=easy, 3-4=medium, 5+=hard
+function _updateDiffBadge(blankCount){
+  const badge = document.getElementById('diff-badge');
+  if(!badge) return;
+  badge.className = '';
+  if(blankCount <= 2){
+    badge.className = 'easy';
+    badge.textContent = '🟢 基礎  ' + blankCount + '格';
+    badge.title = blankCount + ' 個填空';
+  } else if(blankCount <= 4){
+    badge.className = 'medium';
+    badge.textContent = '🟡 進階  ' + blankCount + '格';
+    badge.title = blankCount + ' 個填空';
+  } else {
+    badge.className = 'hard';
+    badge.textContent = '🔴 挑戰  ' + blankCount + '格';
+    badge.title = blankCount + ' 個填空';
+  }
+}
+
 function renderFill(){
   fillTimerReset();
   fillTimerStart();
@@ -803,6 +834,7 @@ function renderFill(){
   // 更新 data-label
   document.getElementById('fillCard').dataset.label=`FILL · ${idx} BLANK${idx>1?'S':''}`;
   document.getElementById('blankCount').textContent=idx+' 個空格';
+  _updateDiffBadge(idx);  // Wave 52
   document.getElementById('filled').textContent='0 / '+idx;
   updateBlankList();
   box.querySelectorAll('input').forEach((inp,i,all)=>{
