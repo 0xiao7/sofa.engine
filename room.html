@@ -748,6 +748,7 @@ let _countSignTex = null, _countSignCtx = null;
 let _reactParticles = []; // {sprite, vy, life, maxLife}
 let _speechBubbles = []; // {sprite, life, maxLife, phase} phase: 'in'|'hold'|'out'
 let _threeTime = 0;
+let _flyInDone = false, _flyInStart = 0;
 
 // ── Pixel texture generators ────────────────────────────────────────────
 function _rng(seed){ let s=seed|0; return ()=>{ s=Math.imul(s,1664525)+1013904223|0; return (s>>>0)/0xFFFFFFFF; }; }
@@ -2050,13 +2051,30 @@ function startThreeAnimation(canvas) {
   if (!THREE) return;
   initThreeScene(canvas);
   if (_threeRAF) cancelAnimationFrame(_threeRAF);
+  _flyInDone = false; _flyInStart = performance.now();
   function loop() {
     _threeRAF = requestAnimationFrame(loop);
     _threeTime += 0.008;
-    // Fixed entrance perspective with subtle sway
-    _threeCamera.position.x = Math.sin(_threeTime * 0.08) * 0.6;
-    _threeCamera.position.y = 3.2 + Math.sin(_threeTime * 0.05) * 0.15;
-    _threeCamera.lookAt(0, 2.2, -4);
+    // Fly-in then settle to gentle sway
+    if(!_flyInDone){
+      const t = Math.min(1, (performance.now() - _flyInStart) / 2800);
+      const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t; // ease in-out quad
+      _threeCamera.position.x = 0;
+      _threeCamera.position.y = 9 - ease * (9 - 3.2);      // 9 → 3.2
+      _threeCamera.position.z = 16 - ease * (16 - 10);      // 16 → 10
+      _threeCamera.fov = 75 - ease * (75 - 65);             // 75° → 65°
+      _threeCamera.updateProjectionMatrix();
+      _threeCamera.lookAt(0, 2.2, -4);
+      if(t >= 1) _flyInDone = true;
+    } else {
+      // Normal gentle sway
+      _threeCamera.position.x = Math.sin(_threeTime * 0.08) * 0.6;
+      _threeCamera.position.y = 3.2 + Math.sin(_threeTime * 0.05) * 0.15;
+      _threeCamera.position.z = 10;
+      _threeCamera.fov = 65;
+      _threeCamera.updateProjectionMatrix();
+      _threeCamera.lookAt(0, 2.2, -4);
+    }
     // Torch flicker + time-of-day lighting
     const tod = _timeOfDayPalette();
     _torchLights.forEach((tl, i) => {
