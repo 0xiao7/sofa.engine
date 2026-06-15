@@ -307,7 +307,7 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 #btn-send-trial:hover{opacity:.85;}
 #btn-send-trial:disabled{opacity:.45;cursor:default;}
 #trial-msg{
-  font-size:.75rem;text-align:center;min-height:1.2em;
+  font-size:.75rem;text-align:center;min-height:2.4em;line-height:1.7;
   margin-bottom:10px;transition:opacity .3s;
 }
 
@@ -1097,7 +1097,7 @@ document.getElementById('btn-send-trial')?.addEventListener('click', async ()=>{
     const d = await r.json();
     if (r.ok && d.ok) {
       msg.style.color = 'var(--good)';
-      msg.textContent = `✓ 序號已寄到 ${email}，請查收信箱`;
+      msg.innerHTML = `✓ 你的序號：<strong style="letter-spacing:.08em;font-size:.9rem">${d.serial}</strong><br><span style="font-size:.7rem;opacity:.6">有效至 ${d.expire}${d.reuse ? '（已有序號）' : '，信箱同步收到'}</span>`;
       btn.textContent = '已寄出';
       emailEl.value = '';
     } else {
