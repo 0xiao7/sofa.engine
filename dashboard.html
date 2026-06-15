@@ -1811,6 +1811,17 @@ function searchAndOpen(lawName, artNum){
     .catch(function(){ openDrawer('', lawName, artNum); });
 }
 
+var FONT_KEY = 'sofa_read_fontsize';
+function _getReadFont(){ return parseInt(localStorage.getItem(FONT_KEY)||'15',10); }
+function _setReadFont(size){
+  size = Math.max(12, Math.min(22, size));
+  localStorage.setItem(FONT_KEY, String(size));
+  var el = document.getElementById('drawer-original');
+  if(el) el.style.fontSize = size + 'px';
+  var label = document.getElementById('font-size-label');
+  if(label) label.textContent = size + 'px';
+}
+
 function _switchDrawerTab(tab){
   localStorage.setItem('sofa_drawer_tab', tab);
   var origEl = document.getElementById('drawer-original');
@@ -1820,6 +1831,9 @@ function _switchDrawerTab(tab){
   document.querySelectorAll('.drawer-tab').forEach(function(b){ b.classList.remove('active'); });
   var active = document.getElementById('dtab-' + tab);
   if(active) active.classList.add('active');
+  var fc = document.getElementById('font-controls');
+  if(fc) fc.style.display = tab === 'original' ? 'flex' : 'none';
+  if(tab === 'original') _setReadFont(_getReadFont());
 }
 
 function _renderDrawer(d){
@@ -1895,6 +1909,11 @@ function _renderDrawer(d){
     '<div class="drawer-tabs">'
     + '<button class="drawer-tab" id="dtab-original" onclick="_switchDrawerTab(\'original\')">📖 原文</button>'
     + '<button class="drawer-tab" id="dtab-analysis" onclick="_switchDrawerTab(\'analysis\')">🔍 分析</button>'
+    + '<div id="font-controls" style="margin-left:auto;display:none;align-items:center;gap:4px;">'
+    + '<button onclick="_setReadFont(_getReadFont()-1)" style="background:none;border:1px solid #2a4060;color:#8899aa;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:13px;">A−</button>'
+    + '<span id="font-size-label" style="color:#8899aa;font-size:12px;min-width:32px;text-align:center;">15px</span>'
+    + '<button onclick="_setReadFont(_getReadFont()+1)" style="background:none;border:1px solid #2a4060;color:#8899aa;border-radius:6px;padding:2px 8px;cursor:pointer;font-size:13px;">A+</button>'
+    + '</div>'
     + '</div>'
     + '<div id="drawer-original">' + rawText + '</div>'
     + '<div id="drawer-analysis">' + origHtml + accHtml + '</div>';
@@ -1911,6 +1930,7 @@ function _renderDrawer(d){
   _initSectionToggle(document.getElementById('drawer-analysis'));
   var savedTab = localStorage.getItem('sofa_drawer_tab') || 'analysis';
   _switchDrawerTab(savedTab);
+  _setReadFont(_getReadFont());
 }
 
 function _renderDrawerFallback(lawName, article){
