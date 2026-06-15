@@ -321,6 +321,13 @@
         <span class="law">LAW</span>
         <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:600;font-size:18px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none"><option value="">全部法規</option></select>
       </div>
+      <div id="fill-status-bar" style="
+        margin-top:4px;padding:6px 10px;
+        background:rgba(255,255,255,0.04);
+        border-radius:6px;border:1px solid rgba(100,160,220,0.15);
+        font-size:11px;color:#aaa;min-height:28px;
+        transition:opacity 0.2s;display:none
+      "></div>
       <div class="title" id="artPickWrap" style="display:none">
         <span class="law">§</span>
         <input id="artNumInput" list="artDatalist" placeholder="條號"
@@ -533,6 +540,8 @@ function pushHistory(law, title){
     sel.value = _savedFillLaw;
     if(sel.value === _savedFillLaw){
       sel.dispatchEvent(new Event('change'));
+      // Wave 118: show status bar for restored law (dispatchEvent already calls _updateFillStatusBar)
+      _updateFillStatusBar(sel.value);
       loadNew();
     }
   }
@@ -591,6 +600,8 @@ document.addEventListener('DOMContentLoaded',function(){
 document.getElementById('lawSelect').addEventListener('change', async function(){
   // Wave 74: persist law selection to localStorage
   localStorage.setItem('sofa_fill_law', this.value);
+  // Wave 118: update law proficiency status bar
+  _updateFillStatusBar(this.value);
   const sfBtn = document.getElementById('btnFillSession');
   // Wave 110: __all__ is a valid practice mode — show session button; other __ values hide it
   if(sfBtn) sfBtn.style.display = (this.value && (!this.value.startsWith('__') || this.value==='__all__')) ? '' : 'none';
@@ -619,6 +630,47 @@ document.getElementById('lawSelect').addEventListener('change', async function()
 });
 
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+// Wave 118: law proficiency status bar
+function _updateFillStatusBar(lawName) {
+  const bar = document.getElementById('fill-status-bar');
+  if (!bar) return;
+
+  if (!lawName || lawName.startsWith('__')) {
+    if (lawName === '__all__') {
+      bar.style.display = 'block';
+      bar.innerHTML = '<span style="color:#7ab8f5">🎲 全部法規混練模式</span>';
+    } else {
+      bar.style.display = 'none';
+    }
+    return;
+  }
+
+  const s = JSON.parse(localStorage.getItem('sofa_fill_stats_v1') || '{}');
+  const d = (s.byLaw || {})[lawName];
+
+  if (!d || d.total === 0) {
+    bar.style.display = 'block';
+    bar.innerHTML = '<span style="color:#667">尚未練習此法規</span>';
+    return;
+  }
+
+  const count = d.total;
+  const color = count >= 15 ? '#4d4' : count >= 5 ? '#fa4' : '#7ab8f5';
+  const label = count >= 15 ? '熟練' : count >= 5 ? '練習中' : '起步中';
+  const barPct = Math.min(100, Math.round(count / 20 * 100)); // 20 articles = full bar
+
+  bar.style.display = 'block';
+  bar.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
+      <span>已練 <b style="color:#ddd">${count}</b> 篇填空</span>
+      <span style="color:${color};font-weight:600">${label}</span>
+    </div>
+    <div style="background:rgba(255,255,255,0.1);border-radius:3px;height:4px">
+      <div style="background:${color};border-radius:3px;height:4px;width:${barPct}%;transition:width 0.4s"></div>
+    </div>
+  `;
+}
 
 const _FREE_SECS=[
   '章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示','核心摘要與記憶策略',
@@ -1151,6 +1203,8 @@ function checkAnswers(){
     _sessionStats.push({ correctBlanks: cor, totalBlanks: inputs.length, usedHint: _currentHintUsed });
   }
   _onFillDone();
+  // Wave 118: refresh status bar with updated stats
+  _updateFillStatusBar(document.getElementById('lawSelect').value);
 }
 
 document.getElementById('fillSourceLink').addEventListener('click',()=>{
