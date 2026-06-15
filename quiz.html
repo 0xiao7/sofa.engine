@@ -304,6 +304,9 @@
   #quiz-citation a{color:#5BAFD6;text-decoration:none;}
   @keyframes fadeInUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
+  /* ── Wave 61: 鍵盤提示徽章 ── */
+  #kb-hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(26,46,61,0.85);color:#8899aa;font-size:12px;padding:5px 14px;border-radius:12px;pointer-events:none;transition:opacity 0.5s;z-index:100;font-family:var(--mono);letter-spacing:.06em;}
+
   #streak-badge {
     display: none;
     text-align: center;
@@ -328,6 +331,7 @@
 </head>
 <body>
 <div id="ans-toast"></div>
+<div id="kb-hint">⌨ 1-4 選題 · Enter 確認 · → 下一題</div>
 
   <header class="topbar">
     <a class="brand" href="index.html"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
@@ -413,8 +417,9 @@
 
         <div class="q-foot">
           <div class="l">
-            <span><kbd>A</kbd><kbd>B</kbd><kbd>C</kbd><kbd>D</kbd>作答</span>
-            <span><kbd>↵</kbd>下一題</span>
+            <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd>選題</span>
+            <span><kbd>↵</kbd>確認 / 下一題</span>
+            <span><kbd>→</kbd>下一題</span>
             <span><kbd>F</kbd>標記</span>
           </div>
           <div class="r">
@@ -1290,12 +1295,66 @@ document.getElementById('btnNext').addEventListener('click',()=>{
     loadQuiz();
   }
 });
-document.addEventListener('keydown',e=>{
-  if(e.key==='Enter'){ wrongMode ? loadWrongQuiz() : loadQuiz(); return; }
-  if(e.key.toLowerCase()==='f'){doFlag();return;}
-  const idx={'a':0,'b':1,'c':2,'d':3,'1':0,'2':1,'3':2,'4':3}[e.key.toLowerCase()];
-  if(idx!==undefined){const opts=document.querySelectorAll('.opt');if(opts[idx])opts[idx].click();}
-});
+// ── Wave 61: 鍵盤快捷鍵（1-4選答 / Enter確認或下一題 / →下一題）──
+function _quizKeyHandler(e) {
+  // Don't trigger if user is typing in an input/textarea/select
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+  // Don't trigger if any modal is open
+  const modalOpen = document.querySelector('.overlay-modal.open') ||
+    document.getElementById('stats-panel')?.style.display !== 'none' ||
+    document.getElementById('sprint-results')?.style.display !== 'none';
+  if (modalOpen) return;
+
+  const k = e.key;
+
+  // 1–4: select answer option (only when not yet answered)
+  if (k === '1' || k === '2' || k === '3' || k === '4') {
+    if (answered) return;
+    const opts = document.querySelectorAll('#optionsBox .opt');
+    const idx = parseInt(k) - 1;
+    if (opts[idx]) opts[idx].click();
+    return;
+  }
+
+  // A/B/C/D: also select answer option (only when not yet answered)
+  const abcd = {'a':0,'b':1,'c':2,'d':3}[k.toLowerCase()];
+  if (abcd !== undefined) {
+    if (answered) return;
+    const opts = document.querySelectorAll('#optionsBox .opt');
+    if (opts[abcd]) opts[abcd].click();
+    return;
+  }
+
+  // Enter or Space: if answered → next question; if not answered and option selected → do nothing extra (click already submitted)
+  if (k === 'Enter' || k === ' ') {
+    if (answered) {
+      e.preventDefault();
+      wrongMode ? loadWrongQuiz() : loadQuiz();
+    }
+    return;
+  }
+
+  // ArrowRight or N: next question (only after answering)
+  if (k === 'ArrowRight' || k === 'n' || k === 'N') {
+    if (answered) {
+      wrongMode ? loadWrongQuiz() : loadQuiz();
+    }
+    return;
+  }
+
+  // F: flag
+  if (k.toLowerCase() === 'f') { doFlag(); return; }
+}
+document.addEventListener('keydown', _quizKeyHandler);
+
+// ── Wave 61: 鍵盤提示自動淡出（4秒後）──
+setTimeout(() => {
+  const h = document.getElementById('kb-hint');
+  if (h) {
+    h.style.opacity = '0';
+    setTimeout(() => h?.remove(), 500);
+  }
+}, 4000);
 
 // ── 錯題模式出題 ──────────────────────────────────────────────
 async function loadWrongQuiz() {
