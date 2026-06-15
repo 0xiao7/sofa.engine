@@ -338,6 +338,7 @@
       <div class="seg">正確 <b id="metaRight" style="color:var(--good)">0</b></div>
       <div class="seg">提示 <b id="metaHint">0</b></div>
       <div class="seg">TIME <b id="metaTime">00:00</b></div>
+      <div class="seg">篇時 <b><span id="fill-timer" style="color:var(--peach)">--</span></b></div>
       <div class="seg" id="fillSessionWrap" style="display:none">連刷 <b id="fillSessionProg">0 / 0</b></div>
     </div>
   </div>
@@ -474,6 +475,8 @@ function normLegalNum(s){
 
 // ── 計時器 ──────────────────────────────────────────
 let _fillTimerIv=null, _fillStart=null, _sessionRight=0, _sessionHint=0;
+// Wave 107: per-article response time
+let _fillStartTime=0, _fillTimerInterval=null;
 let _sessionHistory=[], _sessionCount=0;
 
 function fillTimerStart(){
@@ -718,7 +721,7 @@ function _renderFillDailyChart() {
   });
 }
 
-function _recordFillStat(correctBlanks, totalBlanks, usedHint, lawName) {
+function _recordFillStat(correctBlanks, totalBlanks, usedHint, lawName, fillElapsed) {
   const _fillD = new Date().toISOString().slice(0,10);
   const _fillDKey = 'sofa_fill_daily_' + _fillD;
   localStorage.setItem(_fillDKey, String(parseInt(localStorage.getItem(_fillDKey)||'0',10)+1));
@@ -731,6 +734,11 @@ function _recordFillStat(correctBlanks, totalBlanks, usedHint, lawName) {
   s.todayCorrect = (s.todayCorrect||0) + correctBlanks;
   s.clean = (s.clean||0) + (!usedHint && correctBlanks===totalBlanks ? 1 : 0);
   s.articles = (s.articles||0) + 1;
+  // Wave 107: per-article response time tracking
+  if(fillElapsed > 0){
+    s.totalTimeSec = (s.totalTimeSec||0) + fillElapsed;
+    s.timedArticles = (s.timedArticles||0) + 1;
+  }
   if(lawName){
     s.byLaw = s.byLaw||{};
     s.byLaw[lawName] = s.byLaw[lawName]||{total:0,correct:0,clean:0};
@@ -937,6 +945,13 @@ function _updateDiffBadge(blankCount){
 function renderFill(){
   fillTimerReset();
   fillTimerStart();
+  // Wave 107: start per-article timer
+  _fillStartTime = Date.now();
+  clearInterval(_fillTimerInterval);
+  _fillTimerInterval = setInterval(()=>{
+    const el = document.getElementById('fill-timer');
+    if(el && _fillStartTime > 0) el.textContent = ((Date.now()-_fillStartTime)/1000).toFixed(0)+'s';
+  }, 1000);
   document.getElementById('fillProg').style.width='0%';
   const box = document.getElementById('fillText');
   document.getElementById('resultMsg').style.display='none';
@@ -1045,8 +1060,14 @@ function checkAnswers(){
   if(cor === inputs.length) _fillSoundPerfect();
   else if(cor > 0) _fillSoundPartial();
   else _fillSoundWrong();
+  // Wave 107: capture per-article elapsed time and stop live timer
+  const _fillElapsed = _fillStartTime > 0 ? (Date.now() - _fillStartTime) / 1000 : 0;
+  _fillStartTime = 0;
+  clearInterval(_fillTimerInterval);
+  const _timerEl = document.getElementById('fill-timer');
+  if(_timerEl) _timerEl.textContent = _fillElapsed > 0 ? _fillElapsed.toFixed(0)+'s' : '--';
   // Wave 55: persist to cumulative stats
-  _recordFillStat(cor, inputs.length, _currentHintUsed, fillData?.law_name || '');
+  _recordFillStat(cor, inputs.length, _currentHintUsed, fillData?.law_name || '', _fillElapsed);
 
   // Wave 87: streak tracking — must run after sound calls above
   const _wasPerfect = (cor === inputs.length && !_currentHintUsed);
@@ -1133,6 +1154,11 @@ document.getElementById('fillSourceLink').addEventListener('click',()=>{
 
 async function loadNew(){
   fillData=null;
+  // Wave 107: reset per-article timer on new load
+  _fillStartTime = 0;
+  clearInterval(_fillTimerInterval);
+  const _timerEl0 = document.getElementById('fill-timer');
+  if(_timerEl0) _timerEl0.textContent = '--';
   fillTimerReset();
   document.getElementById('fillText').innerHTML='<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.4);letter-spacing:.1em">載入中…</span>';
   document.getElementById('artNum').textContent='—';
@@ -1383,6 +1409,8 @@ function openFillStats() {
         🎯 練習此法規
       </button>
     </div>` : '';
+  // Wave 107: compute average response time
+  const avgSec = (s.timedArticles||0) > 0 ? (s.totalTimeSec / s.timedArticles).toFixed(1) : '--';
   document.getElementById('fill-stats-content').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
       <div style="background:#0D1F2D;border-radius:10px;padding:14px;text-align:center">
@@ -1399,6 +1427,10 @@ function openFillStats() {
         <div style="font-size:28px;font-weight:700;color:#2ECC71">${cleanRate}%</div>
         <div style="color:#8ABED6;font-size:11px;margin-top:3px">全對無提示率</div>
         <div style="color:#5B7A8D;font-size:10px">${s.clean||0}/${s.articles||0}篇</div>
+      </div>
+      <div style="background:#0D1F2D;border-radius:10px;padding:14px;text-align:center;grid-column:1/-1">
+        <div style="font-size:20px;font-weight:700;color:#7ab8f5">${avgSec}s</div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px">平均完成時間</div>
       </div>
     </div>${byLawHtml}${weakHtml}
     <div style="text-align:center;margin-top:16px">
