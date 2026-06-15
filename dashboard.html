@@ -1984,7 +1984,31 @@ function _renderDrawer(d){
     + '</div>'
     + '</div>'
     + '<div id="drawer-original">' + rawText + '</div>'
-    + '<div id="drawer-analysis">' + origHtml + accHtml + '</div>';
+    + '<div id="drawer-analysis">' + origHtml + accHtml + '</div>'
+    + '<div id="note-section" style="margin-top:14px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;cursor:pointer" onclick="_toggleNoteEditor()">'
+    + '<span style="font-size:12px;color:#7a9ab8">📝 我的筆記</span>'
+    + '<span id="note-toggle-icon" style="font-size:12px;color:#556">▼</span>'
+    + '</div>'
+    + '<div id="note-editor" style="display:none">'
+    + '<textarea id="note-input" placeholder="記下你的想法、記憶口訣、易混淆點..."'
+    + ' style="width:100%;min-height:80px;background:rgba(255,255,255,0.06);'
+    + 'border:1px solid rgba(100,160,220,0.25);border-radius:6px;'
+    + 'color:#dce8f5;font-size:12px;padding:8px;resize:vertical;'
+    + 'font-family:inherit;line-height:1.5;box-sizing:border-box"'
+    + ' oninput="_noteUnsaved()"'
+    + '></textarea>'
+    + '<div style="display:flex;justify-content:flex-end;gap:8px;margin-top:6px">'
+    + '<button onclick="_saveNote()" id="note-save-btn"'
+    + ' style="background:#2a5a3f;color:#7af5a8;border:none;border-radius:5px;'
+    + 'padding:4px 12px;font-size:11px;cursor:pointer">💾 儲存</button>'
+    + '<button onclick="_clearNote()"'
+    + ' style="background:rgba(255,255,255,0.08);color:#aaa;border:none;border-radius:5px;'
+    + 'padding:4px 10px;font-size:11px;cursor:pointer">清除</button>'
+    + '</div>'
+    + '<div id="note-saved-hint" style="font-size:10px;color:#4a7;margin-top:4px;text-align:right;display:none">✓ 已儲存</div>'
+    + '</div>'
+    + '</div>';
 
   body.innerHTML =
     '<span class="dr-eyebrow">ARTICLE' + (imp ? ' · ' + esc(imp) : '') + '</span>'
@@ -1999,6 +2023,7 @@ function _renderDrawer(d){
   var savedTab = localStorage.getItem('sofa_drawer_tab') || 'analysis';
   _switchDrawerTab(savedTab);
   _setReadFont(_getReadFont());
+  _loadNoteForArticle(d.id);
 }
 
 function _renderDrawerFallback(lawName, article){
@@ -2158,6 +2183,71 @@ function _exportBookmarks() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   _dashToast('📥 已匯出 ' + bks.length + ' 筆書籤');
+}
+
+// ── Wave 112 — 個人筆記（per-article localStorage）────────────
+var NOTES_KEY = 'sofa_notes_v1';
+var _currentNoteId = null;
+
+function _loadNoteForArticle(articleId) {
+  _currentNoteId = articleId;
+  try {
+    var notes = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}');
+    var note = notes[articleId];
+    var textarea = document.getElementById('note-input');
+    var savedHint = document.getElementById('note-saved-hint');
+    if (textarea) {
+      textarea.value = note ? note.text : '';
+      // Auto-expand if existing note content
+      if (note && note.text) {
+        document.getElementById('note-editor').style.display = 'block';
+        document.getElementById('note-toggle-icon').textContent = '▲';
+      } else {
+        document.getElementById('note-editor').style.display = 'none';
+        document.getElementById('note-toggle-icon').textContent = '▼';
+      }
+    }
+    if (savedHint) savedHint.style.display = 'none';
+  } catch(e) { /* ignore localStorage errors */ }
+}
+
+function _toggleNoteEditor() {
+  var ed = document.getElementById('note-editor');
+  var icon = document.getElementById('note-toggle-icon');
+  if (!ed) return;
+  var open = ed.style.display === 'none';
+  ed.style.display = open ? 'block' : 'none';
+  if (icon) icon.textContent = open ? '▲' : '▼';
+  if (open) setTimeout(function() { var t = document.getElementById('note-input'); if (t) t.focus(); }, 50);
+}
+
+function _saveNote() {
+  if (!_currentNoteId) return;
+  try {
+    var text = (document.getElementById('note-input')?.value || '').trim();
+    var notes = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}');
+    if (text) {
+      notes[_currentNoteId] = { text: text, updatedAt: new Date().toISOString() };
+    } else {
+      delete notes[_currentNoteId];
+    }
+    localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+    var hint = document.getElementById('note-saved-hint');
+    if (hint) { hint.style.display = 'block'; setTimeout(function() { hint.style.display = 'none'; }, 2000); }
+    var btn = document.getElementById('note-save-btn');
+    if (btn) btn.style.background = '#2a5a3f'; // reset unsaved state
+  } catch(e) { /* ignore localStorage errors */ }
+}
+
+function _clearNote() {
+  var textarea = document.getElementById('note-input');
+  if (textarea) textarea.value = '';
+  _saveNote(); // save empty = delete
+}
+
+function _noteUnsaved() {
+  var btn = document.getElementById('note-save-btn');
+  if (btn) btn.style.background = '#5a3a1a'; // amber tint to indicate unsaved
 }
 
 // ── Wave 60 — copy article ────────────────────
