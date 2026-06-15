@@ -516,6 +516,24 @@
   </div>
 </div>
 
+<!-- Wave 103: persistent stats button -->
+<button id="practice-stats-btn" onclick="openPracticeStats()"
+  title="學習統計"
+  style="position:fixed;bottom:14px;left:14px;z-index:200;background:rgba(20,40,60,0.85);
+         border:1px solid rgba(100,160,220,0.4);color:#7ab8f5;border-radius:8px;
+         padding:6px 10px;font-size:14px;cursor:pointer">📊</button>
+
+<div id="practice-stats-panel" style="display:none;position:fixed;bottom:50px;left:14px;
+     z-index:201;background:rgba(10,20,35,0.95);border:1px solid rgba(100,160,220,0.35);
+     border-radius:10px;padding:16px;min-width:240px;max-width:300px;color:#dce8f5;
+     font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,0.5)">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+    <span style="font-weight:600;font-size:14px">📊 練習統計</span>
+    <span onclick="closePracticeStats()" style="cursor:pointer;color:#aaa;font-size:16px">✕</span>
+  </div>
+  <div id="practice-stats-body"></div>
+</div>
+
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
 const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
@@ -746,6 +764,7 @@ function render(){
     if(card){ card.classList.add('celebrate'); card.addEventListener('animationend',()=>card.classList.remove('celebrate'),{once:true}); }
     showDoneBanner(acc,null,'m1');
     _articlesCompleted++;  // Wave 56
+    _recordPracticeStat(document.getElementById('artMeta').textContent||document.getElementById('lawSelect').value, typeText.length);  // Wave 103
     const sp=document.getElementById('sectionsBox');
     if(sp.style.display==='none'){
       sp.innerHTML='<div class="sec-hd">條文解析</div>';
@@ -1041,6 +1060,7 @@ function advanceSentence(){
     if(card){ card.classList.add('celebrate'); card.addEventListener('animationend',()=>card.classList.remove('celebrate'),{once:true}); }
     showDoneBanner(totalCor,sentences.length,'m2');
     _articlesCompleted++;  // Wave 56
+    _recordPracticeStat(document.getElementById('artMeta').textContent||document.getElementById('lawSelect').value, typeText.length);  // Wave 103
     // 顯示條文解析 sections
     const sp=document.getElementById('sectionsBox');
     sp.innerHTML='<div class="sec-hd">條文解析</div>';
@@ -1209,6 +1229,7 @@ function checkMode3(){
   // show done banner
   showDoneBanner(cor,total,'m3');
   _articlesCompleted++;  // Wave 56
+  _recordPracticeStat(document.getElementById('artMeta').textContent||document.getElementById('lawSelect').value, typeText.length);  // Wave 103
   const sp=document.getElementById('sectionsBox');
   if(sp.style.display==='none'){
     sp.innerHTML='<div class="sec-hd">條文解析</div>';
@@ -1292,6 +1313,72 @@ function _practiceTTS() {
   btn.textContent = '⏹'; btn.classList.add('speaking');
   speechSynthesis.speak(utt);
 }
+
+// === Wave 103: Practice Statistics Panel ===
+const PRACTICE_STATS_KEY = 'sofa_practice_stats_v1';
+
+function _recordPracticeStat(lawName, charCount) {
+  const s = JSON.parse(localStorage.getItem(PRACTICE_STATS_KEY) || '{"total":0,"chars":0,"byLaw":{}}');
+  s.total = (s.total || 0) + 1;
+  s.chars = (s.chars || 0) + (charCount || 0);
+  if (lawName) {
+    if (!s.byLaw) s.byLaw = {};
+    if (!s.byLaw[lawName]) s.byLaw[lawName] = { total: 0, chars: 0 };
+    s.byLaw[lawName].total++;
+    s.byLaw[lawName].chars = (s.byLaw[lawName].chars || 0) + (charCount || 0);
+  }
+  localStorage.setItem(PRACTICE_STATS_KEY, JSON.stringify(s));
+}
+
+function openPracticeStats() {
+  const s = JSON.parse(localStorage.getItem(PRACTICE_STATS_KEY) || '{"total":0,"chars":0,"byLaw":{}}');
+  const body = document.getElementById('practice-stats-body');
+
+  let html = `
+    <div style="display:flex;gap:12px;margin-bottom:12px">
+      <div style="flex:1;background:rgba(255,255,255,0.06);border-radius:8px;padding:8px;text-align:center">
+        <div style="font-size:20px;font-weight:700;color:#7ab8f5">${s.total||0}</div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px">已練條數</div>
+      </div>
+      <div style="flex:1;background:rgba(255,255,255,0.06);border-radius:8px;padding:8px;text-align:center">
+        <div style="font-size:20px;font-weight:700;color:#7ab8f5">${Math.round((s.chars||0)/100)/10}k</div>
+        <div style="font-size:10px;color:#aaa;margin-top:2px">練習字數</div>
+      </div>
+    </div>`;
+
+  if (s.byLaw && Object.keys(s.byLaw).length > 0) {
+    const maxTotal = Math.max(...Object.values(s.byLaw).map(d => d.total));
+    html += `<div style="font-size:11px;color:#aaa;margin-bottom:6px">各法規練習條數</div>`;
+    for (const [law, d] of Object.entries(s.byLaw).sort((a,b) => b[1].total - a[1].total)) {
+      const pct = maxTotal > 0 ? Math.round(d.total / maxTotal * 100) : 0;
+      html += `
+        <div style="margin-bottom:6px">
+          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">
+            <span style="color:#ccc;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${law}</span>
+            <span style="color:#7ab8f5">${d.total}條</span>
+          </div>
+          <div style="background:rgba(255,255,255,0.1);border-radius:3px;height:4px">
+            <div style="background:#4a90d9;border-radius:3px;height:4px;width:${pct}%"></div>
+          </div>
+        </div>`;
+    }
+  }
+
+  body.innerHTML = html;
+  document.getElementById('practice-stats-panel').style.display = 'block';
+}
+
+function closePracticeStats() {
+  document.getElementById('practice-stats-panel').style.display = 'none';
+}
+
+document.addEventListener('click', e => {
+  const panel = document.getElementById('practice-stats-panel');
+  const btn = document.getElementById('practice-stats-btn');
+  if (panel && panel.style.display !== 'none' && !panel.contains(e.target) && e.target !== btn) {
+    closePracticeStats();
+  }
+});
 </script>
 </body>
 </html>
