@@ -357,7 +357,7 @@
           style="background:transparent;border:none;outline:none;font-family:var(--mono);font-size:14px;color:var(--cream);width:64px;cursor:text">
         <datalist id="artDatalist"></datalist>
       </div>
-      <button id="btnWrong" class="btn btn-ghost" style="padding:8px 14px;font-size:12px;border-color:var(--bad);color:var(--bad)">✗ 錯題本 <span id="wrongCount">0</span></button>
+      <button id="btnWrong" class="btn btn-ghost" style="padding:8px 14px;font-size:12px;border-color:var(--bad);color:var(--bad)">✗ 錯題本 <span id="wrongCount" style="display:none;background:#E74C3C;color:white;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;font-weight:700">0</span></button><button id="btn-clear-wrong" onclick="clearWrongBank()" style="display:none;background:none;border:1px solid rgba(231,76,60,0.4);color:#E74C3C;border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;margin-left:4px">清空</button>
       <button id="btnNew" class="btn btn-sec" style="padding:8px 16px;font-size:13px">出題</button>
       <button id="btnSprint" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(91,175,214,0.15);border-color:rgba(91,175,214,0.6)">⚡ 衝刺 20題</button>
     </div>
@@ -691,9 +691,16 @@ function saveWrongBank(bank) {
 }
 function addToWrongBank(articleId, lawName, artTitle) {
   if (!articleId) return;
-  const bank = loadWrongBank().filter(e => e.id !== articleId);
-  bank.push({ id: articleId, law: lawName || '', art: artTitle || '', ts: Date.now() });
-  saveWrongBank(bank);
+  const existing = loadWrongBank();
+  const idx = existing.findIndex(e => e.id === articleId);
+  if (idx !== -1) {
+    existing[idx].errorCount = (existing[idx].errorCount || 1) + 1;
+    existing[idx].ts = Date.now();
+    saveWrongBank(existing);
+  } else {
+    existing.push({ id: articleId, law: lawName || '', art: artTitle || '', ts: Date.now(), errorCount: 1 });
+    saveWrongBank(existing);
+  }
   refreshWrongCount();
 }
 function removeFromWrongBank(articleId) {
@@ -701,9 +708,23 @@ function removeFromWrongBank(articleId) {
   saveWrongBank(loadWrongBank().filter(e => e.id !== articleId));
   refreshWrongCount();
 }
+function clearWrongBank() {
+  if (!confirm('確定清空所有錯題？')) return;
+  try {
+    localStorage.removeItem(WRONG_KEY);
+    refreshWrongCount();
+  } catch(e) {}
+}
 function refreshWrongCount() {
+  const bank = loadWrongBank();
+  const count = bank.length;
   const el = document.getElementById('wrongCount');
-  if (el) el.textContent = loadWrongBank().length;
+  if (el) {
+    el.textContent = count;
+    el.style.display = count > 0 ? 'inline' : 'none';
+  }
+  const clearBtn = document.getElementById('btn-clear-wrong');
+  if (clearBtn) clearBtn.style.display = count > 0 ? 'inline-block' : 'none';
 }
 
 // ── 連刷模式 ──────────────────────────────────────────────────
@@ -1318,8 +1339,10 @@ async function loadWrongQuiz() {
     cur.law = lawName; cur.title = artTitle;
 
     if (lawName || artTitle) {
+      const errCount = pick.errorCount || 1;
+      const errBadge = `<span style="color:#E74C3C;font-size:11px;margin-left:8px">✗ ${errCount}次</span>`;
       document.getElementById('qSrc').innerHTML =
-        `<span style="color:var(--bad);font-family:var(--mono);font-size:11px;letter-spacing:.1em">✗ 錯題複習</span>&nbsp;&nbsp;<span style="color:var(--peach)">${esc(lawName)}</span>${artTitle?` <b>${esc(artTitle)}</b>`:''}`;
+        `<span style="color:var(--bad);font-family:var(--mono);font-size:11px;letter-spacing:.1em">✗ 錯題複習</span>&nbsp;&nbsp;<span style="color:var(--peach)">${esc(lawName)}</span>${artTitle?` <b>${esc(artTitle)}</b>`:''}${errBadge}`;
     }
     document.getElementById('questionBox').textContent = data.question || '出題失敗';
     document.getElementById('questionBox').style.opacity = '1';
