@@ -298,6 +298,11 @@
   #qCountdown{display:none;font-size:.78rem;font-variant-numeric:tabular-nums;color:var(--warn);letter-spacing:.04em;font-family:var(--mono);}
   #qCountdown.urgent{color:var(--bad);animation:countdown-pulse .5s ease-in-out infinite alternate;}
   @keyframes countdown-pulse{from{opacity:1}to{opacity:.4}}
+
+  #quiz-citation{display:none;text-align:center;margin-top:10px;padding:7px 14px;background:rgba(26,46,61,0.7);border:1px solid rgba(91,175,214,0.3);border-radius:16px;color:#8ABED6;font-size:12px;animation:fadeInUp 0.3s ease;}
+  #quiz-citation.show{display:block;}
+  #quiz-citation a{color:#5BAFD6;text-decoration:none;}
+  @keyframes fadeInUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 </style>
 </head>
 <body>
@@ -372,6 +377,7 @@
         </div>
 
         <div class="opts" id="optionsBox"></div>
+        <div id="quiz-citation"></div>
 
         <div class="explain" id="explainBox" style="display:none">
           <span class="eb">答對了</span>
@@ -951,6 +957,7 @@ async function loadQuiz(){
   document.getElementById('questionBox').textContent='載入中…';
   document.getElementById('questionBox').style.opacity='.45';
   document.getElementById('optionsBox').innerHTML='';
+  (function(){const _cit=document.getElementById('quiz-citation');if(_cit)_cit.classList.remove('show');})();
   document.getElementById('explainBox').style.display='none';
   document.getElementById('qSrc').innerHTML='—';
   updateScore();
@@ -1081,6 +1088,15 @@ async function loadQuiz(){
         _feedbackAnim(btn,isCorrect);
         onAnswerDone(isCorrect);
         updateScore();
+        // 顯示出處條號
+        (function(){
+          const _cit=document.getElementById('quiz-citation');
+          if(_cit&&(artTitle||lawName)){
+            const _artNo=(artTitle||'').replace(/^§\s*/,'').replace(/｜.*$/,'').trim();
+            _cit.innerHTML='📍 第 <strong>'+(_artNo||'—')+'</strong> 條'+(lawName?' ｜ '+lawName:'');
+            _cit.classList.add('show');
+          }
+        })();
         // 寫入練習紀錄
         if(pageId&&uid&&uid!=='PREVIEW'&&!isFree){
           fetch(`${API}/api/me/history`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({page_id:pageId,law_name:lawName,article:artTitle})}).catch(()=>{});
@@ -1183,6 +1199,7 @@ async function loadWrongQuiz() {
   document.getElementById('questionBox').textContent='載入中…';
   document.getElementById('questionBox').style.opacity='.45';
   document.getElementById('optionsBox').innerHTML='';
+  (function(){const _cit=document.getElementById('quiz-citation');if(_cit)_cit.classList.remove('show');})();
   document.getElementById('explainBox').style.display='none';
   document.getElementById('qSrc').innerHTML='—';
   updateScore();
@@ -1244,6 +1261,15 @@ async function loadWrongQuiz() {
         _feedbackAnim(btn, isCorrect);
         onAnswerDone(isCorrect);
         updateScore();
+        // 顯示出處條號
+        (function(){
+          const _cit=document.getElementById('quiz-citation');
+          if(_cit&&(artTitle||lawName)){
+            const _artNo=(artTitle||'').replace(/^§\s*/,'').replace(/｜.*$/,'').trim();
+            _cit.innerHTML='📍 第 <strong>'+(_artNo||'—')+'</strong> 條'+(lawName?' ｜ '+lawName:'');
+            _cit.classList.add('show');
+          }
+        })();
         if (pageId && uid && uid!=='PREVIEW' && !isFree) {
           fetch(`${API}/api/me/history`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({page_id:pageId,law_name:lawName,article:artTitle})}).catch(()=>{});
         }
