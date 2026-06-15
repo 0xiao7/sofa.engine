@@ -903,6 +903,8 @@ let _moonlightPatch = null; // Wave90: moonlight floor glow
 let _lanternTx = null, _lanterns = [];
 // Wave92: 端午節粽子 (June)
 let _zongziTx = null, _zongzis = [];
+// Wave97: Christmas tree (December)
+let _xmastreeTx = null, _xmastree = null;
 let _threeTime = 0;
 let _flyInDone = false, _flyInStart = 0;
 
@@ -1944,6 +1946,9 @@ function initThreeScene(canvas) {
     } else {
       _destroyLanterns();
     }
+    // Wave97: Christmas tree — December only
+    if (_moW === 11) { _buildXmasTree(); }
+    else { _destroyXmasTree(); }
   }
 
   // Spring sakura (Mar–May)
@@ -3210,6 +3215,71 @@ function _buildLanterns() {
 function _destroyLanterns() {
   _lanterns.forEach(sp => { _threeScene.remove(sp); sp.material.dispose(); });
   _lanterns = [];
+}
+
+// Wave97: Christmas tree — canvas texture + build/destroy
+function _xmastreeTex() {
+  const cv = document.createElement('canvas'); cv.width = 96; cv.height = 160;
+  const ctx = cv.getContext('2d');
+  ctx.clearRect(0,0,96,160);
+  // Trunk
+  ctx.fillStyle = '#6b3a1f';
+  ctx.fillRect(40,130,16,24);
+  // Tree layers (3 triangles, darkest at bottom)
+  const layers = [
+    {y:120, w:80, h:40, color:'#1a5c1a'},
+    {y:85,  w:60, h:45, color:'#1e7a1e'},
+    {y:50,  w:44, h:46, color:'#22aa22'},
+  ];
+  layers.forEach(l => {
+    ctx.beginPath();
+    ctx.moveTo(48, l.y - l.h);
+    ctx.lineTo(48 - l.w/2, l.y);
+    ctx.lineTo(48 + l.w/2, l.y);
+    ctx.closePath();
+    ctx.fillStyle = l.color; ctx.fill();
+  });
+  // Colored light dots
+  const colors = ['#ff2020','#ffcc00','#2080ff','#ff80c0','#40ff40'];
+  for (let i = 0; i < 30; i++) {
+    const t = i / 30;
+    const row = Math.floor(t * 3);
+    const l = layers[row];
+    const spread = (l.w/2) * 0.75;
+    const x = 48 + (Math.random()-0.5) * spread * 2;
+    const y = l.y - l.h * 0.2 - Math.random() * l.h * 0.7;
+    ctx.beginPath();
+    ctx.arc(x, y, 2.5, 0, Math.PI*2);
+    ctx.fillStyle = colors[i % colors.length];
+    ctx.fill();
+  }
+  // Gold star on top
+  ctx.fillStyle = '#ffd700';
+  const sx = 48, sy = 6;
+  ctx.beginPath();
+  for (let i = 0; i < 5; i++) {
+    const a = (i * 4 * Math.PI / 5) - Math.PI/2;
+    const r = i % 2 === 0 ? 7 : 3;
+    if (i === 0) ctx.moveTo(sx + Math.cos(a)*r, sy + Math.sin(a)*r);
+    else ctx.lineTo(sx + Math.cos(a)*r, sy + Math.sin(a)*r);
+  }
+  ctx.closePath(); ctx.fill();
+  return new THREE.CanvasTexture(cv);
+}
+function _buildXmasTree() {
+  if (_xmastree) return;
+  if (!_xmastreeTx) _xmastreeTx = _xmastreeTex();
+  const mat = new THREE.SpriteMaterial({ map: _xmastreeTx, transparent: true });
+  _xmastree = new THREE.Sprite(mat);
+  _xmastree.scale.set(1.6, 2.6, 1);
+  _xmastree.position.set(-6.5, 1.3, 4.5); // left front corner
+  _threeScene.add(_xmastree);
+}
+function _destroyXmasTree() {
+  if (!_xmastree) return;
+  _threeScene.remove(_xmastree);
+  _xmastree.material.dispose();
+  _xmastree = null;
 }
 
 // Wave92: 端午節粽子 — canvas texture
