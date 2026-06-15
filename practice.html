@@ -312,6 +312,30 @@
     animation: done-slide .4s ease forwards;
   }
   .pr-done-banner .icon{ font-size:18px; line-height:1; }
+
+  /* === Wave 56: Session timer chip + summary overlay === */
+  #session-timer{
+    position:fixed;top:12px;right:16px;
+    background:rgba(26,46,61,0.85);border:1px solid rgba(91,175,214,0.25);
+    border-radius:20px;padding:5px 12px;font-size:12px;
+    color:#8ABED6;z-index:50;backdrop-filter:blur(6px);
+    font-family:'JetBrains Mono',monospace;
+    cursor:pointer;transition:background 0.2s;
+    user-select:none;
+  }
+  #session-timer:hover{background:rgba(26,46,61,1);color:#5BAFD6;}
+
+  #session-summary{
+    display:none;position:fixed;inset:0;
+    background:rgba(4,13,20,0.95);z-index:200;
+    align-items:center;justify-content:center;
+  }
+  #session-summary.show{display:flex;}
+  .ss-card{
+    background:#0D1F2D;border-radius:16px;padding:32px 36px;
+    border:1px solid rgba(91,175,214,0.2);max-width:380px;width:90%;
+    text-align:center;
+  }
 </style>
 </head>
 <body>
@@ -450,6 +474,32 @@
 
     </div>
   </main>
+
+<!-- Wave 56: session timer chip -->
+<div id="session-timer" onclick="showSessionSummary()" title="點擊查看本次練習統計">⏱ 00:00</div>
+
+<!-- Wave 56: session summary overlay -->
+<div id="session-summary">
+  <div class="ss-card">
+    <div style="font-size:14px;color:#5BAFD6;margin-bottom:16px">📊 本次練習統計</div>
+    <div style="font-size:48px;font-weight:700;color:#D4A847;font-family:'JetBrains Mono',monospace" id="ss-time"></div>
+    <div style="color:#8ABED6;font-size:13px;margin-top:4px">練習時長</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0">
+      <div style="background:#1A2E3D;border-radius:10px;padding:14px">
+        <div style="font-size:28px;font-weight:700;color:#2ECC71" id="ss-complete"></div>
+        <div style="color:#8ABED6;font-size:12px;margin-top:4px">完成篇數</div>
+      </div>
+      <div style="background:#1A2E3D;border-radius:10px;padding:14px">
+        <div style="font-size:28px;font-weight:700;color:#5BAFD6" id="ss-attempt"></div>
+        <div style="color:#8ABED6;font-size:12px;margin-top:4px">已練習篇數</div>
+      </div>
+    </div>
+    <button onclick="document.getElementById('session-summary').classList.remove('show')"
+      style="background:#D4A847;border:none;color:#040D14;padding:10px 28px;border-radius:20px;font-size:14px;font-weight:600;cursor:pointer;width:100%">
+      繼續練習
+    </button>
+  </div>
+</div>
 
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
@@ -673,6 +723,7 @@ function render(){
     const card=document.querySelector('.type-card');
     if(card){ card.classList.add('celebrate'); card.addEventListener('animationend',()=>card.classList.remove('celebrate'),{once:true}); }
     showDoneBanner(acc,null,'m1');
+    _articlesCompleted++;  // Wave 56
     const sp=document.getElementById('sectionsBox');
     if(sp.style.display==='none'){
       sp.innerHTML='<div class="sec-hd">條文解析</div>';
@@ -694,14 +745,41 @@ ti.addEventListener('input',()=>{
 });
 
 let _sessionStart=null, _sessionIv=null;
+// Wave 56 — article counters
+let _articlesAttempted=0, _articlesCompleted=0;
+let _autoSummaryShown=false;
+
+function _fmtSessionTime(ms){
+  const s=Math.floor(ms/1000), m=Math.floor(s/60), h=Math.floor(m/60);
+  if(h>0) return h+':'+String(m%60).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+  return String(m).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+}
+
+function showSessionSummary(){
+  const elapsed=Date.now()-(_sessionStart||Date.now());
+  document.getElementById('ss-time').textContent=_fmtSessionTime(elapsed);
+  document.getElementById('ss-complete').textContent=_articlesCompleted;
+  document.getElementById('ss-attempt').textContent=_articlesAttempted;
+  document.getElementById('session-summary').classList.add('show');
+}
+
 function ensureSessionTimer(){
   if(_sessionIv) return;
   if(!_sessionStart) _sessionStart=Date.now();
   _sessionIv=setInterval(()=>{
-    const s=Math.floor((Date.now()-_sessionStart)/1000);
+    const elapsed=Date.now()-_sessionStart;
+    const s=Math.floor(elapsed/1000);
     const sm=Math.floor(s/60), ss=s%60;
     document.getElementById('sessionInfo').textContent=
       'SESSION · '+String(sm).padStart(2,'0')+':'+(ss<10?'0':'')+ss;
+    // update corner chip
+    const chip=document.getElementById('session-timer');
+    if(chip) chip.textContent='⏱ '+_fmtSessionTime(elapsed);
+    // auto-show summary at 15 min (once)
+    if(!_autoSummaryShown && elapsed>=15*60*1000){
+      _autoSummaryShown=true;
+      showSessionSummary();
+    }
   },1000);
 }
 function startTimer(){
@@ -828,6 +906,7 @@ async function loadNew(){
       }
     }
     articleSections=d.sections||{}; articlePlan=d._plan||'free';
+    _articlesAttempted++;  // Wave 56 — count each article load
     typeText=(d.original_text||'').replace(/(?<=[一-鿿]) +(?=[一-鿿])/g,'');
     const m=(d.title||'').match(/第(\d+(?:之\d+)?)條/);
     const artNum=m?m[1]:'—';
@@ -938,6 +1017,7 @@ function advanceSentence(){
     const card=document.querySelector('.type-card');
     if(card){ card.classList.add('celebrate'); card.addEventListener('animationend',()=>card.classList.remove('celebrate'),{once:true}); }
     showDoneBanner(totalCor,sentences.length,'m2');
+    _articlesCompleted++;  // Wave 56
     // 顯示條文解析 sections
     const sp=document.getElementById('sectionsBox');
     sp.innerHTML='<div class="sec-hd">條文解析</div>';
@@ -1105,6 +1185,7 @@ function checkMode3(){
   if(card){ card.classList.add('celebrate'); card.addEventListener('animationend',()=>card.classList.remove('celebrate'),{once:true}); }
   // show done banner
   showDoneBanner(cor,total,'m3');
+  _articlesCompleted++;  // Wave 56
   const sp=document.getElementById('sectionsBox');
   if(sp.style.display==='none'){
     sp.innerHTML='<div class="sec-hd">條文解析</div>';
@@ -1150,6 +1231,8 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){ ti.blur(); }
 });
 
+// Wave 56 — start session timer immediately on page load
+ensureSessionTimer();
 loadNew();
 </script>
 </body>
