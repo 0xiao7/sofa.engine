@@ -159,6 +159,67 @@ main{display:flex;flex:1;gap:0;min-height:0;}
   background:none;
 }
 #btn-lock:hover{opacity:1;}
+/* ── 訪客挽留 modal ── */
+#retain-modal{
+  position:fixed;inset:0;z-index:150;
+  display:none;align-items:flex-end;justify-content:center;
+  background:rgba(13,28,40,.7);backdrop-filter:blur(4px);
+}
+#retain-modal.open{display:flex;}
+.retain-card{
+  background:var(--navy-2);border:1px solid var(--line-3);
+  border-radius:20px 20px 0 0;
+  padding:28px 24px max(28px,env(safe-area-inset-bottom));
+  width:100%;max-width:480px;
+}
+.retain-mins{font-size:2rem;font-weight:700;color:var(--peach);font-family:var(--serif);text-align:center;line-height:1.1;}
+.retain-sub{font-size:.85rem;color:var(--cream-2);opacity:.65;text-align:center;margin:6px 0 24px;}
+.btn-line{
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  width:100%;padding:14px;border-radius:12px;margin-bottom:10px;
+  background:#06C755;color:#fff;font-size:1rem;font-weight:700;
+  font-family:var(--serif);border:none;cursor:pointer;transition:opacity .2s;
+}
+.btn-line:hover{opacity:.88;}
+.btn-line svg{width:22px;height:22px;fill:#fff;flex-shrink:0;}
+.btn-serial{
+  width:100%;padding:12px;border-radius:12px;margin-bottom:16px;
+  background:none;border:1px solid var(--peach);color:var(--peach);
+  font-size:.9rem;font-weight:600;font-family:var(--serif);cursor:pointer;transition:opacity .2s;
+}
+.btn-serial:hover{background:rgba(231,187,167,.1);}
+.retain-links{display:flex;justify-content:space-between;padding:0 4px;}
+.retain-links button{
+  background:none;border:none;font-size:.78rem;cursor:pointer;
+  font-family:var(--sans);transition:opacity .2s;
+}
+#retain-keep{color:var(--good);}
+#retain-leave{color:var(--cream-2);opacity:.45;}
+#retain-leave:hover,#retain-keep:hover{opacity:1;}
+
+/* ── 今日記錄（已登入） ── */
+#note-section{display:none;}
+#note-section.visible{display:block;}
+.note-textarea{
+  width:100%;height:80px;padding:8px 10px;resize:none;
+  background:var(--navy-3);border:1px solid var(--line-2);
+  border-radius:8px;color:var(--cream);font-size:.8rem;
+  font-family:var(--sans);outline:none;line-height:1.6;
+}
+.note-textarea:focus{border-color:var(--peach);}
+.note-footer{display:flex;justify-content:space-between;align-items:center;margin-top:4px;}
+.note-saved{font-size:.65rem;color:var(--good);opacity:0;transition:opacity .4s;}
+.note-saved.show{opacity:1;}
+.note-count{font-size:.65rem;color:var(--cream-2);opacity:.35;}
+
+/* ── 登入狀態標籤（header） ── */
+#member-badge{
+  font-size:.7rem;padding:2px 8px;border-radius:10px;
+  background:rgba(159,184,159,.15);border:1px solid rgba(159,184,159,.3);
+  color:var(--good);display:none;
+}
+#member-badge.on{display:inline-block;}
+
 /* ── Lock screen ── */
 #lock-screen{
   position:fixed;inset:0;z-index:200;
@@ -308,6 +369,7 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 <div id="room">
   <header>
     <span class="logo">S·O·F·A 自習室</span>
+    <span id="member-badge">已登入</span>
     <span class="online-badge">
       <span class="dot"></span>
       <span id="count-badge">1 人在線</span>
@@ -326,6 +388,16 @@ main{display:flex;flex:1;gap:0;min-height:0;}
       <div id="desk-grid"></div>
     </div>
     <div id="sidebar">
+      <!-- 今日記錄（已登入才顯示） -->
+      <div id="note-section">
+        <div class="sidebar-section">今日記錄</div>
+        <textarea class="note-textarea" id="note-input" placeholder="今天讀了什麼？有什麼收穫？" maxlength="200"></textarea>
+        <div class="note-footer">
+          <span class="note-saved" id="note-saved">已儲存</span>
+          <span class="note-count" id="note-count">0 / 200</span>
+        </div>
+      </div>
+
       <!-- Pomodoro desktop -->
       <div class="pom-widget" id="pom-desktop">
         <div class="pom-ring-wrap">
@@ -424,6 +496,23 @@ main{display:flex;flex:1;gap:0;min-height:0;}
       <div class="shout-hint">30 秒冷卻，最多 40 字</div>
     </div>
   </div>
+<!-- ── 訪客挽留 modal ── -->
+<div id="retain-modal">
+  <div class="retain-card">
+    <div class="retain-mins" id="retain-mins">0 分鐘</div>
+    <div class="retain-sub">把今天的讀書紀錄留下來，下次進來接著讀</div>
+    <button class="btn-line" onclick="window.open('https://lin.ee/zUeMwo4','_blank')">
+      <svg viewBox="0 0 24 24"><path d="M19.365 9.863c.349 0 .63.285.63.631 0 .345-.281.63-.63.63H17.61v1.125h1.755c.349 0 .63.283.63.63 0 .344-.281.629-.63.629h-2.386c-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.63-.63h2.386c.346 0 .627.285.627.63 0 .349-.281.63-.627.63H17.61v1.125h1.755zm-3.855 3.016c0 .27-.174.51-.432.596-.064.021-.133.031-.199.031-.211 0-.391-.09-.51-.25l-2.443-3.317v2.94c0 .344-.279.629-.631.629-.346 0-.626-.285-.626-.629V8.108c0-.27.173-.51.43-.595.06-.023.136-.033.194-.033.195 0 .375.104.495.254l2.462 3.33V8.108c0-.345.282-.63.63-.63.345 0 .63.285.63.63v4.771zm-5.741 0c0 .344-.282.629-.631.629-.345 0-.627-.285-.627-.629V8.108c0-.345.282-.63.627-.63.349 0 .631.285.631.63v4.771zm-2.466.629H4.917c-.345 0-.63-.285-.63-.629V8.108c0-.345.285-.63.63-.63.348 0 .63.285.63.63v4.141h1.756c.348 0 .629.283.629.63 0 .344-.281.629-.629.629M24 10.314C24 4.943 18.615.572 12 .572S0 4.943 0 10.314c0 4.811 4.27 8.842 10.035 9.608.391.082.923.258 1.058.59.12.301.079.766.038 1.08l-.164 1.02c-.045.301-.24 1.186 1.049.645 1.291-.539 6.916-4.070 9.437-6.971C23.176 14.393 24 12.458 24 10.314"/></svg>
+      加入 LINE 官方帳號
+    </button>
+    <button class="btn-serial" onclick="window.location.href='checkout.html'">輸入序號啟用會員</button>
+    <div class="retain-links">
+      <button id="retain-keep">繼續讀書</button>
+      <button id="retain-leave">直接離開</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── Lock screen ── -->
 <div id="lock-screen">
   <div class="lock-clock" id="lock-clock">00:00</div>
@@ -493,8 +582,29 @@ function getGhosts(realCount){
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
+const API = 'https://sofa-engine-api.onrender.com';
 let myKey, channel, shoutCooldown = false, joinedAt;
-let lastShoutTimestamp = 0;
+let isMember = false, memberProfile = null;
+
+// ── 登入狀態偵測 ──────────────────────────────────────────────────────
+async function detectMember(){
+  const tok = localStorage.getItem('sofa_token');
+  if(!tok) return;
+  try{
+    const r = await fetch(`${API}/api/me/profile`, {
+      headers:{ 'Authorization': `Bearer ${tok}` }
+    });
+    if(!r.ok) return;
+    const p = await r.json();
+    if(p && p.nickname){
+      isMember = true;
+      memberProfile = p;
+      document.getElementById('inp-name').value = p.nickname;
+      document.getElementById('member-badge').classList.add('on');
+    }
+  }catch(e){}
+}
+detectMember();
 
 // ── Entry ─────────────────────────────────────────────────────────────
 document.getElementById('inp-name').addEventListener('keydown', e => {
@@ -509,6 +619,7 @@ function enter(){
   myKey = `user_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
   document.getElementById('entry').style.display = 'none';
   document.getElementById('room').style.display  = 'flex';
+  if(isMember) initNote();
   startPresence(name, subject);
 }
 
@@ -624,14 +735,59 @@ function showShoutBanner({ text, from }){
 }
 
 // ── Leave ─────────────────────────────────────────────────────────────
-document.getElementById('btn-leave').addEventListener('click', leave);
+document.getElementById('btn-leave').addEventListener('click', () => {
+  if(isMember){ doLeave(); return; }
+  showRetain();
+});
 window.addEventListener('beforeunload', () => channel?.untrack());
 
-async function leave(){
+function showRetain(){
+  const mins = joinedAt ? Math.max(1, Math.floor((Date.now()-joinedAt)/60000)) : 1;
+  document.getElementById('retain-mins').textContent = `${mins} 分鐘`;
+  document.getElementById('retain-modal').classList.add('open');
+}
+document.getElementById('retain-keep')?.addEventListener('click', ()=>{
+  document.getElementById('retain-modal').classList.remove('open');
+});
+document.getElementById('retain-leave')?.addEventListener('click', doLeave);
+
+async function doLeave(){
+  document.getElementById('retain-modal').classList.remove('open');
   await channel?.untrack();
   await channel?.unsubscribe();
   document.getElementById('room').style.display  = 'none';
   document.getElementById('entry').style.display = 'flex';
+}
+
+// ── 今日記錄 ─────────────────────────────────────────────────────────
+function todayKey(){ return `sofa_room_note_${new Date().toISOString().slice(0,10)}`; }
+
+function initNote(){
+  const sec = document.getElementById('note-section');
+  sec.classList.add('visible');
+  const ta = document.getElementById('note-input');
+  ta.value = localStorage.getItem(todayKey()) || '';
+  updateNoteCount();
+
+  let saveTimer;
+  ta.addEventListener('input', ()=>{
+    updateNoteCount();
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(saveNote, 800);
+  });
+}
+
+function updateNoteCount(){
+  const ta = document.getElementById('note-input');
+  document.getElementById('note-count').textContent = `${ta.value.length} / 200`;
+}
+
+function saveNote(){
+  const val = document.getElementById('note-input').value;
+  localStorage.setItem(todayKey(), val);
+  const badge = document.getElementById('note-saved');
+  badge.classList.add('show');
+  setTimeout(()=> badge.classList.remove('show'), 1500);
 }
 
 // ── Pomodoro ──────────────────────────────────────────────────────────
