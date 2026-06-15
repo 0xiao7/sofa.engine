@@ -3024,6 +3024,20 @@ function startThreeAnimation(canvas) {
       if (Math.abs(_rCur - _rTarget) > 0.001)
         _rainGain.gain.setTargetAtTime(_rTarget, _audioCtx.currentTime, 3.0);
     }
+    // Morning bird chirps (晨讀 6–11am, every 35–65s)
+    if(_soundOn && _soundCtx){
+      const _bTod = _timeOfDayPalette();
+      if(_bTod.fogDensity === 0.008){ // morning only
+        const _bNow = Date.now();
+        if(_nextChirpTime === 0) _nextChirpTime = _bNow + 5000; // 5s delay on first morning entry
+        if(_bNow > _nextChirpTime){
+          _playBirdChirp();
+          _nextChirpTime = _bNow + 35000 + Math.random()*30000; // 35–65s interval
+        }
+      } else {
+        _nextChirpTime = 0; // reset when not morning so first chirp has 5s delay on re-entry
+      }
+    }
     _threeRenderer.render(_threeScene, _threeCamera);
   }
   // Set time-of-day label
@@ -3523,6 +3537,7 @@ let _audioCtx = null, _soundOn = false;
 let _ambGain = null, _droneGain = null, _noiseSource = null, _droneOsc = null;
 let _rainSource = null, _rainGain = null, _rainFilter = null;
 let _lastChimeHour = -1, _lastChimeHalf = -1;
+let _nextChirpTime = 0;
 
 function _buildAmbientSound() {
   if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -3629,6 +3644,34 @@ function _spawnShootingStar() {
   ss.userData.life = 0;
   _threeScene.add(ss);
   _shootingStars.push(ss);
+}
+
+function _playBirdChirp() {
+  if(!_soundCtx || _soundCtx.state === 'suspended') return;
+  try {
+    const g = _soundCtx.createGain();
+    g.connect(_soundCtx.destination);
+    g.gain.value = 0.07;
+    // 2–3 chips with slight pitch variation
+    const chips = 2 + (Math.random() > 0.5 ? 1 : 0);
+    for(let c=0; c<chips; c++){
+      const delay = c * 0.11;
+      const pitchBase = 2800 + Math.random()*600;
+      const osc = _soundCtx.createOscillator();
+      const env = _soundCtx.createGain();
+      osc.connect(env); env.connect(g);
+      osc.type = 'sine';
+      const t0 = _soundCtx.currentTime + delay;
+      osc.frequency.setValueAtTime(pitchBase, t0);
+      osc.frequency.linearRampToValueAtTime(pitchBase * 1.45, t0 + 0.06);
+      osc.frequency.linearRampToValueAtTime(pitchBase * 1.1, t0 + 0.12);
+      env.gain.setValueAtTime(0, t0);
+      env.gain.linearRampToValueAtTime(1, t0 + 0.015);
+      env.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.13);
+      osc.start(t0);
+      osc.stop(t0 + 0.14);
+    }
+  } catch(e){}
 }
 
 function _initRainAudio() {
