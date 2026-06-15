@@ -783,6 +783,7 @@ let _quoteSignTex = null, _quoteSignCtx = null, _quoteSignMesh = null;
 let _quoteIdx = 0, _quoteLastSwap = 0;
 let _reactParticles = []; // {sprite, vy, life, maxLife}
 let _speechBubbles = []; // {sprite, life, maxLife, phase} phase: 'in'|'hold'|'out'
+let _shoutLights = []; // Wave41: accent-blue PointLight flash on shout
 let _typingSprite = null, _typingHideAt = 0;
 let _threeTime = 0;
 let _flyInDone = false, _flyInStart = 0;
@@ -2205,6 +2206,15 @@ function _showEntryToast(name) {
   }, 2500);
 }
 
+function _spawnShoutLight(x, z) {
+  const light = new THREE.PointLight(0x5BAFD6, 2.2, 6.0);
+  light.position.set(x, 1.8, z);
+  light.userData.born = Date.now();
+  light.userData.lifetime = 1800; // ms
+  _threeScene.add(light);
+  _shoutLights.push(light);
+}
+
 function _showTypingIndicator() {
   _typingHideAt = Date.now() + 2500;
   if(_typingSprite) return; // already visible
@@ -2829,6 +2839,19 @@ function startThreeAnimation(canvas) {
         sb.sprite.position.y = 2.5 + Math.sin(Date.now()*0.002)*0.04;
       sb.sprite.lookAt(_threeCamera.position);
     }
+    // Wave41: Shout spotlight fade
+    for(let li=_shoutLights.length-1; li>=0; li--){
+      const sl = _shoutLights[li];
+      const t = (Date.now()-sl.userData.born) / sl.userData.lifetime;
+      if(t >= 1){
+        _threeScene.remove(sl);
+        sl.dispose();
+        _shoutLights.splice(li,1);
+      } else {
+        // Fast rise, slow decay: t^0.3 * (1-t)^0.7
+        sl.intensity = 2.2 * Math.pow(Math.max(0,1-t),1.5) * (t < 0.1 ? t/0.1 : 1);
+      }
+    }
     // Typing indicator lifecycle
     if(_typingSprite){
       const _tyNow = Date.now();
@@ -3191,6 +3214,12 @@ function showShoutBanner({ text, from }){
   clearTimeout(banner._t);
   banner._t = setTimeout(() => { banner.style.display = 'none'; }, 4000);
   if (typeof _spawnSpeechBubble === 'function') _spawnSpeechBubble(text, from);
+  // Wave41: flash accent-blue PointLight at sender's desk
+  if (typeof _spawnShoutLight === 'function' && _DESK_POS_3D) {
+    const seatIdx = _currentUsers.findIndex(u => u.name === from);
+    const _slPos = _DESK_POS_3D[seatIdx >= 0 ? seatIdx % _DESK_POS_3D.length : 0];
+    _spawnShoutLight(_slPos[0], _slPos[1]);
+  }
 }
 
 document.getElementById('board-post-btn')?.addEventListener('click', async () => {
