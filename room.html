@@ -1141,28 +1141,87 @@ function _rippleTex() {
   return new THREE.CanvasTexture(c);
 }
 
-function _moonTex() {
-  const c = document.createElement('canvas'); c.width = c.height = 128;
-  const ctx = c.getContext('2d');
-  // Moon disc
-  const g = ctx.createRadialGradient(64,62,0, 64,62,52);
-  g.addColorStop(0,'rgba(255,252,210,1)');
-  g.addColorStop(0.6,'rgba(255,245,180,0.9)');
-  g.addColorStop(0.85,'rgba(220,210,150,0.6)');
-  g.addColorStop(1,'rgba(180,170,120,0)');
-  ctx.fillStyle = g;
-  ctx.beginPath(); ctx.arc(64,64,52,0,Math.PI*2); ctx.fill();
-  // Subtle craters
-  ctx.fillStyle='rgba(180,170,130,0.25)';
-  [[44,50,10],[72,38,7],[58,74,5],[80,65,8]].forEach(([cx,cy,r])=>{
-    ctx.beginPath(); ctx.arc(cx,cy,r,0,Math.PI*2); ctx.fill();
-  });
+// Wave102: lunar phase helpers ─────────────────────────────────────────────
+function _lunarAge() {
+  const refNewMoon = new Date('2000-01-06T18:14:00Z').getTime();
+  const elapsed = Date.now() - refNewMoon;
+  const period = 29.530588853 * 24 * 3600 * 1000;
+  return ((elapsed % period) + period) % period / period; // 0.0–1.0
+}
+
+function _drawMoonPhase(ctx, size, age) {
+  ctx.clearRect(0, 0, size, size);
+  const cx = size / 2, cy = size / 2, r = size * 0.42;
+
   // Glow halo
-  const h = ctx.createRadialGradient(64,64,40, 64,64,64);
-  h.addColorStop(0,'rgba(255,250,200,0)');
-  h.addColorStop(1,'rgba(255,245,150,0.12)');
-  ctx.fillStyle = h;
-  ctx.fillRect(0,0,128,128);
+  const grd = ctx.createRadialGradient(cx, cy, r * 0.3, cx, cy, r * 1.4);
+  grd.addColorStop(0, 'rgba(255,255,200,0.18)');
+  grd.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = grd;
+  ctx.beginPath(); ctx.arc(cx, cy, r * 1.4, 0, Math.PI * 2); ctx.fill();
+
+  // Illuminated portion using clipping
+  ctx.save();
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+
+  // Moon disk with subtle gradient
+  const diskG = ctx.createRadialGradient(cx - r * 0.15, cy - r * 0.15, 0, cx, cy, r);
+  diskG.addColorStop(0, '#f0e8d0');
+  diskG.addColorStop(0.7, '#e8e0c8');
+  diskG.addColorStop(1, '#c8c0a8');
+  ctx.fillStyle = diskG;
+  ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fill();
+
+  // Subtle craters
+  ctx.fillStyle = 'rgba(160,150,120,0.20)';
+  [[cx - r*0.3, cy - r*0.15, r*0.12],
+   [cx + r*0.2, cy - r*0.35, r*0.08],
+   [cx - r*0.05, cy + r*0.25, r*0.07],
+   [cx + r*0.35, cy + r*0.1, r*0.10]].forEach(([x,y,rad])=>{
+    ctx.beginPath(); ctx.arc(x, y, rad, 0, Math.PI * 2); ctx.fill();
+  });
+
+  // Shadow overlay to create phase shape
+  ctx.fillStyle = 'rgba(8,12,28,0.95)';
+  if (age < 0.5) {
+    // Waxing half: shadow covers left semicircle, with ellipse terminator
+    const ex = Math.abs(Math.cos(Math.PI * 2 * age)) * r; // ellipse x-radius
+    ctx.beginPath();
+    // Left semicircle (always shadow)
+    ctx.arc(cx, cy, r, Math.PI / 2, Math.PI * 3 / 2);
+    // Terminator ellipse: waxing → bulges left (shadow shrinks right)
+    if (age < 0.25) {
+      // New→First quarter: terminator bulges into shadow (shadow side)
+      ctx.ellipse(cx, cy, ex, r, 0, Math.PI * 3 / 2, Math.PI / 2, false);
+    } else {
+      // First quarter→Full: terminator bulges into light (lit side)
+      ctx.ellipse(cx, cy, ex, r, 0, Math.PI * 3 / 2, Math.PI / 2, true);
+    }
+    ctx.closePath(); ctx.fill();
+  } else {
+    // Waning half: shadow covers right semicircle, with ellipse terminator
+    const ex = Math.abs(Math.cos(Math.PI * 2 * age)) * r;
+    ctx.beginPath();
+    // Right semicircle (always shadow)
+    ctx.arc(cx, cy, r, -Math.PI / 2, Math.PI / 2);
+    if (age < 0.75) {
+      // Full→Last quarter: terminator bulges into light (lit side)
+      ctx.ellipse(cx, cy, ex, r, 0, Math.PI / 2, -Math.PI / 2, true);
+    } else {
+      // Last quarter→New: terminator bulges into shadow (shadow side)
+      ctx.ellipse(cx, cy, ex, r, 0, Math.PI / 2, -Math.PI / 2, false);
+    }
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function _moonTex() {
+  const size = 128;
+  const c = document.createElement('canvas'); c.width = c.height = size;
+  const ctx = c.getContext('2d');
+  const age = _lunarAge();
+  _drawMoonPhase(ctx, size, age);
   return new THREE.CanvasTexture(c);
 }
 
