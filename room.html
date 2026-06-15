@@ -743,7 +743,7 @@ input[type=text], select, .btn-enter {
 
 let _threeRenderer, _threeScene, _threeCamera, _threeRAF;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
-let _namePlates = [], _deskLampLights = [], _avatarHeads = [];
+let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [];
 let _reactParticles = []; // {sprite, vy, life, maxLife}
 let _speechBubbles = []; // {sprite, life, maxLife, phase} phase: 'in'|'hold'|'out'
 let _threeTime = 0;
@@ -1787,6 +1787,36 @@ function _spawnSpeechBubble(text, senderName) {
   _speechBubbles.push({ sprite: bsp, life: 1.0, maxLife: 1.0, phase: 'in' });
 }
 
+function _spawnConfettiBurst(ox, oy, oz) {
+  const COLORS = [0xFF5D5D, 0x5D8AE8, 0x5DE87A, 0xFFD700, 0xE87AE8, 0x5DFFE8, 0xFF8C00];
+  for(let ci=0; ci<40; ci++){
+    const cc = document.createElement('canvas');
+    cc.width = 12; cc.height = 12;
+    const cctx = cc.getContext('2d');
+    const col = '#' + COLORS[ci % COLORS.length].toString(16).padStart(6,'0');
+    cctx.fillStyle = col;
+    // Alternate squares and circles
+    if(ci % 2 === 0){ cctx.fillRect(1,1,10,10); }
+    else { cctx.beginPath(); cctx.arc(6,6,5,0,Math.PI*2); cctx.fill(); }
+    const ctex = new THREE.CanvasTexture(cc);
+    const cmat = new THREE.SpriteMaterial({map:ctex, transparent:true, depthWrite:false});
+    const csp = new THREE.Sprite(cmat);
+    csp.scale.set(0.18, 0.18, 0.18);
+    csp.position.set(ox, oy, oz);
+    const angle = (ci / 40) * Math.PI * 2;
+    const spread = 0.04 + Math.random() * 0.06;
+    const vy = 0.06 + Math.random() * 0.06;
+    _threeScene.add(csp);
+    _confettiParticles.push({
+      sprite: csp,
+      vx: Math.cos(angle) * spread,
+      vy: vy,
+      vz: Math.sin(angle) * spread,
+      life: 1.0,
+    });
+  }
+}
+
 function _updateThreeAvatars(users) {
   _userAvatarMeshes.forEach(m => _threeScene.remove(m));
   _userAvatarLabels.forEach(m => _threeScene.remove(m));
@@ -1978,6 +2008,21 @@ function startThreeAnimation(canvas) {
       // Keep head Y position synced with body bob (body bobs, head should follow)
       h.mesh.position.y = 1.45 + 0.05 * Math.sin(_threeTime * 1.5 + i * 0.8);
     });
+    // Confetti burst particles
+    for(let ci=_confettiParticles.length-1; ci>=0; ci--){
+      const cp=_confettiParticles[ci];
+      cp.life -= 0.008;
+      cp.vy -= 0.003; // gravity
+      cp.sprite.position.x += cp.vx;
+      cp.sprite.position.y += cp.vy;
+      cp.sprite.position.z += cp.vz;
+      cp.vx *= 0.97; cp.vz *= 0.97;
+      cp.sprite.material.opacity = Math.max(0, cp.life);
+      if(cp.life <= 0){
+        _threeScene.remove(cp.sprite);
+        _confettiParticles.splice(ci,1);
+      }
+    }
     // Name plates always face camera
     _namePlates.forEach(p => p.lookAt(_threeCamera.position));
     // Desk hover glow pulse
@@ -2641,6 +2686,7 @@ function pomTick(){
     clearInterval(pom.tick); pom.tick = null;
     if(pom.state === 'focus'){
       beep('done');
+      if(typeof _spawnConfettiBurst === 'function'){ const si=_currentUsers.findIndex(u=>u.isSelf); const dp=_DESK_POS_3D[si>=0?si%_DESK_POS_3D.length:0]; _spawnConfettiBurst(dp[0], 2.2, dp[1]+0.9); }
       if(pom.round >= POM_ROUNDS){
         pom.state = 'longbreak'; pom.total = POM_LONG; pom.remaining = POM_LONG;
       } else {
