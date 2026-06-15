@@ -516,9 +516,16 @@ function pushHistory(law, title){
     });
     const sep=document.createElement('option');sep.disabled=true;sep.textContent='──────';sel.appendChild(sep);
   }
+  // Wave 110: replace the blank 全部法規 option with the explicit 🎲 __all__ option
+  const _blankOpt=sel.querySelector('option[value=""]');
+  if(_blankOpt){_blankOpt.value='__all__';_blankOpt.textContent='🎲 全部法規';}
+  else{const oAll=document.createElement('option');oAll.value='__all__';oAll.textContent='🎲 全部法規';sel.insertBefore(oAll,sel.firstChild);}
   try {
     const d = await fetch(`${API}/api/laws`).then(r=>r.json());
-    (d.laws||[]).forEach(l=>{const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);});
+    (d.laws||[]).forEach(l=>{
+      const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);
+      _allFillLawNames.push(l.name);  // Wave 110: collect for random pick
+    });
   } catch{}
   // Wave 74: restore saved law preference and auto-load
   const _savedFillLaw = localStorage.getItem('sofa_fill_law');
@@ -585,7 +592,8 @@ document.getElementById('lawSelect').addEventListener('change', async function()
   // Wave 74: persist law selection to localStorage
   localStorage.setItem('sofa_fill_law', this.value);
   const sfBtn = document.getElementById('btnFillSession');
-  if(sfBtn) sfBtn.style.display = (this.value && !this.value.startsWith('__')) ? '' : 'none';
+  // Wave 110: __all__ is a valid practice mode — show session button; other __ values hide it
+  if(sfBtn) sfBtn.style.display = (this.value && (!this.value.startsWith('__') || this.value==='__all__')) ? '' : 'none';
   const law = this.value;
   const wrap = document.getElementById('artPickWrap');
   const dl   = document.getElementById('artDatalist');
@@ -658,6 +666,7 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
   }
 }
 
+let _allFillLawNames = [];  // Wave 110: all real law names for 🎲 全部法規
 let _fillSession = false, _fillSessionTotal = 0, _fillSessionDone = 0;
 let _sessionStats = [];   // Wave 40: per-article stats
 let _currentHintUsed = false;
@@ -1169,7 +1178,11 @@ async function loadNew(){
   const sp=document.getElementById('sectionsBox');sp.innerHTML='';sp.style.display='none';
   const srcBtn0=document.getElementById('fillSourceLink');if(srcBtn0)srcBtn0.style.display='none';
   const srcP0=document.getElementById('fillArtInline');if(srcP0){srcP0.style.display='none';srcP0.textContent='';}
-  const law=document.getElementById('lawSelect').value;
+  let law=document.getElementById('lawSelect').value;
+  // Wave 110: resolve 🎲 全部法規 to a random real law
+  if(law==='__all__'){
+    law=_allFillLawNames.length>0?_allFillLawNames[Math.floor(Math.random()*_allFillLawNames.length)]:'';
+  }
   try{
     let url;
     if(law==='__starred__'){
@@ -1227,8 +1240,10 @@ async function loadNew(){
     const resp=await fetch(url,{headers:_authH()});
     fillData=await resp.json();
     // 補上前端已知的法規名（若 API 未回傳）
+    // Wave 110: law is already resolved (never '__all__' at this point), use resolved law name directly
     if(!fillData.law_name&&law&&!law.startsWith('__')){
-      fillData.law_name=document.getElementById('lawSelect').selectedOptions[0]?.text||law;
+      const _selText=document.getElementById('lawSelect').selectedOptions[0]?.value;
+      fillData.law_name=(_selText&&_selText!=='__all__'&&!_selText.startsWith('__'))?_selText:law;
     }
     renderFill();
   }catch{
