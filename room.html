@@ -896,6 +896,7 @@ let _butterflies = [];
 const _butterflyColors = ['#e87dff','#ffcc44','#ff8844','#88ddff','#ff88aa','#aaff88'];
 let _shoutLights = []; // Wave41: accent-blue PointLight flash on shout
 let _typingSprite = null, _typingHideAt = 0;
+let _moonlightPatch = null; // Wave90: moonlight floor glow
 let _threeTime = 0;
 let _flyInDone = false, _flyInStart = 0;
 
@@ -3053,6 +3054,49 @@ function _buildRainGlass() {
   document.body.appendChild(wrap);
   return wrap;
 }
+// Wave90: moonlight floor glow ─────────────────────────────────────────────
+function _moonlightTex() {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 128;
+  const ctx = cv.getContext('2d');
+  const g = ctx.createRadialGradient(64,64,0,64,64,62);
+  g.addColorStop(0,   'rgba(180,210,255,0.7)');
+  g.addColorStop(0.4, 'rgba(140,180,240,0.35)');
+  g.addColorStop(0.8, 'rgba(100,140,220,0.08)');
+  g.addColorStop(1,   'rgba(80,120,200,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,128,128);
+  return new THREE.CanvasTexture(cv);
+}
+function _buildMoonlightPatch() {
+  if (_moonlightPatch) return;
+  const tex = _moonlightTex();
+  const geo = new THREE.PlaneGeometry(4.5, 3.5);
+  const mat = new THREE.MeshBasicMaterial({
+    map: tex, transparent: true, opacity: 0.35,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  });
+  _moonlightPatch = new THREE.Mesh(geo, mat);
+  _moonlightPatch.rotation.x = -Math.PI / 2; // flat on floor
+  // Windows at x=±5, z=-7.8, y=4 (back wall). Right window moonlight
+  // streams diagonally toward the viewer, landing near x=4, z=-3.
+  _moonlightPatch.position.set(4, 0.02, -3);
+  _threeScene.add(_moonlightPatch);
+}
+function _destroyMoonlightPatch() {
+  if (!_moonlightPatch) return;
+  _threeScene.remove(_moonlightPatch);
+  _moonlightPatch.material.map?.dispose();
+  _moonlightPatch.material.dispose();
+  _moonlightPatch.geometry.dispose();
+  _moonlightPatch = null;
+}
+function _updateMoonlightPatch() {
+  const h = new Date().getHours();
+  const isNight = h >= 21 || h < 6;
+  if (isNight && !_moonlightPatch) _buildMoonlightPatch();
+  else if (!isNight && _moonlightPatch) _destroyMoonlightPatch();
+}
+
 function _updateRainGlass() {
   const h = new Date().getHours();
   const isNight = h >= 21 || h < 6;
@@ -3116,6 +3160,12 @@ function startThreeAnimation(canvas) {
     if(Math.round(_threeTime*125) % 7500 === 0){ _updateRainGlass(); }
     // Wave 81: update cicada loop once per ~60s (offset by 1 to avoid same tick as rain-glass)
     if(Math.round(_threeTime*125) % 7500 === 1){ _updateCicadas(); }
+    // Wave 90: update moonlight patch once per ~60s (offset by 2)
+    if(Math.round(_threeTime*125) % 7500 === 2){ _updateMoonlightPatch(); }
+    // Wave 90: moonlight breathing animation (every frame)
+    if (_moonlightPatch) {
+      _moonlightPatch.material.opacity = 0.25 + Math.sin(_threeTime * 0.02) * 0.1;
+    }
     // Avatar bob (body only — head/legs stay fixed)
     _userAvatarMeshes.forEach((m, i) => {
       m.position.y = 0.98 + 0.05 * Math.sin(_threeTime * 1.5 + i * 0.8);
@@ -3667,6 +3717,7 @@ function enter(){
   resizeThreeCanvas();
   startThreeAnimation(document.getElementById('room-canvas'));
   _updateRainGlass(); // Wave 66: set initial rain-glass state
+  _updateMoonlightPatch(); // Wave 90: set initial moonlight patch state
   setTimeout(()=>_updateBoardNotes3D(),500);
   if(isMember) initNote();
   startPresence(name, subject);
