@@ -876,6 +876,8 @@ let _chalkboardTex = null, _chalkboardCtx = null, _chalkboardMesh = null;
 let _chalkMessages = []; // max 3 recent shout messages
 let _reactParticles = []; // {sprite, vy, life, maxLife}
 let _speechBubbles = []; // {sprite, life, maxLife, phase} phase: 'in'|'hold'|'out'
+// Wave78: Winter fireplace
+let _fireTx = null, _fireParticles = [], _fireLamp = null;
 let _shoutLights = []; // Wave41: accent-blue PointLight flash on shout
 let _typingSprite = null, _typingHideAt = 0;
 let _threeTime = 0;
@@ -1152,6 +1154,46 @@ function _snowTex() {
   ctx.fillStyle='rgba(240,248,255,0.95)';
   ctx.beginPath(); ctx.arc(cx,cy,3,0,Math.PI*2); ctx.fill();
   return new THREE.CanvasTexture(c);
+}
+
+// Wave78: Fire particle sprite texture
+function _fireTex() {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 32;
+  const ctx = cv.getContext('2d');
+  const g = ctx.createRadialGradient(16,20,1,16,16,14);
+  g.addColorStop(0,  'rgba(255,240,100,0.95)');
+  g.addColorStop(0.3,'rgba(255,140,20,0.8)');
+  g.addColorStop(0.7,'rgba(200,40,10,0.4)');
+  g.addColorStop(1,  'rgba(100,10,0,0)');
+  ctx.fillStyle = g; ctx.fillRect(0,0,32,32);
+  return new THREE.CanvasTexture(cv);
+}
+
+// Wave78: Build / destroy fireplace on left wall (winter Dec–Feb)
+function _buildFireplace() {
+  if (_fireParticles.length > 0) return; // already built
+  if (!_fireTx) _fireTx = _fireTex();
+  const hx = -7.7, hy = 0.3, hz = 0.5; // hearth position (left wall inner face)
+  // Fire particle sprites
+  for (let i = 0; i < 10; i++) {
+    const mat = new THREE.SpriteMaterial({ map: _fireTx, blending: THREE.AdditiveBlending, transparent: true, depthWrite: false });
+    const sp = new THREE.Sprite(mat);
+    const s = 0.15 + Math.random() * 0.25;
+    sp.scale.set(s, s * 1.4, 1);
+    sp.position.set(hx + (Math.random()-0.5)*0.4, hy + Math.random()*0.6, hz + (Math.random()-0.5)*0.2);
+    sp.userData = { vx: (Math.random()-0.5)*0.008, vy: 0.008+Math.random()*0.006, life: Math.random(), maxLife: 0.6+Math.random()*0.6 };
+    _threeScene.add(sp);
+    _fireParticles.push(sp);
+  }
+  // Warm flickering point light
+  _fireLamp = new THREE.PointLight(0xff8822, 1.2, 5);
+  _fireLamp.position.set(hx + 0.3, hy + 0.5, hz);
+  _threeScene.add(_fireLamp);
+}
+function _destroyFireplace() {
+  _fireParticles.forEach(sp => { _threeScene.remove(sp); sp.material.dispose(); });
+  _fireParticles = [];
+  if (_fireLamp) { _threeScene.remove(_fireLamp); _fireLamp = null; }
 }
 
 function _sakuraTex() {
@@ -1728,6 +1770,8 @@ function initThreeScene(canvas) {
       _threeScene.add(ss);
       _snowParticles.push(ss);
     }
+    // Wave78: Winter fireplace
+    _buildFireplace();
   }
 
   // Spring sakura (Mar–May)
@@ -3061,6 +3105,26 @@ function startThreeAnimation(canvas) {
         p.position.z = (Math.random()-0.5)*14;
       }
     });
+    // Wave78: Fire particles (winter only)
+    if (_fireParticles.length > 0) {
+      _fireParticles.forEach(sp => {
+        sp.userData.life += 0.016;
+        sp.position.x += sp.userData.vx;
+        sp.position.y += sp.userData.vy;
+        const t = sp.userData.life / sp.userData.maxLife;
+        sp.material.opacity = t < 0.3 ? t/0.3 : 1 - (t-0.3)/0.7;
+        sp.material.opacity = Math.max(0, sp.material.opacity);
+        if (sp.userData.life >= sp.userData.maxLife) {
+          sp.position.set(-7.7 + (Math.random()-0.5)*0.4, 0.3 + Math.random()*0.2, 0.5 + (Math.random()-0.5)*0.2);
+          sp.userData.vx = (Math.random()-0.5)*0.008;
+          sp.userData.vy = 0.008 + Math.random()*0.006;
+          sp.userData.life = 0;
+          sp.userData.maxLife = 0.6 + Math.random()*0.6;
+        }
+      });
+      // Flicker light
+      if (_fireLamp) _fireLamp.intensity = 0.9 + Math.sin(_threeTime * 8 + Math.random()) * 0.3;
+    }
     _sakuraParticles.forEach(p => {
       p.position.x += p.userData.vx + 0.006*Math.sin(_threeTime*0.6 + p.userData.phase);
       p.position.y += p.userData.vy;
