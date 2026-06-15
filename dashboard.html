@@ -2954,6 +2954,8 @@ function _renderLawsToc(page){
         if(el1) el1.textContent = artLabel + ' · ' + cnt + ' 部';
         var el2 = document.querySelector('.laws-count');
         if(el2) el2.innerHTML = '共 <b>' + cnt + '</b> 部';
+        // Wave 69：法規清單載入後觸發 URL ?q= 自動搜尋
+        _handleUrlQuery();
       }
     })
     .catch(function(){});
@@ -3311,6 +3313,17 @@ function doSearch(){
 function searchLaw(name){
   var inp = document.getElementById('search-law');
   if(inp){ inp.value = name; }
+  doSearch();
+}
+
+// Wave 69 — URL ?q= 自動搜尋（quiz.html「查看法條」一鍵直達）
+function _handleUrlQuery(){
+  var params = new URLSearchParams(window.location.search);
+  var q = params.get('q');
+  if(!q) return;
+  var inp = document.getElementById('search-law');
+  if(!inp) return;
+  inp.value = decodeURIComponent(q);
   doSearch();
 }
 
