@@ -671,6 +671,7 @@ input[type=text], select, .btn-enter {
           <div class="ap-row"><span class="ap-label">🔔 整點報時</span><span class="ap-toggle" id="apt-bell" onclick="_toggleLayer('bell')"></span></div>
         </div>
         <div id="tod-label" style="position:absolute;top:8px;right:50px;z-index:15;font-size:9px;color:rgba(91,175,214,0.5);font-family:monospace;letter-spacing:.08em;pointer-events:none;"></div>
+        <div id="jieqi-label" style="position:absolute;top:22px;right:50px;z-index:15;font-size:9px;color:rgba(200,220,255,0.45);font-family:'Noto Serif TC',serif;letter-spacing:0.12em;pointer-events:none;display:none;"></div>
         <canvas id="room-canvas"></canvas>
         <div id="dpad">
           <button class="dp" onclick="(()=>{const nx=rpgPlayer.tx,ny=rpgPlayer.ty-1;if(!isBlocked(nx,ny)){rpgPlayer.ty=ny;centerCam(document.getElementById('room-canvas'),nx,ny);}})()">▲</button>
@@ -948,6 +949,43 @@ const _QUOTES = [
   '堅持到最後一刻的人\n考場上笑得最燦爛',
   '每一次練習題\n都是在縮短與及格的距離',
 ];
+
+// ── 24節氣 2026 ──────────────────────────────────────────────────────────
+const JIEQI_2026 = [
+  { name:'小寒', m:1,  d:5  },
+  { name:'大寒', m:1,  d:20 },
+  { name:'立春', m:2,  d:4  },
+  { name:'雨水', m:2,  d:19 },
+  { name:'驚蟄', m:3,  d:6  },
+  { name:'春分', m:3,  d:20 },
+  { name:'清明', m:4,  d:5  },
+  { name:'穀雨', m:4,  d:20 },
+  { name:'立夏', m:5,  d:5  },
+  { name:'小滿', m:5,  d:21 },
+  { name:'芒種', m:6,  d:6  },
+  { name:'夏至', m:6,  d:21 },
+  { name:'小暑', m:7,  d:7  },
+  { name:'大暑', m:7,  d:23 },
+  { name:'立秋', m:8,  d:7  },
+  { name:'處暑', m:8,  d:23 },
+  { name:'白露', m:9,  d:8  },
+  { name:'秋分', m:9,  d:23 },
+  { name:'寒露', m:10, d:8  },
+  { name:'霜降', m:10, d:23 },
+  { name:'立冬', m:11, d:7  },
+  { name:'小雪', m:11, d:22 },
+  { name:'大雪', m:12, d:7  },
+  { name:'冬至', m:12, d:22 },
+];
+function _getCurrentJieqi() {
+  const now = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'}));
+  const mo = now.getMonth() + 1;
+  const dy = now.getDate();
+  for (const jq of JIEQI_2026) {
+    if (jq.m === mo && dy >= jq.d && dy <= jq.d + 2) return jq.name;
+  }
+  return null;
+}
 
 // ── Pixel texture generators ────────────────────────────────────────────
 function _rng(seed){ let s=seed|0; return ()=>{ s=Math.imul(s,1664525)+1013904223|0; return (s>>>0)/0xFFFFFFFF; }; }
@@ -4059,6 +4097,13 @@ function startThreeAnimation(canvas) {
     const hr = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
     const labels = ['夜讀模式','夜讀模式','夜讀模式','夜讀模式','夜讀模式','夜讀模式','晨讀模式','晨讀模式','晨讀模式','晨讀模式','晨讀模式','午讀模式','午讀模式','午讀模式','午讀模式','午讀模式','午讀模式','午讀模式','暮讀模式','暮讀模式','暮讀模式','暮讀模式','夜讀模式','夜讀模式'];
     todEl.textContent = labels[hr] || '';
+  }
+  // Wave 114: 節氣 subtitle badge
+  const jqEl = document.getElementById('jieqi-label');
+  if(jqEl){
+    const jq = _getCurrentJieqi();
+    if(jq){ jqEl.textContent = '• ' + jq; jqEl.style.display = ''; }
+    else { jqEl.style.display = 'none'; }
   }
   loop();
 }
