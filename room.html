@@ -9,27 +9,27 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500;600&display=swap" rel="stylesheet"/>
 <style>
 :root{
-  /* SoFa 品牌深藍色調 */
-  --navy:  #1A2E3D;
-  --navy-2:#162636;
-  --navy-3:#0F1E2A;
-  --navy-4:#0A1520;
-  --wood:  #2D7DA8;
-  --wood-2:#3A92C0;
+  /* SoFa 明亮圖書館色調 */
+  --navy:  #3A2E22;
+  --navy-2:#F0EBE0;
+  --navy-3:#EDE8DC;
+  --navy-4:#E8E2D5;
+  --wood:  #C4A870;
+  --wood-2:#B09060;
   --accent: #5BAFD6; /* Wave142: 個人化主題色 */
   --amber: var(--accent);
   --amber-2:#7AC3E4;
-  --cream: #E8F0F7;
-  --cream-2:#CBD5E0;
-  --good:  #6BAF8F;
+  --cream: #2C2016;
+  --cream-2:#5A4A38;
+  --good:  #4A9A6A;
   --warn:  var(--accent);
   --bad:   #C76B6B;
-  --peach: var(--accent);   /* 統一用品牌藍當主色 */
+  --peach: var(--accent);
   --peach-2:#7AC3E4;
-  --plum:  rgba(26,46,61,.65);
-  --line:  rgba(91,175,214,.07);
-  --line-2:rgba(91,175,214,.16);
-  --line-3:rgba(91,175,214,.30);
+  --plum:  rgba(200,185,160,.55);
+  --line:  rgba(180,155,110,.15);
+  --line-2:rgba(180,155,110,.28);
+  --line-3:rgba(180,155,110,.45);
   --serif:"Noto Serif TC",serif;--sans:"Noto Sans TC",system-ui,sans-serif;
   --mono:"JetBrains Mono","Courier New",monospace;
 }
@@ -194,9 +194,9 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 
 /* ── Sidebar ── */
 #sidebar{
-  width:220px;border-left:2px solid var(--wood);
+  width:220px;border-left:2px solid rgba(180,155,110,0.4);
   padding:18px 14px;display:flex;flex-direction:column;gap:12px;
-  background:linear-gradient(to bottom,#0A1520,#162636);
+  background:linear-gradient(to bottom,#F5F0E8,#EDE8DF);
   overflow-y:auto;
 }
 .sidebar-section{font-size:.7rem;color:var(--cream-2);opacity:.45;letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;}
@@ -320,8 +320,8 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 #note-section.visible{display:block;}
 .note-textarea{
   width:100%;height:80px;padding:8px 10px;resize:none;
-  background:var(--navy-3);border:1px solid var(--line-2);
-  border-radius:8px;color:var(--cream);font-size:.8rem;
+  background:#FBF8F2;border:1px solid var(--line-2);
+  border-radius:8px;color:#2C2016;font-size:.8rem;
   font-family:var(--sans);outline:none;line-height:1.6;
 }
 .note-textarea:focus{border-color:var(--peach);}
@@ -1042,17 +1042,17 @@ function _timeOfDayPalette() {
   // Returns {ambR,ambG,ambB, torchMult, fogDensity} based on Asia/Taipei hour
   const hour = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
   if (hour >= 6 && hour < 11) {
-    // Morning: crisp cool blue
-    return { ambR:0.32, ambG:0.45, ambB:0.62, torchMult:0.7, fogDensity:0.008 };
+    // Morning: warm bright library
+    return { ambR:1.0, ambG:0.96, ambB:0.88, torchMult:0.2, fogDensity:0.002 };
   } else if (hour >= 11 && hour < 17) {
-    // Afternoon: bright neutral
-    return { ambR:0.38, ambG:0.48, ambB:0.55, torchMult:0.8, fogDensity:0.007 };
+    // Afternoon: peak brightness
+    return { ambR:1.0, ambG:0.98, ambB:0.92, torchMult:0.1, fogDensity:0.001 };
   } else if (hour >= 17 && hour < 21) {
-    // Evening: warm amber (SoFa default feel)
-    return { ambR:0.29, ambG:0.40, ambB:0.52, torchMult:1.0, fogDensity:0.010 };
+    // Evening: golden hour warmth
+    return { ambR:0.98, ambG:0.88, ambB:0.72, torchMult:0.5, fogDensity:0.003 };
   } else {
-    // Night: deep blue-purple, brighter torches
-    return { ambR:0.18, ambG:0.28, ambB:0.52, torchMult:1.35, fogDensity:0.013 };
+    // Night: dim warm — library after hours
+    return { ambR:0.78, ambG:0.70, ambB:0.60, torchMult:0.9, fogDensity:0.005 };
   }
 }
 
@@ -1108,64 +1108,83 @@ function _woodTex(){
 
 function _shelfTex(){
   return _mkTex((ctx,s)=>{
-    ctx.fillStyle='#2A1A08'; ctx.fillRect(0,0,s,s);
-    const cols=['#E85D5D','#5D8AE8','#5DE87A','#E8C45D','#A05DE8','#E8855D','#5DD6E8','#D4A850'];
+    // Blonde/natural oak shelf — matches reference library exactly
+    ctx.fillStyle='#D9C090'; ctx.fillRect(0,0,s,s);
+    const r=_rng(17);
+    for(let y=0;y<s;y+=2){ ctx.fillStyle=`rgba(140,100,50,${r()*0.08})`; ctx.fillRect(0,y,s,1); }
+    // Books in muted library colors (cream, tan, some accent colors)
+    const cols=['#8B6350','#6B8E60','#6070A0','#B07040','#8B8060','#5C7890','#9A7850','#7A6070'];
     const bw=s/8;
     const lawNames=['稅稽','保險','地政','土地','記帳','民法','商業','公司','所得','遺贈','加值','房稅'];
     cols.forEach((c,i)=>{
       ctx.fillStyle=c; ctx.fillRect(i*bw+1,4,bw-2,s-8);
-      // Book title (vertical, rotated)
+      ctx.fillStyle='rgba(255,250,235,0.9)'; ctx.fillRect(i*bw+2,s-16,bw-4,10);
       ctx.save();
-      ctx.translate(i*bw+bw/2, s/2);
+      ctx.translate(i*bw+bw/2, s/2-4);
       ctx.rotate(-Math.PI/2);
-      ctx.fillStyle='rgba(255,255,255,0.75)';
-      ctx.font=`bold ${Math.floor(bw*0.55)}px monospace`;
+      ctx.fillStyle='rgba(255,248,235,0.88)';
+      ctx.font=`bold ${Math.floor(bw*0.52)}px monospace`;
       ctx.textAlign='center'; ctx.textBaseline='middle';
       ctx.fillText(lawNames[i%lawNames.length],0,0);
       ctx.restore();
     });
-    // Top/bottom shelf board
-    ctx.fillStyle='#1A0E04'; ctx.fillRect(0,0,s,4); ctx.fillRect(0,s-4,s,4);
+    // Natural oak shelf board
+    ctx.fillStyle='#C4A870'; ctx.fillRect(0,0,s,4); ctx.fillRect(0,s-4,s,4);
   }, 64);
 }
 
 function _wallTex(){
   return _mkTex((ctx,s)=>{
+    ctx.fillStyle='#F0EBE0'; ctx.fillRect(0,0,s,s);
     const r=_rng(13);
-    ctx.fillStyle='#0D1929'; ctx.fillRect(0,0,s,s);
-    for(let y=0;y<s;y+=2) for(let x=0;x<s;x+=2){
-      if(r()>0.8){ ctx.fillStyle='rgba(91,175,214,0.04)'; ctx.fillRect(x,y,2,2); }
+    for(let y=0;y<s;y+=4) for(let x=0;x<s;x+=4){
+      if(r()>0.88){ ctx.fillStyle='rgba(0,0,0,0.025)'; ctx.fillRect(x,y,4,4); }
     }
-    ctx.fillStyle='#081018';
-    for(let y=0;y<s;y+=20){ ctx.fillRect(0,y,s,1); }
-    for(let x=0;x<s;x+=20){ ctx.fillRect(x,0,1,s); }
+    // Subtle wood-panel horizontal lines
+    ctx.fillStyle='rgba(180,160,130,0.25)';
+    for(let y=0;y<s;y+=32){ ctx.fillRect(0,y,s,1); }
+    ctx.fillStyle='rgba(200,185,160,0.15)';
+    for(let x=0;x<s;x+=32){ ctx.fillRect(x,0,1,s); }
   }, 64);
 }
 
 function _floorTex(){
   return _mkTex((ctx,s)=>{
+    // Herringbone light oak (matching reference library)
     const r=_rng(99);
-    ctx.fillStyle='#1A2535'; ctx.fillRect(0,0,s,s);
-    for(let y=0;y<s;y+=2) for(let x=0;x<s;x+=2){
-      const v=r(); if(v>0.78) ctx.fillStyle='#1F2D3E';
-      else if(v<0.1) ctx.fillStyle='#131E2D';
-      else continue;
-      ctx.fillRect(x,y,2,2);
+    const base='#D4B88A', dark='#C4A878', light='#E0C898';
+    // Draw herringbone planks
+    const pw=s/8, ph=pw*2.5;
+    for(let row=-2;row<6;row++) for(let col=-1;col<5;col++){
+      const isOdd=(row+col)%2!==0;
+      const x=col*pw*2+row*pw, y=row*ph*0.5;
+      ctx.save(); ctx.translate(x,y);
+      ctx.rotate(isOdd?Math.PI/4:-Math.PI/4);
+      ctx.fillStyle=r()>0.5?base:dark;
+      ctx.fillRect(-pw/2,-ph/2,pw,ph);
+      // Wood grain lines
+      ctx.strokeStyle=`rgba(150,110,60,${0.06+r()*0.06})`; ctx.lineWidth=0.5;
+      for(let g=0;g<ph;g+=4){ ctx.beginPath(); ctx.moveTo(-pw/2,g-ph/2); ctx.lineTo(pw/2,g-ph/2); ctx.stroke(); }
+      // Plank edge highlight
+      ctx.strokeStyle='rgba(0,0,0,0.12)'; ctx.lineWidth=1;
+      ctx.strokeRect(-pw/2,-ph/2,pw,ph);
+      ctx.restore();
     }
-    ctx.fillStyle='rgba(91,175,214,0.12)';
-    for(let y=0;y<s;y+=s){ ctx.fillRect(0,y,s,1); ctx.fillRect(y,0,1,s); }
-  }, 64);
+  }, 128);
 }
 
 function _deskTex(){
   return _mkTex((ctx,s)=>{
     const r=_rng(55);
-    ctx.fillStyle='#4A2E1A'; ctx.fillRect(0,0,s,s);
+    // Lighter warm walnut desk
+    ctx.fillStyle='#7A5230'; ctx.fillRect(0,0,s,s);
     for(let y=0;y<s;y++){
-      const a=r()*0.15;
-      ctx.fillStyle=`rgba(30,15,5,${a.toFixed(2)})`; ctx.fillRect(0,y,s,1);
+      const a=r()*0.12;
+      ctx.fillStyle=`rgba(40,20,5,${a.toFixed(2)})`; ctx.fillRect(0,y,s,1);
     }
-    ctx.fillStyle='#351E0F'; ctx.fillRect(0,0,s,3);
+    ctx.fillStyle='rgba(255,220,170,0.1)';
+    for(let y=0;y<s;y+=8){ ctx.fillRect(0,y,s,1); }
+    ctx.fillStyle='#5E3E20'; ctx.fillRect(0,0,s,3);
   }, 64);
 }
 
@@ -1655,20 +1674,20 @@ function initThreeScene(canvas) {
   _threeRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   _threeScene = new THREE.Scene();
-  _threeScene.background = new THREE.Color(0x040D14);
-  _threeScene.fog = new THREE.FogExp2(0x040D14, 0.010);
+  _threeScene.background = new THREE.Color(0xEDE9E0);
+  _threeScene.fog = new THREE.FogExp2(0xEDE9E0, 0.003);
 
   _threeCamera = new THREE.PerspectiveCamera(65, canvas.width / canvas.height, 0.1, 100);
   _threeCamera.position.set(0, 3.2, 10);
   _threeCamera.lookAt(0, 2.2, -4);
 
-  // Lights
-  _threeScene.add(new THREE.AmbientLight(0x4A6A8A, 1.2));
-  const ceilLight1 = new THREE.PointLight(0x5BAFD6, 0.5, 18);
+  // Lights — bright warm library
+  _threeScene.add(new THREE.AmbientLight(0xFFF8F0, 3.0));
+  const ceilLight1 = new THREE.PointLight(0xFFF5E8, 2.0, 22);
   ceilLight1.position.set(-4, 7.5, -2); _threeScene.add(ceilLight1);
-  const ceilLight2 = new THREE.PointLight(0x5BAFD6, 0.5, 18);
+  const ceilLight2 = new THREE.PointLight(0xFFF5E8, 2.0, 22);
   ceilLight2.position.set(4, 7.5, -2); _threeScene.add(ceilLight2);
-  const keyLight = new THREE.DirectionalLight(0x5BAFD6, 1.1);
+  const keyLight = new THREE.DirectionalLight(0xFFF0D8, 2.0);
   keyLight.position.set(3, 8, 5);
   _threeScene.add(keyLight);
   keyLight.castShadow = true;
@@ -1680,16 +1699,16 @@ function initThreeScene(canvas) {
   keyLight.shadow.camera.right = keyLight.shadow.camera.top = 12;
   keyLight.shadow.bias = -0.001;
 
-  // Window blue fill lights
+  // Window sky-blue fill lights (glass wall effect)
   [[-6, 4, -6.5], [6, 4, -6.5]].forEach(([x,y,z]) => {
-    const wl = new THREE.PointLight(0x87CEEB, 0.7, 12);
+    const wl = new THREE.PointLight(0xC8E8FF, 2.5, 16);
     wl.position.set(x, y, z);
     _threeScene.add(wl);
   });
 
-  // Torch point lights (flicker in animation loop)
-  [[-5.5, 2, -5], [5.5, 2, -5], [-5.5, 2, 2], [5.5, 2, 2]].forEach(([x,y,z]) => {
-    const tl = new THREE.PointLight(0xFF8C00, 1.0, 7);
+  // Ceiling downlights (warm halogen, replaces torches)
+  [[-5.5, 7, -5], [5.5, 7, -5], [-5.5, 7, 2], [5.5, 7, 2], [0, 7, -2]].forEach(([x,y,z]) => {
+    const tl = new THREE.PointLight(0xFFEDD0, 1.5, 10);
     tl.position.set(x, y, z);
     _threeScene.add(tl);
     _torchLights.push(tl);
@@ -1713,16 +1732,16 @@ function initThreeScene(canvas) {
   floor.rotation.x = -Math.PI / 2;
   _threeScene.add(floor);
   floor.receiveShadow = true;
-  // Fake reflection plane (very subtle, slightly above floor)
+  // Subtle marble floor reflection
   const reflMat = new THREE.MeshBasicMaterial({
-    color: 0x2D4A5E, transparent: true, opacity: 0.08,
+    color: 0xF0EBE0, transparent: true, opacity: 0.12,
     side: THREE.FrontSide, depthWrite: false, blending: THREE.AdditiveBlending
   });
   const reflPlane = new THREE.Mesh(new THREE.PlaneGeometry(22, 20), reflMat);
   reflPlane.rotation.x = -Math.PI/2;
   reflPlane.position.y = 0.015;
   _threeScene.add(reflPlane);
-  const grid = new THREE.GridHelper(22, 22, 0x2D4A5E, 0x1E3545);
+  const grid = new THREE.GridHelper(22, 22, 0xCCC4B4, 0xD8D2C4);
   grid.position.y = 0.01;
   _threeScene.add(grid);
 
@@ -1842,63 +1861,66 @@ function initThreeScene(canvas) {
 
   // Bookshelves
   const shelfMat = tMat('shelf',_shelfTex);
-  const bookColors = [0xE85D5D,0x5D8AE8,0x5DE87A,0xE8C45D,0xA05DE8,0xE8855D,0x5DD6E8];
+  // Muted natural library book colors to match blonde-oak reference
+  const bookColors = [0x8B6350,0x6070A0,0x6B8E60,0xB07040,0x5C7890,0x9A7850,0x8B8060,0x7A6070];
   [-6,-3,0,3,6].forEach(x => {
     const shelf = new THREE.Mesh(box(2.2,4.5,0.55), shelfMat);
     shelf.position.set(x, 2.25, -7.72); _threeScene.add(shelf);
     shelf.castShadow = true; shelf.receiveShadow = true;
-    shelf.userData.isBookshelf = true; // Wave 121: clickable
-    // Shelves horizontal planks
+    shelf.userData.isBookshelf = true;
+    // Natural blonde-oak shelf planks
     [1,2,3].forEach(row => {
-      const plank = new THREE.Mesh(box(2.0,0.07,0.48), mLambert(0x0F2318));
+      const plank = new THREE.Mesh(box(2.0,0.07,0.48), mLambert(0xC4A870));
       plank.position.set(x, row*1.2, -7.70); _threeScene.add(plank);
       plank.userData.isBookshelf = true;
     });
-    // Books
+    // Books — two rows per shelf
     for (let b=0; b<6; b++) {
       const bk = new THREE.Mesh(box(0.22,0.9,0.38), mLambert(bookColors[b%bookColors.length]));
-      bk.position.set(x - 0.52 + b*0.21, 1.65+Math.random()*0.1, -7.70);
+      bk.position.set(x - 0.52 + b*0.21, 1.65+Math.random()*0.05, -7.70);
       bk.userData.isBookshelf = true;
       _threeScene.add(bk);
     }
     for (let b=0; b<6; b++) {
-      const bk = new THREE.Mesh(box(0.22,0.9,0.38), mLambert(bookColors[(b+3)%bookColors.length]));
-      bk.position.set(x - 0.52 + b*0.21, 2.85+Math.random()*0.1, -7.70);
+      const bk = new THREE.Mesh(box(0.22,0.9,0.38), mLambert(bookColors[(b+4)%bookColors.length]));
+      bk.position.set(x - 0.52 + b*0.21, 2.85+Math.random()*0.05, -7.70);
       bk.userData.isBookshelf = true;
       _threeScene.add(bk);
     }
   });
 
-  // Bookshelf category labels (back wall)
+  // Bookshelf category labels (back wall) — bright library style
   const SHELF_LABELS = ['民法\n基礎', '稅捐\n稽徵', '記帳士\n法規', '不動產\n法規', '地政士\n法規'];
   [-6,-3,0,3,6].forEach((x, si) => {
     const lc = document.createElement('canvas');
-    lc.width = 128; lc.height = 48;
+    lc.width = 256; lc.height = 80;
     const lctx = lc.getContext('2d');
-    lctx.fillStyle = '#0D1E2C';
-    lctx.fillRect(0,0,128,48);
-    lctx.fillStyle = '#D4A847';
-    lctx.fillRect(0,0,128,4); // gold top bar
-    lctx.fillStyle = '#E8DCC8';
-    lctx.font = 'bold 16px monospace';
+    // Warm cream label background
+    lctx.fillStyle = '#F5EDD8';
+    lctx.fillRect(0,0,256,80);
+    lctx.fillStyle = '#B8922A';
+    lctx.fillRect(0,0,256,5); // gold top bar
+    lctx.fillRect(0,75,256,5); // gold bottom bar
+    lctx.fillStyle = '#3A2810';
+    lctx.font = 'bold 26px sans-serif';
     lctx.textAlign = 'center';
     const lines = SHELF_LABELS[si].split('\n');
-    lines.forEach((ln,li) => lctx.fillText(ln, 64, 22 + li*18));
+    lines.forEach((ln,li) => lctx.fillText(ln, 128, 30 + li*30));
     const lTex = new THREE.CanvasTexture(lc);
     const lMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.6, 0.36),
+      new THREE.PlaneGeometry(1.8, 0.44),
       new THREE.MeshBasicMaterial({map: lTex, side: THREE.DoubleSide})
     );
-    lMesh.position.set(x, 4.62, -7.68);
-    lMesh.userData.isBookshelf = true; // Wave 121
+    lMesh.position.set(x, 4.72, -7.68);
+    lMesh.userData.isBookshelf = true;
     _threeScene.add(lMesh);
-    // Thin gold frame behind label
+    // Natural oak frame
     const lFrame = new THREE.Mesh(
-      new THREE.BoxGeometry(1.65, 0.40, 0.02),
-      new THREE.MeshBasicMaterial({color: 0xD4A847})
+      new THREE.BoxGeometry(1.86, 0.50, 0.02),
+      new THREE.MeshBasicMaterial({color: 0xC4A870})
     );
-    lFrame.position.set(x, 4.62, -7.70);
-    lFrame.userData.isBookshelf = true; // Wave 121
+    lFrame.position.set(x, 4.72, -7.70);
+    lFrame.userData.isBookshelf = true;
     _threeScene.add(lFrame);
   });
 
@@ -1910,26 +1932,26 @@ function initThreeScene(canvas) {
     const bc = document.createElement('canvas');
     bc.width = 96; bc.height = 192;
     const bctx = bc.getContext('2d');
-    // Banner background — deep navy with subtle border
-    bctx.fillStyle = '#0D1E2C';
+    // Banner background — warm cream library style
+    bctx.fillStyle = '#F5EDD8';
     bctx.fillRect(0,0,96,192);
-    bctx.strokeStyle = '#2A4A6A';
+    bctx.strokeStyle = '#C4955A';
     bctx.lineWidth = 3;
     bctx.strokeRect(4,4,88,184);
-    // Gold accent line at top
-    bctx.fillStyle = '#D4A847';
+    // Warm gold accent line at top
+    bctx.fillStyle = '#B8922A';
     bctx.fillRect(8,12,80,3);
-    // Main text (vertical style)
-    bctx.fillStyle = '#E8DCC8';
+    // Main text (vertical style — dark for readability)
+    bctx.fillStyle = '#2A1A08';
     bctx.font = 'bold 32px serif';
     bctx.textAlign = 'center';
     def.text.forEach((t,ti) => bctx.fillText(t, 48, 70 + ti*48));
     // Subtitle
-    bctx.fillStyle = '#5BAFD6';
+    bctx.fillStyle = '#7A5C2A';
     bctx.font = '11px monospace';
     bctx.fillText(def.sub, 48, 172);
     // Bottom gold line
-    bctx.fillStyle = '#D4A847';
+    bctx.fillStyle = '#B8922A';
     bctx.fillRect(8,177,80,3);
     const bTex = new THREE.CanvasTexture(bc);
     const bMesh = new THREE.Mesh(
@@ -2775,31 +2797,36 @@ const _DESK_POS_3D = [
 
 function _makeLabel(name, color) {
   const c = document.createElement('canvas');
-  c.width = 64; c.height = 64;
+  c.width = 128; c.height = 128;
   const ctx2 = c.getContext('2d');
-  // Face background
+  // Face base
   ctx2.fillStyle = color || '#5BAFD6';
-  ctx2.fillRect(0, 0, 64, 64);
-  // Pixel noise for skin texture
-  ctx2.fillStyle = 'rgba(0,0,0,0.15)';
-  for(let i=0;i<64;i+=8) for(let j=0;j<64;j+=8){
-    if((i+j)%16===0) ctx2.fillRect(i,j,8,8);
-  }
-  // Eyes (white + black pupil, Minecraft style)
-  [[14,22],[38,22]].forEach(([ex,ey])=>{
-    ctx2.fillStyle='#fff'; ctx2.fillRect(ex,ey,12,8);
-    ctx2.fillStyle='#1A2E3D'; ctx2.fillRect(ex+4,ey+2,6,5);
-    ctx2.fillStyle='#000'; ctx2.fillRect(ex+6,ey+3,3,3);
+  ctx2.fillRect(0, 0, 128, 128);
+  // Face highlight (lighter center)
+  ctx2.fillStyle = 'rgba(255,255,255,0.22)';
+  ctx2.fillRect(10, 10, 108, 108);
+  // Cheek blush
+  ctx2.fillStyle = 'rgba(255,100,120,0.28)';
+  ctx2.beginPath(); ctx2.ellipse(30, 76, 18, 11, 0, 0, Math.PI*2); ctx2.fill();
+  ctx2.beginPath(); ctx2.ellipse(98, 76, 18, 11, 0, 0, Math.PI*2); ctx2.fill();
+  // Eyes — big cute pixel style
+  [[26,38],[82,38]].forEach(([ex,ey])=>{
+    ctx2.fillStyle='#fff';        ctx2.fillRect(ex-14,ey-12,28,22);
+    ctx2.fillStyle='#1A2E40';    ctx2.fillRect(ex-10,ey-9,20,18);
+    ctx2.fillStyle='#000';       ctx2.fillRect(ex-6, ey-5, 13,13);
+    ctx2.fillStyle='rgba(255,255,255,0.9)'; ctx2.fillRect(ex-4,ey-7,5,5);
   });
-  // Mouth
-  ctx2.fillStyle='#8B4513'; ctx2.fillRect(18,42,28,6);
-  ctx2.fillStyle='#FF6B6B'; ctx2.fillRect(20,43,24,4);
-  // Name tag below face
-  ctx2.fillStyle='rgba(10,21,32,0.88)';
-  ctx2.fillRect(0,52,64,12);
+  // Smile
+  ctx2.fillStyle='#BB4433'; ctx2.fillRect(38,90,52,10);
+  ctx2.fillStyle='#EE8877'; ctx2.fillRect(42,92,44,6);
+  // Nose (tiny)
+  ctx2.fillStyle='rgba(0,0,0,0.18)'; ctx2.fillRect(58,68,12,6);
+  // Name tag
+  ctx2.fillStyle='rgba(15,30,50,0.82)';
+  ctx2.fillRect(0,108,128,20);
   ctx2.fillStyle='#fff';
-  ctx2.font='bold 8px monospace'; ctx2.textAlign='center'; ctx2.textBaseline='middle';
-  ctx2.fillText(name.substring(0,5), 32, 58);
+  ctx2.font='bold 14px monospace'; ctx2.textAlign='center'; ctx2.textBaseline='middle';
+  ctx2.fillText(name.substring(0,5), 64, 118);
   return new THREE.CanvasTexture(c);
 }
 
@@ -4482,10 +4509,12 @@ function startThreeAnimation(canvas) {
       _threeCamera.lookAt(0, 2.2, -4);
       if(t >= 1) _flyInDone = true;
     } else {
-      // Normal gentle sway
-      _threeCamera.position.x = Math.sin(_threeTime * 0.08) * 0.6;
-      _threeCamera.position.y = 3.2 + Math.sin(_threeTime * 0.05) * 0.15;
-      _threeCamera.position.z = 10;
+      // Orbit: user drag offset controls view; default rests at z=10 (offsetX=0)
+      const _ox = _mouseOrbit.offsetX, _oy = _mouseOrbit.offsetY;
+      const _cr = 10;
+      _threeCamera.position.x = Math.sin(_ox) * _cr * 0.55;
+      _threeCamera.position.z = Math.cos(_ox) * _cr;
+      _threeCamera.position.y = 3.2 + _oy * 4;
       _threeCamera.fov = 65;
       _threeCamera.updateProjectionMatrix();
       _threeCamera.lookAt(0, 2.2, -4);
@@ -6324,9 +6353,9 @@ document.getElementById('btn-shout-mob')?.addEventListener('click', async () => 
   },1000);
 });
 
-// Touch: swipe to orbit camera + pinch to zoom
+// Touch: swipe to orbit camera + pinch to zoom (shares _mouseOrbit with desktop)
 (function(){
-  let _t1=null, _t2=null, _lastDist=0, _orbitOffset={x:0,y:0};
+  let _t1=null, _t2=null, _lastDist=0;
   const el=()=>document.getElementById('room-canvas');
   el().addEventListener('touchstart',e=>{
     e.preventDefault();
@@ -6341,15 +6370,10 @@ document.getElementById('btn-shout-mob')?.addEventListener('click', async () => 
     if(e.touches.length===1&&_t1&&!_t2){
       const dx=(e.touches[0].clientX-_t1.x)*0.005;
       const dy=(e.touches[0].clientY-_t1.y)*0.003;
-      _orbitOffset.x+=dx; _orbitOffset.y=Math.max(-0.3,Math.min(0.5,_orbitOffset.y+dy));
+      _mouseOrbit.offsetX+=dx;
+      _mouseOrbit.offsetY=Math.max(-0.45,Math.min(0.55,_mouseOrbit.offsetY+dy));
       _t1={x:e.touches[0].clientX,y:e.touches[0].clientY};
-      if(_threeCamera){
-        const r=14, base=_threeTime*0.08;
-        _threeCamera.position.x=Math.sin(base+_orbitOffset.x)*r*0.55;
-        _threeCamera.position.z=Math.cos(base+_orbitOffset.x)*r;
-        _threeCamera.position.y=3.2+_orbitOffset.y*5;
-        _threeCamera.lookAt(0,2.2,-4);
-      }
+      // Camera updated by animation loop
     } else if(e.touches.length===2&&_t2){
       const dist=Math.hypot(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
       const delta=(_lastDist-dist)*0.02;
@@ -6377,15 +6401,10 @@ let _wasDrag=false;
     if(!_mouseOrbit.active) return;
     const dx=e.clientX-_mouseOrbit.lastX, dy=e.clientY-_mouseOrbit.lastY;
     if(Math.abs(dx)+Math.abs(dy)>4) _wasDrag=true;
-    _mouseOrbit.offsetX+=dx*0.004; _mouseOrbit.offsetY=Math.max(-0.3,Math.min(0.4,_mouseOrbit.offsetY+dy*0.002));
+    _mouseOrbit.offsetX+=dx*0.004;
+    _mouseOrbit.offsetY=Math.max(-0.45,Math.min(0.55,_mouseOrbit.offsetY+dy*0.002));
     _mouseOrbit.lastX=e.clientX; _mouseOrbit.lastY=e.clientY;
-    if(_threeCamera){
-      const r=14, base=_threeTime*0.08;
-      _threeCamera.position.x=Math.sin(base+_mouseOrbit.offsetX)*r*0.55;
-      _threeCamera.position.z=Math.cos(base+_mouseOrbit.offsetX)*r;
-      _threeCamera.position.y=3.2+_mouseOrbit.offsetY*4;
-      _threeCamera.lookAt(0,2.2,-4);
-    }
+    // Camera updated by animation loop each frame via _mouseOrbit.offsetX/Y
   });
   document.addEventListener('mouseup',()=>{ _mouseOrbit.active=false; });
 })();
