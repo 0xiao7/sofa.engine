@@ -1699,6 +1699,26 @@
 // ── 全域常數 ─────────────────────────────────────────────
 const API = 'https://sofa-engine-api.onrender.com';
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// ── Wave 123: 關鍵字高亮工具 ──────────────────────────────
+function _getSearchQuery(){
+  var inp = document.getElementById('search-law');
+  return inp ? inp.value.trim() : '';
+}
+function _highlightText(text, query){
+  // HTML-escape first
+  var escaped = esc(text);
+  if(!query || query.length < 2) return escaped;
+  var terms = query.split(/\s+/).filter(function(t){ return t.length >= 2; });
+  if(terms.length === 0) return escaped;
+  // Escape regex special chars in each term, then HTML-escape them for matching in escaped text
+  var escapedTerms = terms.map(function(t){
+    return esc(t).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  });
+  var pattern = new RegExp('(' + escapedTerms.join('|') + ')', 'gi');
+  return escaped.replace(pattern,
+    '<mark style="background:rgba(255,215,0,0.25);color:#ffe88a;border-radius:2px;padding:0 1px">$1</mark>'
+  );
+}
 // 過渡期：有 sofa_token 用 Bearer，否則 fallback X-Sofa-UID / FREE
 function _authH(extra) {
   const h = extra ? {...extra} : {};
@@ -1979,7 +1999,10 @@ function _renderDrawer(d){
   });
   accHtml += '</div>';
 
-  var rawText = (d.original_text || d.artTtl || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  var _sq = _getSearchQuery();
+  var rawText = _sq.length >= 2
+    ? _highlightText(d.original_text || d.artTtl || '', _sq)
+    : esc(d.original_text || d.artTtl || '');
   var tabHtml =
     '<div class="drawer-tabs">'
     + '<button class="drawer-tab" id="dtab-original" onclick="_switchDrawerTab(\'original\')">📖 原文</button>'
@@ -3459,6 +3482,7 @@ function _chipFilter(arts, chip){
 function _renderResRows(arts, lawName){
   var lnSafe = lawName.replace(/'/g,"\\'");
   var _notes = (function(){ try { return JSON.parse(localStorage.getItem('sofa_notes_v1') || '{}'); } catch(e){ return {}; } })();
+  var _rq = _getSearchQuery(); // Wave 123: for result-card highlighting
   return arts.map(function(a){
     var m = (a.title||'').match(/第(\d+)條/);
     var artNum  = m ? m[1] : ((a.title||'').match(/(\d+)/)||['',''])[1];
@@ -3471,10 +3495,11 @@ function _renderResRows(arts, lawName){
     var bkTitle = _bookmarks[pid] ? '移除書籤' : '加入待復習';
     var fullTextEsc = (a.original_text || artTtl || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n');
     var noteBadge = _notes[pid] ? '<span class="note-badge" style="font-size:10px;color:#f5c842;margin-left:6px;opacity:0.85" title="有筆記">📝</span>' : '';
+    var ttlHtml = _rq.length >= 2 ? _highlightText(artTtl, _rq) : esc(artTtl);
     return '<div class="res-row" data-article-id="'+pid+'" onclick="openDrawer(\''+pid+'\',\''+lnSafe+'\',\''+artNum+'\')">'
       + '<span class="law">'+esc(dispLaw)+'</span>'
       + '<span class="art">§'+esc(artNum)+'</span>'
-      + '<span class="ttl">'+esc(artTtl)+noteBadge+'</span>'
+      + '<span class="ttl">'+ttlHtml+noteBadge+'</span>'
       + '<button class="bk-btn'+isActive+'" data-id="'+pid+'" title="'+bkTitle+'"'
       + ' onclick="event.stopPropagation();toggleBookmark(\''+pid+'\',\''+lnEsc+'\',\''+artNum+'\',\''+snippet+'\')">★</button>'
       + '<button class="copy-btn" title="複製法條" onclick="event.stopPropagation();_copyArticle(this,\''+lnEsc+'\',\''+artNum+'\',\''+fullTextEsc+'\')">📋</button>'
