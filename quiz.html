@@ -387,6 +387,12 @@
 </head>
 <body>
 <div id="ans-toast"></div>
+<div id="exam-timer" style="
+  display:none;position:fixed;top:16px;right:12px;z-index:150;
+  background:rgba(10,20,35,0.9);border:1px solid rgba(220,100,100,0.4);
+  border-radius:8px;padding:6px 14px;font-size:14px;font-weight:600;
+  color:#f08080;font-family:monospace;letter-spacing:0.05em
+">⏱ 60:00</div>
 <div id="kb-hint">⌨ 1-4 選題 · Enter 確認 · → 下一題</div>
 
   <header class="topbar">
@@ -427,6 +433,13 @@
         <option value="50">50題</option>
       </select>
       <button id="btnSprint" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(91,175,214,0.15);border-color:rgba(91,175,214,0.6)">⚡ 衝刺</button>
+      <button id="btnExam" onclick="startExamMode()"
+        style="display:none;background:rgba(180,80,80,0.2);border:1px solid rgba(220,100,100,0.4);
+               color:#f08080;border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;
+               margin-left:6px"
+        title="30題混法規，60分鐘限時">
+        📋 模擬考試
+      </button>
       <button id="btnDaily" onclick="startDailyChallenge()">📅 今日挑戰</button>
       <span id="daily-badge"></span>
       <div id="quiz-streak" style="display:none;font-size:13px;color:#ff9955;font-weight:600;padding:3px 8px;background:rgba(255,140,0,0.12);border:1px solid rgba(255,140,0,0.3);border-radius:12px;margin-left:8px"></div>
@@ -714,6 +727,8 @@ document.getElementById('lawSelect').addEventListener('change', async function()
   if(sprintBtn) sprintBtn.style.display = showSprint;
   if(sprintSel) sprintSel.style.display = showSprint;
   if(dailyBtn) dailyBtn.style.display = showSprint;
+  const examBtn = document.getElementById('btnExam');
+  if(examBtn) examBtn.style.display = showSprint;
   _updateDailyBtn();
   // Wave 117: update law status bar
   _updateLawStatusBar(this.value);
@@ -1346,6 +1361,7 @@ function _retrySprintWrong() {
 }
 
 function startSession(n) {
+  _stopExamTimer();
   _sessionMode = true;
   _sessionTotal = n;
   _sessionDone = 0;
@@ -1402,6 +1418,7 @@ function showSessionSummary() {
   _updateSprintBar();
   document.getElementById('sessionProgressWrap').style.display = 'none';
   if (wasSprint) {
+    _stopExamTimer();
     showSprintResults(timeSec);
   } else {
     document.getElementById('summaryOverlay').classList.add('open');
@@ -2078,6 +2095,67 @@ function openStats() {
 
 function closeStats() {
   document.getElementById('stats-panel').style.display = 'none';
+}
+
+// ── Wave 134: 模擬考試模式（30題混法規 + 60分鐘倒計時）────────────────
+let _examTimerInterval = null;
+let _examSecondsLeft = 0;
+
+function startExamMode() {
+  // Force select __all__ law (mixed random)
+  const sel = document.getElementById('lawSelect') || document.getElementById('law-select');
+  if (sel) {
+    sel.value = '__all__';
+    sel.dispatchEvent(new Event('change'));
+  }
+  // Start 30-question sprint
+  _sprintMode = true;
+  _isDailyMode = false;
+  _sprintAnswers = [];
+  _sprintStart = Date.now();
+  startSession(30);
+  _updateSprintBar();
+  // Start 60-minute exam countdown
+  _startExamTimer(60 * 60);
+}
+
+function _startExamTimer(totalSec) {
+  _examSecondsLeft = totalSec;
+  const el = document.getElementById('exam-timer');
+  if (el) el.style.display = 'block';
+  clearInterval(_examTimerInterval);
+  _examTimerInterval = setInterval(() => {
+    _examSecondsLeft--;
+    const m = Math.floor(_examSecondsLeft / 60).toString().padStart(2, '0');
+    const s = (_examSecondsLeft % 60).toString().padStart(2, '0');
+    const el2 = document.getElementById('exam-timer');
+    if (el2) {
+      el2.textContent = `⏱ ${m}:${s}`;
+      // Turn urgent red in last 10 minutes
+      el2.style.color = _examSecondsLeft < 600 ? '#ff4444' : '#f08080';
+      el2.style.borderColor = _examSecondsLeft < 600 ? 'rgba(255,60,60,0.6)' : 'rgba(220,100,100,0.4)';
+    }
+    if (_examSecondsLeft <= 0) {
+      _stopExamTimer();
+      // Auto-submit: show results if in sprint mode
+      if (typeof showSprintResults === 'function' && _sprintMode) {
+        const timeSec = Math.round((Date.now() - _sprintStart) / 1000);
+        _sessionMode = false;
+        _sprintMode = false;
+        _stopCountdown();
+        _updateSprintBar();
+        document.getElementById('sessionProgressWrap').style.display = 'none';
+        showSprintResults(timeSec);
+      }
+    }
+  }, 1000);
+}
+
+function _stopExamTimer() {
+  clearInterval(_examTimerInterval);
+  _examTimerInterval = null;
+  const el = document.getElementById('exam-timer');
+  if (el) el.style.display = 'none';
 }
 </script>
 </body>
