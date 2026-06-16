@@ -906,38 +906,49 @@ function _loadStats() {
 }
 function _saveStats(s) { try { localStorage.setItem(STATS_KEY, JSON.stringify(s)); } catch(e){} }
 
-function _getDailyData(days) {
-  const data = [];
-  const now = new Date();
-  for (let i = days-1; i >= 0; i--) {
-    const d = new Date(now); d.setDate(d.getDate() - i);
-    const key = 'sofa_quiz_daily_' + d.toISOString().slice(0,10);
-    data.push(parseInt(localStorage.getItem(key)||'0',10));
+function _buildQuizCalendar(s) {
+  // Build 30-day calendar HTML (Wave 130)
+  const today = new Date();
+  const days = [];
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date(today);
+    d.setDate(d.getDate() - i);
+    const key = d.toLocaleDateString('zh-TW', {
+      timeZone: 'Asia/Taipei',
+      year: 'numeric', month: '2-digit', day: '2-digit'
+    }).replace(/\//g, '-');
+    const count = parseInt(localStorage.getItem(`sofa_quiz_daily_${key}`) || '0');
+    const isToday = i === 0;
+    days.push({ key, count, isToday, date: d });
   }
-  return data; // array of 14 ints, oldest first
-}
-function _renderDailyChart() {
-  const data = _getDailyData(14);
-  const canvas = document.getElementById('daily-chart');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = 280, H = 40;
-  ctx.clearRect(0,0,W,H);
-  const max = Math.max(...data, 1);
-  const barW = Math.floor(W / 14) - 2;
-  data.forEach((v, i) => {
-    const x = i * (barW + 2);
-    const h = v > 0 ? Math.max(3, Math.round(v / max * (H-4))) : 2;
-    const alpha = v > 0 ? 0.3 + (v / max) * 0.7 : 0.15;
-    ctx.fillStyle = v > 0 ? `rgba(74,158,255,${alpha})` : 'rgba(255,255,255,0.1)';
-    ctx.fillRect(x, H - h, barW, h);
+
+  const maxCount = Math.max(...days.map(d => d.count), 1);
+
+  let html = `<div style="margin-top:12px">
+    <div style="font-size:10px;color:#aaa;margin-bottom:6px">📅 近30日答題</div>
+    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px">`;
+
+  days.forEach(({ count, isToday }) => {
+    const intensity = count === 0 ? 0 : Math.max(0.15, count / maxCount);
+    const bg = count === 0
+      ? 'rgba(255,255,255,0.06)'
+      : `rgba(74,144,217,${intensity})`;
+    const border = isToday ? '1px solid #7ab8f5' : '1px solid transparent';
+    const title = count > 0 ? `${count}題` : '0題';
+    html += `<div title="${title}" style="
+      aspect-ratio:1;border-radius:3px;
+      background:${bg};border:${border};
+      cursor:default
+    "></div>`;
   });
-  // "今日" highlight (last bar)
-  if (data[13] > 0) {
-    ctx.fillStyle = 'rgba(100,220,150,0.8)';
-    const h = Math.max(3, Math.round(data[13] / max * (H-4)));
-    ctx.fillRect(13*(barW+2), H-h, barW, h);
-  }
+
+  html += `</div>
+    <div style="display:flex;justify-content:space-between;font-size:9px;color:#667;margin-top:4px">
+      <span>30天前</span><span>今日</span>
+    </div>
+  </div>`;
+
+  return html;
 }
 
 // ── Wave 124: 每日連刷天數 ────────────────────────────────────────────
@@ -2058,18 +2069,11 @@ function openStats() {
     </div>
     ${byLawHtml}
     ${weakestHtml}
-    <div style="margin-top:14px;">
-      <div style="color:#8899aa;font-size:12px;margin-bottom:5px;">📅 近14天答題</div>
-      <canvas id="daily-chart" width="280" height="40" style="border-radius:4px;display:block;"></canvas>
-      <div style="display:flex;justify-content:space-between;color:#556677;font-size:10px;margin-top:3px;">
-        <span>14天前</span><span>今日</span>
-      </div>
-    </div>
+    ${_buildQuizCalendar(s)}
     <div style="text-align:center;margin-top:20px">
       <button onclick="if(confirm('確定清除所有統計？')){localStorage.removeItem(STATS_KEY);closeStats();}" style="background:none;border:1px solid rgba(231,76,60,0.3);color:#E74C3C;border-radius:16px;padding:6px 16px;font-size:12px;cursor:pointer">清除紀錄</button>
     </div>`;
   document.getElementById('stats-panel').style.display = 'block';
-  _renderDailyChart();
 }
 
 function closeStats() {
