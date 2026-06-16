@@ -339,6 +339,13 @@
       <button onclick="openFillStats()" title="個人填空統計" style="background:none;border:1px solid rgba(91,175,214,0.3);color:#5BAFD6;border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">📊</button>
       <button id="btnFillDaily" onclick="startFillDailyChallenge()">📅 今日填空</button>
       <span id="fill-daily-badge"></span>
+      <div id="fill-streak" style="
+        display:none;
+        font-size:13px;color:#ff9955;font-weight:600;
+        padding:3px 8px;background:rgba(255,140,0,0.12);
+        border:1px solid rgba(255,140,0,0.3);border-radius:12px;
+        margin-left:8px
+      "></div>
     </div>
     <div class="pr-meta">
       <div class="seg">已填 <b id="filled">— / —</b></div>
@@ -596,6 +603,7 @@ document.addEventListener('DOMContentLoaded',function(){
   if(_lawSel)_lawSel.addEventListener('change',_updateChipLock);
   var _subSel=document.getElementById('prSubSel');
   if(_subSel)_subSel.addEventListener('change',_updateChipLock);
+  _renderFillStreak(); // Wave 125: 每日連刷天數
 });
 document.getElementById('lawSelect').addEventListener('change', async function(){
   // Wave 74: persist law selection to localStorage
@@ -808,6 +816,67 @@ function _recordFillStat(correctBlanks, totalBlanks, usedHint, lawName, fillElap
     if(!usedHint && correctBlanks===totalBlanks) s.byLaw[lawName].clean++;
   }
   _saveFillStats(s);
+  // Wave 125: update and render daily cross-session streak
+  _updateFillDailyStreak();
+  _renderFillStreak();
+}
+
+// Wave 125: Daily cross-session fill streak (sofa_fill_streak)
+// NOTE: distinct from _fillStreak (Wave 87 within-session blank streak)
+function _getFillToday() {
+  return new Date().toLocaleDateString('zh-TW', {
+    timeZone: 'Asia/Taipei',
+    year: 'numeric', month: '2-digit', day: '2-digit'
+  }).replace(/\//g, '-');
+}
+
+function _getFillYesterday() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toLocaleDateString('zh-TW', {
+    timeZone: 'Asia/Taipei',
+    year: 'numeric', month: '2-digit', day: '2-digit'
+  }).replace(/\//g, '-');
+}
+
+function _updateFillDailyStreak() {
+  const STREAK_KEY = 'sofa_fill_streak';
+  const today = _getFillToday();
+  const s = JSON.parse(localStorage.getItem(STREAK_KEY) || '{"count":0,"lastDate":""}');
+
+  if (s.lastDate === today) return s.count; // already updated today
+
+  const yStr = _getFillYesterday();
+
+  if (s.lastDate === yStr) {
+    s.count += 1; // extend streak
+  } else if (s.lastDate === '') {
+    s.count = 1; // first time
+  } else {
+    s.count = 1; // streak broken, restart
+  }
+
+  s.lastDate = today;
+  localStorage.setItem(STREAK_KEY, JSON.stringify(s));
+  return s.count;
+}
+
+function _getFillStreak() {
+  const s = JSON.parse(localStorage.getItem('sofa_fill_streak') || '{"count":0,"lastDate":""}');
+  if (!s.lastDate || s.lastDate < _getFillYesterday()) return 0;
+  return s.count;
+}
+
+function _renderFillStreak() {
+  const el = document.getElementById('fill-streak');
+  if (!el) return;
+  const count = _getFillStreak();
+  if (count >= 2) {
+    el.style.display = 'inline-block';
+    el.textContent = `🔥 ${count}日連刷`;
+  } else {
+    el.style.display = 'none';
+  }
 }
 
 function startFillSession(n){
