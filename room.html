@@ -890,6 +890,7 @@ let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 const _seenUserIds = new Set();
 let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [];
 let _snowParticles = [];
+let _waterDroplets = [], _waterTx = null; // Wave132: tree watering
 let _sakuraParticles = [];
 let _mapleParticles = [];
 // Wave84: Autumn pumpkin props
@@ -1991,6 +1992,7 @@ function initThreeScene(canvas) {
   const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.25,2.5,8), tMat('trunk',_woodTex));
   trunk.position.set(0,1.4,-1); _threeScene.add(trunk);
   trunk.castShadow = true;
+  trunk.userData.isTree = true; // Wave132: clickable watering
   // Circular rug under tree
   const rug = new THREE.Mesh(new THREE.CylinderGeometry(2,2,0.04,32), mLambert(0x2D1A5A));
   rug.position.set(0,0.02,-1); _threeScene.add(rug);
@@ -2001,6 +2003,7 @@ function initThreeScene(canvas) {
     const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(r,0), new THREE.MeshLambertMaterial({map:_leafTex(), flatShading:true}));
     leaf.position.set(x,y,z); _threeScene.add(leaf);
     leaf.castShadow = true;
+    leaf.userData.isTree = true; // Wave132: clickable watering
     _foliageMeshes.push({ mesh: leaf, ox:x, oy:y, oz:z, phase: fi*0.9, amp:0.06+fi*0.01 });
   });
 
@@ -2625,6 +2628,13 @@ function initThreeScene(canvas) {
         }
         return;
       }
+      // Wave132: tree click → watering animation
+      if (hit.object.userData.isTree) {
+        const treePos = new THREE.Vector3();
+        hit.object.getWorldPosition(treePos);
+        _triggerWatering(treePos);
+        return;
+      }
       // Wave 129: empty desk click → quick study menu
       if (hit.object.userData.isDesk) {
         _showDeskMenu(e.clientX, e.clientY);
@@ -2655,7 +2665,13 @@ function initThreeScene(canvas) {
         break;
       }
     }
-    canvas.style.cursor = foundShelf ? 'pointer' : '';
+    // Wave132: tree hover cursor
+    let foundTree = false;
+    for(const h of hits){
+      if(h.object.userData.isTree){ foundTree = true; break; }
+    }
+    if(foundTree){ canvas.style.cursor = 'pointer'; }
+    else canvas.style.cursor = foundShelf ? 'pointer' : '';
     for(const h of hits){
       if(h.object.userData.deskIdx !== undefined){
         glow.position.x = h.object.position.x;
@@ -2766,6 +2782,80 @@ function _showDeskMenu(clientX, clientY) {
 function _hideDeskMenu() {
   const menu = document.getElementById('desk-quick-menu');
   if (menu) menu.style.display = 'none';
+}
+
+// Wave132: Tree watering — droplet texture, spawn, sound, animate
+function _dropletTex() {
+  const c = document.createElement('canvas'); c.width = c.height = 32;
+  const ctx = c.getContext('2d');
+  const grd = ctx.createRadialGradient(16, 14, 2, 16, 16, 12);
+  grd.addColorStop(0, 'rgba(100,200,255,0.95)');
+  grd.addColorStop(0.5, 'rgba(50,150,255,0.7)');
+  grd.addColorStop(1, 'rgba(20,100,255,0)');
+  ctx.fillStyle = grd;
+  ctx.beginPath();
+  ctx.arc(16, 16, 12, 0, Math.PI * 2);
+  ctx.fill();
+  return new THREE.CanvasTexture(c);
+}
+
+function _triggerWatering(treePos) {
+  _waterTx = _waterTx || _dropletTex();
+  for (let i = 0; i < 20; i++) {
+    const mat = new THREE.SpriteMaterial({
+      map: _waterTx, transparent: true, opacity: 0.9, depthWrite: false
+    });
+    const sp = new THREE.Sprite(mat);
+    const s = 0.08 + Math.random() * 0.12;
+    sp.scale.set(s, s * 1.3, 1);
+    sp.position.set(
+      treePos.x + (Math.random() - 0.5) * 1.5,
+      treePos.y + 3.5 + Math.random() * 1.0,
+      treePos.z + (Math.random() - 0.5) * 1.5
+    );
+    sp.userData.vy = -(0.03 + Math.random() * 0.04);
+    sp.userData.vx = (Math.random() - 0.5) * 0.015;
+    sp.userData.life = 1.0;
+    sp.userData.decay = 0.018 + Math.random() * 0.012;
+    _threeScene.add(sp);
+    _waterDroplets.push(sp);
+  }
+  _playWaterSound();
+}
+
+function _playWaterSound() {
+  if (!_audioCtx) return;
+  for (let i = 0; i < 8; i++) {
+    setTimeout(() => {
+      const osc = _audioCtx.createOscillator();
+      const gain = _audioCtx.createGain();
+      osc.type = 'sine';
+      osc.frequency.value = 800 + Math.random() * 600;
+      osc.frequency.exponentialRampToValueAtTime(300, _audioCtx.currentTime + 0.15);
+      gain.gain.value = 0.04;
+      gain.gain.exponentialRampToValueAtTime(0.001, _audioCtx.currentTime + 0.15);
+      osc.connect(gain);
+      gain.connect(_audioCtx.destination);
+      osc.start();
+      osc.stop(_audioCtx.currentTime + 0.15);
+    }, i * 40);
+  }
+}
+
+function _animWaterDroplets() {
+  if (!_waterDroplets.length) return;
+  _waterDroplets = _waterDroplets.filter(sp => {
+    sp.position.y += sp.userData.vy;
+    sp.position.x += sp.userData.vx;
+    sp.userData.life -= sp.userData.decay;
+    sp.material.opacity = Math.max(0, sp.userData.life * 0.9);
+    if (sp.userData.life <= 0) {
+      _threeScene.remove(sp);
+      sp.material.dispose();
+      return false;
+    }
+    return true;
+  });
 }
 
 function _showEntryToast(name) {
@@ -4147,6 +4237,8 @@ function startThreeAnimation(canvas) {
         _arrivalBursts.splice(ai, 1);
       }
     }
+    // Wave132: water droplets falling from tree watering
+    if (_waterDroplets.length) _animWaterDroplets();
     // Foliage sway (gentle wind effect)
     _foliageMeshes.forEach(f => {
       f.mesh.rotation.z = Math.sin(_threeTime * 0.35 + f.phase) * f.amp;
