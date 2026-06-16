@@ -583,8 +583,13 @@
     <div id="sprint-retry-wrap" style="display:none; margin-top:16px;">
       <button id="retry-wrong-btn" onclick="_retrySprintWrong()" style="margin-top:4px; padding:8px 20px; background:#1a2e3d; border:1px solid #4a9eff; border-radius:20px; color:#4a9eff; font-size:14px; cursor:pointer; display:block; width:100%;">🔄 重練錯題</button>
     </div>
-    <div style="text-align:center; margin-top:28px; display:flex; gap:12px; justify-content:center;">
+    <div style="text-align:center; margin-top:28px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
       <button onclick="restartSprint()" style="background:#1A2E3D; border:1px solid #5BAFD6; color:#5BAFD6; padding:10px 28px; border-radius:20px; font-size:14px; cursor:pointer;">⚡ 再來一次</button>
+      <button onclick="_shareQuizResult()" id="btn-share-result"
+        style="background:rgba(70,130,180,0.2);border:1px solid rgba(100,160,220,0.4);
+               color:#7ab8f5;border-radius:20px;padding:10px 20px;font-size:14px;cursor:pointer;">
+        📤 分享
+      </button>
       <button onclick="exitSprintResults()" style="background:#D4A847; border:none; color:#040D14; padding:10px 28px; border-radius:20px; font-size:14px; font-weight:600; cursor:pointer;">完成</button>
     </div>
   </div>
@@ -1342,6 +1347,54 @@ function showSprintResults(timeSec) {
 
 function exitSprintResults() {
   document.getElementById('sprint-results').style.display = 'none';
+}
+
+// Wave 136: 成績分享 — 複製格式化成績卡到剪貼板
+async function _shareQuizResult() {
+  const total = _sprintAnswers ? _sprintAnswers.length : 0;
+  const correct = _sprintAnswers ? _sprintAnswers.filter(a => a.chosen === a.correct).length : 0;
+  const pct = total > 0 ? Math.round(correct / total * 100) : 0;
+
+  const stats = JSON.parse(localStorage.getItem('sofa_quiz_stats_v1') || '{}');
+  const bestStreak = stats.bestStreak || 0;
+  const avgSec = stats.timedQuestions > 0
+    ? (stats.totalTimeSec / stats.timedQuestions).toFixed(1)
+    : null;
+
+  const grade = pct >= 90 ? '🏆' : pct >= 80 ? '🌟' : pct >= 70 ? '✨' : pct >= 60 ? '📖' : '💪';
+
+  const lawName = _currentLawName && _currentLawName !== '__all__'
+    ? _currentLawName
+    : '全部法規混題';
+
+  const lines = [
+    `${grade} SoFa 答題成績`,
+    `📚 法規：${lawName}`,
+    `✅ 答對：${correct}/${total} (${pct}%)`,
+    bestStreak >= 3 ? `🔥 最高連對：${bestStreak}題` : null,
+    avgSec ? `⏱ 平均作答：${avgSec}秒` : null,
+    `━━━━━━━━━━`,
+    `記帳士備考 | SoFa Engine`,
+  ].filter(Boolean).join('\n');
+
+  function _showShareToast(msg) {
+    const t = document.getElementById('ans-toast');
+    if (t) {
+      t.textContent = msg;
+      t.className = 'show ok';
+      clearTimeout(t._tid);
+      t._tid = setTimeout(() => t.classList.remove('show'), 2000);
+    } else {
+      alert(msg);
+    }
+  }
+
+  try {
+    await navigator.clipboard.writeText(lines);
+    _showShareToast('📋 成績已複製到剪貼板！');
+  } catch(e) {
+    prompt('複製以下文字分享成績：', lines);
+  }
 }
 
 function restartSprint() {
