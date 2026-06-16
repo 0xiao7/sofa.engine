@@ -100,7 +100,7 @@ select option{background:var(--navy-3);}
 header{
   display:flex;align-items:center;justify-content:space-between;
   padding:14px 20px;
-  background:linear-gradient(to bottom,#0A1520,#1A2E3D);
+  background:linear-gradient(to bottom,#F5F0E8,#EDE8DC);
   border-bottom:2px solid var(--wood);
   position:sticky;top:0;z-index:10;
   box-shadow:0 2px 16px rgba(0,0,0,.4);
@@ -125,7 +125,7 @@ header{
 main{display:flex;flex:1;gap:0;min-height:0;}
 
 /* ── Room scene + desk grid ── */
-#desk-area{flex:1;overflow-y:auto;background:#0F1E2A;display:flex;flex-direction:column;}
+#desk-area{flex:1;overflow-y:auto;background:var(--navy-3);display:flex;flex-direction:column;}
 
 /* RPG 頂視角場景容器 */
 #lib-scene-wrap{
@@ -153,7 +153,7 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 .room-floor-label::before,.room-floor-label::after{content:'';flex:1;height:1px;background:rgba(91,175,214,.12);}
 
 /* 用戶格線 */
-#desk-grid-wrap{padding:12px 16px 24px;background:#0F1E2A;}
+#desk-grid-wrap{padding:12px 16px 24px;background:var(--navy-3);}
 #desk-grid{
   display:grid;
   grid-template-columns:repeat(auto-fill,minmax(130px,1fr));
@@ -732,13 +732,13 @@ input[type=text], select, .btn-enter {
             <button class="react-btn" data-emoji="✨">✨</button>
           </div>
         </div>
-        <div id="board-modal" style="display:none;position:absolute;inset:0;background:rgba(7,13,20,0.82);align-items:center;justify-content:center;z-index:20;">
-          <div style="background:#1A2E3D;border:1px solid rgba(91,175,214,0.3);border-radius:12px;padding:20px;width:260px;">
-            <div style="color:#fff;font-weight:700;margin-bottom:10px;">📌 貼在布告欄</div>
-            <textarea id="board-input" maxlength="40" placeholder="今天的讀書目標、鼓勵的話…（40字）" style="width:100%;height:80px;background:#0F1A26;color:#CBD5E0;border:1px solid rgba(91,175,214,0.3);border-radius:8px;padding:8px;font-size:13px;resize:none;box-sizing:border-box;"></textarea>
+        <div id="board-modal" style="display:none;position:absolute;inset:0;background:rgba(60,45,30,0.70);align-items:center;justify-content:center;z-index:20;">
+          <div style="background:#F5F0E6;border:1px solid rgba(160,130,80,0.4);border-radius:12px;padding:20px;width:260px;">
+            <div style="color:#3A2C18;font-weight:700;margin-bottom:10px;">📌 貼在布告欄</div>
+            <textarea id="board-input" maxlength="40" placeholder="今天的讀書目標、鼓勵的話…（40字）" style="width:100%;height:80px;background:#EDE8DC;color:#3A2C18;border:1px solid rgba(160,130,80,0.35);border-radius:8px;padding:8px;font-size:13px;resize:none;box-sizing:border-box;"></textarea>
             <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
-              <button onclick="document.getElementById('board-modal').style.display='none'" style="background:transparent;color:#8AA5B8;border:none;cursor:pointer;padding:6px 12px;">取消</button>
-              <button id="board-post-btn" style="background:#2D7DA8;color:#fff;border:none;border-radius:6px;padding:6px 16px;cursor:pointer;font-weight:600;">貼上去</button>
+              <button onclick="document.getElementById('board-modal').style.display='none'" style="background:transparent;color:#7A6A50;border:none;cursor:pointer;padding:6px 12px;">取消</button>
+              <button id="board-post-btn" style="background:#8B6A40;color:#fff;border:none;border-radius:6px;padding:6px 16px;cursor:pointer;font-weight:600;">貼上去</button>
             </div>
           </div>
         </div>
@@ -1186,26 +1186,30 @@ function _wallTex(){
 
 function _floorTex(){
   return _mkTex((ctx,s)=>{
-    // Herringbone light oak (matching reference library)
     const r=_rng(99);
-    const base='#D4B88A', dark='#C4A878', light='#E0C898';
-    // Draw herringbone planks
-    const pw=s/8, ph=pw*2.5;
-    for(let row=-2;row<6;row++) for(let col=-1;col<5;col++){
-      const isOdd=(row+col)%2!==0;
-      const x=col*pw*2+row*pw, y=row*ph*0.5;
-      ctx.save(); ctx.translate(x,y);
-      ctx.rotate(isOdd?Math.PI/4:-Math.PI/4);
-      ctx.fillStyle=r()>0.5?base:dark;
-      ctx.fillRect(-pw/2,-ph/2,pw,ph);
+    // Base warm oak fill
+    ctx.fillStyle='#D4B888'; ctx.fillRect(0,0,s,s);
+    // Horizontal planks (4 planks per tile)
+    const plankH = s/4;
+    const plankColors=['#D4B888','#CEAF7E','#DAC090','#C8A87A'];
+    for(let row=0;row<4;row++){
+      const y=row*plankH;
+      ctx.fillStyle=plankColors[row%plankColors.length];
+      ctx.fillRect(0,y,s,plankH-1.5);
       // Wood grain lines
-      ctx.strokeStyle=`rgba(150,110,60,${0.06+r()*0.06})`; ctx.lineWidth=0.5;
-      for(let g=0;g<ph;g+=4){ ctx.beginPath(); ctx.moveTo(-pw/2,g-ph/2); ctx.lineTo(pw/2,g-ph/2); ctx.stroke(); }
-      // Plank edge highlight
-      ctx.strokeStyle='rgba(0,0,0,0.12)'; ctx.lineWidth=1;
-      ctx.strokeRect(-pw/2,-ph/2,pw,ph);
-      ctx.restore();
+      for(let g=0;g<plankH-2;g+=3){
+        ctx.fillStyle=`rgba(140,95,45,${(r()*0.08).toFixed(2)})`;
+        ctx.fillRect(0,y+g,s,1);
+      }
+      // Plank seam
+      ctx.fillStyle='rgba(80,50,20,0.18)';
+      ctx.fillRect(0,y+plankH-1.5,s,1.5);
     }
+    // Vertical joint at random positions (plank ends)
+    [s*0.5].forEach(jx=>{
+      ctx.fillStyle='rgba(80,50,20,0.12)';
+      ctx.fillRect(jx,0,1.5,s);
+    });
   }, 128);
 }
 
@@ -1790,19 +1794,19 @@ function initThreeScene(canvas) {
   const clockFaceTex = (() => {
     const c=document.createElement('canvas'); c.width=c.height=128;
     const ctx=c.getContext('2d');
-    ctx.fillStyle='#0F1929'; ctx.beginPath(); ctx.arc(64,64,62,0,Math.PI*2); ctx.fill();
-    ctx.strokeStyle='rgba(91,175,214,0.8)'; ctx.lineWidth=3;
+    ctx.fillStyle='#F5F0E6'; ctx.beginPath(); ctx.arc(64,64,62,0,Math.PI*2); ctx.fill();
+    ctx.strokeStyle='rgba(160,130,80,0.7)'; ctx.lineWidth=3;
     ctx.beginPath(); ctx.arc(64,64,62,0,Math.PI*2); ctx.stroke();
     // Hour marks
     for(let i=0;i<12;i++){
       const a=i/12*Math.PI*2-Math.PI/2;
-      ctx.strokeStyle='#5BAFD6'; ctx.lineWidth=i%3===0?3:1;
+      ctx.strokeStyle='#8B6A40'; ctx.lineWidth=i%3===0?3:1;
       ctx.beginPath();
       ctx.moveTo(64+Math.cos(a)*48,64+Math.sin(a)*48);
       ctx.lineTo(64+Math.cos(a)*55,64+Math.sin(a)*55);
       ctx.stroke();
     }
-    ctx.fillStyle='#5BAFD6'; ctx.beginPath(); ctx.arc(64,64,4,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#8B6A40'; ctx.beginPath(); ctx.arc(64,64,4,0,Math.PI*2); ctx.fill();
     return new THREE.CanvasTexture(c);
   })();
   const clockFace = new THREE.Mesh(new THREE.CircleGeometry(0.55,32),
@@ -1811,12 +1815,12 @@ function initThreeScene(canvas) {
   _threeScene.add(clockFace);
 
   // Clock hands (updated in animation loop via userData)
-  const handMat = new THREE.MeshBasicMaterial({color:0x5BAFD6});
+  const handMat = new THREE.MeshBasicMaterial({color:0x5A3E1A});
   const hourHand = new THREE.Mesh(new THREE.BoxGeometry(0.04,0.28,0.02), handMat);
   hourHand.position.set(8.5,4.5,-7.76);
   _threeScene.add(hourHand);
   const minHand = new THREE.Mesh(new THREE.BoxGeometry(0.025,0.38,0.02),
-    new THREE.MeshBasicMaterial({color:0x7AC3E4}));
+    new THREE.MeshBasicMaterial({color:0x3A2810}));
   minHand.position.set(8.5,4.5,-7.75);
   _threeScene.add(minHand);
   // Wave 122 — Second hand: pivot group for correct clockhand rotation from center
@@ -1838,7 +1842,7 @@ function initThreeScene(canvas) {
     const isMajor = ti%3===0;
     const tick = new THREE.Mesh(
       new THREE.BoxGeometry(0.025, isMajor?0.14:0.08, 0.015),
-      new THREE.MeshBasicMaterial({color: isMajor ? 0xD4A847 : 0x5BAFD6})
+      new THREE.MeshBasicMaterial({color: isMajor ? 0xB08030 : 0x8B6A40})
     );
     tick.position.set(8.5 + Math.cos(angle)*r, 4.5 + Math.sin(angle)*r, -7.77);
     tick.rotation.z = angle + Math.PI/2;
@@ -1847,10 +1851,10 @@ function initThreeScene(canvas) {
   const lWall = new THREE.Mesh(box(0.3,8,20), wallMat);
   lWall.position.set(-9, 4, 0); _threeScene.add(lWall);
   const rWall = lWall.clone(); rWall.position.set(9,4,0); _threeScene.add(rWall);
-  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(22,20), mLambert(0x060E18));
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(22,20), mLambert(0xF2EDE4));
   ceil.rotation.x = Math.PI/2; ceil.position.y = 8; _threeScene.add(ceil);
   // Ceiling wooden beams
-  const beamMat = new THREE.MeshLambertMaterial({ color: 0x2A1508 });
+  const beamMat = new THREE.MeshLambertMaterial({ color: 0x8B6A48 });
   [-7,-3.5,0,3.5,7].forEach(bx => {
     const beam = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.4, 20), beamMat);
     beam.position.set(bx, 7.8, 0);
@@ -1869,30 +1873,15 @@ function initThreeScene(canvas) {
     const wm = new THREE.MeshBasicMaterial({ color:0x5BAFD6, transparent:true, opacity:0.22 });
     const ww = new THREE.Mesh(new THREE.PlaneGeometry(2.8,3.2), wm);
     ww.position.set(x,y,z); _threeScene.add(ww);
-    const frame = new THREE.Mesh(box(2.9,3.3,0.08), mLambert(0x142535));
+    const frame = new THREE.Mesh(box(2.9,3.3,0.08), mLambert(0xE8E2D5));
     frame.position.set(x,y,z-0.1); _threeScene.add(frame);
   });
 
-  // Volumetric light shafts from windows
+  // Volumetric light shafts — hidden in bright daytime theme
   const shaftMat = new THREE.MeshBasicMaterial({
-    color: 0x5BAFD6, transparent: true, opacity: 0.04,
+    color: 0xFFF8E8, transparent: true, opacity: 0,
     side: THREE.DoubleSide, depthWrite: false,
     blending: THREE.AdditiveBlending
-  });
-  [[-5,4,-7],[5,4,-7]].forEach(([wx,wy,wz])=>{
-    // Primary shaft (angled beam going into the room)
-    const shaft = new THREE.Mesh(new THREE.BoxGeometry(2.2,3.0,8), shaftMat);
-    shaft.position.set(wx, wy-0.5, wz+4);
-    shaft.rotation.x = 0.12;
-    _threeScene.add(shaft);
-    // Dust mote glow (wider, more transparent)
-    const diffuse = new THREE.Mesh(new THREE.BoxGeometry(3.5,4,6), shaftMat);
-    diffuse.material = new THREE.MeshBasicMaterial({
-      color:0x87CEEB, transparent:true, opacity:0.02,
-      side:THREE.DoubleSide, depthWrite:false, blending:THREE.AdditiveBlending
-    });
-    diffuse.position.set(wx, wy, wz+3);
-    _threeScene.add(diffuse);
   });
 
   // Bookshelves
@@ -2096,9 +2085,9 @@ function initThreeScene(canvas) {
   trunk.castShadow = true;
   trunk.userData.isTree = true; // Wave132: clickable watering
   // Circular rug under tree
-  const rug = new THREE.Mesh(new THREE.CylinderGeometry(2,2,0.04,32), mLambert(0x2D1A5A));
+  const rug = new THREE.Mesh(new THREE.CylinderGeometry(2,2,0.04,32), mLambert(0x4A6848));
   rug.position.set(0,0.02,-1); _threeScene.add(rug);
-  const rugInner = new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,0.05,32), mLambert(0x4A2D8A));
+  const rugInner = new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,0.05,32), mLambert(0x38523A));
   rugInner.position.set(0,0.03,-1); _threeScene.add(rugInner);
   // Foliage (low-poly icosahedra)
   [[0,3.8,-1,1.4],[0.4,5.0,-0.8,1.0],[-0.3,4.3,-0.8,0.8],[0,5.9,-1,0.6]].forEach(([x,y,z,r],fi) => {
@@ -2384,8 +2373,8 @@ function initThreeScene(canvas) {
 
   // Desks
   const deskMat = tMat('desk',_deskTex);
-  const monMat = mLambert(0x1A2E3D);
-  const scrMat = new THREE.MeshBasicMaterial({ color: 0x2D7DA8 });
+  const monMat = mLambert(0xA0A8B0);  // silver-gray monitor body
+  const scrMat = new THREE.MeshBasicMaterial({ color: 0x141E28 });
   const DESK_POSITIONS = [
     [-5,-3],[-3,-3],[3,-3],[5,-3],
     [-5,0],[5,0],
@@ -2414,13 +2403,13 @@ function initThreeScene(canvas) {
     const stand = new THREE.Mesh(box(0.06,0.2,0.06), monMat);
     stand.position.set(x,0.9,z-0.28); _threeScene.add(stand);
     // Desk lamp
-    const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,0.05,8), mLambert(0x1A2E3D));
+    const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,0.05,8), mLambert(0xD8D0C4));
     lampBase.position.set(x+0.5, 0.83, z+0.1);
     _threeScene.add(lampBase);
-    const lampArm = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.5,6), mLambert(0x1A2E3D));
+    const lampArm = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.5,6), mLambert(0xD8D0C4));
     lampArm.position.set(x+0.5, 1.08, z+0.1);
     _threeScene.add(lampArm);
-    const lampHead = new THREE.Mesh(new THREE.ConeGeometry(0.12,0.12,8), mLambert(0x243C4F));
+    const lampHead = new THREE.Mesh(new THREE.ConeGeometry(0.12,0.12,8), mLambert(0xF0EBE0));
     lampHead.position.set(x+0.5, 1.35, z+0.1);
     lampHead.rotation.z = Math.PI; // point downward
     _threeScene.add(lampHead);
@@ -2448,7 +2437,7 @@ function initThreeScene(canvas) {
       });
     } else if(propType === 2) {
       // Pencil holder + 4 pencils
-      const holder = new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.05,0.09,8), mLambert(0x1A2E3D));
+      const holder = new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.05,0.09,8), mLambert(0xC4A870));
       holder.position.set(x-0.36, 0.875, z+0.1); _threeScene.add(holder);
       [-0.02,-0.01,0.01,0.02].forEach((ox,pi)=>{
         const pencil = new THREE.Mesh(new THREE.BoxGeometry(0.012,0.14,0.012), mLambert([0xFFD700,0xFF8C00,0x5D8AE8,0xE85D5D][pi]));
@@ -2466,12 +2455,12 @@ function initThreeScene(canvas) {
       const lines = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.002,0.14), mLambert(0x5BAFD6));
       lines.position.set(x-0.35, 0.85, z+0.1); _threeScene.add(lines);
       // Pen
-      const pen = new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.24,6), mLambert(0x1A2E3D));
+      const pen = new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.24,6), mLambert(0x3A3040));
       pen.position.set(x-0.22, 0.842, z+0.22);
       pen.rotation.z = 0.3; _threeScene.add(pen);
     }
     // Lamp glow — all desks dim by default; brightened per occupant in _updateThreeAvatars
-    const deskLight = new THREE.PointLight(0x7AC3E4, 0.15, 3.0);
+    const deskLight = new THREE.PointLight(0xFFEDD0, 0.15, 3.0);
     deskLight.position.set(x+0.5, 1.2, z+0.1);
     _threeScene.add(deskLight);
     _deskLampLights.push(deskLight);
@@ -2988,7 +2977,7 @@ function _showEntryToast(name) {
 }
 
 function _spawnShoutLight(x, z) {
-  const light = new THREE.PointLight(0x5BAFD6, 2.2, 6.0);
+  const light = new THREE.PointLight(0xFFE8C0, 2.2, 6.0);
   light.position.set(x, 1.8, z);
   light.userData.born = Date.now();
   light.userData.lifetime = 1800; // ms
