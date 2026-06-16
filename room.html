@@ -1717,11 +1717,18 @@ function initThreeScene(canvas) {
     new THREE.MeshBasicMaterial({color:0x7AC3E4}));
   minHand.position.set(8.5,4.5,-7.75);
   _threeScene.add(minHand);
-  const secHand = new THREE.Mesh(new THREE.BoxGeometry(0.015,0.42,0.02),
-    new THREE.MeshBasicMaterial({color:0xFF6B6B}));
-  secHand.position.set(8.5,4.5,-7.74);
-  _threeScene.add(secHand);
-  _threeScene.userData.clockHands = {hourHand, minHand, secHand, cx:8.5, cy:4.5};
+  // Wave 122 — Second hand: pivot group for correct clockhand rotation from center
+  const _secMat = new THREE.MeshLambertMaterial({ color: 0xff4422, emissive: 0x441100, emissiveIntensity: 0.3 });
+  const _secHandMesh = new THREE.Mesh(new THREE.BoxGeometry(0.022, 0.44, 0.022), _secMat);
+  _secHandMesh.position.y = 0.22; // offset so bottom of hand is at pivot origin
+  const _secTailMesh = new THREE.Mesh(new THREE.BoxGeometry(0.022, 0.13, 0.022), _secMat);
+  _secTailMesh.position.y = -0.065; // short counterbalance tail below pivot
+  const _secPivot = new THREE.Group();
+  _secPivot.add(_secHandMesh);
+  _secPivot.add(_secTailMesh);
+  _secPivot.position.set(8.5, 4.5, -7.74);
+  _threeScene.add(_secPivot);
+  _threeScene.userData.clockHands = {hourHand, minHand, _secPivot, cx:8.5, cy:4.5};
   // Clock tick marks (12 hour positions)
   for(let ti=0; ti<12; ti++){
     const angle = (ti/12)*Math.PI*2 - Math.PI/2;
@@ -4046,12 +4053,12 @@ function startThreeAnimation(canvas) {
     }
     if(_threeScene.userData.updateParticles) _threeScene.userData.updateParticles();
     if(_threeScene.userData.clockHands){
-      const {hourHand,minHand,secHand,cx,cy}=_threeScene.userData.clockHands;
+      const {hourHand,minHand,_secPivot,cx,cy}=_threeScene.userData.clockHands;
       const now=new Date();
-      const s=now.getSeconds()+now.getMilliseconds()/1000;
+      const s=now.getSeconds()+now.getMilliseconds()/1000; // ms-precision smooth sweep
       const m=now.getMinutes()+s/60;
       const h=(now.getHours()%12)+m/60;
-      secHand.rotation.z  = -(s/60)*Math.PI*2;
+      _secPivot.rotation.z  = -(s/60)*Math.PI*2; // Wave 122: smooth-sweep second hand (pivot group)
       minHand.rotation.z  = -(m/60)*Math.PI*2;
       hourHand.rotation.z = -(h/12)*Math.PI*2;
     }
