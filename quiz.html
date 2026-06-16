@@ -2045,11 +2045,23 @@ document.addEventListener('DOMContentLoaded', () => {
 <!-- ── Wave 50: 個人答題統計面板 ─────────────────────────────────── -->
 <div id="stats-panel" style="display:none; position:fixed; inset:0; background:rgba(4,13,20,0.96); z-index:200; overflow-y:auto; padding:24px 16px;">
   <div style="max-width:560px; margin:0 auto;">
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:20px;">
+    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
       <h2 style="color:#F0E8C8; font-family:'Noto Serif TC',serif; margin:0; font-size:20px">📊 我的答題統計</h2>
       <button onclick="closeStats()" style="background:none; border:1px solid rgba(91,175,214,0.4); color:#5BAFD6; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:16px">✕</button>
     </div>
-    <div id="stats-content"></div>
+    <!-- Wave 140: Tab bar -->
+    <div id="stats-tab-bar" style="display:flex;gap:6px;margin-bottom:16px;">
+      <button id="tab-btn-stats" onclick="_switchStatsTab('stats')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:#1A2E3D;color:#F0E8C8;font-size:13px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;font-weight:600;transition:background 0.2s">📊 統計</button>
+      <button id="tab-btn-wrong" onclick="_switchStatsTab('wrong')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(245,240,234,0.45);font-size:13px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;font-weight:400;transition:background 0.2s">⚠️ 弱點清單</button>
+    </div>
+    <!-- Tab: 統計 -->
+    <div id="stats-tab-stats">
+      <div id="stats-content"></div>
+    </div>
+    <!-- Tab: 弱點清單 (Wave 140) -->
+    <div id="stats-tab-wrong" style="display:none;">
+      <div id="quiz-wrong-panel"></div>
+    </div>
   </div>
 </div>
 
@@ -2113,6 +2125,9 @@ function openStats() {
     </div>`;
   }
 
+  // Wave 140: ensure 統計 tab is active when opening stats
+  _switchStatsTab('stats');
+
   document.getElementById('stats-content').innerHTML = `
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
       <div style="background:#0D1F2D;border-radius:10px;padding:16px;text-align:center">
@@ -2148,6 +2163,100 @@ function openStats() {
 
 function closeStats() {
   document.getElementById('stats-panel').style.display = 'none';
+}
+
+// ── Wave 140: 統計面板 Tab 切換 ────────────────────────────────────
+function _switchStatsTab(tab) {
+  const statsDiv = document.getElementById('stats-tab-stats');
+  const wrongDiv = document.getElementById('stats-tab-wrong');
+  const btnStats = document.getElementById('tab-btn-stats');
+  const btnWrong = document.getElementById('tab-btn-wrong');
+  if (tab === 'stats') {
+    statsDiv.style.display = '';
+    wrongDiv.style.display = 'none';
+    btnStats.style.background = '#1A2E3D';
+    btnStats.style.color = '#F0E8C8';
+    btnStats.style.fontWeight = '600';
+    btnWrong.style.background = 'rgba(255,255,255,0.06)';
+    btnWrong.style.color = 'rgba(245,240,234,0.45)';
+    btnWrong.style.fontWeight = '400';
+  } else {
+    statsDiv.style.display = 'none';
+    wrongDiv.style.display = '';
+    btnWrong.style.background = '#1A2E3D';
+    btnWrong.style.color = '#F0E8C8';
+    btnWrong.style.fontWeight = '600';
+    btnStats.style.background = 'rgba(255,255,255,0.06)';
+    btnStats.style.color = 'rgba(245,240,234,0.45)';
+    btnStats.style.fontWeight = '400';
+    _renderWrongList();
+  }
+}
+
+// ── Wave 140: 弱點清單渲染 ──────────────────────────────────────────
+function _renderWrongList() {
+  const panel = document.getElementById('quiz-wrong-panel');
+  if (!panel) return;
+  const s = _loadStats();
+  const byLaw = s.byLaw || {};
+
+  // Build wrong-count list from byLaw
+  const lawWrongs = Object.entries(byLaw)
+    .map(([name, d]) => ({ name, wrong: (d.total||0) - (d.correct||0), total: d.total||0 }))
+    .filter(l => l.wrong > 0)
+    .sort((a, b) => b.wrong - a.wrong);
+
+  if (lawWrongs.length === 0) {
+    panel.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(245,240,234,0.4);font-size:14px">✅ 目前沒有錯題紀錄</div>';
+    return;
+  }
+
+  let html = '<div style="display:flex;flex-direction:column;gap:8px;">';
+  lawWrongs.forEach(({ name, wrong, total }) => {
+    const pct = Math.round((total - wrong) / total * 100);
+    const color = pct >= 80 ? '#2ECC71' : pct >= 60 ? '#5BAFD6' : '#E74C3C';
+    html += `<div style="background:#0D1F2D;border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
+      <div style="flex:1;min-width:0;">
+        <div style="color:#C8DDE8;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(name)}</div>
+        <div style="color:#E74C3C;font-size:11px;margin-top:2px;font-family:'JetBrains Mono',monospace;">✗ ${wrong}題錯 &nbsp;•&nbsp; <span style="color:${color}">${pct}%正確</span></div>
+      </div>
+      <button onclick="_drillWrongLaw(${JSON.stringify(name)})" style="flex-shrink:0;background:rgba(231,76,60,0.12);border:1px solid rgba(231,76,60,0.35);color:#E98880;border-radius:12px;padding:5px 12px;font-size:12px;cursor:pointer;white-space:nowrap;">🔁 重練</button>
+    </div>`;
+  });
+  html += '</div>';
+
+  // 清除錯題按鈕（清除 sofa_wrong_ids；byLaw 統計保留）
+  html += `<div style="text-align:center;margin-top:18px;">
+    <button onclick="_clearWrongListFromPanel()" style="background:none;border:1px solid rgba(231,76,60,0.3);color:#E74C3C;border-radius:16px;padding:6px 18px;font-size:12px;cursor:pointer;">🗑️ 清除錯題 ID 紀錄</button>
+  </div>`;
+
+  panel.innerHTML = html;
+}
+
+function _drillWrongLaw(lawName) {
+  closeStats();
+  // Set law selector to this law
+  const sel = document.getElementById('lawSelect');
+  if (sel) {
+    const opt = Array.from(sel.options).find(o => o.value === lawName || o.text === lawName);
+    if (opt) {
+      sel.value = opt.value;
+      sel.dispatchEvent(new Event('change'));
+    }
+  }
+  // Enable wrong mode and start
+  wrongMode = true;
+  const btnW = document.getElementById('btnWrong');
+  if (btnW) btnW.classList.add('active');
+  // Small delay to let lawSelect change event settle
+  setTimeout(() => loadWrongQuiz(), 120);
+}
+
+function _clearWrongListFromPanel() {
+  if (!confirm('確定清除錯題 ID 紀錄？（統計數據不受影響）')) return;
+  try { localStorage.removeItem(WRONG_KEY); } catch(e) {}
+  refreshWrongCount();
+  _renderWrongList();
 }
 
 // ── Wave 134: 模擬考試模式（30題混法規 + 60分鐘倒計時）────────────────
