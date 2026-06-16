@@ -2040,6 +2040,13 @@ function _renderDrawer(d){
     + '</div>'
     + '</div>';
 
+  var diffRowHtml =
+    '<div class="diff-row" style="display:flex;align-items:center;gap:6px;padding:6px 0;font-size:13px;color:#8899aa;">'
+    + '<span>難度自評：</span>'
+    + '<span id="diff-stars-' + d.id + '" class="diff-stars" style="display:flex;gap:2px;cursor:pointer;font-size:18px;"></span>'
+    + '<span id="diff-label-' + d.id + '" style="font-size:11px;color:#aaa;margin-left:4px;"></span>'
+    + '</div>';
+
   body.innerHTML =
     '<span class="dr-eyebrow">ARTICLE' + (imp ? ' · ' + esc(imp) : '') + '</span>'
     + '<div class="dr-title"><span class="n">' + esc(artNum) + '</span><span class="tt">' + esc(artTitle) + '</span></div>'
@@ -2048,6 +2055,7 @@ function _renderDrawer(d){
     + '<button class="dr-chip" onclick="drToggleMastered(this)"><span>○</span>已熟記</button>'
     + '<button class="dr-chip" onclick="drShowReviewPicker()"><span>⊙</span>待複習</button>'
     + '</div>'
+    + diffRowHtml
     + tabHtml;
   _initSectionToggle(document.getElementById('drawer-analysis'));
   var savedTab = localStorage.getItem('sofa_drawer_tab') || 'analysis';
@@ -2055,6 +2063,7 @@ function _renderDrawer(d){
   _setReadFont(_getReadFont());
   var artNo = (d.title || '').match(/第(\d+(?:之\d+)?)條/)?.[1] || '';
   _loadNoteForArticle(d.id, d.law_name, artNo ? '第' + artNo + '條' : d.title);
+  _renderDifficultyStars(d.id, body);
 }
 
 function _renderDrawerFallback(lawName, article){
@@ -2392,6 +2401,82 @@ function _copyArticle(btn, lawName, artNo, text) {
   } else {
     onError();
   }
+}
+
+// ── Wave 141 — 難度自評 (user-rated difficulty) ──────────────────────
+var DIFF_KEY = 'sofa_difficulty_v1';
+var DIFF_LABELS = ['', '偏易', '稍易', '普通', '稍難', '很難'];
+
+function _getDifficultyRating(articleId) {
+  try {
+    var store = JSON.parse(localStorage.getItem(DIFF_KEY) || '{}');
+    return (store[articleId] && store[articleId].rating) ? store[articleId].rating : 0;
+  } catch(e) { return 0; }
+}
+
+function _setDifficultyRating(articleId, rating) {
+  try {
+    var store = JSON.parse(localStorage.getItem(DIFF_KEY) || '{}');
+    if (rating === 0) {
+      delete store[articleId];
+    } else {
+      store[articleId] = { rating: rating, updatedAt: new Date().toISOString() };
+    }
+    localStorage.setItem(DIFF_KEY, JSON.stringify(store));
+  } catch(e) { /* ignore */ }
+  var starsEl = document.getElementById('diff-stars-' + articleId);
+  if (starsEl) _renderDifficultyStars(articleId, starsEl.closest('.diff-row').parentElement);
+}
+
+function _renderDifficultyStars(articleId, containerEl) {
+  var starsEl = containerEl && containerEl.querySelector('#diff-stars-' + articleId);
+  var labelEl = containerEl && containerEl.querySelector('#diff-label-' + articleId);
+  if (!starsEl) return;
+
+  var current = _getDifficultyRating(articleId);
+
+  // Build 5 star spans
+  var html = '';
+  for (var i = 1; i <= 5; i++) {
+    var filled = i <= current;
+    html += '<span data-idx="' + i + '" style="color:' + (filled ? '#f5c518' : '#3a5070') + ';user-select:none;transition:color .1s">'
+          + (filled ? '★' : '☆')
+          + '</span>';
+  }
+  starsEl.innerHTML = html;
+
+  if (labelEl) {
+    labelEl.textContent = current > 0 ? DIFF_LABELS[current] : '';
+  }
+
+  // Attach hover + click handlers
+  var spans = starsEl.querySelectorAll('span[data-idx]');
+  spans.forEach(function(span) {
+    var idx = parseInt(span.getAttribute('data-idx'), 10);
+
+    span.addEventListener('mouseenter', function() {
+      spans.forEach(function(s) {
+        var si = parseInt(s.getAttribute('data-idx'), 10);
+        s.style.color = si <= idx ? '#f5c518' : '#3a5070';
+        s.textContent = si <= idx ? '★' : '☆';
+      });
+    });
+
+    span.addEventListener('mouseleave', function() {
+      var saved = _getDifficultyRating(articleId);
+      spans.forEach(function(s) {
+        var si = parseInt(s.getAttribute('data-idx'), 10);
+        s.style.color = si <= saved ? '#f5c518' : '#3a5070';
+        s.textContent = si <= saved ? '★' : '☆';
+      });
+    });
+
+    span.addEventListener('click', function() {
+      var saved = _getDifficultyRating(articleId);
+      var newRating = (saved === idx) ? 0 : idx; // toggle off if same star
+      _setDifficultyRating(articleId, newRating);
+    });
+  });
 }
 
 // ── Wave 67 — TTS (朗讀法條) ──────────────────────
