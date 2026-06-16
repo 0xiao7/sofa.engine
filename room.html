@@ -1793,20 +1793,24 @@ function initThreeScene(canvas) {
     const shelf = new THREE.Mesh(box(2.2,4.5,0.55), shelfMat);
     shelf.position.set(x, 2.25, -7.72); _threeScene.add(shelf);
     shelf.castShadow = true; shelf.receiveShadow = true;
+    shelf.userData.isBookshelf = true; // Wave 121: clickable
     // Shelves horizontal planks
     [1,2,3].forEach(row => {
       const plank = new THREE.Mesh(box(2.0,0.07,0.48), mLambert(0x0F2318));
       plank.position.set(x, row*1.2, -7.70); _threeScene.add(plank);
+      plank.userData.isBookshelf = true;
     });
     // Books
     for (let b=0; b<6; b++) {
       const bk = new THREE.Mesh(box(0.22,0.9,0.38), mLambert(bookColors[b%bookColors.length]));
       bk.position.set(x - 0.52 + b*0.21, 1.65+Math.random()*0.1, -7.70);
+      bk.userData.isBookshelf = true;
       _threeScene.add(bk);
     }
     for (let b=0; b<6; b++) {
       const bk = new THREE.Mesh(box(0.22,0.9,0.38), mLambert(bookColors[(b+3)%bookColors.length]));
       bk.position.set(x - 0.52 + b*0.21, 2.85+Math.random()*0.1, -7.70);
+      bk.userData.isBookshelf = true;
       _threeScene.add(bk);
     }
   });
@@ -1832,6 +1836,7 @@ function initThreeScene(canvas) {
       new THREE.MeshBasicMaterial({map: lTex, side: THREE.DoubleSide})
     );
     lMesh.position.set(x, 4.62, -7.68);
+    lMesh.userData.isBookshelf = true; // Wave 121
     _threeScene.add(lMesh);
     // Thin gold frame behind label
     const lFrame = new THREE.Mesh(
@@ -1839,6 +1844,7 @@ function initThreeScene(canvas) {
       new THREE.MeshBasicMaterial({color: 0xD4A847})
     );
     lFrame.position.set(x, 4.62, -7.70);
+    lFrame.userData.isBookshelf = true; // Wave 121
     _threeScene.add(lFrame);
   });
 
@@ -2581,6 +2587,11 @@ function initThreeScene(canvas) {
     ray.setFromCamera(mouse, _threeCamera);
     const hits = ray.intersectObjects(_threeScene.children, false);
     for (const hit of hits) {
+      // Wave 121: bookshelf → open dashboard
+      if (hit.object.userData.isBookshelf) {
+        window.open('dashboard.html', '_blank');
+        return;
+      }
       if (hit.object.userData.isBoard) {
         document.getElementById('board-modal').style.display = 'flex';
         return;
@@ -2620,6 +2631,15 @@ function initThreeScene(canvas) {
     _hoverRay.setFromCamera(_hoverMouse, _threeCamera);
     const hits = _hoverRay.intersectObjects(_threeScene.children, false);
     let foundDesk = false;
+    // Wave 121: track bookshelf hover for cursor change
+    let foundShelf = false;
+    for(const h of hits){
+      if(h.object.userData.isBookshelf){
+        foundShelf = true;
+        break;
+      }
+    }
+    canvas.style.cursor = foundShelf ? 'pointer' : '';
     for(const h of hits){
       if(h.object.userData.deskIdx !== undefined){
         glow.position.x = h.object.position.x;
@@ -2652,6 +2672,7 @@ function initThreeScene(canvas) {
     const glow = _threeScene.userData._deskGlow;
     if(glow) glow.visible = false;
     _hideDeskTooltip();
+    canvas.style.cursor = ''; // Wave 121: reset bookshelf cursor
   });
 
   // Wave113: Ceiling fan — permanent room feature
