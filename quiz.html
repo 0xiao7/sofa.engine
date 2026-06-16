@@ -914,6 +914,8 @@ let _countdownInterval = null, _countdownSecs = 0;
 let _sprintMode = false;  // true = countdown active
 let _sprintAnswers = []; // {chosen: idx, correct: idx, q: {text, options[]}}
 let _sprintStart = 0;    // Date.now() when sprint began
+let _examLawName = '';    // Wave 147: law name captured at exam start
+let _isExamMode = false; // Wave 147: true when inside a 模擬考 session
 
 // ── 連續答對計數器 ────────────────────────────────────────────────
 let _quizStreak = 0;
@@ -1341,6 +1343,12 @@ function showSprintResults(timeSec) {
     localStorage.setItem(_dailyKey, JSON.stringify({ score: correct, total: total }));
     _updateDailyBtn();
     _isDailyMode = false;
+  }
+  // Wave 147: 模擬考歷史紀錄 → 儲存本次結果
+  if (_isExamMode) {
+    _saveExamResult(correct, total, _examLawName, timeSec);
+    _isExamMode = false;
+    _examLawName = '';
   }
   document.getElementById('sprint-results').style.display = 'block';
 }
@@ -2053,6 +2061,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <div id="stats-tab-bar" style="display:flex;gap:6px;margin-bottom:16px;">
       <button id="tab-btn-stats" onclick="_switchStatsTab('stats')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:#1A2E3D;color:#F0E8C8;font-size:13px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;font-weight:600;transition:background 0.2s">📊 統計</button>
       <button id="tab-btn-wrong" onclick="_switchStatsTab('wrong')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(245,240,234,0.45);font-size:13px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;font-weight:400;transition:background 0.2s">⚠️ 弱點清單</button>
+      <button id="tab-btn-exam" onclick="_switchStatsTab('exam')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(245,240,234,0.45);font-size:13px;cursor:pointer;font-family:'Noto Sans TC',sans-serif;font-weight:400;transition:background 0.2s">📋 考試紀錄</button>
     </div>
     <!-- Tab: 統計 -->
     <div id="stats-tab-stats">
@@ -2062,6 +2071,8 @@ document.addEventListener('DOMContentLoaded', () => {
     <div id="stats-tab-wrong" style="display:none;">
       <div id="quiz-wrong-panel"></div>
     </div>
+    <!-- Tab: 考試紀錄 (Wave 147) -->
+    <div id="stats-tab-exam" style="display:none;"></div>
   </div>
 </div>
 
@@ -2165,31 +2176,43 @@ function closeStats() {
   document.getElementById('stats-panel').style.display = 'none';
 }
 
-// ── Wave 140: 統計面板 Tab 切換 ────────────────────────────────────
+// ── Wave 140 / Wave 147: 統計面板 Tab 切換 ─────────────────────────
 function _switchStatsTab(tab) {
   const statsDiv = document.getElementById('stats-tab-stats');
   const wrongDiv = document.getElementById('stats-tab-wrong');
+  const examDiv  = document.getElementById('stats-tab-exam');
   const btnStats = document.getElementById('tab-btn-stats');
   const btnWrong = document.getElementById('tab-btn-wrong');
+  const btnExamT = document.getElementById('tab-btn-exam');
+
+  const ACTIVE   = { background: '#1A2E3D', color: '#F0E8C8', fontWeight: '600' };
+  const INACTIVE = { background: 'rgba(255,255,255,0.06)', color: 'rgba(245,240,234,0.45)', fontWeight: '400' };
+
+  function _applyStyle(btn, style) {
+    if (!btn) return;
+    btn.style.background  = style.background;
+    btn.style.color       = style.color;
+    btn.style.fontWeight  = style.fontWeight;
+  }
+
+  statsDiv.style.display = 'none';
+  wrongDiv.style.display = 'none';
+  if (examDiv) examDiv.style.display = 'none';
+  _applyStyle(btnStats, INACTIVE);
+  _applyStyle(btnWrong, INACTIVE);
+  _applyStyle(btnExamT, INACTIVE);
+
   if (tab === 'stats') {
     statsDiv.style.display = '';
-    wrongDiv.style.display = 'none';
-    btnStats.style.background = '#1A2E3D';
-    btnStats.style.color = '#F0E8C8';
-    btnStats.style.fontWeight = '600';
-    btnWrong.style.background = 'rgba(255,255,255,0.06)';
-    btnWrong.style.color = 'rgba(245,240,234,0.45)';
-    btnWrong.style.fontWeight = '400';
-  } else {
-    statsDiv.style.display = 'none';
+    _applyStyle(btnStats, ACTIVE);
+  } else if (tab === 'wrong') {
     wrongDiv.style.display = '';
-    btnWrong.style.background = '#1A2E3D';
-    btnWrong.style.color = '#F0E8C8';
-    btnWrong.style.fontWeight = '600';
-    btnStats.style.background = 'rgba(255,255,255,0.06)';
-    btnStats.style.color = 'rgba(245,240,234,0.45)';
-    btnStats.style.fontWeight = '400';
+    _applyStyle(btnWrong, ACTIVE);
     _renderWrongList();
+  } else if (tab === 'exam') {
+    if (examDiv) examDiv.style.display = '';
+    _applyStyle(btnExamT, ACTIVE);
+    _renderExamHistory();
   }
 }
 
@@ -2259,6 +2282,77 @@ function _clearWrongListFromPanel() {
   _renderWrongList();
 }
 
+// ── Wave 147: 模擬考歷史紀錄 ────────────────────────────────────────
+const EXAM_HISTORY_KEY = 'sofa_exam_history_v1';
+
+function _saveExamResult(score, total, law, durationSec) {
+  const dateStr = new Date().toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' }).replace(/\//g, '-');
+  const pct = total > 0 ? Math.round(score / total * 100) : 0;
+  const entry = { date: dateStr, score, total, pct, law: law || '全部法規', durationSec };
+  try {
+    const history = JSON.parse(localStorage.getItem(EXAM_HISTORY_KEY) || '[]');
+    history.unshift(entry); // newest first
+    if (history.length > 20) history.length = 20;
+    localStorage.setItem(EXAM_HISTORY_KEY, JSON.stringify(history));
+  } catch(e) {}
+}
+
+function _renderExamHistory() {
+  const panel = document.getElementById('stats-tab-exam');
+  if (!panel) return;
+  let history = [];
+  try { history = JSON.parse(localStorage.getItem(EXAM_HISTORY_KEY) || '[]'); } catch(e) {}
+
+  if (history.length === 0) {
+    panel.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(245,240,234,0.4);font-size:14px">📋 尚無模擬考紀錄</div>';
+    return;
+  }
+
+  // Average score
+  const avgPct = Math.round(history.reduce((s, e) => s + e.pct, 0) / history.length);
+  let html = `<div style="background:#0D1F2D;border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">
+    <span style="color:#8ABED6;font-size:13px;">平均得分</span>
+    <span style="color:#D4A847;font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;">${avgPct}%<span style="color:#5B7A8D;font-size:12px;font-weight:400;margin-left:6px">共 ${history.length} 次</span></span>
+  </div>`;
+
+  const rows = history.slice(0, 10);
+  html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+  rows.forEach(e => {
+    const color = e.pct >= 80 ? '#2ECC71' : e.pct >= 60 ? '#D4A847' : '#E74C3C';
+    const bgColor = e.pct >= 80 ? 'rgba(46,204,113,0.08)' : e.pct >= 60 ? 'rgba(212,168,71,0.08)' : 'rgba(231,76,60,0.08)';
+    const minStr = Math.floor(e.durationSec / 60);
+    const secStr = (e.durationSec % 60).toString().padStart(2, '0');
+    html += `<div style="background:${bgColor};border:1px solid ${color}33;border-left:3px solid ${color};border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
+      <div style="flex:1;min-width:0;">
+        <div style="color:#C8DDE8;font-size:12px;margin-bottom:3px;">${esc(e.date)}<span style="color:#5B7A8D;margin-left:8px;font-size:11px;">⏱ ${minStr}:${secStr}</span></div>
+        <div style="color:#8ABED6;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(e.law)}</div>
+      </div>
+      <div style="flex-shrink:0;text-align:right;">
+        <div style="color:${color};font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;">${e.pct}%</div>
+        <div style="color:#5B7A8D;font-size:11px;">${e.score}/${e.total}</div>
+      </div>
+    </div>`;
+  });
+  html += '</div>';
+
+  if (history.length > 10) {
+    html += `<div style="text-align:center;margin-top:10px;color:rgba(245,240,234,0.35);font-size:12px;">… 共 ${history.length} 次紀錄，顯示最近 10 次</div>`;
+  }
+
+  // Clear history button
+  html += `<div style="text-align:center;margin-top:18px;">
+    <button onclick="_clearExamHistory()" style="background:none;border:1px solid rgba(91,175,214,0.3);color:#5BAFD6;border-radius:16px;padding:6px 18px;font-size:12px;cursor:pointer;">🗑️ 清除考試紀錄</button>
+  </div>`;
+
+  panel.innerHTML = html;
+}
+
+function _clearExamHistory() {
+  if (!confirm('確定清除所有模擬考歷史紀錄？')) return;
+  try { localStorage.removeItem(EXAM_HISTORY_KEY); } catch(e) {}
+  _renderExamHistory();
+}
+
 // ── Wave 134: 模擬考試模式（30題混法規 + 60分鐘倒計時）────────────────
 let _examTimerInterval = null;
 let _examSecondsLeft = 0;
@@ -2270,8 +2364,16 @@ function startExamMode() {
     sel.value = '__all__';
     sel.dispatchEvent(new Event('change'));
   }
+  // Wave 147: capture law name at exam start
+  const selLaw = document.getElementById('lawSelect');
+  if (selLaw && selLaw.value && selLaw.value !== '__all__' && !selLaw.value.startsWith('__')) {
+    _examLawName = selLaw.options[selLaw.selectedIndex]?.text || selLaw.value;
+  } else {
+    _examLawName = '全部法規';
+  }
   // Start 30-question sprint
   _sprintMode = true;
+  _isExamMode = true; // Wave 147
   _isDailyMode = false;
   _sprintAnswers = [];
   _sprintStart = Date.now();
