@@ -16,14 +16,15 @@
   --navy-4:#0A1520;
   --wood:  #2D7DA8;
   --wood-2:#3A92C0;
-  --amber: #5BAFD6;
+  --accent: #5BAFD6; /* Wave142: 個人化主題色 */
+  --amber: var(--accent);
   --amber-2:#7AC3E4;
   --cream: #E8F0F7;
   --cream-2:#CBD5E0;
   --good:  #6BAF8F;
-  --warn:  #5BAFD6;
+  --warn:  var(--accent);
   --bad:   #C76B6B;
-  --peach: #5BAFD6;   /* 統一用品牌藍當主色 */
+  --peach: var(--accent);   /* 統一用品牌藍當主色 */
   --peach-2:#7AC3E4;
   --plum:  rgba(26,46,61,.65);
   --line:  rgba(91,175,214,.07);
@@ -138,7 +139,7 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 
 #dpad{position:absolute;bottom:12px;right:12px;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0.75;}
 #dpad:hover{opacity:1;}
-.dp{width:34px;height:34px;background:rgba(26,46,61,0.88);color:#5BAFD6;border:1px solid rgba(91,175,214,0.4);border-radius:8px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;touch-action:manipulation;}
+.dp{width:34px;height:34px;background:rgba(26,46,61,0.88);color:var(--accent);border:1px solid rgba(91,175,214,0.4);border-radius:8px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;touch-action:manipulation;}
 .dp:active{background:#1A2E3D;transform:scale(0.9);}
 #dpad-hint{position:absolute;bottom:8px;left:10px;font-size:10px;color:rgba(91,175,214,0.55);letter-spacing:.03em;}
 @media(min-width:600px){#dpad{display:none;}#dpad-hint{font-size:10px;}}
@@ -177,13 +178,13 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 .desk-name{font-size:.8rem;font-weight:600;color:var(--cream);text-align:center;word-break:break-all;}
 .desk-tag{
   font-size:.64rem;padding:2px 8px;border-radius:20px;
-  background:rgba(91,175,214,.15);color:#5BAFD6;
+  background:rgba(91,175,214,.15);color:var(--accent);
   border:1px solid rgba(91,175,214,.3);
 }
 .desk-time{font-size:.62rem;color:var(--cream-2);opacity:.4;}
 .desk-me-badge{
   position:absolute;top:6px;right:7px;font-size:.56rem;
-  background:#5BAFD6;color:#0A1520;padding:1px 5px;border-radius:6px;font-weight:700;
+  background:var(--accent);color:#0A1520;padding:1px 5px;border-radius:6px;font-weight:700;
 }
 .desk-shout{
   font-size:.68rem;color:var(--amber-2);text-align:center;font-style:italic;
@@ -510,7 +511,7 @@ input[type=text], select, .btn-enter {
   font-family: 'Noto Sans TC', sans-serif;
 }
 #desk-tooltip .tt-name { color: #F0E8C8; font-size: 13px; font-weight: 600; }
-#desk-tooltip .tt-sub  { color: #5BAFD6; font-size: 11px; margin-top: 2px; }
+#desk-tooltip .tt-sub  { color: var(--accent); font-size: 11px; margin-top: 2px; }
 #desk-tooltip .tt-pom  { color: #D4A847; font-size: 11px; margin-top: 2px; }
 /* Wave 64: time-of-day greeting overlay */
 #greet-overlay {
@@ -602,6 +603,37 @@ input[type=text], select, .btn-enter {
 .ach-desc { font-size:11px; color:#556677; }
 .ach-locked .ach-icon { filter:grayscale(1); opacity:0.4; }
 .ach-locked .ach-name { color:#445566; }
+/* Wave142 — Theme Color Picker */
+#theme-btn {
+  background:none; border:none; cursor:pointer; font-size:18px;
+  padding:4px 6px; color:#8899aa; transition:color 0.2s;
+  position: absolute; top: 8px; right: 112px; z-index: 15;
+  display:flex; align-items:center; justify-content:center;
+}
+#theme-btn:hover { opacity: 0.8; }
+#theme-btn-dot {
+  width:14px; height:14px; border-radius:50%;
+  background: var(--accent); border:2px solid rgba(255,255,255,0.4);
+  display:inline-block; vertical-align:middle;
+  transition: background 0.3s;
+}
+#theme-panel {
+  display:none; position:fixed; bottom:60px; left:14px;
+  background:rgba(10,20,30,0.92); backdrop-filter:blur(8px);
+  border:1px solid #2a4060; border-radius:12px;
+  padding:14px 16px; z-index:300; min-width:220px;
+}
+#theme-panel.open { display:block; }
+.tp-title { color:#a0b8c8; font-size:13px; font-weight:bold; margin-bottom:12px; }
+.tp-swatches { display:flex; gap:10px; align-items:center; }
+.tp-swatch {
+  width:36px; height:36px; border-radius:50%; cursor:pointer;
+  border:2px solid transparent; transition:border-color 0.2s, transform 0.15s;
+  flex-shrink:0;
+}
+.tp-swatch:hover { transform:scale(1.12); }
+.tp-swatch.active { border-color:#ffffff; box-shadow:0 0 0 1px rgba(255,255,255,0.3); }
+.tp-label { font-size:10px; color:#556677; text-align:center; margin-top:8px; letter-spacing:.04em; }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 </head>
@@ -650,14 +682,20 @@ input[type=text], select, .btn-enter {
       <!-- RPG 頂視角自習室 Canvas -->
       <div id="lib-scene-wrap">
         <div id="three-loader" style="position:absolute;inset:0;background:#040D14;display:flex;align-items:center;justify-content:center;z-index:30;transition:opacity 0.8s ease;">
-          <div style="text-align:center;color:#5BAFD6;">
+          <div style="text-align:center;color:var(--accent);">
             <div style="font-size:28px;margin-bottom:8px;">📚</div>
             <div style="font-size:12px;letter-spacing:.1em;opacity:0.7;">自習室載入中…</div>
           </div>
         </div>
-        <button id="btn-sound" title="環境音" style="position:absolute;top:8px;right:8px;z-index:15;background:rgba(7,13,20,0.7);border:1px solid rgba(91,175,214,0.25);color:#5BAFD6;border-radius:8px;padding:5px 9px;font-size:16px;cursor:pointer;backdrop-filter:blur(4px);transition:background .2s;" onclick="toggleAmbientSound()">🔇</button>
+        <button id="btn-sound" title="環境音" style="position:absolute;top:8px;right:8px;z-index:15;background:rgba(7,13,20,0.7);border:1px solid rgba(91,175,214,0.25);color:var(--accent);border-radius:8px;padding:5px 9px;font-size:16px;cursor:pointer;backdrop-filter:blur(4px);transition:background .2s;" onclick="toggleAmbientSound()">🔇</button>
         <button id="audio-settings-btn" title="音效設定" onclick="_toggleAudioPanel()">⚙</button>
         <button id="achieve-btn" title="學習成就" onclick="_toggleAchievePanel()">🏆</button>
+        <button id="theme-btn" title="主題色" onclick="_toggleThemePanel()"><span id="theme-btn-dot"></span></button>
+        <div id="theme-panel">
+          <div class="tp-title">🎨 主題色</div>
+          <div class="tp-swatches" id="theme-swatches"></div>
+          <div class="tp-label" id="theme-color-label">學院藍</div>
+        </div>
         <div id="achieve-panel">
           <div style="color:#ffd700;font-size:13px;font-weight:bold;margin-bottom:10px;">🏆 學習成就</div>
           <div id="achieve-list"></div>
@@ -684,7 +722,7 @@ input[type=text], select, .btn-enter {
         <div id="dpad-hint">方向鍵 / WASD・點地板走路・拖曳移動視角・Enter 回座位</div>
         <div id="rpg-popup" style="display:none;position:absolute;background:rgba(10,21,32,0.95);border:1px solid rgba(91,175,214,0.3);border-radius:10px;padding:12px 14px;min-width:155px;pointer-events:auto;z-index:10;">
           <div id="rpg-popup-name" style="font-weight:700;font-size:13px;color:#fff;margin-bottom:3px;"></div>
-          <div id="rpg-popup-subject" style="color:#5BAFD6;font-size:11px;margin-bottom:3px;"></div>
+          <div id="rpg-popup-subject" style="color:var(--accent);font-size:11px;margin-bottom:3px;"></div>
           <div id="rpg-popup-time" style="color:#8AA5B8;font-size:10px;"></div>
           <div id="rpg-react-row" style="display:flex;gap:6px;margin-top:8px;justify-content:center;">
             <button class="react-btn" data-emoji="🔥">🔥</button>
@@ -5226,6 +5264,66 @@ document.addEventListener('click', e => {
   if (!e.target.closest('#achieve-panel') && !e.target.closest('#achieve-btn'))
     document.getElementById('achieve-panel')?.classList.remove('open');
 });
+
+/* ── Wave142: Theme Color Picker ── */
+const _ACCENT_PRESETS = [
+  { hex: '#5BAFD6', name: '學院藍' },
+  { hex: '#7CB87A', name: '森林綠' },
+  { hex: '#E8895A', name: '暖橘' },
+  { hex: '#A57BC8', name: '薰衣紫' },
+  { hex: '#D4A853', name: '琥珀金' },
+];
+const _ACCENT_KEY = 'sofa_accent_color';
+
+function _setAccentColor(hex) {
+  document.documentElement.style.setProperty('--accent', hex);
+  localStorage.setItem(_ACCENT_KEY, hex);
+  // update button dot
+  const dot = document.getElementById('theme-btn-dot');
+  if (dot) dot.style.background = hex;
+  // update swatches active state
+  document.querySelectorAll('.tp-swatch').forEach(el => {
+    el.classList.toggle('active', el.dataset.hex === hex);
+  });
+  // update label
+  const preset = _ACCENT_PRESETS.find(p => p.hex === hex);
+  const lbl = document.getElementById('theme-color-label');
+  if (lbl) lbl.textContent = preset ? preset.name : hex;
+}
+
+function _initThemeColor() {
+  const saved = localStorage.getItem(_ACCENT_KEY);
+  const hex = saved || '#5BAFD6';
+  document.documentElement.style.setProperty('--accent', hex);
+  const dot = document.getElementById('theme-btn-dot');
+  if (dot) dot.style.background = hex;
+  // render swatches
+  const container = document.getElementById('theme-swatches');
+  if (container) {
+    container.innerHTML = _ACCENT_PRESETS.map(p =>
+      `<div class="tp-swatch${p.hex === hex ? ' active' : ''}" data-hex="${p.hex}"
+        style="background:${p.hex};" title="${p.name}"
+        onclick="_setAccentColor('${p.hex}')"></div>`
+    ).join('');
+  }
+  const lbl = document.getElementById('theme-color-label');
+  if (lbl) {
+    const preset = _ACCENT_PRESETS.find(p => p.hex === hex);
+    lbl.textContent = preset ? preset.name : hex;
+  }
+}
+
+function _toggleThemePanel() {
+  document.getElementById('theme-panel').classList.toggle('open');
+}
+
+document.addEventListener('click', e => {
+  if (!e.target.closest('#theme-panel') && !e.target.closest('#theme-btn'))
+    document.getElementById('theme-panel')?.classList.remove('open');
+});
+
+// init on load
+_initThemeColor();
 
 function _buildAmbientSound() {
   if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
