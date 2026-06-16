@@ -2713,6 +2713,8 @@ function initThreeScene(canvas) {
   _buildCeilingFan();
   // Wave133: Center rug — permanent room feature
   _buildRug();
+  // Wave138: Decorative picture frames on side walls
+  _buildWallFrames();
 
   _updateThreeAvatars([]);
 }
@@ -3956,6 +3958,133 @@ function _buildRug() {
   _rugMesh.position.set(0, 0.005, -1); // slight y offset to avoid z-fighting with floor
   _threeScene.add(_rugMesh);
 }
+
+// ─── Wave138: Decorative picture frames ─────────────────────────────────────
+
+function _paintMotivation() {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 192;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#1a2a1a'; // dark green background
+  ctx.fillRect(0, 0, 256, 192);
+  // Decorative border
+  ctx.strokeStyle = '#4a8a4a'; ctx.lineWidth = 3;
+  ctx.strokeRect(10, 10, 236, 172);
+  // Quote text
+  ctx.fillStyle = '#a8d8a8';
+  ctx.font = 'bold 20px serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('業精於勤', 128, 70);
+  ctx.font = '14px serif';
+  ctx.fillStyle = '#7ab87a';
+  ctx.fillText('荒於嬉', 128, 100);
+  ctx.font = '11px sans-serif';
+  ctx.fillStyle = '#4a7a4a';
+  ctx.fillText('— 韓愈《進學解》', 128, 160);
+  return new THREE.CanvasTexture(c);
+}
+
+function _paintExamArt() {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 192;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#1a1a2a'; // dark blue background
+  ctx.fillRect(0, 0, 256, 192);
+  ctx.strokeStyle = '#4a4a8a'; ctx.lineWidth = 3;
+  ctx.strokeRect(10, 10, 236, 172);
+  // Simplified scale of justice icon
+  ctx.strokeStyle = '#8888cc'; ctx.lineWidth = 2;
+  // Beam
+  ctx.beginPath(); ctx.moveTo(80, 80); ctx.lineTo(176, 80); ctx.stroke();
+  // Center post
+  ctx.beginPath(); ctx.moveTo(128, 60); ctx.lineTo(128, 140); ctx.stroke();
+  // Left pan
+  ctx.beginPath(); ctx.moveTo(80, 80); ctx.lineTo(70, 100); ctx.lineTo(90, 100); ctx.closePath(); ctx.stroke();
+  // Right pan
+  ctx.beginPath(); ctx.moveTo(176, 80); ctx.lineTo(166, 100); ctx.lineTo(186, 100); ctx.closePath(); ctx.stroke();
+  // Text
+  ctx.fillStyle = '#8888cc'; ctx.font = 'bold 16px serif'; ctx.textAlign = 'center';
+  ctx.fillText('法律正義', 128, 155);
+  ctx.font = '11px sans-serif'; ctx.fillStyle = '#5555aa';
+  ctx.fillText('記帳士備考', 128, 174);
+  return new THREE.CanvasTexture(c);
+}
+
+function _paintAchieve() {
+  const c = document.createElement('canvas'); c.width = 256; c.height = 160;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#2a1a0a'; // dark warm brown
+  ctx.fillRect(0, 0, 256, 160);
+  ctx.strokeStyle = '#c8a84b'; ctx.lineWidth = 4;
+  ctx.strokeRect(10, 10, 236, 140);
+  ctx.strokeStyle = '#a87830'; ctx.lineWidth = 1;
+  ctx.strokeRect(16, 16, 224, 128);
+  ctx.fillStyle = '#ffd700'; ctx.font = 'bold 22px serif'; ctx.textAlign = 'center';
+  ctx.fillText('🏆 自習室', 128, 60);
+  ctx.fillStyle = '#c8a84b'; ctx.font = '13px serif';
+  ctx.fillText('勤讀必成', 128, 95);
+  ctx.fillStyle = '#a87830'; ctx.font = '10px sans-serif';
+  ctx.fillText('SoFa Engine 2026', 128, 138);
+  return new THREE.CanvasTexture(c);
+}
+
+function _buildFrame(paintTex, w, h, pos, rot) {
+  const group = new THREE.Group();
+
+  // Frame border (dark wood)
+  const frameMat = new THREE.MeshLambertMaterial({ color: 0x3d2b1f });
+
+  // Top/bottom bars
+  [h/2 + 0.06, -(h/2 + 0.06)].forEach(y => {
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(w + 0.14, 0.1, 0.05), frameMat);
+    bar.position.y = y;
+    group.add(bar);
+  });
+
+  // Left/right bars
+  [-(w/2 + 0.06), w/2 + 0.06].forEach(x => {
+    const bar = new THREE.Mesh(new THREE.BoxGeometry(0.1, h + 0.1, 0.05), frameMat);
+    bar.position.x = x;
+    group.add(bar);
+  });
+
+  // Painting
+  const mat = new THREE.MeshLambertMaterial({ map: paintTex, side: THREE.FrontSide });
+  const canvas = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
+  canvas.position.z = 0.03;
+  group.add(canvas);
+
+  group.position.copy(pos);
+  group.rotation.copy(rot);
+  _threeScene.add(group);
+  return group;
+}
+
+function _buildWallFrames() {
+  const E = new THREE.Euler();
+
+  // Frame 1: Left wall (x=-8.9), face right (rot.y = PI/2)
+  _buildFrame(
+    _paintMotivation(), 1.6, 1.2,
+    new THREE.Vector3(-8.88, 3.5, -3),
+    E.set(0, Math.PI / 2, 0)
+  );
+
+  // Frame 2: Right wall (x=+8.9), face left (rot.y = -PI/2)
+  _buildFrame(
+    _paintExamArt(), 1.6, 1.2,
+    new THREE.Vector3(8.88, 3.5, -3),
+    E.set(0, -Math.PI / 2, 0)
+  );
+
+  // Frame 3: Back wall (z=-7.78), face room (no y rotation needed)
+  // Between the two windows, above center
+  _buildFrame(
+    _paintAchieve(), 1.8, 1.1,
+    new THREE.Vector3(0, 5.5, -7.78),
+    E.set(0, 0, 0)
+  );
+}
+
+// ────────────────────────────────────────────────────────────────────────────
 
 function startThreeAnimation(canvas) {
   const loaderEl = document.getElementById('three-loader');
