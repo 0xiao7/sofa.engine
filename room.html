@@ -2293,8 +2293,10 @@ function initThreeScene(canvas) {
     desk.position.set(x,0.76,z); _threeScene.add(desk);
     desk.castShadow = true; desk.receiveShadow = true;
     desk.userData.deskIdx = dIdx;
+    desk.userData.isDesk = true; // Wave 129: clickable quick-launch menu
     const leg1 = new THREE.Mesh(box(0.06,0.76,0.06), deskMat);
     leg1.position.set(x-0.65,0.38,z+0.35); _threeScene.add(leg1);
+    leg1.userData.isDesk = true;
     const leg2 = leg1.clone(); leg2.position.set(x+0.65,0.38,z+0.35); _threeScene.add(leg2);
     const leg3 = leg1.clone(); leg3.position.set(x-0.65,0.38,z-0.35); _threeScene.add(leg3);
     const leg4 = leg1.clone(); leg4.position.set(x+0.65,0.38,z-0.35); _threeScene.add(leg4);
@@ -2623,6 +2625,11 @@ function initThreeScene(canvas) {
         }
         return;
       }
+      // Wave 129: empty desk click → quick study menu
+      if (hit.object.userData.isDesk) {
+        _showDeskMenu(e.clientX, e.clientY);
+        return;
+      }
     }
   });
 
@@ -2742,6 +2749,23 @@ function _showDeskTooltip(x, y, user) {
 function _hideDeskTooltip() {
   const tt = document.getElementById('desk-tooltip');
   if(tt) tt.style.display = 'none';
+}
+
+// Wave 129: desk quick-launch menu
+function _showDeskMenu(clientX, clientY) {
+  const menu = document.getElementById('desk-quick-menu');
+  if (!menu) return;
+  menu.style.display = 'block';
+  let left = clientX + 12;
+  let top = clientY - 10;
+  if (left + 180 > window.innerWidth) left = clientX - 180;
+  if (top + 200 > window.innerHeight) top = clientY - 200;
+  menu.style.left = left + 'px';
+  menu.style.top = top + 'px';
+}
+function _hideDeskMenu() {
+  const menu = document.getElementById('desk-quick-menu');
+  if (menu) menu.style.display = 'none';
 }
 
 function _showEntryToast(name) {
@@ -4828,6 +4852,14 @@ document.addEventListener('click', e => {
   }
 });
 
+// Wave 129: close desk-quick-menu on outside click
+document.addEventListener('click', e => {
+  const menu = document.getElementById('desk-quick-menu');
+  if (menu && menu.style.display !== 'none' && !menu.contains(e.target)) {
+    _hideDeskMenu();
+  }
+});
+
 /* ── Wave100: Achievement Badge System ── */
 const BADGES = [
   { key:'first_quiz',  icon:'🌱', name:'初心者',    desc:'首次答題',           check: s => (s.quiz?.total||0)>=1 },
@@ -5616,6 +5648,46 @@ setInterval(() => {
   <div class="tt-name" id="tt-name"></div>
   <div class="tt-sub"  id="tt-sub"></div>
   <div class="tt-pom"  id="tt-pom"></div>
+</div>
+<!-- Wave 129: desk quick-launch menu -->
+<div id="desk-quick-menu" style="
+  display:none;position:fixed;z-index:300;
+  background:rgba(10,20,35,0.93);border:1px solid rgba(100,160,220,0.35);
+  border-radius:10px;padding:10px 8px;
+  box-shadow:0 4px 20px rgba(0,0,0,0.6);
+  min-width:160px
+">
+  <div style="font-size:10px;color:#667;text-align:center;margin-bottom:8px;letter-spacing:0.05em">開始學習</div>
+  <div style="display:flex;flex-direction:column;gap:4px">
+    <a href="quiz.html" target="_blank" style="display:flex;align-items:center;gap:8px;padding:6px 10px;
+       border-radius:6px;color:#dce8f5;text-decoration:none;font-size:13px;
+       background:rgba(255,255,255,0.04);transition:background 0.15s"
+       onmouseover="this.style.background='rgba(100,160,220,0.15)'"
+       onmouseout="this.style.background='rgba(255,255,255,0.04)'">
+      📝 <span>模擬測驗</span>
+    </a>
+    <a href="fill.html" target="_blank" style="display:flex;align-items:center;gap:8px;padding:6px 10px;
+       border-radius:6px;color:#dce8f5;text-decoration:none;font-size:13px;
+       background:rgba(255,255,255,0.04);transition:background 0.15s"
+       onmouseover="this.style.background='rgba(100,160,220,0.15)'"
+       onmouseout="this.style.background='rgba(255,255,255,0.04)'">
+      ✏️ <span>填空練習</span>
+    </a>
+    <a href="practice.html" target="_blank" style="display:flex;align-items:center;gap:8px;padding:6px 10px;
+       border-radius:6px;color:#dce8f5;text-decoration:none;font-size:13px;
+       background:rgba(255,255,255,0.04);transition:background 0.15s"
+       onmouseover="this.style.background='rgba(100,160,220,0.15)'"
+       onmouseout="this.style.background='rgba(255,255,255,0.04)'">
+      📖 <span>法條練習</span>
+    </a>
+    <a href="dashboard.html" target="_blank" style="display:flex;align-items:center;gap:8px;padding:6px 10px;
+       border-radius:6px;color:#dce8f5;text-decoration:none;font-size:13px;
+       background:rgba(255,255,255,0.04);transition:background 0.15s"
+       onmouseover="this.style.background='rgba(100,160,220,0.15)'"
+       onmouseout="this.style.background='rgba(255,255,255,0.04)'">
+      📚 <span>法條查詢</span>
+    </a>
+  </div>
 </div>
 <!-- Wave 64: time-of-day greeting overlay -->
 <div id="greet-overlay">
