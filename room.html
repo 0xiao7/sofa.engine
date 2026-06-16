@@ -219,6 +219,15 @@ main{display:flex;flex:1;gap:0;min-height:0;}
   display:flex;align-items:center;gap:8px;font-size:.78rem;
   padding:6px 8px;border-radius:6px;
 }
+/* Wave155: 週排名 */
+#rank-section{margin-top:12px;}
+#week-rank-list{display:flex;flex-direction:column;gap:3px;margin-top:4px;}
+.rank-item{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;font-size:.74rem;}
+.rank-item.rank-self{background:rgba(91,175,214,.1);}
+.rank-medal{font-size:.82rem;width:18px;text-align:center;flex-shrink:0;}
+.rank-name{color:var(--cream);font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.rank-pts{color:#C8A048;font-size:.68rem;font-weight:700;flex-shrink:0;}
+.rank-self-pts{font-size:.65rem;color:var(--cream-2);opacity:.55;margin-top:6px;padding:0 4px;}
 .online-item.me-item{background:rgba(91,175,214,.08);}
 .online-item-avatar{font-size:1rem;}
 .online-item-info{flex:1;min-width:0;}
@@ -793,6 +802,11 @@ input[type=text], select, .btn-enter {
       <div>
         <div class="sidebar-section">在線名單</div>
         <div id="online-list"></div>
+      </div>
+      <div id="rank-section">
+        <div class="sidebar-section">🏅 週排名</div>
+        <div id="week-rank-list"><div style="font-size:.7rem;color:var(--cream-2);opacity:.35;">完成番茄鐘獲得積分</div></div>
+        <div class="rank-self-pts" id="rank-self-pts"></div>
       </div>
     </div>
   </main>
@@ -3477,10 +3491,30 @@ function _updateThreeAvatars(users) {
 
   // Dim all desk lamps, brighten occupied ones
   _deskLampLights.forEach((dl, di) => { dl.intensity = 0.12; });
-  users.forEach((u, i) => {
-    const di = i % _DESK_POS_3D.length;
-    if(_deskLampLights[di]) _deskLampLights[di].intensity = 0.65;
+  users.slice(0, _DESK_POS_3D.length).forEach((u, i) => {
+    if(_deskLampLights[i]) _deskLampLights[i].intensity = 0.65;
   });
+
+  // Wave155: 3D crown 👑 on top-ranked real user
+  const topUser = [...users].filter(u => !u.isGhost && (u.weekPts||0) > 0)
+    .sort((a,b) => (b.weekPts||0)-(a.weekPts||0))[0];
+  if (topUser) {
+    const topIdx = users.indexOf(topUser);
+    if (topIdx >= 0 && topIdx < _DESK_POS_3D.length) {
+      const tp = _DESK_POS_3D[topIdx];
+      const cv = document.createElement('canvas'); cv.width = cv.height = 48;
+      const ctx = cv.getContext('2d');
+      ctx.font = '36px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('👑', 24, 24);
+      const cr = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: new THREE.CanvasTexture(cv), transparent: true, depthWrite: false
+      }));
+      cr.scale.set(0.45, 0.45, 1);
+      cr.position.set(tp[0], 2.15, tp[1]+0.9);
+      _threeScene.add(cr);
+      _userAvatarLabels.push(cr);
+    }
+  }
 }
 
 // Wave 64: time-of-day greeting
@@ -5120,6 +5154,63 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
 
 const API = 'https://sofa-engine-api.onrender.com';
 let myKey, channel, shoutCooldown = false, joinedAt;
+let _myTrackName = '', _myTrackSubject = '';
+
+// ── Wave155: 週積分 ──────────────────────────────────────────────────────────
+function _getWeekKey() {
+  const d = new Date();
+  const jan4 = new Date(d.getFullYear(), 0, 4);
+  const dayOfYear = Math.floor((d - new Date(d.getFullYear(), 0, 0)) / 86400000);
+  const wk = Math.ceil((dayOfYear + jan4.getDay()) / 7);
+  return `sofa_wp_${d.getFullYear()}W${String(wk).padStart(2,'0')}`;
+}
+function _getWeekPts() {
+  return parseInt(localStorage.getItem(_getWeekKey()) || '0');
+}
+function _addStudyPoint() {
+  const today = new Date().toISOString().slice(0,10);
+  const dayKey = `sofa_dp_${today}`;
+  const todayPts = parseInt(localStorage.getItem(dayKey) || '0');
+  if (todayPts >= 12) return; // daily cap: 4 focus rounds max
+  const newWeekPts = _getWeekPts() + 1;
+  localStorage.setItem(_getWeekKey(), newWeekPts);
+  localStorage.setItem(dayKey, todayPts + 1);
+  if (channel && _myTrackName) {
+    channel.track({ name: _myTrackName, subject: _myTrackSubject, joined_at: joinedAt, weekPts: newWeekPts });
+  }
+  // Floating +1 in 3D
+  const si = _currentUsers.findIndex(u => u.isSelf);
+  if (si >= 0 && si < _DESK_POS_3D.length) {
+    const p = _DESK_POS_3D[si];
+    _spawnPtsFloater(p[0], p[1]);
+  }
+  const selfEl = document.getElementById('rank-self-pts');
+  if (selfEl) selfEl.textContent = `本週：${newWeekPts} 分`;
+}
+function _spawnPtsFloater(x, z) {
+  if (!_threeScene) return;
+  const cv = document.createElement('canvas'); cv.width = 80; cv.height = 36;
+  const ctx = cv.getContext('2d');
+  ctx.font = 'bold 20px sans-serif';
+  ctx.fillStyle = '#FFD700';
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0,0,0,0.5)'; ctx.shadowBlur = 4;
+  ctx.fillText('+1 ✨', 40, 26);
+  const sp = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: new THREE.CanvasTexture(cv), transparent: true, depthWrite: false
+  }));
+  sp.scale.set(1.0, 0.45, 1);
+  sp.position.set(x, 2.8, z + 0.9);
+  _threeScene.add(sp);
+  const t0 = performance.now();
+  (function rise() {
+    const elapsed = performance.now() - t0;
+    if (elapsed > 1400) { _threeScene.remove(sp); sp.material.map.dispose(); sp.material.dispose(); return; }
+    sp.position.y = 2.8 + elapsed * 0.0008;
+    sp.material.opacity = elapsed < 800 ? 1 : 1 - (elapsed - 800) / 600;
+    requestAnimationFrame(rise);
+  })();
+}
 let isMember = false, memberProfile = null;
 
 // ── 登入狀態偵測 ──────────────────────────────────────────────────────
@@ -5209,7 +5300,11 @@ function startPresence(name, subject){
     })
     .subscribe(async status => {
       if(status === 'SUBSCRIBED'){
-        await channel.track({ name, subject, joined_at: joinedAt });
+        _myTrackName = name; _myTrackSubject = subject;
+        await channel.track({ name, subject, joined_at: joinedAt, weekPts: _getWeekPts() });
+        const selfEl = document.getElementById('rank-self-pts');
+        const wp = _getWeekPts();
+        if (selfEl && wp > 0) selfEl.textContent = `本週：${wp} 分`;
       }
     });
 }
@@ -5229,6 +5324,7 @@ function renderRoom(){
     joinedAt: u.joined_at || Date.now(),
     isSelf: u.key === myKey,
     isGhost: !!u.isGhost,
+    weekPts: u.weekPts || 0,
   }));
   _updateThreeAvatars(_currentUsers);
   if(_threeScene && _threeScene.userData._drawCountSign) _threeScene.userData._drawCountSign(count);
@@ -5280,6 +5376,29 @@ function renderRoom(){
   document.getElementById('online-list').innerHTML = listHTML;
   const mobList = document.getElementById('online-list-mob');
   if(mobList) mobList.innerHTML = listHTML;
+
+  _renderWeekRank(real); // Wave155: 週排名（只計真人）
+}
+
+function _renderWeekRank(realUsers) {
+  const el = document.getElementById('week-rank-list');
+  if (!el) return;
+  const ranked = realUsers.filter(u => (u.weekPts || 0) > 0)
+    .sort((a, b) => (b.weekPts || 0) - (a.weekPts || 0))
+    .slice(0, 5);
+  if (!ranked.length) {
+    el.innerHTML = '<div style="font-size:.7rem;color:var(--cream-2);opacity:.35;">完成番茄鐘獲得積分</div>';
+    return;
+  }
+  const medals = ['🥇','🥈','🥉','4','5'];
+  el.innerHTML = ranked.map((u, i) => {
+    const isSelf = u.key === myKey;
+    return `<div class="rank-item${isSelf?' rank-self':''}">
+      <span class="rank-medal">${medals[i]}</span>
+      <span class="rank-name">${esc(u.name || u.display_name || '匿名')}</span>
+      <span class="rank-pts">${u.weekPts} 分</span>
+    </div>`;
+  }).join('');
 }
 
 // ── Emoji Reactions ───────────────────────────────────────────────────
@@ -6225,6 +6344,7 @@ function pomTick(){
     clearInterval(pom.tick); pom.tick = null;
     if(pom.state === 'focus'){
       beep('done');
+      _addStudyPoint(); // Wave155: 週積分 +1
       if(typeof _spawnConfettiBurst === 'function'){ const si=_currentUsers.findIndex(u=>u.isSelf); const dp=_DESK_POS_3D[si>=0?si%_DESK_POS_3D.length:0]; _spawnConfettiBurst(dp[0], 2.2, dp[1]+0.9); }
       if(pom.round >= POM_ROUNDS){
         pom.state = 'longbreak'; pom.total = POM_LONG; pom.remaining = POM_LONG;
