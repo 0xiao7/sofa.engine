@@ -527,8 +527,23 @@
       style="background:#D4A847;border:none;color:#040D14;padding:10px 28px;border-radius:20px;font-size:14px;font-weight:600;cursor:pointer;width:100%">
       繼續練習
     </button>
+    <button id="ss-share-btn" onclick="_sharePracticeSession(this)"
+      style="margin-top:10px;background:rgba(70,130,180,0.15);border:1px solid rgba(100,160,220,0.4);
+             color:#7ab8f5;border-radius:20px;padding:8px 28px;font-size:13px;font-weight:500;
+             cursor:pointer;width:100%">
+      📤 分享成績
+    </button>
   </div>
 </div>
+
+<!-- Wave 139: share button near session timer chip -->
+<button id="practice-share-btn" onclick="_sharePracticeSession(this)"
+  title="分享練習成績"
+  style="display:none;position:fixed;top:12px;right:92px;z-index:50;
+         background:rgba(70,130,180,0.2);border:1px solid rgba(100,160,220,0.4);
+         color:#7ab8f5;border-radius:20px;padding:5px 10px;font-size:12px;cursor:pointer;
+         font-family:'JetBrains Mono',monospace;backdrop-filter:blur(6px);
+         transition:background 0.2s">📤</button>
 
 <!-- Wave 103: persistent stats button -->
 <button id="practice-stats-btn" onclick="openPracticeStats()"
@@ -1347,6 +1362,9 @@ function _recordPracticeStat(lawName, charCount) {
   localStorage.setItem(PRACTICE_STATS_KEY, JSON.stringify(s));
   _updatePracticeStatusBar((document.getElementById('lawSelect') || {}).value || '');
   _updatePracticeStreak(); _renderPracticeStreak();
+  // Wave 139: show share button after first article completion
+  const shareBtn = document.getElementById('practice-share-btn');
+  if (shareBtn && s.total > 0) shareBtn.style.display = 'inline-block';
 }
 
 // === Wave 126: Daily practice streak ===
@@ -1524,6 +1542,45 @@ document.addEventListener('click', e => {
     closePracticeStats();
   }
 });
+
+// === Wave 139: Share practice session results ===
+async function _sharePracticeSession(triggerEl) {
+  const stats = JSON.parse(localStorage.getItem('sofa_practice_stats_v1') || '{}');
+  const total = stats.total || 0;
+  const kchars = Math.round((stats.chars || 0) / 100) / 10;
+
+  const sel = document.getElementById('lawSelect');
+  const lawName = (sel && sel.value && !sel.value.startsWith('__')) ? sel.value : '法條練習';
+
+  const streak = JSON.parse(localStorage.getItem('sofa_practice_streak') || '{"count":0}');
+
+  const lines = [
+    '📖 SoFa 法條練習',
+    `📚 法規：${lawName}`,
+    `✅ 累積：${total}條，${kchars}k字`,
+    streak.count >= 2 ? `🔥 連刷：${streak.count}日` : null,
+    '━━━━━━━━━━',
+    '記帳士備考 | SoFa Engine',
+  ].filter(Boolean).join('\n');
+
+  try {
+    await navigator.clipboard.writeText(lines);
+    // Brief visual feedback on the button
+    if (triggerEl) {
+      const orig = triggerEl.textContent;
+      triggerEl.textContent = '✓ 已複製！';
+      triggerEl.style.color = '#2ECC71';
+      triggerEl.style.borderColor = '#2ECC71';
+      setTimeout(() => {
+        triggerEl.textContent = orig;
+        triggerEl.style.color = '';
+        triggerEl.style.borderColor = '';
+      }, 1800);
+    }
+  } catch(e) {
+    prompt('複製以下文字分享成績：', lines);
+  }
+}
 </script>
 </body>
 </html>
