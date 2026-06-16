@@ -556,11 +556,31 @@
      z-index:201;background:rgba(10,20,35,0.95);border:1px solid rgba(100,160,220,0.35);
      border-radius:10px;padding:16px;min-width:240px;max-width:300px;color:#dce8f5;
      font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,0.5)">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
-    <span style="font-weight:600;font-size:14px">📊 練習統計</span>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <span style="font-weight:600;font-size:14px">練習統計</span>
     <span onclick="closePracticeStats()" style="cursor:pointer;color:#aaa;font-size:16px">✕</span>
   </div>
-  <div id="practice-stats-body"></div>
+  <!-- Wave 149: Tab bar -->
+  <div style="display:flex;gap:4px;margin-bottom:12px;background:rgba(255,255,255,0.06);border-radius:6px;padding:3px">
+    <button id="practice-tab-btn-stats" onclick="_switchPracticeStatsTab('stats')"
+      style="flex:1;border:none;border-radius:4px;padding:5px 0;font-size:11px;cursor:pointer;
+             background:#1A2E3D;color:#fff;font-family:inherit;transition:all 0.15s">
+      📊 統計
+    </button>
+    <button id="practice-tab-btn-drill" onclick="_switchPracticeStatsTab('drill')"
+      style="flex:1;border:none;border-radius:4px;padding:5px 0;font-size:11px;cursor:pointer;
+             background:transparent;color:#888;font-family:inherit;transition:all 0.15s">
+      📉 少練清單
+    </button>
+  </div>
+  <!-- Stats tab (existing content) -->
+  <div id="practice-stats-tab-stats">
+    <div id="practice-stats-body"></div>
+  </div>
+  <!-- Drill tab (Wave 149: least-practiced law list) -->
+  <div id="practice-stats-tab-drill" style="display:none">
+    <div id="practice-drill-body"></div>
+  </div>
 </div>
 
 <script>
@@ -1454,6 +1474,7 @@ function _updatePracticeStatusBar(lawName) {
 }
 
 function openPracticeStats() {
+  _switchPracticeStatsTab('stats'); // Wave 149: always reset to stats tab on open
   const s = JSON.parse(localStorage.getItem(PRACTICE_STATS_KEY) || '{"total":0,"chars":0,"byLaw":{}}');
   const body = document.getElementById('practice-stats-body');
 
@@ -1532,6 +1553,68 @@ function _drillLeastPracticedLaw(lawName) {
   }
   closePracticeStats();
   // Trigger load of next article for the selected law
+  typeof loadNew === 'function' && loadNew();
+}
+
+// === Wave 149: 少練清單 tab ===
+function _switchPracticeStatsTab(tab) {
+  const statsTab = document.getElementById('practice-stats-tab-stats');
+  const drillTab = document.getElementById('practice-stats-tab-drill');
+  const statsBtn = document.getElementById('practice-tab-btn-stats');
+  const drillBtn = document.getElementById('practice-tab-btn-drill');
+  if (!statsTab || !drillTab) return;
+  if (tab === 'drill') {
+    statsTab.style.display = 'none';
+    drillTab.style.display = 'block';
+    if (statsBtn) { statsBtn.style.background = 'transparent'; statsBtn.style.color = '#888'; }
+    if (drillBtn) { drillBtn.style.background = '#1A2E3D'; drillBtn.style.color = '#fff'; }
+    _renderPracticeDrillList();
+  } else {
+    statsTab.style.display = 'block';
+    drillTab.style.display = 'none';
+    if (statsBtn) { statsBtn.style.background = '#1A2E3D'; statsBtn.style.color = '#fff'; }
+    if (drillBtn) { drillBtn.style.background = 'transparent'; drillBtn.style.color = '#888'; }
+  }
+}
+
+function _renderPracticeDrillList() {
+  const body = document.getElementById('practice-drill-body');
+  if (!body) return;
+  const s = JSON.parse(localStorage.getItem(PRACTICE_STATS_KEY) || '{}');
+  const byLaw = s.byLaw || {};
+  // Filter laws with at least 1 article practiced
+  const entries = Object.entries(byLaw).filter(([, d]) => d.total >= 1);
+  if (entries.length < 2) {
+    body.innerHTML = '<div style="color:#888;font-size:12px;text-align:center;padding:16px 0">📊 練習多幾部法規後再來看</div>';
+    return;
+  }
+  // Sort ascending by total (least practiced first)
+  entries.sort((a, b) => a[1].total - b[1].total);
+  let html = '<div style="font-size:11px;color:#aaa;margin-bottom:8px">由少到多排列，點加練切換法規</div>';
+  for (const [law, d] of entries) {
+    const escaped = law.replace(/'/g, "\\'");
+    html += `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;gap:6px">
+        <span style="font-size:11px;color:#ccc;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
+              title="${law}">${law} ━━ <span style="color:#7ab8f5">${d.total}篇練過</span></span>
+        <button onclick="_drillPracticeLaw('${escaped}')"
+          style="background:#2a4a7f;color:#fff;border:none;border-radius:5px;padding:3px 8px;
+                 font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">
+          🔁 加練
+        </button>
+      </div>`;
+  }
+  body.innerHTML = html;
+}
+
+function _drillPracticeLaw(lawName) {
+  const sel = document.getElementById('lawSelect');
+  if (sel) {
+    sel.value = lawName;
+    sel.dispatchEvent(new Event('change'));
+    localStorage.setItem('sofa_practice_law', lawName);
+  }
+  closePracticeStats();
   typeof loadNew === 'function' && loadNew();
 }
 
