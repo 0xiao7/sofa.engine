@@ -954,6 +954,50 @@ function exitFillResults() {
   document.getElementById('fill-results').style.display = 'none';
 }
 
+// Wave 137: fill result share
+function _showFillShareToast(msg) {
+  const t = document.getElementById('fill-share-toast');
+  if (t) {
+    t.textContent = msg;
+    t.style.opacity = '1';
+    clearTimeout(t._tid);
+    t._tid = setTimeout(() => { t.style.opacity = '0'; }, 2000);
+  } else {
+    alert(msg);
+  }
+}
+
+async function _shareFillResult() {
+  const total = _sessionStats ? _sessionStats.length : 0;
+  const totalBlanks = _sessionStats ? _sessionStats.reduce((s,a)=>s+a.totalBlanks,0) : 0;
+  const correctBlanks = _sessionStats ? _sessionStats.reduce((s,a)=>s+a.correctBlanks,0) : 0;
+  const cleanCount = _sessionStats ? _sessionStats.filter(a => a.correctBlanks===a.totalBlanks && !a.usedHint).length : 0;
+  const pct = totalBlanks > 0 ? Math.round(correctBlanks / totalBlanks * 100) : 0;
+  const grade = pct >= 90 ? '🏆' : pct >= 80 ? '🌟' : pct >= 70 ? '✨' : pct >= 60 ? '📖' : '💪';
+
+  const sel = document.getElementById('lawSelect');
+  const lawName = (sel && sel.value && sel.value !== '__all__')
+    ? sel.value
+    : '全部法規混練';
+
+  const lines = [
+    `${grade} SoFa 填空成績`,
+    `📚 法規：${lawName}`,
+    `✅ 完成：${total} 篇填空　共 ${totalBlanks} 格`,
+    `🎯 答對率：${pct}%（${correctBlanks}/${totalBlanks} 格）`,
+    cleanCount > 0 ? `💯 全對無提示：${cleanCount} 篇` : null,
+    `━━━━━━━━━━`,
+    `記帳士備考 | SoFa Engine`,
+  ].filter(Boolean).join('\n');
+
+  try {
+    await navigator.clipboard.writeText(lines);
+    _showFillShareToast('📋 成績已複製到剪貼板！');
+  } catch(e) {
+    prompt('複製以下文字分享成績：', lines);
+  }
+}
+
 function restartFillSession() {
   exitFillResults();
   const n = _fillSessionTotal || 10;
@@ -1487,6 +1531,11 @@ setTimeout(() => {
 // Wave 93: init daily challenge button state on page load
 _updateFillDailyBtn();
 </script>
+<!-- Wave 137: fill share toast -->
+<div id="fill-share-toast" style="position:fixed;bottom:72px;left:50%;transform:translateX(-50%);
+  background:#2ECC71;color:#0A1F14;padding:8px 20px;border-radius:20px;font-size:13px;
+  font-weight:600;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap"></div>
+
 <!-- Wave 40: Fill session results modal -->
 <div id="fill-results" style="display:none; position:fixed; inset:0; background:rgba(4,13,20,0.95); z-index:200; overflow-y:auto; padding:24px 16px;">
   <div style="max-width:640px; margin:0 auto;">
@@ -1495,7 +1544,12 @@ _updateFillDailyBtn();
       <div id="fill-res-sub" style="color:#8ABED6; margin-top:8px; font-size:14px;"></div>
     </div>
     <div id="fill-res-list" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
-    <div style="text-align:center; margin-top:28px; display:flex; gap:12px; justify-content:center;">
+    <div style="text-align:center; margin-top:28px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+      <button onclick="_shareFillResult()"
+        style="background:rgba(70,130,180,0.2);border:1px solid rgba(100,160,220,0.4);
+               color:#7ab8f5;border-radius:20px;padding:10px 20px;font-size:14px;cursor:pointer;">
+        📤 分享
+      </button>
       <button onclick="restartFillSession()" style="background:#1A2E3D; border:1px solid #5BAFD6; color:#5BAFD6; padding:10px 28px; border-radius:20px; font-size:14px; cursor:pointer;">🔄 再來一次</button>
       <button onclick="exitFillResults()" style="background:#D4A847; border:none; color:#040D14; padding:10px 28px; border-radius:20px; font-size:14px; font-weight:600; cursor:pointer;">完成</button>
     </div>
