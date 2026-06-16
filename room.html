@@ -1722,12 +1722,12 @@ function initThreeScene(canvas) {
   _threeCamera.lookAt(0, 2.2, -4);
 
   // Lights — bright warm library
-  _threeScene.add(new THREE.AmbientLight(0xFFF8F0, 3.0));
-  const ceilLight1 = new THREE.PointLight(0xFFF5E8, 2.0, 22);
+  _threeScene.add(new THREE.AmbientLight(0xFFF8F0, 1.8));
+  const ceilLight1 = new THREE.PointLight(0xFFF5E8, 3.5, 28);
   ceilLight1.position.set(-4, 7.5, -2); _threeScene.add(ceilLight1);
-  const ceilLight2 = new THREE.PointLight(0xFFF5E8, 2.0, 22);
+  const ceilLight2 = new THREE.PointLight(0xFFF5E8, 3.5, 28);
   ceilLight2.position.set(4, 7.5, -2); _threeScene.add(ceilLight2);
-  const keyLight = new THREE.DirectionalLight(0xFFF0D8, 2.0);
+  const keyLight = new THREE.DirectionalLight(0xFFF0D8, 1.6);
   keyLight.position.set(3, 8, 5);
   _threeScene.add(keyLight);
   keyLight.castShadow = true;
@@ -1772,15 +1772,7 @@ function initThreeScene(canvas) {
   floor.rotation.x = -Math.PI / 2;
   _threeScene.add(floor);
   floor.receiveShadow = true;
-  // Subtle marble floor reflection
-  const reflMat = new THREE.MeshBasicMaterial({
-    color: 0xF0EBE0, transparent: true, opacity: 0.12,
-    side: THREE.FrontSide, depthWrite: false, blending: THREE.AdditiveBlending
-  });
-  const reflPlane = new THREE.Mesh(new THREE.PlaneGeometry(22, 20), reflMat);
-  reflPlane.rotation.x = -Math.PI/2;
-  reflPlane.position.y = 0.015;
-  _threeScene.add(reflPlane);
+  // (floor reflection removed — AdditiveBlending caused golden wash on bright theme)
   const grid = new THREE.GridHelper(22, 22, 0xCCC4B4, 0xD8D2C4);
   grid.position.y = 0.01;
   _threeScene.add(grid);
@@ -2679,8 +2671,9 @@ function initThreeScene(canvas) {
     });
   })();
 
-  // Click handler (raycasting)
+  // Click handler (raycasting) — skip if user was dragging to orbit
   canvas.addEventListener('click', function(e) {
+    if (_wasDrag) { _wasDrag = false; return; }
     const popup = document.getElementById('rpg-popup');
     if (popup) popup.style.display = 'none';
     const rect = canvas.getBoundingClientRect();
@@ -3305,8 +3298,9 @@ function _updateThreeAvatars(users) {
   _focusSparkles.forEach(s => _threeScene.remove(s));
   _focusSparkles.length = 0;
 
-  users.forEach((u, i) => {
-    const pos = _DESK_POS_3D[i % _DESK_POS_3D.length];
+  // Only render up to available desk positions — no overflow stacking
+  users.slice(0, _DESK_POS_3D.length).forEach((u, i) => {
+    const pos = _DESK_POS_3D[i];
 
     // Wave 44: spawn golden arrival burst for newly-joined users
     if(_newArrivals.has(i)){
@@ -3987,52 +3981,51 @@ function _rugTex() {
   const c = document.createElement('canvas'); c.width = c.height = 512;
   const ctx = c.getContext('2d');
 
-  // Deep red/burgundy base
-  ctx.fillStyle = '#7a1820';
+  // Warm honey/sand base — matches bright library palette
+  ctx.fillStyle = '#C8A870';
   ctx.fillRect(0, 0, 512, 512);
 
-  // Outer border (dark gold)
-  ctx.strokeStyle = '#c8a84b';
+  // Outer border
+  ctx.strokeStyle = '#8B6A48';
   ctx.lineWidth = 18;
   ctx.strokeRect(20, 20, 472, 472);
 
   // Inner border
-  ctx.strokeStyle = '#e8c870';
+  ctx.strokeStyle = '#E4D0A8';
   ctx.lineWidth = 6;
   ctx.strokeRect(36, 36, 440, 440);
 
-  // Center medallion: concentric decorative diamonds
+  // Center medallion
   ctx.save();
   ctx.translate(256, 256);
 
   // Outer diamond
-  ctx.strokeStyle = '#c8a84b';
+  ctx.strokeStyle = '#8B6A48';
   ctx.lineWidth = 8;
   ctx.beginPath();
   ctx.moveTo(0, -120); ctx.lineTo(120, 0); ctx.lineTo(0, 120); ctx.lineTo(-120, 0);
   ctx.closePath(); ctx.stroke();
 
-  // Fill diamond with slightly lighter red
-  ctx.fillStyle = '#8f2030';
+  ctx.fillStyle = '#D4B880';
   ctx.fill();
 
   // Inner diamond
-  ctx.strokeStyle = '#e8c870';
+  ctx.strokeStyle = '#E4D0A8';
   ctx.lineWidth = 5;
   ctx.beginPath();
   ctx.moveTo(0, -70); ctx.lineTo(70, 0); ctx.lineTo(0, 70); ctx.lineTo(-70, 0);
   ctx.closePath(); ctx.stroke();
 
   // Center circle
-  ctx.fillStyle = '#c8a84b';
+  ctx.fillStyle = '#8B6A48';
   ctx.beginPath(); ctx.arc(0, 0, 28, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#7a1820';
+  ctx.fillStyle = '#C8A870';
   ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI * 2); ctx.fill();
 
-  // 4 corner ornaments (small diamonds)
+  // 4 corner ornaments
   [[-160,-160],[160,-160],[-160,160],[160,160]].forEach(([x,y]) => {
     ctx.save(); ctx.translate(x, y);
-    ctx.strokeStyle = '#c8a84b'; ctx.lineWidth = 4;
+    ctx.strokeStyle = '#8B6A48'; ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(0,-22); ctx.lineTo(22,0); ctx.lineTo(0,22); ctx.lineTo(-22,0);
     ctx.closePath(); ctx.stroke();
@@ -6438,26 +6431,30 @@ document.getElementById('btn-shout-mob')?.addEventListener('click', async () => 
   el().addEventListener('touchend',e=>{ if(e.touches.length===0){_t1=null;_t2=null;} },{passive:true});
 })();
 
-// Desktop: drag to orbit camera
+// Desktop + touch: drag to orbit camera (pointer events for cross-browser reliability)
 let _mouseOrbit={active:false,lastX:0,lastY:0,offsetX:0,offsetY:0};
 let _wasDrag=false;
 (function(){
-  const el=()=>document.getElementById('room-canvas');
-  el().addEventListener('mousedown',e=>{
-    if(e.button!==0) return;
-    _mouseOrbit.active=true; _mouseOrbit.lastX=e.clientX; _mouseOrbit.lastY=e.clientY;
-    _wasDrag=false;
+  const canvas = document.getElementById('room-canvas');
+  canvas.addEventListener('pointerdown', e => {
+    if (e.button !== 0) return;
+    canvas.setPointerCapture(e.pointerId);
+    _mouseOrbit.active = true;
+    _mouseOrbit.lastX = e.clientX;
+    _mouseOrbit.lastY = e.clientY;
+    _wasDrag = false;
   });
-  document.addEventListener('mousemove',e=>{
-    if(!_mouseOrbit.active) return;
-    const dx=e.clientX-_mouseOrbit.lastX, dy=e.clientY-_mouseOrbit.lastY;
-    if(Math.abs(dx)+Math.abs(dy)>4) _wasDrag=true;
-    _mouseOrbit.offsetX+=dx*0.004;
-    _mouseOrbit.offsetY=Math.max(-0.45,Math.min(0.55,_mouseOrbit.offsetY+dy*0.002));
-    _mouseOrbit.lastX=e.clientX; _mouseOrbit.lastY=e.clientY;
-    // Camera updated by animation loop each frame via _mouseOrbit.offsetX/Y
+  canvas.addEventListener('pointermove', e => {
+    if (!_mouseOrbit.active) return;
+    const dx = e.clientX - _mouseOrbit.lastX, dy = e.clientY - _mouseOrbit.lastY;
+    if (Math.abs(dx) + Math.abs(dy) > 4) _wasDrag = true;
+    _mouseOrbit.offsetX += dx * 0.004;
+    _mouseOrbit.offsetY = Math.max(-0.45, Math.min(0.55, _mouseOrbit.offsetY + dy * 0.002));
+    _mouseOrbit.lastX = e.clientX;
+    _mouseOrbit.lastY = e.clientY;
   });
-  document.addEventListener('mouseup',()=>{ _mouseOrbit.active=false; });
+  canvas.addEventListener('pointerup', () => { _mouseOrbit.active = false; });
+  canvas.addEventListener('pointercancel', () => { _mouseOrbit.active = false; });
 })();
 
 // ── Utils ─────────────────────────────────────────────────────────────
