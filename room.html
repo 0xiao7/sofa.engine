@@ -938,6 +938,7 @@ let _heartTx = null, _hearts = [];
 // Wave113: Ceiling fan (permanent room feature)
 let _ceilingFan = null;
 let _rainbowGroup = null; // Wave127: 晨光彩虹（6-9時）
+let _clouds = [], _cloudTxCache = []; // Wave128: 窗外雲朵（白天6-21時）
 let _threeTime = 0;
 let _flyInDone = false, _flyInStart = 0;
 
@@ -3401,6 +3402,87 @@ function _updateRainbow() {
   if (_isMorningRainbow) _buildRainbow(); else _destroyRainbow();
 }
 
+// Wave128: 窗外雲朵 — canvas texture + build/destroy/anim
+function _cloudTex(seed) {
+  const c = document.createElement('canvas');
+  c.width = 256; c.height = 128;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, 256, 128);
+  const circles = [
+    { x: 128, y: 70, r: 40 },
+    { x: 90,  y: 78, r: 30 },
+    { x: 165, y: 78, r: 28 },
+    { x: 110, y: 62, r: 36 },
+    { x: 148, y: 60, r: 34 },
+    { x: 75,  y: 85, r: 22 },
+    { x: 185, y: 85, r: 20 },
+  ];
+  const offX = (seed % 5) * 3 - 6;
+  circles.forEach(({ x, y, r }) => {
+    const grd = ctx.createRadialGradient(x + offX, y, r * 0.1, x + offX, y, r);
+    grd.addColorStop(0, 'rgba(255,255,255,0.9)');
+    grd.addColorStop(0.6, 'rgba(240,245,255,0.6)');
+    grd.addColorStop(1, 'rgba(220,230,255,0)');
+    ctx.fillStyle = grd;
+    ctx.beginPath();
+    ctx.arc(x + offX, y, r, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  return new THREE.CanvasTexture(c);
+}
+function _buildClouds() {
+  if (_clouds.length) return;
+  for (let i = 0; i < 3; i++) {
+    _cloudTxCache.push(_cloudTex(i));
+  }
+  const specs = [
+    { x: -4,   y: 4.8, z: -8.8,  s: 4.0, speed: 0.0008 },
+    { x:  3,   y: 5.2, z: -9.2,  s: 3.2, speed: 0.0006 },
+    { x: -1,   y: 4.2, z: -9.6,  s: 2.8, speed: 0.0007 },
+    { x:  5,   y: 4.6, z: -8.6,  s: 2.4, speed: 0.0009 },
+    { x: -6,   y: 5.0, z: -9.0,  s: 3.6, speed: 0.0005 },
+    { x:  1,   y: 3.8, z: -10.0, s: 2.0, speed: 0.0010 },
+  ];
+  specs.forEach((sp, i) => {
+    const mat = new THREE.SpriteMaterial({
+      map: _cloudTxCache[i % 3],
+      transparent: true,
+      opacity: 0.75,
+      depthWrite: false,
+    });
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(sp.s * 2, sp.s, 1);
+    sprite.position.set(sp.x, sp.y, sp.z);
+    sprite.userData.speed = sp.speed;
+    sprite.userData.startX = sp.x;
+    _threeScene.add(sprite);
+    _clouds.push(sprite);
+  });
+}
+function _destroyClouds() {
+  _clouds.forEach(c => {
+    _threeScene.remove(c);
+    c.material.dispose();
+  });
+  _clouds = [];
+  _cloudTxCache.forEach(t => t.dispose());
+  _cloudTxCache = [];
+}
+function _animClouds() {
+  if (!_clouds.length) return;
+  _clouds.forEach(c => {
+    c.position.x -= c.userData.speed;
+    if (c.position.x < -12) {
+      c.position.x = c.userData.startX + 18;
+    }
+  });
+}
+function _updateClouds() {
+  const _cwH = new Date(new Date().toLocaleString('en-US', {timeZone: 'Asia/Taipei'})).getHours();
+  const _isDay = _cwH >= 6 && _cwH < 21;
+  if (_isDay) _buildClouds(); else _destroyClouds();
+}
+
 // Wave91: CNY red lanterns — canvas texture
 function _lanternTex() {
   const cv = document.createElement('canvas'); cv.width = 64; cv.height = 96;
@@ -3741,6 +3823,8 @@ function startThreeAnimation(canvas) {
     if(Math.round(_threeTime*125) % 7500 === 2){ _updateMoonlightPatch(); }
     // Wave 127: update rainbow once per ~60s (offset by 3)
     if(Math.round(_threeTime*125) % 7500 === 3){ _updateRainbow(); }
+    // Wave 128: update clouds once per ~60s (offset by 4)
+    if(Math.round(_threeTime*125) % 7500 === 4){ _updateClouds(); }
     // Wave 90: moonlight breathing animation (every frame)
     if (_moonlightPatch) {
       _moonlightPatch.material.opacity = 0.25 + Math.sin(_threeTime * 0.02) * 0.1;
@@ -3891,6 +3975,8 @@ function startThreeAnimation(canvas) {
     _animCeilingFan();
     // Wave127: 晨光彩虹 breathing opacity
     if (_rainbowGroup) _animRainbow();
+    // Wave128: 窗外雲朵 drift
+    if (_clouds.length) _animClouds();
     // Wave104: Valentine's Day hearts — float upward with wobble
     if (_hearts.length) _animHearts();
     // Wave79: Spring butterflies — figure-8 orbit + wing flap
@@ -4325,6 +4411,7 @@ function enter(){
   _updateRainGlass(); // Wave 66: set initial rain-glass state
   _updateMoonlightPatch(); // Wave 90: set initial moonlight patch state
   _updateRainbow(); // Wave 127: set initial rainbow state (6-9am only)
+  _updateClouds(); // Wave 128: set initial cloud state (6-21h daytime only)
   _scheduleLightning(); // Wave 116: start lightning scheduler
   setTimeout(()=>_updateBoardNotes3D(),500);
   if(isMember) initNote();
