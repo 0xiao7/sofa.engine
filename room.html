@@ -669,6 +669,7 @@ input[type=text], select, .btn-enter {
       <span class="dot"></span>
       <span id="count-badge">1 人在線</span>
     </span>
+    <span id="weather-badge" style="font-size:.75rem;color:var(--cream-2);opacity:.7;letter-spacing:.03em;"></span>
     <div style="display:flex;gap:6px;align-items:center;">
       <button id="btn-lock">🔒 鎖定</button>
       <button class="btn-leave" id="btn-leave">離開</button>
@@ -811,7 +812,7 @@ input[type=text], select, .btn-enter {
       <span class="mob-icon">📣</span>
       <span>喊話</span>
     </button>
-    <button id="mob-note-btn" style="display:none">
+    <button id="mob-note-btn">
       <span class="mob-icon">📝</span>
       <span>記錄</span>
     </button>
@@ -984,6 +985,8 @@ let _windowMesh = null, _windowTex = null, _windowHour = -1; // Wave143: 窗外�
 let _welcomeMatMesh = null, _welcomeMatTex = null, _matHour = -1; // Wave148: 入口歡迎地墊
 let _threeTime = 0;
 let _flyInDone = false, _flyInStart = 0;
+// Wave150: 台北即時天氣
+let _weatherCode = 0, _weatherTemp = '--';
 // Wave144: tree growth milestones
 let _lastTreeStage = -1, _treeCheckTimer = 0;
 
@@ -1054,6 +1057,39 @@ function _timeOfDayPalette() {
     // Night: dim warm — library after hours
     return { ambR:0.78, ambG:0.70, ambB:0.60, torchMult:0.9, fogDensity:0.005 };
   }
+}
+
+// Wave150: WMO weather code helpers (Open-Meteo)
+function _isRaining(){ const c=_weatherCode; return (c>=51&&c<=67)||(c>=80&&c<=82)||c>=95; }
+function _isThunderstorm(){ return _weatherCode>=95; }
+function _isFoggy(){ return _weatherCode>=45&&_weatherCode<=48; }
+function _weatherIcon(){
+  if(_isThunderstorm()) return '⛈';
+  const c=_weatherCode;
+  if(c>=80&&c<=82) return '🌧';
+  if(c>=51&&c<=67) return '🌦';
+  if(c>=45&&c<=48) return '🌫';
+  if(c>=3&&c<=10)  return '☁️';
+  if(c===1||c===2) return '⛅';
+  return '☀️';
+}
+async function fetchTaipeiWeather(){
+  try{
+    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=25.05&longitude=121.53&current=temperature_2m,weather_code&timezone=Asia%2FTaipei&forecast_days=1');
+    if(r.ok){
+      const d=await r.json();
+      _weatherCode=d.current?.weather_code??0;
+      _weatherTemp=Math.round(d.current?.temperature_2m??25);
+      // Apply immediately
+      _updateRainGlass();
+      if(_threeScene?.fog){
+        if(_isFoggy()) _threeScene.fog.density=0.015;
+        else if(_isRaining()) _threeScene.fog.density=0.007;
+      }
+      const wb=document.getElementById('weather-badge');
+      if(wb) wb.textContent=`${_weatherIcon()} ${_weatherTemp}°`;
+    }
+  }catch(e){}
 }
 
 function _mkTex(drawFn, size=64, repeat=1){
@@ -2572,12 +2608,12 @@ function initThreeScene(canvas) {
       dpAttr.array[i*3+2] = _dPos0[i*3+2] + Math.cos(_dustT*0.35+i*0.6)*0.2;
     }
     dpAttr.needsUpdate=true;
-    // Rain mist (night only)
+    // Rain particles (weather OR night)
     const rs = _threeScene.userData._rainSystem;
     if(rs){
-      const isNight = _timeOfDayPalette().fogDensity > 0.011;
-      rs.visible = isNight;
-      if(isNight){
+      const showRain = _isRaining() || _timeOfDayPalette().fogDensity > 0.011;
+      rs.visible = showRain;
+      if(showRain){
         const rp = _threeScene.userData._rainPos;
         const rv = _threeScene.userData._rainVy;
         const rc = _threeScene.userData.RAIN_COUNT;
@@ -3897,11 +3933,11 @@ function _animHearts() {
 }
 
 function _updateRainGlass() {
-  const h = new Date().getHours();
+  const h = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
   const isNight = h >= 21 || h < 6;
   let el = document.getElementById('rain-glass');
   if (!el) el = _buildRainGlass();
-  el.classList.toggle('active', isNight);
+  el.classList.toggle('active', isNight || _isRaining());
 }
 
 // Wave113: Ceiling fan ─────────────────────────────────────────────────────
@@ -4784,9 +4820,9 @@ function startThreeAnimation(canvas) {
         _shootingStars.splice(shi,1);
       }
     }
-    // Rain puddle ripples
+    // Rain puddle ripples (weather rain OR night)
     const _rrTod = _timeOfDayPalette();
-    if(_rrTod.fogDensity >= 0.012){
+    if(_rrTod.fogDensity >= 0.012 || _isRaining()){
       const _rrNow = Date.now();
       if(_rrNow > _nextRippleTime){
         _spawnRainRipple();
@@ -5160,6 +5196,8 @@ function enter(){
   _lastTreeStage = _initStage;
   _applyTreeGrowth(_initStage);
   _updateRainGlass(); // Wave 66: set initial rain-glass state
+  fetchTaipeiWeather(); // Wave150: 台北即時天氣（首次載入）
+  setInterval(fetchTaipeiWeather, 10*60*1000); // 每 10 分鐘更新一次
   _updateMoonlightPatch(); // Wave 90: set initial moonlight patch state
   _updateRainbow(); // Wave 127: set initial rainbow state (6-9am only)
   _updateClouds(); // Wave 128: set initial cloud state (6-21h daytime only)
@@ -5437,11 +5475,21 @@ function showAway(){
   if(document.getElementById('lock-screen').classList.contains('on')) return;
   isAway = true;
   document.getElementById('away-overlay').classList.add('show');
+  // Wave151: 自己的桌燈變暗
+  const selfIdx = _currentUsers.findIndex(u=>u.isSelf);
+  if(selfIdx>=0 && _deskLampLights[selfIdx]){
+    _deskLampLights[selfIdx].intensity = 0.04;
+  }
 }
 function hideAway(){
   isAway = false;
   document.getElementById('away-overlay').classList.remove('show');
   resetAwayTimer();
+  // Wave151: 桌燈恢復
+  const selfIdx = _currentUsers.findIndex(u=>u.isSelf);
+  if(selfIdx>=0 && _deskLampLights[selfIdx]){
+    _deskLampLights[selfIdx].intensity = 0.65;
+  }
 }
 document.getElementById('btn-away-back')?.addEventListener('click', hideAway);
 ['mousemove','keydown','touchstart','click'].forEach(ev =>
@@ -5454,12 +5502,26 @@ function todayStr(){ return new Date().toISOString().slice(0,10); }
 function todayKey(){ return `sofa_room_note_${todayStr()}`; }
 function authHeaders(){ return { 'Authorization': `Bearer ${localStorage.getItem('sofa_token')||''}`, 'Content-Type':'application/json' }; }
 
+// Wave152: 訪客也能本機記錄（localStorage only）
+function initGuestNote(){
+  const ta = document.getElementById('note-input'), taMob = document.getElementById('note-input-mob');
+  const saved = localStorage.getItem(todayKey()) || '';
+  if(ta) ta.value = saved;
+  if(taMob) taMob.value = saved;
+  [ta, taMob].forEach(el=>{ if(!el) return; el.addEventListener('input',()=>{
+    localStorage.setItem(todayKey(), el.value);
+    if(ta && el!==ta) ta.value=el.value;
+    if(taMob && el!==taMob) taMob.value=el.value;
+    updateNoteCount();
+  }); });
+  updateNoteCount();
+}
+// 訪客進來直接啟用本機記錄
+initGuestNote();
+
 async function initNote(){
   const sec = document.getElementById('note-section');
   sec.classList.add('visible');
-  // 顯示行動版記錄按鈕
-  const mobNoteBtn = document.getElementById('mob-note-btn');
-  if(mobNoteBtn) mobNoteBtn.style.display = '';
 
   const ta    = document.getElementById('note-input');
   const taMob = document.getElementById('note-input-mob');
