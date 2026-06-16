@@ -134,7 +134,7 @@ main{display:flex;flex:1;gap:0;min-height:0;}
   border-radius:12px;
   border:1px solid rgba(91,175,214,0.15);
 }
-#room-canvas{display:block;width:100%;cursor:default;}
+#room-canvas{display:block;width:100%;cursor:default;touch-action:none;user-select:none;}
 #dpad,#dpad-hint{display:none!important;}
 
 #dpad{position:absolute;bottom:12px;right:12px;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0.75;}
@@ -3377,7 +3377,7 @@ function _updateThreeAvatars(users) {
     const subj = u.subject || '';
     if (subj === '記帳士') {
       // Graduation cap: wide brim + square top
-      const brim = new THREE.Mesh(new THREE.BoxGeometry(0.48,0.04,0.48),
+      const brim = new THREE.Mesh(new THREE.BoxGeometry(0.40,0.03,0.40),
         new THREE.MeshLambertMaterial({color:0x1A1A2E}));
       brim.position.set(pos[0], 1.73, pos[1]+0.9);
       _addAcc(brim);
@@ -3425,28 +3425,29 @@ function _updateThreeAvatars(users) {
       _addAcc(star);
     }
 
-    // Billboard name plate
+    // Billboard name plate — white pill, colored border
     const npCanvas = document.createElement('canvas');
-    npCanvas.width = 192; npCanvas.height = 40;
+    npCanvas.width = 140; npCanvas.height = 32;
     const npCtx = npCanvas.getContext('2d');
-    npCtx.fillStyle = 'rgba(7,13,20,0.82)';
-    const npR = 6;
-    npCtx.beginPath(); npCtx.moveTo(npR,0); npCtx.lineTo(192-npR,0);
-    npCtx.arcTo(192,0,192,npR,npR); npCtx.lineTo(192,40-npR);
-    npCtx.arcTo(192,40,192-npR,40,npR); npCtx.lineTo(npR,40);
-    npCtx.arcTo(0,40,0,40-npR,npR); npCtx.lineTo(0,npR);
+    const npR = 8;
+    npCtx.fillStyle = 'rgba(255,255,255,0.93)';
+    npCtx.beginPath(); npCtx.moveTo(npR,0); npCtx.lineTo(140-npR,0);
+    npCtx.arcTo(140,0,140,npR,npR); npCtx.lineTo(140,32-npR);
+    npCtx.arcTo(140,32,140-npR,32,npR); npCtx.lineTo(npR,32);
+    npCtx.arcTo(0,32,0,32-npR,npR); npCtx.lineTo(0,npR);
     npCtx.arcTo(0,0,npR,0,npR); npCtx.closePath(); npCtx.fill();
-    npCtx.font = 'bold 15px monospace';
+    npCtx.strokeStyle = hexColor; npCtx.lineWidth = 2; npCtx.stroke();
+    npCtx.font = 'bold 13px sans-serif';
     npCtx.fillStyle = hexColor;
     npCtx.textAlign = 'center';
-    npCtx.fillText(u.name, 96, 17);
-    npCtx.font = '11px monospace';
-    npCtx.fillStyle = 'rgba(180,210,230,0.7)';
-    npCtx.fillText(u.subject || '', 96, 32);
+    npCtx.fillText(u.name.substring(0,6), 70, 13);
+    npCtx.font = '10px sans-serif';
+    npCtx.fillStyle = 'rgba(60,60,80,0.8)';
+    npCtx.fillText(u.subject || '', 70, 26);
     const npTex = new THREE.CanvasTexture(npCanvas);
     const npMat = new THREE.MeshBasicMaterial({ map: npTex, transparent: true, depthWrite: false });
-    const npMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 0.19), npMat);
-    npMesh.position.set(pos[0], 1.85, pos[1]+0.9);
+    const npMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.14), npMat);
+    npMesh.position.set(pos[0], 1.86, pos[1]+0.9);
     _threeScene.add(npMesh);
     _namePlates.push(npMesh);
 
@@ -6551,20 +6552,22 @@ document.getElementById('btn-shout-mob')?.addEventListener('click', async () => 
   el().addEventListener('touchend',e=>{ if(e.touches.length===0){_t1=null;_t2=null;} },{passive:true});
 })();
 
-// Desktop + touch: drag to orbit camera (pointer events for cross-browser reliability)
+// Desktop: drag to orbit camera (document-level mouse events — reliable cross-browser)
 let _mouseOrbit={active:false,lastX:0,lastY:0,offsetX:0,offsetY:0};
 let _wasDrag=false;
 (function(){
-  const canvas = document.getElementById('room-canvas');
-  canvas.addEventListener('pointerdown', e => {
+  const cvs = () => document.getElementById('room-canvas');
+  document.addEventListener('mousedown', e => {
+    const c = cvs();
+    if (!c || !e.composedPath().includes(c)) return;
     if (e.button !== 0) return;
-    canvas.setPointerCapture(e.pointerId);
     _mouseOrbit.active = true;
     _mouseOrbit.lastX = e.clientX;
     _mouseOrbit.lastY = e.clientY;
     _wasDrag = false;
+    c.style.cursor = 'grabbing';
   });
-  canvas.addEventListener('pointermove', e => {
+  document.addEventListener('mousemove', e => {
     if (!_mouseOrbit.active) return;
     const dx = e.clientX - _mouseOrbit.lastX, dy = e.clientY - _mouseOrbit.lastY;
     if (Math.abs(dx) + Math.abs(dy) > 4) _wasDrag = true;
@@ -6573,8 +6576,11 @@ let _wasDrag=false;
     _mouseOrbit.lastX = e.clientX;
     _mouseOrbit.lastY = e.clientY;
   });
-  canvas.addEventListener('pointerup', () => { _mouseOrbit.active = false; });
-  canvas.addEventListener('pointercancel', () => { _mouseOrbit.active = false; });
+  document.addEventListener('mouseup', () => {
+    if (!_mouseOrbit.active) return;
+    _mouseOrbit.active = false;
+    const c = cvs(); if (c) c.style.cursor = 'default';
+  });
 })();
 
 // ── Utils ─────────────────────────────────────────────────────────────
