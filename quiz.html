@@ -429,6 +429,7 @@
       <button id="btnSprint" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(91,175,214,0.15);border-color:rgba(91,175,214,0.6)">⚡ 衝刺</button>
       <button id="btnDaily" onclick="startDailyChallenge()">📅 今日挑戰</button>
       <span id="daily-badge"></span>
+      <div id="quiz-streak" style="display:none;font-size:13px;color:#ff9955;font-weight:600;padding:3px 8px;background:rgba(255,140,0,0.12);border:1px solid rgba(255,140,0,0.3);border-radius:12px;margin-left:8px"></div>
     </div>
     <div class="pr-meta">
       <div class="seg">第 <b id="qNum">—</b></div>
@@ -939,6 +940,63 @@ function _renderDailyChart() {
   }
 }
 
+// ── Wave 124: 每日連刷天數 ────────────────────────────────────────────
+function _getToday() {
+  return new Date().toLocaleDateString('zh-TW', {
+    timeZone: 'Asia/Taipei',
+    year: 'numeric', month: '2-digit', day: '2-digit'
+  }).replace(/\//g, '-');
+}
+
+function _getYesterday() {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toLocaleDateString('zh-TW', {
+    timeZone: 'Asia/Taipei',
+    year: 'numeric', month: '2-digit', day: '2-digit'
+  }).replace(/\//g, '-');
+}
+
+function _updateQuizStreak() {
+  const STREAK_KEY = 'sofa_quiz_streak';
+  const today = _getToday();
+  const s = JSON.parse(localStorage.getItem(STREAK_KEY) || '{"count":0,"lastDate":""}');
+
+  if (s.lastDate === today) return s.count; // already updated today
+
+  const yStr = _getYesterday();
+
+  if (s.lastDate === yStr) {
+    s.count += 1; // extend streak
+  } else if (s.lastDate === '') {
+    s.count = 1; // first time
+  } else {
+    s.count = 1; // streak broken, restart
+  }
+
+  s.lastDate = today;
+  localStorage.setItem(STREAK_KEY, JSON.stringify(s));
+  return s.count;
+}
+
+function _getQuizStreak() {
+  const s = JSON.parse(localStorage.getItem('sofa_quiz_streak') || '{"count":0,"lastDate":""}');
+  if (!s.lastDate || s.lastDate < _getYesterday()) return 0;
+  return s.count;
+}
+
+function _renderQuizStreak() {
+  const el = document.getElementById('quiz-streak');
+  if (!el) return;
+  const count = _getQuizStreak();
+  if (count >= 2) {
+    el.style.display = 'inline-block';
+    el.textContent = `🔥 ${count}日連刷`;
+  } else {
+    el.style.display = 'none';
+  }
+}
+
 function _recordAnswer(isCorrect, lawName, elapsedSec) {
   const _today = new Date().toISOString().slice(0,10);
   const _dayKey = 'sofa_quiz_daily_' + _today;
@@ -966,6 +1024,9 @@ function _recordAnswer(isCorrect, lawName, elapsedSec) {
   _saveStats(s);
   // Wave 117: update law status bar in real time after each answer
   if(lawName) _updateLawStatusBar(lawName);
+  // Wave 124: 每日連刷天數
+  _updateQuizStreak();
+  _renderQuizStreak();
 }
 
 // ── Wave 117: 法規學習狀態列 ────────────────────────────────────────
@@ -1872,6 +1933,7 @@ async function loadWrongQuiz() {
 document.addEventListener('DOMContentLoaded', () => {
   refreshWrongCount();
   _updateDailyBtn();
+  _renderQuizStreak(); // Wave 124: 每日連刷天數
 
   // 錯題本按鈕 toggle
   document.getElementById('btnWrong')?.addEventListener('click', () => {
