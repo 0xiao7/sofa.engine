@@ -981,6 +981,7 @@ let _rugMesh = null;
 let _rainbowGroup = null; // Wave127: 晨光彩虹（6-9時）
 let _clouds = [], _cloudTxCache = []; // Wave128: 窗外雲朵（白天6-21時）
 let _windowMesh = null, _windowTex = null, _windowHour = -1; // Wave143: 窗外時段景色
+let _welcomeMatMesh = null, _welcomeMatTex = null, _matHour = -1; // Wave148: 入口歡迎地墊
 let _threeTime = 0;
 let _flyInDone = false, _flyInStart = 0;
 // Wave144: tree growth milestones
@@ -2758,6 +2759,8 @@ function initThreeScene(canvas) {
   _buildWallFrames();
   // Wave143: 窗外時段景色
   _buildWindow();
+  // Wave148: 入口歡迎地墊
+  _buildWelcomeMat();
 
   _updateThreeAvatars([]);
 }
@@ -4002,6 +4005,94 @@ function _buildRug() {
   _threeScene.add(_rugMesh);
 }
 
+// ─── Wave148: 入口歡迎地墊 ───────────────────────────────────────────────────
+
+function _drawWelcomeMat(hour) {
+  if (!_welcomeMatTex) return;
+  const canvas = _welcomeMatTex.image;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+
+  // Determine time-of-day greeting
+  let line1, line2;
+  if (hour >= 6 && hour < 11) {
+    line1 = '早安！'; line2 = 'SoFa 自習室';
+  } else if (hour >= 11 && hour < 17) {
+    line1 = '午安！'; line2 = 'SoFa 自習室';
+  } else if (hour >= 17 && hour < 21) {
+    line1 = '晚安！'; line2 = 'SoFa 自習室';
+  } else {
+    line1 = '夜讀辛苦了'; line2 = 'SoFa 自習室';
+  }
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Background — deep teal
+  ctx.fillStyle = '#1A3A3A';
+  ctx.fillRect(0, 0, W, H);
+
+  // Outer gold border (2px)
+  ctx.strokeStyle = '#D4A853';
+  ctx.lineWidth = 2;
+  ctx.strokeRect(4, 4, W - 8, H - 8);
+
+  // Inner gold border (1px), 4px gap inside
+  ctx.strokeStyle = '#B8943F';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(10, 10, W - 20, H - 20);
+
+  // Decorative L-bracket corners (gold, 4 corners)
+  const cLen = 12, cThk = 2;
+  ctx.fillStyle = '#D4A853';
+  const corners = [
+    [14, 14, 1, 1],   // top-left
+    [W - 14, 14, -1, 1],  // top-right
+    [14, H - 14, 1, -1],  // bottom-left
+    [W - 14, H - 14, -1, -1], // bottom-right
+  ];
+  corners.forEach(([cx, cy, dx, dy]) => {
+    // Horizontal arm
+    ctx.fillRect(cx, cy - cThk / 2 * dy, cLen * dx, cThk);
+    // Vertical arm
+    ctx.fillRect(cx - cThk / 2 * dx, cy, cThk, cLen * dy);
+  });
+
+  // Center text line 1 — greeting
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillStyle = '#D4A853';
+  ctx.font = 'bold 32px "Noto Serif TC", serif';
+  ctx.fillText(line1, W / 2, H / 2 - 18);
+
+  // Center text line 2 — subtitle
+  ctx.fillStyle = '#B8943F';
+  ctx.font = '14px "Noto Serif TC", serif';
+  ctx.fillText(line2, W / 2, H / 2 + 18);
+
+  _welcomeMatTex.needsUpdate = true;
+}
+
+function _buildWelcomeMat() {
+  if (_welcomeMatMesh) return;
+
+  // Canvas texture 256x128
+  const cvs = document.createElement('canvas');
+  cvs.width = 256; cvs.height = 128;
+  _welcomeMatTex = new THREE.CanvasTexture(cvs);
+
+  // Plane lying flat on the floor at the entrance (positive z side)
+  const geo = new THREE.PlaneGeometry(2.8, 1.4);
+  const mat = new THREE.MeshBasicMaterial({ map: _welcomeMatTex, transparent: false });
+  _welcomeMatMesh = new THREE.Mesh(geo, mat);
+  _welcomeMatMesh.rotation.x = -Math.PI / 2;       // lay flat
+  _welcomeMatMesh.position.set(0, 0.006, 6.2);      // entrance, above floor
+  _threeScene.add(_welcomeMatMesh);
+
+  // Draw initial design
+  _drawWelcomeMat(new Date().getHours());
+  _matHour = new Date().getHours();
+}
+
 // ─── Wave138: Decorative picture frames ─────────────────────────────────────
 
 function _paintMotivation() {
@@ -4429,6 +4520,8 @@ function startThreeAnimation(canvas) {
     if(Math.round(_threeTime*125) % 7500 === 4){ _updateClouds(); }
     // Wave 143: 窗外時段景色 — redraw only when hour changes
     { const _wh = new Date().getHours(); if(_wh !== _windowHour){ _windowHour=_wh; _drawWindowScene(_wh); } }
+    // Wave 148: 入口歡迎地墊 — redraw when hour changes
+    { const _mh = new Date().getHours(); if(_mh !== _matHour){ _matHour=_mh; _drawWelcomeMat(_mh); } }
     // Wave 90: moonlight breathing animation (every frame)
     if (_moonlightPatch) {
       _moonlightPatch.material.opacity = 0.25 + Math.sin(_threeTime * 0.02) * 0.1;
