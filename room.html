@@ -980,6 +980,7 @@ let _ceilingFan = null;
 let _rugMesh = null;
 let _rainbowGroup = null; // Wave127: 晨光彩虹（6-9時）
 let _clouds = [], _cloudTxCache = []; // Wave128: 窗外雲朵（白天6-21時）
+let _windowMesh = null, _windowTex = null, _windowHour = -1; // Wave143: 窗外時段景色
 let _threeTime = 0;
 let _flyInDone = false, _flyInStart = 0;
 
@@ -2753,6 +2754,8 @@ function initThreeScene(canvas) {
   _buildRug();
   // Wave138: Decorative picture frames on side walls
   _buildWallFrames();
+  // Wave143: 窗外時段景色
+  _buildWindow();
 
   _updateThreeAvatars([]);
 }
@@ -4122,6 +4125,218 @@ function _buildWallFrames() {
   );
 }
 
+// ── Wave143: 窗外時段景色 ──────────────────────────────────────────────────
+
+function _drawWindowScene(hour) {
+  if (!_windowTex) return;
+  const canvas = _windowTex.image;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  ctx.clearRect(0, 0, W, H);
+
+  if (hour >= 6 && hour < 9) {
+    // 晨曦：粉→橙→淡藍漸層，城市剪影，日出
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0,   '#a8d4f5'); // 天空上方淡藍
+    grad.addColorStop(0.45,'#f5c97a'); // 中橙
+    grad.addColorStop(0.72,'#f29060'); // 橙紅
+    grad.addColorStop(1,   '#f5a0c0'); // 地平線粉紅
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // 太陽（低位日出）
+    const sunX = W * 0.72, sunY = H * 0.72;
+    const sunGrad = ctx.createRadialGradient(sunX, sunY, 2, sunX, sunY, 28);
+    sunGrad.addColorStop(0,   'rgba(255,240,180,1)');
+    sunGrad.addColorStop(0.5, 'rgba(255,200,80,0.7)');
+    sunGrad.addColorStop(1,   'rgba(255,160,50,0)');
+    ctx.fillStyle = sunGrad;
+    ctx.beginPath(); ctx.arc(sunX, sunY, 28, 0, Math.PI*2); ctx.fill();
+
+    // 城市剪影
+    ctx.fillStyle = '#2a1a10';
+    const bldgs = [
+      [0,H*0.8,20,H*0.35],[22,H*0.78,14,H*0.3],[38,H*0.82,18,H*0.28],
+      [58,H*0.75,12,H*0.38],[72,H*0.8,22,H*0.28],[96,H*0.77,16,H*0.32],
+      [114,H*0.82,10,H*0.24],[126,H*0.76,24,H*0.35],[152,H*0.8,14,H*0.28],
+      [168,H*0.79,20,H*0.3],[190,H*0.83,12,H*0.22],[204,H*0.77,28,H*0.32],
+      [234,H*0.8,22,H*0.26]
+    ];
+    bldgs.forEach(([x,y,w,h]) => ctx.fillRect(x, y, w, h));
+    // 地平線底部填色
+    ctx.fillRect(0, H*0.9, W, H*0.1);
+
+  } else if (hour >= 9 && hour < 17) {
+    // 白日：明藍天空，白雲，太陽
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0,   '#2a8fdf');
+    grad.addColorStop(0.6, '#6ec6f5');
+    grad.addColorStop(1,   '#c8e8f8');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // 太陽（右上角）
+    ctx.fillStyle = 'rgba(255,245,150,0.95)';
+    ctx.beginPath(); ctx.arc(W*0.82, H*0.14, 18, 0, Math.PI*2); ctx.fill();
+    const sunHalo = ctx.createRadialGradient(W*0.82, H*0.14, 16, W*0.82, H*0.14, 36);
+    sunHalo.addColorStop(0,'rgba(255,240,100,0.3)');
+    sunHalo.addColorStop(1,'rgba(255,240,100,0)');
+    ctx.fillStyle = sunHalo;
+    ctx.beginPath(); ctx.arc(W*0.82, H*0.14, 36, 0, Math.PI*2); ctx.fill();
+
+    // 白雲 3 朵
+    function drawCloud(cx, cy, scale) {
+      ctx.fillStyle = 'rgba(255,255,255,0.92)';
+      [[0,0,22],[18,-8,18],[-18,-6,16],[26,4,14],[-24,4,12]].forEach(([dx,dy,r]) => {
+        ctx.beginPath();
+        ctx.ellipse(cx+dx*scale, cy+dy*scale, r*scale, r*scale*0.62, 0, 0, Math.PI*2);
+        ctx.fill();
+      });
+    }
+    drawCloud(W*0.18, H*0.25, 1.1);
+    drawCloud(W*0.55, H*0.18, 0.85);
+    drawCloud(W*0.78, H*0.38, 0.7);
+
+    // 遠山輪廓
+    ctx.fillStyle = 'rgba(140,200,160,0.5)';
+    ctx.beginPath();
+    ctx.moveTo(0, H*0.78);
+    ctx.bezierCurveTo(W*0.15, H*0.55, W*0.35, H*0.65, W*0.5, H*0.7);
+    ctx.bezierCurveTo(W*0.65, H*0.75, W*0.8, H*0.58, W, H*0.68);
+    ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(100,170,120,0.6)';
+    ctx.fillRect(0, H*0.85, W, H*0.15);
+
+  } else if (hour >= 17 && hour < 20) {
+    // 黃昏：深橙/紫漸層，金色地平線，剪影屋頂，夕陽
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0,   '#2e1760');
+    grad.addColorStop(0.3, '#7a3080');
+    grad.addColorStop(0.6, '#e06030');
+    grad.addColorStop(0.82,'#f5a020');
+    grad.addColorStop(1,   '#ffd060');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // 夕陽（接近地平線）
+    const sunX2 = W*0.42, sunY2 = H*0.78;
+    const sunG2 = ctx.createRadialGradient(sunX2, sunY2, 4, sunX2, sunY2, 32);
+    sunG2.addColorStop(0,   'rgba(255,230,100,0.95)');
+    sunG2.addColorStop(0.6, 'rgba(255,150,30,0.6)');
+    sunG2.addColorStop(1,   'rgba(255,80,0,0)');
+    ctx.fillStyle = sunG2;
+    ctx.beginPath(); ctx.arc(sunX2, sunY2, 32, 0, Math.PI*2); ctx.fill();
+
+    // 地平線金光反射
+    const horiGrad = ctx.createLinearGradient(0, H*0.75, 0, H*0.88);
+    horiGrad.addColorStop(0, 'rgba(255,200,50,0.45)');
+    horiGrad.addColorStop(1, 'rgba(255,200,50,0)');
+    ctx.fillStyle = horiGrad;
+    ctx.fillRect(0, H*0.75, W, H*0.13);
+
+    // 屋頂剪影
+    ctx.fillStyle = '#150e20';
+    const roofs = [
+      [0,H*0.76,30,H*0.32],[32,H*0.74,20,H*0.34],[54,H*0.78,16,H*0.28],
+      [72,H*0.72,28,H*0.36],[102,H*0.76,18,H*0.3],[122,H*0.71,24,H*0.37],
+      [148,H*0.75,22,H*0.32],[172,H*0.73,14,H*0.35],[188,H*0.77,20,H*0.3],
+      [210,H*0.74,18,H*0.34],[230,H*0.78,26,H*0.28]
+    ];
+    roofs.forEach(([x,y,w,h]) => ctx.fillRect(x, y, w, h));
+    // 三角屋頂
+    [[10,H*0.76],[44,H*0.74],[114,H*0.72],[164,H*0.71]].forEach(([x,y]) => {
+      ctx.beginPath();
+      ctx.moveTo(x, y); ctx.lineTo(x+10, y-12); ctx.lineTo(x+20, y);
+      ctx.closePath(); ctx.fill();
+    });
+    ctx.fillRect(0, H*0.88, W, H*0.12);
+
+  } else {
+    // 夜晚 20-6h：深夜藍黑，月亮，星星
+    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0,   '#04081a');
+    grad.addColorStop(0.5, '#080e28');
+    grad.addColorStop(1,   '#0d1530');
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // 星星 10 顆
+    const stars = [
+      [0.08,0.10],[0.20,0.06],[0.35,0.14],[0.50,0.08],[0.62,0.18],
+      [0.76,0.10],[0.88,0.05],[0.14,0.30],[0.44,0.28],[0.72,0.25]
+    ];
+    stars.forEach(([sx,sy]) => {
+      const r = 1.2 + Math.random() * 1.2;
+      ctx.fillStyle = `rgba(255,255,230,${0.6 + Math.random()*0.4})`;
+      ctx.beginPath(); ctx.arc(sx*W, sy*H, r, 0, Math.PI*2); ctx.fill();
+    });
+
+    // 月牙（右上）
+    const mx = W*0.78, my = H*0.18, mr = 20;
+    ctx.fillStyle = 'rgba(255,245,200,0.96)';
+    ctx.beginPath(); ctx.arc(mx, my, mr, 0, Math.PI*2); ctx.fill();
+    // 遮罩刻出月牙形
+    ctx.fillStyle = '#060b1f';
+    ctx.beginPath(); ctx.arc(mx+9, my-4, mr*0.82, 0, Math.PI*2); ctx.fill();
+
+    // 遠山黑影
+    ctx.fillStyle = '#0c1228';
+    ctx.beginPath();
+    ctx.moveTo(0, H*0.72);
+    ctx.bezierCurveTo(W*0.2, H*0.52, W*0.45, H*0.62, W*0.6, H*0.68);
+    ctx.bezierCurveTo(W*0.75, H*0.74, W*0.88, H*0.58, W, H*0.65);
+    ctx.lineTo(W, H); ctx.lineTo(0, H); ctx.closePath();
+    ctx.fill();
+    ctx.fillRect(0, H*0.88, W, H*0.12);
+  }
+
+  _windowTex.needsUpdate = true;
+}
+
+function _buildWindow() {
+  // ── Canvas texture ─────────────────────────────────────────────────
+  const cvs = document.createElement('canvas');
+  cvs.width = 256; cvs.height = 192;
+  _windowTex = new THREE.CanvasTexture(cvs);
+
+  // ── Window glass plane ─────────────────────────────────────────────
+  const geo = new THREE.PlaneGeometry(3.5, 2.5);
+  const mat = new THREE.MeshStandardMaterial({
+    map: _windowTex,
+    roughness: 0.15,
+    metalness: 0.05,
+  });
+  _windowMesh = new THREE.Mesh(geo, mat);
+  _windowMesh.position.set(8.7, 3.8, -2);
+  _windowMesh.rotation.y = -Math.PI / 2;
+  _threeScene.add(_windowMesh);
+
+  // ── Wooden frame border (4 strips) ────────────────────────────────
+  const woodColor = 0x2C1F14;
+  const woodMat = new THREE.MeshStandardMaterial({ color: woodColor, roughness: 0.85, metalness: 0.05 });
+  const frameData = [
+    // [width, height, depth, offsetX, offsetY, offsetZ]
+    [3.7, 0.12, 0.1,  0,       1.31,  0],  // top
+    [3.7, 0.12, 0.1,  0,      -1.31,  0],  // bottom
+    [0.12, 2.74, 0.1, 1.81,    0,     0],  // right
+    [0.12, 2.74, 0.1,-1.81,    0,     0],  // left
+  ];
+  // The window plane sits at x=8.68, rotated -PI/2 around Y.
+  // Frame strips: top/bottom bars run along Z axis, side bars stand vertically.
+  // ox = Z-offset (horizontal spread), oy = Y-offset (vertical spread).
+  frameData.forEach(([w,h,d,ox,oy]) => {
+    const strip = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), woodMat);
+    strip.rotation.y = -Math.PI / 2;
+    strip.position.set(8.68, 3.8 + oy, -2 + ox);
+    _threeScene.add(strip);
+  });
+
+  // Draw the initial scene
+  _drawWindowScene(new Date().getHours());
+  _windowHour = new Date().getHours();
+}
+
 // ────────────────────────────────────────────────────────────────────────────
 
 function startThreeAnimation(canvas) {
@@ -4185,6 +4400,8 @@ function startThreeAnimation(canvas) {
     if(Math.round(_threeTime*125) % 7500 === 3){ _updateRainbow(); }
     // Wave 128: update clouds once per ~60s (offset by 4)
     if(Math.round(_threeTime*125) % 7500 === 4){ _updateClouds(); }
+    // Wave 143: 窗外時段景色 — redraw only when hour changes
+    { const _wh = new Date().getHours(); if(_wh !== _windowHour){ _windowHour=_wh; _drawWindowScene(_wh); } }
     // Wave 90: moonlight breathing animation (every frame)
     if (_moonlightPatch) {
       _moonlightPatch.material.opacity = 0.25 + Math.sin(_threeTime * 0.02) * 0.1;
