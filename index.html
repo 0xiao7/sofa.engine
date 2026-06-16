@@ -2140,10 +2140,16 @@
 
 
 <script>
-// ── 早鳥邏輯（6/15 前季費 +15 天）────────────────────────
+// ── 早鳥邏輯（6/15 前贈 15 天）────────────────────────
 (function(){
   var EB_END = new Date('2026-06-15T23:59:59+08:00');
-  if(new Date() >= EB_END) return;
+  var ebCard = document.querySelector('.plan.plan-feat');
+  if(new Date() >= EB_END){
+    // 早鳥已截止：隱藏早鳥卡，避免混淆
+    if(ebCard) ebCard.style.display = 'none';
+    return;
+  }
+  // 早鳥期間：更新季訂閱文字
   var meta  = document.getElementById('idx-q-meta');
   var li    = document.getElementById('idx-q-li');
   var eb    = document.getElementById('idx-q-eb');
