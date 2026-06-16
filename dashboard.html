@@ -2053,7 +2053,8 @@ function _renderDrawer(d){
   var savedTab = localStorage.getItem('sofa_drawer_tab') || 'analysis';
   _switchDrawerTab(savedTab);
   _setReadFont(_getReadFont());
-  _loadNoteForArticle(d.id);
+  var artNo = (d.title || '').match(/第(\d+(?:之\d+)?)條/)?.[1] || '';
+  _loadNoteForArticle(d.id, d.law_name, artNo ? '第' + artNo + '條' : d.title);
 }
 
 function _renderDrawerFallback(lawName, article){
@@ -2218,9 +2219,12 @@ function _exportBookmarks() {
 // ── Wave 112 — 個人筆記（per-article localStorage）────────────
 var NOTES_KEY = 'sofa_notes_v1';
 var _currentNoteId = null;
+var _currentNoteLaw = '', _currentNoteArticleNo = '';
 
-function _loadNoteForArticle(articleId) {
+function _loadNoteForArticle(articleId, lawName, articleNo) {
   _currentNoteId = articleId;
+  _currentNoteLaw = lawName || '';
+  _currentNoteArticleNo = articleNo || '';
   try {
     var notes = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}');
     var note = notes[articleId];
@@ -2257,7 +2261,7 @@ function _saveNote() {
     var text = (document.getElementById('note-input')?.value || '').trim();
     var notes = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}');
     if (text) {
-      notes[_currentNoteId] = { text: text, updatedAt: new Date().toISOString() };
+      notes[_currentNoteId] = { text: text, updatedAt: new Date().toISOString(), lawName: _currentNoteLaw, articleNo: _currentNoteArticleNo };
     } else {
       delete notes[_currentNoteId];
     }
@@ -2279,6 +2283,41 @@ function _clearNote() {
 function _noteUnsaved() {
   var btn = document.getElementById('note-save-btn');
   if (btn) btn.style.background = '#5a3a1a'; // amber tint to indicate unsaved
+}
+
+function _exportNotes() {
+  var notes = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}');
+  var entries = Object.values(notes).filter(function(n) { return n.text && n.text.trim(); });
+
+  if (entries.length === 0) {
+    _dashToast('尚無筆記可匯出');
+    return;
+  }
+
+  var date = new Date().toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
+  var txt = 'SoFa 個人筆記匯出 — ' + date + '\n';
+  txt += '========================================\n\n';
+
+  entries.forEach(function(n) {
+    if (n.lawName) txt += '【' + n.lawName + '】';
+    if (n.articleNo) txt += ' ' + n.articleNo;
+    if (n.lawName || n.articleNo) txt += '\n';
+    txt += n.text.trim() + '\n';
+    if (n.updatedAt) {
+      var d = new Date(n.updatedAt).toLocaleDateString('zh-TW', { timeZone: 'Asia/Taipei' });
+      txt += '  — ' + d + '\n';
+    }
+    txt += '\n';
+  });
+
+  var blob = new Blob([txt], { type: 'text/plain;charset=utf-8' });
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url;
+  a.download = 'sofa_notes_' + new Date().toISOString().slice(0, 10) + '.txt';
+  a.click();
+  URL.revokeObjectURL(url);
+  _dashToast('匯出 ' + entries.length + ' 條筆記');
 }
 
 // ── Wave 60 — copy article ────────────────────
@@ -3756,6 +3795,9 @@ function switchToFree(){
     <span style="color:#F0E8C8;font-size:15px;font-weight:600">★ 待復習</span>
     <div style="display:flex;align-items:center;gap:8px">
       <button id="bk-export-btn" onclick="_exportBookmarks()" title="下載書籤清單">📥 匯出</button>
+      <button onclick="_exportNotes()" title="匯出全部筆記"
+        style="background:none;border:1px solid #2a4060;color:#8899aa;padding:4px 12px;border-radius:12px;font-size:12px;cursor:pointer;">
+        📥 筆記</button>
       <button onclick="toggleBkPanel()" style="background:none;border:none;color:#8ABED6;cursor:pointer;font-size:18px">✕</button>
     </div>
   </div>
