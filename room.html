@@ -1888,7 +1888,7 @@ function initThreeScene(canvas) {
     const c = document.createElement('canvas'); c.width = 4; c.height = 1;
     const ctx = c.getContext('2d');
     const d = ctx.createImageData(4,1);
-    [[60,55,50],[130,122,112],[195,188,178],[255,252,248]].forEach(([r,g,b],i)=>{
+    [[35,28,22],[105,92,78],[178,162,145],[255,252,246]].forEach(([r,g,b],i)=>{
       d.data[i*4]=r; d.data[i*4+1]=g; d.data[i*4+2]=b; d.data[i*4+3]=255;
     });
     ctx.putImageData(d,0,0);
@@ -3743,29 +3743,38 @@ function _updateThreeAvatars(users) {
     scMesh.rotation.x = -0.3; // slight tilt toward camera
     _di(scMesh);
 
-    // Billboard name plate — white pill, colored border
+    // Billboard name plate — game-style dark tag with colored accent border
     const npCanvas = document.createElement('canvas');
-    npCanvas.width = 140; npCanvas.height = 32;
+    npCanvas.width = 160; npCanvas.height = 40;
     const npCtx = npCanvas.getContext('2d');
-    const npR = 8;
-    npCtx.fillStyle = 'rgba(255,255,255,0.93)';
-    npCtx.beginPath(); npCtx.moveTo(npR,0); npCtx.lineTo(140-npR,0);
-    npCtx.arcTo(140,0,140,npR,npR); npCtx.lineTo(140,32-npR);
-    npCtx.arcTo(140,32,140-npR,32,npR); npCtx.lineTo(npR,32);
-    npCtx.arcTo(0,32,0,32-npR,npR); npCtx.lineTo(0,npR);
-    npCtx.arcTo(0,0,npR,0,npR); npCtx.closePath(); npCtx.fill();
-    npCtx.strokeStyle = hexColor; npCtx.lineWidth = 2; npCtx.stroke();
-    npCtx.font = 'bold 13px sans-serif';
+    // Dark background
+    npCtx.fillStyle = 'rgba(6,14,26,0.88)';
+    npCtx.fillRect(0, 0, 160, 36);
+    // Bottom pointer triangle
+    npCtx.fillStyle = 'rgba(6,14,26,0.88)';
+    npCtx.beginPath(); npCtx.moveTo(72,36); npCtx.lineTo(88,36); npCtx.lineTo(80,40); npCtx.closePath(); npCtx.fill();
+    // Colored top accent bar
     npCtx.fillStyle = hexColor;
+    npCtx.fillRect(0, 0, 160, 3);
+    // Colored border
+    npCtx.strokeStyle = hexColor; npCtx.lineWidth = 1.5; npCtx.globalAlpha = 0.7;
+    npCtx.strokeRect(0.75, 0.75, 158.5, 35.5);
+    npCtx.globalAlpha = 1;
+    // Name text (monospace, vivid color)
+    npCtx.font = 'bold 14px monospace';
+    npCtx.fillStyle = '#E8DCC8';
     npCtx.textAlign = 'center';
-    npCtx.fillText(u.name.substring(0,6), 70, 13);
-    npCtx.font = '10px sans-serif';
-    npCtx.fillStyle = 'rgba(60,60,80,0.8)';
-    npCtx.fillText(u.subject || '', 70, 26);
+    npCtx.fillText(u.name.substring(0,7), 80, 16);
+    // Subject text (smaller, dimmer)
+    npCtx.font = '10px monospace';
+    npCtx.fillStyle = hexColor;
+    npCtx.globalAlpha = 0.8;
+    npCtx.fillText(u.subject || '', 80, 29);
+    npCtx.globalAlpha = 1;
     const npTex = new THREE.CanvasTexture(npCanvas);
     const npMat = new THREE.MeshBasicMaterial({ map: npTex, transparent: true, depthWrite: false });
-    const npMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.6, 0.14), npMat);
-    npMesh.position.set(pos[0], 1.86, pos[1]+0.9);
+    const npMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.65, 0.16), npMat);
+    npMesh.position.set(pos[0], 1.94, pos[1]+0.9);
     _threeScene.add(npMesh);
     _namePlates.push(npMesh);
 
