@@ -4448,6 +4448,64 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v65: Magic study circle — rotating rune rings on shrine path floor ────────
+  { const _mkRuneTex=()=>{
+      const rc=document.createElement('canvas'); rc.width=rc.height=512;
+      const rctx=rc.getContext('2d');
+      const cx=256,cy=256;
+      // Outer ring
+      rctx.strokeStyle='rgba(200,160,255,0.90)'; rctx.lineWidth=3.5;
+      rctx.beginPath(); rctx.arc(cx,cy,238,0,Math.PI*2); rctx.stroke();
+      // Mid ring
+      rctx.strokeStyle='rgba(180,130,255,0.70)'; rctx.lineWidth=2.0;
+      rctx.beginPath(); rctx.arc(cx,cy,188,0,Math.PI*2); rctx.stroke();
+      // Inner ring
+      rctx.strokeStyle='rgba(220,180,255,0.95)'; rctx.lineWidth=4.5;
+      rctx.beginPath(); rctx.arc(cx,cy,138,0,Math.PI*2); rctx.stroke();
+      // 8 spoke tick marks on outer ring
+      for(let i=0;i<8;i++){
+        const a=(i/8)*Math.PI*2;
+        rctx.strokeStyle='rgba(210,170,255,0.95)'; rctx.lineWidth=2.5;
+        rctx.beginPath();
+        rctx.moveTo(cx+Math.cos(a)*222,cy+Math.sin(a)*222);
+        rctx.lineTo(cx+Math.cos(a)*254,cy+Math.sin(a)*254); rctx.stroke();
+        // Diamond at each tick
+        rctx.fillStyle='rgba(230,190,255,0.80)';
+        const dm=5, dax=Math.cos(a), day=Math.sin(a), dpx=Math.cos(a+Math.PI/2)*dm, dpy=Math.sin(a+Math.PI/2)*dm;
+        const dr=238;
+        rctx.beginPath();
+        rctx.moveTo(cx+dax*(dr-dm),cy+day*(dr-dm));
+        rctx.lineTo(cx+dpx,cy+dpy+day*(dr));
+        rctx.lineTo(cx+dax*(dr+dm),cy+day*(dr+dm));
+        rctx.lineTo(cx-dpx,cy-dpy+day*(dr));
+        rctx.closePath(); rctx.fill();
+      }
+      // Hexagram lines inside inner ring
+      for(let i=0;i<6;i++){
+        const a1=(i/6)*Math.PI*2, a2=((i+3)%6/6)*Math.PI*2;
+        rctx.strokeStyle='rgba(190,150,255,0.45)'; rctx.lineWidth=1.5;
+        rctx.beginPath();
+        rctx.moveTo(cx+Math.cos(a1)*128,cy+Math.sin(a1)*128);
+        rctx.lineTo(cx+Math.cos(a2)*128,cy+Math.sin(a2)*128); rctx.stroke();
+      }
+      // Radial center glow
+      const grd=rctx.createRadialGradient(cx,cy,0,cx,cy,210);
+      grd.addColorStop(0,'rgba(200,150,255,0.18)');
+      grd.addColorStop(0.5,'rgba(160,110,255,0.09)');
+      grd.addColorStop(1,'rgba(0,0,0,0)');
+      rctx.fillStyle=grd; rctx.fillRect(0,0,512,512);
+      return new THREE.CanvasTexture(rc);
+    };
+    const runeTex=_mkRuneTex();
+    const runeMatI=new THREE.MeshBasicMaterial({map:runeTex,transparent:true,opacity:0.60,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+    const runeMatO=new THREE.MeshBasicMaterial({map:runeTex,transparent:true,opacity:0.30,blending:THREE.AdditiveBlending,depthWrite:false,side:THREE.DoubleSide});
+    const runeI=new THREE.Mesh(new THREE.PlaneGeometry(4.8,4.8),runeMatI);
+    runeI.rotation.x=-Math.PI/2; runeI.position.set(0,0.009,4.5); _threeScene.add(runeI);
+    const runeO=new THREE.Mesh(new THREE.PlaneGeometry(6.4,6.4),runeMatO);
+    runeO.rotation.x=-Math.PI/2; runeO.position.set(0,0.007,4.5); _threeScene.add(runeO);
+    _threeScene.userData.studyCircle={inner:runeI,outer:runeO};
+  }
+
   // v61: Bamboo grove — entrance forest framing the shrine path ──────────────
   { const _brng=_rng(61);
     const bambooM=new THREE.MeshLambertMaterial({color:0x3A8020});
@@ -7835,6 +7893,15 @@ function startThreeAnimation(canvas) {
       kf.position.z=-0.5+Math.sin(a)*r*1.15;
       kf.material.rotation=-a; // face direction of travel
     }); }
+    // Magic study circle — counter-rotating rings, pulsing opacity
+    const _sc=_threeScene.userData.studyCircle;
+    if(_sc){
+      _sc.inner.rotation.z += 0.0018;
+      _sc.outer.rotation.z -= 0.0007;
+      const pulse=0.50+0.14*Math.sin(_threeTime*0.75);
+      _sc.inner.material.opacity=pulse;
+      _sc.outer.material.opacity=pulse*0.48;
+    }
     // Ground mist — gentle drift and pulse at floor level
     _mistPlanes.forEach(ms => {
       ms.position.x += ms.userData.driftX;
