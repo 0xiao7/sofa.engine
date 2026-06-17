@@ -1758,15 +1758,15 @@ function initThreeScene(canvas) {
   _threeControls.enabled = false;
   _threeControls.addEventListener('change', () => { _wasDrag = true; });
 
-  // Lights — toon-optimised: less ambient so shadow bands read clearly
-  _threeScene.add(new THREE.AmbientLight(0xFFF8F0, _isMobile ? 1.4 : 0.9));
+  // Lights — bright warm library
+  _threeScene.add(new THREE.AmbientLight(0xFFF8F0, 1.8));
   if (!_isMobile) {
-    const ceilLight1 = new THREE.PointLight(0xFFF5E8, 4.5, 28);
+    const ceilLight1 = new THREE.PointLight(0xFFF5E8, 3.5, 28);
     ceilLight1.position.set(-4, 7.5, -2); _threeScene.add(ceilLight1);
-    const ceilLight2 = new THREE.PointLight(0xFFF5E8, 4.5, 28);
+    const ceilLight2 = new THREE.PointLight(0xFFF5E8, 3.5, 28);
     ceilLight2.position.set(4, 7.5, -2); _threeScene.add(ceilLight2);
   }
-  const keyLight = new THREE.DirectionalLight(0xFFF0D8, 2.4);
+  const keyLight = new THREE.DirectionalLight(0xFFF0D8, 1.6);
   keyLight.position.set(3, 8, 5);
   _threeScene.add(keyLight);
   keyLight.castShadow = true;
@@ -1793,14 +1793,7 @@ function initThreeScene(canvas) {
     _torchLights.push(tl);
   });
 
-  // 4-band toon gradient: deep shadow → shadow → mid → highlight
-  const _toonGrad = (() => {
-    const d = new Uint8Array([32,28,22,255, 95,85,70,255, 175,162,142,255, 255,252,245,255]);
-    const t = new THREE.DataTexture(d, 4, 1);
-    t.needsUpdate = true;
-    return t;
-  })();
-  const mLambert = (hex, flat=false) => new THREE.MeshToonMaterial({ color: hex, gradientMap: _toonGrad });
+  const mLambert = (hex, flat=false) => new THREE.MeshLambertMaterial({ color: hex, flatShading: flat });
   const box = (w,h,d) => new THREE.BoxGeometry(w,h,d);
 
   // Textured materials (created once, reused)
@@ -2848,20 +2841,6 @@ function initThreeScene(canvas) {
   // Wave148: 入口歡迎地墊
   _buildWelcomeMat();
 
-  // Toon outlines: traverse static geometry, add backface outline child to each solid mesh
-  (function _addOutlines() {
-    const mat = new THREE.MeshBasicMaterial({ color: 0x0a1510, side: THREE.BackSide });
-    _threeScene.traverse(obj => {
-      if (!obj.isMesh) return;
-      if (obj.userData.noOutline || obj.userData.isLabel) return;
-      if (obj.material && (obj.material.transparent || obj.material.isSpriteMaterial)) return;
-      const ol = new THREE.Mesh(obj.geometry, mat);
-      ol.scale.setScalar(1.022);
-      ol.userData.noOutline = true;
-      obj.add(ol);
-    });
-  })();
-
   // Preload animated character GLB (698KB, cached after first load)
   if (THREE.GLTFLoader) {
     new THREE.GLTFLoader().load('models/human.glb', gltf => {
@@ -3400,11 +3379,10 @@ function _updateThreeAvatars(users) {
       // Tint all meshes with subject hue using toon material
       clone.traverse(node => {
         if (node.isMesh) {
-          node.material = new THREE.MeshToonMaterial({ color, gradientMap: _toonGrad });
+          node.material = new THREE.MeshLambertMaterial({ color });
           node.castShadow = true;
           node.userData.userIndex = i;
-          // Self gets a gold tint hint
-          if (u.isSelf) node.material.emissive = new THREE.Color(0x332200);
+          if (u.isSelf) node.material.emissive = new THREE.Color(0x221100);
         }
       });
       _threeScene.add(clone);
