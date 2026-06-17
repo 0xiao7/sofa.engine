@@ -1824,9 +1824,7 @@ function initThreeScene(canvas) {
   _threeScene.add(floor);
   floor.receiveShadow = true;
   // (floor reflection removed — AdditiveBlending caused golden wash on bright theme)
-  const grid = new THREE.GridHelper(22, 22, 0xCCC4B4, 0xD8D2C4);
-  grid.position.y = 0.01;
-  _threeScene.add(grid);
+  // (no grid — blueprint lines kill the cozy library feel)
 
   // Walls
   const wallMat = tMat('wall',_wallTex,11,4);
@@ -2491,6 +2489,21 @@ function initThreeScene(canvas) {
       pen.position.set(x-0.22, 0.842, z+0.22); pen.rotation.z = 0.3; _threeScene.add(pen);
     }
     } // end dIdx < 12 full-detail block
+
+    // Chair at every desk — seat + backrest + legs
+    const _cBlue = new THREE.MeshLambertMaterial({color:0x1E3A5F});
+    const _cWood = new THREE.MeshLambertMaterial({color:0x6B4429});
+    const cSeat = new THREE.Mesh(box(0.54,0.06,0.48), _cBlue);
+    cSeat.position.set(x,0.44,z+0.64); cSeat.castShadow=true; _threeScene.add(cSeat);
+    const cBack = new THREE.Mesh(box(0.50,0.42,0.06), _cBlue);
+    cBack.position.set(x,0.68,z+0.40); cBack.castShadow=true; _threeScene.add(cBack);
+    if(!_isMobile||dIdx<6){
+      [[-0.22,z+0.41],[0.22,z+0.41],[-0.22,z+0.87],[0.22,z+0.87]].forEach(([lx,lz])=>{
+        const cl=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.44,6),_cWood);
+        cl.position.set(x+lx,0.22,lz); _threeScene.add(cl);
+      });
+    }
+
     // Desk lamp light — all desks on desktop; mobile only first 24
     const addLight = !_isMobile || dIdx < 24;
     if (addLight) {
@@ -3394,71 +3407,75 @@ function _updateThreeAvatars(users) {
     const color = new THREE.Color().setHSL(hue, 0.7, 0.55);
     const hexColor = '#' + color.getHexString();
 
-    // GLB animated character avatar (falls back to cube if model not loaded yet)
+    // GLB animated character avatar (falls back to rounded humanoid if model unavailable)
     let body;
     const avatarY = 0;
+    let _usedGLB = false;
     if (_characterGLTF && THREE.SkeletonUtils) {
-      const clone = THREE.SkeletonUtils.clone(_characterGLTF.scene);
-      clone.scale.setScalar(0.82);
-      clone.position.set(pos[0], avatarY, pos[1] + 0.55);
-      clone.rotation.y = Math.PI; // face toward camera
-      // Tint all meshes with subject hue using toon material
-      clone.traverse(node => {
-        if (node.isMesh) {
-          node.material = new THREE.MeshLambertMaterial({ color });
-          node.castShadow = true;
-          node.userData.userIndex = i;
-          if (u.isSelf) node.material.emissive = new THREE.Color(0x221100);
+      try {
+        const clone = THREE.SkeletonUtils.clone(_characterGLTF.scene);
+        clone.scale.setScalar(0.82);
+        clone.position.set(pos[0], avatarY, pos[1] + 0.55);
+        clone.rotation.y = Math.PI;
+        clone.traverse(node => {
+          if (node.isMesh) {
+            node.material = new THREE.MeshLambertMaterial({ color });
+            node.castShadow = true;
+            node.userData.userIndex = i;
+            if (u.isSelf) node.material.emissive = new THREE.Color(0x221100);
+          }
+        });
+        _threeScene.add(clone);
+        body = clone;
+        body.userData.userIndex = i;
+        _userAvatarMeshes.push(clone);
+        if (u.isSelf) _threeScene.userData._selfAvatarPos = { x: pos[0], y: 1.4, z: pos[1]+0.55 };
+        if (_characterGLTF.animations && _characterGLTF.animations.length) {
+          const mixer = new THREE.AnimationMixer(clone);
+          const idleClip = _characterGLTF.animations.find(a => /idle/i.test(a.name)) || _characterGLTF.animations[0];
+          mixer.clipAction(idleClip).play();
+          _mixers.push(mixer);
         }
-      });
-      _threeScene.add(clone);
-      body = clone;
-      body.userData.userIndex = i;
-      _userAvatarMeshes.push(clone);
-      // Store self position for typing indicator
-      if (u.isSelf) _threeScene.userData._selfAvatarPos = { x: pos[0], y: 1.4, z: pos[1]+0.55 };
-      // Animate: find Idle or first available clip
-      if (_characterGLTF.animations && _characterGLTF.animations.length) {
-        const mixer = new THREE.AnimationMixer(clone);
-        const idleClip = _characterGLTF.animations.find(a => /idle/i.test(a.name)) || _characterGLTF.animations[0];
-        mixer.clipAction(idleClip).play();
-        _mixers.push(mixer);
-      }
-      // Fake head position for nameplate / focus ring compatibility
-      const fakeHead = { position: { x: pos[0], y: 1.45, z: pos[1]+0.55 } };
-      _avatarHeads.push({ mesh: clone, baseX: pos[0], baseZ: pos[1]+0.55, phase: i * 1.37 });
-    } else {
-      // Fallback: Minecraft cube body
+        _avatarHeads.push({ mesh: clone, baseX: pos[0], baseZ: pos[1]+0.55, phase: i * 1.37 });
+        _usedGLB = true;
+      } catch(e) { console.warn('GLB clone failed, using fallback'); }
+    }
+    if (!_usedGLB) {
+      // Fallback: rounded humanoid (cylinder torso + sphere head + cylinder limbs)
       const bodyMat = new THREE.MeshLambertMaterial({ color });
-      body = new THREE.Mesh(new THREE.BoxGeometry(0.35,0.45,0.22), bodyMat);
-      body.position.set(pos[0], 0.98, pos[1]+0.9);
-      body.castShadow = true;
-      body.userData.userIndex = i;
-      body.userData.baseScaleY = body.scale.y;
-      _threeScene.add(body);
-      _userAvatarMeshes.push(body);
-      // Cube head
+      const legMat  = new THREE.MeshLambertMaterial({color: new THREE.Color().setHSL(hue,0.55,0.26)});
+      // Torso
+      body = new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.17,0.42,10), bodyMat);
+      body.position.set(pos[0], 0.96, pos[1]+0.9);
+      body.castShadow = true; body.userData.userIndex = i; body.userData.baseScaleY = body.scale.y;
+      _threeScene.add(body); _userAvatarMeshes.push(body);
+      // Arms (angled out slightly)
+      [[-0.23,0.28],[0.23,-0.28]].forEach(([ax,az])=>{
+        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.048,0.38,8), bodyMat);
+        arm.position.set(pos[0]+ax, 0.90, pos[1]+0.9);
+        arm.rotation.z = ax > 0 ? -0.3 : 0.3;
+        arm.castShadow=true; _threeScene.add(arm); _userAvatarLabels.push(arm);
+      });
+      // Head (sphere with emoji face)
       const headTex = _makeLabel(u.name, hexColor);
-      const head = new THREE.Mesh(new THREE.BoxGeometry(0.42,0.42,0.42),
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.20, 12, 10),
         new THREE.MeshLambertMaterial({ map: headTex }));
-      head.position.set(pos[0], 1.45, pos[1]+0.9);
+      head.position.set(pos[0], 1.46, pos[1]+0.9);
       head.userData.userIndex = i;
       if(u.isSelf){
-        const wire = new THREE.Mesh(new THREE.BoxGeometry(0.46,0.46,0.46),
-          new THREE.MeshBasicMaterial({color:0xFFDD00, wireframe:true}));
-        wire.position.copy(head.position);
-        _threeScene.add(wire);
-        _userAvatarLabels.push(wire);
+        const glow = new THREE.Mesh(new THREE.SphereGeometry(0.24,8,8),
+          new THREE.MeshBasicMaterial({color:0xFFDD00, wireframe:true, transparent:true, opacity:0.55}));
+        glow.position.copy(head.position);
+        _threeScene.add(glow); _userAvatarLabels.push(glow);
         _threeScene.userData._selfAvatarPos = { x: head.position.x, y: head.position.y, z: head.position.z };
       }
-      _threeScene.add(head);
-      _userAvatarLabels.push(head);
+      _threeScene.add(head); _userAvatarLabels.push(head);
       _avatarHeads.push({ mesh: head, baseX: pos[0], baseZ: pos[1]+0.9, phase: i * 1.37 });
-      const legMat = new THREE.MeshLambertMaterial({color: new THREE.Color().setHSL(hue,0.5,0.3)});
-      [[-0.09,0],[0.09,0]].forEach(([lx])=>{
-        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.14,0.35,0.18), legMat);
-        leg.position.set(pos[0]+lx, 0.57, pos[1]+0.9);
-        _threeScene.add(leg); _userAvatarLabels.push(leg);
+      // Legs (rounded cylinders)
+      [[-0.08],[0.08]].forEach(([lx])=>{
+        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.072,0.062,0.40,8), legMat);
+        leg.position.set(pos[0]+lx, 0.55, pos[1]+0.9);
+        leg.castShadow=true; _threeScene.add(leg); _userAvatarLabels.push(leg);
       });
     }
 
