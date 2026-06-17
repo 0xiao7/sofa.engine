@@ -64,7 +64,7 @@ const Vector3 = THREE.Vector3;
 const VectorKeyframeTrack = THREE.VectorKeyframeTrack;
 const SRGBColorSpace = THREE.SRGBColorSpace;
 const InstancedBufferAttribute = THREE.InstancedBufferAttribute;
-import { toTrianglesDrawMode } from '../utils/BufferGeometryUtils.js';
+const toTrianglesDrawMode = THREE.BufferGeometryUtils ? THREE.BufferGeometryUtils.toTrianglesDrawMode : function(geo){ return geo; };
 
 class GLTFLoader extends Loader {
 
