@@ -6278,7 +6278,7 @@ function _checkAchievements() {
   if (newlyUnlocked.length > 0) {
     localStorage.setItem('sofa_achievements', JSON.stringify(saved));
     newlyUnlocked.forEach((b,i) => {
-      setTimeout(() => _showMilestoneToast(`${b.icon} 成就解鎖：${b.name}`), i*1200);
+      setTimeout(() => window._showMilestoneToast && window._showMilestoneToast(`${b.icon} 成就解鎖：${b.name}`), i*1200);
     });
   }
   return saved;
@@ -7148,6 +7148,9 @@ window.enterWithSerial = enterWithSerial;
     _active = !document.hidden;
     _lastTick = Date.now();
   });
+
+  // expose _showMilestoneToast for module usage
+  window._showMilestoneToast = _showMilestoneToast;
 
   // Called by startThreeAnimation after scene loads
   window._startStudyHud = function() {
