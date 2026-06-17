@@ -3441,41 +3441,79 @@ function _updateThreeAvatars(users) {
       } catch(e) { console.warn('GLB clone failed, using fallback'); }
     }
     if (!_usedGLB) {
-      // Fallback: rounded humanoid (cylinder torso + sphere head + cylinder limbs)
-      const bodyMat = new THREE.MeshLambertMaterial({ color });
-      const legMat  = new THREE.MeshLambertMaterial({color: new THREE.Color().setHSL(hue,0.55,0.26)});
-      // Torso
-      body = new THREE.Mesh(new THREE.CylinderGeometry(0.15,0.17,0.42,10), bodyMat);
-      body.position.set(pos[0], 0.96, pos[1]+0.9);
-      body.castShadow = true; body.userData.userIndex = i; body.userData.baseScaleY = body.scale.y;
-      _threeScene.add(body); _userAvatarMeshes.push(body);
-      // Arms (angled out slightly)
-      [[-0.23,0.28],[0.23,-0.28]].forEach(([ax,az])=>{
-        const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.048,0.38,8), bodyMat);
-        arm.position.set(pos[0]+ax, 0.90, pos[1]+0.9);
-        arm.rotation.z = ax > 0 ? -0.3 : 0.3;
-        arm.castShadow=true; _threeScene.add(arm); _userAvatarLabels.push(arm);
+      // Chibi toon character — dark pants + subject-color shirt + black hair + outlines
+      const _T = (hex, isSelf) => {
+        const m = new THREE.MeshToonMaterial({ color: hex });
+        if(isSelf && u.isSelf) m.emissive = new THREE.Color(0x221100);
+        return m;
+      };
+      const _ol = (geo, s) => {
+        const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color:0x111111,side:THREE.BackSide}));
+        m.scale.setScalar(s||1.09); return m;
+      };
+
+      // Dark pants
+      const pantsGeo = new THREE.CylinderGeometry(0.13,0.16,0.34,10);
+      const pants = new THREE.Mesh(pantsGeo, _T(0x24283C));
+      pants.position.set(pos[0], 0.64, pos[1]+0.9);
+      pants.add(_ol(pantsGeo)); _threeScene.add(pants); _userAvatarLabels.push(pants);
+
+      // Subject-color shirt (y=0.98 syncs with body-bob animation)
+      const shirtGeo = new THREE.CylinderGeometry(0.145,0.145,0.32,10);
+      body = new THREE.Mesh(shirtGeo, _T(color, true));
+      body.position.set(pos[0], 0.98, pos[1]+0.9);
+      body.castShadow=true; body.userData.userIndex=i; body.userData.baseScaleY=body.scale.y;
+      body.add(_ol(shirtGeo)); _threeScene.add(body); _userAvatarMeshes.push(body);
+
+      // Arms (shirt color, angled toward desk)
+      [[-0.23],[0.23]].forEach(([ax])=>{
+        const armGeo=new THREE.CylinderGeometry(0.054,0.048,0.36,8);
+        const arm=new THREE.Mesh(armGeo,_T(color));
+        arm.position.set(pos[0]+ax,0.95,pos[1]+0.9);
+        arm.rotation.z=ax>0?-0.28:0.28; arm.add(_ol(armGeo));
+        _threeScene.add(arm); _userAvatarLabels.push(arm);
       });
-      // Head (sphere with emoji face)
-      const headTex = _makeLabel(u.name, hexColor);
-      const head = new THREE.Mesh(new THREE.SphereGeometry(0.20, 12, 10),
-        new THREE.MeshLambertMaterial({ map: headTex }));
-      head.position.set(pos[0], 1.46, pos[1]+0.9);
-      head.userData.userIndex = i;
+
+      // Head — large chibi sphere (skin tone, 1:1.4 head-body ratio)
+      const headGeo=new THREE.SphereGeometry(0.22,12,10);
+      const headMesh=new THREE.Mesh(headGeo, _T(0xF0C8A0));
+      headMesh.position.set(pos[0], 1.46, pos[1]+0.9);
+      headMesh.userData.userIndex=i;
+      headMesh.add(_ol(headGeo,1.07));
       if(u.isSelf){
-        const glow = new THREE.Mesh(new THREE.SphereGeometry(0.24,8,8),
-          new THREE.MeshBasicMaterial({color:0xFFDD00, wireframe:true, transparent:true, opacity:0.55}));
-        glow.position.copy(head.position);
-        _threeScene.add(glow); _userAvatarLabels.push(glow);
-        _threeScene.userData._selfAvatarPos = { x: head.position.x, y: head.position.y, z: head.position.z };
+        const sg=new THREE.Mesh(new THREE.SphereGeometry(0.26,8,8),
+          new THREE.MeshBasicMaterial({color:0xFFDD00,wireframe:true,transparent:true,opacity:0.4}));
+        sg.position.copy(headMesh.position);
+        _threeScene.add(sg); _userAvatarLabels.push(sg);
+        _threeScene.userData._selfAvatarPos={x:headMesh.position.x,y:headMesh.position.y,z:headMesh.position.z};
       }
-      _threeScene.add(head); _userAvatarLabels.push(head);
-      _avatarHeads.push({ mesh: head, baseX: pos[0], baseZ: pos[1]+0.9, phase: i * 1.37 });
-      // Legs (rounded cylinders)
+      _threeScene.add(headMesh); _userAvatarLabels.push(headMesh);
+      _avatarHeads.push({mesh:headMesh, baseX:pos[0], baseZ:pos[1]+0.9, phase:i*1.37});
+
+      // Dark hair cap
+      const hairGeo=new THREE.CylinderGeometry(0.22,0.21,0.09,12);
+      const hair=new THREE.Mesh(hairGeo,_T(0x1A1410));
+      hair.position.set(pos[0],1.66,pos[1]+0.9); hair.add(_ol(hairGeo,1.08));
+      _threeScene.add(hair); _userAvatarLabels.push(hair);
+      // Anime back hair drape
+      const hBgeo=new THREE.CylinderGeometry(0.18,0.13,0.22,10);
+      const hBack=new THREE.Mesh(hBgeo,_T(0x1A1410));
+      hBack.position.set(pos[0],1.52,pos[1]+0.98);
+      _threeScene.add(hBack); _userAvatarLabels.push(hBack);
+
+      // Dark legs
       [[-0.08],[0.08]].forEach(([lx])=>{
-        const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.072,0.062,0.40,8), legMat);
-        leg.position.set(pos[0]+lx, 0.55, pos[1]+0.9);
-        leg.castShadow=true; _threeScene.add(leg); _userAvatarLabels.push(leg);
+        const legGeo=new THREE.CylinderGeometry(0.062,0.054,0.36,8);
+        const leg=new THREE.Mesh(legGeo,_T(0x24283C));
+        leg.position.set(pos[0]+lx,0.38,pos[1]+0.9);
+        leg.add(_ol(legGeo)); _threeScene.add(leg); _userAvatarLabels.push(leg);
+      });
+      // Black shoes
+      [[-0.08],[0.08]].forEach(([lx])=>{
+        const shoeGeo=new THREE.CylinderGeometry(0.065,0.058,0.12,8);
+        const shoe=new THREE.Mesh(shoeGeo,_T(0x111111));
+        shoe.position.set(pos[0]+lx,0.12,pos[1]+0.9);
+        _threeScene.add(shoe); _userAvatarLabels.push(shoe);
       });
     }
 
@@ -4990,11 +5028,11 @@ function startThreeAnimation(canvas) {
         p.position.z = (Math.random()-0.5)*14;
       }
     });
-    // Light shafts — visible only in non-night palette
+    // Light shafts — subtle ambient only (was too blinding at 0.55+)
     const _lsTod = _timeOfDayPalette();
     const _lsVisible = _lsTod.fogDensity < 0.012;
     _lightShafts.forEach(s => {
-      const target = _lsVisible ? (0.55 + 0.25*Math.sin(_threeTime*0.4 + s.userData.phase)) : 0;
+      const target = _lsVisible ? (0.09 + 0.04*Math.sin(_threeTime*0.4 + s.userData.phase)) : 0;
       s.material.opacity += (target - s.material.opacity) * 0.02;
     });
     // Ceiling stars
