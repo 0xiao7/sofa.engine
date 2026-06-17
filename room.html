@@ -1089,6 +1089,7 @@ let _characterGLTF = null; // loaded GLB template for user avatars
 let _mixers = [];           // AnimationMixer array — updated every frame
 let _mixerLastTime = 0;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
+let _DESK_VISUAL_POS_3D = []; // stores {vx,vz,ry} for each desk after scatter
 const _seenUserIds = new Set();
 let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [];
 let _snowParticles = [];
@@ -1886,20 +1887,20 @@ function initThreeScene(canvas) {
   _threeScene.fog = new THREE.Fog(0xC8E0F5, 28, 55);   // subtle linear fog
 
   // 相機：眼睛高度，正面看向全景窗，景深自然出現
-  _threeCamera = new THREE.PerspectiveCamera(72, canvas.width / canvas.height, 0.1, 80);
-  // 入口俯瞰角度：從正門高處望向整個大廳，樹、地毯、書架全入鏡
-  _threeCamera.position.set(0, 5.5, 13);
-  _threeCamera.lookAt(0, 1.2, -1);
+  // 眼睛高度站在入口直視前方 — 參考影片的廊道景深感
+  _threeCamera = new THREE.PerspectiveCamera(80, canvas.width / canvas.height, 0.1, 80);
+  _threeCamera.position.set(0, 1.9, 11);
+  _threeCamera.lookAt(0, 2.6, -3);
 
   _threeControls = new THREE.OrbitControls(_threeCamera, canvas);
-  _threeControls.target.set(0, 1.2, -1);
+  _threeControls.target.set(0, 2.6, -3);
   _threeControls.enableDamping = true;
   _threeControls.dampingFactor = _isMobile ? 0.12 : 0.06;
-  _threeControls.rotateSpeed = _isMobile ? 0.6 : 0.8;
-  _threeControls.minDistance = 4;
-  _threeControls.maxDistance = 22;
-  _threeControls.minPolarAngle = 0.1;
-  _threeControls.maxPolarAngle = Math.PI * 0.52;
+  _threeControls.rotateSpeed = _isMobile ? 0.5 : 0.7;
+  _threeControls.minDistance = 3;
+  _threeControls.maxDistance = 20;
+  _threeControls.minPolarAngle = 0.15;
+  _threeControls.maxPolarAngle = Math.PI * 0.56;
   _threeControls.enablePan = false;
   _threeControls.enabled = false;
   _threeControls.addEventListener('change', () => { _wasDrag = true; });
@@ -2022,7 +2023,7 @@ function initThreeScene(canvas) {
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(3,3);
     return t;
   })();
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(22,20),
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(28,26),
     new THREE.MeshLambertMaterial({ map: floorTex, color: 0xFFFFFF }));
   floor.rotation.x = -Math.PI/2;
   _threeScene.add(floor);
@@ -2084,59 +2085,81 @@ function initThreeScene(canvas) {
     }
     // 山脈四層（從遠到近，層次越來越深）
     const isDay=hour>=6&&hour<20;
-    const mColors=isDay
-      ?['#B8D8E8','#88B8C8','#4A7A5A','#2A5A30']
-      :['#1A2E40','#0E1E2E','#081218','#040A0C'];
-    const mLayers=[
-      [[0,.42],[W*.10,.24],[W*.22,.34],[W*.35,.18],[W*.48,.30],[W*.60,.16],[W*.72,.26],[W*.85,.20],[W,.38],[W,1]],
-      [[0,.55],[W*.08,.40],[W*.20,.50],[W*.32,.36],[W*.44,.46],[W*.56,.32],[W*.68,.42],[W*.80,.36],[W*.92,.30],[W,1]],
-      [[0,.67],[W*.12,.56],[W*.25,.63],[W*.38,.52],[W*.50,.60],[W*.62,.48],[W*.74,.56],[W*.86,.52],[W,1]],
-      [[0,.80],[W*.15,.72],[W*.30,.76],[W*.45,.68],[W*.60,.74],[W*.75,.66],[W*.88,.72],[W,1]],
-    ];
-    mLayers.forEach((pts,li)=>{
-      ctx.fillStyle=mColors[li];ctx.beginPath();ctx.moveTo(0,H);
-      pts.forEach(([x,y])=>ctx.lineTo(x,H*y));
-      ctx.lineTo(W,H);ctx.closePath();ctx.fill();
-    });
-    // 草地（底部 — 落地窗可見地面綠色）
     if(isDay){
-      ctx.fillStyle='#4A8A38'; ctx.fillRect(0,H*0.84,W,H*0.16);
-      ctx.fillStyle='#5CAA44'; ctx.fillRect(0,H*0.88,W,H*0.12);
-      ctx.fillStyle='#6ACC50'; ctx.fillRect(0,H*0.92,W,H*0.08);
+      // Bright daytime sky gradient
+      const skyGrad=ctx.createLinearGradient(0,0,0,H*0.45);
+      skyGrad.addColorStop(0,'#5AACDC'); skyGrad.addColorStop(1,'#A8D8F0');
+      ctx.fillStyle=skyGrad; ctx.fillRect(0,0,W,H*0.5);
+      // White fluffy clouds
+      const drawCloud=(cx,cy,r)=>{
+        ctx.fillStyle='rgba(255,255,255,0.88)';
+        [[0,0,r],[r*.6,r*.1,r*.7],[r*1.1,0,r*.75],[-r*.5,r*.1,r*.6]].forEach(([dx,dy,cr])=>{
+          ctx.beginPath(); ctx.arc(cx+dx,cy+dy,cr,0,Math.PI*2); ctx.fill();
+        });
+      };
+      drawCloud(W*.15,H*.10,28); drawCloud(W*.45,H*.07,22); drawCloud(W*.72,H*.12,32); drawCloud(W*.88,H*.06,18);
+      // Mountain layers — vivid green alpine
+      const mColors=['#A8C8D8','#6A9BAA','#3A7A48','#2A6030'];
+      const mLayers=[
+        [[0,.42],[W*.10,.24],[W*.22,.34],[W*.35,.18],[W*.48,.30],[W*.60,.16],[W*.72,.26],[W*.85,.20],[W,.38],[W,1]],
+        [[0,.55],[W*.08,.42],[W*.20,.52],[W*.32,.38],[W*.44,.48],[W*.56,.34],[W*.68,.44],[W*.80,.38],[W*.92,.32],[W,1]],
+        [[0,.68],[W*.12,.57],[W*.25,.64],[W*.38,.53],[W*.50,.61],[W*.62,.49],[W*.74,.57],[W*.86,.53],[W,1]],
+        [[0,.80],[W*.15,.73],[W*.30,.77],[W*.45,.69],[W*.60,.75],[W*.75,.67],[W*.88,.73],[W,1]],
+      ];
+      mLayers.forEach((pts,li)=>{
+        ctx.fillStyle=mColors[li]; ctx.beginPath(); ctx.moveTo(0,H);
+        pts.forEach(([x,y])=>ctx.lineTo(x,H*y)); ctx.lineTo(W,H); ctx.closePath(); ctx.fill();
+      });
+      // Lush grass
+      const grassGrad=ctx.createLinearGradient(0,H*.80,0,H);
+      grassGrad.addColorStop(0,'#48A838'); grassGrad.addColorStop(0.5,'#5EC245'); grassGrad.addColorStop(1,'#78D85A');
+      ctx.fillStyle=grassGrad; ctx.fillRect(0,H*.80,W,H*.20);
+    } else {
+      // Nighttime
+      const mColors=['#1A2E40','#0E1E2E','#081218','#040A0C'];
+      const mLayers=[
+        [[0,.42],[W*.10,.24],[W*.22,.34],[W*.35,.18],[W*.48,.30],[W*.60,.16],[W*.72,.26],[W*.85,.20],[W,.38],[W,1]],
+        [[0,.55],[W*.08,.40],[W*.20,.50],[W*.32,.36],[W*.44,.46],[W*.56,.32],[W*.68,.42],[W*.80,.36],[W*.92,.30],[W,1]],
+        [[0,.67],[W*.12,.56],[W*.25,.63],[W*.38,.52],[W*.50,.60],[W*.62,.48],[W*.74,.56],[W*.86,.52],[W,1]],
+        [[0,.80],[W*.15,.72],[W*.30,.76],[W*.45,.68],[W*.60,.74],[W*.75,.66],[W*.88,.72],[W,1]],
+      ];
+      mLayers.forEach((pts,li)=>{
+        ctx.fillStyle=mColors[li]; ctx.beginPath(); ctx.moveTo(0,H);
+        pts.forEach(([x,y])=>ctx.lineTo(x,H*y)); ctx.lineTo(W,H); ctx.closePath(); ctx.fill();
+      });
     }
     const t=new THREE.CanvasTexture(c);
     return t;
   })();
-  // 落地全景玻璃（y=0 ~ y=8，整面後牆都是窗）
+  // 落地全景玻璃（28 wide × 9 tall，整面後牆都是窗）
   const panoramaGlass = new THREE.Mesh(
-    new THREE.PlaneGeometry(22, 8.0),
+    new THREE.PlaneGeometry(28, 9.0),
     new THREE.MeshBasicMaterial({ map: _panoramaTex, side: THREE.FrontSide })
   );
-  panoramaGlass.position.set(0, 4.0, -7.93);
+  panoramaGlass.position.set(0, 4.5, -7.93);
   _threeScene.add(panoramaGlass);
-  // 窗格立柱（暖白木色，落地高度）
+  // 窗格立柱（落地高度）
   const mullionMat = new THREE.MeshBasicMaterial({ color: 0xDDD5C4 });
-  [-7.33,-3.67,0,3.67,7.33].forEach(mx=>{
-    const mul=new THREE.Mesh(new THREE.BoxGeometry(0.1,8.0,0.08),mullionMat);
-    mul.position.set(mx,4.0,-7.87);_threeScene.add(mul);
+  [-9.33,-5.6,-1.87,1.87,5.6,9.33].forEach(mx=>{
+    const mul=new THREE.Mesh(new THREE.BoxGeometry(0.12,9.0,0.08),mullionMat);
+    mul.position.set(mx,4.5,-7.87);_threeScene.add(mul);
   });
   // 頂框
-  const topFrame=new THREE.Mesh(new THREE.BoxGeometry(22.2,0.18,0.12),sillMat);
-  topFrame.position.set(0,8.02,-7.92);_threeScene.add(topFrame);
-  // 白色三角旗（参考風格：窗內掛著白色三角形旗幟）
+  const topFrame=new THREE.Mesh(new THREE.BoxGeometry(28.2,0.18,0.12),sillMat);
+  topFrame.position.set(0,9.02,-7.92);_threeScene.add(topFrame);
+  // 白色三角旗
   const pennantMat = new THREE.MeshBasicMaterial({ color: 0xFFFFFF, side: THREE.DoubleSide });
-  [-8,-5,-2,1,4,7].forEach((px, pi) => {
-    const geo = new THREE.ConeGeometry(0.22, 0.42, 3);
+  [-11,-7.5,-4,-0.5,3,6.5,10].forEach((px) => {
+    const geo = new THREE.ConeGeometry(0.24, 0.45, 3);
     const p = new THREE.Mesh(geo, pennantMat);
     p.rotation.z = Math.PI;
-    p.position.set(px, 7.1, -7.78);
+    p.position.set(px, 8.0, -7.78);
     _threeScene.add(p);
   });
-  // 細繩連接旗幟
-  const ropeGeo = new THREE.BoxGeometry(18, 0.018, 0.018);
+  const ropeGeo = new THREE.BoxGeometry(24, 0.018, 0.018);
   const ropeMat = new THREE.MeshBasicMaterial({ color: 0xCCBBA0 });
   const rope = new THREE.Mesh(ropeGeo, ropeMat);
-  rope.position.set(-0.5, 7.22, -7.78);
+  rope.position.set(-0.5, 8.15, -7.78);
   _threeScene.add(rope);
 
   // Wall clock
@@ -2197,30 +2220,28 @@ function initThreeScene(canvas) {
     tick.rotation.z = angle + Math.PI/2;
     _threeScene.add(tick);
   }
-  const lWall = new THREE.Mesh(box(0.3,10,24), wallMat);
-  lWall.position.set(-9, 5, 0); _threeScene.add(lWall);
-  const rWall = lWall.clone(); rWall.position.set(9,5,0); _threeScene.add(rWall);
-  // 前牆（入口後方，高到蓋住背景）
-  const fWall = new THREE.Mesh(box(22,10,0.3), wallMat);
+  // 房間加寬到 28 units，書架廊道感更強
+  const lWall = new THREE.Mesh(box(0.3,10,26), wallMat);
+  lWall.position.set(-13, 5, 0); _threeScene.add(lWall);
+  const rWall = lWall.clone(); rWall.position.set(13,5,0); _threeScene.add(rWall);
+  const fWall = new THREE.Mesh(box(28,10,0.3), wallMat);
   fWall.position.set(0, 5, 14); _threeScene.add(fWall);
-  // 後牆上方實牆（全景窗之上，蓋住天空透出的缺口）
-  const bWallTop = new THREE.Mesh(box(22,3,0.3), wallMat);
-  bWallTop.position.set(0, 9.5, -8); _threeScene.add(bWallTop);
-  // 天花板：拉高到 y=9，確保 FOV 內不露出背景
-  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(22,24), mToon(0xF2EDE0));
+  const bWallTop = new THREE.Mesh(box(28,3,0.3), wallMat);
+  bWallTop.position.set(0, 9.5, -8.1); _threeScene.add(bWallTop);
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(28,28), mToon(0xF2EDE0));
   ceil.rotation.x = Math.PI/2; ceil.position.set(0, 9, 0); _threeScene.add(ceil);
   // Ceiling wooden beams — lighter warm wood
   const beamMat = mToon(0xC4A870);
-  [-7,-3.5,0,3.5,7].forEach(bx => {
-    const beam = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.4, 20), beamMat);
-    beam.position.set(bx, 7.8, 0);
+  [-10,-5,0,5,10].forEach(bx => {
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.45, 26), beamMat);
+    beam.position.set(bx, 8.8, 0);
     beam
     _threeScene.add(beam);
   });
   // Cross beams
-  [-5, 0, 5].forEach(bz => {
-    const cross = new THREE.Mesh(new THREE.BoxGeometry(22, 0.3, 0.3), beamMat);
-    cross.position.set(0, 7.6, bz);
+  [-6, -1, 4].forEach(bz => {
+    const cross = new THREE.Mesh(new THREE.BoxGeometry(28, 0.3, 0.3), beamMat);
+    cross.position.set(0, 8.6, bz);
     _threeScene.add(cross);
   });
 
@@ -2234,42 +2255,42 @@ function initThreeScene(canvas) {
   });
 
   // 書架：兩側牆，深酒紅書本，統一色系，精品圖書館感
-  const shelfWoodMat = new THREE.MeshLambertMaterial({ color: 0xA07840 });
-  const bookMat1 = new THREE.MeshLambertMaterial({ color: 0x4A0E0E }); // 深酒紅
-  const bookMat2 = new THREE.MeshLambertMaterial({ color: 0x5C1818 }); // 稍亮酒紅
-  const bookMat3 = new THREE.MeshLambertMaterial({ color: 0x380A0A }); // 暗酒紅
-  const bookMats = [bookMat1, bookMat2, bookMat3];
-  // 左牆書架（x=-8.72，面向房間）
-  [-5,-2,1,4].forEach((z,si) => {
-    // 書架本體
-    const sh = new THREE.Mesh(box(0.45,4.2,2.0), shelfWoodMat);
-    sh.position.set(-8.72, 2.1, z); _threeScene.add(sh);
-    // 隔板（3層）
-    [0.8,1.8,2.8].forEach(ry=>{
-      const pl=new THREE.Mesh(box(0.36,0.06,1.85),shelfWoodMat);
-      pl.position.set(-8.50,ry,z);_threeScene.add(pl);
+  const shelfWoodMat = new THREE.MeshLambertMaterial({ color: 0x8C6530 });
+  // Library-style varied book colors
+  const bookMats = [
+    0x6E1C1C, 0x5A1010, 0x1A2840, 0x1E4A2A,
+    0x4A2A0A, 0x1A3A7A, 0x4A1028, 0x2A4A30,
+    0xC8A840, 0x3A1A5A, 0x5A2A10, 0x0A3A4A,
+  ].map(c => new THREE.MeshLambertMaterial({ color: c }));
+  // 書架沿左右兩側（x=±11.5），更多書架單元增強廊道感
+  const _shelfZ = [-7,-4.5,-2,0.5,3,5.5];
+  const _shelfSeed = _rng(55);
+  _shelfZ.forEach((z,si) => {
+    // 左書架
+    const shL = new THREE.Mesh(box(0.5,5.5,2.2), shelfWoodMat);
+    shL.position.set(-11.5, 2.75, z); _threeScene.add(shL);
+    [0.7,1.7,2.7,3.7].forEach(ry=>{
+      const pl=new THREE.Mesh(box(0.4,0.07,2.1),shelfWoodMat);
+      pl.position.set(-11.25,ry,z);_threeScene.add(pl);
     });
-    // 書本（每層7本，統一酒紅）
-    [0.42,1.42,2.42].forEach(ry=>{
-      for(let b=0;b<7;b++){
-        const bk=new THREE.Mesh(box(0.06,0.72+Math.random()*0.18,0.22),bookMats[(si*7+b)%3]);
-        bk.position.set(-8.46,-0.0+ry,z-0.75+b*0.25);
+    [0.35,1.35,2.35,3.35].forEach(ry=>{
+      for(let b=0;b<8;b++){
+        const bk=new THREE.Mesh(box(0.07,0.60+_shelfSeed()*0.28,0.21),bookMats[(si*8+b)%bookMats.length]);
+        bk.position.set(-11.22,ry,z-0.88+b*0.26);
         _threeScene.add(bk);
       }
     });
-  });
-  // 右牆書架（x=8.72）
-  [-5,-2,1,4].forEach((z,si) => {
-    const sh = new THREE.Mesh(box(0.45,4.2,2.0), shelfWoodMat);
-    sh.position.set(8.72, 2.1, z); _threeScene.add(sh);
-    [0.8,1.8,2.8].forEach(ry=>{
-      const pl=new THREE.Mesh(box(0.36,0.06,1.85),shelfWoodMat);
-      pl.position.set(8.50,ry,z);_threeScene.add(pl);
+    // 右書架
+    const shR = new THREE.Mesh(box(0.5,5.5,2.2), shelfWoodMat);
+    shR.position.set(11.5, 2.75, z); _threeScene.add(shR);
+    [0.7,1.7,2.7,3.7].forEach(ry=>{
+      const pl=new THREE.Mesh(box(0.4,0.07,2.1),shelfWoodMat);
+      pl.position.set(11.25,ry,z);_threeScene.add(pl);
     });
-    [0.42,1.42,2.42].forEach(ry=>{
-      for(let b=0;b<7;b++){
-        const bk=new THREE.Mesh(box(0.06,0.72+Math.random()*0.18,0.22),bookMats[(si*7+b+2)%3]);
-        bk.position.set(8.46,ry,z-0.75+b*0.25);
+    [0.35,1.35,2.35,3.35].forEach(ry=>{
+      for(let b=0;b<8;b++){
+        const bk=new THREE.Mesh(box(0.07,0.60+_shelfSeed()*0.28,0.21),bookMats[(si*8+b+5)%bookMats.length]);
+        bk.position.set(11.22,ry,z-0.88+b*0.26);
         _threeScene.add(bk);
       }
     });
@@ -2297,14 +2318,7 @@ function initThreeScene(canvas) {
   _countSignTex = new THREE.CanvasTexture(signCanvas);
   _drawCountSign(0);
   _threeScene.userData._drawCountSign = _drawCountSign;
-  const signMesh = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.4, 0.58),
-    new THREE.MeshBasicMaterial({map: _countSignTex, transparent:true, side: THREE.DoubleSide})
-  );
-  signMesh.position.set(-7.5, 3.2, 5.5);
-  signMesh.rotation.y = Math.PI * 0.18; // angle toward room
-  _threeScene.add(signMesh);
-  // Thin gold frame
+  // Gold frame first (background), sign plane 0.02 in front to avoid Z-fighting
   const signFrame = new THREE.Mesh(
     new THREE.BoxGeometry(1.46, 0.64, 0.02),
     new THREE.MeshBasicMaterial({color: 0xD4A847})
@@ -2312,9 +2326,19 @@ function initThreeScene(canvas) {
   signFrame.position.set(-7.5, 3.2, 5.5);
   signFrame.rotation.y = Math.PI * 0.18;
   _threeScene.add(signFrame);
+  const signMesh = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.4, 0.58),
+    new THREE.MeshBasicMaterial({
+      map: _countSignTex, transparent:true, side: THREE.FrontSide,
+      polygonOffset: true, polygonOffsetFactor: -2, polygonOffsetUnits: -2
+    })
+  );
+  signMesh.position.set(-7.5, 3.2, 5.5);
+  signMesh.rotation.y = Math.PI * 0.18;
+  _threeScene.add(signMesh);
 
-  // Tree — 中央主角大樹（參考影片的圖書館核心意象）
-  const TX = 0, TZ = 1.0;
+  // Tree — 中央主角大樹，移近入口讓它在眼睛高度視角下顯得巨大
+  const TX = 0, TZ = 3.0;
   const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.38,3.2,8), tMat('trunk',_woodTex));
   trunk.position.set(TX,1.6,TZ); _threeScene.add(trunk);
   trunk.userData.isTree = true;
@@ -2703,7 +2727,7 @@ function initThreeScene(canvas) {
     cSeat.add(_ol(_cSeatGeo, 1.025)); _threeScene.add(cSeat);
     const _cBackGeo = box(0.50,0.42,0.06);
     const cBack = new THREE.Mesh(_cBackGeo, _cBlue);
-    cBack.position.set(vx,0.68,vz+0.40); cBack.rotation.y = ry;
+    cBack.position.set(vx,0.68,vz+0.88); cBack.rotation.y = ry; // behind seat, not in front
     cBack.add(_ol(_cBackGeo, 1.025)); _threeScene.add(cBack);
     if(!_isMobile||dIdx<6){
       [[-0.22,vz+0.41],[0.22,vz+0.41],[-0.22,vz+0.87],[0.22,vz+0.87]].forEach(([lx,lz])=>{
@@ -2722,6 +2746,8 @@ function initThreeScene(canvas) {
     } else {
       _deskLampLights.push(null);
     }
+    // Store visual position for avatar alignment
+    _DESK_VISUAL_POS_3D.push({ vx, vz, ry });
   });
 
   // Shared desk hover glow pad
@@ -3133,7 +3159,7 @@ function initThreeScene(canvas) {
       new THREE.MeshLambertMaterial({ color: 0x2E7028 }),
       new THREE.MeshLambertMaterial({ color: 0x459938 }),
     ];
-    [[-8.0,0,6.5],[-8.0,0,-5.5],[8.0,0,6.5],[8.0,0,-5.5]].forEach(([bx,by,bz],i) => {
+    [[-12.0,0,6.5],[-12.0,0,-4.5],[12.0,0,6.5],[12.0,0,-4.5]].forEach(([bx,by,bz],i) => {
       const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.22,0.45,12), potMat);
       pot.position.set(bx, 0.22, bz); _threeScene.add(pot);
       const ball = new THREE.Mesh(new THREE.SphereGeometry(0.52,12,12), ballMat[i%3]);
@@ -3156,9 +3182,9 @@ function initThreeScene(canvas) {
 // 24 desk positions: 4 columns × 6 rows, wide center aisle, library layout
 // Left pair: -5,-2.5 | Right pair: 2.5,5  Rows: z=-5.5→3
 const _DESK_POS_3D = (()=>{
-  // 圖書館風格：沿左右兩側排列，中央留空給大樹
-  const cols=[-7.0,-5.2,5.2,7.0];
-  const rows=[-6.5,-5.0,-3.5,-2.0,-0.5,1.0,2.5,4.0];
+  // 寬廣房間：桌子靠兩側書架，中央完全空出給大樹
+  const cols=[-9.5,-7.5,7.5,9.5];
+  const rows=[-7.5,-5.5,-3.5,-1.5,0.5,2.5,4.5,6.5];
   const p=[]; rows.forEach(z=>cols.forEach(x=>p.push([x,z]))); return p;
 })();
 
@@ -3670,6 +3696,12 @@ function _updateThreeAvatars(users) {
     const color = new THREE.Color().setHSL(hue, 0.7, 0.55);
     const hexColor = '#' + color.getHexString();
 
+    // Visual desk position (with scatter offsets)
+    const _dIdx = (u.isSelf && _selfDeskIdx !== i) ? _selfDeskIdx : i;
+    const _vpos = _DESK_VISUAL_POS_3D[_dIdx] || { vx: pos[0], vz: pos[1], ry: 0 };
+    const avx = _vpos.vx;          // character x aligns with desk
+    const avz = _vpos.vz + 0.64;   // character z = chair seat (behind desk)
+
     // GLB animated character avatar (falls back to rounded humanoid if model unavailable)
     let body;
     const avatarY = 0;
@@ -3704,77 +3736,103 @@ function _updateThreeAvatars(users) {
       } catch(e) { console.warn('GLB clone failed, using chibi fallback', e.message); }
     }
     if (!_usedGLB) {
-      // Chibi toon character — dark pants + subject-color shirt + black hair + outlines
-      const _T = (hex, isSelf) => {
+      // ── Cute chibi character sitting at desk (facing camera at entrance) ──
+      const skinTones = [0xF0C8A0, 0xECB88A, 0xF5DEB3, 0xD4956A];
+      const skinHex = skinTones[i % skinTones.length];
+      const _T = (hex) => {
         const m = new THREE.MeshLambertMaterial({ color: hex });
-        if(isSelf && u.isSelf) { m.emissive = new THREE.Color(0x221100); m.emissiveIntensity = 0.15; }
+        if(u.isSelf) { m.emissive = new THREE.Color(0x221100); m.emissiveIntensity = 0.20; }
         return m;
       };
-      const _ol = () => new THREE.Object3D(); // no outlines
 
-      // Dark pants
-      const pantsGeo = new THREE.CylinderGeometry(0.13,0.16,0.34,10);
-      const pants = new THREE.Mesh(pantsGeo, _T(0x24283C));
-      pants.position.set(pos[0], 0.64, pos[1]+0.9);
-      pants.add(_ol(pantsGeo)); _threeScene.add(pants); _userAvatarLabels.push(pants);
+      // Thighs (lower body, dark pants, sitting flat)
+      const thighGeo = new THREE.CylinderGeometry(0.16,0.18,0.22,12);
+      const thighs = new THREE.Mesh(thighGeo, _T(0x24283C));
+      thighs.position.set(avx, 0.38, avz);
+      _threeScene.add(thighs); _userAvatarLabels.push(thighs);
 
-      // Subject-color shirt (y=0.98 syncs with body-bob animation)
-      const shirtGeo = new THREE.CylinderGeometry(0.145,0.145,0.32,10);
-      body = new THREE.Mesh(shirtGeo, _T(color, true));
-      body.position.set(pos[0], 0.98, pos[1]+0.9);
-      body.userData.userIndex=i; body.userData.baseScaleY=body.scale.y;
-      body.add(_ol(shirtGeo)); _threeScene.add(body); _userAvatarMeshes.push(body);
+      // Torso / shirt (subject color, body-bob anchor)
+      const torsoGeo = new THREE.CylinderGeometry(0.15,0.17,0.30,12);
+      body = new THREE.Mesh(torsoGeo, _T(color));
+      body.position.set(avx, 0.68, avz);
+      body.userData.userIndex = i; body.userData.baseScaleY = 1;
+      _threeScene.add(body); _userAvatarMeshes.push(body);
 
-      // Arms (shirt color, angled toward desk)
-      [[-0.23],[0.23]].forEach(([ax])=>{
-        const armGeo=new THREE.CylinderGeometry(0.054,0.048,0.36,8);
-        const arm=new THREE.Mesh(armGeo,_T(color));
-        arm.position.set(pos[0]+ax,0.95,pos[1]+0.9);
-        arm.rotation.z=ax>0?-0.28:0.28; arm.add(_ol(armGeo));
+      // Arms reaching forward slightly toward desk
+      [[-0.20],[0.20]].forEach(([ax])=>{
+        const armGeo = new THREE.CylinderGeometry(0.048,0.040,0.30,8);
+        const arm = new THREE.Mesh(armGeo, _T(color));
+        arm.position.set(avx+ax, 0.64, avz-0.10);
+        arm.rotation.z = ax>0 ? -0.32 : 0.32;
+        arm.rotation.x = -0.45;
         _threeScene.add(arm); _userAvatarLabels.push(arm);
       });
 
-      // Head — large chibi sphere (skin tone, 1:1.4 head-body ratio)
-      const headGeo=new THREE.SphereGeometry(0.22,12,10);
-      const headMesh=new THREE.Mesh(headGeo, _T(0xF0C8A0));
-      headMesh.position.set(pos[0], 1.46, pos[1]+0.9);
-      headMesh.userData.userIndex=i;
-      headMesh.add(_ol(headGeo,1.07));
+      // Face canvas texture — skin background + eyes + blush + smile
+      const _fC = document.createElement('canvas');
+      _fC.width = 128; _fC.height = 128;
+      const _fc = _fC.getContext('2d');
+      // Circular skin-colored face
+      const _skinStr = '#' + skinHex.toString(16).padStart(6,'0');
+      _fc.fillStyle = _skinStr;
+      _fc.beginPath(); _fc.arc(64,64,62,0,Math.PI*2); _fc.fill();
+      // Eyes (big oval chibi style)
+      _fc.fillStyle = '#0A0602';
+      _fc.beginPath(); _fc.ellipse(38,52,11,8,0,0,Math.PI*2); _fc.fill();
+      _fc.beginPath(); _fc.ellipse(90,52,11,8,0,0,Math.PI*2); _fc.fill();
+      // Eye white sparkle
+      _fc.fillStyle = 'rgba(255,255,255,0.95)';
+      _fc.beginPath(); _fc.arc(44,47,4,0,Math.PI*2); _fc.fill();
+      _fc.beginPath(); _fc.arc(96,47,4,0,Math.PI*2); _fc.fill();
+      // Blush circles
+      _fc.fillStyle = 'rgba(255,100,100,0.38)';
+      _fc.beginPath(); _fc.ellipse(20,72,16,10,0,0,Math.PI*2); _fc.fill();
+      _fc.beginPath(); _fc.ellipse(108,72,16,10,0,0,Math.PI*2); _fc.fill();
+      // Smile arc
+      _fc.strokeStyle = '#2A1206'; _fc.lineWidth = 2.5; _fc.lineCap='round';
+      _fc.beginPath(); _fc.arc(64,76,10,0.15,Math.PI-0.15); _fc.stroke();
+      const faceTex = new THREE.CanvasTexture(_fC);
+
+      // Head — large chibi sphere with skin material
+      const headGeo = new THREE.SphereGeometry(0.27,14,12);
+      const headMesh = new THREE.Mesh(headGeo, _T(skinHex));
+      headMesh.position.set(avx, 1.08, avz);
+      headMesh.userData.userIndex = i;
       if(u.isSelf){
-        const sg=new THREE.Mesh(new THREE.SphereGeometry(0.26,8,8),
-          new THREE.MeshBasicMaterial({color:0xFFDD00,wireframe:true,transparent:true,opacity:0.4}));
-        sg.position.copy(headMesh.position);
-        _threeScene.add(sg); _userAvatarLabels.push(sg);
-        _threeScene.userData._selfAvatarPos={x:headMesh.position.x,y:headMesh.position.y,z:headMesh.position.z};
+        const halo = new THREE.Mesh(
+          new THREE.TorusGeometry(0.34,0.026,8,24),
+          new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.65})
+        );
+        halo.position.set(avx, 1.08, avz);
+        halo.rotation.x = Math.PI/2;
+        _threeScene.add(halo); _userAvatarLabels.push(halo);
+        _threeScene.userData._selfAvatarPos = {x:avx, y:1.08, z:avz};
       }
       _threeScene.add(headMesh); _userAvatarLabels.push(headMesh);
-      _avatarHeads.push({mesh:headMesh, baseX:pos[0], baseZ:pos[1]+0.9, phase:i*1.37});
+      _avatarHeads.push({mesh:headMesh, baseX:avx, baseZ:avz, phase:i*1.37});
 
-      // Dark hair cap
-      const hairGeo=new THREE.CylinderGeometry(0.22,0.21,0.09,12);
-      const hair=new THREE.Mesh(hairGeo,_T(0x1A1410));
-      hair.position.set(pos[0],1.66,pos[1]+0.9); hair.add(_ol(hairGeo,1.08));
+      // Face plane — placed in front of head, facing +z (toward entrance/camera)
+      const facePlane = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.40,0.40),
+        new THREE.MeshBasicMaterial({
+          map:faceTex, transparent:true, depthWrite:false,
+          polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2
+        })
+      );
+      facePlane.position.set(avx, 1.08, avz+0.32);
+      _threeScene.add(facePlane); _userAvatarLabels.push(facePlane);
+
+      // Hair cap (covers top of head)
+      const hairGeo = new THREE.CylinderGeometry(0.268,0.260,0.11,14);
+      const hair = new THREE.Mesh(hairGeo, _T(0x1A1410));
+      hair.position.set(avx, 1.31, avz);
       _threeScene.add(hair); _userAvatarLabels.push(hair);
-      // Anime back hair drape
-      const hBgeo=new THREE.CylinderGeometry(0.18,0.13,0.22,10);
-      const hBack=new THREE.Mesh(hBgeo,_T(0x1A1410));
-      hBack.position.set(pos[0],1.52,pos[1]+0.98);
-      _threeScene.add(hBack); _userAvatarLabels.push(hBack);
 
-      // Dark legs
-      [[-0.08],[0.08]].forEach(([lx])=>{
-        const legGeo=new THREE.CylinderGeometry(0.062,0.054,0.36,8);
-        const leg=new THREE.Mesh(legGeo,_T(0x24283C));
-        leg.position.set(pos[0]+lx,0.38,pos[1]+0.9);
-        leg.add(_ol(legGeo)); _threeScene.add(leg); _userAvatarLabels.push(leg);
-      });
-      // Black shoes
-      [[-0.08],[0.08]].forEach(([lx])=>{
-        const shoeGeo=new THREE.CylinderGeometry(0.065,0.058,0.12,8);
-        const shoe=new THREE.Mesh(shoeGeo,_T(0x111111));
-        shoe.position.set(pos[0]+lx,0.12,pos[1]+0.9);
-        _threeScene.add(shoe); _userAvatarLabels.push(shoe);
-      });
+      // Anime back hair drape (behind head toward -z = toward desk)
+      const hbGeo = new THREE.CylinderGeometry(0.21,0.14,0.28,10);
+      const hBack = new THREE.Mesh(hbGeo, _T(0x1A1410));
+      hBack.position.set(avx, 1.12, avz-0.14);
+      _threeScene.add(hBack); _userAvatarLabels.push(hBack);
     }
 
     // Subject accessories (hat / marker / glasses / house / pencil / star)
@@ -3782,50 +3840,35 @@ function _updateThreeAvatars(users) {
     const subj = u.subject || '';
     const _tM = (hex) => new THREE.MeshToonMaterial({color: hex, gradientMap: _toonGrad});
     if (subj === '記帳士') {
-      // Graduation cap: wide brim + square top
       const brim = new THREE.Mesh(new THREE.BoxGeometry(0.40,0.03,0.40), _tM(0x1A1A2E));
-      brim.position.set(pos[0], 1.73, pos[1]+0.9);
-      _addAcc(brim);
+      brim.position.set(avx, 1.49, avz); _addAcc(brim);
       const top = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.08,0.18), _tM(0x1A1A2E));
-      top.position.set(pos[0], 1.77, pos[1]+0.9);
-      _addAcc(top);
+      top.position.set(avx, 1.53, avz); _addAcc(top);
     } else if (subj === '地政士') {
-      // Survey marker spike
       const spike = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.22,0.06), _tM(0x5BD6B0));
-      spike.position.set(pos[0], 1.73+0.08, pos[1]+0.9);
-      _addAcc(spike);
+      spike.position.set(avx, 1.54, avz); _addAcc(spike);
     } else if (subj === '財稅行政') {
-      // Glasses: two tiny boxes at face level
       [-0.09, 0.09].forEach(gx => {
         const lens = new THREE.Mesh(new THREE.BoxGeometry(0.12,0.05,0.04), _tM(0x888888));
-        lens.position.set(pos[0]+gx, 1.60, pos[1]+0.69);
+        lens.position.set(avx+gx, 1.08+0.08, avz+0.23);
         _addAcc(lens);
       });
     } else if (subj === '不動產經紀人') {
-      // House body + roof
       const hBody = new THREE.Mesh(new THREE.BoxGeometry(0.2,0.14,0.16), _tM(0x9B5BD6));
-      hBody.position.set(pos[0], 1.77, pos[1]+0.9);
-      _addAcc(hBody);
+      hBody.position.set(avx, 1.52, avz); _addAcc(hBody);
       const hRoof = new THREE.Mesh(new THREE.ConeGeometry(0.14,0.1,4), _tM(0x7A40B0));
-      hRoof.position.set(pos[0], 1.77+0.12, pos[1]+0.9);
-      hRoof.rotation.y = Math.PI/4;
-      _addAcc(hRoof);
+      hRoof.position.set(avx, 1.64, avz); hRoof.rotation.y = Math.PI/4; _addAcc(hRoof);
     } else if (subj === '初等考試') {
-      // Pencil
       const pencil = new THREE.Mesh(new THREE.BoxGeometry(0.05,0.22,0.05), _tM(0xFFD700));
-      pencil.position.set(pos[0], 1.78, pos[1]+0.9);
-      pencil.rotation.z = 0.3;
-      _addAcc(pencil);
+      pencil.position.set(avx, 1.54, avz); pencil.rotation.z = 0.3; _addAcc(pencil);
     } else {
-      // Default: small star (octahedron)
       const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.08), _tM(0xFFAA00));
-      star.position.set(pos[0], 1.73, pos[1]+0.9);
-      _addAcc(star);
+      star.position.set(avx, 1.49, avz); _addAcc(star);
     }
 
     // ── Desk surface items (水壺 + 考科文具) ──
     const _di = (mesh) => { _threeScene.add(mesh); _userAvatarLabels.push(mesh); };
-    const dx = pos[0], dz = pos[1];
+    const dx = _vpos.vx, dz = _vpos.vz; // use visual desk position for surface items
     // 水壺 — everyone gets one (teal cylinder)
     const bottleMat = new THREE.MeshToonMaterial({ color: 0x40C8A0, gradientMap: _toonGrad });
     const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.04,0.14,8), bottleMat);
@@ -3916,7 +3959,7 @@ function _updateThreeAvatars(users) {
     const npTex = new THREE.CanvasTexture(npCanvas);
     const npMat = new THREE.MeshBasicMaterial({ map: npTex, transparent: true, depthWrite: false });
     const npMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.65, 0.16), npMat);
-    npMesh.position.set(pos[0], 1.94, pos[1]+0.9);
+    npMesh.position.set(avx, 1.70, avz+0.30); // floating above head facing camera
     _threeScene.add(npMesh);
     _namePlates.push(npMesh);
 
@@ -3925,7 +3968,7 @@ function _updateThreeAvatars(users) {
       const ringGeo = new THREE.RingGeometry(0.13, 0.18, 16);
       const ringMat = new THREE.MeshBasicMaterial({ color: 0x5BAFD6, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
       const ring = new THREE.Mesh(ringGeo, ringMat);
-      ring.position.set(pos[0], body.position.y + 1.85, pos[1] + 0.9);
+      ring.position.set(avx, body.position.y + 1.10, avz);
       ring.rotation.x = Math.PI / 2;
       ring.userData.baseY = body.position.y + 1.85;
       ring.userData.phase = i * 1.3;
@@ -3943,9 +3986,9 @@ function _updateThreeAvatars(users) {
         ss.scale.set(0.10 + Math.random()*0.07, 0.10 + Math.random()*0.07, 1);
         const baseY = 0.75 + si * 0.25;
         ss.position.set(
-          pos[0] + (Math.random()-0.5)*0.35,
+          avx + (Math.random()-0.5)*0.35,
           baseY,
-          pos[1] + (Math.random()-0.5)*0.35
+          avz + (Math.random()-0.5)*0.35
         );
         ss.userData.baseX = ss.position.x;
         ss.userData.baseZ = ss.position.z;
@@ -3980,7 +4023,8 @@ function _updateThreeAvatars(users) {
         map: new THREE.CanvasTexture(cv), transparent: true, depthWrite: false
       }));
       cr.scale.set(0.45, 0.45, 1);
-      cr.position.set(tp[0], 2.15, tp[1]+0.9);
+      const _tvp = _DESK_VISUAL_POS_3D[topIdx] || {vx:tp[0], vz:tp[1]};
+      cr.position.set(_tvp.vx, 1.95, _tvp.vz + 0.64);
       _threeScene.add(cr);
       _userAvatarLabels.push(cr);
     }
@@ -7365,6 +7409,12 @@ window.startThreeAnimation = startThreeAnimation;
 window.resizeThreeCanvas = resizeThreeCanvas;
 window.switchEntryTab = switchEntryTab;
 window.enterWithSerial = enterWithSerial;
+window._testInjectUsers = (users) => _updateThreeAvatars(users); // dev-only test hook
+window._testCamera = (x,y,z,tx,ty,tz) => {
+  _threeCamera.position.set(x,y,z);
+  _threeControls.target.set(tx,ty,tz);
+  _threeControls.update();
+};
 </script>
 <div id="toast-container"></div>
 <!-- Wave 88: milestone toast -->
