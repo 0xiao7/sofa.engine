@@ -3651,14 +3651,15 @@ function _updateThreeAvatars(users) {
     let body;
     const avatarY = 0;
     let _usedGLB = false;
-    if (_characterGLTF && THREE.SkeletonUtils) {
+    if (_characterGLTF) {
       try {
-        const clone = THREE.SkeletonUtils.clone(_characterGLTF.scene);
-        clone.scale.setScalar(0.307); // GLB 節點 scale=69.18，0.307 → 站高≈1.7u
+        // Native clone — all avatars share the original armature bones (idle sync is fine visually)
+        const clone = _characterGLTF.scene.clone(true);
+        clone.scale.setScalar(0.307);
         clone.position.set(pos[0], avatarY, pos[1] + 0.55);
         clone.rotation.y = Math.PI;
         clone.traverse(node => {
-          if (node.isMesh) {
+          if (node.isMesh || node.isSkinnedMesh) {
             node.material = new THREE.MeshToonMaterial({ color, gradientMap: _toonGrad });
             node.userData.userIndex = i;
             if (u.isSelf) node.material.emissive = new THREE.Color(0x221100);
@@ -3677,7 +3678,7 @@ function _updateThreeAvatars(users) {
         }
         _avatarHeads.push({ mesh: clone, baseX: pos[0], baseZ: pos[1]+0.55, phase: i * 1.37 });
         _usedGLB = true;
-      } catch(e) { console.warn('GLB clone failed, using fallback'); }
+      } catch(e) { console.warn('GLB clone failed, using chibi fallback', e.message); }
     }
     if (!_usedGLB) {
       // Chibi toon character — dark pants + subject-color shirt + black hair + outlines
