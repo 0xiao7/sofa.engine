@@ -1750,8 +1750,8 @@ function initThreeScene(canvas) {
   _threeRenderer.outputColorSpace = THREE.SRGBColorSpace;
 
   _threeScene = new THREE.Scene();
-  _threeScene.background = new THREE.Color(0xEDE9E0);
-  _threeScene.fog = new THREE.FogExp2(0xEDE9E0, 0.003);
+  _threeScene.background = new THREE.Color(0xF5F0E8);
+  _threeScene.fog = new THREE.FogExp2(0xF5F0E8, 0.0025);
 
   _threeCamera = new THREE.PerspectiveCamera(65, canvas.width / canvas.height, 0.1, 100);
   _threeCamera.position.set(0, 3.2, 10);
@@ -1806,6 +1806,7 @@ function initThreeScene(canvas) {
   });
 
   const mLambert = (hex, flat=false) => new THREE.MeshLambertMaterial({ color: hex, flatShading: flat });
+  const mToon = (hex) => new THREE.MeshToonMaterial({ color: hex });
   const box = (w,h,d) => new THREE.BoxGeometry(w,h,d);
 
   // Textured materials (created once, reused)
@@ -1818,16 +1819,15 @@ function initThreeScene(canvas) {
     return _texMats[name];
   }
 
-  // Floor
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(22, 20), tMat('floor',_floorTex,11,10));
+  // Floor — flat toon oak (texture swapped for solid toon color to match indie game style)
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(22, 20), mToon(0xC8A86A));
   floor.rotation.x = -Math.PI / 2;
   _threeScene.add(floor);
   floor.receiveShadow = true;
-  // (floor reflection removed — AdditiveBlending caused golden wash on bright theme)
   // (no grid — blueprint lines kill the cozy library feel)
 
   // Walls
-  const wallMat = tMat('wall',_wallTex,11,4);
+  const wallMat = mToon(0xF0EBE0);
   const bWall = new THREE.Mesh(box(22,8,0.3), wallMat);
   bWall.position.set(0, 4, -8); _threeScene.add(bWall);
 
@@ -1892,10 +1892,10 @@ function initThreeScene(canvas) {
   const lWall = new THREE.Mesh(box(0.3,8,20), wallMat);
   lWall.position.set(-9, 4, 0); _threeScene.add(lWall);
   const rWall = lWall.clone(); rWall.position.set(9,4,0); _threeScene.add(rWall);
-  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(22,20), mLambert(0xF2EDE4));
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(22,20), mToon(0xEDE8DF));
   ceil.rotation.x = Math.PI/2; ceil.position.y = 8; _threeScene.add(ceil);
   // Ceiling wooden beams
-  const beamMat = new THREE.MeshLambertMaterial({ color: 0x8B6A48 });
+  const beamMat = mToon(0x8B6A48);
   [-7,-3.5,0,3.5,7].forEach(bx => {
     const beam = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.4, 20), beamMat);
     beam.position.set(bx, 7.8, 0);
@@ -2412,9 +2412,9 @@ function initThreeScene(canvas) {
   });
 
   // Desks — all 48 positions from _DESK_POS_3D
-  const deskMat = tMat('desk',_deskTex);
-  const monMat = mLambert(0xA0A8B0);
-  const scrMat = new THREE.MeshBasicMaterial({ color: 0x141E28 });
+  const deskMat = mToon(0xC9A86C);    // warm oak flat toon
+  const monMat  = mToon(0x8A909A);    // slate monitor body
+  const scrMat  = new THREE.MeshBasicMaterial({ color: 0x0D1520 });
   _DESK_POS_3D.forEach(([x,z], dIdx) => {
     const desk = new THREE.Mesh(box(1.6,0.08,0.9), deskMat);
     desk.position.set(x,0.76,z); _threeScene.add(desk);
@@ -2490,8 +2490,8 @@ function initThreeScene(canvas) {
     } // end dIdx < 12 full-detail block
 
     // Chair at every desk — seat + backrest + legs
-    const _cBlue = new THREE.MeshLambertMaterial({color:0x1E3A5F});
-    const _cWood = new THREE.MeshLambertMaterial({color:0x6B4429});
+    const _cBlue = mToon(0x1E3A5F);
+    const _cWood = mToon(0x6B4429);
     const cSeat = new THREE.Mesh(box(0.54,0.06,0.48), _cBlue);
     cSeat.position.set(x,0.44,z+0.64); cSeat.castShadow=true; _threeScene.add(cSeat);
     const cBack = new THREE.Mesh(box(0.50,0.42,0.06), _cBlue);
