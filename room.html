@@ -5528,10 +5528,10 @@ function switchEntryTab(tab){
 }
 
 async function enterWithSerial(){
-  const raw = document.getElementById('inp-serial').value.trim().toUpperCase();
-  const serial = 'SOFA-' + raw;
+  const raw = document.getElementById('inp-serial').value.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
+  const serial = 'SOFA-' + raw.slice(0,4) + '-' + raw.slice(4,8);
   const msg = document.getElementById('serial-entry-msg');
-  if(raw.replace(/-/g,'').length < 8){ msg.style.color='#E8846A'; msg.textContent='請輸入完整序號（格式 XXXX-XXXX）'; return; }
+  if(raw.length < 8){ msg.style.color='#E8846A'; msg.textContent='請輸入完整序號（8 位英數）'; return; }
   msg.style.color='#5BAFD6'; msg.textContent='驗證中…';
   try{
     const r = await fetch(`${API}/api/verify-serial`, {
