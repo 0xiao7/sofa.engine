@@ -2897,7 +2897,7 @@ function initThreeScene(canvas) {
       const ang = si*Math.PI*2/12 + (si%2)*0.3;
       const r = 0.55 + (si%3)*0.35;
       const hy = 4.5 + Math.random()*3.5;
-      const sc = 0.14 + Math.random()*0.10;
+      const sc = 0.24 + Math.random()*0.16;
       sSp.scale.set(sc,sc,sc);
       sSp.position.set(TX+Math.cos(ang)*r, hy, TZ+Math.sin(ang)*r);
       _threeScene.add(sSp);
@@ -3773,6 +3773,26 @@ function initThreeScene(canvas) {
     // Mid-room pair flanking tree rug edge
     _makePlant(-4.0, 4.2, 0.85);
     _makePlant( 4.0, 4.2, 0.85);
+    // Warm glow pool at each plant base — small additive circle on floor
+    { const pgC = document.createElement('canvas'); pgC.width = pgC.height = 64;
+      const pgCtx = pgC.getContext('2d');
+      const pgG = pgCtx.createRadialGradient(32,32,0,32,32,30);
+      pgG.addColorStop(0,'rgba(255,220,120,0.7)'); pgG.addColorStop(0.5,'rgba(255,190,60,0.3)');
+      pgG.addColorStop(1,'rgba(255,160,20,0)');
+      pgCtx.fillStyle=pgG; pgCtx.fillRect(0,0,64,64);
+      const pgTex = new THREE.CanvasTexture(pgC);
+      [[-2.5,6.5,1.0],[2.5,6.5,1.0],[-4.0,4.2,0.8],[4.0,4.2,0.8]].forEach(([px,pz,sc])=>{
+        const pg = new THREE.Mesh(
+          new THREE.PlaneGeometry(2.0*sc, 2.0*sc),
+          new THREE.MeshBasicMaterial({ map:pgTex, transparent:true, depthWrite:false,
+            blending:THREE.AdditiveBlending, opacity:0.45 })
+        );
+        pg.rotation.x = -Math.PI/2; pg.position.set(px, 0.012, pz);
+        _threeScene.add(pg);
+        _threeScene.userData._plantGlows = (_threeScene.userData._plantGlows||[]);
+        _threeScene.userData._plantGlows.push(pg);
+      });
+    }
   }
 
   // Library leaning ladder against left bookshelf
