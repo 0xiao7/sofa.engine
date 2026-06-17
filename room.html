@@ -869,6 +869,20 @@ input[type=text], select, .btn-enter {
             </div>
           </div>
         </div>
+
+        <!-- 每日法條公告欄 modal（點擊右牆布告欄觸發） -->
+        <div id="law-board-modal" style="display:none;position:absolute;inset:0;background:rgba(8,18,28,0.82);align-items:center;justify-content:center;z-index:22;" onclick="this.style.display='none'">
+          <div onclick="event.stopPropagation()" style="background:#0B1824;border:2px solid #C8A84A;border-radius:14px;padding:28px 28px 20px;width:320px;max-width:90vw;position:relative;">
+            <div style="color:#C8A84A;font-size:13px;letter-spacing:2px;margin-bottom:6px;">每日金句</div>
+            <div id="lbm-title" style="color:#E8DCC8;font-weight:700;font-size:16px;margin-bottom:10px;"></div>
+            <div style="height:1px;background:rgba(200,168,74,0.3);margin-bottom:12px;"></div>
+            <div id="lbm-text" style="color:#C0B49A;font-size:14px;line-height:1.9;max-height:220px;overflow-y:auto;white-space:pre-wrap;word-break:break-all;"></div>
+            <div style="margin-top:18px;display:flex;gap:10px;justify-content:flex-end;">
+              <button onclick="document.getElementById('law-board-modal').style.display='none'" style="background:transparent;color:#7A8A9A;border:none;cursor:pointer;padding:6px 12px;font-size:13px;">關閉</button>
+              <a id="lbm-link" href="dashboard.html" target="_blank" style="background:#C8A84A;color:#0B1824;border:none;border-radius:7px;padding:7px 18px;cursor:pointer;font-weight:700;font-size:13px;text-decoration:none;">練習題庫</a>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 在線考生列表 -->
@@ -2909,6 +2923,15 @@ function initThreeScene(canvas) {
         window.open('dashboard.html', '_blank');
         return;
       }
+      if (hit.object.userData.isLawBoard) {
+        const modal = document.getElementById('law-board-modal');
+        if (modal) {
+          document.getElementById('lbm-title').textContent = _lawBoardData.title || '每日金句';
+          document.getElementById('lbm-text').textContent = _lawBoardData.text || '';
+          modal.style.display = 'flex';
+        }
+        return;
+      }
       if (hit.object.userData.isBoard) {
         document.getElementById('board-modal').style.display = 'flex';
         return;
@@ -3577,7 +3600,7 @@ function _updateThreeAvatars(users) {
     if (_characterGLTF && THREE.SkeletonUtils) {
       try {
         const clone = THREE.SkeletonUtils.clone(_characterGLTF.scene);
-        clone.scale.setScalar(0.82);
+        clone.scale.setScalar(0.307); // GLB 節點 scale=69.18，0.307 → 站高≈1.7u
         clone.position.set(pos[0], avatarY, pos[1] + 0.55);
         clone.rotation.y = Math.PI;
         clone.traverse(node => {
@@ -4673,6 +4696,9 @@ function _buildWallFrames() {
 // ─── Block 5: 右牆 3D 每日法條公告欄 ───────────────────────────────────────
 let _lawBoardTex = null;
 
+// 儲存法條文案供 modal 顯示
+let _lawBoardData = { title: '', text: '' };
+
 function _buildDailyLawBoard() {
   const W = 512, H = 410;
   const bc = document.createElement('canvas');
@@ -4681,6 +4707,7 @@ function _buildDailyLawBoard() {
   _lawBoardTex = new THREE.CanvasTexture(bc);
 
   function _draw(title, text) {
+    _lawBoardData = { title, text };
     bx.clearRect(0, 0, W, H);
     bx.fillStyle = '#0B1824'; bx.fillRect(0, 0, W, H);
     bx.strokeStyle = '#C8A84A'; bx.lineWidth = 6;
@@ -4712,16 +4739,51 @@ function _buildDailyLawBoard() {
     if (line && y <= H - 42) bx.fillText(line, 36, y);
     bx.fillStyle = '#4A90B8';
     bx.font = '11px monospace'; bx.textAlign = 'center';
-    bx.fillText('SoFa Engine · sofaengine.org', W/2, H - 14);
+    bx.fillText('點我看完整條文 · SoFa Engine', W/2, H - 14);
     _lawBoardTex.needsUpdate = true;
   }
 
   _draw('載入中…', '正在取得今日法條…');
 
-  _buildFrame(_lawBoardTex, 1.6, 1.28,
-    new THREE.Vector3(8.88, 3.5, 0.5),
-    new THREE.Euler(0, -Math.PI/2, 0)
+  // 右牆 x=9，內面 x=8.85。Group 在 x=8.5，
+  // rotation.y=-π/2 後 local z=0.03 → world x -= 0.03 = 8.47，遠離右牆無 z-fighting。
+  // MeshBasicMaterial 不受光照影響，不閃爍。
+  // 直接加入 scene（非 Group child），可被 raycast 偵測。
+  const group = new THREE.Group();
+  group.position.set(8.5, 3.5, 0.5);
+  group.rotation.set(0, -Math.PI/2, 0);
+
+  // 木框（MeshBasicMaterial，不受光照）
+  const frameMat = new THREE.MeshBasicMaterial({ color: 0x3d2b1f });
+  const fw = 1.6, fh = 1.28;
+  [[fh/2 + 0.06, -(fh/2 + 0.06)], [-(fw/2 + 0.06), fw/2 + 0.06]].forEach(([a, b], axis) => {
+    [a, b].forEach(v => {
+      const bar = axis === 0
+        ? new THREE.Mesh(new THREE.BoxGeometry(fw + 0.14, 0.1, 0.05), frameMat)
+        : new THREE.Mesh(new THREE.BoxGeometry(0.1, fh + 0.1, 0.05), frameMat);
+      if (axis === 0) bar.position.y = v; else bar.position.x = v;
+      group.add(bar);
+    });
+  });
+
+  // 畫布（MeshBasicMaterial + CanvasTexture，不閃）
+  const paintMat = new THREE.MeshBasicMaterial({ map: _lawBoardTex, side: THREE.FrontSide });
+  const planeMesh = new THREE.Mesh(new THREE.PlaneGeometry(fw, fh), paintMat);
+  planeMesh.position.z = 0.03;
+  planeMesh.userData.isLawBoard = true;
+  group.add(planeMesh);
+
+  _threeScene.add(group);
+
+  // 讓 raycast 能打到（把 planeMesh 加入 scene 頂層，位置與 group 保持一致）
+  const proxy = new THREE.Mesh(
+    new THREE.PlaneGeometry(fw + 0.14, fh + 0.14),
+    new THREE.MeshBasicMaterial({ visible: false, side: THREE.FrontSide })
   );
+  proxy.position.copy(group.position);
+  proxy.rotation.copy(group.rotation);
+  proxy.userData.isLawBoard = true;
+  _threeScene.add(proxy);
 
   setTimeout(async () => {
     try {
