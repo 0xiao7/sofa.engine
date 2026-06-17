@@ -647,6 +647,7 @@ input[type=text], select, .btn-enter {
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="OrbitControls.js"></script>
 <script src="GLTFLoader.js"></script>
+<script src="SkeletonUtils.js"></script>
 </head>
 <body>
 
@@ -942,6 +943,9 @@ input[type=text], select, .btn-enter {
 
 let _threeRenderer, _threeScene, _threeCamera, _threeRAF, _threeControls;
 const _isMobile = /iPhone|iPad|Android|Mobi/i.test(navigator.userAgent) || window.innerWidth < 768;
+let _characterGLTF = null; // loaded GLB template for user avatars
+let _mixers = [];           // AnimationMixer array — updated every frame
+let _mixerLastTime = 0;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 const _seenUserIds = new Set();
 let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [];
@@ -2858,6 +2862,15 @@ function initThreeScene(canvas) {
     });
   })();
 
+  // Preload animated character GLB (698KB, cached after first load)
+  if (THREE.GLTFLoader) {
+    new THREE.GLTFLoader().load('models/human.glb', gltf => {
+      _characterGLTF = gltf;
+      // Re-render avatars now that model is ready
+      if (_currentUsers && _currentUsers.length > 0) _updateThreeAvatars(_currentUsers);
+    }, undefined, err => console.warn('character load failed:', err));
+  }
+
   _updateThreeAvatars([]);
 }
 
@@ -3353,6 +3366,8 @@ function _updateThreeAvatars(users) {
   _studyRings.length = 0;
   _focusSparkles.forEach(s => _threeScene.remove(s));
   _focusSparkles.length = 0;
+  _mixers.forEach(mx => mx.stopAllAction());
+  _mixers.length = 0;
 
   // Only render up to available desk positions — no overflow stacking
   users.slice(0, _DESK_POS_3D.length).forEach((u, i) => {
@@ -3374,45 +3389,74 @@ function _updateThreeAvatars(users) {
     const color = new THREE.Color().setHSL(hue, 0.7, 0.55);
     const hexColor = '#' + color.getHexString();
 
-    // Minecraft cube body
-    const bodyMat = new THREE.MeshLambertMaterial({ color });
-    const body = new THREE.Mesh(new THREE.BoxGeometry(0.35,0.45,0.22), bodyMat);
-    body.position.set(pos[0], 0.98, pos[1]+0.9);
-    body.castShadow = true;
-    body.userData.userIndex = i;
-    _threeScene.add(body);
-    body.userData.baseScaleY = body.scale.y;
-    _userAvatarMeshes.push(body);
-
-    // Cube head with pixel face texture
-    const headTex = _makeLabel(u.name, hexColor);
-    const headMat = new THREE.MeshLambertMaterial({ map: headTex });
-    const head = new THREE.Mesh(new THREE.BoxGeometry(0.42,0.42,0.42), headMat);
-    head.position.set(pos[0], 1.45, pos[1]+0.9);
-    head.castShadow = true;
-    head.userData.userIndex = i;
-    if(u.isSelf){
-      // Gold outline for self — add a slightly larger wireframe
-      const wire = new THREE.Mesh(new THREE.BoxGeometry(0.46,0.46,0.46),
-        new THREE.MeshBasicMaterial({color:0xFFDD00, wireframe:true}));
-      wire.position.copy(head.position);
-      _threeScene.add(wire);
-      _userAvatarLabels.push(wire);
+    // GLB animated character avatar (falls back to cube if model not loaded yet)
+    let body;
+    const avatarY = 0;
+    if (_characterGLTF && THREE.SkeletonUtils) {
+      const clone = THREE.SkeletonUtils.clone(_characterGLTF.scene);
+      clone.scale.setScalar(0.82);
+      clone.position.set(pos[0], avatarY, pos[1] + 0.55);
+      clone.rotation.y = Math.PI; // face toward camera
+      // Tint all meshes with subject hue using toon material
+      clone.traverse(node => {
+        if (node.isMesh) {
+          node.material = new THREE.MeshToonMaterial({ color, gradientMap: _toonGrad });
+          node.castShadow = true;
+          node.userData.userIndex = i;
+          // Self gets a gold tint hint
+          if (u.isSelf) node.material.emissive = new THREE.Color(0x332200);
+        }
+      });
+      _threeScene.add(clone);
+      body = clone;
+      body.userData.userIndex = i;
+      _userAvatarMeshes.push(clone);
       // Store self position for typing indicator
-      _threeScene.userData._selfAvatarPos = { x: head.position.x, y: head.position.y, z: head.position.z };
+      if (u.isSelf) _threeScene.userData._selfAvatarPos = { x: pos[0], y: 1.4, z: pos[1]+0.55 };
+      // Animate: find Idle or first available clip
+      if (_characterGLTF.animations && _characterGLTF.animations.length) {
+        const mixer = new THREE.AnimationMixer(clone);
+        const idleClip = _characterGLTF.animations.find(a => /idle/i.test(a.name)) || _characterGLTF.animations[0];
+        mixer.clipAction(idleClip).play();
+        _mixers.push(mixer);
+      }
+      // Fake head position for nameplate / focus ring compatibility
+      const fakeHead = { position: { x: pos[0], y: 1.45, z: pos[1]+0.55 } };
+      _avatarHeads.push({ mesh: clone, baseX: pos[0], baseZ: pos[1]+0.55, phase: i * 1.37 });
+    } else {
+      // Fallback: Minecraft cube body
+      const bodyMat = new THREE.MeshLambertMaterial({ color });
+      body = new THREE.Mesh(new THREE.BoxGeometry(0.35,0.45,0.22), bodyMat);
+      body.position.set(pos[0], 0.98, pos[1]+0.9);
+      body.castShadow = true;
+      body.userData.userIndex = i;
+      body.userData.baseScaleY = body.scale.y;
+      _threeScene.add(body);
+      _userAvatarMeshes.push(body);
+      // Cube head
+      const headTex = _makeLabel(u.name, hexColor);
+      const head = new THREE.Mesh(new THREE.BoxGeometry(0.42,0.42,0.42),
+        new THREE.MeshLambertMaterial({ map: headTex }));
+      head.position.set(pos[0], 1.45, pos[1]+0.9);
+      head.userData.userIndex = i;
+      if(u.isSelf){
+        const wire = new THREE.Mesh(new THREE.BoxGeometry(0.46,0.46,0.46),
+          new THREE.MeshBasicMaterial({color:0xFFDD00, wireframe:true}));
+        wire.position.copy(head.position);
+        _threeScene.add(wire);
+        _userAvatarLabels.push(wire);
+        _threeScene.userData._selfAvatarPos = { x: head.position.x, y: head.position.y, z: head.position.z };
+      }
+      _threeScene.add(head);
+      _userAvatarLabels.push(head);
+      _avatarHeads.push({ mesh: head, baseX: pos[0], baseZ: pos[1]+0.9, phase: i * 1.37 });
+      const legMat = new THREE.MeshLambertMaterial({color: new THREE.Color().setHSL(hue,0.5,0.3)});
+      [[-0.09,0],[0.09,0]].forEach(([lx])=>{
+        const leg = new THREE.Mesh(new THREE.BoxGeometry(0.14,0.35,0.18), legMat);
+        leg.position.set(pos[0]+lx, 0.57, pos[1]+0.9);
+        _threeScene.add(leg); _userAvatarLabels.push(leg);
+      });
     }
-    _threeScene.add(head);
-    _userAvatarLabels.push(head);
-    _avatarHeads.push({ mesh: head, baseX: pos[0], baseZ: pos[1]+0.9, phase: i * 1.37 });
-
-    // Legs (two small boxes)
-    const legMat = new THREE.MeshLambertMaterial({color: new THREE.Color().setHSL(hue,0.5,0.3)});
-    [[-0.09,0],[0.09,0]].forEach(([lx])=>{
-      const leg = new THREE.Mesh(new THREE.BoxGeometry(0.14,0.35,0.18), legMat);
-      leg.position.set(pos[0]+lx, 0.57, pos[1]+0.9);
-      _threeScene.add(leg);
-      _userAvatarLabels.push(leg);
-    });
 
     // Subject accessories (hat / marker / glasses / house / pencil / star)
     const _addAcc = (mesh) => { _threeScene.add(mesh); _userAvatarLabels.push(mesh); };
@@ -5093,6 +5137,13 @@ function startThreeAnimation(canvas) {
       } else {
         _nextCricketTime = 0;
       }
+    }
+    // Update animation mixers (GLB character idle animations)
+    if (_mixers.length) {
+      const _now = performance.now();
+      const _dt = Math.min((_now - _mixerLastTime) / 1000, 0.05);
+      _mixerLastTime = _now;
+      _mixers.forEach(mx => mx.update(_dt));
     }
     _threeRenderer.render(_threeScene, _threeCamera);
   }
