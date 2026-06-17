@@ -2972,6 +2972,17 @@ function initThreeScene(canvas) {
         }
         return;
       }
+      // Wave 156: 左牆公告欄點擊
+      if (hit.object.userData.isBulletinBoard) {
+        const modal = document.getElementById('law-board-modal');
+        if (modal) {
+          const q = _bulletinBoardData;
+          document.getElementById('lbm-title').textContent = (q.section || '每日金句') + '　星期' + (q.day || '');
+          document.getElementById('lbm-text').textContent = q.quote || '';
+          modal.style.display = 'flex';
+        }
+        return;
+      }
       if (hit.object.userData.isBoard) {
         document.getElementById('board-modal').style.display = 'flex';
         return;
@@ -3100,6 +3111,8 @@ function initThreeScene(canvas) {
   _buildWallFrames();
   // Block 5: 右牆每日法條公告欄
   _buildDailyLawBoard();
+  // Wave 156: 左牆 3D 公告欄——每日法條金句輪替
+  _buildBulletinBoard();
   // Wave143: 窗外時段景色
   _buildWindow();
   // Wave148: 入口歡迎地墊
@@ -4833,6 +4846,164 @@ function _buildDailyLawBoard() {
       else _draw('每日金句', '今天也加油！備考不孤單。');
     } catch(e) { _draw('每日金句', '今天也加油！備考不孤單。'); }
   }, 2000);
+}
+
+// ── Wave 156: 左牆 3D 公告欄——每日法條金句輪替 ────────────────────────────────
+
+const _BULLETIN_QUOTES = [
+  { day: '日', section: '§1 記帳士法', quote: '受委託辦理之業務，應盡善良管理人之注意義務。' },
+  { day: '一', section: '§7 商業會計法', quote: '商業負責人，為商業之代表人。' },
+  { day: '二', section: '§14 加值型及非加值型營業稅法', quote: '銷售貨物或勞務之定義，以有償讓與他人為準。' },
+  { day: '三', section: '§6 所得稅法', quote: '凡有中華民國來源所得之個人，應就其來源所得，課徵綜合所得稅。' },
+  { day: '四', section: '§3 稅捐稽徵法', quote: '稅捐之核課期間，依各稅法之規定。' },
+  { day: '五', section: '§2 記帳士法', quote: '記帳士之業務範圍，由主管機關公告之。' },
+  { day: '六', section: '§45 商業登記法', quote: '公司名稱不得與他人相同。' },
+];
+
+let _bulletinBoardData = { section: '', quote: '', day: '' };
+
+function _buildBulletinBoard() {
+  // ── Canvas texture 800×560 ──────────────────────────────────────
+  const W = 800, H = 560;
+  const bc = document.createElement('canvas');
+  bc.width = W; bc.height = H;
+  const bx = bc.getContext('2d');
+
+  // 取台北時間星期幾
+  const taipeiDate = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Taipei' }));
+  const dow = taipeiDate.getDay(); // 0=Sun … 6=Sat
+  const q = _BULLETIN_QUOTES[dow];
+  _bulletinBoardData = q;
+
+  // 軟木色底
+  bx.fillStyle = '#C4903A';
+  bx.fillRect(0, 0, W, H);
+
+  // 軟木紋（隨機小點）
+  for (let i = 0; i < 600; i++) {
+    bx.fillStyle = `rgba(${80 + (Math.random() * 40 | 0)},${45 + (Math.random() * 20 | 0)},${10 + (Math.random() * 10 | 0)},0.28)`;
+    const r = 1 + Math.random() * 3;
+    bx.beginPath();
+    bx.arc(Math.random() * W, Math.random() * H, r, 0, Math.PI * 2);
+    bx.fill();
+  }
+
+  // 深色木框邊（20px）
+  bx.strokeStyle = '#5C3A1A';
+  bx.lineWidth = 20;
+  bx.strokeRect(10, 10, W - 20, H - 20);
+
+  // 內框細線
+  bx.strokeStyle = 'rgba(92,58,26,0.5)';
+  bx.lineWidth = 2;
+  bx.strokeRect(24, 24, W - 48, H - 48);
+
+  // 標題區塊背景（深褐，半透明）
+  bx.fillStyle = 'rgba(60,30,8,0.55)';
+  bx.fillRect(34, 34, W - 68, 80);
+
+  // 標題文字「今日法條」
+  bx.fillStyle = '#F5E8C8';
+  bx.font = 'bold 36px serif';
+  bx.textAlign = 'center';
+  bx.textBaseline = 'middle';
+  bx.fillText('今日法條', W / 2, 74);
+
+  // 星期幾標籤（右上角）
+  bx.font = 'bold 24px serif';
+  bx.textAlign = 'right';
+  bx.fillStyle = '#E8C87A';
+  bx.fillText('星期' + q.day, W - 42, 52);
+
+  // 分隔線
+  bx.strokeStyle = 'rgba(200,168,74,0.6)';
+  bx.lineWidth = 2;
+  bx.beginPath(); bx.moveTo(42, 122); bx.lineTo(W - 42, 122); bx.stroke();
+
+  // 條文大標（例：§1 記帳士法）
+  bx.fillStyle = '#E8C87A';
+  bx.font = 'bold 38px serif';
+  bx.textAlign = 'center';
+  bx.textBaseline = 'top';
+  bx.fillText(q.section, W / 2, 146);
+
+  // 分隔線
+  bx.strokeStyle = 'rgba(200,168,74,0.35)';
+  bx.lineWidth = 1;
+  bx.beginPath(); bx.moveTo(60, 210); bx.lineTo(W - 60, 210); bx.stroke();
+
+  // 引號裝飾
+  bx.fillStyle = 'rgba(200,168,74,0.4)';
+  bx.font = 'bold 80px serif';
+  bx.textAlign = 'left';
+  bx.textBaseline = 'top';
+  bx.fillText('“', 36, 200);
+
+  // 法條原文（自動換行）
+  bx.fillStyle = '#FAF3E0';
+  bx.font = '28px serif';
+  bx.textAlign = 'left';
+  bx.textBaseline = 'top';
+  const maxW = W - 100;
+  let y = 240, line = '';
+  const txt = q.quote;
+  for (let i = 0; i < txt.length; i++) {
+    const test = line + txt[i];
+    if (bx.measureText(test).width > maxW) {
+      bx.fillText(line, 52, y);
+      y += 42; line = txt[i];
+    } else {
+      line = test;
+    }
+  }
+  if (line) bx.fillText(line, 52, y);
+
+  // 右下角日期（台北時間）
+  const dateStr = taipeiDate.getFullYear() + '/' +
+    String(taipeiDate.getMonth() + 1).padStart(2, '0') + '/' +
+    String(taipeiDate.getDate()).padStart(2, '0');
+  bx.fillStyle = 'rgba(245,232,200,0.6)';
+  bx.font = '20px monospace';
+  bx.textAlign = 'right';
+  bx.textBaseline = 'bottom';
+  bx.fillText(dateStr, W - 38, H - 34);
+
+  // 底部 hint
+  bx.fillStyle = 'rgba(245,232,200,0.45)';
+  bx.font = '18px serif';
+  bx.textAlign = 'center';
+  bx.fillText('點擊查看完整金句', W / 2, H - 34);
+
+  // ── Three.js mesh ───────────────────────────────────────────────
+  const tex = new THREE.CanvasTexture(bc);
+  tex.needsUpdate = true;
+
+  // 公告欄主體（PlaneGeometry，貼在左牆 x≈-8.85）
+  const planeMat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.FrontSide });
+  const planeMesh = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.54), planeMat);
+  planeMesh.position.set(-8.85, 3.5, -1.0);
+  planeMesh.rotation.y = Math.PI / 2;
+  planeMesh.userData.isBulletinBoard = true;
+  _threeScene.add(planeMesh);
+
+  // 木框（深色 Box 背板）
+  const frameMat = new THREE.MeshBasicMaterial({ color: 0x5C3A1A });
+  const frameMesh = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.66, 2.34), frameMat);
+  frameMesh.position.set(-8.87, 3.5, -1.0);
+  _threeScene.add(frameMesh);
+
+  // 點光源——讓公告欄有被燈打亮的感覺
+  const bLight = new THREE.PointLight(0xFFF3DC, 0.6, 4);
+  bLight.position.set(-7.5, 3.8, -1.0);
+  _threeScene.add(bLight);
+
+  // 透明 proxy（讓 ray.intersectObjects 能偵測到，因 planeMesh 在 rotation 後的方向）
+  const proxyMat = new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide });
+  const proxy = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.54), proxyMat);
+  proxy.position.set(-8.85, 3.5, -1.0);
+  proxy.rotation.y = Math.PI / 2;
+  proxy.userData.isBulletinBoard = true;
+  _threeScene.add(proxy);
 }
 
 // ── Wave143: 窗外時段景色 ──────────────────────────────────────────────────
