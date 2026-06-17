@@ -3024,14 +3024,20 @@ function initThreeScene(canvas) {
     );
     const ray = new THREE.Raycaster();
     ray.setFromCamera(mouse, _threeCamera);
-    const hits = ray.intersectObjects(_threeScene.children, false);
+    const hits = ray.intersectObjects(_threeScene.children, true);
     for (const hit of hits) {
+      // Walk up to find userData on self or ancestor
+      let _ud = hit.object.userData;
+      let _p = hit.object.parent;
+      while(_p && !(_ud.isLawBoard||_ud.isBulletinBoard||_ud.isBoard||_ud.isBookshelf||_ud.isDesk||_ud.isTree||_ud.userIndex!==undefined)){
+        _ud = {..._p.userData, ..._ud}; _p = _p.parent;
+      }
       // Wave 121: bookshelf → open dashboard
-      if (hit.object.userData.isBookshelf) {
+      if (_ud.isBookshelf) {
         window.open('dashboard.html', '_blank');
         return;
       }
-      if (hit.object.userData.isLawBoard) {
+      if (_ud.isLawBoard) {
         const modal = document.getElementById('law-board-modal');
         if (modal) {
           document.getElementById('lbm-title').textContent = _lawBoardData.title || '每日金句';
@@ -3040,8 +3046,7 @@ function initThreeScene(canvas) {
         }
         return;
       }
-      // Wave 156: 左牆公告欄點擊
-      if (hit.object.userData.isBulletinBoard) {
+      if (_ud.isBulletinBoard) {
         const modal = document.getElementById('law-board-modal');
         if (modal) {
           const q = _bulletinBoardData;
@@ -3051,12 +3056,12 @@ function initThreeScene(canvas) {
         }
         return;
       }
-      if (hit.object.userData.isBoard) {
+      if (_ud.isBoard) {
         document.getElementById('board-modal').style.display = 'flex';
         return;
       }
-      if (hit.object.userData.userIndex !== undefined) {
-        const u = _currentUsers[hit.object.userData.userIndex];
+      if (_ud.userIndex !== undefined) {
+        const u = _currentUsers[_ud.userIndex];
         if (u) {
           const secs = Math.floor((Date.now()-(u.joinedAt||Date.now()))/1000);
           const t = secs<60?'剛到':secs<3600?`已讀 ${Math.floor(secs/60)} 分鐘`:`已讀 ${Math.floor(secs/3600)} 小時 ${Math.floor((secs%3600)/60)} 分`;
@@ -3067,21 +3072,19 @@ function initThreeScene(canvas) {
           popup2.style.left = (e.clientX - rect.left + 10) + 'px';
           popup2.style.top  = (e.clientY - rect.top  - 60) + 'px';
           popup2.style.display = 'block';
-          // Store target desk index for reactions
-          document.getElementById('rpg-react-row').dataset.deskIdx = hit.object.userData.userIndex;
+          document.getElementById('rpg-react-row').dataset.deskIdx = _ud.userIndex;
           setTimeout(() => { popup2.style.display='none'; }, 3500);
         }
         return;
       }
-      // Wave132: tree click → watering animation
-      if (hit.object.userData.isTree) {
+      if (_ud.isTree) {
         const treePos = new THREE.Vector3();
         hit.object.getWorldPosition(treePos);
         _triggerWatering(treePos);
         return;
       }
-      if (hit.object.userData.isDesk) {
-        const clickedDeskIdx = hit.object.userData.deskIdx ?? 0;
+      if (_ud.isDesk) {
+        const clickedDeskIdx = _ud.deskIdx ?? 0;
         const otherCount = _currentUsers.filter(u => !u.isSelf).length;
         const isOccupied = clickedDeskIdx >= 1 && clickedDeskIdx <= otherCount;
         if (isOccupied) {
@@ -5436,7 +5439,7 @@ function startThreeAnimation(canvas) {
       _threeCamera.fov = 75 - ease * (75 - 65);
       _threeCamera.updateProjectionMatrix();
       _threeCamera.lookAt(0, 2.2, -4);
-      if(t >= 1) { _flyInDone = true; if(_threeControls) _threeControls.enabled = true; }
+      if(t >= 1) { _flyInDone = true; if(_threeControls) _threeControls.enabled = true; _wasDrag = false; }
     } else {
       if(_threeControls) _threeControls.update();
     }
