@@ -7019,6 +7019,13 @@ function esc(s){ return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&l
 setInterval(() => {
   if(channel) renderRoom();
 }, 30_000);
+
+// 音效面板初始化（module 執行完才能呼叫，所以放在這裡）
+_renderAudioPanel();
+
+// 把 3D 初始化函數掛到 window，讓非 module 腳本可以呼叫
+window.startThreeAnimation = startThreeAnimation;
+window.resizeThreeCanvas = resizeThreeCanvas;
 </script>
 <div id="toast-container"></div>
 <!-- Wave 88: milestone toast -->
@@ -7149,16 +7156,20 @@ setInterval(() => {
     setInterval(_tick, 30000); // save every 30s
   };
 })();
-// Wave75: init audio panel toggle states on load
-_renderAudioPanel();
 
-// Block1: start 3D preview behind entry screen — defer 2 rAF to let browser compute layout first
+// Block1: start 3D preview behind entry screen
+// _renderAudioPanel / startThreeAnimation / resizeThreeCanvas are in <script type="module">
+// They get hoisted to window after module executes; use DOMContentLoaded to wait safely
 document.body.classList.add('entry-phase');
-requestAnimationFrame(() => requestAnimationFrame(() => {
-  resizeThreeCanvas();
-  const _previewCanvas = document.getElementById('room-canvas');
-  if (_previewCanvas && _previewCanvas.width > 0) startThreeAnimation(_previewCanvas);
-}));
+document.addEventListener('DOMContentLoaded', () => {
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    if (window.resizeThreeCanvas) window.resizeThreeCanvas();
+    const _previewCanvas = document.getElementById('room-canvas');
+    if (_previewCanvas && _previewCanvas.width > 0 && window.startThreeAnimation) {
+      window.startThreeAnimation(_previewCanvas);
+    }
+  }));
+});
 </script>
 </body>
 </html>

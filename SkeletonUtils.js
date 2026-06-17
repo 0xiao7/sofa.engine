@@ -1,3 +1,4 @@
+(function() {
 const AnimationClip = THREE.AnimationClip;
 const AnimationMixer = THREE.AnimationMixer;
 const Matrix4 = THREE.Matrix4;
@@ -404,3 +405,4 @@ function parallelTraverse( a, b, callback ) {
 
 }
 THREE.SkeletonUtils = { clone };
+})();

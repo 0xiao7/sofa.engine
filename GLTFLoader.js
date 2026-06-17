@@ -1,3 +1,4 @@
+(function() {
 const AnimationClip = THREE.AnimationClip;
 const Bone = THREE.Bone;
 const Box3 = THREE.Box3;
@@ -4658,3 +4659,4 @@ function addPrimitiveAttributes( geometry, primitiveDef, parser ) {
 
 }
 THREE.GLTFLoader = GLTFLoader;
+})();
