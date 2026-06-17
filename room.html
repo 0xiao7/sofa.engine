@@ -1309,6 +1309,34 @@ function _woodTex(){
   }, 64);
 }
 
+function _barkTex(){
+  return _mkTex((ctx,s)=>{
+    // Tree bark — dark earthy brown with vertical grain ridges
+    ctx.fillStyle='#5A3318'; ctx.fillRect(0,0,s,s);
+    const r=_rng(13);
+    // Vertical grain stripes (not horizontal like wood planks)
+    for(let x=0;x<s;x++){
+      const alpha=0.04+r()*0.14;
+      ctx.fillStyle=`rgba(30,12,0,${alpha.toFixed(2)})`;
+      ctx.fillRect(x,0,1,s);
+    }
+    // Deep bark furrows (vertical dark lines)
+    ctx.strokeStyle='rgba(25,8,0,0.55)'; ctx.lineWidth=1.5;
+    [8,18,34,44,55,62].forEach(x=>{
+      ctx.beginPath(); ctx.moveTo(x,0);
+      for(let y=0;y<s;y+=8) ctx.lineTo(x+(r()-0.5)*3, y);
+      ctx.stroke();
+    });
+    // Lighter ridge highlights
+    ctx.strokeStyle='rgba(120,72,30,0.30)'; ctx.lineWidth=1;
+    [12,28,40,50].forEach(x=>{
+      ctx.beginPath(); ctx.moveTo(x,0);
+      for(let y=0;y<s;y+=6) ctx.lineTo(x+(r()-0.5)*2, y);
+      ctx.stroke();
+    });
+  }, 64);
+}
+
 function _shelfTex(){
   return _mkTex((ctx,s)=>{
     // Blonde/natural oak shelf — matches reference library exactly
@@ -2746,7 +2774,7 @@ function initThreeScene(canvas) {
   }
 
   // Trunk — lower wide base + upper tapered cylinder for natural look
-  const trunkMat = tMat('trunk',_woodTex);
+  const trunkMat = tMat('trunk',_barkTex);
   const trunkBase = new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.52,1.2,10), trunkMat);
   trunkBase.position.set(TX,0.6,TZ); _threeScene.add(trunkBase);
   trunkBase.userData.isTree = true;
@@ -3085,7 +3113,7 @@ function initThreeScene(canvas) {
   }
 
   // Diagonal branches (offset to tree corner position TX, TZ)
-  const branchMat = tMat('trunk', _woodTex);
+  const branchMat = tMat('trunk', _barkTex);
   [
     [0.8,3.0,0.4,  Math.PI*0.18, 0, Math.PI*0.1],
     [-0.6,2.8,0.3, -Math.PI*0.18, 0, -Math.PI*0.08],
@@ -3676,6 +3704,30 @@ function initThreeScene(canvas) {
         const pl = new THREE.PointLight(0xFFD060, 0.35, 4.5);
         pl.position.set(lx, shadeY-0.14, lz); _threeScene.add(pl);
         _torchLights.push(pl);
+      });
+    });
+  }
+
+  // Entrance potted plants — flanking the doorway arch, visible as foreground framing elements
+  { const potClayMat = new THREE.MeshLambertMaterial({ color: 0xA05030 }); // terracotta pot
+    const soilMat = new THREE.MeshLambertMaterial({ color: 0x3A2010 });
+    const leafColors = [0x2A8A30, 0x3A9A40, 0x1E7228, 0x448A38];
+    [[-2.5, 6.5], [2.5, 6.5]].forEach(([px, pz]) => {
+      // Terracotta pot
+      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.22,0.55,10), potClayMat);
+      pot.position.set(px, 0.275, pz); _threeScene.add(pot);
+      // Soil top disc
+      const soil = new THREE.Mesh(new THREE.CircleGeometry(0.27,10), soilMat);
+      soil.rotation.x = -Math.PI/2; soil.position.set(px, 0.55, pz); _threeScene.add(soil);
+      // Trunk
+      const pTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.09,1.2,8),
+        new THREE.MeshLambertMaterial({ color: 0x6A4018 }));
+      pTrunk.position.set(px, 1.15, pz); _threeScene.add(pTrunk);
+      // Foliage — 3 overlapping spheres
+      [[0,2.0,0,0.48],[0.2,1.8,-0.12,0.36],[-0.18,1.85,0.14,0.34]].forEach(([dx,dy,dz,r],li) => {
+        const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(r,0),
+          new THREE.MeshLambertMaterial({ color: leafColors[li%leafColors.length], flatShading:true }));
+        leaf.position.set(px+dx, dy, pz+dz); _threeScene.add(leaf);
       });
     });
   }
