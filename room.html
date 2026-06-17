@@ -2878,11 +2878,11 @@ function initThreeScene(canvas) {
   _updateThreeAvatars([]);
 }
 
-// 48 desk positions: 6 columns × 8 rows, center aisle clear
-// Cols: -6.5,-4.5,-2.5 | 2.5,4.5,6.5  Rows: -6.5→4
+// 24 desk positions: 4 columns × 6 rows, wide center aisle, library layout
+// Left pair: -5,-2.5 | Right pair: 2.5,5  Rows: z=-5.5→3
 const _DESK_POS_3D = (()=>{
-  const cols=[-6.5,-4.5,-2.5,2.5,4.5,6.5];
-  const rows=[-6.5,-5,-3.5,-2,-0.5,1,2.5,4];
+  const cols=[-5,-2.5,2.5,5];
+  const rows=[-5.5,-3.8,-2.1,-0.4,1.3,3.0];
   const p=[]; rows.forEach(z=>cols.forEach(x=>p.push([x,z]))); return p;
 })();
 
@@ -4727,11 +4727,13 @@ function startThreeAnimation(canvas) {
     _threeTime += 0.008;
     // Fly-in then settle to gentle sway
     if(_previewOrbit){
-      _previewAngle += 0.004;
-      const _pr = 12;
-      _threeCamera.position.set(Math.sin(_previewAngle)*_pr, 5.5, -4+Math.cos(_previewAngle)*_pr);
-      _threeCamera.fov = 65; _threeCamera.updateProjectionMatrix();
-      _threeCamera.lookAt(0, 2.2, -4);
+      _previewAngle += 0.003; // slow elegant pan
+      // Oscillate ±38° — camera always stays in FRONT of room, panning left-right
+      const _osc = Math.sin(_previewAngle) * 0.65;
+      const _pr = 11;
+      _threeCamera.position.set(Math.sin(_osc)*_pr, 4.6, -4+Math.cos(_osc)*_pr);
+      _threeCamera.fov = 68; _threeCamera.updateProjectionMatrix();
+      _threeCamera.lookAt(0, 1.8, -4);
     } else if(!_flyInDone){
       const t = Math.min(1, (performance.now() - _flyInStart) / 2000);
       const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
