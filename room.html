@@ -4345,6 +4345,32 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v55: Path pendant lanterns — small warm lanterns at eye height along corridor
+  { const plCordM=new THREE.MeshLambertMaterial({color:0x3A2010});
+    const plCapM =new THREE.MeshLambertMaterial({color:0x1A0808});
+    // 4 lanterns: 2 pairs at z=4.4 and z=5.8, x=±1.0
+    [[-1.0,4.4],[1.0,4.4],[-1.0,5.8],[1.0,5.8]].forEach(([lx,lz],li)=>{
+      const colors=[0xFFE8C8,0xFFD8A8,0xFFECD0,0xFFE0B0];
+      const lMat=new THREE.MeshLambertMaterial({color:colors[li],emissive:0x663300,emissiveIntensity:0.25});
+      // Cord from ceiling beam (~y=4.0) to lantern top
+      const cord=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,1.70,4),plCordM);
+      cord.position.set(lx,3.30,lz); _threeScene.add(cord);
+      // Lantern body (small sphere)
+      const lBody=new THREE.Mesh(new THREE.SphereGeometry(0.092,8,8),lMat);
+      lBody.position.set(lx,2.42,lz); _threeScene.add(lBody);
+      // Cap top
+      const tCap=new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.092,0.036,8),plCapM);
+      tCap.position.set(lx,2.512,lz); _threeScene.add(tCap);
+      // Cap bottom
+      const bCap=new THREE.Mesh(new THREE.CylinderGeometry(0.092,0.060,0.036,8),plCapM);
+      bCap.position.set(lx,2.328,lz); _threeScene.add(bCap);
+      // Warm point light glow
+      const ptL=new THREE.PointLight(0xFFCC80,0.20,3.0);
+      ptL.position.set(lx,2.42,lz); _threeScene.add(ptL);
+      _permLanternLights.push(ptL);
+    });
+  }
+
   // v48: Ikebana flower pedestals — eye-level decoration in path to tree ───────
   { const pedMat = new THREE.MeshLambertMaterial({ color: 0x4A2E0E }); // dark walnut
     const pedTopMat = new THREE.MeshLambertMaterial({ color: 0x3A2008 });
