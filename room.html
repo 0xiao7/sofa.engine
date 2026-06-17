@@ -1727,6 +1727,9 @@ function initThreeScene(canvas) {
   _threeRenderer.setSize(canvas.width, canvas.height);
   _threeRenderer.shadowMap.enabled = true;
   _threeRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  _threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
+  _threeRenderer.toneMappingExposure = 1.15;
+  _threeRenderer.outputColorSpace = THREE.SRGBColorSpace;
 
   _threeScene = new THREE.Scene();
   _threeScene.background = new THREE.Color(0xEDE9E0);
@@ -1748,13 +1751,13 @@ function initThreeScene(canvas) {
   _threeControls.enabled = false;
   _threeControls.addEventListener('change', () => { _wasDrag = true; });
 
-  // Lights — bright warm library
-  _threeScene.add(new THREE.AmbientLight(0xFFF8F0, 1.8));
-  const ceilLight1 = new THREE.PointLight(0xFFF5E8, 3.5, 28);
+  // Lights — toon-optimised: less ambient so shadow bands read clearly
+  _threeScene.add(new THREE.AmbientLight(0xFFF8F0, 0.9));
+  const ceilLight1 = new THREE.PointLight(0xFFF5E8, 4.5, 28);
   ceilLight1.position.set(-4, 7.5, -2); _threeScene.add(ceilLight1);
-  const ceilLight2 = new THREE.PointLight(0xFFF5E8, 3.5, 28);
+  const ceilLight2 = new THREE.PointLight(0xFFF5E8, 4.5, 28);
   ceilLight2.position.set(4, 7.5, -2); _threeScene.add(ceilLight2);
-  const keyLight = new THREE.DirectionalLight(0xFFF0D8, 1.6);
+  const keyLight = new THREE.DirectionalLight(0xFFF0D8, 2.4);
   keyLight.position.set(3, 8, 5);
   _threeScene.add(keyLight);
   keyLight.castShadow = true;
@@ -1781,7 +1784,14 @@ function initThreeScene(canvas) {
     _torchLights.push(tl);
   });
 
-  const mLambert = (hex, flat=false) => new THREE.MeshLambertMaterial({ color: hex, flatShading: flat });
+  // 4-band toon gradient: deep shadow → shadow → mid → highlight
+  const _toonGrad = (() => {
+    const d = new Uint8Array([32,28,22,255, 95,85,70,255, 175,162,142,255, 255,252,245,255]);
+    const t = new THREE.DataTexture(d, 4, 1);
+    t.needsUpdate = true;
+    return t;
+  })();
+  const mLambert = (hex, flat=false) => new THREE.MeshToonMaterial({ color: hex, gradientMap: _toonGrad });
   const box = (w,h,d) => new THREE.BoxGeometry(w,h,d);
 
   // Textured materials (created once, reused)
