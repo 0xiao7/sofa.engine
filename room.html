@@ -4445,13 +4445,14 @@ function _updateThreeAvatars(users) {
 
       // Focus sparkles — golden particles rising from desk during Pomodoro
       const stx = _sparkleTex();
-      for(let si=0; si<4; si++){
+      for(let si=0; si<6; si++){
         const sm = new THREE.SpriteMaterial({
           map: stx, transparent: true, opacity: 0,
           blending: THREE.AdditiveBlending, depthWrite: false,
         });
         const ss = new THREE.Sprite(sm);
-        ss.scale.set(0.10 + Math.random()*0.07, 0.10 + Math.random()*0.07, 1);
+        const spSc = 0.16 + Math.random()*0.12;
+        ss.scale.set(spSc, spSc, 1);
         const baseY = 0.75 + si * 0.25;
         ss.position.set(
           avx + (Math.random()-0.5)*0.35,
@@ -4470,10 +4471,31 @@ function _updateThreeAvatars(users) {
     }
   });
 
-  // Dim all desk lamps, brighten occupied ones
+  // Dim all desk lamps, brighten occupied ones + add glow pool sprite
   _deskLampLights.forEach((dl) => { if(dl) dl.intensity = 0.12; });
+  // Remove old desk glow pools before re-adding
+  (_threeScene.userData._deskGlowPools||[]).forEach(s => _threeScene.remove(s));
+  _threeScene.userData._deskGlowPools = [];
+  const _dgpTex = (() => {
+    const dc = document.createElement('canvas'); dc.width = 32; dc.height = 32;
+    const dg = dc.getContext('2d');
+    const gr = dg.createRadialGradient(16,16,0,16,16,14);
+    gr.addColorStop(0,'rgba(255,230,150,0.7)'); gr.addColorStop(0.5,'rgba(255,200,80,0.25)');
+    gr.addColorStop(1,'rgba(255,160,40,0)');
+    dg.fillStyle=gr; dg.fillRect(0,0,32,32);
+    return new THREE.CanvasTexture(dc);
+  })();
   users.slice(0, _DESK_POS_3D.length).forEach((u, i) => {
-    if(_deskLampLights[i]) _deskLampLights[i].intensity = 0.65;
+    if(_deskLampLights[i]) _deskLampLights[i].intensity = u.pomodoro ? 1.0 : 0.65;
+    const vp = _DESK_VISUAL_POS_3D[i]; if(!vp) return;
+    const gp = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: _dgpTex, transparent:true, depthWrite:false,
+      blending: THREE.AdditiveBlending, opacity: u.isGhost ? 0.20 : 0.45
+    }));
+    gp.scale.set(1.4, 1.4, 1.4);
+    gp.position.set(vp.vx + 0.5, 0.85, vp.vz + 0.1);
+    _threeScene.add(gp);
+    _threeScene.userData._deskGlowPools.push(gp);
   });
 
   // Wave155: 3D crown 👑 on top-ranked real user
@@ -6271,9 +6293,9 @@ function startThreeAnimation(canvas) {
       s.position.y += s.userData.speed;
       s.position.x = s.userData.baseX + 0.08*Math.sin(_threeTime*2.2 + s.userData.phase);
       const t = (s.position.y - s.userData.startY) / (s.userData.topY - s.userData.startY);
-      if(t < 0.25) s.material.opacity = (t/0.25)*0.75;
-      else if(t < 0.65) s.material.opacity = 0.75;
-      else s.material.opacity = Math.max(0, 0.75*(1-(t-0.65)/0.35));
+      if(t < 0.20) s.material.opacity = (t/0.20)*0.90;
+      else if(t < 0.60) s.material.opacity = 0.90;
+      else s.material.opacity = Math.max(0, 0.90*(1-(t-0.60)/0.40));
       if(s.position.y >= s.userData.topY){
         s.position.y = s.userData.startY;
         s.position.x = s.userData.baseX + (Math.random()-0.5)*0.3;
