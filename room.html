@@ -3335,6 +3335,20 @@ function initThreeScene(canvas) {
       _threeScene.add(ps);
       _petalParticles.push(ps);
     }
+    // v59: Hero petals — larger, concentrated in gate-to-tree corridor
+    for(let hp=0; hp<22; hp++){
+      const hpm=new THREE.SpriteMaterial({map:ptex,transparent:true,opacity:0.88+Math.random()*0.12,depthWrite:false});
+      const hps=new THREE.Sprite(hpm);
+      const sc2=0.48+Math.random()*0.30; // 0.48–0.78 (hero scale)
+      hps.scale.set(sc2,sc2,1);
+      hps.position.set((Math.random()-0.5)*4.5, 4+Math.random()*4.5, 2.5+Math.random()*5.0);
+      hps.userData.vx=(Math.random()-0.5)*0.002;
+      hps.userData.vy=-(0.002+Math.random()*0.003);
+      hps.userData.phase=Math.random()*Math.PI*2;
+      hps.userData.rot=(Math.random()-0.5)*0.018;
+      _threeScene.add(hps);
+      _petalParticles.push(hps);
+    }
     // Wave92: 端午節粽子 — June only
     if (_mo === 5) { _buildZongzis(); } else { if (_zongzis.length > 0) _destroyZongzis(); }
   } else {
