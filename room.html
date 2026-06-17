@@ -1886,19 +1886,20 @@ function initThreeScene(canvas) {
   _threeScene.fog = new THREE.Fog(0xC8E0F5, 28, 55);   // subtle linear fog
 
   // 相機：眼睛高度，正面看向全景窗，景深自然出現
-  _threeCamera = new THREE.PerspectiveCamera(68, canvas.width / canvas.height, 0.1, 80);
-  _threeCamera.position.set(0, 2.2, 10);
-  _threeCamera.lookAt(0, 2.8, -4);
+  _threeCamera = new THREE.PerspectiveCamera(72, canvas.width / canvas.height, 0.1, 80);
+  // 入口俯瞰角度：從正門高處望向整個大廳，樹、地毯、書架全入鏡
+  _threeCamera.position.set(0, 5.5, 13);
+  _threeCamera.lookAt(0, 1.2, -1);
 
   _threeControls = new THREE.OrbitControls(_threeCamera, canvas);
-  _threeControls.target.set(0, 2.8, -4);
+  _threeControls.target.set(0, 1.2, -1);
   _threeControls.enableDamping = true;
   _threeControls.dampingFactor = _isMobile ? 0.12 : 0.06;
   _threeControls.rotateSpeed = _isMobile ? 0.6 : 0.8;
-  _threeControls.minDistance = 3;
-  _threeControls.maxDistance = 20;
-  _threeControls.minPolarAngle = 0.3;
-  _threeControls.maxPolarAngle = Math.PI * 0.58;
+  _threeControls.minDistance = 4;
+  _threeControls.maxDistance = 22;
+  _threeControls.minPolarAngle = 0.1;
+  _threeControls.maxPolarAngle = Math.PI * 0.52;
   _threeControls.enablePan = false;
   _threeControls.enabled = false;
   _threeControls.addEventListener('change', () => { _wasDrag = true; });
@@ -2196,14 +2197,18 @@ function initThreeScene(canvas) {
     tick.rotation.z = angle + Math.PI/2;
     _threeScene.add(tick);
   }
-  const lWall = new THREE.Mesh(box(0.3,8,20), wallMat);
-  lWall.position.set(-9, 4, 0); _threeScene.add(lWall);
-  const rWall = lWall.clone(); rWall.position.set(9,4,0); _threeScene.add(rWall);
-  // 前牆（入口後方）
-  const fWall = new THREE.Mesh(box(22,8,0.3), wallMat);
-  fWall.position.set(0, 4, 12); _threeScene.add(fWall);
-  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(22,20), mToon(0xF2EDE0));
-  ceil.rotation.x = Math.PI/2; ceil.position.y = 8; _threeScene.add(ceil);
+  const lWall = new THREE.Mesh(box(0.3,10,24), wallMat);
+  lWall.position.set(-9, 5, 0); _threeScene.add(lWall);
+  const rWall = lWall.clone(); rWall.position.set(9,5,0); _threeScene.add(rWall);
+  // 前牆（入口後方，高到蓋住背景）
+  const fWall = new THREE.Mesh(box(22,10,0.3), wallMat);
+  fWall.position.set(0, 5, 14); _threeScene.add(fWall);
+  // 後牆上方實牆（全景窗之上，蓋住天空透出的缺口）
+  const bWallTop = new THREE.Mesh(box(22,3,0.3), wallMat);
+  bWallTop.position.set(0, 9.5, -8); _threeScene.add(bWallTop);
+  // 天花板：拉高到 y=9，確保 FOV 內不露出背景
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(22,24), mToon(0xF2EDE0));
+  ceil.rotation.x = Math.PI/2; ceil.position.set(0, 9, 0); _threeScene.add(ceil);
   // Ceiling wooden beams — lighter warm wood
   const beamMat = mToon(0xC4A870);
   [-7,-3.5,0,3.5,7].forEach(bx => {
@@ -2606,20 +2611,27 @@ function initThreeScene(canvas) {
   const monMat  = mToon(0x7A8494);    // slate monitor body
   const scrMat  = new THREE.MeshBasicMaterial({ color: 0x1A3A5C });  // blue glow
   const _deskGeo = box(1.6,0.08,0.9);
+  const _deskRng = _rng(77);  // deterministic scatter seed
   _DESK_POS_3D.forEach(([x,z], dIdx) => {
+    // 隨機偏移讓桌子鬆散（不要整齊排列）
+    const ox = (_deskRng()-0.5)*0.55;
+    const oz = (_deskRng()-0.5)*0.55;
+    const ry = (_deskRng()-0.5)*0.22;  // 輕微旋轉
+    const vx = x+ox, vz = z+oz;
     const desk = new THREE.Mesh(_deskGeo, deskMat);
-    desk.position.set(x,0.76,z); _threeScene.add(desk);
-    // Ink outline on desk surface (細描邊)
+    desk.position.set(vx,0.76,vz);
+    desk.rotation.y = ry;
+    _threeScene.add(desk);
     const deskOl = _ol(_deskGeo, 1.025, 0x1A1208);
     deskOl.position.copy(desk.position); _threeScene.add(deskOl);
     desk.userData.deskIdx = dIdx;
     desk.userData.isDesk = true;
     const leg1 = new THREE.Mesh(box(0.06,0.76,0.06), deskMat);
-    leg1.position.set(x-0.65,0.38,z+0.35); _threeScene.add(leg1);
+    leg1.position.set(vx-0.65,0.38,vz+0.35); _threeScene.add(leg1);
     leg1.userData.isDesk = true;
-    const leg2 = leg1.clone(); leg2.position.set(x+0.65,0.38,z+0.35); _threeScene.add(leg2);
-    const leg3 = leg1.clone(); leg3.position.set(x-0.65,0.38,z-0.35); _threeScene.add(leg3);
-    const leg4 = leg1.clone(); leg4.position.set(x+0.65,0.38,z-0.35); _threeScene.add(leg4);
+    const leg2 = leg1.clone(); leg2.position.set(vx+0.65,0.38,vz+0.35); _threeScene.add(leg2);
+    const leg3 = leg1.clone(); leg3.position.set(vx-0.65,0.38,vz-0.35); _threeScene.add(leg3);
+    const leg4 = leg1.clone(); leg4.position.set(vx+0.65,0.38,vz-0.35); _threeScene.add(leg4);
     // Full detail only for first 12 desks (monitor + lamp 3D body + prop)
     if (dIdx < 12) {
     // Monitor
@@ -2682,21 +2694,21 @@ function initThreeScene(canvas) {
     }
     } // end dIdx < 12 full-detail block
 
-    // Chair at every desk — seat + backrest + legs
-    const _cBlue = mToon(0x7A4A28);   // warm wood — matches desk family
+    // Chair at every desk — seat + backrest + legs (follow visual vx,vz)
+    const _cBlue = mToon(0x7A4A28);
     const _cWood = mToon(0x7A4A28);
     const _cSeatGeo = box(0.54,0.06,0.48);
     const cSeat = new THREE.Mesh(_cSeatGeo, _cBlue);
-    cSeat.position.set(x,0.44,z+0.64);
+    cSeat.position.set(vx,0.44,vz+0.64); cSeat.rotation.y = ry;
     cSeat.add(_ol(_cSeatGeo, 1.025)); _threeScene.add(cSeat);
     const _cBackGeo = box(0.50,0.42,0.06);
     const cBack = new THREE.Mesh(_cBackGeo, _cBlue);
-    cBack.position.set(x,0.68,z+0.40);
+    cBack.position.set(vx,0.68,vz+0.40); cBack.rotation.y = ry;
     cBack.add(_ol(_cBackGeo, 1.025)); _threeScene.add(cBack);
     if(!_isMobile||dIdx<6){
-      [[-0.22,z+0.41],[0.22,z+0.41],[-0.22,z+0.87],[0.22,z+0.87]].forEach(([lx,lz])=>{
+      [[-0.22,vz+0.41],[0.22,vz+0.41],[-0.22,vz+0.87],[0.22,vz+0.87]].forEach(([lx,lz])=>{
         const cl=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.44,6),_cWood);
-        cl.position.set(x+lx,0.22,lz); _threeScene.add(cl);
+        cl.position.set(vx+lx,0.22,lz); _threeScene.add(cl);
       });
     }
 
@@ -2704,7 +2716,7 @@ function initThreeScene(canvas) {
     const addLight = !_isMobile || dIdx < 24;
     if (addLight) {
       const deskLight = new THREE.PointLight(0xFFEDD0, 0.12, 3.0);
-      deskLight.position.set(x+0.5, 1.2, z+0.1);
+      deskLight.position.set(vx+0.5, 1.2, vz+0.1);
       _threeScene.add(deskLight);
       _deskLampLights.push(deskLight);
     } else {
