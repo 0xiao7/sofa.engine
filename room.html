@@ -1091,7 +1091,7 @@ let _mixerLastTime = 0;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _DESK_VISUAL_POS_3D = []; // stores {vx,vz,ry} for each desk after scatter
 const _seenUserIds = new Set();
-let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [];
+let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [], _pendantGlows = [];
 let _snowParticles = [];
 let _waterDroplets = [], _waterTx = null; // Wave132: tree watering
 let _sakuraParticles = [];
@@ -1212,16 +1212,16 @@ function _timeOfDayPalette() {
   const hour = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
   if (hour >= 6 && hour < 11) {
     // Morning: warm bright library
-    return { ambR:1.0, ambG:0.96, ambB:0.88, torchMult:0.2, fogDensity:0.002 };
+    return { ambR:1.0, ambG:0.96, ambB:0.88, ambI:2.5, torchMult:0.25, fogDensity:0.002 };
   } else if (hour >= 11 && hour < 17) {
     // Afternoon: peak brightness
-    return { ambR:1.0, ambG:0.98, ambB:0.92, torchMult:0.1, fogDensity:0.001 };
+    return { ambR:1.0, ambG:0.98, ambB:0.92, ambI:2.5, torchMult:0.15, fogDensity:0.001 };
   } else if (hour >= 17 && hour < 21) {
     // Evening: golden hour warmth
-    return { ambR:0.98, ambG:0.88, ambB:0.72, torchMult:0.5, fogDensity:0.003 };
+    return { ambR:0.98, ambG:0.88, ambB:0.72, ambI:1.8, torchMult:0.65, fogDensity:0.003 };
   } else {
-    // Night: dim warm — library after hours
-    return { ambR:0.78, ambG:0.70, ambB:0.60, torchMult:0.9, fogDensity:0.005 };
+    // Night: dim warm — pendant lights dominate
+    return { ambR:0.75, ambG:0.65, ambB:0.55, ambI:0.90, torchMult:1.20, fogDensity:0.005 };
   }
 }
 
@@ -1906,8 +1906,11 @@ function initThreeScene(canvas) {
   _threeControls.addEventListener('change', () => { _wasDrag = true; });
 
   // ── 燈光：明亮圖書館白天感 ──────────────────────────────────
-  // 強白天環境光：整個空間明亮、通透
-  _threeScene.add(new THREE.AmbientLight(0xFFF8F0, 2.5));
+  // Initial intensity seeded from time-of-day palette (no jarring flash at startup)
+  { const _initTod = _timeOfDayPalette();
+    const _al = new THREE.AmbientLight(0xFFF8F0, _initTod.ambI);
+    _al.color.setRGB(_initTod.ambR, _initTod.ambG, _initTod.ambB);
+    _threeScene.add(_al); }
 
   // 窗光：柔和自然光從後方照進
   const windowLight = new THREE.DirectionalLight(0xFFFFFF, 1.0);
@@ -1970,6 +1973,7 @@ function initThreeScene(canvas) {
     glow.scale.set(2.0, 2.0, 2.0);
     glow.position.set(lx, cy-1.35, lz);
     _threeScene.add(glow);
+    _pendantGlows.push(glow);
   });
 
   // Entrance flanking plants (frame the doorway view)
@@ -2100,14 +2104,46 @@ function initThreeScene(canvas) {
         ctx.fillStyle='rgba(255,255,255,0.20)';ctx.beginPath();ctx.ellipse(cx-cw*.4,cy+ch*.4,cw*.6,ch*.5,0,0,Math.PI*2);ctx.fill();
       });
     }
-    // 星（夜晚）
+    // 星＋月（夜晚）
     if(hour>=21||hour<5){
-      for(let i=0;i<200;i++){
-        const sx=Math.random()*W,sy=Math.random()*H*.6;
+      // Star field — varied sizes and brightness
+      for(let i=0;i<320;i++){
+        const sx=Math.random()*W,sy=Math.random()*H*.58;
         const br=Math.random();
-        ctx.fillStyle=`rgba(255,255,255,${.4+br*.6})`;
-        ctx.beginPath();ctx.arc(sx,sy,.4+br*1.8,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle=`rgba(255,255,255,${.35+br*.65})`;
+        ctx.beginPath();ctx.arc(sx,sy,.3+br*2.2,0,Math.PI*2);ctx.fill();
       }
+      // Bright blue-white giant stars
+      [[W*.12,H*.08],[W*.65,H*.05],[W*.30,H*.22],[W*.85,H*.15],[W*.48,H*.03]].forEach(([mx,my])=>{
+        ctx.fillStyle='rgba(220,235,255,0.95)';
+        ctx.beginPath(); ctx.arc(mx,my,3.0,0,Math.PI*2); ctx.fill();
+        const glg=ctx.createRadialGradient(mx,my,0,mx,my,14);
+        glg.addColorStop(0,'rgba(200,220,255,0.5)'); glg.addColorStop(1,'rgba(0,0,0,0)');
+        ctx.fillStyle=glg; ctx.beginPath(); ctx.arc(mx,my,14,0,Math.PI*2); ctx.fill();
+      });
+      // Moon — crescent/full depending on night
+      const mx=W*.22,my=H*.13;
+      // Moon glow
+      const mg=ctx.createRadialGradient(mx,my,0,mx,my,70);
+      mg.addColorStop(0,'rgba(200,220,255,0.35)'); mg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=mg; ctx.beginPath(); ctx.arc(mx,my,70,0,Math.PI*2); ctx.fill();
+      // Moon disc
+      ctx.fillStyle='#E8EEFF';
+      ctx.beginPath(); ctx.arc(mx,my,28,0,Math.PI*2); ctx.fill();
+      ctx.fillStyle='rgba(180,200,240,0.85)';
+      ctx.beginPath(); ctx.arc(mx,my,28,0,Math.PI*2); ctx.fill();
+      // Moon craters for depth
+      [{dx:-5,dy:-4,r:7},{dx:8,dy:6,r:5},{dx:-9,dy:9,r:4},{dx:5,dy:-11,r:3}].forEach(({dx,dy,r})=>{
+        ctx.fillStyle='rgba(140,160,200,0.35)';
+        ctx.beginPath(); ctx.arc(mx+dx,my+dy,r,0,Math.PI*2); ctx.fill();
+      });
+      // Moonlit mountain ridge highlights
+      ctx.strokeStyle='rgba(160,190,220,0.22)'; ctx.lineWidth=3;
+      ctx.beginPath();
+      [[0,.42],[W*.10,.24],[W*.22,.34],[W*.35,.18],[W*.48,.30],[W*.60,.16],[W*.72,.26],[W*.85,.20],[W,.38]].forEach(([x,y],i)=>{
+        if(i===0) ctx.moveTo(x,H*y); else ctx.lineTo(x,H*y);
+      });
+      ctx.stroke();
     }
     // 山脈四層（從遠到近，層次越來越深）
     const isDay=hour>=6&&hour<20;
@@ -2318,9 +2354,11 @@ function initThreeScene(canvas) {
   const shelfWoodMat = new THREE.MeshLambertMaterial({ color: 0x8C6530 });
   // Library-style varied book colors
   const bookMats = [
-    0x6E1C1C, 0x5A1010, 0x1A2840, 0x1E4A2A,
-    0x4A2A0A, 0x1A3A7A, 0x4A1028, 0x2A4A30,
-    0xC8A840, 0x3A1A5A, 0x5A2A10, 0x0A3A4A,
+    // Rich jewel-tone library palette — saturated, visible from distance
+    0xA02020, 0x8B1A1A, 0x1E3D70, 0x1A5C30,
+    0x7A4010, 0x1A4A9A, 0x7A1040, 0x2A6040,
+    0xD4B020, 0x5A1A7A, 0x8A3A10, 0x0A4A6A,
+    0xC04030, 0x3A2A80, 0x506020, 0x7A2060,
   ].map(c => new THREE.MeshLambertMaterial({ color: c }));
   // 書架沿左右兩側（x=±11.5）— 高書架接近天花板 + 5 排書
   const _shelfZ = [-7,-4.5,-2,0.5,3,5.5];
@@ -2481,6 +2519,71 @@ function initThreeScene(canvas) {
   treeGlow.position.set(TX, 3.5, TZ); _threeScene.add(treeGlow);
   _torchLights.push(treeGlow);
 
+  // ── 中央水晶吊燈環（atrium chandelier ring above tree） ────────────────
+  { const CRY = 8.20, CRR = 1.85; // ring height, ring radius
+    // Main ring (torus)
+    const ringMat = new THREE.MeshLambertMaterial({ color: 0xD4A830 });
+    const ringGeo = new THREE.TorusGeometry(CRR, 0.045, 8, 32);
+    const ringM = new THREE.Mesh(ringGeo, ringMat);
+    ringM.position.set(TX, CRY, TZ);
+    ringM.rotation.x = Math.PI / 2;
+    _threeScene.add(ringM);
+    // Inner decorative ring
+    const innerR = new THREE.Mesh(new THREE.TorusGeometry(CRR*0.55, 0.030, 8, 24), ringMat);
+    innerR.position.set(TX, CRY - 0.05, TZ);
+    innerR.rotation.x = Math.PI / 2;
+    _threeScene.add(innerR);
+    // Hub connecting rod
+    const rodM = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 0.45, 6),
+      new THREE.MeshLambertMaterial({ color: 0xB89020 }));
+    rodM.position.set(TX, CRY + 0.22, TZ); _threeScene.add(rodM);
+    // Chandelier pendants: 8 around the ring
+    const _cryGlowTex = (() => {
+      const cc = document.createElement('canvas'); cc.width = 32; cc.height = 32;
+      const cg = cc.getContext('2d');
+      const gg = cg.createRadialGradient(16,16,0,16,16,14);
+      gg.addColorStop(0,'rgba(255,240,180,1)'); gg.addColorStop(0.3,'rgba(255,200,80,0.6)');
+      gg.addColorStop(0.7,'rgba(255,160,40,0.2)'); gg.addColorStop(1,'rgba(255,120,0,0)');
+      cg.fillStyle=gg; cg.fillRect(0,0,32,32);
+      return new THREE.CanvasTexture(cc);
+    })();
+    for(let ci=0; ci<8; ci++){
+      const ca = (ci / 8) * Math.PI * 2;
+      const cx = TX + Math.cos(ca) * CRR;
+      const cz = TZ + Math.sin(ca) * CRR;
+      // Drop chain
+      const ch = new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,0.70,4),
+        new THREE.MeshLambertMaterial({color:0xC8A020}));
+      ch.position.set(cx, CRY-0.35, cz); _threeScene.add(ch);
+      // Crystal drop: small faceted sphere
+      const cry = new THREE.Mesh(new THREE.IcosahedronGeometry(0.065, 1),
+        new THREE.MeshLambertMaterial({color:0xFFFFCC, transparent:true, opacity:0.85}));
+      cry.position.set(cx, CRY-0.75, cz); _threeScene.add(cry);
+      // Warm point light from each pendant
+      const cpl = new THREE.PointLight(0xFFE070, 0.35, 4.5);
+      cpl.position.set(cx, CRY-0.80, cz); _threeScene.add(cpl);
+      _torchLights.push(cpl);
+      // Glow halo
+      const cglow = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: _cryGlowTex, transparent:true, depthWrite:false,
+        blending: THREE.AdditiveBlending, opacity: 0.50
+      }));
+      cglow.scale.set(1.4,1.4,1.4);
+      cglow.position.set(cx, CRY-0.82, cz);
+      _threeScene.add(cglow);
+      _pendantGlows.push(cglow);
+    }
+    // 4 spoke rods from hub to outer ring
+    for(let si=0; si<4; si++){
+      const sa = (si/4)*Math.PI*2;
+      const spokeM = new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,CRR,4), ringMat);
+      spokeM.rotation.z = Math.PI/2;
+      spokeM.rotation.y = sa;
+      spokeM.position.set(TX + Math.cos(sa)*CRR/2, CRY, TZ + Math.sin(sa)*CRR/2);
+      _threeScene.add(spokeM);
+    }
+  }
+
   // Trunk — lower wide base + upper tapered cylinder for natural look
   const trunkMat = tMat('trunk',_woodTex);
   const trunkBase = new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.52,1.2,10), trunkMat);
@@ -2533,7 +2636,9 @@ function initThreeScene(canvas) {
       blending: THREE.AdditiveBlending
     });
     const fSp = new THREE.Sprite(fMat);
-    fSp.scale.set(0.14, 0.14, 0.14);
+    const ffBase = 0.22 + _ffRng() * 0.14;
+    fSp.scale.set(ffBase, ffBase, ffBase);
+    fSp.userData.baseScale = ffBase;
     // Initial position: random orbit around tree
     const angle = _ffRng() * Math.PI * 2;
     const radius = 0.6 + _ffRng() * 1.2;
@@ -3999,6 +4104,9 @@ function _updateThreeAvatars(users) {
       // ── Cute chibi character sitting at desk (facing camera at entrance) ──
       const skinTones = [0xF0C8A0, 0xECB88A, 0xF5DEB3, 0xD4956A];
       const skinHex = skinTones[i % skinTones.length];
+      // Hair: varied kawaii palette — dark/light alternating to distinguish users
+      const hairPalette = [0x1A0E04, 0x3A1A8A, 0x8A1A3A, 0x1A6A2A, 0x7A5A1A, 0x1A4A6A, 0x5A1A1A, 0x2A1A5A];
+      const hairHex = hairPalette[i % hairPalette.length];
       const _T = (hex) => {
         const m = new THREE.MeshLambertMaterial({ color: hex });
         if(u.isSelf) { m.emissive = new THREE.Color(0x221100); m.emissiveIntensity = 0.20; }
@@ -4074,44 +4182,44 @@ function _updateThreeAvatars(users) {
       const faceTex = new THREE.CanvasTexture(_fC);
 
       // Head — large chibi sphere with skin material
-      const headGeo = new THREE.SphereGeometry(0.30,14,12);
+      const headGeo = new THREE.SphereGeometry(0.36,14,12);
       const headMesh = new THREE.Mesh(headGeo, _T(skinHex));
-      headMesh.position.set(avx, 1.08, avz);
+      headMesh.position.set(avx, 1.10, avz);
       headMesh.userData.userIndex = i;
       if(u.isSelf){
         const halo = new THREE.Mesh(
-          new THREE.TorusGeometry(0.38,0.028,8,24),
+          new THREE.TorusGeometry(0.46,0.032,8,24),
           new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.70})
         );
-        halo.position.set(avx, 1.08, avz);
+        halo.position.set(avx, 1.10, avz);
         halo.rotation.x = Math.PI/2;
         _threeScene.add(halo); _userAvatarLabels.push(halo);
-        _threeScene.userData._selfAvatarPos = {x:avx, y:1.08, z:avz};
+        _threeScene.userData._selfAvatarPos = {x:avx, y:1.10, z:avz};
       }
       _threeScene.add(headMesh); _userAvatarLabels.push(headMesh);
       _avatarHeads.push({mesh:headMesh, baseX:avx, baseZ:avz, phase:i*1.37});
 
       // Face plane — placed in front of head, facing +z (toward entrance/camera)
       const facePlane = new THREE.Mesh(
-        new THREE.PlaneGeometry(0.46,0.46),
+        new THREE.PlaneGeometry(0.55,0.55),
         new THREE.MeshBasicMaterial({
           map:faceTex, transparent:true, depthWrite:false,
           polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2
         })
       );
-      facePlane.position.set(avx, 1.08, avz+0.36);
+      facePlane.position.set(avx, 1.10, avz+0.43);
       _threeScene.add(facePlane); _userAvatarLabels.push(facePlane);
 
       // Hair cap (covers top of head)
-      const hairGeo = new THREE.CylinderGeometry(0.298,0.292,0.12,14);
-      const hair = new THREE.Mesh(hairGeo, _T(0x1A1410));
-      hair.position.set(avx, 1.34, avz);
+      const hairGeo = new THREE.CylinderGeometry(0.358,0.350,0.14,14);
+      const hair = new THREE.Mesh(hairGeo, _T(hairHex));
+      hair.position.set(avx, 1.40, avz);
       _threeScene.add(hair); _userAvatarLabels.push(hair);
 
       // Anime back hair drape (behind head toward -z = toward desk)
-      const hbGeo = new THREE.CylinderGeometry(0.24,0.16,0.30,10);
-      const hBack = new THREE.Mesh(hbGeo, _T(0x1A1410));
-      hBack.position.set(avx, 1.14, avz-0.16);
+      const hbGeo = new THREE.CylinderGeometry(0.29,0.19,0.36,10);
+      const hBack = new THREE.Mesh(hbGeo, _T(hairHex));
+      hBack.position.set(avx, 1.18, avz-0.18);
       _threeScene.add(hBack); _userAvatarLabels.push(hBack);
     }
 
@@ -4120,30 +4228,30 @@ function _updateThreeAvatars(users) {
     const subj = u.subject || '';
     const _tM = (hex) => new THREE.MeshToonMaterial({color: hex, gradientMap: _toonGrad});
     if (subj === '記帳士') {
-      const brim = new THREE.Mesh(new THREE.BoxGeometry(0.40,0.03,0.40), _tM(0x1A1A2E));
-      brim.position.set(avx, 1.49, avz); _addAcc(brim);
-      const top = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.08,0.18), _tM(0x1A1A2E));
-      top.position.set(avx, 1.53, avz); _addAcc(top);
+      const brim = new THREE.Mesh(new THREE.BoxGeometry(0.48,0.03,0.48), _tM(0x1A1A2E));
+      brim.position.set(avx, 1.58, avz); _addAcc(brim);
+      const top = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.09,0.22), _tM(0x1A1A2E));
+      top.position.set(avx, 1.63, avz); _addAcc(top);
     } else if (subj === '地政士') {
-      const spike = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.22,0.06), _tM(0x5BD6B0));
-      spike.position.set(avx, 1.54, avz); _addAcc(spike);
+      const spike = new THREE.Mesh(new THREE.BoxGeometry(0.07,0.25,0.07), _tM(0x5BD6B0));
+      spike.position.set(avx, 1.64, avz); _addAcc(spike);
     } else if (subj === '財稅行政') {
       [-0.09, 0.09].forEach(gx => {
-        const lens = new THREE.Mesh(new THREE.BoxGeometry(0.12,0.05,0.04), _tM(0x888888));
-        lens.position.set(avx+gx, 1.08+0.08, avz+0.23);
+        const lens = new THREE.Mesh(new THREE.BoxGeometry(0.14,0.06,0.04), _tM(0x888888));
+        lens.position.set(avx+gx, 1.10+0.10, avz+0.28);
         _addAcc(lens);
       });
     } else if (subj === '不動產經紀人') {
-      const hBody = new THREE.Mesh(new THREE.BoxGeometry(0.2,0.14,0.16), _tM(0x9B5BD6));
-      hBody.position.set(avx, 1.52, avz); _addAcc(hBody);
-      const hRoof = new THREE.Mesh(new THREE.ConeGeometry(0.14,0.1,4), _tM(0x7A40B0));
-      hRoof.position.set(avx, 1.64, avz); hRoof.rotation.y = Math.PI/4; _addAcc(hRoof);
+      const hBody = new THREE.Mesh(new THREE.BoxGeometry(0.24,0.16,0.20), _tM(0x9B5BD6));
+      hBody.position.set(avx, 1.62, avz); _addAcc(hBody);
+      const hRoof = new THREE.Mesh(new THREE.ConeGeometry(0.17,0.12,4), _tM(0x7A40B0));
+      hRoof.position.set(avx, 1.76, avz); hRoof.rotation.y = Math.PI/4; _addAcc(hRoof);
     } else if (subj === '初等考試') {
-      const pencil = new THREE.Mesh(new THREE.BoxGeometry(0.05,0.22,0.05), _tM(0xFFD700));
-      pencil.position.set(avx, 1.54, avz); pencil.rotation.z = 0.3; _addAcc(pencil);
+      const pencil = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.26,0.06), _tM(0xFFD700));
+      pencil.position.set(avx, 1.64, avz); pencil.rotation.z = 0.3; _addAcc(pencil);
     } else {
-      const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.08), _tM(0xFFAA00));
-      star.position.set(avx, 1.49, avz); _addAcc(star);
+      const star = new THREE.Mesh(new THREE.OctahedronGeometry(0.10), _tM(0xFFAA00));
+      star.position.set(avx, 1.59, avz); _addAcc(star);
     }
 
     // ── Desk surface items (水壺 + 考科文具) ──
@@ -4239,14 +4347,15 @@ function _updateThreeAvatars(users) {
     const npTex = new THREE.CanvasTexture(npCanvas);
     const npMat = new THREE.MeshBasicMaterial({ map: npTex, transparent: true, depthWrite: false });
     const npMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.65, 0.16), npMat);
-    npMesh.position.set(avx, 1.76, avz+0.30); // floating above head facing camera
+    npMesh.position.set(avx, 1.90, avz+0.30); // floating above head facing camera
     _threeScene.add(npMesh);
     _namePlates.push(npMesh);
 
     // Pomodoro focus indicator ring — pulses above head when user is in focus session
     if (u.pomodoro) {
-      const ringGeo = new THREE.RingGeometry(0.13, 0.18, 16);
-      const ringMat = new THREE.MeshBasicMaterial({ color: 0x5BAFD6, transparent: true, opacity: 0.85, side: THREE.DoubleSide });
+      // Tomato-red orbit ring for pomodoro focus
+      const ringGeo = new THREE.RingGeometry(0.44, 0.52, 32);
+      const ringMat = new THREE.MeshBasicMaterial({ color: 0xFF4422, transparent: true, opacity: 0.80, side: THREE.DoubleSide });
       const ring = new THREE.Mesh(ringGeo, ringMat);
       ring.position.set(avx, body.position.y + 1.10, avz);
       ring.rotation.x = Math.PI / 2;
@@ -4254,6 +4363,25 @@ function _updateThreeAvatars(users) {
       ring.userData.phase = i * 1.3;
       _threeScene.add(ring);
       _studyRings.push(ring);
+      // Orange glow halo around the ring
+      const pomGlowTex = (() => {
+        const pc = document.createElement('canvas'); pc.width = 32; pc.height = 32;
+        const pctx = pc.getContext('2d');
+        const pg = pctx.createRadialGradient(16,16,4,16,16,14);
+        pg.addColorStop(0,'rgba(255,80,30,0)'); pg.addColorStop(0.5,'rgba(255,100,40,0.5)');
+        pg.addColorStop(0.75,'rgba(255,60,20,0.3)'); pg.addColorStop(1,'rgba(255,40,0,0)');
+        pctx.fillStyle=pg; pctx.fillRect(0,0,32,32);
+        return new THREE.CanvasTexture(pc);
+      })();
+      const pomGlow = new THREE.Sprite(new THREE.SpriteMaterial({
+        map:pomGlowTex, transparent:true, depthWrite:false,
+        blending:THREE.AdditiveBlending, opacity:0.60
+      }));
+      pomGlow.scale.set(1.8,1.8,1.8);
+      pomGlow.position.set(avx, body.position.y + 1.10, avz);
+      pomGlow.userData.phase = i * 1.3;
+      _threeScene.add(pomGlow);
+      _userAvatarLabels.push(pomGlow);
 
       // Focus sparkles — golden particles rising from desk during Pomodoro
       const stx = _sparkleTex();
@@ -5731,6 +5859,9 @@ function startThreeAnimation(canvas) {
         tod.ambG + moodCycle*0.03,
         tod.ambB + moodCycle*0.05
       );
+      // Smoothly drift intensity toward target (no hard jump)
+      const targetI = tod.ambI + moodCycle * 0.12;
+      ambLight.intensity += (targetI - ambLight.intensity) * 0.008;
     }
     if(Math.round(_threeTime*125) % 300 === 0 && _threeScene.fog){
       _threeScene.fog.density = tod.fogDensity;
@@ -5839,11 +5970,26 @@ function startThreeAnimation(canvas) {
       if(ff.sprite.position.y > 5.6) ff.vy = -Math.abs(ff.vy);
       if(ff.sprite.position.y < 1.8) ff.vy =  Math.abs(ff.vy);
       ff.sprite.position.x = Math.cos(ff.angle) * ff.radius;
-      ff.sprite.position.z = -1 + Math.sin(ff.angle) * ff.radius;
-      // Soft blink
-      ff.sprite.material.opacity = 0.25 + 0.65 * (Math.sin(_threeTime * ff.blinkSpeed + ff.blinkOffset) * 0.5 + 0.5);
+      ff.sprite.position.z = 3.0 + Math.sin(ff.angle) * ff.radius;
+      // Night-brightening blink: much more visible when ambient is dim
+      const nightFactor = 1.0 - Math.min(tod.ambI / 2.5, 1.0); // 0 at noon, 0.64 at night
+      const baseOpFF = 0.04 + nightFactor * 0.80;
+      const blink = Math.sin(_threeTime * ff.blinkSpeed + ff.blinkOffset) * 0.5 + 0.5;
+      ff.sprite.material.opacity = baseOpFF * (0.35 + 0.65 * blink);
+      const sc = ff.sprite.userData.baseScale * (1.0 + nightFactor * 0.9 + blink * 0.3);
+      ff.sprite.scale.set(sc, sc, sc);
     });
     // Dust motes — slow gentle drift through room air
+    // Pendant glow: brighter at night, breathe with torch flicker
+    if(_pendantGlows.length > 0){
+      const baseOpacity = 0.30 + (1.0 - Math.min(tod.ambI / 2.5, 1.0)) * 0.55;
+      _pendantGlows.forEach((g, i) => {
+        g.material.opacity = baseOpacity * (0.85 + 0.15 * Math.sin(_threeTime * 3.5 + i * 0.7));
+        const scBase = 1.8 + (1.0 - Math.min(tod.ambI / 2.5, 1.0)) * 1.2;
+        const scPulse = scBase * (0.95 + 0.05 * Math.sin(_threeTime * 2.5 + i * 1.1));
+        g.scale.set(scPulse, scPulse, scPulse);
+      });
+    }
     _dustMotes.forEach(dm => {
       dm.position.x += dm.userData.vx + 0.0012*Math.sin(_threeTime*0.3 + dm.userData.phase);
       dm.position.y += dm.userData.vy + 0.0005*Math.cos(_threeTime*0.4 + dm.userData.phase);
