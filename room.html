@@ -1091,7 +1091,7 @@ let _mixerLastTime = 0;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _DESK_VISUAL_POS_3D = []; // stores {vx,vz,ry} for each desk after scatter
 const _seenUserIds = new Set();
-let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [], _pendantGlows = [], _canopyAura = null, _sparkles = [], _permLanternLights = [], _moonShaftSprite = null;
+let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [], _pendantGlows = [], _canopyAura = null, _sparkles = [], _permLanternLights = [], _moonShaftSprite = null, _floatingBooks = [];
 let _snowParticles = [];
 let _waterDroplets = [], _waterTx = null; // Wave132: tree watering
 let _sakuraParticles = [];
@@ -4269,6 +4269,56 @@ function initThreeScene(canvas) {
     });
   }
 
+  // v50: Floating magical open books — drift gently above the study floor ─────
+  { const _fbRng = _rng(88);
+    // Book page texture
+    const _fbPageTex = (()=>{
+      const fc=document.createElement('canvas'); fc.width=128; fc.height=88;
+      const fx=fc.getContext('2d');
+      fx.fillStyle='#FBF5E8'; fx.fillRect(0,0,128,88);
+      fx.fillStyle='#5A4A38'; fx.fillRect(8,8,80,5);
+      fx.fillStyle='#9A8A7A';
+      [[8,22,88],[8,30,65],[8,38,80],[8,46,55],[8,54,72],[8,62,60],[8,70,75],[8,78,50]].forEach(([x,y,w])=>{
+        fx.fillRect(x,y,w,2); fx.fillRect(x,y+3,w*0.65,1.5);
+      });
+      fx.fillStyle='rgba(0,0,0,0.05)'; fx.fillRect(0,0,4,88);
+      return new THREE.CanvasTexture(fc);
+    })();
+    const coverColors=[0xFFD4DC,0xD4C8F0,0xC8ECD4,0xF5DEB3,0xC8DCF0,0xFFC8A0];
+    // 6 books at varied positions between camera and tree
+    [[TX-3.2,4.6,TZ+2.8],[TX+3.5,4.2,TZ+3.4],[TX-1.8,5.1,TZ+1.6],[TX+1.6,3.9,TZ+4.2],
+     [TX-4.0,4.8,TZ+4.6],[TX+4.2,5.3,TZ+2.0]].forEach(([bx,by,bz],bi)=>{
+      const coverMat = new THREE.MeshLambertMaterial({color:coverColors[bi%coverColors.length],side:THREE.DoubleSide});
+      const pageMat  = new THREE.MeshLambertMaterial({map:_fbPageTex, side:THREE.DoubleSide});
+      const spineMat = new THREE.MeshLambertMaterial({color:coverColors[bi%coverColors.length]});
+      // Closed book geometry: BoxGeometry W×H×depth
+      const W=0.22, H=0.30, D=0.07;
+      const covers=[[new THREE.BoxGeometry(W+0.02,H+0.02,0.006),coverMat,'cov']];
+      // Page block (slightly smaller)
+      covers.push([new THREE.BoxGeometry(W*0.96,H*0.96,D*0.88),pageMat,'pg']);
+      const bookGroup=new THREE.Group();
+      covers.forEach(([geo,mat])=>{
+        const m=new THREE.Mesh(geo,mat);
+        bookGroup.add(m);
+        // Thin outline
+        const ol=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0x2A1F18,side:THREE.BackSide}));
+        ol.scale.set(1.04,1.04,1.08); bookGroup.add(ol);
+      });
+      bookGroup.position.set(bx,by,bz);
+      // Each book tilted at a unique angle: slight lean + rotation
+      bookGroup.rotation.x = (_fbRng()-0.5)*0.35;
+      bookGroup.rotation.z = (_fbRng()-0.5)*0.25;
+      bookGroup.rotation.y = _fbRng()*Math.PI*2;
+      // Soft point light glow from book
+      const bkLight=new THREE.PointLight(0xFFE8C8,0.12,2.5);
+      bkLight.position.set(bx,by,bz); _threeScene.add(bkLight);
+      _threeScene.add(bookGroup);
+      _floatingBooks.push({group:bookGroup,light:bkLight,bx,by,bz,
+        phase:_fbRng()*Math.PI*2,bobAmp:0.08+_fbRng()*0.10,
+        rotSpd:0.0015+_fbRng()*0.0020,driftAmp:0.12+_fbRng()*0.10});
+    });
+  }
+
   // Decorative potted plants — entrance pair + mid-room pair flanking tree
   { const potClayMat = new THREE.MeshLambertMaterial({ color: 0xA05030 });
     const soilMat = new THREE.MeshLambertMaterial({ color: 0x3A2010 });
@@ -7250,6 +7300,17 @@ function startThreeAnimation(canvas) {
       const auraSc = 5.2 + nightF * 1.5 + 0.3 * Math.sin(_threeTime * 0.5);
       _canopyAura.scale.set(auraSc, auraSc, auraSc);
     }
+    // Floating books — gentle bob + slow y-axis rotation
+    _floatingBooks.forEach(bk => {
+      bk.group.position.y = bk.by + Math.sin(_threeTime*0.55 + bk.phase)*bk.bobAmp;
+      bk.group.position.x = bk.bx + Math.sin(_threeTime*0.32 + bk.phase*1.3)*bk.driftAmp;
+      bk.group.rotation.y += bk.rotSpd;
+      if(bk.light){
+        bk.light.position.y = bk.group.position.y;
+        bk.light.position.x = bk.group.position.x;
+        bk.light.intensity = 0.10 + 0.04*Math.sin(_threeTime*1.1+bk.phase);
+      }
+    });
     // Tree canopy sparkles — orbit + blink (TX=0, TZ=3.0 hardcoded — not in this scope)
     _sparkles.forEach(sk => {
       sk.ang += sk.speed;
