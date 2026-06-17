@@ -4257,6 +4257,40 @@ function initThreeScene(canvas) {
         shide.position.set(sx,2.53,GZ); _threeScene.add(shide);
       });
     }
+    // v57: Wooden name plaque (扁額) hanging below kasagi ────────────────────
+    { const _plaqueTex=(()=>{
+        const pc=document.createElement('canvas'); pc.width=320; pc.height=100;
+        const pctx=pc.getContext('2d');
+        // Dark walnut background with grain
+        const woodG=pctx.createLinearGradient(0,0,0,100);
+        woodG.addColorStop(0,'#3A2008'); woodG.addColorStop(0.5,'#4A2A10'); woodG.addColorStop(1,'#3A2008');
+        pctx.fillStyle=woodG; pctx.fillRect(0,0,320,100);
+        // Gold inner frame
+        pctx.strokeStyle='#C8A040'; pctx.lineWidth=3;
+        pctx.strokeRect(8,8,304,84);
+        pctx.strokeStyle='#E8C060'; pctx.lineWidth=1;
+        pctx.strokeRect(14,14,292,72);
+        // Calligraphy text 自習室
+        pctx.fillStyle='#F0E0A0';
+        pctx.font='bold 58px serif';
+        pctx.textAlign='center';
+        pctx.textBaseline='middle';
+        pctx.fillText('自習室',160,50);
+        return new THREE.CanvasTexture(pc);
+      })();
+      // Hanging cord from kasagi (y=3.55) to plaque top (y=3.35)
+      const pqCord=new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.22,4),
+        new THREE.MeshLambertMaterial({color:0x2A1808}));
+      pqCord.position.set(0,3.44,GZ); _threeScene.add(pqCord);
+      // Plaque board
+      const plaque=new THREE.Mesh(new THREE.BoxGeometry(1.20,0.35,0.040),
+        new THREE.MeshLambertMaterial({map:_plaqueTex}));
+      plaque.position.set(0,3.16,GZ); _threeScene.add(plaque);
+      // Plaque edge (dark wood sides)
+      const pEdge=new THREE.Mesh(new THREE.BoxGeometry(1.22,0.37,0.038),
+        new THREE.MeshBasicMaterial({color:0x1A0808,side:THREE.BackSide}));
+      pEdge.position.set(0,3.16,GZ); _threeScene.add(pEdge);
+    }
     // v52: Red chōchin paper lanterns hanging from kasagi ─────────────────────
     { const capM=new THREE.MeshLambertMaterial({color:0x1A0808});
       const cordM=new THREE.MeshLambertMaterial({color:0x2A1808});
