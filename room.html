@@ -4260,6 +4260,40 @@ function initThreeScene(canvas) {
   _buildCeilingFan();
   // Wave133: Center rug — permanent room feature
   _buildRug();
+  // v46: Magical sakura ground aura — soft pink additive glow on rug/floor ──
+  { const auraTex = (()=>{
+      const ac=document.createElement('canvas'); ac.width=ac.height=128;
+      const actx=ac.getContext('2d');
+      const ag=actx.createRadialGradient(64,64,0, 64,64,62);
+      ag.addColorStop(0,  'rgba(255,200,230,0.60)');
+      ag.addColorStop(0.35,'rgba(255,170,215,0.35)');
+      ag.addColorStop(0.65,'rgba(255,140,195,0.14)');
+      ag.addColorStop(1,  'rgba(255,100,160,0)');
+      actx.fillStyle=ag; actx.fillRect(0,0,128,128);
+      return new THREE.CanvasTexture(ac);
+    })();
+    const aura = new THREE.Mesh(
+      new THREE.PlaneGeometry(6.2, 6.2),
+      new THREE.MeshBasicMaterial({
+        map:auraTex, transparent:true, depthWrite:false,
+        blending:THREE.AdditiveBlending, opacity:1.0
+      })
+    );
+    aura.rotation.x = -Math.PI/2;
+    aura.position.set(TX, 0.018, TZ);
+    _threeScene.add(aura);
+    // A second, slightly larger ring for depth
+    const aura2 = new THREE.Mesh(
+      new THREE.PlaneGeometry(9.0, 9.0),
+      new THREE.MeshBasicMaterial({
+        map:auraTex, transparent:true, depthWrite:false,
+        blending:THREE.AdditiveBlending, opacity:0.35
+      })
+    );
+    aura2.rotation.x = -Math.PI/2;
+    aura2.position.set(TX, 0.016, TZ);
+    _threeScene.add(aura2);
+  }
   // Fallen sakura petals scattered on floor around tree (static, June seasonal decor)
   { const _fpRng = _rng(87);
     const petalTex = (() => {
