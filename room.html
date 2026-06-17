@@ -189,7 +189,12 @@ main{display:flex;flex:1;gap:0;min-height:0;}
   position:relative;
   border-radius:0;
   border-bottom:2px solid rgba(91,175,214,0.25);
-  box-shadow:0 4px 32px rgba(0,0,0,.5) inset;
+}
+/* Cinematic vignette overlay — pointer-events:none so clicks pass through */
+#lib-scene-wrap::after{
+  content:'';position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%, transparent 55%, rgba(2,8,18,0.55) 100%);
+  z-index:1;
 }
 #room-canvas{display:block;width:100%;cursor:default;touch-action:none;user-select:none;}
 #dpad,#dpad-hint{display:none!important;}
