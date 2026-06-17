@@ -3313,6 +3313,64 @@ function initThreeScene(canvas) {
     });
   }
 
+  // ── 入口迎賓台 (reception desk) ─────────────────────────────────────────
+  {
+    const rDeskMat  = new THREE.MeshLambertMaterial({ color: 0x7A5220 }); // warm dark wood
+    const rTopMat   = new THREE.MeshLambertMaterial({ color: 0x5A3A10 });
+    const rFacingMat= new THREE.MeshLambertMaterial({ color: 0xD8C8A0 }); // cream facing panel
+
+    // Main counter body — curved front: 5 box segments at slight angles
+    const CX = 0, CZ = 8.8, CW = 3.6, CD = 0.55, CH = 0.90;
+    const cBody = new THREE.Mesh(new THREE.BoxGeometry(CW, CH, CD), rDeskMat);
+    cBody.position.set(CX, CH/2, CZ); _threeScene.add(cBody);
+    // Counter top (slightly wider, overhangs front)
+    const cTop = new THREE.Mesh(new THREE.BoxGeometry(CW+0.12, 0.06, CD+0.18), rTopMat);
+    cTop.position.set(CX, CH+0.03, CZ-0.08); _threeScene.add(cTop);
+    // Facing panel (cream, decorative front)
+    const cFace = new THREE.Mesh(new THREE.BoxGeometry(CW-0.10, CH-0.08, 0.04), rFacingMat);
+    cFace.position.set(CX, CH/2, CZ - CD/2 - 0.02); _threeScene.add(cFace);
+    // Side wings (short returns)
+    [-1, 1].forEach(side => {
+      const wing = new THREE.Mesh(new THREE.BoxGeometry(0.55, CH, CD*0.8), rDeskMat);
+      wing.position.set(CX + side*(CW/2 + 0.28), CH/2, CZ + 0.08); _threeScene.add(wing);
+      const wTop = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.06, CD*0.8+0.10), rTopMat);
+      wTop.position.set(CX + side*(CW/2 + 0.28), CH+0.03, CZ + 0.04); _threeScene.add(wTop);
+    });
+    // Desk lamp on counter
+    const dLampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.08,0.04,8), rTopMat);
+    dLampBase.position.set(CX+1.0, CH+0.02, CZ-0.08); _threeScene.add(dLampBase);
+    const dLampArm = new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.38,6), rTopMat);
+    dLampArm.position.set(CX+1.0, CH+0.21, CZ-0.08); _threeScene.add(dLampArm);
+    const dLampShade = new THREE.Mesh(new THREE.ConeGeometry(0.10,0.10,8), new THREE.MeshLambertMaterial({color:0xF0E8C0}));
+    dLampShade.rotation.z = Math.PI; dLampShade.position.set(CX+1.0, CH+0.42, CZ-0.08); _threeScene.add(dLampShade);
+    // Small warm light under lamp
+    const dLampLight = new THREE.PointLight(0xFFEED8, 0.3, 2.5);
+    dLampLight.position.set(CX+1.0, CH+0.38, CZ-0.08); _threeScene.add(dLampLight);
+    // Small tablet/screen on counter
+    const tablet = new THREE.Mesh(new THREE.BoxGeometry(0.24,0.02,0.18), rTopMat);
+    tablet.position.set(CX-0.8, CH+0.01, CZ-0.06); tablet.rotation.x = -0.35; _threeScene.add(tablet);
+    const tabScrn = new THREE.Mesh(new THREE.PlaneGeometry(0.20,0.14),
+      new THREE.MeshBasicMaterial({color:0x5BAFD6}));
+    tabScrn.position.set(CX-0.8, CH+0.05, CZ-0.02); tabScrn.rotation.x = -Math.PI/2+0.35; _threeScene.add(tabScrn);
+  }
+
+  // ── 光柱效果：全景窗陽光斜射入室內 ─────────────────────────────────────
+  if (!_isMobile) {
+    const shaftMat = new THREE.MeshBasicMaterial({
+      color: 0xFFF8E8, transparent: true, opacity: 0.022,
+      side: THREE.DoubleSide, depthWrite: false,
+      blending: THREE.AdditiveBlending
+    });
+    // 3 diagonal light shafts entering from the panorama windows
+    [[-5, 0], [0, 0], [5, 0]].forEach(([sx]) => {
+      const shaft = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 12.0), shaftMat.clone());
+      shaft.position.set(sx, 4.5, -2);
+      shaft.rotation.x = -0.28; // angled downward
+      shaft.rotation.z = 0.05;  // slight twist for variety
+      _threeScene.add(shaft);
+    });
+  }
+
   // Preload animated character GLB (698KB, cached after first load)
   if (THREE.GLTFLoader) {
     new THREE.GLTFLoader().load('models/human.glb', gltf => {
