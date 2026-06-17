@@ -3708,28 +3708,50 @@ function initThreeScene(canvas) {
     });
   }
 
-  // Entrance potted plants — flanking the doorway arch, visible as foreground framing elements
-  { const potClayMat = new THREE.MeshLambertMaterial({ color: 0xA05030 }); // terracotta pot
+  // Decorative potted plants — entrance pair + mid-room pair flanking tree
+  { const potClayMat = new THREE.MeshLambertMaterial({ color: 0xA05030 });
     const soilMat = new THREE.MeshLambertMaterial({ color: 0x3A2010 });
-    const leafColors = [0x2A8A30, 0x3A9A40, 0x1E7228, 0x448A38];
-    [[-2.5, 6.5], [2.5, 6.5]].forEach(([px, pz]) => {
-      // Terracotta pot
-      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.22,0.55,10), potClayMat);
-      pot.position.set(px, 0.275, pz); _threeScene.add(pot);
-      // Soil top disc
-      const soil = new THREE.Mesh(new THREE.CircleGeometry(0.27,10), soilMat);
-      soil.rotation.x = -Math.PI/2; soil.position.set(px, 0.55, pz); _threeScene.add(soil);
-      // Trunk
-      const pTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.09,1.2,8),
+    const leafColors = [0x2A8A30, 0x3A9A40, 0x1E7228, 0x448A38, 0x38A858];
+    const _makePlant = (px, pz, sc=1.0) => {
+      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.30*sc,0.23*sc,0.58*sc,10), potClayMat);
+      pot.position.set(px, 0.29*sc, pz); _threeScene.add(pot);
+      const soil = new THREE.Mesh(new THREE.CircleGeometry(0.29*sc,10), soilMat);
+      soil.rotation.x = -Math.PI/2; soil.position.set(px, 0.58*sc, pz); _threeScene.add(soil);
+      const pTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.07*sc,0.10*sc,1.55*sc,8),
         new THREE.MeshLambertMaterial({ color: 0x6A4018 }));
-      pTrunk.position.set(px, 1.15, pz); _threeScene.add(pTrunk);
-      // Foliage — 3 overlapping spheres
-      [[0,2.0,0,0.48],[0.2,1.8,-0.12,0.36],[-0.18,1.85,0.14,0.34]].forEach(([dx,dy,dz,r],li) => {
+      pTrunk.position.set(px, 0.58*sc + 0.775*sc, pz); _threeScene.add(pTrunk);
+      [[0,0.58*sc+1.60*sc,0,0.60*sc],[0.24*sc,0.58*sc+1.38*sc,-0.14*sc,0.44*sc],
+       [-0.22*sc,0.58*sc+1.42*sc,0.16*sc,0.40*sc]].forEach(([dx,dy,dz,r],li) => {
         const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(r,0),
           new THREE.MeshLambertMaterial({ color: leafColors[li%leafColors.length], flatShading:true }));
         leaf.position.set(px+dx, dy, pz+dz); _threeScene.add(leaf);
       });
+    };
+    // Entrance pair (slightly larger)
+    _makePlant(-2.5, 6.5, 1.1);
+    _makePlant( 2.5, 6.5, 1.1);
+    // Mid-room pair flanking tree rug edge
+    _makePlant(-4.0, 4.2, 0.85);
+    _makePlant( 4.0, 4.2, 0.85);
+  }
+
+  // Library leaning ladder against left bookshelf
+  { const ladderMat = new THREE.MeshLambertMaterial({ color: 0x8C5C28 });
+    const railLen = 3.8, tiltZ = Math.PI * 0.11; // lean ~20° from vertical
+    [-1, 1].forEach(side => {
+      const rail = new THREE.Mesh(new THREE.CylinderGeometry(0.030,0.030,railLen,6), ladderMat);
+      rail.position.set(-11.1 + side*0.17, railLen*0.5 * Math.cos(tiltZ), 1.5 + railLen*0.5*Math.sin(tiltZ));
+      rail.rotation.x = -tiltZ; // lean against wall
+      _threeScene.add(rail);
     });
+    // 6 rungs
+    for(let ri=0; ri<6; ri++){
+      const rungY = 0.45 + ri * 0.55;
+      const rungZ = 1.5 + rungY * Math.tan(tiltZ);
+      const rung = new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.40,6), ladderMat);
+      rung.rotation.z = Math.PI/2;
+      rung.position.set(-11.1, rungY, rungZ); _threeScene.add(rung);
+    }
   }
 
   // Wave113: Ceiling fan — permanent room feature
