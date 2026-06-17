@@ -1873,7 +1873,7 @@ function initThreeScene(canvas) {
   _threeControls.minDistance = 3;
   _threeControls.maxDistance = 22;
   _threeControls.minPolarAngle = 0.05;
-  _threeControls.maxPolarAngle = Math.PI * 0.92;
+  _threeControls.maxPolarAngle = Math.PI * 0.68;
   _threeControls.enablePan = false;
   _threeControls.enabled = false;
   _threeControls.addEventListener('change', () => { _wasDrag = true; });
@@ -4725,7 +4725,7 @@ function _buildDailyLawBoard() {
 
   setTimeout(async () => {
     try {
-      const r = await fetch('https://api.sofaengine.org/api/random');
+      const r = await fetch('https://sofa-engine-api.onrender.com/api/random');
       if (r.ok) { const d = await r.json(); _draw(d.title||'每日金句', d.original_text||''); }
       else _draw('每日金句', '今天也加油！備考不孤單。');
     } catch(e) { _draw('每日金句', '今天也加油！備考不孤單。'); }
