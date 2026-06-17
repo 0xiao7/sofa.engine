@@ -44,14 +44,15 @@ html,body{
 #entry{
   position:fixed;inset:0;z-index:100;
   display:flex;align-items:center;justify-content:center;
-  background:rgba(13,28,40,.92);backdrop-filter:blur(6px);
+  background:rgba(4,13,20,0.52);
 }
 .entry-card{
-  background:linear-gradient(160deg,#1D3547,#1A2E3D);
-  border:1px solid var(--wood);border-top:2px solid var(--wood-2);
-  border-radius:12px;
+  background:rgba(16,34,50,0.84);
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
+  border:1px solid rgba(91,175,214,0.22);border-top:2px solid rgba(91,175,214,0.38);
+  border-radius:16px;
   padding:36px 32px;width:min(420px,92vw);
-  box-shadow:0 8px 40px rgba(0,0,0,.5);
+  box-shadow:0 14px 64px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,0.04);
 }
 .entry-card h1{
   font-family:var(--serif);font-size:1.5rem;font-weight:700;
@@ -79,7 +80,16 @@ select option{background:var(--navy-3);}
 .entry-tip{margin-top:14px;font-size:.76rem;color:var(--cream-2);opacity:.45;text-align:center;}
 
 /* ── Room layout ── */
-#room{display:none;min-height:100dvh;flex-direction:column;}
+#room{display:flex;min-height:100dvh;flex-direction:column;}
+/* Entry-phase: hide UI chrome, show only canvas behind entry card */
+body.entry-phase header,
+body.entry-phase #sidebar,
+body.entry-phase #mob-bar,
+body.entry-phase #mob-bar-spacer,
+body.entry-phase #sheet-overlay,
+body.entry-phase .sheet,
+body.entry-phase #shout-banner,
+body.entry-phase #retain-modal { display:none !important; }
 /* ── 離席偵測 ── */
 #away-overlay{
   display:none;position:fixed;inset:0;z-index:120;
@@ -1006,6 +1016,7 @@ let _windowMesh = null, _windowTex = null, _windowHour = -1; // Wave143: 窗外�
 let _welcomeMatMesh = null, _welcomeMatTex = null, _matHour = -1; // Wave148: 入口歡迎地墊
 let _threeTime = 0;
 let _flyInDone = false, _flyInStart = 0;
+let _previewOrbit = true, _previewAngle = 2.1;
 // Wave150: 台北即時天氣
 let _weatherCode = 0, _weatherTemp = '--';
 // Wave144: tree growth milestones
@@ -4601,27 +4612,45 @@ function _applyTreeGrowth(stage) {
   });
 }
 
+function _startRealMode() {
+  _previewOrbit = false;
+  _flyInDone = false;
+  _flyInStart = performance.now();
+  const loaderEl = document.getElementById('three-loader');
+  if(loaderEl){ loaderEl.style.display='none'; }
+  setTimeout(_showGreeting, 100);
+  if(window._startStudyHud) window._startStudyHud();
+  setTimeout(_checkAchievements, 2000);
+}
+
 function startThreeAnimation(canvas) {
   const loaderEl = document.getElementById('three-loader');
   if(loaderEl){ loaderEl.style.opacity='1'; loaderEl.style.display='flex'; }
   setTimeout(()=>{
-    if(loaderEl){ loaderEl.style.opacity='0'; setTimeout(()=>{ loaderEl.style.display='none'; setTimeout(_showGreeting, 100); window._startStudyHud(); setTimeout(_checkAchievements, 2000); },800); }
-  }, 600);
+    if(loaderEl){ loaderEl.style.opacity='0'; setTimeout(()=>{ loaderEl.style.display='none'; },800); }
+  }, 900);
   if (!THREE) return;
   initThreeScene(canvas);
   if (_threeRAF) cancelAnimationFrame(_threeRAF);
-  _flyInDone = false; _flyInStart = performance.now();
+  _previewOrbit = true; _previewAngle = 2.1;
+  _flyInDone = false; _flyInStart = 0;
   function loop() {
     _threeRAF = requestAnimationFrame(loop);
     _threeTime += 0.008;
     // Fly-in then settle to gentle sway
-    if(!_flyInDone){
-      const t = Math.min(1, (performance.now() - _flyInStart) / 2800);
-      const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t; // ease in-out quad
+    if(_previewOrbit){
+      _previewAngle += 0.004;
+      const _pr = 12;
+      _threeCamera.position.set(Math.sin(_previewAngle)*_pr, 5.5, -4+Math.cos(_previewAngle)*_pr);
+      _threeCamera.fov = 65; _threeCamera.updateProjectionMatrix();
+      _threeCamera.lookAt(0, 2.2, -4);
+    } else if(!_flyInDone){
+      const t = Math.min(1, (performance.now() - _flyInStart) / 2000);
+      const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
       _threeCamera.position.x = 0;
-      _threeCamera.position.y = 9 - ease * (9 - 3.2);      // 9 → 3.2
-      _threeCamera.position.z = 16 - ease * (16 - 10);      // 16 → 10
-      _threeCamera.fov = 75 - ease * (75 - 65);             // 75° → 65°
+      _threeCamera.position.y = 9 - ease * (9 - 3.2);
+      _threeCamera.position.z = 16 - ease * (16 - 10);
+      _threeCamera.fov = 75 - ease * (75 - 65);
       _threeCamera.updateProjectionMatrix();
       _threeCamera.lookAt(0, 2.2, -4);
       if(t >= 1) { _flyInDone = true; if(_threeControls) _threeControls.enabled = true; }
@@ -5325,9 +5354,9 @@ function enter(){
   joinedAt = Date.now();
   myKey = `user_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
   document.getElementById('entry').style.display = 'none';
-  document.getElementById('room').style.display  = 'flex';
+  document.body.classList.remove('entry-phase');
   resizeThreeCanvas();
-  startThreeAnimation(document.getElementById('room-canvas'));
+  _startRealMode();
   // Wave144: apply tree growth stage immediately on room entry
   const _initStage = _getTreeGrowthStage();
   _lastTreeStage = _initStage;
@@ -5623,8 +5652,10 @@ async function doLeave(){
   document.getElementById('retain-modal').classList.remove('open');
   await channel?.untrack();
   await channel?.unsubscribe();
-  document.getElementById('room').style.display  = 'none';
+  document.body.classList.add('entry-phase');
   document.getElementById('entry').style.display = 'flex';
+  _previewOrbit = true;
+  if(_threeControls) _threeControls.enabled = false;
 }
 
 // ── 離席偵測（5 分鐘無動作 → 燈光變暗） ──────────────────────────────
@@ -6725,6 +6756,11 @@ setInterval(() => {
 })();
 // Wave75: init audio panel toggle states on load
 _renderAudioPanel();
+
+// Block1: start 3D preview immediately — room renders behind entry screen
+document.body.classList.add('entry-phase');
+resizeThreeCanvas();
+startThreeAnimation(document.getElementById('room-canvas'));
 </script>
 </body>
 </html>
