@@ -1775,22 +1775,21 @@ function initThreeScene(canvas) {
   _threeRenderer = new THREE.WebGLRenderer({ canvas, antialias: !_isMobile, alpha: false });
   _threeRenderer.setPixelRatio(_isMobile ? Math.min(window.devicePixelRatio, 1) : Math.min(window.devicePixelRatio, 2));
   _threeRenderer.setSize(canvas.width, canvas.height);
-  _threeRenderer.shadowMap.enabled = !_isMobile;
-  _threeRenderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  _threeRenderer.shadowMap.enabled = false; // toon 遊戲不用即時陰影，省 draw call
   _threeRenderer.toneMapping = THREE.ACESFilmicToneMapping;
-  _threeRenderer.toneMappingExposure = 1.15;
+  _threeRenderer.toneMappingExposure = 1.35;
   _threeRenderer.outputColorSpace = THREE.SRGBColorSpace;
 
   _threeScene = new THREE.Scene();
-  _threeScene.background = new THREE.Color(0xF5F0E8);
-  _threeScene.fog = new THREE.FogExp2(0xF5F0E8, 0.0025);
+  _threeScene.background = new THREE.Color(0xE8E0D0);
+  _threeScene.fog = new THREE.FogExp2(0xE8E0D0, 0.018);
 
-  _threeCamera = new THREE.PerspectiveCamera(65, canvas.width / canvas.height, 0.1, 100);
-  _threeCamera.position.set(0, 3.2, 10);
-  _threeCamera.lookAt(0, 2.2, -4);
+  _threeCamera = new THREE.PerspectiveCamera(58, canvas.width / canvas.height, 0.1, 80);
+  _threeCamera.position.set(0, 5.5, 13);
+  _threeCamera.lookAt(0, 1.2, -1);
 
   _threeControls = new THREE.OrbitControls(_threeCamera, canvas);
-  _threeControls.target.set(0, 2.2, -4);
+  _threeControls.target.set(0, 1.2, -1);
   _threeControls.enableDamping = true;
   _threeControls.dampingFactor = _isMobile ? 0.12 : 0.06;
   _threeControls.rotateSpeed = _isMobile ? 0.6 : 0.8;
@@ -1802,44 +1801,76 @@ function initThreeScene(canvas) {
   _threeControls.enabled = false;
   _threeControls.addEventListener('change', () => { _wasDrag = true; });
 
-  // Lights — bright warm library
-  _threeScene.add(new THREE.AmbientLight(0xFFF8F0, 1.8));
-  if (!_isMobile) {
-    const ceilLight1 = new THREE.PointLight(0xFFF5E8, 3.5, 28);
-    ceilLight1.position.set(-4, 7.5, -2); _threeScene.add(ceilLight1);
-    const ceilLight2 = new THREE.PointLight(0xFFF5E8, 3.5, 28);
-    ceilLight2.position.set(4, 7.5, -2); _threeScene.add(ceilLight2);
-  }
-  const keyLight = new THREE.DirectionalLight(0xFFF0D8, 1.6);
-  keyLight.position.set(3, 8, 5);
+  // Lights — toon game style: strong directional + hemisphere, few point lights
+  _threeScene.add(new THREE.AmbientLight(0xFFF4E8, 2.2));
+  const hemi = new THREE.HemisphereLight(0xFFF0D8, 0x8090B0, 1.4);
+  _threeScene.add(hemi);
+  const keyLight = new THREE.DirectionalLight(0xFFFAF0, 2.2);
+  keyLight.position.set(4, 10, 6);
   _threeScene.add(keyLight);
-  keyLight.castShadow = true;
-  keyLight.shadow.mapSize.width  = 1024;
-  keyLight.shadow.mapSize.height = 1024;
-  keyLight.shadow.camera.near = 0.5;
-  keyLight.shadow.camera.far  = 50;
-  keyLight.shadow.camera.left = keyLight.shadow.camera.bottom = -12;
-  keyLight.shadow.camera.right = keyLight.shadow.camera.top = 12;
-  keyLight.shadow.bias = -0.001;
+  const fillLight = new THREE.DirectionalLight(0xC8E0FF, 0.8);
+  fillLight.position.set(-6, 5, -4);
+  _threeScene.add(fillLight);
 
-  // Window sky-blue fill lights (skip on mobile)
-  if (!_isMobile) [[-6, 4, -6.5], [6, 4, -6.5]].forEach(([x,y,z]) => {
-    const wl = new THREE.PointLight(0xC8E8FF, 2.5, 16);
-    wl.position.set(x, y, z);
-    _threeScene.add(wl);
+  // Window sky-blue fill lights
+  if (!_isMobile) [[-6,4,-6.5],[6,4,-6.5]].forEach(([x,y,z])=>{
+    const wl = new THREE.PointLight(0xB8DCFF, 1.8, 14);
+    wl.position.set(x,y,z); _threeScene.add(wl);
   });
 
-  // Ceiling downlights — reduced on mobile (PointLights are expensive)
-  (_isMobile ? [[0, 7, -2]] : [[-5.5,7,-5],[5.5,7,-5],[-5.5,7,2],[5.5,7,2],[0,7,-2]]).forEach(([x,y,z]) => {
-    const tl = new THREE.PointLight(0xFFEDD0, _isMobile ? 3.5 : 1.5, _isMobile ? 22 : 10);
-    tl.position.set(x, y, z);
-    _threeScene.add(tl);
-    _torchLights.push(tl);
+  // Ceiling downlights (kept minimal — 3 on desktop, 1 on mobile)
+  (_isMobile ? [[0,7,-1]] : [[-4.5,7,-4],[4.5,7,-4],[0,7,2]]).forEach(([x,y,z]) => {
+    const tl = new THREE.PointLight(0xFFEDD0, _isMobile ? 4 : 2.2, _isMobile ? 24 : 12);
+    tl.position.set(x,y,z); _threeScene.add(tl); _torchLights.push(tl);
   });
+
+  // Visible ceiling pendant lamp fixtures
+  {
+    const lampPositions = _isMobile ? [[0,7,-1]] : [[-4.5,7,-4],[4.5,7,-4],[0,7,2]];
+    const shadeMat = new THREE.MeshToonMaterial({ color: 0xE8D090, side: THREE.DoubleSide });
+    const capMat   = new THREE.MeshToonMaterial({ color: 0x3A2A10 });
+    lampPositions.forEach(([lx,ly,lz]) => {
+      // Cord from ceiling
+      const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.9,5), capMat);
+      cord.position.set(lx, ly-0.45, lz); _threeScene.add(cord);
+      // Shade cone (open downward)
+      const shade = new THREE.Mesh(new THREE.ConeGeometry(0.38, 0.32, 10, 1, true), shadeMat);
+      shade.rotation.x = Math.PI;
+      shade.position.set(lx, ly-1.06, lz); _threeScene.add(shade);
+      // Top cap
+      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.38,0.06,10), capMat);
+      cap.position.set(lx, ly-0.92, lz); _threeScene.add(cap);
+      // Glowing bulb
+      const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.09,8,6),
+        new THREE.MeshBasicMaterial({color:0xFFF5CC}));
+      bulb.position.set(lx, ly-1.05, lz); _threeScene.add(bulb);
+    });
+  }
 
   const mLambert = (hex, flat=false) => new THREE.MeshLambertMaterial({ color: hex, flatShading: flat });
-  const mToon = (hex) => new THREE.MeshToonMaterial({ color: hex });
+
+  // 3-tone cel-shading gradient: shadow | mid | highlight (NearestFilter = hard edge)
+  const _toonGrad = (() => {
+    const c = document.createElement('canvas'); c.width = 4; c.height = 1;
+    const ctx = c.getContext('2d');
+    const d = ctx.createImageData(4,1);
+    [[60,55,50],[130,122,112],[195,188,178],[255,252,248]].forEach(([r,g,b],i)=>{
+      d.data[i*4]=r; d.data[i*4+1]=g; d.data[i*4+2]=b; d.data[i*4+3]=255;
+    });
+    ctx.putImageData(d,0,0);
+    const t = new THREE.CanvasTexture(c);
+    t.minFilter = t.magFilter = THREE.NearestFilter;
+    return t;
+  })();
+  const mToon = (hex) => new THREE.MeshToonMaterial({ color: hex, gradientMap: _toonGrad });
+  const mToonFlat = (hex) => new THREE.MeshToonMaterial({ color: hex, gradientMap: _toonGrad, flatShading: true });
   const box = (w,h,d) => new THREE.BoxGeometry(w,h,d);
+
+  // outline helper: BackSide mesh scaled up slightly for ink-line effect
+  const _ol = (geo, scale=1.04, col=0x1A1208) => {
+    const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color:col, side:THREE.BackSide}));
+    m.scale.setScalar(scale); return m;
+  };
 
   // Textured materials (created once, reused)
   const _texMats = {};
@@ -1851,15 +1882,31 @@ function initThreeScene(canvas) {
     return _texMats[name];
   }
 
-  // Floor — flat toon oak (texture swapped for solid toon color to match indie game style)
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(22, 20), mToon(0xC8A86A));
-  floor.rotation.x = -Math.PI / 2;
+  // Floor — warm honey oak planks
+  const floorTex = (() => {
+    const c = document.createElement('canvas'); c.width = 256; c.height = 256;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#C4893A'; ctx.fillRect(0,0,256,256);
+    // Plank lines
+    ctx.strokeStyle = '#A06828'; ctx.lineWidth = 1.5;
+    [32,64,96,128,160,192,224].forEach(y => {
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(256,y); ctx.stroke();
+    });
+    ctx.strokeStyle = '#B5793288'; ctx.lineWidth = 1;
+    [48,80,112,144,176,208,240].forEach(y => {
+      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(256,y); ctx.stroke();
+    });
+    const t = new THREE.CanvasTexture(c);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6,5);
+    return t;
+  })();
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(22,20),
+    new THREE.MeshToonMaterial({ map: floorTex, gradientMap: _toonGrad, color: 0xCB9040 }));
+  floor.rotation.x = -Math.PI/2;
   _threeScene.add(floor);
-  floor.receiveShadow = true;
-  // (no grid — blueprint lines kill the cozy library feel)
 
   // Walls
-  const wallMat = mToon(0xF0EBE0);
+  const wallMat = mToon(0xEDE5D4);
   const bWall = new THREE.Mesh(box(22,8,0.3), wallMat);
   bWall.position.set(0, 4, -8); _threeScene.add(bWall);
 
@@ -1931,7 +1978,7 @@ function initThreeScene(canvas) {
   [-7,-3.5,0,3.5,7].forEach(bx => {
     const beam = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.4, 20), beamMat);
     beam.position.set(bx, 7.8, 0);
-    beam.castShadow = true;
+    beam
     _threeScene.add(beam);
   });
   // Cross beams
@@ -1964,7 +2011,7 @@ function initThreeScene(canvas) {
   [-6,-3,0,3,6].forEach(x => {
     const shelf = new THREE.Mesh(box(2.2,4.5,0.55), shelfMat);
     shelf.position.set(x, 2.25, -7.72); _threeScene.add(shelf);
-    shelf.castShadow = true; shelf.receiveShadow = true;
+    shelf shelf
     shelf.userData.isBookshelf = true;
     // Natural blonde-oak shelf planks
     [1,2,3].forEach(row => {
@@ -2072,7 +2119,7 @@ function initThreeScene(canvas) {
   [-6,-2,2,6].forEach(z => {
     const shelf = new THREE.Mesh(box(0.55,4.0,2.0), shelfMat);
     shelf.position.set(-10.72, 2, z); _threeScene.add(shelf);
-    shelf.castShadow = true; shelf.receiveShadow = true;
+    shelf shelf
     for (let b=0; b<5; b++) {
       const bk = new THREE.Mesh(box(0.4,0.85,0.32), mLambert(bookColors[b%bookColors.length]));
       bk.position.set(-10.48, 1.6+Math.random()*0.1, z-0.8+b*0.38); _threeScene.add(bk);
@@ -2086,7 +2133,7 @@ function initThreeScene(canvas) {
   [-6,-2,2,6].forEach(z => {
     const shelf = new THREE.Mesh(box(0.55,4.0,2.0), shelfMat);
     shelf.position.set(10.72, 2, z); _threeScene.add(shelf);
-    shelf.castShadow = true; shelf.receiveShadow = true;
+    shelf shelf
     for (let b=0; b<5; b++) {
       const bk = new THREE.Mesh(box(0.4,0.85,0.32), mLambert(bookColors[(b+2)%bookColors.length]));
       bk.position.set(10.48, 1.6+Math.random()*0.1, z-0.8+b*0.38); _threeScene.add(bk);
@@ -2156,7 +2203,7 @@ function initThreeScene(canvas) {
   const TX = 8.5, TZ = 4.5;
   const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.25,2.5,8), tMat('trunk',_woodTex));
   trunk.position.set(TX,1.4,TZ); _threeScene.add(trunk);
-  trunk.castShadow = true;
+  trunk
   trunk.userData.isTree = true;
   const rug = new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.2,0.04,32), mLambert(0x4A6848));
   rug.position.set(TX,0.02,TZ); _threeScene.add(rug);
@@ -2166,7 +2213,7 @@ function initThreeScene(canvas) {
   [[0,3.8,0,0.80],[0.3,5.0,0.2,0.55],[-0.2,4.3,0.1,0.45],[0,5.9,0,0.30]].forEach(([dx,y,dz,r],fi) => {
     const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(r,0), new THREE.MeshLambertMaterial({map:_leafTex(), flatShading:true}));
     leaf.position.set(TX+dx,y,TZ+dz); _threeScene.add(leaf);
-    leaf.castShadow = true;
+    leaf
     leaf.userData.isTree = true;
     _foliageMeshes.push({ mesh: leaf, ox:TX+dx, oy:y, oz:TZ+dz, phase: fi*0.9, amp:0.06+fi*0.01 });
   });
@@ -2432,7 +2479,7 @@ function initThreeScene(canvas) {
   ].forEach(([dx,y,dz,rx,ry,rz])=>{
     const br = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.09,1.2,6), branchMat);
     br.position.set(TX+dx,y,TZ+dz); br.rotation.set(rx,ry,rz);
-    br.castShadow = true;
+    br
     _threeScene.add(br);
     const tip = new THREE.Mesh(
       new THREE.IcosahedronGeometry(0.35,0),
@@ -2444,13 +2491,16 @@ function initThreeScene(canvas) {
   });
 
   // Desks — all 48 positions from _DESK_POS_3D
-  const deskMat = mToon(0xC9A86C);    // warm oak flat toon
-  const monMat  = mToon(0x8A909A);    // slate monitor body
+  const deskMat = mToon(0xCC9540);    // saturated honey oak
+  const monMat  = mToon(0x7A8494);    // slate monitor body
   const scrMat  = new THREE.MeshBasicMaterial({ color: 0x0D1520 });
+  const _deskGeo = box(1.6,0.08,0.9);
   _DESK_POS_3D.forEach(([x,z], dIdx) => {
-    const desk = new THREE.Mesh(box(1.6,0.08,0.9), deskMat);
+    const desk = new THREE.Mesh(_deskGeo, deskMat);
     desk.position.set(x,0.76,z); _threeScene.add(desk);
-    desk.castShadow = true; desk.receiveShadow = true;
+    // Ink outline on desk surface
+    const deskOl = _ol(_deskGeo, 1.05);
+    deskOl.position.copy(desk.position); _threeScene.add(deskOl);
     desk.userData.deskIdx = dIdx;
     desk.userData.isDesk = true;
     const leg1 = new THREE.Mesh(box(0.06,0.76,0.06), deskMat);
@@ -2525,9 +2575,9 @@ function initThreeScene(canvas) {
     const _cBlue = mToon(0x1E3A5F);
     const _cWood = mToon(0x6B4429);
     const cSeat = new THREE.Mesh(box(0.54,0.06,0.48), _cBlue);
-    cSeat.position.set(x,0.44,z+0.64); cSeat.castShadow=true; _threeScene.add(cSeat);
+    cSeat.position.set(x,0.44,z+0.64); cSeat _threeScene.add(cSeat);
     const cBack = new THREE.Mesh(box(0.50,0.42,0.06), _cBlue);
-    cBack.position.set(x,0.68,z+0.40); cBack.castShadow=true; _threeScene.add(cBack);
+    cBack.position.set(x,0.68,z+0.40); cBack _threeScene.add(cBack);
     if(!_isMobile||dIdx<6){
       [[-0.22,z+0.41],[0.22,z+0.41],[-0.22,z+0.87],[0.22,z+0.87]].forEach(([lx,lz])=>{
         const cl=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.44,6),_cWood);
@@ -3451,7 +3501,7 @@ function _updateThreeAvatars(users) {
         clone.traverse(node => {
           if (node.isMesh) {
             node.material = new THREE.MeshLambertMaterial({ color });
-            node.castShadow = true;
+            node
             node.userData.userIndex = i;
             if (u.isSelf) node.material.emissive = new THREE.Color(0x221100);
           }
@@ -3493,7 +3543,7 @@ function _updateThreeAvatars(users) {
       const shirtGeo = new THREE.CylinderGeometry(0.145,0.145,0.32,10);
       body = new THREE.Mesh(shirtGeo, _T(color, true));
       body.position.set(pos[0], 0.98, pos[1]+0.9);
-      body.castShadow=true; body.userData.userIndex=i; body.userData.baseScaleY=body.scale.y;
+      body body.userData.userIndex=i; body.userData.baseScaleY=body.scale.y;
       body.add(_ol(shirtGeo)); _threeScene.add(body); _userAvatarMeshes.push(body);
 
       // Arms (shirt color, angled toward desk)
