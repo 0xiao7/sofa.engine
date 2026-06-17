@@ -4176,6 +4176,61 @@ function initThreeScene(canvas) {
     });
   }
 
+  // v48: Ikebana flower pedestals — eye-level decoration in path to tree ───────
+  { const pedMat = new THREE.MeshLambertMaterial({ color: 0x4A2E0E }); // dark walnut
+    const pedTopMat = new THREE.MeshLambertMaterial({ color: 0x3A2008 });
+    const ikeColors = [0xFFB0C8, 0xFF85A8, 0xFFD0E0, 0xFFFFFF, 0xFFCCDD, 0x90C870]; // petals + leaves
+    // Two pedestals at (±2.0, 0, 5.5) — within frustum from wide camera
+    [-2.0, 2.0].forEach((px, pi) => {
+      const pz = 5.5;
+      // Pedestal base (slightly wider)
+      const base = new THREE.Mesh(new THREE.CylinderGeometry(0.18, 0.22, 0.08, 8), pedMat);
+      base.position.set(px, 0.04, pz); _threeScene.add(base);
+      // Pedestal column
+      const col = new THREE.Mesh(new THREE.CylinderGeometry(0.10, 0.12, 0.72, 8), pedMat);
+      col.position.set(px, 0.40, pz); _threeScene.add(col);
+      // Pedestal top (vase platform)
+      const top = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.10, 0.06, 8), pedTopMat);
+      top.position.set(px, 0.79, pz); _threeScene.add(top);
+
+      // Vase (tall narrow cylinder with flared top)
+      const vaseMat = new THREE.MeshLambertMaterial({ color: pi===0 ? 0x4A88BB : 0x9A6030 });
+      const vase = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.05, 0.28, 8), vaseMat);
+      vase.position.set(px, 0.96, pz); _threeScene.add(vase);
+
+      // Stems (3 thin cylinders angling out)
+      const stemMat = new THREE.MeshLambertMaterial({ color: 0x3A6820 });
+      [[-0.15, 1.18, 0.08, 0.28],
+       [ 0.08, 1.24, -0.12, 0.24],
+       [-0.04, 1.30, 0.16, 0.22]].forEach(([sx, sy, sz, sl]) => {
+        const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.007, 0.005, sl, 4), stemMat);
+        stem.rotation.z = sx * 2.5;
+        stem.rotation.x = sz * 2.0;
+        stem.position.set(px + sx*0.5, sy, pz + sz*0.5); _threeScene.add(stem);
+      });
+
+      // Flower heads (3-4 blooms per ikebana)
+      const flCols = pi===0
+        ? [0xFFB0C8, 0xFF85A8, 0xFFD0E0, 0xFFAEC0]
+        : [0xFFE88A, 0xFFCC44, 0xFFF0B0, 0xFFD870];
+      [
+        [px-0.14, 1.28, pz+0.07, 0.072],
+        [px+0.07, 1.32, pz-0.10, 0.065],
+        [px-0.03, 1.40, pz+0.14, 0.058],
+        [px+0.10, 1.22, pz+0.04, 0.055],
+      ].forEach(([fx, fy, fz, fr], fi) => {
+        const fl = new THREE.Mesh(new THREE.IcosahedronGeometry(fr, 0), mToon(flCols[fi]));
+        fl.position.set(fx, fy, fz); _threeScene.add(fl);
+        const ol = new THREE.Mesh(new THREE.IcosahedronGeometry(fr, 0),
+          new THREE.MeshBasicMaterial({color:0x6B1A2A, side:THREE.BackSide}));
+        ol.scale.setScalar(1.09); ol.position.set(fx, fy, fz); _threeScene.add(ol);
+      });
+      // Green leaf accent
+      const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(0.048, 0), mToon(0x5A9240));
+      leaf.position.set(px+0.12, 1.20, pz-0.06); _threeScene.add(leaf);
+    });
+  }
+
   // Decorative potted plants — entrance pair + mid-room pair flanking tree
   { const potClayMat = new THREE.MeshLambertMaterial({ color: 0xA05030 });
     const soilMat = new THREE.MeshLambertMaterial({ color: 0x3A2010 });
