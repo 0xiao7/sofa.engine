@@ -4074,6 +4074,30 @@ function initThreeScene(canvas) {
     }
   }
 
+  // Flowering accents on potted trees — small pink clusters matching central sakura
+  { const fColors=[0xFFB8CC,0xFFCCD8,0xFF9AB8,0xFFD5E5];
+    // Entrance pair (scale 1.1 → trunk top at y≈1.55+1.08=2.63, foliage y≈2.0-3.2)
+    [[-2.5,6.5],[2.5,6.5]].forEach(([px,pz])=>{
+      [[0.42,2.55,-0.15,0.28],[-.38,2.65,0.22,0.25],[0.15,2.80,0.38,0.22],
+       [-.28,2.45,-.32,0.24],[0.35,2.75,-.28,0.20]].forEach(([dx,dy,dz,r],bi)=>{
+        const bGeo=new THREE.IcosahedronGeometry(r,0);
+        const b=new THREE.Mesh(bGeo,new THREE.MeshToonMaterial({color:fColors[bi%fColors.length]}));
+        b.position.set(px+dx,dy,pz+dz); _threeScene.add(b);
+        const bOl=_ol(bGeo,1.08,0x8B1A3A); bOl.position.copy(b.position); _threeScene.add(bOl);
+      });
+    });
+    // Mid-room pair (scale 0.85 → slightly shorter)
+    [[-4.0,4.2],[4.0,4.2]].forEach(([px,pz])=>{
+      [[0.32,2.05,-0.12,0.22],[-.30,2.10,0.18,0.20],[0.12,2.22,0.28,0.18],
+       [-.20,1.98,-.24,0.19]].forEach(([dx,dy,dz,r],bi)=>{
+        const bGeo=new THREE.IcosahedronGeometry(r,0);
+        const b=new THREE.Mesh(bGeo,new THREE.MeshToonMaterial({color:fColors[bi%fColors.length]}));
+        b.position.set(px+dx,dy,pz+dz); _threeScene.add(b);
+        const bOl=_ol(bGeo,1.08,0x8B1A3A); bOl.position.copy(b.position); _threeScene.add(bOl);
+      });
+    });
+  }
+
   // Library leaning ladder against left bookshelf
   { const ladderMat = new THREE.MeshLambertMaterial({ color: 0x8C5C28 });
     const railLen = 3.8, tiltZ = Math.PI * 0.11; // lean ~20° from vertical
