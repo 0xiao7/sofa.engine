@@ -4257,6 +4257,39 @@ function initThreeScene(canvas) {
         shide.position.set(sx,2.53,GZ); _threeScene.add(shide);
       });
     }
+    // v52: Red chōchin paper lanterns hanging from kasagi ─────────────────────
+    { const capM=new THREE.MeshLambertMaterial({color:0x1A0808});
+      const cordM=new THREE.MeshLambertMaterial({color:0x2A1808});
+      [-0.85,0.85].forEach(lx=>{
+        // Hanging cord (kasagi y=3.55 → lantern top y=3.38)
+        const cord=new THREE.Mesh(new THREE.CylinderGeometry(0.007,0.007,0.19,4),cordM);
+        cord.position.set(lx,3.455,GZ); _threeScene.add(cord);
+        // Lantern body — oval red cylinder
+        const lMat=new THREE.MeshLambertMaterial({color:0xCC1108,emissive:0x660000,emissiveIntensity:0.35});
+        const lBody=new THREE.Mesh(new THREE.CylinderGeometry(0.115,0.115,0.34,12),lMat);
+        lBody.position.set(lx,3.20,GZ); _threeScene.add(lBody);
+        // Top cap
+        const tCap=new THREE.Mesh(new THREE.CylinderGeometry(0.095,0.115,0.046,10),capM);
+        tCap.position.set(lx,3.37,GZ); _threeScene.add(tCap);
+        // Bottom cap
+        const bCap=new THREE.Mesh(new THREE.CylinderGeometry(0.115,0.075,0.046,10),capM);
+        bCap.position.set(lx,3.03,GZ); _threeScene.add(bCap);
+        // Horizontal ribs (characteristic chōchin look)
+        const ribM=new THREE.MeshBasicMaterial({color:0x882200});
+        for(let ri=0;ri<4;ri++){
+          const rb=new THREE.Mesh(new THREE.TorusGeometry(0.118,0.005,4,12),ribM);
+          rb.rotation.x=Math.PI/2;
+          rb.position.set(lx,3.07+ri*0.080,GZ); _threeScene.add(rb);
+        }
+        // Gold tassel fringe below lantern
+        const tasM=new THREE.MeshLambertMaterial({color:0xCCA010});
+        const tas=new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.002,0.15,4),tasM);
+        tas.position.set(lx,2.926,GZ); _threeScene.add(tas);
+        // Red glow from inside lantern
+        const lGlow=new THREE.PointLight(0xFF3810,0.22,3.2);
+        lGlow.position.set(lx,3.20,GZ); _threeScene.add(lGlow);
+      });
+    }
   }
 
   // v48: Ikebana flower pedestals — eye-level decoration in path to tree ───────
