@@ -2413,29 +2413,24 @@ function initThreeScene(canvas) {
     _foliageMeshes.push({ mesh: tip, ox: tip.position.x, oy: tip.position.y, oz: tip.position.z, phase: Math.random()*Math.PI*2, amp: 0.04 });
   });
 
-  // Desks
+  // Desks — all 48 positions from _DESK_POS_3D
   const deskMat = tMat('desk',_deskTex);
-  const monMat = mLambert(0xA0A8B0);  // silver-gray monitor body
+  const monMat = mLambert(0xA0A8B0);
   const scrMat = new THREE.MeshBasicMaterial({ color: 0x141E28 });
-  const DESK_POSITIONS = [
-    [-5,-3],[-3,-3],[3,-3],[5,-3],
-    [-5,0],[5,0],
-    [-5,3],[5,3],
-    [-3,-5],[3,-5],
-    [-3,4.5],[3,4.5],
-  ];
-  DESK_POSITIONS.forEach(([x,z], dIdx) => {
+  _DESK_POS_3D.forEach(([x,z], dIdx) => {
     const desk = new THREE.Mesh(box(1.6,0.08,0.9), deskMat);
     desk.position.set(x,0.76,z); _threeScene.add(desk);
     desk.castShadow = true; desk.receiveShadow = true;
     desk.userData.deskIdx = dIdx;
-    desk.userData.isDesk = true; // Wave 129: clickable quick-launch menu
+    desk.userData.isDesk = true;
     const leg1 = new THREE.Mesh(box(0.06,0.76,0.06), deskMat);
     leg1.position.set(x-0.65,0.38,z+0.35); _threeScene.add(leg1);
     leg1.userData.isDesk = true;
     const leg2 = leg1.clone(); leg2.position.set(x+0.65,0.38,z+0.35); _threeScene.add(leg2);
     const leg3 = leg1.clone(); leg3.position.set(x-0.65,0.38,z-0.35); _threeScene.add(leg3);
     const leg4 = leg1.clone(); leg4.position.set(x+0.65,0.38,z-0.35); _threeScene.add(leg4);
+    // Full detail only for first 12 desks (monitor + lamp 3D body + prop)
+    if (dIdx < 12) {
     // Monitor
     const mon = new THREE.Mesh(box(0.9,0.55,0.06), monMat);
     mon.position.set(x,1.1,z-0.28); _threeScene.add(mon);
@@ -2444,17 +2439,13 @@ function initThreeScene(canvas) {
     // Monitor stand
     const stand = new THREE.Mesh(box(0.06,0.2,0.06), monMat);
     stand.position.set(x,0.9,z-0.28); _threeScene.add(stand);
-    // Desk lamp
+    // Desk lamp 3D body
     const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,0.05,8), mLambert(0xD8D0C4));
-    lampBase.position.set(x+0.5, 0.83, z+0.1);
-    _threeScene.add(lampBase);
+    lampBase.position.set(x+0.5, 0.83, z+0.1); _threeScene.add(lampBase);
     const lampArm = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.5,6), mLambert(0xD8D0C4));
-    lampArm.position.set(x+0.5, 1.08, z+0.1);
-    _threeScene.add(lampArm);
+    lampArm.position.set(x+0.5, 1.08, z+0.1); _threeScene.add(lampArm);
     const lampHead = new THREE.Mesh(new THREE.ConeGeometry(0.12,0.12,8), mLambert(0xF0EBE0));
-    lampHead.position.set(x+0.5, 1.35, z+0.1);
-    lampHead.rotation.z = Math.PI; // point downward
-    _threeScene.add(lampHead);
+    lampHead.position.set(x+0.5, 1.35, z+0.1); lampHead.rotation.z = Math.PI; _threeScene.add(lampHead);
     // Desk prop (cycles by desk index)
     const propType = dIdx % 4;
     if(propType === 0) {
@@ -2493,19 +2484,22 @@ function initThreeScene(canvas) {
       // Notebook + pen
       const nb = new THREE.Mesh(new THREE.BoxGeometry(0.28,0.018,0.20), mLambert(0xFAF0E6));
       nb.position.set(x-0.35, 0.84, z+0.1); _threeScene.add(nb);
-      // Lines on notebook (dark thin plane on top)
       const lines = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.002,0.14), mLambert(0x5BAFD6));
       lines.position.set(x-0.35, 0.85, z+0.1); _threeScene.add(lines);
-      // Pen
       const pen = new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.24,6), mLambert(0x3A3040));
-      pen.position.set(x-0.22, 0.842, z+0.22);
-      pen.rotation.z = 0.3; _threeScene.add(pen);
+      pen.position.set(x-0.22, 0.842, z+0.22); pen.rotation.z = 0.3; _threeScene.add(pen);
     }
-    // Lamp glow — all desks dim by default; brightened per occupant in _updateThreeAvatars
-    const deskLight = new THREE.PointLight(0xFFEDD0, 0.15, 3.0);
-    deskLight.position.set(x+0.5, 1.2, z+0.1);
-    _threeScene.add(deskLight);
-    _deskLampLights.push(deskLight);
+    } // end dIdx < 12 full-detail block
+    // Desk lamp light — all desks on desktop; mobile only first 24
+    const addLight = !_isMobile || dIdx < 24;
+    if (addLight) {
+      const deskLight = new THREE.PointLight(0xFFEDD0, 0.12, 3.0);
+      deskLight.position.set(x+0.5, 1.2, z+0.1);
+      _threeScene.add(deskLight);
+      _deskLampLights.push(deskLight);
+    } else {
+      _deskLampLights.push(null);
+    }
   });
 
   // Shared desk hover glow pad
@@ -2864,13 +2858,13 @@ function initThreeScene(canvas) {
   _updateThreeAvatars([]);
 }
 
-const _DESK_POS_3D = [
-  [-5,-3],[-3,-3],[3,-3],[5,-3],
-  [-5,0],[5,0],
-  [-5,3],[5,3],
-  [-3,-5],[3,-5],
-  [-3,4.5],[3,4.5],
-];
+// 48 desk positions: 6 columns × 8 rows, center aisle clear
+// Cols: -6.5,-4.5,-2.5 | 2.5,4.5,6.5  Rows: -6.5→4
+const _DESK_POS_3D = (()=>{
+  const cols=[-6.5,-4.5,-2.5,2.5,4.5,6.5];
+  const rows=[-6.5,-5,-3.5,-2,-0.5,1,2.5,4];
+  const p=[]; rows.forEach(z=>cols.forEach(x=>p.push([x,z]))); return p;
+})();
 
 function _makeLabel(name, color) {
   const c = document.createElement('canvas');
@@ -3500,6 +3494,68 @@ function _updateThreeAvatars(users) {
       _addAcc(star);
     }
 
+    // ── Desk surface items (水壺 + 考科文具) ──
+    const _di = (mesh) => { _threeScene.add(mesh); _userAvatarLabels.push(mesh); };
+    const dx = pos[0], dz = pos[1];
+    // 水壺 — everyone gets one (teal cylinder)
+    const bottleMat = new THREE.MeshLambertMaterial({ color: 0x40C8A0 });
+    const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.04,0.14,8), bottleMat);
+    bottle.position.set(dx+0.55, 0.91, dz-0.1); _di(bottle);
+    const bottleCap = new THREE.Mesh(new THREE.CylinderGeometry(0.036,0.036,0.02,8), mLambert(0x2A8868));
+    bottleCap.position.set(dx+0.55, 0.985, dz-0.1); _di(bottleCap);
+    // 考科文具
+    if (subj === '記帳士') {
+      // 計算機 (calculator) — dark box with light face
+      const calc = new THREE.Mesh(new THREE.BoxGeometry(0.14,0.02,0.1), mLambert(0x2A2A3A));
+      calc.position.set(dx-0.3, 0.82, dz); _di(calc);
+      const calcFace = new THREE.Mesh(new THREE.BoxGeometry(0.11,0.002,0.07), mLambert(0x4A4A6A));
+      calcFace.position.set(dx-0.3, 0.832, dz); _di(calcFace);
+    } else if (subj === '地政士') {
+      // 地圖捲軸 (map scroll)
+      const scroll = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.012,0.12), mLambert(0xF5E8C8));
+      scroll.position.set(dx-0.3, 0.822, dz); _di(scroll);
+      const rod1 = new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.14,6), mLambert(0x7A5C2E));
+      rod1.rotation.z = Math.PI/2; rod1.position.set(dx-0.3-0.095, 0.828, dz); _di(rod1);
+    } else if (subj === '財稅行政') {
+      // 稅本 (blue thin book)
+      const taxBook = new THREE.Mesh(new THREE.BoxGeometry(0.16,0.03,0.12), mLambert(0x3A6AE0));
+      taxBook.position.set(dx-0.3, 0.835, dz); _di(taxBook);
+    } else if (subj === '不動產經紀人') {
+      // 鑰匙 (key) — small cylinder + box
+      const keyRing = new THREE.Mesh(new THREE.TorusGeometry(0.025,0.008,6,12), mLambert(0xD4AF37));
+      keyRing.position.set(dx-0.3, 0.83, dz); keyRing.rotation.x = Math.PI/2; _di(keyRing);
+      const keyShaft = new THREE.Mesh(new THREE.BoxGeometry(0.065,0.009,0.009), mLambert(0xD4AF37));
+      keyShaft.position.set(dx-0.262, 0.83, dz); _di(keyShaft);
+    } else if (subj === '初等考試') {
+      // 鉛筆盒 + 橡皮擦
+      const pBox = new THREE.Mesh(new THREE.BoxGeometry(0.16,0.04,0.06), mLambert(0xF0B44B));
+      pBox.position.set(dx-0.3, 0.84, dz); _di(pBox);
+      const eraser = new THREE.Mesh(new THREE.BoxGeometry(0.055,0.025,0.035), mLambert(0xFFB8C8));
+      eraser.position.set(dx-0.3+0.11, 0.835, dz+0.06); _di(eraser);
+    } else {
+      // 書 (generic open book)
+      const bkL = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.015,0.13), mLambert(0xE8C87A));
+      bkL.position.set(dx-0.33, 0.828, dz); bkL.rotation.y = 0.15; _di(bkL);
+      const bkR = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.015,0.13), mLambert(0xF0D890));
+      bkR.position.set(dx-0.27, 0.828, dz); bkR.rotation.y = -0.15; _di(bkR);
+    }
+    // 考科小立牌 (subject card on desk)
+    const scCanvas = document.createElement('canvas');
+    scCanvas.width = 128; scCanvas.height = 40;
+    const scCtx = scCanvas.getContext('2d');
+    scCtx.fillStyle = 'rgba(20,36,52,0.92)';
+    scCtx.fillRect(0,0,128,40);
+    scCtx.font = 'bold 13px sans-serif';
+    scCtx.fillStyle = hexColor;
+    scCtx.textAlign = 'center';
+    scCtx.fillText(u.subject||'考生', 64, 26);
+    const scTex = new THREE.CanvasTexture(scCanvas);
+    const scMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.36,0.11),
+      new THREE.MeshBasicMaterial({map:scTex,transparent:true,depthWrite:false,side:THREE.DoubleSide}));
+    scMesh.position.set(dx, 0.9, dz-0.35); // standing near back of desk
+    scMesh.rotation.x = -0.3; // slight tilt toward camera
+    _di(scMesh);
+
     // Billboard name plate — white pill, colored border
     const npCanvas = document.createElement('canvas');
     npCanvas.width = 140; npCanvas.height = 32;
@@ -3566,7 +3622,7 @@ function _updateThreeAvatars(users) {
   });
 
   // Dim all desk lamps, brighten occupied ones
-  _deskLampLights.forEach((dl, di) => { dl.intensity = 0.12; });
+  _deskLampLights.forEach((dl) => { if(dl) dl.intensity = 0.12; });
   users.slice(0, _DESK_POS_3D.length).forEach((u, i) => {
     if(_deskLampLights[i]) _deskLampLights[i].intensity = 0.65;
   });
@@ -5417,9 +5473,13 @@ function startPresence(name, subject){
 function renderRoom(){
   const state    = channel.presenceState();
   const real     = Object.entries(state).map(([key, [u]]) => ({ key, ...u }));
-  const ghosts   = getGhosts(real.length);
-  const users    = [...real, ...ghosts];
-  const count    = users.length;
+  const count    = real.length + getGhosts(real.length).length; // total for badge
+  // Display: self always first, then top-30 others by weekPts
+  const selfReal = real.find(u => u.key === myKey);
+  const othersReal = real.filter(u => u.key !== myKey).sort((a,b) => (b.weekPts||0)-(a.weekPts||0)).slice(0,30);
+  const visibleReal = selfReal ? [selfReal, ...othersReal] : othersReal;
+  const ghosts   = getGhosts(visibleReal.length);
+  const users    = [...visibleReal, ...ghosts];
 
   // 更新 3D 場景用戶列表
   _currentUsers = users.map((u, i) => ({
