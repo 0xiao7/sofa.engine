@@ -2481,7 +2481,6 @@ function initThreeScene(canvas) {
   ].forEach(([dx,y,dz,rx,ry,rz])=>{
     const br = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.09,1.2,6), branchMat);
     br.position.set(TX+dx,y,TZ+dz); br.rotation.set(rx,ry,rz);
-    br
     _threeScene.add(br);
     const tip = new THREE.Mesh(
       new THREE.IcosahedronGeometry(0.35,0),
@@ -2576,10 +2575,14 @@ function initThreeScene(canvas) {
     // Chair at every desk — seat + backrest + legs
     const _cBlue = mToon(0x2E5FA8);   // vivid royal blue
     const _cWood = mToon(0x7A4A28);
-    const cSeat = new THREE.Mesh(box(0.54,0.06,0.48), _cBlue);
-    cSeat.position.set(x,0.44,z+0.64); _threeScene.add(cSeat);
-    const cBack = new THREE.Mesh(box(0.50,0.42,0.06), _cBlue);
-    cBack.position.set(x,0.68,z+0.40); _threeScene.add(cBack);
+    const _cSeatGeo = box(0.54,0.06,0.48);
+    const cSeat = new THREE.Mesh(_cSeatGeo, _cBlue);
+    cSeat.position.set(x,0.44,z+0.64);
+    cSeat.add(_ol(_cSeatGeo, 1.06)); _threeScene.add(cSeat);
+    const _cBackGeo = box(0.50,0.42,0.06);
+    const cBack = new THREE.Mesh(_cBackGeo, _cBlue);
+    cBack.position.set(x,0.68,z+0.40);
+    cBack.add(_ol(_cBackGeo, 1.07)); _threeScene.add(cBack);
     if(!_isMobile||dIdx<6){
       [[-0.22,z+0.41],[0.22,z+0.41],[-0.22,z+0.87],[0.22,z+0.87]].forEach(([lx,lz])=>{
         const cl=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.44,6),_cWood);
@@ -3503,7 +3506,6 @@ function _updateThreeAvatars(users) {
         clone.traverse(node => {
           if (node.isMesh) {
             node.material = new THREE.MeshToonMaterial({ color, gradientMap: _toonGrad });
-            node
             node.userData.userIndex = i;
             if (u.isSelf) node.material.emissive = new THREE.Color(0x221100);
           }
@@ -3545,7 +3547,7 @@ function _updateThreeAvatars(users) {
       const shirtGeo = new THREE.CylinderGeometry(0.145,0.145,0.32,10);
       body = new THREE.Mesh(shirtGeo, _T(color, true));
       body.position.set(pos[0], 0.98, pos[1]+0.9);
-      body body.userData.userIndex=i; body.userData.baseScaleY=body.scale.y;
+      body.userData.userIndex=i; body.userData.baseScaleY=body.scale.y;
       body.add(_ol(shirtGeo)); _threeScene.add(body); _userAvatarMeshes.push(body);
 
       // Arms (shirt color, angled toward desk)
