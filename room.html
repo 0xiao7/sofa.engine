@@ -145,28 +145,29 @@ body.entry-phase #retain-modal { display:none !important; }
 .away-btn:hover{opacity:.85;}
 header{
   display:flex;align-items:center;justify-content:space-between;
-  padding:14px 20px;
-  background:linear-gradient(to bottom,#F5F0E8,#EDE8DC);
-  border-bottom:2px solid var(--wood);
+  padding:10px 20px;
+  background:linear-gradient(180deg,#0E1F30 0%,#0A1824 100%);
+  border-bottom:2px solid rgba(91,175,214,0.35);
   position:sticky;top:0;z-index:10;
-  box-shadow:0 2px 16px rgba(0,0,0,.4);
+  box-shadow:0 2px 20px rgba(0,0,0,.6),0 1px 0 rgba(91,175,214,0.1);
 }
 .logo{
-  font-family:var(--serif);font-size:1rem;font-weight:700;
-  color:var(--amber);letter-spacing:.12em;
-  text-shadow:0 0 20px rgba(91,175,214,.3);
+  font-family:var(--mono);font-size:.82rem;font-weight:700;
+  color:#5BAFD6;letter-spacing:.16em;text-transform:uppercase;
+  text-shadow:0 0 16px rgba(91,175,214,.45);
 }
 .online-badge{
-  display:flex;align-items:center;gap:6px;font-size:.8rem;color:var(--good);
+  display:flex;align-items:center;gap:6px;font-size:.78rem;
+  color:#5BAFD6;font-family:var(--mono);letter-spacing:.04em;
 }
-.dot{width:7px;height:7px;border-radius:50%;background:var(--good);animation:pulse 2s infinite;}
+.dot{width:6px;height:6px;border-radius:50%;background:#4FC86A;animation:pulse 2s infinite;box-shadow:0 0 6px rgba(79,200,106,.8);}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 .btn-leave{
-  font-size:.75rem;color:var(--cream-2);opacity:.45;
-  padding:4px 10px;border:1px solid rgba(91,175,214,.15);border-radius:20px;
-  cursor:pointer;transition:opacity .2s;
+  font-size:.72rem;color:rgba(150,165,180,.6);
+  padding:4px 10px;border:1px solid rgba(91,175,214,.2);border-radius:2px;
+  cursor:pointer;transition:all .2s;font-family:var(--mono);
 }
-.btn-leave:hover{opacity:1;}
+.btn-leave:hover{color:#5BAFD6;border-color:rgba(91,175,214,.5);}
 
 main{display:flex;flex:1;gap:0;min-height:0;}
 
@@ -301,11 +302,11 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 .pom-btn:hover{opacity:.8;}
 /* lock button in header */
 #btn-lock{
-  font-size:.75rem;color:var(--cream-2);opacity:.5;padding:4px 10px;
-  border:1px solid var(--line-2);border-radius:20px;cursor:pointer;transition:opacity .2s;
-  background:none;
+  font-size:.68rem;color:rgba(150,165,180,.55);padding:4px 10px;
+  border:1px solid rgba(91,175,214,.18);border-radius:2px;cursor:pointer;transition:all .2s;
+  background:none;font-family:var(--mono);letter-spacing:.04em;
 }
-#btn-lock:hover{opacity:1;}
+#btn-lock:hover{color:#5BAFD6;border-color:rgba(91,175,214,.45);}
 /* ── 訪客挽留 modal ── */
 #retain-modal{
   position:fixed;inset:0;z-index:150;
@@ -387,9 +388,10 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 
 /* ── 登入狀態標籤（header） ── */
 #member-badge{
-  font-size:.7rem;padding:2px 8px;border-radius:10px;
-  background:rgba(159,184,159,.15);border:1px solid rgba(159,184,159,.3);
-  color:var(--good);display:none;
+  font-size:.68rem;padding:2px 9px;border-radius:2px;font-family:var(--mono);
+  background:rgba(74,154,106,.12);border:1px solid rgba(74,154,106,.35);
+  color:#4FC86A;display:none;letter-spacing:.06em;
+  box-shadow:0 0 8px rgba(74,154,106,.15);
 }
 #member-badge.on{display:inline-block;}
 
@@ -754,7 +756,7 @@ input[type=text], select, .btn-enter {
       <span class="dot"></span>
       <span id="count-badge">1 人在線</span>
     </span>
-    <span id="weather-badge" style="font-size:.75rem;color:var(--cream-2);opacity:.7;letter-spacing:.03em;"></span>
+    <span id="weather-badge" style="font-size:.7rem;color:rgba(175,195,215,.6);letter-spacing:.04em;font-family:var(--mono);"></span>
     <div style="display:flex;gap:6px;align-items:center;">
       <button id="btn-lock">🔒 鎖定</button>
       <button class="btn-leave" id="btn-leave">離開</button>
