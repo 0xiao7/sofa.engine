@@ -1091,7 +1091,7 @@ let _mixerLastTime = 0;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _DESK_VISUAL_POS_3D = []; // stores {vx,vz,ry} for each desk after scatter
 const _seenUserIds = new Set();
-let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [], _pendantGlows = [], _canopyAura = null, _sparkles = [];
+let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [], _pendantGlows = [], _canopyAura = null, _sparkles = [], _permLanternLights = [], _moonShaftSprite = null;
 let _snowParticles = [];
 let _waterDroplets = [], _waterTx = null; // Wave132: tree watering
 let _sakuraParticles = [];
@@ -1437,6 +1437,48 @@ function _lightShaftTex() {
   return new THREE.CanvasTexture(c);
 }
 
+function _moonShaftTex() {
+  const c = document.createElement('canvas'); c.width = 64; c.height = 256;
+  const ctx = c.getContext('2d');
+  const g = ctx.createLinearGradient(0,0,64,0);
+  g.addColorStop(0,'rgba(180,210,255,0)');
+  g.addColorStop(0.3,'rgba(190,220,255,0.14)');
+  g.addColorStop(0.5,'rgba(210,235,255,0.22)');
+  g.addColorStop(0.7,'rgba(190,220,255,0.14)');
+  g.addColorStop(1,'rgba(180,210,255,0)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0,0,64,256);
+  return new THREE.CanvasTexture(c);
+}
+function _paperLanternTex() {
+  const c = document.createElement('canvas'); c.width = 64; c.height = 96;
+  const ctx = c.getContext('2d');
+  // Warm orange-red lantern body
+  const bg = ctx.createLinearGradient(0,0,64,0);
+  bg.addColorStop(0,'#8B1A08');
+  bg.addColorStop(0.25,'#D42010');
+  bg.addColorStop(0.5,'#FF5822');
+  bg.addColorStop(0.75,'#D42010');
+  bg.addColorStop(1,'#8B1A08');
+  ctx.fillStyle = bg;
+  // Round lantern silhouette
+  ctx.beginPath(); ctx.ellipse(32,48,28,44,0,0,Math.PI*2); ctx.fill();
+  // Gold ribs
+  ctx.strokeStyle='rgba(255,200,60,0.55)'; ctx.lineWidth=1.5;
+  [16,32,48].forEach(x=>{
+    ctx.beginPath(); ctx.moveTo(x,8); ctx.lineTo(x,88); ctx.stroke();
+  });
+  // Top/bottom gold caps
+  ctx.fillStyle='#D4A020';
+  ctx.fillRect(20,4,24,6);
+  ctx.fillRect(20,86,24,6);
+  // Inner glow
+  const glow=ctx.createRadialGradient(32,48,0,32,48,22);
+  glow.addColorStop(0,'rgba(255,220,100,0.55)');
+  glow.addColorStop(1,'rgba(255,180,60,0)');
+  ctx.fillStyle=glow; ctx.beginPath(); ctx.ellipse(32,48,22,36,0,0,Math.PI*2); ctx.fill();
+  return new THREE.CanvasTexture(c);
+}
 function _starTex(r) {
   const c = document.createElement('canvas'); c.width = c.height = 32;
   const ctx = c.getContext('2d');
@@ -2696,6 +2738,64 @@ function initThreeScene(canvas) {
     _cgSprite.position.set(TX, 5.8, TZ);
     _threeScene.add(_cgSprite);
     _canopyAura = _cgSprite;
+  }
+
+  // ── Permanent paper lanterns around the tree ───────────────────────────
+  { const lTex = _paperLanternTex();
+    const lMat = new THREE.MeshLambertMaterial({ map: lTex, side: THREE.DoubleSide });
+    const capMat = new THREE.MeshLambertMaterial({ color: 0xC8A020 });
+    const cordMat = new THREE.MeshLambertMaterial({ color: 0x5A3010 });
+    // 4 lanterns: [x offset, y hang, z offset, cord length]
+    [[-1.8,4.85,1.3,4.3],[1.7,4.45,-0.9,4.7],[0.3,5.2,1.9,3.9],[-0.5,3.9,-1.6,5.2]].forEach(([dx,ly,dz,cordTop])=>{
+      // Hanging cord from ceiling
+      const cordLen = cordTop - ly - 0.18;
+      const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,cordLen,4), cordMat);
+      cord.position.set(TX+dx, ly + 0.18 + cordLen/2, TZ+dz);
+      _threeScene.add(cord);
+      // Lantern body
+      const body = new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.16,0.36,10), lMat);
+      body.position.set(TX+dx, ly, TZ+dz);
+      _threeScene.add(body);
+      // Top/bottom caps
+      const capT = new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.18,0.05,10), capMat);
+      capT.position.set(TX+dx, ly+0.205, TZ+dz); _threeScene.add(capT);
+      const capB = new THREE.Mesh(new THREE.CylinderGeometry(0.18,0.04,0.05,10), capMat);
+      capB.position.set(TX+dx, ly-0.205, TZ+dz); _threeScene.add(capB);
+      // Glow point light from inside lantern
+      const lPL = new THREE.PointLight(0xFF8830, 0.50, 2.8);
+      lPL.position.set(TX+dx, ly-0.1, TZ+dz);
+      _threeScene.add(lPL);
+      _permLanternLights.push(lPL);
+      _torchLights.push(lPL);
+      // Warm glow sprite (addi blending halo)
+      const glTex = (() => {
+        const gc=document.createElement('canvas'); gc.width=gc.height=32;
+        const gctx=gc.getContext('2d');
+        const gg=gctx.createRadialGradient(16,16,0,16,16,14);
+        gg.addColorStop(0,'rgba(255,180,60,0.70)'); gg.addColorStop(1,'rgba(255,140,20,0)');
+        gctx.fillStyle=gg; gctx.fillRect(0,0,32,32);
+        return new THREE.CanvasTexture(gc);
+      })();
+      const glSp = new THREE.Sprite(new THREE.SpriteMaterial({
+        map:glTex, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, opacity:0.55
+      }));
+      glSp.scale.set(0.90,0.90,0.90);
+      glSp.position.set(TX+dx, ly-0.08, TZ+dz);
+      _threeScene.add(glSp);
+      _pendantGlows.push(glSp);
+    });
+  }
+
+  // ── Moonlight shaft (night only) ─────────────────────────────────────────
+  { const msSm = new THREE.SpriteMaterial({
+      map: _moonShaftTex(), transparent:true, opacity:0.0,
+      blending:THREE.AdditiveBlending, depthWrite:false,
+    });
+    msSm.rotation = -0.38;
+    _moonShaftSprite = new THREE.Sprite(msSm);
+    _moonShaftSprite.scale.set(1.6, 6.5, 1);
+    _moonShaftSprite.position.set(6.5, 4.2, -2.5);
+    _threeScene.add(_moonShaftSprite);
   }
 
   // ── 中央水晶吊燈環（atrium chandelier ring above tree） ────────────────
@@ -6601,16 +6701,23 @@ function startThreeAnimation(canvas) {
         p.position.z = (Math.random()-0.5)*14;
       }
     });
-    // Light shafts — subtle ambient only (was too blinding at 0.55+)
-    const _lsTod = _timeOfDayPalette();
-    const _lsVisible = _lsTod.fogDensity < 0.012;
-    _lightShafts.forEach(s => {
-      const target = _lsVisible ? (0.09 + 0.04*Math.sin(_threeTime*0.4 + s.userData.phase)) : 0;
-      s.material.opacity += (target - s.material.opacity) * 0.02;
-    });
+    // Light shafts — time-of-day scaled
+    { const _lsHour = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
+      const _lsBase = (_lsHour>=6&&_lsHour<11) ? 0.30 : (_lsHour>=11&&_lsHour<17) ? 0.20 : (_lsHour>=17&&_lsHour<21) ? 0.10 : 0;
+      _lightShafts.forEach(s => {
+        const target = _lsBase > 0 ? (_lsBase + 0.06*Math.sin(_threeTime*0.4 + s.userData.phase)) : 0;
+        s.material.opacity += (target - s.material.opacity) * 0.025;
+      });
+      // Moonlight shaft — night only, opposite tilt to sun shafts
+      if(_moonShaftSprite){
+        const _msTarget = (_lsHour>=21||_lsHour<5) ? (0.18 + 0.04*Math.sin(_threeTime*0.25)) : 0;
+        _moonShaftSprite.material.opacity += (_msTarget - _moonShaftSprite.material.opacity) * 0.018;
+      }
+    }
     // Ceiling stars
     const _stTod = _timeOfDayPalette();
-    const _stNight = _stTod.fogDensity >= 0.012;
+    const _stHour = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
+    const _stNight = _stHour >= 21 || _stHour < 5;
     _ceilStars.forEach(s => {
       const targetBase = _stNight ? s.userData.bright : 0;
       const twinkle = targetBase * (0.6 + 0.4*Math.sin(_threeTime*s.userData.speed + s.userData.phase));
@@ -6618,14 +6725,16 @@ function startThreeAnimation(canvas) {
     });
     // Moon
     if(_moonSprite){
-      const _mnTod = _timeOfDayPalette();
-      const _mnTarget = _mnTod.fogDensity >= 0.012 ? 0.82 : 0;
+      const _mnHour = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
+      const _mnTarget = (_mnHour>=21||_mnHour<5) ? 0.82 : 0;
       _moonSprite.material.opacity += (_mnTarget - _moonSprite.material.opacity) * 0.015;
     }
     // Shooting stars
-    if(_timeOfDayPalette().fogDensity >= 0.012 && Date.now() > _nextShootTime){
-      _spawnShootingStar();
-      _nextShootTime = Date.now() + 45000 + Math.random()*45000;
+    { const _ssH=new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
+      if((_ssH>=21||_ssH<5) && Date.now() > _nextShootTime){
+        _spawnShootingStar();
+        _nextShootTime = Date.now() + 45000 + Math.random()*45000;
+      }
     }
     for(let shi=_shootingStars.length-1; shi>=0; shi--){
       const sh = _shootingStars[shi];
