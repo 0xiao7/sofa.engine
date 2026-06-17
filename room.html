@@ -4345,6 +4345,57 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v56: Komainu guardian stone dogs — flanking the entrance at z=8 ───────────
+  { const stonM=new THREE.MeshLambertMaterial({color:0x8A8870});
+    const stDkM=new THREE.MeshLambertMaterial({color:0x606050});
+    const stEyM=new THREE.MeshBasicMaterial({color:0x1A1808});
+    const stMoM=new THREE.MeshBasicMaterial({color:0x4A2010});
+    [-1.55, 1.55].forEach((kx,ki)=>{
+      const KZ=7.90, KY=0;
+      const faceDir= ki===0 ? -1 : 1; // left dog faces right, right dog faces left
+      // Base plinth
+      const plinth=new THREE.Mesh(new THREE.BoxGeometry(0.38,0.10,0.32),stDkM);
+      plinth.position.set(kx,0.05,KZ); _threeScene.add(plinth);
+      // Body (seated torso)
+      const body=new THREE.Mesh(new THREE.CylinderGeometry(0.115,0.130,0.32,8),stonM);
+      body.position.set(kx,0.26,KZ); _threeScene.add(body);
+      // Head
+      const head=new THREE.Mesh(new THREE.SphereGeometry(0.118,8,8),stonM);
+      head.position.set(kx,0.61,KZ); _threeScene.add(head);
+      // Snout
+      const snout=new THREE.Mesh(new THREE.SphereGeometry(0.058,7,6),stonM);
+      snout.scale.set(0.9,0.7,1.0);
+      snout.position.set(kx,0.595,KZ+0.095); _threeScene.add(snout);
+      // Eyes (two small dark spheres)
+      [-0.045,0.045].forEach(ex=>{
+        const eye=new THREE.Mesh(new THREE.SphereGeometry(0.016,5,5),stEyM);
+        eye.position.set(kx+ex,0.638,KZ+0.098); _threeScene.add(eye);
+      });
+      // Mouth (left dog = open agyo, right dog = closed ungyo)
+      if(ki===0){
+        const mth=new THREE.Mesh(new THREE.SphereGeometry(0.022,5,4),stMoM);
+        mth.scale.set(1.2,0.7,0.8); mth.position.set(kx,0.572,KZ+0.112); _threeScene.add(mth);
+      }
+      // Ears (two tiny cones)
+      [-0.060,0.060].forEach(ex=>{
+        const ear=new THREE.Mesh(new THREE.ConeGeometry(0.025,0.055,5),stonM);
+        ear.position.set(kx+ex,0.685,KZ-0.02); _threeScene.add(ear);
+      });
+      // Curly tail (small sphere behind body, high)
+      const tail=new THREE.Mesh(new THREE.SphereGeometry(0.045,7,6),stonM);
+      tail.scale.set(0.8,1.1,0.8);
+      tail.position.set(kx,0.48,KZ-0.12); _threeScene.add(tail);
+      // Front paws (two small cylinders)
+      [-0.060,0.060].forEach(px=>{
+        const paw=new THREE.Mesh(new THREE.CylinderGeometry(0.032,0.038,0.10,6),stonM);
+        paw.position.set(kx+px,0.10,KZ+0.075); _threeScene.add(paw);
+      });
+      // Forehead curl decoration (cute bump)
+      const curl=new THREE.Mesh(new THREE.SphereGeometry(0.030,6,5),stDkM);
+      curl.position.set(kx,0.685,KZ+0.062); _threeScene.add(curl);
+    });
+  }
+
   // v55: Path pendant lanterns — small warm lanterns at eye height along corridor
   { const plCordM=new THREE.MeshLambertMaterial({color:0x3A2010});
     const plCapM =new THREE.MeshLambertMaterial({color:0x1A0808});
