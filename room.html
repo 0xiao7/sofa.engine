@@ -2261,10 +2261,10 @@ function initThreeScene(canvas) {
     const isSunset=hour>=17&&hour<20;
     if(isDay){
       if(!isSunset){
-        // Bright daytime sky gradient
-        const skyGrad=ctx.createLinearGradient(0,0,0,H*0.45);
-        skyGrad.addColorStop(0,'#5AACDC'); skyGrad.addColorStop(1,'#A8D8F0');
-        ctx.fillStyle=skyGrad; ctx.fillRect(0,0,W,H*0.5);
+        // Spring daytime sky — cerulean top fading to cherry-blossom rose at horizon
+        const skyGrad=ctx.createLinearGradient(0,0,0,H*0.52);
+        skyGrad.addColorStop(0,'#4AAAD4'); skyGrad.addColorStop(0.55,'#8EC8EE'); skyGrad.addColorStop(1,'#EED0E8');
+        ctx.fillStyle=skyGrad; ctx.fillRect(0,0,W,H*0.56);
       } else {
         // Sunset sky — deep violet top, coral middle, amber bottom
         const skyGrad=ctx.createLinearGradient(0,0,0,H*0.55);
@@ -2316,6 +2316,44 @@ function initThreeScene(canvas) {
         grassGrad.addColorStop(0,'#48A838'); grassGrad.addColorStop(0.5,'#5EC245'); grassGrad.addColorStop(1,'#78D85A');
       }
       ctx.fillStyle=grassGrad; ctx.fillRect(0,H*.80,W,H*.20);
+      // Cherry blossom trees — spring garden beyond the window
+      if(!isSunset){
+        [[W*.06,H*.79],[W*.19,H*.77],[W*.33,H*.80],[W*.50,H*.76],[W*.64,H*.78],[W*.80,H*.77],[W*.92,H*.80]].forEach(([tx,ty],ti)=>{
+          const sc=0.55+Math.abs(Math.sin(ti*1.7))*0.30;
+          // Trunk
+          ctx.fillStyle='#4A2808';
+          ctx.fillRect(tx-5*sc, ty-50*sc, 10*sc, 56*sc);
+          // Branches
+          ctx.strokeStyle='#4A2808'; ctx.lineWidth=4*sc;
+          ctx.beginPath(); ctx.moveTo(tx,ty-28*sc); ctx.lineTo(tx-22*sc,ty-60*sc); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(tx,ty-32*sc); ctx.lineTo(tx+19*sc,ty-64*sc); ctx.stroke();
+          // Blossom clouds
+          const bloomC=['rgba(255,168,192,0.72)','rgba(255,138,175,0.58)','rgba(255,200,220,0.62)','rgba(240,120,165,0.45)'];
+          [{dx:0,dy:-75,rx:38,ry:28},{dx:-22,dy:-60,rx:28,ry:22},{dx:22,dy:-62,rx:30,ry:23},
+           {dx:8,dy:-92,rx:26,ry:20},{dx:-12,dy:-88,rx:24,ry:18},{dx:-28,dy:-48,rx:20,ry:16},{dx:28,dy:-50,rx:22,ry:17}
+          ].forEach(({dx,dy,rx,ry},bi)=>{
+            ctx.fillStyle=bloomC[bi%bloomC.length];
+            ctx.beginPath(); ctx.ellipse(tx+dx*sc,ty+dy*sc,rx*sc,ry*sc,0,0,Math.PI*2); ctx.fill();
+          });
+          // Fallen petals at base
+          for(let p=0;p<5;p++){
+            ctx.fillStyle='rgba(255,180,210,0.50)';
+            ctx.beginPath(); ctx.arc(tx+(p-2)*7*sc, ty+2*sc, 2.5*sc, 0, Math.PI*2); ctx.fill();
+          }
+        });
+      } else {
+        // Sunset: dark silhouettes with amber edge glow
+        [[W*.08,H*.79],[W*.22,H*.77],[W*.42,H*.80],[W*.58,H*.76],[W*.72,H*.78],[W*.88,H*.79]].forEach(([tx,ty],ti)=>{
+          const sc=0.50+Math.abs(Math.sin(ti*1.9))*0.28;
+          ctx.fillStyle='#1A0808'; ctx.fillRect(tx-5*sc, ty-50*sc, 10*sc, 56*sc);
+          [{dx:0,dy:-72,rx:36,ry:26},{dx:-20,dy:-58,rx:26,ry:20},{dx:20,dy:-60,rx:28,ry:21},{dx:6,dy:-88,rx:24,ry:18}].forEach(({dx,dy,rx,ry})=>{
+            ctx.fillStyle='rgba(40,10,15,0.80)';
+            ctx.beginPath(); ctx.ellipse(tx+dx*sc,ty+dy*sc,rx*sc,ry*sc,0,0,Math.PI*2); ctx.fill();
+            ctx.fillStyle='rgba(255,140,60,0.15)';
+            ctx.beginPath(); ctx.ellipse(tx+dx*sc,ty+dy*sc,rx*sc*1.25,ry*sc*1.25,0,0,Math.PI*2); ctx.fill();
+          });
+        });
+      }
     } else {
       // Nighttime
       const mColors=['#1A2E40','#0E1E2E','#081218','#040A0C'];
