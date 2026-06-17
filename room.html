@@ -1993,7 +1993,7 @@ function initThreeScene(canvas) {
     const wm = new THREE.MeshBasicMaterial({ color:0x5BAFD6, transparent:true, opacity:0.22 });
     const ww = new THREE.Mesh(new THREE.PlaneGeometry(2.8,3.2), wm);
     ww.position.set(x,y,z); _threeScene.add(ww);
-    const frame = new THREE.Mesh(box(2.9,3.3,0.08), mLambert(0xE8E2D5));
+    const frame = new THREE.Mesh(box(2.9,3.3,0.08), mToon(0xE8E2D5));
     frame.position.set(x,y,z-0.1); _threeScene.add(frame);
   });
 
@@ -2006,28 +2006,30 @@ function initThreeScene(canvas) {
 
   // Bookshelves
   const shelfMat = tMat('shelf',_shelfTex);
-  // Muted natural library book colors to match blonde-oak reference
-  const bookColors = [0x8B6350,0x6070A0,0x6B8E60,0xB07040,0x5C7890,0x9A7850,0x8B8060,0x7A6070];
+  // Vivid game-palette book colors
+  const bookColors = [0xE05A3A,0x4A7FCC,0x4DAA6A,0xE8A030,0x5599CC,0xCC6644,0x9966BB,0x44A88A];
+  const _shelfGeo = box(2.2,4.5,0.55);
   [-6,-3,0,3,6].forEach(x => {
-    const shelf = new THREE.Mesh(box(2.2,4.5,0.55), shelfMat);
+    const shelf = new THREE.Mesh(_shelfGeo, shelfMat);
     shelf.position.set(x, 2.25, -7.72); _threeScene.add(shelf);
-    shelf shelf
+    // Ink outline on bookshelf
+    const shOl = _ol(_shelfGeo, 1.02); shOl.position.copy(shelf.position); _threeScene.add(shOl);
     shelf.userData.isBookshelf = true;
     // Natural blonde-oak shelf planks
     [1,2,3].forEach(row => {
-      const plank = new THREE.Mesh(box(2.0,0.07,0.48), mLambert(0xC4A870));
+      const plank = new THREE.Mesh(box(2.0,0.07,0.48), mToon(0xC4A870));
       plank.position.set(x, row*1.2, -7.70); _threeScene.add(plank);
       plank.userData.isBookshelf = true;
     });
     // Books — two rows per shelf
     for (let b=0; b<6; b++) {
-      const bk = new THREE.Mesh(box(0.22,0.9,0.38), mLambert(bookColors[b%bookColors.length]));
+      const bk = new THREE.Mesh(box(0.22,0.9,0.38), mToon(bookColors[b%bookColors.length]));
       bk.position.set(x - 0.52 + b*0.21, 1.65+Math.random()*0.05, -7.70);
       bk.userData.isBookshelf = true;
       _threeScene.add(bk);
     }
     for (let b=0; b<6; b++) {
-      const bk = new THREE.Mesh(box(0.22,0.9,0.38), mLambert(bookColors[(b+4)%bookColors.length]));
+      const bk = new THREE.Mesh(box(0.22,0.9,0.38), mToon(bookColors[(b+4)%bookColors.length]));
       bk.position.set(x - 0.52 + b*0.21, 2.85+Math.random()*0.05, -7.70);
       bk.userData.isBookshelf = true;
       _threeScene.add(bk);
@@ -2119,13 +2121,12 @@ function initThreeScene(canvas) {
   [-6,-2,2,6].forEach(z => {
     const shelf = new THREE.Mesh(box(0.55,4.0,2.0), shelfMat);
     shelf.position.set(-10.72, 2, z); _threeScene.add(shelf);
-    shelf shelf
     for (let b=0; b<5; b++) {
-      const bk = new THREE.Mesh(box(0.4,0.85,0.32), mLambert(bookColors[b%bookColors.length]));
+      const bk = new THREE.Mesh(box(0.4,0.85,0.32), mToon(bookColors[b%bookColors.length]));
       bk.position.set(-10.48, 1.6+Math.random()*0.1, z-0.8+b*0.38); _threeScene.add(bk);
     }
     for (let b=0; b<5; b++) {
-      const bk = new THREE.Mesh(box(0.4,0.85,0.32), mLambert(bookColors[(b+4)%bookColors.length]));
+      const bk = new THREE.Mesh(box(0.4,0.85,0.32), mToon(bookColors[(b+4)%bookColors.length]));
       bk.position.set(-10.48, 2.8+Math.random()*0.1, z-0.8+b*0.38); _threeScene.add(bk);
     }
   });
@@ -2133,19 +2134,18 @@ function initThreeScene(canvas) {
   [-6,-2,2,6].forEach(z => {
     const shelf = new THREE.Mesh(box(0.55,4.0,2.0), shelfMat);
     shelf.position.set(10.72, 2, z); _threeScene.add(shelf);
-    shelf shelf
     for (let b=0; b<5; b++) {
-      const bk = new THREE.Mesh(box(0.4,0.85,0.32), mLambert(bookColors[(b+2)%bookColors.length]));
+      const bk = new THREE.Mesh(box(0.4,0.85,0.32), mToon(bookColors[(b+2)%bookColors.length]));
       bk.position.set(10.48, 1.6+Math.random()*0.1, z-0.8+b*0.38); _threeScene.add(bk);
     }
     for (let b=0; b<5; b++) {
-      const bk = new THREE.Mesh(box(0.4,0.85,0.32), mLambert(bookColors[(b+1)%bookColors.length]));
+      const bk = new THREE.Mesh(box(0.4,0.85,0.32), mToon(bookColors[(b+1)%bookColors.length]));
       bk.position.set(10.48, 2.8+Math.random()*0.1, z-0.8+b*0.38); _threeScene.add(bk);
     }
   });
 
   // Rolling ladder on right wall
-  const ladderMat = mLambert(0x3A2010);
+  const ladderMat = mToon(0x3A2010);
   // Vertical rails
   [-0.18,0.18].forEach(ox=>{
     const rail=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,4.5,6),ladderMat);
@@ -2205,15 +2205,16 @@ function initThreeScene(canvas) {
   trunk.position.set(TX,1.4,TZ); _threeScene.add(trunk);
   trunk
   trunk.userData.isTree = true;
-  const rug = new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.2,0.04,32), mLambert(0x4A6848));
+  const rug = new THREE.Mesh(new THREE.CylinderGeometry(1.2,1.2,0.04,32), mToon(0x4A6848));
   rug.position.set(TX,0.02,TZ); _threeScene.add(rug);
-  const rugInner = new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.8,0.05,32), mLambert(0x38523A));
+  const rugInner = new THREE.Mesh(new THREE.CylinderGeometry(0.8,0.8,0.05,32), mToon(0x38523A));
   rugInner.position.set(TX,0.03,TZ); _threeScene.add(rugInner);
   // Foliage — smaller radii (was 1.4 at center, now 0.8 in corner)
   [[0,3.8,0,0.80],[0.3,5.0,0.2,0.55],[-0.2,4.3,0.1,0.45],[0,5.9,0,0.30]].forEach(([dx,y,dz,r],fi) => {
-    const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(r,0), new THREE.MeshLambertMaterial({map:_leafTex(), flatShading:true}));
+    const leafGeo = new THREE.IcosahedronGeometry(r,0);
+    const leaf = new THREE.Mesh(leafGeo, mToon([0x4DB86A,0x3DAA58,0x5CC870,0x2E9448][fi]));
     leaf.position.set(TX+dx,y,TZ+dz); _threeScene.add(leaf);
-    leaf
+    const lOl = _ol(leafGeo,1.08); lOl.position.copy(leaf.position); _threeScene.add(lOl);
     leaf.userData.isTree = true;
     _foliageMeshes.push({ mesh: leaf, ox:TX+dx, oy:y, oz:TZ+dz, phase: fi*0.9, amp:0.06+fi*0.01 });
   });
@@ -2493,7 +2494,7 @@ function initThreeScene(canvas) {
   // Desks — all 48 positions from _DESK_POS_3D
   const deskMat = mToon(0xCC9540);    // saturated honey oak
   const monMat  = mToon(0x7A8494);    // slate monitor body
-  const scrMat  = new THREE.MeshBasicMaterial({ color: 0x0D1520 });
+  const scrMat  = new THREE.MeshBasicMaterial({ color: 0x1A3A5C });  // blue glow
   const _deskGeo = box(1.6,0.08,0.9);
   _DESK_POS_3D.forEach(([x,z], dIdx) => {
     const desk = new THREE.Mesh(_deskGeo, deskMat);
@@ -2520,21 +2521,21 @@ function initThreeScene(canvas) {
     const stand = new THREE.Mesh(box(0.06,0.2,0.06), monMat);
     stand.position.set(x,0.9,z-0.28); _threeScene.add(stand);
     // Desk lamp 3D body
-    const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,0.05,8), mLambert(0xD8D0C4));
+    const lampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.1,0.05,8), mToon(0xD8D0C4));
     lampBase.position.set(x+0.5, 0.83, z+0.1); _threeScene.add(lampBase);
-    const lampArm = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.5,6), mLambert(0xD8D0C4));
+    const lampArm = new THREE.Mesh(new THREE.CylinderGeometry(0.02,0.02,0.5,6), mToon(0xD8D0C4));
     lampArm.position.set(x+0.5, 1.08, z+0.1); _threeScene.add(lampArm);
-    const lampHead = new THREE.Mesh(new THREE.ConeGeometry(0.12,0.12,8), mLambert(0xF0EBE0));
+    const lampHead = new THREE.Mesh(new THREE.ConeGeometry(0.12,0.12,8), mToon(0xF0EBE0));
     lampHead.position.set(x+0.5, 1.35, z+0.1); lampHead.rotation.z = Math.PI; _threeScene.add(lampHead);
     // Desk prop (cycles by desk index)
     const propType = dIdx % 4;
     if(propType === 0) {
       // Coffee cup — mug body + handle ring
-      const mugMat = mLambert(0xF5F0EA);
+      const mugMat = mToon(0xF5F0EA);
       const mug = new THREE.Mesh(new THREE.CylinderGeometry(0.055,0.06,0.11,10), mugMat);
       mug.position.set(x-0.35, 0.88, z+0.1); _threeScene.add(mug);
       // Coffee liquid (dark circle on top)
-      const coffee = new THREE.Mesh(new THREE.CylinderGeometry(0.048,0.048,0.01,10), mLambert(0x3B1F0A));
+      const coffee = new THREE.Mesh(new THREE.CylinderGeometry(0.048,0.048,0.01,10), mToon(0x3B1F0A));
       coffee.position.set(x-0.35, 0.945, z+0.1); _threeScene.add(coffee);
       // Handle (flat torus-ish: two small cylinders)
       const h1 = new THREE.Mesh(new THREE.CylinderGeometry(0.01,0.01,0.07,6), mugMat);
@@ -2543,41 +2544,41 @@ function initThreeScene(canvas) {
       // Book stack — 3 flat boxes at slight angles
       const stackColors = [0xE85D5D, 0x5D8AE8, 0x5DE87A];
       stackColors.forEach((c,si) => {
-        const bk = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.04,0.15), mLambert(c));
+        const bk = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.04,0.15), mToon(c));
         bk.position.set(x-0.38, 0.845 + si*0.045, z+0.12);
         bk.rotation.y = (si-1)*0.12;
         _threeScene.add(bk);
       });
     } else if(propType === 2) {
       // Pencil holder + 4 pencils
-      const holder = new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.05,0.09,8), mLambert(0xC4A870));
+      const holder = new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.05,0.09,8), mToon(0xC4A870));
       holder.position.set(x-0.36, 0.875, z+0.1); _threeScene.add(holder);
       [-0.02,-0.01,0.01,0.02].forEach((ox,pi)=>{
-        const pencil = new THREE.Mesh(new THREE.BoxGeometry(0.012,0.14,0.012), mLambert([0xFFD700,0xFF8C00,0x5D8AE8,0xE85D5D][pi]));
+        const pencil = new THREE.Mesh(new THREE.BoxGeometry(0.012,0.14,0.012), mToon([0xFFD700,0xFF8C00,0x5D8AE8,0xE85D5D][pi]));
         pencil.position.set(x-0.36+ox*1.5, 0.96, z+0.1+ox);
         _threeScene.add(pencil);
-        const tip = new THREE.Mesh(new THREE.ConeGeometry(0.008,0.02,4), mLambert(0xF5DEB3));
+        const tip = new THREE.Mesh(new THREE.ConeGeometry(0.008,0.02,4), mToon(0xF5DEB3));
         tip.position.set(x-0.36+ox*1.5, 1.04, z+0.1+ox);
         _threeScene.add(tip);
       });
     } else {
       // Notebook + pen
-      const nb = new THREE.Mesh(new THREE.BoxGeometry(0.28,0.018,0.20), mLambert(0xFAF0E6));
+      const nb = new THREE.Mesh(new THREE.BoxGeometry(0.28,0.018,0.20), mToon(0xFAF0E6));
       nb.position.set(x-0.35, 0.84, z+0.1); _threeScene.add(nb);
-      const lines = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.002,0.14), mLambert(0x5BAFD6));
+      const lines = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.002,0.14), mToon(0x5BAFD6));
       lines.position.set(x-0.35, 0.85, z+0.1); _threeScene.add(lines);
-      const pen = new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.24,6), mLambert(0x3A3040));
+      const pen = new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.24,6), mToon(0x3A3040));
       pen.position.set(x-0.22, 0.842, z+0.22); pen.rotation.z = 0.3; _threeScene.add(pen);
     }
     } // end dIdx < 12 full-detail block
 
     // Chair at every desk — seat + backrest + legs
-    const _cBlue = mToon(0x1E3A5F);
-    const _cWood = mToon(0x6B4429);
+    const _cBlue = mToon(0x2E5FA8);   // vivid royal blue
+    const _cWood = mToon(0x7A4A28);
     const cSeat = new THREE.Mesh(box(0.54,0.06,0.48), _cBlue);
-    cSeat.position.set(x,0.44,z+0.64); cSeat _threeScene.add(cSeat);
+    cSeat.position.set(x,0.44,z+0.64); _threeScene.add(cSeat);
     const cBack = new THREE.Mesh(box(0.50,0.42,0.06), _cBlue);
-    cBack.position.set(x,0.68,z+0.40); cBack _threeScene.add(cBack);
+    cBack.position.set(x,0.68,z+0.40); _threeScene.add(cBack);
     if(!_isMobile||dIdx<6){
       [[-0.22,z+0.41],[0.22,z+0.41],[-0.22,z+0.87],[0.22,z+0.87]].forEach(([lx,lz])=>{
         const cl=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.44,6),_cWood);
@@ -2613,7 +2614,7 @@ function initThreeScene(canvas) {
 
   // Torch wall sconces
   _torchLights.forEach(tl => {
-    const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.4,6), mLambert(0x5C3D1E));
+    const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,0.4,6), mToon(0x5C3D1E));
     stick.position.copy(tl.position).y -= 0.1; _threeScene.add(stick);
     const flame = new THREE.Mesh(new THREE.SphereGeometry(0.09,6,4), new THREE.MeshBasicMaterial({color:0xFFDD00}));
     flame.position.copy(tl.position); _threeScene.add(flame);
@@ -2747,11 +2748,11 @@ function initThreeScene(canvas) {
   };
 
   // Bulletin board (clickable)
-  const boardMesh = new THREE.Mesh(box(2.4,1.6,0.12), mLambert(0x3D2510));
+  const boardMesh = new THREE.Mesh(box(2.4,1.6,0.12), mToon(0x3D2510));
   boardMesh.position.set(0,3,-7.8);
   boardMesh.userData.isBoard = true;
   _threeScene.add(boardMesh);
-  const boardFrame = new THREE.Mesh(box(2.6,1.8,0.08), mLambert(0x6B4520));
+  const boardFrame = new THREE.Mesh(box(2.6,1.8,0.08), mToon(0x6B4520));
   boardFrame.position.set(0,3,-7.85); _threeScene.add(boardFrame);
   // Board label
   const boardPinMesh = new THREE.Mesh(new THREE.SphereGeometry(0.06,6,6), new THREE.MeshBasicMaterial({color:0xFFDD00}));
@@ -3658,42 +3659,42 @@ function _updateThreeAvatars(users) {
     const bottleMat = new THREE.MeshLambertMaterial({ color: 0x40C8A0 });
     const bottle = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.04,0.14,8), bottleMat);
     bottle.position.set(dx+0.55, 0.91, dz-0.1); _di(bottle);
-    const bottleCap = new THREE.Mesh(new THREE.CylinderGeometry(0.036,0.036,0.02,8), mLambert(0x2A8868));
+    const bottleCap = new THREE.Mesh(new THREE.CylinderGeometry(0.036,0.036,0.02,8), mToon(0x2A8868));
     bottleCap.position.set(dx+0.55, 0.985, dz-0.1); _di(bottleCap);
     // 考科文具
     if (subj === '記帳士') {
       // 計算機 (calculator) — dark box with light face
-      const calc = new THREE.Mesh(new THREE.BoxGeometry(0.14,0.02,0.1), mLambert(0x2A2A3A));
+      const calc = new THREE.Mesh(new THREE.BoxGeometry(0.14,0.02,0.1), mToon(0x2A2A3A));
       calc.position.set(dx-0.3, 0.82, dz); _di(calc);
-      const calcFace = new THREE.Mesh(new THREE.BoxGeometry(0.11,0.002,0.07), mLambert(0x4A4A6A));
+      const calcFace = new THREE.Mesh(new THREE.BoxGeometry(0.11,0.002,0.07), mToon(0x4A4A6A));
       calcFace.position.set(dx-0.3, 0.832, dz); _di(calcFace);
     } else if (subj === '地政士') {
       // 地圖捲軸 (map scroll)
-      const scroll = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.012,0.12), mLambert(0xF5E8C8));
+      const scroll = new THREE.Mesh(new THREE.BoxGeometry(0.18,0.012,0.12), mToon(0xF5E8C8));
       scroll.position.set(dx-0.3, 0.822, dz); _di(scroll);
-      const rod1 = new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.14,6), mLambert(0x7A5C2E));
+      const rod1 = new THREE.Mesh(new THREE.CylinderGeometry(0.008,0.008,0.14,6), mToon(0x7A5C2E));
       rod1.rotation.z = Math.PI/2; rod1.position.set(dx-0.3-0.095, 0.828, dz); _di(rod1);
     } else if (subj === '財稅行政') {
       // 稅本 (blue thin book)
-      const taxBook = new THREE.Mesh(new THREE.BoxGeometry(0.16,0.03,0.12), mLambert(0x3A6AE0));
+      const taxBook = new THREE.Mesh(new THREE.BoxGeometry(0.16,0.03,0.12), mToon(0x3A6AE0));
       taxBook.position.set(dx-0.3, 0.835, dz); _di(taxBook);
     } else if (subj === '不動產經紀人') {
       // 鑰匙 (key) — small cylinder + box
-      const keyRing = new THREE.Mesh(new THREE.TorusGeometry(0.025,0.008,6,12), mLambert(0xD4AF37));
+      const keyRing = new THREE.Mesh(new THREE.TorusGeometry(0.025,0.008,6,12), mToon(0xD4AF37));
       keyRing.position.set(dx-0.3, 0.83, dz); keyRing.rotation.x = Math.PI/2; _di(keyRing);
-      const keyShaft = new THREE.Mesh(new THREE.BoxGeometry(0.065,0.009,0.009), mLambert(0xD4AF37));
+      const keyShaft = new THREE.Mesh(new THREE.BoxGeometry(0.065,0.009,0.009), mToon(0xD4AF37));
       keyShaft.position.set(dx-0.262, 0.83, dz); _di(keyShaft);
     } else if (subj === '初等考試') {
       // 鉛筆盒 + 橡皮擦
-      const pBox = new THREE.Mesh(new THREE.BoxGeometry(0.16,0.04,0.06), mLambert(0xF0B44B));
+      const pBox = new THREE.Mesh(new THREE.BoxGeometry(0.16,0.04,0.06), mToon(0xF0B44B));
       pBox.position.set(dx-0.3, 0.84, dz); _di(pBox);
-      const eraser = new THREE.Mesh(new THREE.BoxGeometry(0.055,0.025,0.035), mLambert(0xFFB8C8));
+      const eraser = new THREE.Mesh(new THREE.BoxGeometry(0.055,0.025,0.035), mToon(0xFFB8C8));
       eraser.position.set(dx-0.3+0.11, 0.835, dz+0.06); _di(eraser);
     } else {
       // 書 (generic open book)
-      const bkL = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.015,0.13), mLambert(0xE8C87A));
+      const bkL = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.015,0.13), mToon(0xE8C87A));
       bkL.position.set(dx-0.33, 0.828, dz); bkL.rotation.y = 0.15; _di(bkL);
-      const bkR = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.015,0.13), mLambert(0xF0D890));
+      const bkR = new THREE.Mesh(new THREE.BoxGeometry(0.1,0.015,0.13), mToon(0xF0D890));
       bkR.position.set(dx-0.27, 0.828, dz); bkR.rotation.y = -0.15; _di(bkR);
     }
     // 考科小立牌 (subject card on desk)
@@ -5591,10 +5592,16 @@ async function enterWithSerial(){
     });
     const d = await r.json();
     if(!r.ok || !d.uid){ msg.style.color='#E8846A'; msg.textContent=d.detail||'序號無效，請確認後再試'; return; }
-    localStorage.setItem('sofa_uid',   d.uid);
-    localStorage.setItem('sofa_token', d.token);
+    localStorage.setItem('sofa_uid', d.uid);
+    if(d.token) localStorage.setItem('sofa_token', d.token);
+    isMember = true;
+    memberProfile = { uid: d.uid, name: d.name, plan: d.plan, serial };
+    const _planNick = {'月費':'準榜生','季費':'準榜生','體驗':'試讀生','免費':'讀友','Admin':'帳號擁有者'};
+    const nick = d.name || _planNick[d.plan] || '會員';
+    document.getElementById('inp-name').value = nick;
+    document.getElementById('member-badge').classList.add('on');
     msg.style.color='#7DC987'; msg.textContent='驗證成功，正在進入…';
-    await detectMember();
+    setTimeout(enter, 400);
   }catch(e){ msg.style.color='#E8846A'; msg.textContent='網路錯誤，請稍後再試'; }
 }
 
