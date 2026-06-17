@@ -4350,6 +4350,57 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v44: Kawaii owl mascot — ground level left of tree, faces camera (visible from wide) ──
+  { const owX=TX-1.5, owY=0, owZ=TZ+2.2; // ground level, left of cat, toward camera
+    const owBr=mToon(0xC8906A), owCr=mToon(0xF0E2C8), owYl=mToon(0xF0C020);
+    const owDk=mToon(0x1A1428), owOr=mToon(0xF0901A);
+    const addO2=(geo,x,y,z,s=1.09)=>{
+      const m=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0x2A1408,side:THREE.BackSide}));
+      m.scale.setScalar(s); m.position.set(x,y,z); _threeScene.add(m);
+    };
+    // Body (1.8x vs original — clearly visible from wide shot)
+    const oBGeo=new THREE.CylinderGeometry(0.166,0.194,0.450,8);
+    { const m=new THREE.Mesh(oBGeo,owBr); m.position.set(owX,owY+0.350,owZ); _threeScene.add(m); addO2(oBGeo,owX,owY+0.350,owZ); }
+    // Head
+    const oHGeo=new THREE.SphereGeometry(0.202,9,8);
+    { const m=new THREE.Mesh(oHGeo,owBr); m.position.set(owX,owY+0.690,owZ); _threeScene.add(m); addO2(oHGeo,owX,owY+0.690,owZ); }
+    // Cream face disc — pushed toward camera (+z)
+    { const m=new THREE.Mesh(new THREE.SphereGeometry(0.162,8,7),owCr);
+      m.scale.z=0.28; m.position.set(owX,owY+0.685,owZ+0.160); _threeScene.add(m); }
+    // Eyes (facing camera = toward +z)
+    [-0.072,0.072].forEach(ex=>{
+      const eR=new THREE.Mesh(new THREE.SphereGeometry(0.068,7,7),owYl);
+      eR.scale.z=0.50; eR.position.set(owX+ex,owY+0.700,owZ+0.200); _threeScene.add(eR);
+      const pu=new THREE.Mesh(new THREE.SphereGeometry(0.036,6,6),owDk);
+      pu.scale.z=0.50; pu.position.set(owX+ex,owY+0.700,owZ+0.210); _threeScene.add(pu);
+      const hl=new THREE.Mesh(new THREE.SphereGeometry(0.013,5,5),new THREE.MeshBasicMaterial({color:0xFFFFFF}));
+      hl.position.set(owX+ex-0.020,owY+0.712,owZ+0.218); _threeScene.add(hl);
+    });
+    // Beak — ConeGeometry apex points +Z when rotation.x=+π/2
+    { const bkM=new THREE.Mesh(new THREE.ConeGeometry(0.036,0.075,5),owOr);
+      bkM.rotation.x=Math.PI/2; bkM.position.set(owX,owY+0.670,owZ+0.215); _threeScene.add(bkM); }
+    // Ear tufts
+    [-0.099,0.099].forEach(ex=>{
+      const tG=new THREE.ConeGeometry(0.047,0.148,4);
+      const t=new THREE.Mesh(tG,owBr);
+      t.rotation.z=ex>0?0.28:-0.28; t.position.set(owX+ex,owY+0.900,owZ); _threeScene.add(t);
+      addO2(tG,owX+ex,owY+0.900,owZ,1.10);
+    });
+    // Wings
+    [-1,1].forEach(sx=>{
+      const w=new THREE.Mesh(new THREE.SphereGeometry(0.176,6,5),mToon(0xB07848));
+      w.scale.set(0.38,0.90,0.72); w.position.set(owX+sx*0.234,owY+0.320,owZ-0.020); _threeScene.add(w);
+    });
+    // Tail
+    { const t=new THREE.Mesh(new THREE.SphereGeometry(0.130,6,4),mToon(0xB87040));
+      t.scale.set(0.90,0.40,1.12); t.position.set(owX,owY+0.140,owZ-0.055); _threeScene.add(t); }
+    // Feet
+    [-0.076,0.076].forEach(fx=>{
+      const f=new THREE.Mesh(new THREE.SphereGeometry(0.050,5,4),mToon(0xD08840));
+      f.scale.set(1.55,0.45,1.05); f.position.set(owX+fx,owY+0.055,owZ+0.015); _threeScene.add(f);
+    });
+  }
+
   _buildEntryMedallion();
   // Wave138: Decorative picture frames on side walls
   _buildWallFrames();
