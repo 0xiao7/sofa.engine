@@ -3319,39 +3319,49 @@ function initThreeScene(canvas) {
     const rTopMat   = new THREE.MeshLambertMaterial({ color: 0x5A3A10 });
     const rFacingMat= new THREE.MeshLambertMaterial({ color: 0xD8C8A0 }); // cream facing panel
 
-    // Main counter body — curved front: 5 box segments at slight angles
-    const CX = 0, CZ = 8.8, CW = 3.6, CD = 0.55, CH = 0.90;
+    // Counter offset right of center so the tree stays visible from entrance camera
+    const CX = 2.8, CZ = 8.8, CW = 3.2, CD = 0.52, CH = 0.88;
     const cBody = new THREE.Mesh(new THREE.BoxGeometry(CW, CH, CD), rDeskMat);
     cBody.position.set(CX, CH/2, CZ); _threeScene.add(cBody);
-    // Counter top (slightly wider, overhangs front)
-    const cTop = new THREE.Mesh(new THREE.BoxGeometry(CW+0.12, 0.06, CD+0.18), rTopMat);
-    cTop.position.set(CX, CH+0.03, CZ-0.08); _threeScene.add(cTop);
-    // Facing panel (cream, decorative front)
-    const cFace = new THREE.Mesh(new THREE.BoxGeometry(CW-0.10, CH-0.08, 0.04), rFacingMat);
+    // Counter top
+    const cTop = new THREE.Mesh(new THREE.BoxGeometry(CW+0.10, 0.06, CD+0.16), rTopMat);
+    cTop.position.set(CX, CH+0.03, CZ-0.07); _threeScene.add(cTop);
+    // Nameplate canvas on front facing panel
+    const _npCvs = document.createElement('canvas'); _npCvs.width=512; _npCvs.height=128;
+    const _npCtx = _npCvs.getContext('2d');
+    _npCtx.fillStyle='#D8C8A0'; _npCtx.fillRect(0,0,512,128);
+    _npCtx.strokeStyle='#8B6830'; _npCtx.lineWidth=4; _npCtx.strokeRect(8,8,496,112);
+    _npCtx.strokeStyle='rgba(139,104,48,0.5)'; _npCtx.lineWidth=2; _npCtx.strokeRect(14,14,484,100);
+    _npCtx.fillStyle='#5A3A10'; _npCtx.font='bold 28px serif'; _npCtx.textAlign='center';
+    _npCtx.fillText('SoFa 自習室', 256, 58);
+    _npCtx.fillStyle='#8B6830'; _npCtx.font='13px sans-serif';
+    _npCtx.fillText('讓你考上，是我的使命', 256, 94);
+    const _npTex = new THREE.CanvasTexture(_npCvs);
+    const cFace = new THREE.Mesh(new THREE.BoxGeometry(CW-0.08, CH-0.06, 0.04),
+      new THREE.MeshBasicMaterial({map:_npTex}));
     cFace.position.set(CX, CH/2, CZ - CD/2 - 0.02); _threeScene.add(cFace);
-    // Side wings (short returns)
+    // Side wings
     [-1, 1].forEach(side => {
-      const wing = new THREE.Mesh(new THREE.BoxGeometry(0.55, CH, CD*0.8), rDeskMat);
-      wing.position.set(CX + side*(CW/2 + 0.28), CH/2, CZ + 0.08); _threeScene.add(wing);
-      const wTop = new THREE.Mesh(new THREE.BoxGeometry(0.55, 0.06, CD*0.8+0.10), rTopMat);
-      wTop.position.set(CX + side*(CW/2 + 0.28), CH+0.03, CZ + 0.04); _threeScene.add(wTop);
+      const wing = new THREE.Mesh(new THREE.BoxGeometry(0.48, CH, CD*0.75), rDeskMat);
+      wing.position.set(CX + side*(CW/2 + 0.24), CH/2, CZ + 0.07); _threeScene.add(wing);
+      const wTop = new THREE.Mesh(new THREE.BoxGeometry(0.48, 0.06, CD*0.75+0.10), rTopMat);
+      wTop.position.set(CX + side*(CW/2 + 0.24), CH+0.03, CZ + 0.04); _threeScene.add(wTop);
     });
     // Desk lamp on counter
     const dLampBase = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.08,0.04,8), rTopMat);
-    dLampBase.position.set(CX+1.0, CH+0.02, CZ-0.08); _threeScene.add(dLampBase);
-    const dLampArm = new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.38,6), rTopMat);
-    dLampArm.position.set(CX+1.0, CH+0.21, CZ-0.08); _threeScene.add(dLampArm);
+    dLampBase.position.set(CX+0.9, CH+0.02, CZ-0.07); _threeScene.add(dLampBase);
+    const dLampArm = new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.36,6), rTopMat);
+    dLampArm.position.set(CX+0.9, CH+0.20, CZ-0.07); _threeScene.add(dLampArm);
     const dLampShade = new THREE.Mesh(new THREE.ConeGeometry(0.10,0.10,8), new THREE.MeshLambertMaterial({color:0xF0E8C0}));
-    dLampShade.rotation.z = Math.PI; dLampShade.position.set(CX+1.0, CH+0.42, CZ-0.08); _threeScene.add(dLampShade);
-    // Small warm light under lamp
-    const dLampLight = new THREE.PointLight(0xFFEED8, 0.3, 2.5);
-    dLampLight.position.set(CX+1.0, CH+0.38, CZ-0.08); _threeScene.add(dLampLight);
-    // Small tablet/screen on counter
-    const tablet = new THREE.Mesh(new THREE.BoxGeometry(0.24,0.02,0.18), rTopMat);
-    tablet.position.set(CX-0.8, CH+0.01, CZ-0.06); tablet.rotation.x = -0.35; _threeScene.add(tablet);
-    const tabScrn = new THREE.Mesh(new THREE.PlaneGeometry(0.20,0.14),
+    dLampShade.rotation.z = Math.PI; dLampShade.position.set(CX+0.9, CH+0.40, CZ-0.07); _threeScene.add(dLampShade);
+    const dLampLight = new THREE.PointLight(0xFFEED8, 0.30, 2.5);
+    dLampLight.position.set(CX+0.9, CH+0.36, CZ-0.07); _threeScene.add(dLampLight);
+    // Tablet/screen on counter
+    const tablet = new THREE.Mesh(new THREE.BoxGeometry(0.22,0.02,0.16), rTopMat);
+    tablet.position.set(CX-0.7, CH+0.01, CZ-0.05); tablet.rotation.x = -0.35; _threeScene.add(tablet);
+    const tabScrn = new THREE.Mesh(new THREE.PlaneGeometry(0.18,0.12),
       new THREE.MeshBasicMaterial({color:0x5BAFD6}));
-    tabScrn.position.set(CX-0.8, CH+0.05, CZ-0.02); tabScrn.rotation.x = -Math.PI/2+0.35; _threeScene.add(tabScrn);
+    tabScrn.position.set(CX-0.7, CH+0.05, CZ-0.01); tabScrn.rotation.x = -Math.PI/2+0.35; _threeScene.add(tabScrn);
   }
 
   // ── 光柱效果：全景窗陽光斜射入室內 ─────────────────────────────────────
@@ -5040,25 +5050,31 @@ function _buildFrame(paintTex, w, h, pos, rot) {
 
 function _buildWallFrames() {
   const E = new THREE.Euler();
+  // Frames hang on the INSIDE face of the side walls (x=±12.80) which are
+  // visible above the bookshelf tops (y>7) and between outer wall + shelf edge.
+  // We place them at mid-height (y=3.5) but offset slightly inward from the wall
+  // so they're on the wall surface visible in the corridor.
+  // Actually bookshelves cover the wall — hang frames HIGH at y=5.8 above shelf tops
+  const WX = 12.75; // just inside the wall (wall inner face ≈ 12.85)
 
-  // Frame 1: Left wall (x=-8.9), face right (rot.y = PI/2)
+  // Frame 1: Left wall above bookshelf line, center of room
   _buildFrame(
-    _paintMotivation(), 1.6, 1.2,
-    new THREE.Vector3(-8.88, 3.5, -3),
+    _paintMotivation(), 1.4, 1.0,
+    new THREE.Vector3(-WX, 5.8, -2.0),
     E.set(0, Math.PI / 2, 0)
   );
 
-  // Frame 2: Right wall (x=+8.9), face left (rot.y = -PI/2)
+  // Frame 2: Right wall, slightly staggered z
   _buildFrame(
-    _paintExamArt(), 1.6, 1.2,
-    new THREE.Vector3(8.88, 3.5, -3),
+    _paintExamArt(), 1.4, 1.0,
+    new THREE.Vector3(WX, 5.8, -2.0),
     E.set(0, -Math.PI / 2, 0)
   );
 
-  // Frame 3 移除 — 後牆改全景窗，改掛左牆另一側
+  // Frame 3: Left wall, second frame at a different z
   _buildFrame(
-    _paintAchieve(), 1.4, 1.0,
-    new THREE.Vector3(-8.88, 3.5, 2.5),
+    _paintAchieve(), 1.2, 0.9,
+    new THREE.Vector3(-WX, 5.8, 3.5),
     E.set(0, Math.PI / 2, 0)
   );
 }
