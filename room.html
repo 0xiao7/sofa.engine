@@ -1091,7 +1091,7 @@ let _mixerLastTime = 0;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _DESK_VISUAL_POS_3D = []; // stores {vx,vz,ry} for each desk after scatter
 const _seenUserIds = new Set();
-let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [], _pendantGlows = [];
+let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [], _pendantGlows = [], _canopyAura = null;
 let _snowParticles = [];
 let _waterDroplets = [], _waterTx = null; // Wave132: tree watering
 let _sakuraParticles = [];
@@ -1218,7 +1218,8 @@ function _timeOfDayPalette() {
     return { ambR:1.0, ambG:0.98, ambB:0.92, ambI:2.5, torchMult:0.15, fogDensity:0.001 };
   } else if (hour >= 17 && hour < 21) {
     // Evening: golden hour warmth
-    return { ambR:0.98, ambG:0.88, ambB:0.72, ambI:1.8, torchMult:0.65, fogDensity:0.003 };
+    // Golden hour: warm amber tint, torches glow at moderate level, slight fog
+    return { ambR:1.05, ambG:0.80, ambB:0.55, ambI:1.6, torchMult:0.85, fogDensity:0.003 };
   } else {
     // Night: dim warm — pendant lights dominate
     return { ambR:0.75, ambG:0.65, ambB:0.55, ambI:0.90, torchMult:1.20, fogDensity:0.005 };
@@ -2078,7 +2079,8 @@ function initThreeScene(canvas) {
     } else if(hour>=7&&hour<17){
       s0='#3A8EC8';s1='#6CB8E0';s2='#B0DAFA';sunY=0.14;sunC='#FFFBE0';sunR=65;
     } else if(hour>=17&&hour<20){
-      s0='#1A1840';s1='#C04020';s2='#FFA040';sunY=0.76;sunC='#FFD060';sunR=55;
+      // Rich golden-hour sunset: deep violet sky, coral horizon, warm amber base
+      s0='#2A1658';s1='#D03A18';s2='#FF8820';sunY=0.78;sunC='#FFE060';sunR=60;
     } else {
       s0='#060810';s1='#0C1428';s2='#142040';hasSun=false;
     }
@@ -2147,21 +2149,46 @@ function initThreeScene(canvas) {
     }
     // 山脈四層（從遠到近，層次越來越深）
     const isDay=hour>=6&&hour<20;
+    const isSunset=hour>=17&&hour<20;
     if(isDay){
-      // Bright daytime sky gradient
-      const skyGrad=ctx.createLinearGradient(0,0,0,H*0.45);
-      skyGrad.addColorStop(0,'#5AACDC'); skyGrad.addColorStop(1,'#A8D8F0');
-      ctx.fillStyle=skyGrad; ctx.fillRect(0,0,W,H*0.5);
-      // White fluffy clouds
+      if(!isSunset){
+        // Bright daytime sky gradient
+        const skyGrad=ctx.createLinearGradient(0,0,0,H*0.45);
+        skyGrad.addColorStop(0,'#5AACDC'); skyGrad.addColorStop(1,'#A8D8F0');
+        ctx.fillStyle=skyGrad; ctx.fillRect(0,0,W,H*0.5);
+      } else {
+        // Sunset sky — deep violet top, coral middle, amber bottom
+        const skyGrad=ctx.createLinearGradient(0,0,0,H*0.55);
+        skyGrad.addColorStop(0,'#2A1658'); skyGrad.addColorStop(0.4,'#D03A18');
+        skyGrad.addColorStop(0.7,'#FF7820'); skyGrad.addColorStop(1,'#FFB040');
+        ctx.fillStyle=skyGrad; ctx.fillRect(0,0,W,H*0.6);
+        // Sunset god rays (fan of light from where sun is)
+        for(let r=0;r<8;r++){
+          const ra=(r/8)*Math.PI; // fan across sky
+          ctx.save(); ctx.globalAlpha=0.04+Math.random()*0.03;
+          ctx.fillStyle='#FFD080';
+          ctx.beginPath();
+          const rsx=W*0.72, rsy=H*0.78;
+          ctx.moveTo(rsx,rsy);
+          const a1=ra-0.03, a2=ra+0.03;
+          ctx.lineTo(rsx+Math.cos(a1-Math.PI/2)*W*1.5, rsy+Math.sin(a1-Math.PI/2)*W*1.5);
+          ctx.lineTo(rsx+Math.cos(a2-Math.PI/2)*W*1.5, rsy+Math.sin(a2-Math.PI/2)*W*1.5);
+          ctx.closePath(); ctx.fill(); ctx.restore();
+        }
+      }
+      // White fluffy clouds — tinted orange at sunset
       const drawCloud=(cx,cy,r)=>{
-        ctx.fillStyle='rgba(255,255,255,0.88)';
+        const cc = isSunset ? 'rgba(255,190,120,0.75)' : 'rgba(255,255,255,0.88)';
+        ctx.fillStyle=cc;
         [[0,0,r],[r*.6,r*.1,r*.7],[r*1.1,0,r*.75],[-r*.5,r*.1,r*.6]].forEach(([dx,dy,cr])=>{
           ctx.beginPath(); ctx.arc(cx+dx,cy+dy,cr,0,Math.PI*2); ctx.fill();
         });
       };
       drawCloud(W*.15,H*.10,28); drawCloud(W*.45,H*.07,22); drawCloud(W*.72,H*.12,32); drawCloud(W*.88,H*.06,18);
-      // Mountain layers — vivid green alpine
-      const mColors=['#A8C8D8','#6A9BAA','#3A7A48','#2A6030'];
+      // Mountain layers — green alpine during day, silhouetted purple at sunset
+      const mColors=isSunset
+        ? ['#6A3870','#4A2050','#2A1030','#180820']
+        : ['#A8C8D8','#6A9BAA','#3A7A48','#2A6030'];
       const mLayers=[
         [[0,.42],[W*.10,.24],[W*.22,.34],[W*.35,.18],[W*.48,.30],[W*.60,.16],[W*.72,.26],[W*.85,.20],[W,.38],[W,1]],
         [[0,.55],[W*.08,.42],[W*.20,.52],[W*.32,.38],[W*.44,.48],[W*.56,.34],[W*.68,.44],[W*.80,.38],[W*.92,.32],[W,1]],
@@ -2172,9 +2199,13 @@ function initThreeScene(canvas) {
         ctx.fillStyle=mColors[li]; ctx.beginPath(); ctx.moveTo(0,H);
         pts.forEach(([x,y])=>ctx.lineTo(x,H*y)); ctx.lineTo(W,H); ctx.closePath(); ctx.fill();
       });
-      // Lush grass
+      // Grass (green during day, dark amber tint at sunset)
       const grassGrad=ctx.createLinearGradient(0,H*.80,0,H);
-      grassGrad.addColorStop(0,'#48A838'); grassGrad.addColorStop(0.5,'#5EC245'); grassGrad.addColorStop(1,'#78D85A');
+      if(isSunset){
+        grassGrad.addColorStop(0,'#3A1820'); grassGrad.addColorStop(1,'#281008');
+      } else {
+        grassGrad.addColorStop(0,'#48A838'); grassGrad.addColorStop(0.5,'#5EC245'); grassGrad.addColorStop(1,'#78D85A');
+      }
       ctx.fillStyle=grassGrad; ctx.fillRect(0,H*.80,W,H*.20);
     } else {
       // Nighttime
@@ -2518,6 +2549,26 @@ function initThreeScene(canvas) {
   const treeGlow = new THREE.PointLight(0xFFEE88, 0.55, 5.0);
   treeGlow.position.set(TX, 3.5, TZ); _threeScene.add(treeGlow);
   _torchLights.push(treeGlow);
+
+  // Magical canopy aura — soft green-gold halo emanating from tree center
+  { const _cgTex = (() => {
+      const cc = document.createElement('canvas'); cc.width = 128; cc.height = 128;
+      const cg = cc.getContext('2d');
+      const gg = cg.createRadialGradient(64,64,0,64,64,60);
+      gg.addColorStop(0,'rgba(180,255,160,0.55)'); gg.addColorStop(0.3,'rgba(140,220,100,0.35)');
+      gg.addColorStop(0.65,'rgba(80,180,60,0.12)'); gg.addColorStop(1,'rgba(40,120,20,0)');
+      cg.fillStyle=gg; cg.fillRect(0,0,128,128);
+      return new THREE.CanvasTexture(cc);
+    })();
+    const _cgSprite = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: _cgTex, transparent:true, depthWrite:false,
+      blending: THREE.AdditiveBlending, opacity: 0.40
+    }));
+    _cgSprite.scale.set(5.5, 5.5, 5.5);
+    _cgSprite.position.set(TX, 5.8, TZ);
+    _threeScene.add(_cgSprite);
+    _canopyAura = _cgSprite;
+  }
 
   // ── 中央水晶吊燈環（atrium chandelier ring above tree） ────────────────
   { const CRY = 8.20, CRR = 1.85; // ring height, ring radius
@@ -4102,12 +4153,21 @@ function _updateThreeAvatars(users) {
     }
     if (!_usedGLB) {
       // ── Cute chibi character sitting at desk (facing camera at entrance) ──
-      const skinTones = [0xF0C8A0, 0xECB88A, 0xF5DEB3, 0xD4956A];
+      // Ghost = blue translucent silhouette with shimmer
+      const isGhost = !!u.isGhost;
+      const skinTones = isGhost ? [0x8AB8D8] : [0xF0C8A0, 0xECB88A, 0xF5DEB3, 0xD4956A];
       const skinHex = skinTones[i % skinTones.length];
       // Hair: varied kawaii palette — dark/light alternating to distinguish users
-      const hairPalette = [0x1A0E04, 0x3A1A8A, 0x8A1A3A, 0x1A6A2A, 0x7A5A1A, 0x1A4A6A, 0x5A1A1A, 0x2A1A5A];
+      const hairPalette = isGhost ? [0x4A90B8] : [0x1A0E04, 0x3A1A8A, 0x8A1A3A, 0x1A6A2A, 0x7A5A1A, 0x1A4A6A, 0x5A1A1A, 0x2A1A5A];
       const hairHex = hairPalette[i % hairPalette.length];
       const _T = (hex) => {
+        if(isGhost){
+          // Semi-transparent blue-grey toon material for ghost
+          return new THREE.MeshLambertMaterial({
+            color: hex, transparent: true, opacity: 0.55,
+            emissive: new THREE.Color(0x1A4A6A), emissiveIntensity: 0.35
+          });
+        }
         const m = new THREE.MeshLambertMaterial({ color: hex });
         if(u.isSelf) { m.emissive = new THREE.Color(0x221100); m.emissiveIntensity = 0.20; }
         return m;
@@ -5230,25 +5290,35 @@ function _buildWallFrames() {
   // Actually bookshelves cover the wall — hang frames HIGH at y=5.8 above shelf tops
   const WX = 12.75; // just inside the wall (wall inner face ≈ 12.85)
 
-  // Frame 1: Left wall above bookshelf line, center of room
+  // Frames hang in the strip between bookshelf tops (y=7.0) and ceiling (~y=9.0)
+  const FY = 8.05; // clearly above 7.0 shelf tops, below 9.0 ceiling
+
+  // Frame 1: Left wall, center-back
   _buildFrame(
-    _paintMotivation(), 1.4, 1.0,
-    new THREE.Vector3(-WX, 5.8, -2.0),
+    _paintMotivation(), 1.5, 1.05,
+    new THREE.Vector3(-WX, FY, -2.5),
     E.set(0, Math.PI / 2, 0)
   );
 
-  // Frame 2: Right wall, slightly staggered z
+  // Frame 2: Right wall, mirrored
   _buildFrame(
-    _paintExamArt(), 1.4, 1.0,
-    new THREE.Vector3(WX, 5.8, -2.0),
+    _paintExamArt(), 1.5, 1.05,
+    new THREE.Vector3(WX, FY, -2.5),
     E.set(0, -Math.PI / 2, 0)
   );
 
-  // Frame 3: Left wall, second frame at a different z
+  // Frame 3: Left wall, staggered toward entrance
   _buildFrame(
     _paintAchieve(), 1.2, 0.9,
-    new THREE.Vector3(-WX, 5.8, 3.5),
+    new THREE.Vector3(-WX, FY, 3.0),
     E.set(0, Math.PI / 2, 0)
+  );
+
+  // Frame 4: Right wall, staggered toward entrance
+  _buildFrame(
+    _paintMotivation(), 1.2, 0.9,
+    new THREE.Vector3(WX, FY, 3.0),
+    E.set(0, -Math.PI / 2, 0)
   );
 }
 
@@ -5863,8 +5933,16 @@ function startThreeAnimation(canvas) {
       const targetI = tod.ambI + moodCycle * 0.12;
       ambLight.intensity += (targetI - ambLight.intensity) * 0.008;
     }
-    if(Math.round(_threeTime*125) % 300 === 0 && _threeScene.fog){
-      _threeScene.fog.density = tod.fogDensity;
+    if(Math.round(_threeTime*125) % 120 === 0 && _threeScene.fog){
+      // Drift fog far plane: closer at night/fog, farther in clear day
+      const targetFar = 28 + (1 - Math.min(tod.ambI/2.5, 1)) * 20;
+      _threeScene.fog.far += (targetFar - _threeScene.fog.far) * 0.1;
+      // Tint fog to match ambient (gives unified atmosphere)
+      _threeScene.fog.color.setRGB(
+        tod.ambR * 0.75 + moodCycle * 0.05,
+        tod.ambG * 0.75 + moodCycle * 0.04,
+        tod.ambB * 0.75 + moodCycle * 0.06
+      );
     }
     // Wave 66: update rain-glass once per ~60s (7500 ticks at 125 units/s)
     if(Math.round(_threeTime*125) % 7500 === 0){ _updateRainGlass(); }
@@ -5989,6 +6067,14 @@ function startThreeAnimation(canvas) {
         const scPulse = scBase * (0.95 + 0.05 * Math.sin(_threeTime * 2.5 + i * 1.1));
         g.scale.set(scPulse, scPulse, scPulse);
       });
+    }
+    // Canopy aura: gentle breathe, brightest at night
+    if(_canopyAura){
+      const nightF = 1.0 - Math.min(tod.ambI / 2.5, 1.0);
+      const auraOp = 0.18 + nightF * 0.32 + 0.06 * Math.sin(_threeTime * 0.8);
+      _canopyAura.material.opacity = auraOp;
+      const auraSc = 5.2 + nightF * 1.5 + 0.3 * Math.sin(_threeTime * 0.5);
+      _canopyAura.scale.set(auraSc, auraSc, auraSc);
     }
     _dustMotes.forEach(dm => {
       dm.position.x += dm.userData.vx + 0.0012*Math.sin(_threeTime*0.3 + dm.userData.phase);
