@@ -2727,6 +2727,24 @@ function initThreeScene(canvas) {
     }
   }
 
+  // Central chandelier warm-glow bloom — large additive sprite under the ring
+  { const cgbC = document.createElement('canvas'); cgbC.width = cgbC.height = 128;
+    const cgbCtx = cgbC.getContext('2d');
+    const cgbG = cgbCtx.createRadialGradient(64,64,0,64,64,60);
+    cgbG.addColorStop(0,'rgba(255,240,160,0.9)'); cgbG.addColorStop(0.4,'rgba(255,210,80,0.4)');
+    cgbG.addColorStop(0.8,'rgba(255,170,30,0.15)'); cgbG.addColorStop(1,'rgba(255,140,0,0)');
+    cgbCtx.fillStyle=cgbG; cgbCtx.fillRect(0,0,128,128);
+    const cgbTex = new THREE.CanvasTexture(cgbC);
+    const cgbSp = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: cgbTex, transparent:true, depthWrite:false,
+      blending: THREE.AdditiveBlending, opacity: 0.40
+    }));
+    cgbSp.scale.set(6.5, 6.5, 6.5);
+    cgbSp.position.set(TX, 7.5, TZ);
+    _threeScene.add(cgbSp);
+    _pendantGlows.push(cgbSp); // pulses with night factor
+  }
+
   // Trunk — lower wide base + upper tapered cylinder for natural look
   const trunkMat = tMat('trunk',_woodTex);
   const trunkBase = new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.52,1.2,10), trunkMat);
@@ -3594,6 +3612,51 @@ function initThreeScene(canvas) {
     _hideDeskTooltip();
     canvas.style.cursor = ''; // Wave 121: reset bookshelf cursor
   });
+
+  // Hanging study banners — vertical fabric panels from ceiling beams, visible from entrance
+  { const bannerTextures = ['法律', '備考', '上岸', '加油'].map((txt, bi) => {
+      const bc = document.createElement('canvas'); bc.width = 80; bc.height = 256;
+      const bctx = bc.getContext('2d');
+      // Fabric base — deep burgundy
+      bctx.fillStyle = bi % 2 === 0 ? '#5A1020' : '#1A3050';
+      bctx.fillRect(0,0,80,256);
+      // Gold border
+      bctx.strokeStyle = '#C8A030'; bctx.lineWidth = 4;
+      bctx.strokeRect(4,4,72,248);
+      // Character text
+      bctx.fillStyle = '#F0D870'; bctx.textAlign = 'center';
+      for(let ci=0; ci<txt.length; ci++){
+        bctx.font = 'bold 36px serif';
+        bctx.fillText(txt[ci], 40, 72 + ci*64);
+      }
+      // Top tassel fringe line
+      bctx.fillStyle = '#C8A030';
+      bctx.fillRect(4, 248, 72, 4);
+      return new THREE.CanvasTexture(bc);
+    });
+    // 4 banners: pairs on each side of the central aisle, hanging from ceiling
+    [[-4.5, 7.5, 0], [4.5, 7.5, 1], [-4.5, 5.0, 2], [4.5, 5.0, 3]].forEach(([bx, bz, ti]) => {
+      const bPanel = new THREE.Mesh(
+        new THREE.PlaneGeometry(0.55, 2.0),
+        new THREE.MeshLambertMaterial({ map: bannerTextures[ti], side: THREE.DoubleSide })
+      );
+      bPanel.position.set(bx, 7.8, bz); // top near ceiling
+      _threeScene.add(bPanel);
+      // Hanging rod across top of banner
+      const bRod = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.018, 0.018, 0.70, 6),
+        new THREE.MeshLambertMaterial({ color: 0xA07830 })
+      );
+      bRod.rotation.z = Math.PI/2;
+      bRod.position.set(bx, 8.85, bz); _threeScene.add(bRod);
+      // String from ceiling to rod
+      const bStr = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.006, 0.006, 0.25, 4),
+        new THREE.MeshLambertMaterial({ color: 0xC8B880 })
+      );
+      bStr.position.set(bx, 9.0 - 0.125, bz); _threeScene.add(bStr);
+    });
+  }
 
   // Desk pendant lamps — 4 columns × 4 rows of hanging brass shades
   { const shadeMat = new THREE.MeshLambertMaterial({ color: 0x2E1E08 }); // dark shade exterior
