@@ -1017,6 +1017,7 @@ let _welcomeMatMesh = null, _welcomeMatTex = null, _matHour = -1; // Wave148: �
 let _threeTime = 0;
 let _flyInDone = false, _flyInStart = 0;
 let _previewOrbit = true, _previewAngle = 2.1;
+let _selfDeskIdx = 0; // local seat choice — not broadcast to others
 // Wave150: 台北即時天氣
 let _weatherCode = 0, _weatherTemp = '--';
 // Wave144: tree growth milestones
@@ -2763,9 +2764,22 @@ function initThreeScene(canvas) {
         _triggerWatering(treePos);
         return;
       }
-      // Wave 129: empty desk click → quick study menu
       if (hit.object.userData.isDesk) {
-        _showDeskMenu(e.clientX, e.clientY);
+        const clickedDeskIdx = hit.object.userData.deskIdx ?? 0;
+        const otherCount = _currentUsers.filter(u => !u.isSelf).length;
+        const isOccupied = clickedDeskIdx >= 1 && clickedDeskIdx <= otherCount;
+        if (isOccupied) {
+          _showDeskMenu(e.clientX, e.clientY); // occupied: study quick-links
+        } else {
+          // Empty desk: move self here (local only)
+          _selfDeskIdx = clickedDeskIdx;
+          _updateThreeAvatars(_currentUsers);
+          const el = document.createElement('div');
+          el.className = 'room-toast';
+          el.textContent = clickedDeskIdx === 0 ? '回到原位 📚' : '換到新位置 📚';
+          const container = document.getElementById('toast-container');
+          if(container){ container.appendChild(el); setTimeout(()=>el.remove(), 2800); }
+        }
         return;
       }
     }
@@ -2802,13 +2816,19 @@ function initThreeScene(canvas) {
     else canvas.style.cursor = foundShelf ? 'pointer' : '';
     for(const h of hits){
       if(h.object.userData.deskIdx !== undefined){
+        const hdi = h.object.userData.deskIdx;
         glow.position.x = h.object.position.x;
         glow.position.z = h.object.position.z;
         glow.visible = true;
         foundDesk = true;
+        // Color: gold for empty (available to sit), blue for occupied
+        const otherCount = _currentUsers.filter(u => !u.isSelf).length;
+        const isAvailable = hdi === 0 || hdi > otherCount;
+        glow.material.color.setHex(isAvailable ? 0x90E060 : 0x5BAFD6);
+        canvas.style.cursor = isAvailable ? 'pointer' : '';
         // Wave 54: show tooltip for occupied desk
-        const hoveredUser = _currentUsers[h.object.userData.deskIdx];
-        if(hoveredUser){
+        const hoveredUser = _currentUsers[hdi];
+        if(hoveredUser && !hoveredUser.isSelf){
           _showDeskTooltip(e.clientX, e.clientY, hoveredUser);
         } else {
           _hideDeskTooltip();
@@ -3355,7 +3375,8 @@ function _updateThreeAvatars(users) {
 
   // Only render up to available desk positions — no overflow stacking
   users.slice(0, _DESK_POS_3D.length).forEach((u, i) => {
-    const pos = _DESK_POS_3D[i];
+    // Self can choose any empty desk locally; others stay at rank position
+    const pos = (u.isSelf && _selfDeskIdx !== i) ? _DESK_POS_3D[_selfDeskIdx] : _DESK_POS_3D[i];
 
     // Wave 44: spawn golden arrival burst for newly-joined users
     if(_newArrivals.has(i)){
@@ -5422,6 +5443,7 @@ function enter(){
   myKey = `user_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
   document.getElementById('entry').style.display = 'none';
   document.body.classList.remove('entry-phase');
+  _selfDeskIdx = 0; // reset seat to default on each entry
   resizeThreeCanvas();
   _startRealMode();
   // Wave144: apply tree growth stage immediately on room entry
@@ -5477,9 +5499,7 @@ function renderRoom(){
   // Display: self always first, then top-30 others by weekPts
   const selfReal = real.find(u => u.key === myKey);
   const othersReal = real.filter(u => u.key !== myKey).sort((a,b) => (b.weekPts||0)-(a.weekPts||0)).slice(0,30);
-  const visibleReal = selfReal ? [selfReal, ...othersReal] : othersReal;
-  const ghosts   = getGhosts(visibleReal.length);
-  const users    = [...visibleReal, ...ghosts];
+  const users    = selfReal ? [selfReal, ...othersReal] : othersReal; // empty desks stay empty
 
   // 更新 3D 場景用戶列表
   _currentUsers = users.map((u, i) => ({
