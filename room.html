@@ -1881,47 +1881,42 @@ function initThreeScene(canvas) {
   _threeRenderer.outputColorSpace = THREE.SRGBColorSpace;
 
   _threeScene = new THREE.Scene();
-  _threeScene.background = new THREE.Color(0xC8C0B0);
-  _threeScene.fog = new THREE.FogExp2(0xC8C0B0, 0.022);
+  // 深色背景：室內暗、窗外亮，對比才有美感
+  _threeScene.background = new THREE.Color(0x12100E);
+  _threeScene.fog = new THREE.FogExp2(0x12100E, 0.016);
 
-  _threeCamera = new THREE.PerspectiveCamera(58, canvas.width / canvas.height, 0.1, 80);
-  _threeCamera.position.set(0, 5.5, 13);
-  _threeCamera.lookAt(0, 1.2, -1);
+  // 相機：眼睛高度，正面看向全景窗，景深自然出現
+  _threeCamera = new THREE.PerspectiveCamera(52, canvas.width / canvas.height, 0.1, 80);
+  _threeCamera.position.set(0, 2.2, 10);
+  _threeCamera.lookAt(0, 2.8, -4);
 
   _threeControls = new THREE.OrbitControls(_threeCamera, canvas);
-  _threeControls.target.set(0, 1.2, -1);
+  _threeControls.target.set(0, 2.8, -4);
   _threeControls.enableDamping = true;
   _threeControls.dampingFactor = _isMobile ? 0.12 : 0.06;
   _threeControls.rotateSpeed = _isMobile ? 0.6 : 0.8;
   _threeControls.minDistance = 3;
-  _threeControls.maxDistance = 22;
-  _threeControls.minPolarAngle = 0.05;
-  _threeControls.maxPolarAngle = Math.PI * 0.68;
+  _threeControls.maxDistance = 20;
+  _threeControls.minPolarAngle = 0.3;
+  _threeControls.maxPolarAngle = Math.PI * 0.58;
   _threeControls.enablePan = false;
   _threeControls.enabled = false;
   _threeControls.addEventListener('change', () => { _wasDrag = true; });
 
-  // Lights — toon game style: strong directional + hemisphere, few point lights
-  // Lambert 用均衡燈光：ambient 高一點避免暗面太黑
-  _threeScene.add(new THREE.AmbientLight(0xFFF8F0, 1.8));
-  const hemi = new THREE.HemisphereLight(0xFFF0E0, 0x606880, 0.7);
-  _threeScene.add(hemi);
-  const keyLight = new THREE.DirectionalLight(0xFFFAF0, 1.2);
-  keyLight.position.set(3, 8, 5);
-  _threeScene.add(keyLight);
-  const fillLight = new THREE.DirectionalLight(0xE0EAF8, 0.5);
-  fillLight.position.set(-5, 6, -3);
-  _threeScene.add(fillLight);
+  // ── 燈光：「室外明、室內暗」的對比美學 ──────────────────────────────────
+  // 極低環境光：房間底色是暗的
+  _threeScene.add(new THREE.AmbientLight(0x2A2420, 0.5));
 
-  // Window fill lights (柔和，不造成彩色條紋)
-  if (!_isMobile) [[-6,4,-6],[6,4,-6]].forEach(([x,y,z])=>{
-    const wl = new THREE.PointLight(0xE8F0FF, 0.5, 14);
-    wl.position.set(x,y,z); _threeScene.add(wl);
-  });
+  // 窗光主燈：從後方（窗外）斜打進室內，藍白冷光
+  const windowLight = new THREE.DirectionalLight(0xC8DEFF, 2.8);
+  windowLight.position.set(0, 8, -14);
+  windowLight.target.position.set(0, 0, 4);
+  _threeScene.add(windowLight); _threeScene.add(windowLight.target);
 
-  // Ceiling downlights
-  (_isMobile ? [[0,7,-1]] : [[-4.5,7,-4],[4.5,7,-4],[0,7,2]]).forEach(([x,y,z]) => {
-    const tl = new THREE.PointLight(0xFFFBF5, _isMobile ? 2.0 : 1.0, _isMobile ? 18 : 10);
+  // 室內吊燈：暖琥珀光，只照桌面周圍
+  const pendantPositions = _isMobile ? [[0,6.5,-1]] : [[-4,6.5,-4],[4,6.5,-4],[0,6.5,1]];
+  pendantPositions.forEach(([x,y,z]) => {
+    const tl = new THREE.PointLight(0xFFB050, 1.8, 7);
     tl.position.set(x,y,z); _threeScene.add(tl); _torchLights.push(tl);
   });
 
@@ -2017,12 +2012,12 @@ function initThreeScene(canvas) {
     return t;
   })();
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(22,20),
-    new THREE.MeshLambertMaterial({ map: floorTex, color: 0xFFFFFF }));
+    new THREE.MeshLambertMaterial({ map: floorTex, color: 0xC8A070 }));
   floor.rotation.x = -Math.PI/2;
   _threeScene.add(floor);
 
-  // Walls
-  const wallMat = mToon(0xF2EDE0);
+  // Walls — 深暖灰，室內深色感
+  const wallMat = mToon(0x8A7A6A);
   // 後牆：下半段實牆 + 上半段全景玻璃
   const bWallLower = new THREE.Mesh(box(22,3.6,0.3), wallMat);
   bWallLower.position.set(0, 1.8, -8); _threeScene.add(bWallLower);
@@ -2036,52 +2031,64 @@ function initThreeScene(canvas) {
     const c = document.createElement('canvas'); c.width = W; c.height = H;
     const ctx = c.getContext('2d');
     const hour = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
-    // 時段顏色
-    let s0,s1,s2,hasSun=true,sunY=0.3,sunC='#FFF5CC';
-    if(hour>=5&&hour<7){s0='#1a3a5a';s1='#e8954a';s2='#f5c87a';sunY=0.78;sunC='#FFB84A';}
-    else if(hour>=7&&hour<17){s0='#5BAFD6';s1='#8ECAE6';s2='#C8E8F5';sunY=0.18;sunC='#FFFACC';}
-    else if(hour>=17&&hour<19){s0='#1a2a4a';s1='#e85a22';s2='#f5a844';sunY=0.72;sunC='#FFB84A';}
-    else if(hour>=19&&hour<21){s0='#0d1a2e';s1='#4a2a5a';s2='#8a4a5a';hasSun=false;}
-    else{s0='#080e1a';s1='#0f1a2e';s2='#1a2640';hasSun=false;}
-    const g=ctx.createLinearGradient(0,0,0,H);
-    g.addColorStop(0,s0);g.addColorStop(0.5,s1);g.addColorStop(1,s2);
-    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
-    // 太陽/光球
-    if(hasSun){
-      const sx=W*0.78,sy=H*sunY;
-      const sg=ctx.createRadialGradient(sx,sy,2,sx,sy,45);
-      sg.addColorStop(0,sunC);sg.addColorStop(0.5,sunC+'88');sg.addColorStop(1,'rgba(0,0,0,0)');
-      ctx.fillStyle=sg;ctx.beginPath();ctx.arc(sx,sy,45,0,Math.PI*2);ctx.fill();
+    // 時段顏色 — 窗外要「亮」，室內才有對比美感
+    let s0,s1,s2,hasSun=true,sunY=0.22,sunC='#FFFBE0',sunR=60;
+    if(hour>=5&&hour<7){
+      s0='#FF9060';s1='#FFB870';s2='#FFE0A0';sunY=0.82;sunC='#FFCC60';sunR=50;
+    } else if(hour>=7&&hour<17){
+      s0='#3A8EC8';s1='#6CB8E0';s2='#B0DAFA';sunY=0.14;sunC='#FFFBE0';sunR=65;
+    } else if(hour>=17&&hour<20){
+      s0='#1A1840';s1='#C04020';s2='#FFA040';sunY=0.76;sunC='#FFD060';sunR=55;
+    } else {
+      s0='#060810';s1='#0C1428';s2='#142040';hasSun=false;
     }
-    // 雲（白天）
-    if(hour>=6&&hour<19){
-      [[W*.08,H*.12,130,38],[W*.3,H*.07,180,48],[W*.57,H*.16,150,42],[W*.80,H*.10,110,32]].forEach(([cx,cy,cw,ch])=>{
-        ctx.fillStyle='rgba(255,255,255,0.38)';
-        ctx.beginPath();ctx.ellipse(cx,cy,cw,ch,0,0,Math.PI*2);ctx.fill();
-        ctx.fillStyle='rgba(255,255,255,0.20)';
-        ctx.beginPath();ctx.ellipse(cx-cw*.3,cy+ch*.3,cw*.7,ch*.6,0,0,Math.PI*2);ctx.fill();
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,s0);g.addColorStop(0.55,s1);g.addColorStop(1,s2);
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    // 太陽 / 月亮
+    if(hasSun){
+      const sx=W*0.72,sy=H*sunY;
+      const sg=ctx.createRadialGradient(sx,sy,0,sx,sy,sunR);
+      sg.addColorStop(0,sunC);sg.addColorStop(0.4,sunC+'CC');sg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=sg;ctx.beginPath();ctx.arc(sx,sy,sunR,0,Math.PI*2);ctx.fill();
+      // 光暈
+      const hg=ctx.createRadialGradient(sx,sy,sunR,sx,sy,sunR*3.5);
+      hg.addColorStop(0,sunC+'44');hg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=hg;ctx.beginPath();ctx.arc(sx,sy,sunR*3.5,0,Math.PI*2);ctx.fill();
+    }
+    // 雲（白天）— 白色厚實感
+    if(hour>=6&&hour<18){
+      [[W*.07,H*.10,160,52],[W*.28,H*.06,220,60],[W*.55,H*.14,185,55],[W*.78,H*.09,140,44]].forEach(([cx,cy,cw,ch])=>{
+        ctx.fillStyle='rgba(255,255,255,0.55)';ctx.beginPath();ctx.ellipse(cx,cy,cw,ch,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='rgba(255,255,255,0.30)';ctx.beginPath();ctx.ellipse(cx+cw*.3,cy+ch*.5,cw*.75,ch*.65,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='rgba(255,255,255,0.20)';ctx.beginPath();ctx.ellipse(cx-cw*.4,cy+ch*.4,cw*.6,ch*.5,0,0,Math.PI*2);ctx.fill();
       });
     }
     // 星（夜晚）
-    if(hour>=20||hour<5){
-      const sr=_rng?_rng(99):Math.random;
-      for(let i=0;i<160;i++){
-        const sx=(sr?sr():Math.random())*W,sy=(sr?sr():Math.random())*H*.65;
-        ctx.fillStyle=`rgba(255,255,255,${.3+Math.random()*.7})`;
-        ctx.beginPath();ctx.arc(sx,sy,.5+Math.random()*1.5,0,Math.PI*2);ctx.fill();
+    if(hour>=21||hour<5){
+      for(let i=0;i<200;i++){
+        const sx=Math.random()*W,sy=Math.random()*H*.6;
+        const br=Math.random();
+        ctx.fillStyle=`rgba(255,255,255,${.4+br*.6})`;
+        ctx.beginPath();ctx.arc(sx,sy,.4+br*1.8,0,Math.PI*2);ctx.fill();
       }
     }
-    // 遠山（三層：淡→中→深）
-    const isDay=hour>=6&&hour<19;
-    const m1=isDay?'#8BAFC8':'#182840';
-    const m2=isDay?'#5A7A90':'#0f1e30';
-    const m3=isDay?'#2A4A3A':'#080f18';
-    [[m1,[[0,.56],[W*.12,.36],[W*.24,.46],[W*.38,.30],[W*.52,.40],[W*.66,.26],[W*.78,.43],[W*.90,.33],[W,1]]],
-     [m2,[[0,.66],[W*.09,.50],[W*.22,.60],[W*.33,.46],[W*.45,.56],[W*.58,.42],[W*.70,.53],[W*.82,.48],[W*.93,.40],[W,1]]],
-     [m3,[[0,.78],[W*.14,.70],[W*.28,.76],[W*.42,.68],[W*.56,.73],[W*.70,.66],[W*.84,.72],[W,1]]]].forEach(([col,pts])=>{
-      ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(0,H);
+    // 山脈四層（從遠到近，層次越來越深）
+    const isDay=hour>=6&&hour<20;
+    // 遠山：接近天空色，很淡
+    const mColors=isDay
+      ?['#9EC8E0','#6A9AB8','#3D6A7A','#1A3A2A']
+      :['#1A2E40','#0E1E2E','#081218','#040A0C'];
+    const mLayers=[
+      [[0,.48],[W*.10,.28],[W*.22,.38],[W*.35,.22],[W*.48,.34],[W*.60,.20],[W*.72,.30],[W*.85,.24],[W,.42],[W,1]],
+      [[0,.60],[W*.08,.44],[W*.20,.54],[W*.32,.40],[W*.44,.50],[W*.56,.36],[W*.68,.46],[W*.80,.40],[W*.92,.34],[W,1]],
+      [[0,.72],[W*.12,.60],[W*.25,.68],[W*.38,.56],[W*.50,.64],[W*.62,.52],[W*.74,.60],[W*.86,.56],[W,1]],
+      [[0,.84],[W*.15,.76],[W*.30,.80],[W*.45,.72],[W*.60,.78],[W*.75,.70],[W*.88,.76],[W,1]],
+    ];
+    mLayers.forEach((pts,li)=>{
+      ctx.fillStyle=mColors[li];ctx.beginPath();ctx.moveTo(0,H);
       pts.forEach(([x,y])=>ctx.lineTo(x,H*y));
-      ctx.closePath();ctx.fill();
+      ctx.lineTo(W,H);ctx.closePath();ctx.fill();
     });
     const t=new THREE.CanvasTexture(c);
     return t;
@@ -2164,7 +2171,7 @@ function initThreeScene(canvas) {
   const lWall = new THREE.Mesh(box(0.3,8,20), wallMat);
   lWall.position.set(-9, 4, 0); _threeScene.add(lWall);
   const rWall = lWall.clone(); rWall.position.set(9,4,0); _threeScene.add(rWall);
-  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(22,20), mToon(0xEDE8DF));
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(22,20), mToon(0x2A2218));
   ceil.rotation.x = Math.PI/2; ceil.position.y = 8; _threeScene.add(ceil);
   // Ceiling wooden beams
   const beamMat = mToon(0x8B6A48);
@@ -2190,7 +2197,47 @@ function initThreeScene(canvas) {
     blending: THREE.AdditiveBlending
   });
 
-  // (書架、懸幅、梯子全移除 — 後牆改全景半窗)
+  // 書架：兩側牆，深酒紅書本，統一色系，精品圖書館感
+  const shelfWoodMat = new THREE.MeshLambertMaterial({ color: 0x3A2010 });
+  const bookMat1 = new THREE.MeshLambertMaterial({ color: 0x4A0E0E }); // 深酒紅
+  const bookMat2 = new THREE.MeshLambertMaterial({ color: 0x5C1818 }); // 稍亮酒紅
+  const bookMat3 = new THREE.MeshLambertMaterial({ color: 0x380A0A }); // 暗酒紅
+  const bookMats = [bookMat1, bookMat2, bookMat3];
+  // 左牆書架（x=-8.72，面向房間）
+  [-5,-2,1,4].forEach((z,si) => {
+    // 書架本體
+    const sh = new THREE.Mesh(box(0.45,4.2,2.0), shelfWoodMat);
+    sh.position.set(-8.72, 2.1, z); _threeScene.add(sh);
+    // 隔板（3層）
+    [0.8,1.8,2.8].forEach(ry=>{
+      const pl=new THREE.Mesh(box(0.36,0.06,1.85),shelfWoodMat);
+      pl.position.set(-8.50,ry,z);_threeScene.add(pl);
+    });
+    // 書本（每層7本，統一酒紅）
+    [0.42,1.42,2.42].forEach(ry=>{
+      for(let b=0;b<7;b++){
+        const bk=new THREE.Mesh(box(0.06,0.72+Math.random()*0.18,0.22),bookMats[(si*7+b)%3]);
+        bk.position.set(-8.46,-0.0+ry,z-0.75+b*0.25);
+        _threeScene.add(bk);
+      }
+    });
+  });
+  // 右牆書架（x=8.72）
+  [-5,-2,1,4].forEach((z,si) => {
+    const sh = new THREE.Mesh(box(0.45,4.2,2.0), shelfWoodMat);
+    sh.position.set(8.72, 2.1, z); _threeScene.add(sh);
+    [0.8,1.8,2.8].forEach(ry=>{
+      const pl=new THREE.Mesh(box(0.36,0.06,1.85),shelfWoodMat);
+      pl.position.set(8.50,ry,z);_threeScene.add(pl);
+    });
+    [0.42,1.42,2.42].forEach(ry=>{
+      for(let b=0;b<7;b++){
+        const bk=new THREE.Mesh(box(0.06,0.72+Math.random()*0.18,0.22),bookMats[(si*7+b+2)%3]);
+        bk.position.set(8.46,ry,z-0.75+b*0.25);
+        _threeScene.add(bk);
+      }
+    });
+  });
 
   // Live online-count sign (foreground, near entrance)
   const signCanvas = document.createElement('canvas');
