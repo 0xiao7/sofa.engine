@@ -541,7 +541,7 @@ function pushHistory(law, title){
       _allFillLawNames.push(l.name);  // Wave 110: collect for random pick
     });
   } catch{}
-  // Wave 74: restore saved law preference and auto-load
+  // Wave 74: restore saved law preference and auto-load; default to 記帳士法 for first-time visitors
   const _savedFillLaw = localStorage.getItem('sofa_fill_law');
   if(_savedFillLaw){
     sel.value = _savedFillLaw;
@@ -551,6 +551,9 @@ function pushHistory(law, title){
       _updateFillStatusBar(sel.value);
       loadNew();
     }
+  } else {
+    const _defFillOpt = sel.querySelector('option[value="記帳士法"]');
+    if(_defFillOpt){ sel.value = '記帳士法'; sel.dispatchEvent(new Event('change')); _updateFillStatusBar('記帳士法'); loadNew(); }
   }
 })();
 

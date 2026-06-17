@@ -638,11 +638,14 @@ if(isFree){
     const d = await fetch(`${API}/api/laws`).then(r=>r.json());
     (d.laws||[]).forEach(l=>{ const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o); });
   } catch{}
-  // Wave 80 — restore last selected law
+  // Wave 80 — restore last selected law; default to 記帳士法 for first-time visitors
   const _saved = localStorage.getItem('sofa_practice_law');
   if (_saved && sel.querySelector(`option[value="${CSS.escape(_saved)}"]`)) {
     sel.value = _saved;
     sel.dispatchEvent(new Event('change'));
+  } else {
+    const _defOpt = sel.querySelector('option[value="記帳士法"]');
+    if (_defOpt) { sel.value = '記帳士法'; sel.dispatchEvent(new Event('change')); }
   }
   _updatePracticeStatusBar(sel.value);
 })();
