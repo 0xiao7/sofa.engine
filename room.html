@@ -4214,6 +4214,51 @@ function initThreeScene(canvas) {
     });
   }
 
+  // v51: Torii gate — vermilion arch framing the tree, visible from wide shot ───
+  { const tzMat=new THREE.MeshLambertMaterial({color:0xCC2200});
+    const tzOl =new THREE.MeshBasicMaterial({color:0x601000,side:THREE.BackSide});
+    const GZ=6.5; // gate z position (between camera and ikebana)
+    // Two round pillars
+    [-2.10, 2.10].forEach(gx=>{
+      const pil=new THREE.Mesh(new THREE.CylinderGeometry(0.110,0.130,3.80,10),tzMat);
+      pil.position.set(gx,1.90,GZ); _threeScene.add(pil);
+      const pOl=new THREE.Mesh(new THREE.CylinderGeometry(0.118,0.140,3.85,10),tzOl);
+      pOl.position.set(gx,1.90,GZ); _threeScene.add(pOl);
+    });
+    // Upper crossbeam (kasagi) — slightly wider than span + end upticks
+    { const kas=new THREE.Mesh(new THREE.BoxGeometry(5.10,0.18,0.28),tzMat);
+      kas.position.set(0,3.55,GZ); _threeScene.add(kas);
+      const kasOl=new THREE.Mesh(new THREE.BoxGeometry(5.10,0.18,0.28),tzOl);
+      kasOl.scale.set(1.04,1.10,1.10); kasOl.position.set(0,3.55,GZ); _threeScene.add(kasOl);
+      // Uptick ends: small angled pieces curving up
+      [-1,1].forEach(s=>{
+        const up=new THREE.Mesh(new THREE.BoxGeometry(0.50,0.18,0.28),tzMat);
+        up.rotation.z=s*0.28; up.position.set(s*2.68,3.62,GZ); _threeScene.add(up);
+      });
+    }
+    // Lower crossbeam (nuki)
+    { const nuki=new THREE.Mesh(new THREE.BoxGeometry(4.60,0.12,0.20),tzMat);
+      nuki.position.set(0,2.90,GZ); _threeScene.add(nuki);
+      const nOl=new THREE.Mesh(new THREE.BoxGeometry(4.60,0.12,0.20),tzOl);
+      nOl.scale.set(1.04,1.10,1.10); nOl.position.set(0,2.90,GZ); _threeScene.add(nOl);
+    }
+    // Soft amber light inside gate to illuminate path
+    const tLight=new THREE.PointLight(0xFF8820,0.28,7.0);
+    tLight.position.set(0,2.60,GZ); _threeScene.add(tLight);
+    // Tiny shimenawa rope decoration between pillars at nuki height
+    { const rwGeo=new THREE.CylinderGeometry(0.022,0.022,4.25,6);
+      const rwMat=new THREE.MeshLambertMaterial({color:0xE8D8A0});
+      const rw=new THREE.Mesh(rwGeo,rwMat);
+      rw.rotation.z=Math.PI/2; rw.position.set(0,2.72,GZ); _threeScene.add(rw);
+      // Zigzag shide paper strips (white triangles hanging from rope)
+      [[-1.5,0],[0,0],[1.5,0]].forEach(([sx])=>{
+        const shideMat=new THREE.MeshBasicMaterial({color:0xFFFFFF,side:THREE.DoubleSide});
+        const shide=new THREE.Mesh(new THREE.ConeGeometry(0.06,0.22,4),shideMat);
+        shide.position.set(sx,2.53,GZ); _threeScene.add(shide);
+      });
+    }
+  }
+
   // v48: Ikebana flower pedestals — eye-level decoration in path to tree ───────
   { const pedMat = new THREE.MeshLambertMaterial({ color: 0x4A2E0E }); // dark walnut
     const pedTopMat = new THREE.MeshLambertMaterial({ color: 0x3A2008 });
