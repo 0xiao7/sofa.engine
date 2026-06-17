@@ -1926,34 +1926,65 @@ function initThreeScene(canvas) {
   _threeScene.add(topLight); _threeScene.add(topLight.target);
 
   // 室內吊燈：暖琥珀光，只照桌面周圍
-  const pendantPositions = _isMobile ? [[0,6.5,-1]] : [[-4,6.5,-4],[4,6.5,-4],[0,6.5,1]];
-  pendantPositions.forEach(([x,y,z]) => {
-    const tl = new THREE.PointLight(0xFFB050, 0.4, 5);
-    tl.position.set(x,y,z); _threeScene.add(tl); _torchLights.push(tl);
+  // Pendant lights — 3 rows along corridor for depth perception
+  const _pendantRows = _isMobile ? [[0,8.6,2]] :
+    [[-4,8.6,6],[4,8.6,6],[0,8.6,6],
+     [-4,8.6,2],[4,8.6,2],[0,8.6,2],
+     [-4,8.6,-2],[4,8.6,-2],[0,8.6,-2],
+     [-4,8.6,-6],[4,8.6,-6]];
+  const _shadeMat = new THREE.MeshLambertMaterial({ color: 0xE8D090, side: THREE.DoubleSide });
+  const _capMat   = new THREE.MeshLambertMaterial({ color: 0x3A2A10 });
+  // Pendant glow texture (created once, shared)
+  const _pendantGlowTex = (() => {
+    const gc = document.createElement('canvas'); gc.width = 64; gc.height = 64;
+    const gctx = gc.getContext('2d');
+    const gg = gctx.createRadialGradient(32,32,0,32,32,32);
+    gg.addColorStop(0,'rgba(255,220,100,1)'); gg.addColorStop(0.25,'rgba(255,180,50,0.7)');
+    gg.addColorStop(0.6,'rgba(255,140,20,0.3)'); gg.addColorStop(1,'rgba(255,100,0,0)');
+    gctx.fillStyle=gg; gctx.fillRect(0,0,64,64);
+    return new THREE.CanvasTexture(gc);
+  })();
+  _pendantRows.forEach(([lx,cy,lz]) => {
+    // Point light
+    const pl = new THREE.PointLight(0xFFE0A0, 0.45, 7);
+    pl.position.set(lx, cy-1.1, lz); _threeScene.add(pl); _torchLights.push(pl);
+    // Cord
+    const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,1.1,5), _capMat);
+    cord.position.set(lx, cy-0.55, lz); _threeScene.add(cord);
+    // Shade
+    const shade = new THREE.Mesh(new THREE.ConeGeometry(0.32,0.28,10,1,true), _shadeMat);
+    shade.rotation.x = Math.PI;
+    shade.position.set(lx, cy-1.20, lz); _threeScene.add(shade);
+    // Cap
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.05,0.32,0.05,10), _capMat);
+    cap.position.set(lx, cy-1.08, lz); _threeScene.add(cap);
+    // Glowing bulb
+    const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.08,8,6),
+      new THREE.MeshBasicMaterial({color:0xFFFCE0}));
+    bulb.position.set(lx, cy-1.20, lz); _threeScene.add(bulb);
+    // Warm glow halo (additive sprite, visible from far)
+    const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+      map: _pendantGlowTex, transparent: true, depthWrite: false,
+      blending: THREE.AdditiveBlending, opacity: 0.55
+    }));
+    glow.scale.set(2.0, 2.0, 2.0);
+    glow.position.set(lx, cy-1.35, lz);
+    _threeScene.add(glow);
   });
 
-  // Visible ceiling pendant lamp fixtures
-  {
-    const lampPositions = _isMobile ? [[0,7,-1]] : [[-4.5,7,-4],[4.5,7,-4],[0,7,2]];
-    const shadeMat = new THREE.MeshLambertMaterial({ color: 0xE8D090, side: THREE.DoubleSide });
-    const capMat   = new THREE.MeshLambertMaterial({ color: 0x3A2A10 });
-    lampPositions.forEach(([lx,ly,lz]) => {
-      // Cord from ceiling
-      const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.9,5), capMat);
-      cord.position.set(lx, ly-0.45, lz); _threeScene.add(cord);
-      // Shade cone (open downward)
-      const shade = new THREE.Mesh(new THREE.ConeGeometry(0.38, 0.32, 10, 1, true), shadeMat);
-      shade.rotation.x = Math.PI;
-      shade.position.set(lx, ly-1.06, lz); _threeScene.add(shade);
-      // Top cap
-      const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.38,0.06,10), capMat);
-      cap.position.set(lx, ly-0.92, lz); _threeScene.add(cap);
-      // Glowing bulb
-      const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.09,8,6),
-        new THREE.MeshBasicMaterial({color:0xFFF5CC}));
-      bulb.position.set(lx, ly-1.05, lz); _threeScene.add(bulb);
-    });
-  }
+  // Entrance flanking plants (frame the doorway view)
+  [[-5.5,0,10.5],[5.5,0,10.5]].forEach(([px,py,pz]) => {
+    const ePot = new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.25,0.55,12),
+      new THREE.MeshLambertMaterial({color:0xA06030}));
+    ePot.position.set(px,0.28,pz); _threeScene.add(ePot);
+    const eBall = new THREE.Mesh(new THREE.SphereGeometry(0.48,12,10),
+      new THREE.MeshLambertMaterial({color:0x3A8A30,flatShading:true}));
+    eBall.position.set(px,0.88,pz); _threeScene.add(eBall);
+    // Leafy top
+    const eTip = new THREE.Mesh(new THREE.SphereGeometry(0.30,10,8),
+      new THREE.MeshLambertMaterial({color:0x4EAA3A,flatShading:true}));
+    eTip.position.set(px,1.26,pz); _threeScene.add(eTip);
+  });
 
   const mLambert = (hex, flat=false) => new THREE.MeshLambertMaterial({ color: hex, flatShading: flat });
 
@@ -2221,6 +2252,40 @@ function initThreeScene(canvas) {
   const rWall = lWall.clone(); rWall.position.set(13,5,0); _threeScene.add(rWall);
   const fWall = new THREE.Mesh(box(28,10,0.3), wallMat);
   fWall.position.set(0, 5, 14); _threeScene.add(fWall);
+  // Wainscoting: dado rails + crown molding on inside face of side walls
+  const dadoMat = new THREE.MeshLambertMaterial({ color: 0xEED8B2 });
+  const _dadoW = 24; // depth of wall span
+  // Chair rail at y=1.15
+  const dadoL = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.10,_dadoW), dadoMat);
+  dadoL.position.set(-12.84,1.15,0); _threeScene.add(dadoL);
+  const dadoR = dadoL.clone(); dadoR.position.set(12.84,1.15,0); _threeScene.add(dadoR);
+  // Upper panel rail at y=2.60
+  const railL = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.07,_dadoW), dadoMat);
+  railL.position.set(-12.84,2.60,0); _threeScene.add(railL);
+  const railR = railL.clone(); railR.position.set(12.84,2.60,0); _threeScene.add(railR);
+  // Crown molding at ceiling junction
+  const crownL = new THREE.Mesh(new THREE.BoxGeometry(0.10,0.12,_dadoW), dadoMat);
+  crownL.position.set(-12.85,8.86,0); _threeScene.add(crownL);
+  const crownR = crownL.clone(); crownR.position.set(12.85,8.86,0); _threeScene.add(crownR);
+  // Baseboard at floor
+  const baseL = new THREE.Mesh(new THREE.BoxGeometry(0.07,0.14,_dadoW), dadoMat);
+  baseL.position.set(-12.84,0.07,0); _threeScene.add(baseL);
+  const baseR = baseL.clone(); baseR.position.set(12.84,0.07,0); _threeScene.add(baseR);
+  // Decorative entrance pilasters flanking the doorway
+  const pilMat = new THREE.MeshLambertMaterial({ color: 0xD8C8A0 });
+  [[-3.8,3.8]].forEach(() => {
+    [-3.8, 3.8].forEach(px => {
+      const pil = new THREE.Mesh(new THREE.BoxGeometry(0.22,7.8,0.22), pilMat);
+      pil.position.set(px, 3.9, 13.82); _threeScene.add(pil);
+      // Capital (decorative top block)
+      const cap = new THREE.Mesh(new THREE.BoxGeometry(0.38,0.22,0.38), pilMat);
+      cap.position.set(px, 7.9, 13.82); _threeScene.add(cap);
+    });
+  });
+  // Arch lintel over entrance
+  const lintelMat = new THREE.MeshLambertMaterial({ color: 0xD8C8A0 });
+  const lintel = new THREE.Mesh(new THREE.BoxGeometry(8.2,0.22,0.28), lintelMat);
+  lintel.position.set(0, 7.90, 13.83); _threeScene.add(lintel);
   const bWallTop = new THREE.Mesh(box(28,3,0.3), wallMat);
   bWallTop.position.set(0, 9.5, -8.1); _threeScene.add(bWallTop);
   const ceil = new THREE.Mesh(new THREE.PlaneGeometry(28,28), mToon(0xF2EDE0));
@@ -2366,16 +2431,15 @@ function initThreeScene(canvas) {
 
   // Tree — 中央主角大樹，移近入口讓它在眼睛高度視角下顯得巨大
   const TX = 0, TZ = 3.0;
-  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.38,3.2,8), tMat('trunk',_woodTex));
-  trunk.position.set(TX,1.6,TZ); _threeScene.add(trunk);
+  // Trunk — lower wide base + upper tapered cylinder for natural look
+  const trunkMat = tMat('trunk',_woodTex);
+  const trunkBase = new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.52,1.2,10), trunkMat);
+  trunkBase.position.set(TX,0.6,TZ); _threeScene.add(trunkBase);
+  trunkBase.userData.isTree = true;
+  const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.34,2.8,8), trunkMat);
+  trunk.position.set(TX,2.2,TZ); _threeScene.add(trunk);
   trunk.userData.isTree = true;
-  // 圓形地毯：酒紅色 + 金色邊框（與參考一致）
-  const rugOuter = new THREE.Mesh(new THREE.CylinderGeometry(2.8,2.8,0.03,48), mToon(0xC8A030));
-  rugOuter.position.set(TX,0.005,TZ); _threeScene.add(rugOuter);
-  const rug = new THREE.Mesh(new THREE.CylinderGeometry(2.5,2.5,0.04,48), mToon(0x7A0C0C));
-  rug.position.set(TX,0.02,TZ); _threeScene.add(rug);
-  const rugInner = new THREE.Mesh(new THREE.CylinderGeometry(1.4,1.4,0.05,48), mToon(0x560808));
-  rugInner.position.set(TX,0.03,TZ); _threeScene.add(rugInner);
+  // 圓形地毯由 _buildRug() 在 initThreeScene 末段統一建立（Persian canvas texture）
   // 枝葉 — 三層茂盛樹冠，參考影片中央大樹風格
   const foliageColors = [0x2E9A48,0x3DAA58,0x4DB86A,0x5CC870,0x26883C,0x48C060,0x38B050,0x309040];
   [
@@ -3833,14 +3897,14 @@ function _updateThreeAvatars(users) {
       const faceTex = new THREE.CanvasTexture(_fC);
 
       // Head — large chibi sphere with skin material
-      const headGeo = new THREE.SphereGeometry(0.27,14,12);
+      const headGeo = new THREE.SphereGeometry(0.30,14,12);
       const headMesh = new THREE.Mesh(headGeo, _T(skinHex));
       headMesh.position.set(avx, 1.08, avz);
       headMesh.userData.userIndex = i;
       if(u.isSelf){
         const halo = new THREE.Mesh(
-          new THREE.TorusGeometry(0.34,0.026,8,24),
-          new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.65})
+          new THREE.TorusGeometry(0.38,0.028,8,24),
+          new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.70})
         );
         halo.position.set(avx, 1.08, avz);
         halo.rotation.x = Math.PI/2;
@@ -3852,25 +3916,25 @@ function _updateThreeAvatars(users) {
 
       // Face plane — placed in front of head, facing +z (toward entrance/camera)
       const facePlane = new THREE.Mesh(
-        new THREE.PlaneGeometry(0.40,0.40),
+        new THREE.PlaneGeometry(0.46,0.46),
         new THREE.MeshBasicMaterial({
           map:faceTex, transparent:true, depthWrite:false,
           polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2
         })
       );
-      facePlane.position.set(avx, 1.08, avz+0.32);
+      facePlane.position.set(avx, 1.08, avz+0.36);
       _threeScene.add(facePlane); _userAvatarLabels.push(facePlane);
 
       // Hair cap (covers top of head)
-      const hairGeo = new THREE.CylinderGeometry(0.268,0.260,0.11,14);
+      const hairGeo = new THREE.CylinderGeometry(0.298,0.292,0.12,14);
       const hair = new THREE.Mesh(hairGeo, _T(0x1A1410));
-      hair.position.set(avx, 1.31, avz);
+      hair.position.set(avx, 1.34, avz);
       _threeScene.add(hair); _userAvatarLabels.push(hair);
 
       // Anime back hair drape (behind head toward -z = toward desk)
-      const hbGeo = new THREE.CylinderGeometry(0.21,0.14,0.28,10);
+      const hbGeo = new THREE.CylinderGeometry(0.24,0.16,0.30,10);
       const hBack = new THREE.Mesh(hbGeo, _T(0x1A1410));
-      hBack.position.set(avx, 1.12, avz-0.14);
+      hBack.position.set(avx, 1.14, avz-0.16);
       _threeScene.add(hBack); _userAvatarLabels.push(hBack);
     }
 
@@ -3998,7 +4062,7 @@ function _updateThreeAvatars(users) {
     const npTex = new THREE.CanvasTexture(npCanvas);
     const npMat = new THREE.MeshBasicMaterial({ map: npTex, transparent: true, depthWrite: false });
     const npMesh = new THREE.Mesh(new THREE.PlaneGeometry(0.65, 0.16), npMat);
-    npMesh.position.set(avx, 1.70, avz+0.30); // floating above head facing camera
+    npMesh.position.set(avx, 1.76, avz+0.30); // floating above head facing camera
     _threeScene.add(npMesh);
     _namePlates.push(npMesh);
 
@@ -4567,74 +4631,101 @@ function _animCeilingFan() {
 function _rugTex() {
   const c = document.createElement('canvas'); c.width = c.height = 512;
   const ctx = c.getContext('2d');
+  const S = 512, MX = 256, MY = 256;
 
-  // Warm honey/sand base — matches bright library palette
-  ctx.fillStyle = '#C8A870';
-  ctx.fillRect(0, 0, 512, 512);
+  // Clip to circle so corners are invisible on CircleGeometry
+  ctx.beginPath(); ctx.arc(MX,MY,256,0,Math.PI*2); ctx.clip();
 
-  // Outer border
-  ctx.strokeStyle = '#8B6A48';
-  ctx.lineWidth = 18;
-  ctx.strokeRect(20, 20, 472, 472);
+  // Deep crimson Persian base
+  ctx.fillStyle = '#7A1010'; ctx.fillRect(0,0,S,S);
 
-  // Inner border
-  ctx.strokeStyle = '#E4D0A8';
-  ctx.lineWidth = 6;
-  ctx.strokeRect(36, 36, 440, 440);
+  // Outer gold border ring
+  ctx.strokeStyle = '#C8A030'; ctx.lineWidth = 22;
+  ctx.beginPath(); ctx.arc(MX,MY,244,0,Math.PI*2); ctx.stroke();
 
-  // Center medallion
-  ctx.save();
-  ctx.translate(256, 256);
+  // Border chain pattern
+  for(let i=0;i<36;i++){
+    const a=(i/36)*Math.PI*2;
+    const mx=MX+Math.cos(a)*238, my=MY+Math.sin(a)*238;
+    ctx.fillStyle = i%2===0 ? '#E8C840' : '#7A1010';
+    ctx.beginPath(); ctx.arc(mx,my,5,0,Math.PI*2); ctx.fill();
+  }
 
-  // Outer diamond
-  ctx.strokeStyle = '#8B6A48';
-  ctx.lineWidth = 8;
+  // Second inner ring
+  ctx.strokeStyle = '#D4A028'; ctx.lineWidth = 5;
+  ctx.beginPath(); ctx.arc(MX,MY,214,0,Math.PI*2); ctx.stroke();
+
+  // Vine wave ring
+  ctx.strokeStyle = '#C09020'; ctx.lineWidth = 2.5;
   ctx.beginPath();
-  ctx.moveTo(0, -120); ctx.lineTo(120, 0); ctx.lineTo(0, 120); ctx.lineTo(-120, 0);
-  ctx.closePath(); ctx.stroke();
+  for(let i=0;i<=96;i++){
+    const a=(i/96)*Math.PI*2;
+    const r=220+Math.sin(i*6)*6;
+    const x=MX+Math.cos(a)*r, y=MY+Math.sin(a)*r;
+    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  }
+  ctx.stroke();
 
-  ctx.fillStyle = '#D4B880';
-  ctx.fill();
+  // 8 petal flower medallion (center)
+  ctx.save(); ctx.translate(MX,MY);
+  const star8 = (r1,r2,fill) => {
+    ctx.fillStyle=fill; ctx.beginPath();
+    for(let i=0;i<16;i++){
+      const a=(i/16)*Math.PI*2-Math.PI/16;
+      const r=i%2===0?r1:r2;
+      i===0?ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r):ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+    }
+    ctx.closePath(); ctx.fill();
+  };
+  star8(100,45,'#C8A020');  // gold outer star
+  star8(78,36,'#7A1010');   // crimson cutout
+  star8(58,26,'#D4B030');   // bright gold inner star
 
-  // Inner diamond
-  ctx.strokeStyle = '#E4D0A8';
-  ctx.lineWidth = 5;
-  ctx.beginPath();
-  ctx.moveTo(0, -70); ctx.lineTo(70, 0); ctx.lineTo(0, 70); ctx.lineTo(-70, 0);
-  ctx.closePath(); ctx.stroke();
+  // 8 floral petals around star
+  for(let i=0;i<8;i++){
+    const a=(i/8)*Math.PI*2+Math.PI/16;
+    ctx.save(); ctx.rotate(a);
+    ctx.fillStyle='#B09020';
+    ctx.beginPath(); ctx.ellipse(130,0,26,10,0,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#7A1010';
+    ctx.beginPath(); ctx.ellipse(130,0,16,5,0,0,Math.PI*2); ctx.fill();
+    ctx.restore();
+  }
 
-  // Center circle
-  ctx.fillStyle = '#8B6A48';
-  ctx.beginPath(); ctx.arc(0, 0, 28, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#C8A870';
-  ctx.beginPath(); ctx.arc(0, 0, 18, 0, Math.PI * 2); ctx.fill();
+  // Center circles
+  ctx.fillStyle='#7A1010'; ctx.beginPath(); ctx.arc(0,0,28,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#D4AC30'; ctx.beginPath(); ctx.arc(0,0,18,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#7A1010'; ctx.beginPath(); ctx.arc(0,0,9,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#E8C840'; ctx.beginPath(); ctx.arc(0,0,4,0,Math.PI*2); ctx.fill();
 
-  // 4 corner ornaments
-  [[-160,-160],[160,-160],[-160,160],[160,160]].forEach(([x,y]) => {
-    ctx.save(); ctx.translate(x, y);
-    ctx.strokeStyle = '#8B6A48'; ctx.lineWidth = 4;
-    ctx.beginPath();
-    ctx.moveTo(0,-22); ctx.lineTo(22,0); ctx.lineTo(0,22); ctx.lineTo(-22,0);
-    ctx.closePath(); ctx.stroke();
+  // 4 quarter medallions
+  [[0,-165],[165,0],[0,165],[-165,0]].forEach(([qx,qy])=>{
+    ctx.save(); ctx.translate(qx,qy);
+    ctx.fillStyle='#C8A020'; ctx.beginPath();
+    for(let i=0;i<8;i++){
+      const a=(i/8)*Math.PI*2;
+      const r=i%2===0?28:14;
+      i===0?ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r):ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
+    }
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#7A1010'; ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.fill();
     ctx.restore();
   });
 
   ctx.restore();
-
   return new THREE.CanvasTexture(c);
 }
 
 function _buildRug() {
   if (_rugMesh) return;
-  const geo = new THREE.PlaneGeometry(5.5, 3.8); // wide enough to cover center area
-  const mat = new THREE.MeshToonMaterial({
+  const geo = new THREE.CircleGeometry(2.95, 64); // large circle rug under tree
+  const mat = new THREE.MeshLambertMaterial({
     map: _rugTex(),
-    gradientMap: _toonGrad,
     side: THREE.FrontSide,
   });
   _rugMesh = new THREE.Mesh(geo, mat);
-  _rugMesh.rotation.x = -Math.PI / 2; // lay flat on floor
-  _rugMesh.position.set(0, 0.005, -1); // slight y offset to avoid z-fighting with floor
+  _rugMesh.rotation.x = -Math.PI / 2;
+  _rugMesh.position.set(0, 0.018, 3.0); // center of room, under tree trunk at TZ=3
   _threeScene.add(_rugMesh);
 }
 
