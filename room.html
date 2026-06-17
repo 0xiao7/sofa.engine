@@ -2995,17 +2995,17 @@ function initThreeScene(canvas) {
     _foliageMeshes.push({ mesh: leaf, ox:TX+dx, oy:y, oz:TZ+dz, phase: fi*0.7, amp:0.05+fi*0.005 });
   });
 
-  // Cherry blossom clusters — pink flower puffs interspersed with green foliage
+  // Cherry blossom clusters — outer-canopy pink puffs, clearly protruding beyond green
   { const blossomColors = [0xFFB0C8, 0xFFC8D8, 0xFF90B0, 0xFFD0E0, 0xFFAEC0, 0xFFA8C8];
     [
-      // Lower visible blossom clusters (front-facing positions for visibility)
-      [-1.1,4.2,-0.5,0.62],[0.8,4.0,0.8,0.55],[0.5,4.5,-0.7,0.50],[-0.6,4.3,0.6,0.58],
-      // Mid-canopy pink accents
-      [-0.9,5.6,-0.2,0.72],[0.7,5.4,0.6,0.65],[0,5.8,-0.9,0.58],[-0.4,6.1,0.4,0.52],
-      // Upper crown blossoms
-      [0.5,6.9,-0.4,0.42],[-0.4,7.0,0.5,0.38],[0.2,7.3,0.1,0.36],
-      // Hanging blossom edge clusters (most visible from entrance)
-      [1.2,4.8,0.2,0.48],[-1.2,4.6,-0.4,0.45],[0.9,5.1,-0.8,0.42],
+      // Lower outer edge — clearly beyond green foliage perimeter (~1.6+ from trunk)
+      [-1.85, 4.2, -0.6, 0.68],[ 1.70, 4.1,  0.9, 0.62],[-0.5, 4.0, -1.80, 0.58],[ 0.8, 4.3,  1.75, 0.60],
+      // Mid outer ring (y 5-6, pushed outward)
+      [-1.95, 5.2,  0.5, 0.72],[ 1.80, 5.5, -0.7, 0.68],[-0.6, 5.6,  1.90, 0.65],[ 1.0, 5.8, -1.85, 0.62],
+      // Front-facing clusters (z positive = toward camera) — most visible from entrance
+      [-1.0, 4.6,  1.90, 0.58],[ 1.1, 4.8,  1.85, 0.55],[ 0.0, 5.1,  2.00, 0.60],
+      // Upper crown outer hints
+      [-1.4, 6.2, -0.8, 0.50],[ 1.3, 6.5,  0.6, 0.46],[-0.5, 6.8,  1.4, 0.42],
     ].forEach(([dx,y,dz,r],bi) => {
       const bGeo = new THREE.IcosahedronGeometry(r, 0);
       const bMesh = new THREE.Mesh(bGeo, mToon(blossomColors[bi % blossomColors.length]));
