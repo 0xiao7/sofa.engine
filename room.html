@@ -4393,6 +4393,45 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v61: Bamboo grove — entrance forest framing the shrine path ──────────────
+  { const _brng=_rng(61);
+    const bambooM=new THREE.MeshLambertMaterial({color:0x3A8020});
+    const bambooOl=new THREE.MeshBasicMaterial({color:0x1A4010,side:THREE.BackSide});
+    const nodeM=new THREE.MeshLambertMaterial({color:0x2A6010});
+    // Left grove (x=-2.2 to -4.5) and right grove (x=+2.2 to +4.5), z=8-10.5
+    const stalks=[
+      [-2.4,8.8],[-3.1,9.3],[-3.8,8.5],[-4.4,9.8],[-2.8,10.2],[-4.0,10.4],
+      [ 2.4,8.8],[ 3.1,9.3],[ 3.8,8.5],[ 4.4,9.8],[ 2.8,10.2],[ 4.0,10.4],
+    ];
+    stalks.forEach(([bx,bz],si)=>{
+      const h=4.5+_brng()*2.2; // height 4.5–6.7m
+      const r=0.040+_brng()*0.025; // radius 0.04–0.065
+      const tilt=(_brng()-0.5)*0.10; // slight lean
+      // Main stalk
+      const stalk=new THREE.Mesh(new THREE.CylinderGeometry(r*0.85,r,h,8),bambooM);
+      stalk.position.set(bx,h/2,bz);
+      stalk.rotation.z=tilt; stalk.rotation.x=(_brng()-0.5)*0.06;
+      _threeScene.add(stalk);
+      const stOl=new THREE.Mesh(new THREE.CylinderGeometry(r*0.92,r*1.06,h,8),bambooOl);
+      stOl.position.set(bx,h/2,bz); stOl.rotation.z=tilt; _threeScene.add(stOl);
+      // Node rings every ~0.5m
+      const nodes=Math.floor(h/0.55);
+      for(let ni=1;ni<nodes;ni++){
+        const ny=ni*0.55+0.1;
+        const nd=new THREE.Mesh(new THREE.CylinderGeometry(r*1.06,r*1.06,0.040,8),nodeM);
+        nd.position.set(bx,ny,bz); nd.rotation.z=tilt; _threeScene.add(nd);
+      }
+      // Small leaf cluster at top
+      const leafM=new THREE.MeshLambertMaterial({color:0x4A9830});
+      [0,1,2].forEach(li=>{
+        const leaf=new THREE.Mesh(new THREE.IcosahedronGeometry(0.15+_brng()*0.10,0),leafM);
+        const la=li*(Math.PI*2/3)+_brng()*0.8;
+        leaf.position.set(bx+Math.cos(la)*0.28,h-0.05+_brng()*0.20,bz+Math.sin(la)*0.22);
+        _threeScene.add(leaf);
+      });
+    });
+  }
+
   // v56: Komainu guardian stone dogs — flanking the entrance at z=8 ───────────
   { const stonM=new THREE.MeshLambertMaterial({color:0x8A8870});
     const stDkM=new THREE.MeshLambertMaterial({color:0x606050});
