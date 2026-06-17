@@ -1091,7 +1091,7 @@ let _mixerLastTime = 0;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _DESK_VISUAL_POS_3D = []; // stores {vx,vz,ry} for each desk after scatter
 const _seenUserIds = new Set();
-let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [], _pendantGlows = [], _canopyAura = null;
+let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [], _pendantGlows = [], _canopyAura = null, _sparkles = [];
 let _snowParticles = [];
 let _waterDroplets = [], _waterTx = null; // Wave132: tree watering
 let _sakuraParticles = [];
@@ -2418,6 +2418,14 @@ function initThreeScene(canvas) {
   const baseL = new THREE.Mesh(new THREE.BoxGeometry(0.07,0.14,_dadoW), dadoMat);
   baseL.position.set(-12.84,0.07,0); _threeScene.add(baseL);
   const baseR = baseL.clone(); baseR.position.set(12.84,0.07,0); _threeScene.add(baseR);
+  // Bookshelf-top frieze — gold band marking the transition from shelves to upper wall
+  { const frzMat = new THREE.MeshLambertMaterial({ color: 0xC0963C });
+    [-12.83, 12.83].forEach(fx => {
+      const fr = new THREE.Mesh(new THREE.BoxGeometry(0.09,0.13,27.0), frzMat);
+      fr.position.set(fx, 7.07, 0); _threeScene.add(fr);
+    });
+  }
+
   // Decorative entrance pilasters flanking the doorway
   const pilMat = new THREE.MeshLambertMaterial({ color: 0xD8C8A0 });
   [[-3.8,3.8]].forEach(() => {
@@ -2864,6 +2872,37 @@ function initThreeScene(canvas) {
       blinkOffset: _ffRng() * Math.PI * 2,
       blinkSpeed: 0.8 + _ffRng() * 1.4,
     });
+  }
+
+  // Tree canopy sparkles — 10 orbiting white star sprites for magical effect
+  { const skC = document.createElement('canvas'); skC.width = skC.height = 32;
+    const skCtx = skC.getContext('2d');
+    skCtx.clearRect(0,0,32,32);
+    // Radial glow core
+    const skG = skCtx.createRadialGradient(16,16,0,16,16,11);
+    skG.addColorStop(0,'rgba(255,255,255,1)'); skG.addColorStop(0.25,'rgba(255,250,210,0.8)');
+    skG.addColorStop(0.6,'rgba(255,240,160,0.3)'); skG.addColorStop(1,'rgba(255,220,100,0)');
+    skCtx.fillStyle = skG; skCtx.beginPath(); skCtx.arc(16,16,11,0,Math.PI*2); skCtx.fill();
+    // 4-point star arms
+    skCtx.strokeStyle = 'rgba(255,255,230,0.9)'; skCtx.lineWidth = 1.5; skCtx.lineCap='round';
+    [[16,3,16,29],[3,16,29,16]].forEach(([x1,y1,x2,y2])=>{
+      skCtx.beginPath(); skCtx.moveTo(x1,y1); skCtx.lineTo(x2,y2); skCtx.stroke();
+    });
+    const skTex = new THREE.CanvasTexture(skC);
+    for(let si=0; si<12; si++){
+      const sMat = new THREE.SpriteMaterial({
+        map: skTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, opacity: 0.6
+      });
+      const sSp = new THREE.Sprite(sMat);
+      const ang = si*Math.PI*2/12 + (si%2)*0.3;
+      const r = 0.55 + (si%3)*0.35;
+      const hy = 4.5 + Math.random()*3.5;
+      const sc = 0.14 + Math.random()*0.10;
+      sSp.scale.set(sc,sc,sc);
+      sSp.position.set(TX+Math.cos(ang)*r, hy, TZ+Math.sin(ang)*r);
+      _threeScene.add(sSp);
+      _sparkles.push({ sprite:sSp, ang, r, y:hy, speed:0.003+Math.random()*0.004, blink:Math.random()*Math.PI*2 });
+    }
   }
 
   // ── 金色塵埃粒子 (floating dust motes, always active) ─────────────────────
@@ -6421,6 +6460,13 @@ function startThreeAnimation(canvas) {
       const auraSc = 5.2 + nightF * 1.5 + 0.3 * Math.sin(_threeTime * 0.5);
       _canopyAura.scale.set(auraSc, auraSc, auraSc);
     }
+    // Tree canopy sparkles — orbit + blink (TX=0, TZ=3.0 hardcoded — not in this scope)
+    _sparkles.forEach(sk => {
+      sk.ang += sk.speed;
+      sk.sprite.position.set(Math.cos(sk.ang)*sk.r, sk.y + Math.sin(_threeTime*0.7+sk.blink)*0.12, 3.0 + Math.sin(sk.ang)*sk.r);
+      const bk = 0.25 + 0.65 * Math.abs(Math.sin(_threeTime*2.2 + sk.blink));
+      sk.sprite.material.opacity = bk;
+    });
     _dustMotes.forEach(dm => {
       dm.position.x += dm.userData.vx + 0.0012*Math.sin(_threeTime*0.3 + dm.userData.phase);
       dm.position.y += dm.userData.vy + 0.0005*Math.cos(_threeTime*0.4 + dm.userData.phase);
