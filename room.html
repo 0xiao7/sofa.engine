@@ -44,22 +44,47 @@ html,body{
 #entry{
   position:fixed;inset:0;z-index:100;
   display:flex;align-items:center;justify-content:center;
-  background:rgba(4,13,20,0.52);
+  background:radial-gradient(ellipse at 50% 42%, rgba(6,16,30,0.72) 0%, rgba(2,7,16,0.90) 100%);
 }
 .entry-card{
-  background:rgba(16,34,50,0.84);
-  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
-  border:1px solid rgba(91,175,214,0.22);border-top:2px solid rgba(91,175,214,0.38);
-  border-radius:16px;
-  padding:36px 32px;width:min(420px,92vw);
-  box-shadow:0 14px 64px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,0.04);
+  background:linear-gradient(168deg,rgba(8,20,36,0.98) 0%,rgba(6,14,26,0.96) 100%);
+  backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);
+  border:2px solid rgba(91,175,214,0.45);
+  border-top:3px solid rgba(91,175,214,0.78);
+  border-radius:4px;
+  padding:0 0 28px;width:min(420px,92vw);
+  box-shadow:0 0 0 4px rgba(4,14,28,0.7),0 0 60px rgba(91,175,214,0.10),0 24px 70px rgba(0,0,0,0.92);
+  overflow:hidden;
 }
+/* Game-style top banner strip */
+.entry-banner{
+  background:linear-gradient(90deg,#1A2E44,rgba(91,175,214,0.18) 40%,#1A2E44);
+  border-bottom:1px solid rgba(91,175,214,0.35);
+  padding:10px 24px;margin-bottom:28px;
+  display:flex;align-items:center;gap:10px;
+}
+.entry-banner-icon{font-size:1.1rem;opacity:.9;}
+.entry-banner-title{
+  font-family:var(--mono);font-size:.7rem;letter-spacing:.18em;
+  color:rgba(91,175,214,.8);text-transform:uppercase;font-weight:700;
+}
+.entry-card-body{padding:0 32px;}
+/* Entry card overrides — dark glass context */
+.entry-card-body label{color:rgba(160,145,125,.75);opacity:1;}
+.entry-card-body input[type=text],.entry-card-body select{
+  background:rgba(4,14,28,0.72);border:1px solid rgba(91,175,214,0.22);
+  color:#E8DCC8;
+}
+.entry-card-body input[type=text]:focus,.entry-card-body select:focus{border-color:rgba(91,175,214,0.55);}
+.entry-card-body select option{background:#0A1A2E;color:#E8DCC8;}
 .entry-card h1{
-  font-family:var(--serif);font-size:1.5rem;font-weight:700;
-  color:var(--amber);margin-bottom:6px;letter-spacing:.04em;
-  text-shadow:0 0 24px rgba(91,175,214,.25);
+  font-family:var(--serif);font-size:1.72rem;font-weight:700;
+  color:#E8C464;margin-bottom:6px;letter-spacing:.06em;
+  text-shadow:0 0 32px rgba(232,196,100,.5),0 2px 0 rgba(0,0,0,.9);
 }
-.entry-card p{font-size:.85rem;color:var(--cream-2);opacity:.7;margin-bottom:28px;}
+.entry-card>p,.entry-card-body>p:not(.entry-tip){
+  font-size:.84rem;color:rgba(200,185,160,.65);margin-bottom:24px;
+}
 label{display:block;font-size:.78rem;color:var(--cream-2);opacity:.65;margin-bottom:6px;letter-spacing:.04em;text-transform:uppercase;}
 input[type=text],select{
   width:100%;padding:10px 14px;border-radius:8px;
@@ -70,13 +95,16 @@ input[type=text],select{
 input[type=text]:focus,select:focus{border-color:var(--peach);}
 select option{background:var(--navy-3);}
 .btn-enter{
-  width:100%;padding:12px;border-radius:8px;
-  background:var(--peach);color:var(--navy-4);
-  font-size:1rem;font-weight:600;font-family:var(--serif);
-  cursor:pointer;border:none;transition:opacity .2s;
-  letter-spacing:.04em;
+  width:100%;padding:13px;border-radius:2px;
+  background:linear-gradient(180deg,#5BAFD6 0%,#3A92BC 100%);
+  color:#04101E;
+  font-size:1rem;font-weight:700;font-family:var(--serif);
+  cursor:pointer;border:none;transition:opacity .2s,transform .1s;
+  letter-spacing:.06em;
+  box-shadow:0 2px 0 rgba(0,0,0,0.5),0 0 20px rgba(91,175,214,0.2);
 }
-.btn-enter:hover{opacity:.88;}
+.btn-enter:hover{opacity:.92;}
+.btn-enter:active{transform:translateY(1px);box-shadow:0 1px 0 rgba(0,0,0,0.5);}
 .entry-tip{margin-top:14px;font-size:.76rem;color:var(--cream-2);opacity:.45;text-align:center;}
 /* ── Entry tabs (訪客 / 序號登入) ── */
 .entry-tabs{display:flex;gap:6px;margin-bottom:22px;}
@@ -486,15 +514,12 @@ main{display:flex;flex:1;gap:0;min-height:0;}
   #mob-bar,#sheet-overlay,.sheet{display:none!important;}
 }
 
-/* Minecraft 像素塊感 */
+/* Pixel / game 方塊感 */
 .desk {
   border-radius: 2px !important;
 }
 .desk:hover {
   box-shadow: inset 0 0 0 2px rgba(91,175,214,.6);
-}
-.entry-card {
-  border-radius: 4px;
 }
 input[type=text], select, .btn-enter {
   border-radius: 2px;
@@ -672,44 +697,50 @@ input[type=text], select, .btn-enter {
 <!-- ── Entry ── -->
 <div id="entry">
   <div class="entry-card">
-    <h1>SoFa 自習室</h1>
-    <p>和備考同學一起讀書，不孤單。</p>
-
-    <!-- tabs -->
-    <div class="entry-tabs">
-      <button class="entry-tab active" id="tab-guest" onclick="switchEntryTab('guest')">訪客進入</button>
-      <button class="entry-tab" id="tab-serial" onclick="switchEntryTab('serial')">序號登入</button>
+    <div class="entry-banner">
+      <span class="entry-banner-icon">📚</span>
+      <span class="entry-banner-title">SoFa Study Room</span>
     </div>
+    <div class="entry-card-body">
+      <h1>SoFa 自習室</h1>
+      <p>和備考同學一起讀書，不孤單。</p>
 
-    <!-- guest panel -->
-    <div id="panel-guest">
-      <label for="inp-name">你的暱稱</label>
-      <input type="text" id="inp-name" placeholder="考生甲" maxlength="12" autocomplete="off"/>
-      <label for="inp-subject">備考科目</label>
-      <select id="inp-subject">
-        <option value="記帳士">📒 記帳士</option>
-        <option value="地政士">🏠 地政士</option>
-        <option value="不動產經紀人">🔑 不動產經紀人</option>
-        <option value="財稅行政">📊 財稅行政</option>
-        <option value="初等考試">📝 初等考試</option>
-        <option value="其他">📚 其他</option>
-      </select>
-      <button class="btn-enter" id="btn-enter">進入自習室</button>
-      <p class="entry-tip">暱稱僅在本次在線期間顯示，不儲存帳號資料。</p>
-    </div>
-
-    <!-- serial panel -->
-    <div id="panel-serial" style="display:none">
-      <div class="serial-row-entry">
-        <span class="serial-prefix-entry">SOFA-</span>
-        <input type="text" id="inp-serial" placeholder="XXXX-XXXX" maxlength="9"
-               autocomplete="off" spellcheck="false"
-               oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')"
-               onkeydown="if(event.key==='Enter') enterWithSerial()"/>
+      <!-- tabs -->
+      <div class="entry-tabs">
+        <button class="entry-tab active" id="tab-guest" onclick="switchEntryTab('guest')">訪客進入</button>
+        <button class="entry-tab" id="tab-serial" onclick="switchEntryTab('serial')">序號登入</button>
       </div>
-      <p id="serial-entry-msg" style="color:#5BAFD6"></p>
-      <button class="btn-enter" onclick="enterWithSerial()">登入並進入</button>
-      <p class="entry-tip">序號為購買 SoFa 會員後取得的 12 碼代碼。</p>
+
+      <!-- guest panel -->
+      <div id="panel-guest">
+        <label for="inp-name">你的暱稱</label>
+        <input type="text" id="inp-name" placeholder="考生甲" maxlength="12" autocomplete="off"/>
+        <label for="inp-subject">備考科目</label>
+        <select id="inp-subject">
+          <option value="記帳士">📒 記帳士</option>
+          <option value="地政士">🏠 地政士</option>
+          <option value="不動產經紀人">🔑 不動產經紀人</option>
+          <option value="財稅行政">📊 財稅行政</option>
+          <option value="初等考試">📝 初等考試</option>
+          <option value="其他">📚 其他</option>
+        </select>
+        <button class="btn-enter" id="btn-enter">進入自習室</button>
+        <p class="entry-tip">暱稱僅在本次在線期間顯示，不儲存帳號資料。</p>
+      </div>
+
+      <!-- serial panel -->
+      <div id="panel-serial" style="display:none">
+        <div class="serial-row-entry">
+          <span class="serial-prefix-entry">SOFA-</span>
+          <input type="text" id="inp-serial" placeholder="XXXX-XXXX" maxlength="9"
+                 autocomplete="off" spellcheck="false"
+                 oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')"
+                 onkeydown="if(event.key==='Enter') enterWithSerial()"/>
+        </div>
+        <p id="serial-entry-msg" style="color:#5BAFD6"></p>
+        <button class="btn-enter" onclick="enterWithSerial()">登入並進入</button>
+        <p class="entry-tip">序號為購買 SoFa 會員後取得的 12 碼代碼。</p>
+      </div>
     </div>
   </div>
 </div>
