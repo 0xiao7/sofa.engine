@@ -2851,6 +2851,22 @@ function initThreeScene(canvas) {
       _threeScene.add(glSp);
       _pendantGlows.push(glSp);
     });
+    // v41: Decorative gem ornaments dangling below each lantern ──────────────
+    { const gemCordMat = new THREE.MeshLambertMaterial({color:0x5A3010});
+      const gemMat = mToon(0xFFD060);
+      const gemOlMat = new THREE.MeshBasicMaterial({color:0x8B6000, side:THREE.BackSide});
+      const gemGeo = new THREE.IcosahedronGeometry(0.060, 0);
+      [[-1.8,4.85,1.3],[1.7,4.45,-0.9],[0.3,5.2,1.9],[-0.5,3.9,-1.6]].forEach(([dx,ly,dz])=>{
+        const gCord = new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.14,4), gemCordMat);
+        gCord.position.set(TX+dx, ly-0.268, TZ+dz); _threeScene.add(gCord);
+        const gem = new THREE.Mesh(gemGeo, gemMat);
+        gem.rotation.y = dx * 0.9; // slight twist per lantern
+        gem.position.set(TX+dx, ly-0.40, TZ+dz); _threeScene.add(gem);
+        const gemOl = new THREE.Mesh(gemGeo, gemOlMat);
+        gemOl.scale.setScalar(1.09); gemOl.rotation.copy(gem.rotation);
+        gemOl.position.copy(gem.position); _threeScene.add(gemOl);
+      });
+    }
   }
 
   // ── Moonlight shaft (night only) ─────────────────────────────────────────
@@ -4150,6 +4166,67 @@ function initThreeScene(canvas) {
       _threeScene.add(fp);
     }
   }
+  // v41: Kawaii toon cat sitting near sakura tree ───────────────────────────
+  { const cX=TX+1.3, cZ=TZ+1.85; // right-front of tree, visible from camera
+    const cW=mToon(0xF5EDE0); // cream white
+    const cBk=mToon(0x1A1828); // dark eyes
+    const cPkHex=0xFF9EB5;    // pink for ears/nose/blush
+    // mesh + outline helper
+    const cAdd=(geo,mat,x,y,z,sx=1,sy=1,sz=1)=>{
+      const m=new THREE.Mesh(geo,mat); m.scale.set(sx,sy,sz); m.position.set(x,y,z);
+      _threeScene.add(m);
+      const ol=new THREE.Mesh(geo,new THREE.MeshBasicMaterial({color:0x2A1F2A,side:THREE.BackSide}));
+      ol.scale.set(sx*1.08,sy*1.08,sz*1.08); ol.position.set(x,y,z); _threeScene.add(ol);
+      return m;
+    };
+    // Body (squatted oval)
+    cAdd(new THREE.SphereGeometry(0.170,8,7), cW, cX,0.220,cZ, 1,0.82,0.88);
+    // Head (big round)
+    cAdd(new THREE.SphereGeometry(0.215,9,8), cW, cX,0.608,cZ);
+    // Ears — shared geometry, two placements
+    const earGeo=new THREE.ConeGeometry(0.076,0.162,4);
+    [-1,1].forEach(sx=>{
+      cAdd(earGeo, cW, cX+sx*0.134,0.848,cZ-0.018);
+      // inner ear (pink, no outline)
+      const ei=new THREE.Mesh(new THREE.ConeGeometry(0.042,0.096,4),
+        new THREE.MeshToonMaterial({color:cPkHex}));
+      ei.position.set(cX+sx*0.134,0.848,cZ-0.034); _threeScene.add(ei);
+    });
+    // Eyes — big, kawaii with two highlight sparkles each
+    [-0.088,0.088].forEach(ex=>{
+      const eye=new THREE.Mesh(new THREE.SphereGeometry(0.043,7,7), cBk);
+      eye.position.set(cX+ex,0.633,cZ-0.194); _threeScene.add(eye);
+      const hl=new THREE.Mesh(new THREE.SphereGeometry(0.015,5,5),
+        new THREE.MeshBasicMaterial({color:0xFFFFFF}));
+      hl.position.set(cX+ex-0.017,0.648,cZ-0.228); _threeScene.add(hl);
+      const hl2=new THREE.Mesh(new THREE.SphereGeometry(0.009,4,4),
+        new THREE.MeshBasicMaterial({color:0xDDEEFF}));
+      hl2.position.set(cX+ex+0.020,0.638,cZ-0.230); _threeScene.add(hl2);
+    });
+    // Nose (tiny pink oval)
+    const nos=new THREE.Mesh(new THREE.SphereGeometry(0.021,5,4),
+      new THREE.MeshBasicMaterial({color:cPkHex}));
+    nos.scale.set(1.2,0.68,0.65); nos.position.set(cX,0.594,cZ-0.214); _threeScene.add(nos);
+    // Blush cheeks
+    [-0.098,0.098].forEach(bx=>{
+      const bl=new THREE.Mesh(new THREE.SphereGeometry(0.031,6,5),
+        new THREE.MeshBasicMaterial({color:cPkHex,transparent:true,opacity:0.50}));
+      bl.scale.z=0.22; bl.position.set(cX+bx,0.610,cZ-0.215); _threeScene.add(bl);
+    });
+    // Paws (front, flattened)
+    [-0.082,0.082].forEach(px=>{
+      cAdd(new THREE.SphereGeometry(0.068,7,5), cW, cX+px,0.060,cZ-0.152, 1,0.54,1.28);
+    });
+    // Tail (tapering arc of spheres curling over body)
+    for(let ti=0;ti<9;ti++){
+      const frac=ti/8, ang=frac*Math.PI*1.05;
+      const ts=new THREE.Mesh(new THREE.SphereGeometry(0.064-frac*0.024,6,5),
+        new THREE.MeshToonMaterial({color:0xF5EDE0}));
+      ts.position.set(cX+0.19+Math.cos(ang)*0.29, 0.044+Math.sin(ang)*0.22, cZ+0.10);
+      _threeScene.add(ts);
+    }
+  }
+
   _buildEntryMedallion();
   // Wave138: Decorative picture frames on side walls
   _buildWallFrames();
