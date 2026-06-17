@@ -5548,10 +5548,11 @@ async function detectMember(){
     });
     if(!r.ok) return;
     const p = await r.json();
-    if(p && p.nickname){
+    const _nick = p && (p.nickname || p.name || p.default_nickname);
+    if(p && _nick){
       isMember = true;
       memberProfile = p;
-      document.getElementById('inp-name').value = p.nickname;
+      document.getElementById('inp-name').value = _nick;
       document.getElementById('member-badge').classList.add('on');
       // 沿用儀表板考科偏好
       const subjectName = EXAM_KEY_MAP[p.exam_key] || '';
@@ -5589,7 +5590,7 @@ async function enterWithSerial(){
       body: JSON.stringify({ serial })
     });
     const d = await r.json();
-    if(!r.ok || !d.token){ msg.style.color='#E8846A'; msg.textContent=d.detail||'序號無效，請確認後再試'; return; }
+    if(!r.ok || !d.uid){ msg.style.color='#E8846A'; msg.textContent=d.detail||'序號無效，請確認後再試'; return; }
     localStorage.setItem('sofa_uid',   d.uid);
     localStorage.setItem('sofa_token', d.token);
     msg.style.color='#7DC987'; msg.textContent='驗證成功，正在進入…';
