@@ -1921,7 +1921,7 @@ function initThreeScene(canvas) {
 
   // Ceiling downlights
   (_isMobile ? [[0,7,-1]] : [[-4.5,7,-4],[4.5,7,-4],[0,7,2]]).forEach(([x,y,z]) => {
-    const tl = new THREE.PointLight(0xFFEED5, _isMobile ? 2.0 : 1.2, _isMobile ? 18 : 10);
+    const tl = new THREE.PointLight(0xFFFBF5, _isMobile ? 2.0 : 1.0, _isMobile ? 18 : 10);
     tl.position.set(x,y,z); _threeScene.add(tl); _torchLights.push(tl);
   });
 
@@ -2017,7 +2017,7 @@ function initThreeScene(canvas) {
     return t;
   })();
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(22,20),
-    new THREE.MeshLambertMaterial({ map: floorTex, color: 0xE8E0D0 }));
+    new THREE.MeshLambertMaterial({ map: floorTex, color: 0xFFFFFF }));
   floor.rotation.x = -Math.PI/2;
   _threeScene.add(floor);
 
