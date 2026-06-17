@@ -1091,7 +1091,7 @@ let _mixerLastTime = 0;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _DESK_VISUAL_POS_3D = []; // stores {vx,vz,ry} for each desk after scatter
 const _seenUserIds = new Set();
-let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [], _pendantGlows = [], _canopyAura = null, _sparkles = [], _permLanternLights = [], _moonShaftSprite = null, _floatingBooks = [];
+let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [], _pendantGlows = [], _canopyAura = null, _sparkles = [], _permLanternLights = [], _moonShaftSprite = null, _floatingBooks = [], _mistPlanes = [];
 let _snowParticles = [];
 let _waterDroplets = [], _waterTx = null; // Wave132: tree watering
 let _sakuraParticles = [];
@@ -4313,6 +4313,38 @@ function initThreeScene(canvas) {
     });
   }
 
+  // v54: Ethereal ground mist — sakura-tinted wisps drifting at floor level ───
+  { const _miRng=_rng(54);
+    const _mistTex=(()=>{
+      const mc=document.createElement('canvas'); mc.width=mc.height=128;
+      const mctx=mc.getContext('2d');
+      const mg=mctx.createRadialGradient(64,64,0,64,64,62);
+      mg.addColorStop(0,'rgba(255,230,240,0.45)');
+      mg.addColorStop(0.5,'rgba(255,210,228,0.22)');
+      mg.addColorStop(1,'rgba(255,200,220,0)');
+      mctx.fillStyle=mg; mctx.fillRect(0,0,128,128);
+      return new THREE.CanvasTexture(mc);
+    })();
+    for(let mi=0;mi<12;mi++){
+      const ms=new THREE.Sprite(new THREE.SpriteMaterial({
+        map:_mistTex,transparent:true,depthWrite:false,
+        blending:THREE.NormalBlending,opacity:0.38+_miRng()*0.22
+      }));
+      const scl=1.6+_miRng()*2.2;
+      ms.scale.set(scl,scl*0.35,1); // wide, flat (ground-hugging)
+      ms.position.set(
+        (_miRng()-0.5)*6,        // x: centered on path
+        0.14+_miRng()*0.20,      // y: just above floor
+        2.2+_miRng()*5.0         // z: gate to tree zone
+      );
+      ms.userData.driftX=(_miRng()-0.5)*0.0012;
+      ms.userData.driftZ=(_miRng()-0.5)*0.0008;
+      ms.userData.phase=_miRng()*Math.PI*2;
+      _threeScene.add(ms);
+      _mistPlanes.push(ms);
+    }
+  }
+
   // v48: Ikebana flower pedestals — eye-level decoration in path to tree ───────
   { const pedMat = new THREE.MeshLambertMaterial({ color: 0x4A2E0E }); // dark walnut
     const pedTopMat = new THREE.MeshLambertMaterial({ color: 0x3A2008 });
@@ -7409,6 +7441,18 @@ function startThreeAnimation(canvas) {
         bk.light.position.x = bk.group.position.x;
         bk.light.intensity = 0.10 + 0.04*Math.sin(_threeTime*1.1+bk.phase);
       }
+    });
+    // Ground mist — gentle drift and pulse at floor level
+    _mistPlanes.forEach(ms => {
+      ms.position.x += ms.userData.driftX;
+      ms.position.z += ms.userData.driftZ;
+      // Wrap around gate-to-tree corridor
+      if(ms.position.x >  3.5) ms.position.x = -3.5;
+      if(ms.position.x < -3.5) ms.position.x =  3.5;
+      if(ms.position.z >  7.5) ms.position.z =  2.0;
+      if(ms.position.z <  2.0) ms.position.z =  7.5;
+      // Gentle opacity pulse (mist breathing)
+      ms.material.opacity = 0.20 + 0.22 * (0.5 + 0.5*Math.sin(_threeTime*0.4 + ms.userData.phase));
     });
     // Tree canopy sparkles — orbit + blink (TX=0, TZ=3.0 hardcoded — not in this scope)
     _sparkles.forEach(sk => {
