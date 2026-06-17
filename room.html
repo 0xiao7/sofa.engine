@@ -1091,7 +1091,7 @@ let _mixerLastTime = 0;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _DESK_VISUAL_POS_3D = []; // stores {vx,vz,ry} for each desk after scatter
 const _seenUserIds = new Set();
-let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [], _pendantGlows = [], _canopyAura = null, _sparkles = [], _permLanternLights = [], _moonShaftSprite = null, _floatingBooks = [], _mistPlanes = [], _floatingEma = [];
+let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [], _pendantGlows = [], _canopyAura = null, _sparkles = [], _permLanternLights = [], _moonShaftSprite = null, _floatingBooks = [], _mistPlanes = [], _floatingEma = [], _mahouSparkles = [];
 let _snowParticles = [];
 let _waterDroplets = [], _waterTx = null; // Wave132: tree watering
 let _sakuraParticles = [];
@@ -4421,6 +4421,31 @@ function initThreeScene(canvas) {
     const wireGeo=new THREE.BufferGeometry().setFromPoints(wirePts);
     const wire=new THREE.Line(wireGeo,new THREE.LineBasicMaterial({color:0x1A0808,opacity:0.6,transparent:true}));
     _threeScene.add(wire);
+  }
+
+  // v64: Mahou sparkle cloud — star-dust drifting through the arch zone ────────
+  { const spkCols=[0xFFCCE8,0xFFAAD8,0xDDAAFF,0xCCBBFF,0xFFFFCC,0xFFEEFF,0xEECCFF,0xFFBBEE,0xFFDDF0];
+    const _s64=_rng(64);
+    for(let si=0;si<55;si++){
+      const col=spkCols[si % spkCols.length];
+      const sz2=0.013+_s64()*0.013;
+      const geo=new THREE.IcosahedronGeometry(sz2,1);
+      const mat=new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.0});
+      const spk=new THREE.Mesh(geo,mat);
+      const sx=(_s64()-0.5)*5.4;     // x: ±2.7
+      const sy=3.0+_s64()*2.4;       // y: 3.0–5.4
+      const sz=5.5+_s64()*2.0;       // z: 5.5–7.5
+      spk.position.set(sx,sy,sz);
+      _threeScene.add(spk);
+      let sLight=null;
+      if(si%8===0){
+        sLight=new THREE.PointLight(col,0.07,1.1);
+        sLight.position.copy(spk.position); _threeScene.add(sLight);
+      }
+      _mahouSparkles.push({mesh:spk,light:sLight,bx:sx,by:sy,bz:sz,
+        vy:0.0007+_s64()*0.0013, phase:_s64()*Math.PI*2,
+        xAmp:0.25+_s64()*0.55, zAmp:0.18+_s64()*0.42});
+    }
   }
 
   // v61: Bamboo grove — entrance forest framing the shrine path ──────────────
@@ -7828,6 +7853,16 @@ function startThreeAnimation(canvas) {
       sk.sprite.position.set(Math.cos(sk.ang)*sk.r, sk.y + Math.sin(_threeTime*0.7+sk.blink)*0.12, 3.0 + Math.sin(sk.ang)*sk.r);
       const bk = 0.25 + 0.65 * Math.abs(Math.sin(_threeTime*2.2 + sk.blink));
       sk.sprite.material.opacity = bk;
+    });
+    // Mahou sparkle cloud — drift upward + sine wander through arch zone
+    _mahouSparkles.forEach(sk => {
+      sk.mesh.position.y += sk.vy;
+      sk.mesh.position.x = sk.bx + Math.sin(_threeTime*0.52+sk.phase)*sk.xAmp;
+      sk.mesh.position.z = sk.bz + Math.cos(_threeTime*0.41+sk.phase*1.3)*sk.zAmp;
+      const glow = 0.35 + 0.55*Math.abs(Math.sin(_threeTime*2.9+sk.phase));
+      sk.mesh.material.opacity = glow;
+      if(sk.light){ sk.light.position.copy(sk.mesh.position); sk.light.intensity = 0.05+0.06*glow; }
+      if(sk.mesh.position.y > 6.2){ sk.mesh.position.set(sk.bx,sk.by,sk.bz); }
     });
     _dustMotes.forEach(dm => {
       dm.position.x += dm.userData.vx + 0.0012*Math.sin(_threeTime*0.3 + dm.userData.phase);
