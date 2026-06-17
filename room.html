@@ -2961,6 +2961,49 @@ function initThreeScene(canvas) {
     });
   }
 
+  // v43: Hanging star garland chains — visible from standard camera ─────────
+  { const _sgRng = _rng(55);
+    const starColors = [0xFFD700, 0xFFB8CC, 0xB8D4FF, 0xFFE88A, 0xFFCCEE, 0xC8AAFF];
+    const starMats = starColors.map(c => mToon(c));
+    const thinCordMat = new THREE.MeshLambertMaterial({ color: 0xC8A890 });
+    // 8 garland chains at front entrance area — visible from standard wide camera
+    [
+      [-5.5, 9.0], [-3.2, 8.5], [-1.2, 9.2], [0.8, 8.0],
+      [2.8, 9.4],  [4.5, 8.2],  [-4.5, 7.5], [3.8, 7.2],
+    ].forEach(([gx, gz], ci) => {
+      const topY = 6.10 + _sgRng() * 0.40;
+      const starsInChain = 6 + (ci % 3);
+      const spacing = 0.38 + _sgRng() * 0.08;
+      const totalLen = starsInChain * spacing;
+
+      // Thin hanging cord
+      const cord = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.005, 0.005, totalLen, 4), thinCordMat);
+      cord.position.set(gx, topY - totalLen/2, gz);
+      _threeScene.add(cord);
+
+      // Stars along the chain
+      for(let si = 0; si < starsInChain; si++) {
+        const fy = topY - si * spacing - 0.18;
+        const starR = 0.055 + _sgRng() * 0.030;
+        const star = new THREE.Mesh(
+          new THREE.IcosahedronGeometry(starR, 0),
+          starMats[(ci * 3 + si) % starMats.length]);
+        // Slight horizontal drift per star for organic look
+        const dx = (_sgRng()-0.5) * 0.08;
+        const dz = (_sgRng()-0.5) * 0.08;
+        star.rotation.y = _sgRng() * Math.PI;
+        star.position.set(gx + dx, fy, gz + dz);
+        _threeScene.add(star);
+        // Outline
+        const ol = new THREE.Mesh(new THREE.IcosahedronGeometry(starR, 0),
+          new THREE.MeshBasicMaterial({color:0x806040, side:THREE.BackSide}));
+        ol.scale.setScalar(1.10); ol.rotation.copy(star.rotation);
+        ol.position.copy(star.position); _threeScene.add(ol);
+      }
+    });
+  }
+
   // ── 中央水晶吊燈環（atrium chandelier ring above tree） ────────────────
   { const CRY = 8.20, CRR = 1.85; // ring height, ring radius
     // Main ring (torus)
