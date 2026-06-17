@@ -4759,6 +4759,23 @@ function initThreeScene(canvas) {
     aura2.position.set(TX, 0.016, TZ);
     _threeScene.add(aura2);
   }
+  // v60: Magical tree light cone — soft pink shaft from canopy to floor ────────
+  { // Open cone with apex at floor (y≈0), base at canopy (y≈5)
+    const coneMat=new THREE.MeshBasicMaterial({
+      color:0xFFCCE8, transparent:true, depthWrite:false,
+      blending:THREE.AdditiveBlending, opacity:0.055, side:THREE.BackSide
+    });
+    // ConeGeometry: apex at y=-h/2, base at y=+h/2 → position at y=2.55 → apex at 0.05, base at 5.05
+    const lightCone=new THREE.Mesh(new THREE.ConeGeometry(2.20,5.0,20,1,true),coneMat);
+    lightCone.position.set(TX,2.55,TZ); _threeScene.add(lightCone);
+    // Second layer: slightly larger, lower opacity
+    const cone2Mat=new THREE.MeshBasicMaterial({
+      color:0xFFE0F0, transparent:true, depthWrite:false,
+      blending:THREE.AdditiveBlending, opacity:0.028, side:THREE.BackSide
+    });
+    const lightCone2=new THREE.Mesh(new THREE.ConeGeometry(3.20,5.5,20,1,true),cone2Mat);
+    lightCone2.position.set(TX,2.80,TZ); _threeScene.add(lightCone2);
+  }
   // Fallen sakura petals scattered on floor around tree (static, June seasonal decor)
   { const _fpRng = _rng(87);
     const petalTex = (() => {
