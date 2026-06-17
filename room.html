@@ -2278,6 +2278,35 @@ function initThreeScene(canvas) {
     _threeScene.userData._sunFloorWash = sfMesh;
   }
 
+  // Burgundy drapes flanking the panorama windows — 2 panels per side
+  { const drapeMat = new THREE.MeshLambertMaterial({ color: 0x6A1A28, side: THREE.DoubleSide });
+    const tiebackMat = new THREE.MeshLambertMaterial({ color: 0xC8A030 }); // gold tieback
+    // Left side: 2 drape panels
+    [[-12.4, 0], [-9.8, 0]].forEach(([dx, _]) => {
+      const panel = new THREE.Mesh(new THREE.BoxGeometry(1.6, 8.5, 0.06), drapeMat);
+      panel.position.set(dx, 4.5, -7.72); _threeScene.add(panel);
+      // Gold tieback band at mid-height
+      const tie = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.14, 0.10), tiebackMat);
+      tie.position.set(dx, 3.2, -7.72); _threeScene.add(tie);
+    });
+    // Right side: 2 drape panels
+    [[12.4, 0], [9.8, 0]].forEach(([dx, _]) => {
+      const panel = new THREE.Mesh(new THREE.BoxGeometry(1.6, 8.5, 0.06), drapeMat);
+      panel.position.set(dx, 4.5, -7.72); _threeScene.add(panel);
+      const tie = new THREE.Mesh(new THREE.BoxGeometry(1.8, 0.14, 0.10), tiebackMat);
+      tie.position.set(dx, 3.2, -7.72); _threeScene.add(tie);
+    });
+    // Curtain rod spanning full width
+    const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.035,0.035,28,8), tiebackMat);
+    rod.rotation.z = Math.PI/2;
+    rod.position.set(0, 9.15, -7.72); _threeScene.add(rod);
+    // Rod end finials
+    [-14.1, 14.1].forEach(fx => {
+      const fin = new THREE.Mesh(new THREE.SphereGeometry(0.09,8,6), tiebackMat);
+      fin.position.set(fx, 9.15, -7.72); _threeScene.add(fin);
+    });
+  }
+
   // Wall clock
   const clockFaceTex = (() => {
     const c=document.createElement('canvas'); c.width=c.height=128;
@@ -2479,6 +2508,36 @@ function initThreeScene(canvas) {
       leaf.position.set(11.25,shH+0.30,z-0.2); _threeScene.add(leaf);
     }
   });
+
+  // Mezzanine balcony railing atop bookshelves — classic library second-floor look
+  { const railMat = new THREE.MeshLambertMaterial({ color: 0xB89A5A }); // antique brass
+    const postMat = new THREE.MeshLambertMaterial({ color: 0xA08040 });
+    const railY = 7.55; // just above shelf tops (7.0) + some gap
+    const railZfrom = -8.2, railZto = 6.8;
+    const railLen = railZto - railZfrom; // ~15
+    // Left wall railing: horizontal top rod + bottom rod
+    [-11.12, 11.12].forEach(rx => {
+      const side = rx < 0 ? -1 : 1;
+      // Top rail rod
+      const topRail = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, railLen), railMat);
+      topRail.position.set(rx, railY, (railZfrom+railZto)/2); _threeScene.add(topRail);
+      // Lower rail rod
+      const botRail = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.06, railLen), railMat);
+      botRail.position.set(rx, railY - 0.30, (railZfrom+railZto)/2); _threeScene.add(botRail);
+      // Balusters every 0.7 units
+      for(let bz = railZfrom + 0.35; bz < railZto; bz += 0.7){
+        const bal = new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,0.35,6), postMat);
+        bal.position.set(rx, railY - 0.175, bz); _threeScene.add(bal);
+      }
+      // End posts (newels)
+      [railZfrom + 0.05, railZto - 0.05].forEach(pz => {
+        const newel = new THREE.Mesh(new THREE.CylinderGeometry(0.045,0.045,0.60,8), postMat);
+        newel.position.set(rx, railY - 0.30 + 0.30, pz); _threeScene.add(newel);
+        const cap = new THREE.Mesh(new THREE.SphereGeometry(0.06,8,6), postMat);
+        cap.position.set(rx, railY + 0.05, pz); _threeScene.add(cap);
+      });
+    });
+  }
 
   // Bookshelf overhead accent lights — warm gold, one per section per side
   { const _abZ = [-7,-4.5,-2,0.5,3,5.5];
@@ -2714,6 +2773,12 @@ function initThreeScene(canvas) {
     leaf.userData.isTree = true;
     _foliageMeshes.push({ mesh: leaf, ox:TX+dx, oy:y, oz:TZ+dz, phase: fi*0.7, amp:0.05+fi*0.005 });
   });
+
+  // Canopy interior sunlight — PointLight nestled in upper foliage
+  { const cPL = new THREE.PointLight(0xD0FF90, 0.55, 7.0);
+    cPL.position.set(TX, 6.8, TZ); _threeScene.add(cPL);
+    _torchLights.push(cPL); // scales with daylight via torchMult
+  }
 
   // Magical fireflies around tree
   const _ffRng = _rng(33);
