@@ -4798,6 +4798,89 @@ function initThreeScene(canvas) {
     aura2.position.set(TX, 0.016, TZ);
     _threeScene.add(aura2);
   }
+  // v62: Koi reflecting pond — oval water feature between tree and back wall ───
+  { const _koiRng=_rng(62);
+    // Water surface texture (blue-teal with shimmer)
+    const waterTex=(()=>{
+      const wc=document.createElement('canvas'); wc.width=512; wc.height=320;
+      const wctx=wc.getContext('2d');
+      const wg=wctx.createRadialGradient(256,160,10,256,160,220);
+      wg.addColorStop(0,'rgba(120,210,230,0.95)');
+      wg.addColorStop(0.4,'rgba(80,180,210,0.88)');
+      wg.addColorStop(0.8,'rgba(50,140,180,0.75)');
+      wg.addColorStop(1,'rgba(30,100,150,0.60)');
+      wctx.fillStyle=wg; wctx.fillRect(0,0,512,320);
+      // Specular highlights (shimmer lines)
+      wctx.strokeStyle='rgba(200,240,255,0.45)'; wctx.lineWidth=1.5;
+      for(let i=0;i<12;i++){
+        const sx=50+_koiRng()*420, sy=30+_koiRng()*260;
+        wctx.beginPath(); wctx.moveTo(sx,sy); wctx.lineTo(sx+40+_koiRng()*60,sy+5+_koiRng()*10); wctx.stroke();
+      }
+      // Reflection ripple circles
+      wctx.strokeStyle='rgba(180,230,255,0.20)'; wctx.lineWidth=1;
+      [[256,160,30],[180,100,20],[320,200,15],[150,220,18],[360,80,22]].forEach(([cx,cy,r])=>{
+        wctx.beginPath(); wctx.ellipse(cx,cy,r,r*0.5,0,0,Math.PI*2); wctx.stroke();
+        wctx.beginPath(); wctx.ellipse(cx,cy,r*1.8,r*0.9,0,0,Math.PI*2); wctx.stroke();
+      });
+      return new THREE.CanvasTexture(wc);
+    })();
+    // Pond surface
+    const pondMat=new THREE.MeshBasicMaterial({map:waterTex,transparent:true,opacity:0.88,depthWrite:false});
+    const pond=new THREE.Mesh(new THREE.EllipseCurve ? // fallback: use PlaneGeometry
+      new THREE.CircleGeometry(2.1,24) :
+      new THREE.PlaneGeometry(4.2,2.6),pondMat);
+    pond.rotation.x=-Math.PI/2;
+    pond.scale.set(1,0.60,1); // make elliptical (wider than deep)
+    pond.position.set(0,0.022,-0.5); _threeScene.add(pond);
+    // Stone edging rim
+    const rimMat=new THREE.MeshLambertMaterial({color:0x8A8468});
+    const rim=new THREE.Mesh(new THREE.TorusGeometry(2.16,0.12,6,24),rimMat);
+    rim.rotation.x=Math.PI/2; rim.scale.set(1,0.60,1);
+    rim.position.set(0,0.030,-0.5); _threeScene.add(rim);
+    const rimOl=new THREE.Mesh(new THREE.TorusGeometry(2.16,0.12,6,24),
+      new THREE.MeshBasicMaterial({color:0x3A3020,side:THREE.BackSide}));
+    rimOl.rotation.x=Math.PI/2; rimOl.scale.set(1.04,0.60,1.04);
+    rimOl.position.set(0,0.030,-0.5); _threeScene.add(rimOl);
+    // Koi fish sprites
+    const koiColors=[0xFF7820,0xFF3010,0xFFFFFF,0xFF8844,0xFFCC00,0xFF4466];
+    const koiTex=(()=>{
+      const kc=document.createElement('canvas'); kc.width=48; kc.height=20;
+      const kctx=kc.getContext('2d');
+      const kg=kctx.createRadialGradient(24,10,0,24,10,16);
+      kg.addColorStop(0,'rgba(255,120,40,1)');
+      kg.addColorStop(0.6,'rgba(255,80,20,0.7)');
+      kg.addColorStop(1,'rgba(255,60,10,0)');
+      kctx.fillStyle=kg;
+      kctx.beginPath(); kctx.ellipse(24,10,20,8,0,0,Math.PI*2); kctx.fill();
+      return new THREE.CanvasTexture(kc);
+    })();
+    const _koiFish=[];
+    for(let ki=0;ki<8;ki++){
+      const kColor=koiColors[ki%koiColors.length];
+      const kMat=new THREE.SpriteMaterial({map:koiTex,color:kColor,transparent:true,opacity:0.82,depthWrite:false});
+      const kf=new THREE.Sprite(kMat);
+      kf.scale.set(0.55+_koiRng()*0.25, 0.22+_koiRng()*0.10, 1);
+      const ka=_koiRng()*Math.PI*2;
+      const kr=0.3+_koiRng()*1.4;
+      kf.position.set(Math.cos(ka)*kr*2.0, 0.04, -0.5+Math.sin(ka)*kr*1.15);
+      kf.userData.ang=ka; kf.userData.speed=0.004+_koiRng()*0.005;
+      kf.userData.rad=kr; _threeScene.add(kf);
+      _koiFish.push(kf);
+    }
+    // Lily pads (flat circles)
+    const lilyM=new THREE.MeshLambertMaterial({color:0x2A7A20,side:THREE.DoubleSide});
+    [[-0.8,0.4],[ 0.9,-0.8],[ 0.2,0.9],[-1.2,-0.5],[ 1.4,0.3]].forEach(([lx,lz])=>{
+      const lily=new THREE.Mesh(new THREE.CircleGeometry(0.18+_koiRng()*0.08,8),lilyM);
+      lily.rotation.x=-Math.PI/2; lily.position.set(lx,0.038,-0.5+lz*0.6); _threeScene.add(lily);
+      // Lily notch (small wedge missing)
+      const notch=new THREE.Mesh(new THREE.ConeGeometry(0.14,0.05,3),
+        new THREE.MeshBasicMaterial({color:0x4A9A30}));
+      notch.rotation.x=-Math.PI/2; notch.position.set(lx,0.040,-0.5+lz*0.6); _threeScene.add(notch);
+    });
+    // Animate koi in render loop (stored for access)
+    _threeScene.userData.koiFish = _koiFish;
+  }
+
   // v60: Magical tree light cone — soft pink shaft from canopy to floor ────────
   { // Open cone with apex at floor (y≈0), base at canopy (y≈5)
     const coneMat=new THREE.MeshBasicMaterial({
@@ -7688,6 +7771,15 @@ function startThreeAnimation(canvas) {
       em.group.position.x = em.ex + Math.cos(em.ang)*sw;
       em.group.position.z = em.ez + Math.sin(em.ang)*sw;
     });
+    // Koi fish — orbit around pond center at ground level
+    const _kf=_threeScene.userData.koiFish;
+    if(_kf){ _kf.forEach(kf=>{
+      kf.userData.ang+=kf.userData.speed;
+      const a=kf.userData.ang, r=kf.userData.rad;
+      kf.position.x=Math.cos(a)*r*2.0;
+      kf.position.z=-0.5+Math.sin(a)*r*1.15;
+      kf.material.rotation=-a; // face direction of travel
+    }); }
     // Ground mist — gentle drift and pulse at floor level
     _mistPlanes.forEach(ms => {
       ms.position.x += ms.userData.driftX;
