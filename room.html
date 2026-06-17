@@ -4612,15 +4612,26 @@ function _applyTreeGrowth(stage) {
   });
 }
 
-function _startRealMode() {
-  _previewOrbit = false;
-  _flyInDone = false;
-  _flyInStart = performance.now();
+function _launchHUD() {
   const loaderEl = document.getElementById('three-loader');
-  if(loaderEl){ loaderEl.style.display='none'; }
+  if(loaderEl) loaderEl.style.display='none';
   setTimeout(_showGreeting, 100);
   if(window._startStudyHud) window._startStudyHud();
   setTimeout(_checkAchievements, 2000);
+}
+function _startRealMode() {
+  const canvas = document.getElementById('room-canvas');
+  // If preview init failed (canvas was 0×0 at load time), do a full init now
+  if (!_threeRenderer || !canvas || canvas.width === 0) {
+    resizeThreeCanvas();
+    startThreeAnimation(canvas);
+    setTimeout(() => { _previewOrbit = false; _flyInDone = false; _flyInStart = performance.now(); _launchHUD(); }, 120);
+    return;
+  }
+  _previewOrbit = false;
+  _flyInDone = false;
+  _flyInStart = performance.now();
+  _launchHUD();
 }
 
 function startThreeAnimation(canvas) {
@@ -5658,40 +5669,26 @@ async function doLeave(){
   if(_threeControls) _threeControls.enabled = false;
 }
 
-// ── 離席偵測（5 分鐘無動作 → 燈光變暗） ──────────────────────────────
-const AWAY_MS = 5 * 60 * 1000;
-let awayTimer, isAway = false;
+// ── 離席偵測（切換分頁/最小化才算離席，讀書坐著不動不算） ────────────
+let isAway = false;
 
-function resetAwayTimer(){
-  if(isAway) return;
-  clearTimeout(awayTimer);
-  awayTimer = setTimeout(showAway, AWAY_MS);
-}
 function showAway(){
   if(document.getElementById('lock-screen').classList.contains('on')) return;
   isAway = true;
   document.getElementById('away-overlay').classList.add('show');
-  // Wave151: 自己的桌燈變暗
   const selfIdx = _currentUsers.findIndex(u=>u.isSelf);
-  if(selfIdx>=0 && _deskLampLights[selfIdx]){
-    _deskLampLights[selfIdx].intensity = 0.04;
-  }
+  if(selfIdx>=0 && _deskLampLights[selfIdx]) _deskLampLights[selfIdx].intensity = 0.04;
 }
 function hideAway(){
   isAway = false;
   document.getElementById('away-overlay').classList.remove('show');
-  resetAwayTimer();
-  // Wave151: 桌燈恢復
   const selfIdx = _currentUsers.findIndex(u=>u.isSelf);
-  if(selfIdx>=0 && _deskLampLights[selfIdx]){
-    _deskLampLights[selfIdx].intensity = 0.65;
-  }
+  if(selfIdx>=0 && _deskLampLights[selfIdx]) _deskLampLights[selfIdx].intensity = 0.65;
 }
 document.getElementById('btn-away-back')?.addEventListener('click', hideAway);
-['mousemove','keydown','touchstart','click'].forEach(ev =>
-  document.addEventListener(ev, resetAwayTimer, { passive: true })
-);
-resetAwayTimer();
+document.addEventListener('visibilitychange', () => {
+  if(document.hidden) showAway(); else hideAway();
+});
 
 // ── 今日記錄 ─────────────────────────────────────────────────────────
 function todayStr(){ return new Date().toISOString().slice(0,10); }
@@ -6757,10 +6754,13 @@ setInterval(() => {
 // Wave75: init audio panel toggle states on load
 _renderAudioPanel();
 
-// Block1: start 3D preview immediately — room renders behind entry screen
+// Block1: start 3D preview behind entry screen — defer 2 rAF to let browser compute layout first
 document.body.classList.add('entry-phase');
-resizeThreeCanvas();
-startThreeAnimation(document.getElementById('room-canvas'));
+requestAnimationFrame(() => requestAnimationFrame(() => {
+  resizeThreeCanvas();
+  const _previewCanvas = document.getElementById('room-canvas');
+  if (_previewCanvas && _previewCanvas.width > 0) startThreeAnimation(_previewCanvas);
+}));
 </script>
 </body>
 </html>
