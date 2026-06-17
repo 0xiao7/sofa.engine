@@ -4292,6 +4292,27 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v53: Stepping stones — garden path from Torii gate to tree ────────────────
+  { const stoneMat=new THREE.MeshLambertMaterial({color:0x7E7C68});
+    const stoneOl=new THREE.MeshBasicMaterial({color:0x2A2820,side:THREE.BackSide});
+    const mossM=new THREE.MeshLambertMaterial({color:0x4A7830});
+    // 5 stones from gate (z=6.5) to tree (z=3.2), slight x scatter
+    [[0.22,3.30],[-.28,4.00],[0.35,4.68],[-.18,5.28],[0.06,5.90]].forEach(([sx,sz],i)=>{
+      const r=0.188+Math.sin(i*2.3)*0.028; // varied radius
+      const seg=7+i%3; // 7-9 sides (irregular stone feel)
+      const stone=new THREE.Mesh(new THREE.CylinderGeometry(r,r*1.06,0.058,seg),stoneMat);
+      stone.rotation.y=i*0.88; // irregular orientation
+      stone.position.set(sx,0.030,sz); _threeScene.add(stone);
+      const sol=new THREE.Mesh(new THREE.CylinderGeometry(r+0.012,r*1.06+0.014,0.060,seg),stoneOl);
+      sol.rotation.y=i*0.88; sol.position.set(sx,0.030,sz); _threeScene.add(sol);
+      // Moss patch on some stones
+      if(i%2===0){
+        const moss=new THREE.Mesh(new THREE.IcosahedronGeometry(0.055,0),mossM);
+        moss.position.set(sx+0.06,0.065,sz-0.04); _threeScene.add(moss);
+      }
+    });
+  }
+
   // v48: Ikebana flower pedestals — eye-level decoration in path to tree ───────
   { const pedMat = new THREE.MeshLambertMaterial({ color: 0x4A2E0E }); // dark walnut
     const pedTopMat = new THREE.MeshLambertMaterial({ color: 0x3A2008 });
