@@ -2995,6 +2995,32 @@ function initThreeScene(canvas) {
     _foliageMeshes.push({ mesh: leaf, ox:TX+dx, oy:y, oz:TZ+dz, phase: fi*0.7, amp:0.05+fi*0.005 });
   });
 
+  // Cherry blossom clusters — pink flower puffs interspersed with green foliage
+  { const blossomColors = [0xFFB0C8, 0xFFC8D8, 0xFF90B0, 0xFFD0E0, 0xFFAEC0, 0xFFA8C8];
+    [
+      // Lower visible blossom clusters (front-facing positions for visibility)
+      [-1.1,4.2,-0.5,0.62],[0.8,4.0,0.8,0.55],[0.5,4.5,-0.7,0.50],[-0.6,4.3,0.6,0.58],
+      // Mid-canopy pink accents
+      [-0.9,5.6,-0.2,0.72],[0.7,5.4,0.6,0.65],[0,5.8,-0.9,0.58],[-0.4,6.1,0.4,0.52],
+      // Upper crown blossoms
+      [0.5,6.9,-0.4,0.42],[-0.4,7.0,0.5,0.38],[0.2,7.3,0.1,0.36],
+      // Hanging blossom edge clusters (most visible from entrance)
+      [1.2,4.8,0.2,0.48],[-1.2,4.6,-0.4,0.45],[0.9,5.1,-0.8,0.42],
+    ].forEach(([dx,y,dz,r],bi) => {
+      const bGeo = new THREE.IcosahedronGeometry(r, 0);
+      const bMesh = new THREE.Mesh(bGeo, mToon(blossomColors[bi % blossomColors.length]));
+      bMesh.position.set(TX+dx, y, TZ+dz); _threeScene.add(bMesh);
+      const bOl = _ol(bGeo, 1.07, 0x8B1A3A);
+      bOl.position.copy(bMesh.position); _threeScene.add(bOl);
+      bMesh.userData.isTree = true;
+      _foliageMeshes.push({ mesh:bMesh, ox:TX+dx, oy:y, oz:TZ+dz, phase:bi*0.9+3.2, amp:0.04+bi*0.002 });
+    });
+    // Blossom point light — soft rose glow from within canopy
+    const bPL = new THREE.PointLight(0xFF88B0, 0.35, 5.5);
+    bPL.position.set(TX+0.3, 5.0, TZ-0.3); _threeScene.add(bPL);
+    _torchLights.push(bPL);
+  }
+
   // Canopy interior sunlight — PointLight nestled in upper foliage
   { const cPL = new THREE.PointLight(0xD0FF90, 0.55, 7.0);
     cPL.position.set(TX, 6.8, TZ); _threeScene.add(cPL);
