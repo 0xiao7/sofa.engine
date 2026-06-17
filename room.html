@@ -2255,6 +2255,29 @@ function initThreeScene(canvas) {
   rope.position.set(-0.5, 8.15, -7.78);
   _threeScene.add(rope);
 
+  // Sunlight floor wash — warm additive glow pooling in front of back windows
+  { const sfC = document.createElement('canvas'); sfC.width = sfC.height = 256;
+    const sfCtx = sfC.getContext('2d');
+    const sfG = sfCtx.createRadialGradient(128,128,0,128,128,128);
+    sfG.addColorStop(0,'rgba(255,240,180,0.65)');
+    sfG.addColorStop(0.5,'rgba(255,220,120,0.25)');
+    sfG.addColorStop(1,'rgba(255,200,80,0)');
+    sfCtx.fillStyle = sfG; sfCtx.fillRect(0,0,256,256);
+    const sfTex = new THREE.CanvasTexture(sfC);
+    const sfMesh = new THREE.Mesh(
+      new THREE.PlaneGeometry(18, 5),
+      new THREE.MeshBasicMaterial({
+        map: sfTex, transparent: true, depthWrite: false,
+        blending: THREE.AdditiveBlending, opacity: 0.55
+      })
+    );
+    sfMesh.rotation.x = -Math.PI/2;
+    sfMesh.position.set(0, 0.012, -4.5);
+    _threeScene.add(sfMesh);
+    // Darken at night — store for render loop
+    _threeScene.userData._sunFloorWash = sfMesh;
+  }
+
   // Wall clock
   const clockFaceTex = (() => {
     const c=document.createElement('canvas'); c.width=c.height=128;
@@ -2457,6 +2480,16 @@ function initThreeScene(canvas) {
     }
   });
 
+  // Bookshelf overhead accent lights — warm gold, one per section per side
+  { const _abZ = [-7,-4.5,-2,0.5,3,5.5];
+    _abZ.forEach(z => {
+      const lL = new THREE.PointLight(0xFFCC60, 0.20, 5.0);
+      lL.position.set(-10.8, 7.5, z); _threeScene.add(lL); _torchLights.push(lL);
+      const lR = new THREE.PointLight(0xFFCC60, 0.20, 5.0);
+      lR.position.set(10.8, 7.5, z); _threeScene.add(lR); _torchLights.push(lR);
+    });
+  }
+
   // String lights along top of bookshelves — warm fairy-light glow
   const _strLightTex = (() => {
     const sc = document.createElement('canvas'); sc.width = 32; sc.height = 32;
@@ -2643,6 +2676,20 @@ function initThreeScene(canvas) {
   const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.22,0.34,2.8,8), trunkMat);
   trunk.position.set(TX,2.2,TZ); _threeScene.add(trunk);
   trunk.userData.isTree = true;
+  // Root buttresses — 6 flat roots radiating from trunk base
+  { const rMat = new THREE.MeshLambertMaterial({ color: 0x7A5428 });
+    for(let ri=0; ri<6; ri++){
+      const ang = ri*Math.PI*2/6 + Math.PI*0.08;
+      const cs = Math.cos(ang), sn = Math.sin(ang);
+      const rLen = 1.0 + (ri%3)*0.18;
+      const rb = new THREE.Mesh(new THREE.BoxGeometry(0.21,0.14,rLen), rMat);
+      rb.position.set(TX+cs*(0.44+rLen/2), 0.07, TZ+sn*(0.44+rLen/2));
+      rb.rotation.y = -ang; _threeScene.add(rb);
+      const rt = new THREE.Mesh(new THREE.BoxGeometry(0.13,0.08,0.34), rMat);
+      rt.position.set(TX+cs*(0.44+rLen+0.17), 0.04, TZ+sn*(0.44+rLen+0.17));
+      rt.rotation.y = -ang; _threeScene.add(rt);
+    }
+  }
   // 圓形地毯由 _buildRug() 在 initThreeScene 末段統一建立（Persian canvas texture）
   // 枝葉 — 三層茂盛樹冠，參考影片中央大樹風格
   const foliageColors = [0x2E9A48,0x3DAA58,0x4DB86A,0x5CC870,0x26883C,0x48C060,0x38B050,0x309040,0x5AD068,0x22803A];
@@ -3487,6 +3534,7 @@ function initThreeScene(canvas) {
   _buildCeilingFan();
   // Wave133: Center rug — permanent room feature
   _buildRug();
+  _buildEntryMedallion();
   // Wave138: Decorative picture frames on side walls
   _buildWallFrames();
   // Block 5: 右牆每日法條公告欄
@@ -5116,6 +5164,49 @@ function _buildRug() {
   _threeScene.add(_rugMesh);
 }
 
+// ─── Entry medallion — decorative floor inlay near entrance ─────────────────
+function _buildEntryMedallion() {
+  const cv = document.createElement('canvas'); cv.width = cv.height = 256;
+  const ctx = cv.getContext('2d');
+  // Base: warm cream marble
+  ctx.fillStyle = '#E8DFC4'; ctx.fillRect(0,0,256,256);
+  // Outer ring
+  ctx.strokeStyle = '#8B6A28'; ctx.lineWidth = 8;
+  ctx.beginPath(); ctx.arc(128,128,120,0,Math.PI*2); ctx.stroke();
+  ctx.strokeStyle = '#C8A840'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.arc(128,128,112,0,Math.PI*2); ctx.stroke();
+  // 8-point compass star
+  const star8 = (r,or,fill) => {
+    ctx.fillStyle = fill;
+    ctx.beginPath();
+    for(let i=0;i<8;i++){
+      const a = i/8*Math.PI*2, a2 = a+Math.PI/8;
+      const x=128+Math.cos(a)*r, y=128+Math.sin(a)*r;
+      const ox=128+Math.cos(a2)*or, oy=128+Math.sin(a2)*or;
+      if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      ctx.lineTo(ox,oy);
+    }
+    ctx.closePath(); ctx.fill();
+  };
+  star8(95,40,'#C8A030');
+  star8(75,30,'#8B6028');
+  star8(52,22,'#C8A030');
+  // Center circle
+  ctx.fillStyle='#8B6028'; ctx.beginPath(); ctx.arc(128,128,20,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#C8A030'; ctx.beginPath(); ctx.arc(128,128,12,0,Math.PI*2); ctx.fill();
+  // SoFa S initial
+  ctx.fillStyle='#E8DFC4'; ctx.font='bold 14px serif'; ctx.textAlign='center';
+  ctx.fillText('S',128,133);
+
+  const tex = new THREE.CanvasTexture(cv);
+  const geo = new THREE.CircleGeometry(1.8, 48);
+  const mat = new THREE.MeshBasicMaterial({ map:tex, transparent:false, side:THREE.FrontSide });
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.rotation.x = -Math.PI / 2;
+  mesh.position.set(0, 0.007, 10.5); // entry corridor, near entrance arch
+  _threeScene.add(mesh);
+}
+
 // ─── Wave148: 入口歡迎地墊 ───────────────────────────────────────────────────
 
 function _drawWelcomeMat(hour) {
@@ -5983,6 +6074,13 @@ function startThreeAnimation(canvas) {
     // Wave 90: moonlight breathing animation (every frame)
     if (_moonlightPatch) {
       _moonlightPatch.material.opacity = 0.25 + Math.sin(_threeTime * 0.02) * 0.1;
+    }
+    // Sunlight floor wash — bright in daytime, fade at night
+    { const sfw = _threeScene.userData._sunFloorWash;
+      if(sfw){
+        const dayF = Math.min(tod.ambI / 2.5, 1.0);
+        sfw.material.opacity = dayF * (0.50 + 0.08 * Math.sin(_threeTime * 0.4));
+      }
     }
     // Avatar bob (body only — head/legs stay fixed)
     _userAvatarMeshes.forEach((m, i) => {
