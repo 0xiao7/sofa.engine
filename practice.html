@@ -804,10 +804,10 @@ function render(){
   ghost.innerHTML=html;
   const cor=[...typeInput].filter((c,i)=>c===typeText[i]).length;
   const err=typeInput.length-cor;
-  const acc=typeInput.length?Math.round(cor/typeInput.length*100):100;
+  const acc=typeInput.length?Math.round(cor/typeInput.length*100):null;
   const prog=Math.min(typeText.length?Math.round(typeInput.length/typeText.length*100):0,100);
-  document.getElementById('acc').textContent=acc+'%';
-  document.getElementById('stat-acc').textContent=acc+'%';
+  document.getElementById('acc').textContent=acc!==null?acc+'%':'—';
+  document.getElementById('stat-acc').textContent=acc!==null?acc+'%':'—';
   document.getElementById('stat-prog').textContent=prog+'%';
   document.getElementById('stat-err').textContent=err;
   document.getElementById('prog').style.width=prog+'%';
@@ -1095,8 +1095,8 @@ function renderMode2(){
   document.getElementById('stat-prog').textContent=prog+'%';
   document.getElementById('prog').style.width=prog+'%';
   const cor=[...typeInput].filter((c,i)=>c===(sentences[sentIdx]||'')[i]).length;
-  const acc=typeInput.length?Math.round(cor/typeInput.length*100):100;
-  document.getElementById('stat-acc').textContent=acc+'%';
+  const acc=typeInput.length?Math.round(cor/typeInput.length*100):null;
+  document.getElementById('stat-acc').textContent=acc!==null?acc+'%':'—';
   document.getElementById('stat-err').textContent=typeInput.length-cor;
 }
 
