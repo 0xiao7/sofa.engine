@@ -1211,11 +1211,11 @@ function _timeOfDayPalette() {
   // Returns {ambR,ambG,ambB, torchMult, fogDensity} based on Asia/Taipei hour
   const hour = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
   if (hour >= 6 && hour < 11) {
-    // Morning: warm bright library
-    return { ambR:1.0, ambG:0.96, ambB:0.88, ambI:2.5, torchMult:0.25, fogDensity:0.002 };
+    // Morning: warm bright library with soft cherry blossom pink cast
+    return { ambR:1.04, ambG:0.92, ambB:0.92, ambI:2.5, torchMult:0.25, fogDensity:0.002 };
   } else if (hour >= 11 && hour < 17) {
-    // Afternoon: peak brightness
-    return { ambR:1.0, ambG:0.98, ambB:0.92, ambI:2.5, torchMult:0.15, fogDensity:0.001 };
+    // Afternoon: bright with gentle spring rose tint
+    return { ambR:1.04, ambG:0.94, ambB:0.95, ambI:2.5, torchMult:0.15, fogDensity:0.001 };
   } else if (hour >= 17 && hour < 21) {
     // Evening: golden hour warmth
     // Golden hour: warm amber tint, torches glow at moderate level, slight fog
@@ -1982,6 +1982,16 @@ function initThreeScene(canvas) {
     const _al = new THREE.AmbientLight(0xFFF8F0, _initTod.ambI);
     _al.color.setRGB(_initTod.ambR, _initTod.ambG, _initTod.ambB);
     _threeScene.add(_al); }
+
+  // v47: Sakura bloom point light — permanent soft pink glow from tree crown ──
+  // TX=0, TZ=3.0 defined later; use literals here
+  { const sakuraPL = new THREE.PointLight(0xFFBBCC, 0.42, 10.0);
+    sakuraPL.position.set(0, 5.5, 3.0); // mid-tree height, pink bloom glow
+    _threeScene.add(sakuraPL);
+    const sakuraPL2 = new THREE.PointLight(0xFFCCDD, 0.25, 6.5);
+    sakuraPL2.position.set(0, 2.0, 4.5); // lower fill toward cat/rug
+    _threeScene.add(sakuraPL2);
+  }
 
   // 窗光：柔和自然光從後方照進
   const windowLight = new THREE.DirectionalLight(0xFFFFFF, 1.0);
