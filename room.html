@@ -2881,6 +2881,86 @@ function initThreeScene(canvas) {
     _threeScene.add(_moonShaftSprite);
   }
 
+  // v42: Hanging wisteria clusters cascading from ceiling near tree ─────────
+  { const _wRng = _rng(77);
+    const wisMats = [0xCC88DD, 0xBB77CC, 0xDD99EE, 0xAA66BB, 0xEEAAFF, 0xD4A0E8]
+      .map(c => mToon(c));
+    const wLeafMat = mToon(0x5C9E4A); // tiny leaf accents
+    const vineMat = new THREE.MeshLambertMaterial({ color: 0x5A3822 });
+    // 5 wisteria clusters: placed around + in front of tree, outside chandelier ring
+    [
+      [TX-2.5, TZ+1.8],  // left flank
+      [TX+2.8, TZ+1.2],  // right flank
+      [TX-1.2, TZ+3.8],  // left-front (toward camera)
+      [TX+1.6, TZ+3.6],  // right-front (toward camera)
+      [TX-0.3, TZ-2.2],  // behind tree
+    ].forEach(([cx, cz], ci) => {
+      const topY = 8.42 + _wRng() * 0.20;
+      const mainLen = 1.90 + _wRng() * 0.55;
+
+      // Main hanging vine stem
+      const vine = new THREE.Mesh(
+        new THREE.CylinderGeometry(0.013, 0.007, mainLen, 4), vineMat);
+      vine.position.set(cx, topY - mainLen/2, cz);
+      _threeScene.add(vine);
+
+      // 2-3 side branches drooping off mid-stem
+      const brCount = 2 + (ci % 2);
+      for(let bi = 0; bi < brCount; bi++) {
+        const brAng = (bi / brCount) * Math.PI * 2 + ci * 0.8;
+        const brY = topY - 0.6 - bi * 0.5;
+        const brLen = 0.45 + _wRng() * 0.35;
+        const brX = cx + Math.cos(brAng) * 0.20;
+        const brZ = cz + Math.sin(brAng) * 0.20;
+        const br = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.007, 0.004, brLen, 4), vineMat);
+        br.rotation.z = Math.cos(brAng) * 0.40;
+        br.rotation.x = Math.sin(brAng) * 0.40;
+        br.position.set(brX, brY - brLen * 0.5, brZ);
+        _threeScene.add(br);
+        // Flower balls on branch tip
+        for(let fi = 0; fi < 6 + (bi % 3); fi++) {
+          const fFrac = fi / 6;
+          const fl = new THREE.Mesh(
+            new THREE.IcosahedronGeometry(0.040 + Math.sin(fFrac*Math.PI)*0.018, 0),
+            wisMats[(ci * 5 + bi * 3 + fi) % wisMats.length]);
+          fl.position.set(
+            brX + Math.cos(brAng) * fFrac * brLen * 0.85 + (_wRng()-0.5)*0.10,
+            brY - fFrac * brLen - (_wRng() * 0.14),
+            brZ + Math.sin(brAng) * fFrac * brLen * 0.85 + (_wRng()-0.5)*0.10
+          );
+          _threeScene.add(fl);
+        }
+      }
+
+      // Dense flower cloud at bottom of main vine
+      const flCount = 28 + ci * 5;
+      for(let fi = 0; fi < flCount; fi++) {
+        const frac = 0.35 + _wRng() * 0.70;
+        const ang = _wRng() * Math.PI * 2;
+        const r = _wRng() * _wRng() * 0.32; // bias toward center
+        const flR = 0.038 + _wRng() * 0.024;
+        const fl = new THREE.Mesh(
+          new THREE.IcosahedronGeometry(flR, 0),
+          wisMats[(ci * 7 + fi) % wisMats.length]);
+        fl.position.set(
+          cx + Math.cos(ang) * r,
+          topY - frac * mainLen,
+          cz + Math.sin(ang) * r
+        );
+        _threeScene.add(fl);
+      }
+      // Tiny leaf accents mixed in
+      for(let li = 0; li < 5; li++) {
+        const frac = 0.3 + _wRng() * 0.55;
+        const ang = _wRng() * Math.PI * 2;
+        const lf = new THREE.Mesh(new THREE.IcosahedronGeometry(0.028, 0), wLeafMat);
+        lf.position.set(cx + Math.cos(ang)*0.22, topY - frac*mainLen, cz + Math.sin(ang)*0.22);
+        _threeScene.add(lf);
+      }
+    });
+  }
+
   // ── 中央水晶吊燈環（atrium chandelier ring above tree） ────────────────
   { const CRY = 8.20, CRR = 1.85; // ring height, ring radius
     // Main ring (torus)
