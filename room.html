@@ -1091,7 +1091,7 @@ let _mixerLastTime = 0;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _DESK_VISUAL_POS_3D = []; // stores {vx,vz,ry} for each desk after scatter
 const _seenUserIds = new Set();
-let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [];
+let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [];
 let _snowParticles = [];
 let _waterDroplets = [], _waterTx = null; // Wave132: tree watering
 let _sakuraParticles = [];
@@ -2469,6 +2469,18 @@ function initThreeScene(canvas) {
 
   // Tree — 中央主角大樹，移近入口讓它在眼睛高度視角下顯得巨大
   const TX = 0, TZ = 3.0;
+
+  // ── 樹台底座 (raised platform under tree) ───────────────────────────────
+  const platMat = new THREE.MeshLambertMaterial({ color: 0xC09850 }); // warm stone
+  const platRing = new THREE.Mesh(new THREE.CylinderGeometry(3.2,3.2,0.10,32), platMat);
+  platRing.position.set(TX,0.05,TZ); _threeScene.add(platRing);
+  const platInner = new THREE.Mesh(new THREE.CylinderGeometry(2.8,2.8,0.05,32), mToon(0xD4A848));
+  platInner.position.set(TX,0.09,TZ); _threeScene.add(platInner);
+  // Ambient tree glow — warm magical light from below the canopy
+  const treeGlow = new THREE.PointLight(0xFFEE88, 0.55, 5.0);
+  treeGlow.position.set(TX, 3.5, TZ); _threeScene.add(treeGlow);
+  _torchLights.push(treeGlow);
+
   // Trunk — lower wide base + upper tapered cylinder for natural look
   const trunkMat = tMat('trunk',_woodTex);
   const trunkBase = new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.52,1.2,10), trunkMat);
@@ -2538,6 +2550,39 @@ function initThreeScene(canvas) {
       blinkOffset: _ffRng() * Math.PI * 2,
       blinkSpeed: 0.8 + _ffRng() * 1.4,
     });
+  }
+
+  // ── 金色塵埃粒子 (floating dust motes, always active) ─────────────────────
+  if (!_isMobile) {
+    const _dmTex = (() => {
+      const dc = document.createElement('canvas'); dc.width = 16; dc.height = 16;
+      const dctx = dc.getContext('2d');
+      const dg = dctx.createRadialGradient(8,8,0,8,8,7);
+      dg.addColorStop(0,'rgba(255,240,160,1)'); dg.addColorStop(0.5,'rgba(255,220,80,0.5)');
+      dg.addColorStop(1,'rgba(255,200,60,0)');
+      dctx.fillStyle=dg; dctx.fillRect(0,0,16,16);
+      return new THREE.CanvasTexture(dc);
+    })();
+    const _dmRng = _rng(77);
+    for(let di=0; di<45; di++){
+      const dm = new THREE.Sprite(new THREE.SpriteMaterial({
+        map:_dmTex, transparent:true, depthWrite:false,
+        blending:THREE.AdditiveBlending, opacity: 0.15 + _dmRng()*0.25
+      }));
+      const sc = 0.06 + _dmRng()*0.10;
+      dm.scale.set(sc,sc,sc);
+      dm.position.set(
+        (_dmRng()-0.5)*22,   // random x across room
+        0.5 + _dmRng()*6.5,  // height 0.5–7m
+        (_dmRng()-0.5)*18    // random z across room depth
+      );
+      dm.userData.vx = (_dmRng()-0.5)*0.0018;
+      dm.userData.vy = (_dmRng()-0.5)*0.0008;
+      dm.userData.vz = (_dmRng()-0.5)*0.0018;
+      dm.userData.phase = _dmRng()*Math.PI*2;
+      _threeScene.add(dm);
+      _dustMotes.push(dm);
+    }
   }
 
   // Seasonal petals (June–Aug)
@@ -4857,7 +4902,7 @@ function _buildRug() {
   });
   _rugMesh = new THREE.Mesh(geo, mat);
   _rugMesh.rotation.x = -Math.PI / 2;
-  _rugMesh.position.set(0, 0.018, 3.0); // center of room, under tree trunk at TZ=3
+  _rugMesh.position.set(0, 0.12, 3.0); // above platform top (platInner top ≈ 0.115)
   _threeScene.add(_rugMesh);
 }
 
@@ -5797,6 +5842,21 @@ function startThreeAnimation(canvas) {
       ff.sprite.position.z = -1 + Math.sin(ff.angle) * ff.radius;
       // Soft blink
       ff.sprite.material.opacity = 0.25 + 0.65 * (Math.sin(_threeTime * ff.blinkSpeed + ff.blinkOffset) * 0.5 + 0.5);
+    });
+    // Dust motes — slow gentle drift through room air
+    _dustMotes.forEach(dm => {
+      dm.position.x += dm.userData.vx + 0.0012*Math.sin(_threeTime*0.3 + dm.userData.phase);
+      dm.position.y += dm.userData.vy + 0.0005*Math.cos(_threeTime*0.4 + dm.userData.phase);
+      dm.position.z += dm.userData.vz;
+      // Soft pulse opacity
+      dm.material.opacity = 0.08 + 0.18 * (Math.sin(_threeTime*0.6 + dm.userData.phase)*0.5+0.5);
+      // Wrap around room bounds
+      if(dm.position.x > 12) dm.position.x = -12;
+      if(dm.position.x < -12) dm.position.x = 12;
+      if(dm.position.y > 7.5) dm.userData.vy *= -1;
+      if(dm.position.y < 0.3) dm.userData.vy = Math.abs(dm.userData.vy);
+      if(dm.position.z > 10) dm.position.z = -8;
+      if(dm.position.z < -8) dm.position.z = 10;
     });
     // Seasonal petals
     _petalParticles.forEach(p => {
