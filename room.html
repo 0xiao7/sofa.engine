@@ -2125,9 +2125,38 @@ function initThreeScene(canvas) {
     return t;
   })();
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(28,26),
-    new THREE.MeshLambertMaterial({ map: floorTex, color: 0xF5E8D0 }));
+    new THREE.MeshLambertMaterial({ map: floorTex, color: 0xFFFFFF }));
   floor.rotation.x = -Math.PI/2;
   _threeScene.add(floor);
+
+  // Wall-floor ambient occlusion strips — dark gradient at base of walls for depth
+  { const aoTex = (() => {
+      const ac = document.createElement('canvas'); ac.width = 1; ac.height = 64;
+      const actx = ac.getContext('2d');
+      const ag = actx.createLinearGradient(0,0,0,64);
+      ag.addColorStop(0,'rgba(20,10,5,0.32)');
+      ag.addColorStop(0.4,'rgba(15,8,3,0.14)');
+      ag.addColorStop(1,'rgba(10,5,2,0)');
+      actx.fillStyle=ag; actx.fillRect(0,0,1,64);
+      const t=new THREE.CanvasTexture(ac);
+      t.wrapS=t.wrapT=THREE.ClampToEdgeWrapping; return t;
+    })();
+    const aoMat = new THREE.MeshBasicMaterial({
+      map:aoTex, transparent:true, depthWrite:false, side:THREE.FrontSide, opacity:1.0
+    });
+    // Left wall strip
+    const aoL = new THREE.Mesh(new THREE.PlaneGeometry(26,0.70), aoMat);
+    aoL.position.set(-12.70, 0.35, 0); aoL.rotation.y = Math.PI/2; _threeScene.add(aoL);
+    // Right wall strip
+    const aoR = new THREE.Mesh(new THREE.PlaneGeometry(26,0.70), aoMat);
+    aoR.position.set(12.70, 0.35, 0); aoR.rotation.y = -Math.PI/2; _threeScene.add(aoR);
+    // Back wall strip
+    const aoB = new THREE.Mesh(new THREE.PlaneGeometry(24,0.70), aoMat);
+    aoB.position.set(0, 0.35, -7.70); _threeScene.add(aoB);
+    // Front wall strip
+    const aoF = new THREE.Mesh(new THREE.PlaneGeometry(24,0.70), aoMat);
+    aoF.position.set(0, 0.35, 7.90); aoF.rotation.y = Math.PI; _threeScene.add(aoF);
+  }
 
   // Walls — 奶油米色，明亮圖書館感
   const wallMat = mToon(0xEDE5D5);
@@ -2301,6 +2330,31 @@ function initThreeScene(canvas) {
   );
   panoramaGlass.position.set(0, 4.5, -7.93);
   _threeScene.add(panoramaGlass);
+  // 玻璃反光層 — 微弱藍白光澤，讓窗戶看起來像真的玻璃
+  { const gTex = (() => {
+      const gc = document.createElement('canvas'); gc.width = 256; gc.height = 512;
+      const gctx = gc.getContext('2d');
+      const gg = gctx.createLinearGradient(0,0,256,512);
+      gg.addColorStop(0,'rgba(220,235,255,0.12)');
+      gg.addColorStop(0.3,'rgba(255,255,255,0.06)');
+      gg.addColorStop(0.6,'rgba(210,230,255,0.04)');
+      gg.addColorStop(1,'rgba(180,210,255,0.10)');
+      gctx.fillStyle=gg; gctx.fillRect(0,0,256,512);
+      // Diagonal sheen
+      gctx.strokeStyle='rgba(255,255,255,0.08)'; gctx.lineWidth=30;
+      gctx.beginPath(); gctx.moveTo(0,512); gctx.lineTo(256,0); gctx.stroke();
+      return new THREE.CanvasTexture(gc);
+    })();
+    const glassPane = new THREE.Mesh(
+      new THREE.PlaneGeometry(28, 9.0),
+      new THREE.MeshBasicMaterial({
+        map: gTex, transparent:true, depthWrite:false,
+        blending: THREE.NormalBlending, opacity: 1.0, side: THREE.FrontSide
+      })
+    );
+    glassPane.position.set(0, 4.5, -7.80);
+    _threeScene.add(glassPane);
+  }
   // 窗格立柱（落地高度）
   const mullionMat = new THREE.MeshBasicMaterial({ color: 0xDDD5C4 });
   [-9.33,-5.6,-1.87,1.87,5.6,9.33].forEach(mx=>{
@@ -2487,20 +2541,33 @@ function initThreeScene(canvas) {
   bWallTop.position.set(0, 9.5, -8.1); _threeScene.add(bWallTop);
   const ceil = new THREE.Mesh(new THREE.PlaneGeometry(28,28), mToon(0xF2EDE0));
   ceil.rotation.x = Math.PI/2; ceil.position.set(0, 9, 0); _threeScene.add(ceil);
-  // Ceiling wooden beams — lighter warm wood
-  const beamMat = mToon(0xC4A870);
+  // Ceiling wooden beams — dark walnut coffered grid
+  const beamMat = new THREE.MeshLambertMaterial({ color: 0x6B4422 });
+  const beamCapMat = new THREE.MeshLambertMaterial({ color: 0x8B5C30 });
+  // Longitudinal beams (run front-to-back in Z)
   [-10,-5,0,5,10].forEach(bx => {
-    const beam = new THREE.Mesh(new THREE.BoxGeometry(0.4, 0.45, 26), beamMat);
-    beam.position.set(bx, 8.8, 0);
-    beam
-    _threeScene.add(beam);
+    const beam = new THREE.Mesh(new THREE.BoxGeometry(0.35, 0.50, 26), beamMat);
+    beam.position.set(bx, 8.78, 0); _threeScene.add(beam);
+    // Bottom accent strip (lighter edge)
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.05, 26), beamCapMat);
+    cap.position.set(bx, 8.52, 0); _threeScene.add(cap);
   });
-  // Cross beams
+  // Cross beams (run side-to-side in X)
   [-6, -1, 4].forEach(bz => {
-    const cross = new THREE.Mesh(new THREE.BoxGeometry(28, 0.3, 0.3), beamMat);
-    cross.position.set(0, 8.6, bz);
-    _threeScene.add(cross);
+    const cross = new THREE.Mesh(new THREE.BoxGeometry(26, 0.40, 0.32), beamMat);
+    cross.position.set(0, 8.68, bz); _threeScene.add(cross);
+    const crossCap = new THREE.Mesh(new THREE.BoxGeometry(26, 0.05, 0.35), beamCapMat);
+    crossCap.position.set(0, 8.47, bz); _threeScene.add(crossCap);
   });
+  // Ceiling fill panels between beams (warm cream inset panels)
+  { const panelMat = new THREE.MeshLambertMaterial({ color: 0xF0E4CC });
+    [-7.5,-2.5,2.5,7.5].forEach(px=>{
+      [-3.5,1.5].forEach(pz=>{
+        const panel = new THREE.Mesh(new THREE.BoxGeometry(4.5,0.04,4.5), panelMat);
+        panel.position.set(px, 9.0, pz); _threeScene.add(panel);
+      });
+    });
+  }
 
   // (舊小窗移除 — 改為全景半窗)
 
