@@ -1928,8 +1928,8 @@ function initThreeScene(canvas) {
   // Visible ceiling pendant lamp fixtures
   {
     const lampPositions = _isMobile ? [[0,7,-1]] : [[-4.5,7,-4],[4.5,7,-4],[0,7,2]];
-    const shadeMat = new THREE.MeshToonMaterial({ color: 0xE8D090, side: THREE.DoubleSide });
-    const capMat   = new THREE.MeshToonMaterial({ color: 0x3A2A10 });
+    const shadeMat = new THREE.MeshLambertMaterial({ color: 0xE8D090, side: THREE.DoubleSide });
+    const capMat   = new THREE.MeshLambertMaterial({ color: 0x3A2A10 });
     lampPositions.forEach(([lx,ly,lz]) => {
       // Cord from ceiling
       const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,0.9,5), capMat);
@@ -2023,8 +2023,85 @@ function initThreeScene(canvas) {
 
   // Walls
   const wallMat = mToon(0xF2EDE0);
-  const bWall = new THREE.Mesh(box(22,8,0.3), wallMat);
-  bWall.position.set(0, 4, -8); _threeScene.add(bWall);
+  // 後牆：下半段實牆 + 上半段全景玻璃
+  const bWallLower = new THREE.Mesh(box(22,3.6,0.3), wallMat);
+  bWallLower.position.set(0, 1.8, -8); _threeScene.add(bWallLower);
+  // 窗台橫樑
+  const sillMat = new THREE.MeshLambertMaterial({ color: 0xC8B898 });
+  const windowSill = new THREE.Mesh(box(22.2,0.18,0.55), sillMat);
+  windowSill.position.set(0, 3.63, -7.73); _threeScene.add(windowSill);
+  // 全景玻璃（Canvas 畫天空 + 山脈，時段變化）
+  const _panoramaTex = (() => {
+    const W = 2048, H = 512;
+    const c = document.createElement('canvas'); c.width = W; c.height = H;
+    const ctx = c.getContext('2d');
+    const hour = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
+    // 時段顏色
+    let s0,s1,s2,hasSun=true,sunY=0.3,sunC='#FFF5CC';
+    if(hour>=5&&hour<7){s0='#1a3a5a';s1='#e8954a';s2='#f5c87a';sunY=0.78;sunC='#FFB84A';}
+    else if(hour>=7&&hour<17){s0='#5BAFD6';s1='#8ECAE6';s2='#C8E8F5';sunY=0.18;sunC='#FFFACC';}
+    else if(hour>=17&&hour<19){s0='#1a2a4a';s1='#e85a22';s2='#f5a844';sunY=0.72;sunC='#FFB84A';}
+    else if(hour>=19&&hour<21){s0='#0d1a2e';s1='#4a2a5a';s2='#8a4a5a';hasSun=false;}
+    else{s0='#080e1a';s1='#0f1a2e';s2='#1a2640';hasSun=false;}
+    const g=ctx.createLinearGradient(0,0,0,H);
+    g.addColorStop(0,s0);g.addColorStop(0.5,s1);g.addColorStop(1,s2);
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+    // 太陽/光球
+    if(hasSun){
+      const sx=W*0.78,sy=H*sunY;
+      const sg=ctx.createRadialGradient(sx,sy,2,sx,sy,45);
+      sg.addColorStop(0,sunC);sg.addColorStop(0.5,sunC+'88');sg.addColorStop(1,'rgba(0,0,0,0)');
+      ctx.fillStyle=sg;ctx.beginPath();ctx.arc(sx,sy,45,0,Math.PI*2);ctx.fill();
+    }
+    // 雲（白天）
+    if(hour>=6&&hour<19){
+      [[W*.08,H*.12,130,38],[W*.3,H*.07,180,48],[W*.57,H*.16,150,42],[W*.80,H*.10,110,32]].forEach(([cx,cy,cw,ch])=>{
+        ctx.fillStyle='rgba(255,255,255,0.38)';
+        ctx.beginPath();ctx.ellipse(cx,cy,cw,ch,0,0,Math.PI*2);ctx.fill();
+        ctx.fillStyle='rgba(255,255,255,0.20)';
+        ctx.beginPath();ctx.ellipse(cx-cw*.3,cy+ch*.3,cw*.7,ch*.6,0,0,Math.PI*2);ctx.fill();
+      });
+    }
+    // 星（夜晚）
+    if(hour>=20||hour<5){
+      const sr=_rng?_rng(99):Math.random;
+      for(let i=0;i<160;i++){
+        const sx=(sr?sr():Math.random())*W,sy=(sr?sr():Math.random())*H*.65;
+        ctx.fillStyle=`rgba(255,255,255,${.3+Math.random()*.7})`;
+        ctx.beginPath();ctx.arc(sx,sy,.5+Math.random()*1.5,0,Math.PI*2);ctx.fill();
+      }
+    }
+    // 遠山（三層：淡→中→深）
+    const isDay=hour>=6&&hour<19;
+    const m1=isDay?'#8BAFC8':'#182840';
+    const m2=isDay?'#5A7A90':'#0f1e30';
+    const m3=isDay?'#2A4A3A':'#080f18';
+    [[m1,[[0,.56],[W*.12,.36],[W*.24,.46],[W*.38,.30],[W*.52,.40],[W*.66,.26],[W*.78,.43],[W*.90,.33],[W,1]]],
+     [m2,[[0,.66],[W*.09,.50],[W*.22,.60],[W*.33,.46],[W*.45,.56],[W*.58,.42],[W*.70,.53],[W*.82,.48],[W*.93,.40],[W,1]]],
+     [m3,[[0,.78],[W*.14,.70],[W*.28,.76],[W*.42,.68],[W*.56,.73],[W*.70,.66],[W*.84,.72],[W,1]]]].forEach(([col,pts])=>{
+      ctx.fillStyle=col;ctx.beginPath();ctx.moveTo(0,H);
+      pts.forEach(([x,y])=>ctx.lineTo(x,H*y));
+      ctx.closePath();ctx.fill();
+    });
+    const t=new THREE.CanvasTexture(c);
+    return t;
+  })();
+  // 全景玻璃板（y=3.72 ~ y=8.02，高4.3，寬22）
+  const panoramaGlass = new THREE.Mesh(
+    new THREE.PlaneGeometry(22, 4.3),
+    new THREE.MeshBasicMaterial({ map: _panoramaTex, side: THREE.FrontSide })
+  );
+  panoramaGlass.position.set(0, 5.87, -7.93);
+  _threeScene.add(panoramaGlass);
+  // 窗格（立柱，暖白木色）
+  const mullionMat = new THREE.MeshBasicMaterial({ color: 0xDDD5C4 });
+  [-7.33,-3.67,0,3.67,7.33].forEach(mx=>{
+    const mul=new THREE.Mesh(new THREE.BoxGeometry(0.1,4.3,0.08),mullionMat);
+    mul.position.set(mx,5.87,-7.87);_threeScene.add(mul);
+  });
+  // 頂框（天花板處）
+  const topFrame=new THREE.Mesh(new THREE.BoxGeometry(22.2,0.18,0.12),sillMat);
+  topFrame.position.set(0,8.02,-7.92);_threeScene.add(topFrame);
 
   // Wall clock
   const clockFaceTex = (() => {
@@ -2104,14 +2181,7 @@ function initThreeScene(canvas) {
     _threeScene.add(cross);
   });
 
-  // Windows
-  [[-5,4,-7.8],[5,4,-7.8]].forEach(([x,y,z]) => {
-    const wm = new THREE.MeshBasicMaterial({ color:0x5BAFD6, transparent:true, opacity:0.22 });
-    const ww = new THREE.Mesh(new THREE.PlaneGeometry(2.8,3.2), wm);
-    ww.position.set(x,y,z); _threeScene.add(ww);
-    const frame = new THREE.Mesh(box(2.9,3.3,0.08), mToon(0xE8E2D5));
-    frame.position.set(x,y,z-0.1); _threeScene.add(frame);
-  });
+  // (舊小窗移除 — 改為全景半窗)
 
   // Volumetric light shafts — hidden in bright daytime theme
   const shaftMat = new THREE.MeshBasicMaterial({
@@ -2120,162 +2190,7 @@ function initThreeScene(canvas) {
     blending: THREE.AdditiveBlending
   });
 
-  // Bookshelves
-  const shelfMat = tMat('shelf',_shelfTex);
-  // Vivid game-palette book colors
-  const bookColors = [0xE05A3A,0x4A7FCC,0x4DAA6A,0xE8A030,0x5599CC,0xCC6644,0x9966BB,0x44A88A];
-  const _shelfGeo = box(2.2,4.5,0.55);
-  [-6,-3,0,3,6].forEach(x => {
-    const shelf = new THREE.Mesh(_shelfGeo, shelfMat);
-    shelf.position.set(x, 2.25, -7.72); _threeScene.add(shelf);
-    // Ink outline on bookshelf
-    const shOl = _ol(_shelfGeo, 1.02); shOl.position.copy(shelf.position); _threeScene.add(shOl);
-    shelf.userData.isBookshelf = true;
-    // Natural blonde-oak shelf planks
-    [1,2,3].forEach(row => {
-      const plank = new THREE.Mesh(box(2.0,0.07,0.48), mToon(0xC4A870));
-      plank.position.set(x, row*1.2, -7.70); _threeScene.add(plank);
-      plank.userData.isBookshelf = true;
-    });
-    // Books — two rows per shelf
-    for (let b=0; b<6; b++) {
-      const bk = new THREE.Mesh(box(0.22,0.9,0.38), mToon(bookColors[b%bookColors.length]));
-      bk.position.set(x - 0.52 + b*0.21, 1.65+Math.random()*0.05, -7.70);
-      bk.userData.isBookshelf = true;
-      _threeScene.add(bk);
-    }
-    for (let b=0; b<6; b++) {
-      const bk = new THREE.Mesh(box(0.22,0.9,0.38), mToon(bookColors[(b+4)%bookColors.length]));
-      bk.position.set(x - 0.52 + b*0.21, 2.85+Math.random()*0.05, -7.70);
-      bk.userData.isBookshelf = true;
-      _threeScene.add(bk);
-    }
-  });
-
-  // Bookshelf category labels (back wall) — bright library style
-  const SHELF_LABELS = ['民法\n基礎', '稅捐\n稽徵', '記帳士\n法規', '不動產\n法規', '地政士\n法規'];
-  [-6,-3,0,3,6].forEach((x, si) => {
-    const lc = document.createElement('canvas');
-    lc.width = 256; lc.height = 80;
-    const lctx = lc.getContext('2d');
-    // Warm cream label background
-    lctx.fillStyle = '#F5EDD8';
-    lctx.fillRect(0,0,256,80);
-    lctx.fillStyle = '#B8922A';
-    lctx.fillRect(0,0,256,5); // gold top bar
-    lctx.fillRect(0,75,256,5); // gold bottom bar
-    lctx.fillStyle = '#3A2810';
-    lctx.font = 'bold 26px sans-serif';
-    lctx.textAlign = 'center';
-    const lines = SHELF_LABELS[si].split('\n');
-    lines.forEach((ln,li) => lctx.fillText(ln, 128, 30 + li*30));
-    const lTex = new THREE.CanvasTexture(lc);
-    const lMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.8, 0.44),
-      new THREE.MeshBasicMaterial({map: lTex, side: THREE.DoubleSide})
-    );
-    lMesh.position.set(x, 4.72, -7.68);
-    lMesh.userData.isBookshelf = true;
-    _threeScene.add(lMesh);
-    // Natural oak frame
-    const lFrame = new THREE.Mesh(
-      new THREE.BoxGeometry(1.86, 0.50, 0.02),
-      new THREE.MeshBasicMaterial({color: 0xC4A870})
-    );
-    lFrame.position.set(x, 4.72, -7.70);
-    lFrame.userData.isBookshelf = true;
-    _threeScene.add(lFrame);
-  });
-
-  // Hanging banners from ceiling (decorative)
-  [
-    { x: -3.5, z: -2, text: ['SoFa', '自習室'], sub: '法律人的備考空間' },
-    { x:  3.5, z: -2, text: ['讀書', '加油💪'], sub: '每天進步一點點' },
-  ].forEach(def => {
-    const bc = document.createElement('canvas');
-    bc.width = 96; bc.height = 192;
-    const bctx = bc.getContext('2d');
-    // Banner background — warm cream library style
-    bctx.fillStyle = '#F5EDD8';
-    bctx.fillRect(0,0,96,192);
-    bctx.strokeStyle = '#C4955A';
-    bctx.lineWidth = 3;
-    bctx.strokeRect(4,4,88,184);
-    // Warm gold accent line at top
-    bctx.fillStyle = '#B8922A';
-    bctx.fillRect(8,12,80,3);
-    // Main text (vertical style — dark for readability)
-    bctx.fillStyle = '#2A1A08';
-    bctx.font = 'bold 32px serif';
-    bctx.textAlign = 'center';
-    def.text.forEach((t,ti) => bctx.fillText(t, 48, 70 + ti*48));
-    // Subtitle
-    bctx.fillStyle = '#7A5C2A';
-    bctx.font = '11px monospace';
-    bctx.fillText(def.sub, 48, 172);
-    // Bottom gold line
-    bctx.fillStyle = '#B8922A';
-    bctx.fillRect(8,177,80,3);
-    const bTex = new THREE.CanvasTexture(bc);
-    const bMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.7, 1.4),
-      new THREE.MeshBasicMaterial({map: bTex, side: THREE.DoubleSide, transparent: true})
-    );
-    bMesh.position.set(def.x, 5.6, def.z);
-    _threeScene.add(bMesh);
-    // Thin wooden rod at top
-    const rod = new THREE.Mesh(
-      new THREE.CylinderGeometry(0.025, 0.025, 0.85, 6),
-      new THREE.MeshToonMaterial({color: 0x3A2010, gradientMap: _toonGrad})
-    );
-    rod.rotation.z = Math.PI / 2;
-    rod.position.set(def.x, 6.32, def.z);
-    _threeScene.add(rod);
-  });
-
-  // Left wall bookshelves
-  [-6,-2,2,6].forEach(z => {
-    const shelf = new THREE.Mesh(box(0.55,4.0,2.0), shelfMat);
-    shelf.position.set(-10.72, 2, z); _threeScene.add(shelf);
-    for (let b=0; b<5; b++) {
-      const bk = new THREE.Mesh(box(0.4,0.85,0.32), mToon(bookColors[b%bookColors.length]));
-      bk.position.set(-10.48, 1.6+Math.random()*0.1, z-0.8+b*0.38); _threeScene.add(bk);
-    }
-    for (let b=0; b<5; b++) {
-      const bk = new THREE.Mesh(box(0.4,0.85,0.32), mToon(bookColors[(b+4)%bookColors.length]));
-      bk.position.set(-10.48, 2.8+Math.random()*0.1, z-0.8+b*0.38); _threeScene.add(bk);
-    }
-  });
-  // Right wall bookshelves
-  [-6,-2,2,6].forEach(z => {
-    const shelf = new THREE.Mesh(box(0.55,4.0,2.0), shelfMat);
-    shelf.position.set(10.72, 2, z); _threeScene.add(shelf);
-    for (let b=0; b<5; b++) {
-      const bk = new THREE.Mesh(box(0.4,0.85,0.32), mToon(bookColors[(b+2)%bookColors.length]));
-      bk.position.set(10.48, 1.6+Math.random()*0.1, z-0.8+b*0.38); _threeScene.add(bk);
-    }
-    for (let b=0; b<5; b++) {
-      const bk = new THREE.Mesh(box(0.4,0.85,0.32), mToon(bookColors[(b+1)%bookColors.length]));
-      bk.position.set(10.48, 2.8+Math.random()*0.1, z-0.8+b*0.38); _threeScene.add(bk);
-    }
-  });
-
-  // Rolling ladder on right wall
-  const ladderMat = mToon(0x3A2010);
-  // Vertical rails
-  [-0.18,0.18].forEach(ox=>{
-    const rail=new THREE.Mesh(new THREE.CylinderGeometry(0.03,0.03,4.5,6),ladderMat);
-    rail.position.set(10.35,2.5+ox*0,4+ox*10);
-    rail.rotation.z=Math.PI*0.04;
-    _threeScene.add(rail);
-  });
-  // Rungs
-  [0.5,1.2,1.9,2.6,3.3,4.0].forEach(h=>{
-    const rung=new THREE.Mesh(new THREE.CylinderGeometry(0.025,0.025,0.42,6),ladderMat);
-    rung.position.set(10.38,h,4);
-    rung.rotation.z=Math.PI/2;
-    _threeScene.add(rung);
-  });
+  // (書架、懸幅、梯子全移除 — 後牆改全景半窗)
 
   // Live online-count sign (foreground, near entrance)
   const signCanvas = document.createElement('canvas');
@@ -2688,7 +2603,7 @@ function initThreeScene(canvas) {
     } // end dIdx < 12 full-detail block
 
     // Chair at every desk — seat + backrest + legs
-    const _cBlue = mToon(0x1E3A2D);   // deep forest green
+    const _cBlue = mToon(0x7A4A28);   // warm wood — matches desk family
     const _cWood = mToon(0x7A4A28);
     const _cSeatGeo = box(0.54,0.06,0.48);
     const cSeat = new THREE.Mesh(_cSeatGeo, _cBlue);
@@ -3660,9 +3575,9 @@ function _updateThreeAvatars(users) {
         clone.rotation.y = Math.PI;
         clone.traverse(node => {
           if (node.isMesh || node.isSkinnedMesh) {
-            node.material = new THREE.MeshToonMaterial({ color, gradientMap: _toonGrad });
+            node.material = new THREE.MeshLambertMaterial({ color });
             node.userData.userIndex = i;
-            if (u.isSelf) node.material.emissive = new THREE.Color(0x221100);
+            if (u.isSelf) { node.material.emissive = new THREE.Color(0x221100); node.material.emissiveIntensity = 0.15; }
           }
         });
         _threeScene.add(clone);
@@ -3683,14 +3598,11 @@ function _updateThreeAvatars(users) {
     if (!_usedGLB) {
       // Chibi toon character — dark pants + subject-color shirt + black hair + outlines
       const _T = (hex, isSelf) => {
-        const m = new THREE.MeshToonMaterial({ color: hex, gradientMap: _toonGrad });
-        if(isSelf && u.isSelf) m.emissive = new THREE.Color(0x221100);
+        const m = new THREE.MeshLambertMaterial({ color: hex });
+        if(isSelf && u.isSelf) { m.emissive = new THREE.Color(0x221100); m.emissiveIntensity = 0.15; }
         return m;
       };
-      const _ol = (geo, s) => {
-        const m = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({color:0x111111,side:THREE.BackSide}));
-        m.scale.setScalar(s||1.09); return m;
-      };
+      const _ol = () => new THREE.Object3D(); // no outlines
 
       // Dark pants
       const pantsGeo = new THREE.CylinderGeometry(0.13,0.16,0.34,10);
@@ -4694,7 +4606,7 @@ function _buildFrame(paintTex, w, h, pos, rot) {
   const group = new THREE.Group();
 
   // Frame border (dark wood)
-  const frameMat = new THREE.MeshToonMaterial({ color: 0x3d2b1f, gradientMap: _toonGrad });
+  const frameMat = new THREE.MeshLambertMaterial({ color: 0x3d2b1f });
 
   // Top/bottom bars
   [h/2 + 0.06, -(h/2 + 0.06)].forEach(y => {
@@ -4711,7 +4623,7 @@ function _buildFrame(paintTex, w, h, pos, rot) {
   });
 
   // Painting
-  const mat = new THREE.MeshToonMaterial({ map: paintTex, gradientMap: _toonGrad, side: THREE.FrontSide });
+  const mat = new THREE.MeshLambertMaterial({ map: paintTex, side: THREE.FrontSide });
   const canvas = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
   canvas.position.z = 0.03;
   group.add(canvas);
@@ -4739,12 +4651,11 @@ function _buildWallFrames() {
     E.set(0, -Math.PI / 2, 0)
   );
 
-  // Frame 3: Back wall (z=-7.78), face room (no y rotation needed)
-  // Between the two windows, above center
+  // Frame 3 移除 — 後牆改全景窗，改掛左牆另一側
   _buildFrame(
-    _paintAchieve(), 1.8, 1.1,
-    new THREE.Vector3(0, 5.5, -7.78),
-    E.set(0, 0, 0)
+    _paintAchieve(), 1.4, 1.0,
+    new THREE.Vector3(-8.88, 3.5, 2.5),
+    E.set(0, Math.PI / 2, 0)
   );
 }
 
@@ -4979,30 +4890,35 @@ function _buildBulletinBoard() {
   const tex = new THREE.CanvasTexture(bc);
   tex.needsUpdate = true;
 
-  // 公告欄主體（PlaneGeometry，貼在左牆 x≈-8.85）
+  // 公告欄主體（後牆正中央，面向整個房間）
   const planeMat = new THREE.MeshBasicMaterial({ map: tex, side: THREE.FrontSide });
-  const planeMesh = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.54), planeMat);
-  planeMesh.position.set(-8.85, 3.5, -1.0);
-  planeMesh.rotation.y = Math.PI / 2;
+  const planeMesh = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 2.24), planeMat);
+  planeMesh.position.set(0, 2.12, -7.72);
+  // rotation.y = 0：面向房間
   planeMesh.userData.isBulletinBoard = true;
   _threeScene.add(planeMesh);
 
-  // 木框（深色 Box 背板）
+  // 深色木框（四邊條）
   const frameMat = new THREE.MeshBasicMaterial({ color: 0x5C3A1A });
-  const frameMesh = new THREE.Mesh(new THREE.BoxGeometry(0.06, 1.66, 2.34), frameMat);
-  frameMesh.position.set(-8.87, 3.5, -1.0);
-  _threeScene.add(frameMesh);
+  [
+    [3.44,0.12,0.10, 0, 3.28, -7.76],   // 上框
+    [3.44,0.12,0.10, 0,-3.28+4.24,-7.76], // 下框（y偏移）
+    [0.12,2.48,0.10,-1.72,2.12,-7.76],  // 左框
+    [0.12,2.48,0.10, 1.72,2.12,-7.76],  // 右框
+  ].forEach(([w,h,d,x,y,z])=>{
+    const bar=new THREE.Mesh(new THREE.BoxGeometry(w,h,d),frameMat);
+    bar.position.set(x,y,z);_threeScene.add(bar);
+  });
 
-  // 點光源——讓公告欄有被燈打亮的感覺
-  const bLight = new THREE.PointLight(0xFFF3DC, 0.6, 4);
-  bLight.position.set(-7.5, 3.8, -1.0);
+  // 聚光：讓佈告欄在窗光中特別突出
+  const bLight = new THREE.PointLight(0xFFF8E8, 0.8, 6);
+  bLight.position.set(0, 4.5, -5.5);
   _threeScene.add(bLight);
 
-  // 透明 proxy（讓 ray.intersectObjects 能偵測到，因 planeMesh 在 rotation 後的方向）
+  // 透明 proxy（raycast 偵測）
   const proxyMat = new THREE.MeshBasicMaterial({ visible: false, side: THREE.DoubleSide });
-  const proxy = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.54), proxyMat);
-  proxy.position.set(-8.85, 3.5, -1.0);
-  proxy.rotation.y = Math.PI / 2;
+  const proxy = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 2.24), proxyMat);
+  proxy.position.set(0, 2.12, -7.72);
   proxy.userData.isBulletinBoard = true;
   _threeScene.add(proxy);
 }
