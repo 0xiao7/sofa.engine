@@ -2388,6 +2388,44 @@ function initThreeScene(canvas) {
     }
   });
 
+  // String lights along top of bookshelves — warm fairy-light glow
+  const _strLightTex = (() => {
+    const sc = document.createElement('canvas'); sc.width = 32; sc.height = 32;
+    const sctx = sc.getContext('2d');
+    const sg = sctx.createRadialGradient(16,16,0,16,16,14);
+    sg.addColorStop(0,'rgba(255,230,130,1)'); sg.addColorStop(0.35,'rgba(255,200,60,0.7)');
+    sg.addColorStop(0.7,'rgba(255,160,30,0.3)'); sg.addColorStop(1,'rgba(255,100,0,0)');
+    sctx.fillStyle=sg; sctx.fillRect(0,0,32,32);
+    return new THREE.CanvasTexture(sc);
+  })();
+  const shelfH = 7.0;
+  // Left bookshelf string — 8 glowing bulbs at top edge
+  [-7,-4.5,-2,0.5,3,5.5].forEach(z => {
+    for(let bi=0;bi<3;bi++){
+      const bz = z - 0.8 + bi * 0.8;
+      const sl = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: _strLightTex, transparent: true, depthWrite: false,
+        blending: THREE.AdditiveBlending, opacity: 0.75
+      }));
+      sl.scale.set(0.45, 0.45, 0.45);
+      sl.position.set(-11.18, shelfH+0.05, bz);
+      _threeScene.add(sl);
+    }
+  });
+  // Right bookshelf string — mirror
+  [-7,-4.5,-2,0.5,3,5.5].forEach(z => {
+    for(let bi=0;bi<3;bi++){
+      const bz = z - 0.8 + bi * 0.8;
+      const sl = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: _strLightTex, transparent: true, depthWrite: false,
+        blending: THREE.AdditiveBlending, opacity: 0.75
+      }));
+      sl.scale.set(0.45, 0.45, 0.45);
+      sl.position.set(11.18, shelfH+0.05, bz);
+      _threeScene.add(sl);
+    }
+  });
+
   // Live online-count sign (foreground, near entrance)
   const signCanvas = document.createElement('canvas');
   signCanvas.width = 192; signCanvas.height = 80;
@@ -2441,14 +2479,20 @@ function initThreeScene(canvas) {
   trunk.userData.isTree = true;
   // 圓形地毯由 _buildRug() 在 initThreeScene 末段統一建立（Persian canvas texture）
   // 枝葉 — 三層茂盛樹冠，參考影片中央大樹風格
-  const foliageColors = [0x2E9A48,0x3DAA58,0x4DB86A,0x5CC870,0x26883C,0x48C060,0x38B050,0x309040];
+  const foliageColors = [0x2E9A48,0x3DAA58,0x4DB86A,0x5CC870,0x26883C,0x48C060,0x38B050,0x309040,0x5AD068,0x22803A];
   [
-    // Bottom spreading layer
+    // Bottom spreading layer (5 balls)
     [-1.0,4.0,-0.7,1.05],[0.9,4.1,0.6,1.00],[-0.3,3.9,1.0,0.90],[0.5,4.0,-0.9,0.95],[0,4.3,0,1.15],
+    // Extra fill bottom layer
+    [-0.7,3.8,0.4,0.75],[0.6,3.8,-0.6,0.70],[-0.4,4.2,0.9,0.65],[1.0,4.0,-0.2,0.65],[-0.9,4.1,-0.1,0.70],
     // Main canopy (widest, most visible)
     [0,5.5,0,1.70],[-0.8,5.8,-0.4,1.20],[0.8,5.6,0.5,1.25],[0,5.9,0.8,1.10],[-0.5,6.0,-0.7,1.05],[0.6,6.2,-0.3,1.00],
+    // Extra canopy fill
+    [-1.1,5.4,0.2,0.85],[1.1,5.5,-0.3,0.90],[0.3,5.3,-0.9,0.80],[-0.6,5.7,0.7,0.85],[0.9,5.8,-0.7,0.75],
     // Upper crown
     [0,7.2,0,0.90],[0.4,7.6,0.2,0.65],[-0.3,7.4,-0.2,0.60],[0,8.0,0,0.45],
+    // Extra upper fill
+    [0.5,6.8,0.4,0.60],[-0.5,6.7,-0.3,0.58],[0.2,7.5,-0.4,0.50],[-0.4,7.8,0.3,0.42],
   ].forEach(([dx,y,dz,r],fi) => {
     const leafGeo = new THREE.IcosahedronGeometry(r,0);
     const leaf = new THREE.Mesh(leafGeo, mToon(foliageColors[fi % foliageColors.length]));
@@ -3871,29 +3915,49 @@ function _updateThreeAvatars(users) {
         _threeScene.add(arm); _userAvatarLabels.push(arm);
       });
 
-      // Face canvas texture — skin background + eyes + blush + smile
+      // Face canvas texture — kawaii chibi style with large expressive eyes
       const _fC = document.createElement('canvas');
       _fC.width = 128; _fC.height = 128;
       const _fc = _fC.getContext('2d');
-      // Circular skin-colored face
+      // Circular skin-colored face (with slight chin taper)
       const _skinStr = '#' + skinHex.toString(16).padStart(6,'0');
       _fc.fillStyle = _skinStr;
-      _fc.beginPath(); _fc.arc(64,64,62,0,Math.PI*2); _fc.fill();
-      // Eyes (big oval chibi style)
-      _fc.fillStyle = '#0A0602';
-      _fc.beginPath(); _fc.ellipse(38,52,11,8,0,0,Math.PI*2); _fc.fill();
-      _fc.beginPath(); _fc.ellipse(90,52,11,8,0,0,Math.PI*2); _fc.fill();
-      // Eye white sparkle
-      _fc.fillStyle = 'rgba(255,255,255,0.95)';
-      _fc.beginPath(); _fc.arc(44,47,4,0,Math.PI*2); _fc.fill();
-      _fc.beginPath(); _fc.arc(96,47,4,0,Math.PI*2); _fc.fill();
-      // Blush circles
-      _fc.fillStyle = 'rgba(255,100,100,0.38)';
-      _fc.beginPath(); _fc.ellipse(20,72,16,10,0,0,Math.PI*2); _fc.fill();
-      _fc.beginPath(); _fc.ellipse(108,72,16,10,0,0,Math.PI*2); _fc.fill();
-      // Smile arc
-      _fc.strokeStyle = '#2A1206'; _fc.lineWidth = 2.5; _fc.lineCap='round';
-      _fc.beginPath(); _fc.arc(64,76,10,0.15,Math.PI-0.15); _fc.stroke();
+      _fc.beginPath(); _fc.arc(64,62,60,0,Math.PI*2); _fc.fill();
+      // Eye whites (large rounded rectangles — kawaii style)
+      const drawEye = (ex, ey) => {
+        // White of eye
+        _fc.fillStyle = 'rgba(255,255,255,0.95)';
+        _fc.beginPath(); _fc.ellipse(ex,ey,14,12,0,0,Math.PI*2); _fc.fill();
+        // Iris (dark brown)
+        _fc.fillStyle = '#1A0E04';
+        _fc.beginPath(); _fc.ellipse(ex,ey+1,10,11,0,0,Math.PI*2); _fc.fill();
+        // Pupil (pure black)
+        _fc.fillStyle = '#000000';
+        _fc.beginPath(); _fc.ellipse(ex+1,ey+2,6,7,0,0,Math.PI*2); _fc.fill();
+        // Catchlight (large white sparkle)
+        _fc.fillStyle = 'rgba(255,255,255,0.98)';
+        _fc.beginPath(); _fc.arc(ex+3,ey-2,4,0,Math.PI*2); _fc.fill();
+        // Small secondary sparkle
+        _fc.beginPath(); _fc.arc(ex-3,ey+3,1.8,0,Math.PI*2); _fc.fill();
+        // Lash line on top
+        _fc.strokeStyle = '#1A0E04'; _fc.lineWidth = 2.5; _fc.lineCap='round';
+        _fc.beginPath(); _fc.ellipse(ex,ey-1,15,6,-0.1,Math.PI,Math.PI*2); _fc.stroke();
+      };
+      drawEye(38, 52);
+      drawEye(90, 52);
+      // Blush circles (soft rosy)
+      _fc.fillStyle = 'rgba(255,130,120,0.35)';
+      _fc.beginPath(); _fc.ellipse(18,70,14,9,0,0,Math.PI*2); _fc.fill();
+      _fc.beginPath(); _fc.ellipse(110,70,14,9,0,0,Math.PI*2); _fc.fill();
+      // Small nose dot
+      _fc.fillStyle = 'rgba(160,80,60,0.25)';
+      _fc.beginPath(); _fc.arc(64,72,3,0,Math.PI*2); _fc.fill();
+      // Smile (warm happy arc)
+      _fc.strokeStyle = '#8B3A20'; _fc.lineWidth = 3; _fc.lineCap='round';
+      _fc.beginPath(); _fc.arc(64,80,14,0.2,Math.PI-0.2); _fc.stroke();
+      // Lip fill
+      _fc.fillStyle = 'rgba(200,100,80,0.25)';
+      _fc.beginPath(); _fc.arc(64,84,10,0,Math.PI); _fc.fill();
       const faceTex = new THREE.CanvasTexture(_fC);
 
       // Head — large chibi sphere with skin material
