@@ -1901,25 +1901,26 @@ function initThreeScene(canvas) {
   _threeControls.addEventListener('change', () => { _wasDrag = true; });
 
   // Lights — toon game style: strong directional + hemisphere, few point lights
-  _threeScene.add(new THREE.AmbientLight(0xFFF4E8, 2.2));
-  const hemi = new THREE.HemisphereLight(0xFFF0D8, 0x8090B0, 1.4);
+  // 降低整體亮度：讓 MeshToonMaterial 的梯度陰影顯現，增加立體感
+  _threeScene.add(new THREE.AmbientLight(0xFFF4E8, 1.1));
+  const hemi = new THREE.HemisphereLight(0xEEE8D8, 0x304050, 0.8);
   _threeScene.add(hemi);
-  const keyLight = new THREE.DirectionalLight(0xFFFAF0, 2.2);
+  const keyLight = new THREE.DirectionalLight(0xFFFAF0, 1.6);
   keyLight.position.set(4, 10, 6);
   _threeScene.add(keyLight);
-  const fillLight = new THREE.DirectionalLight(0xC8E0FF, 0.8);
+  const fillLight = new THREE.DirectionalLight(0xC8D8F0, 0.5);
   fillLight.position.set(-6, 5, -4);
   _threeScene.add(fillLight);
 
-  // Window sky-blue fill lights
+  // Window ambient fill (降低強度，移除彩色條紋來源)
   if (!_isMobile) [[-6,4,-6.5],[6,4,-6.5]].forEach(([x,y,z])=>{
-    const wl = new THREE.PointLight(0xB8DCFF, 1.8, 14);
+    const wl = new THREE.PointLight(0xC8E4FF, 0.6, 12);
     wl.position.set(x,y,z); _threeScene.add(wl);
   });
 
-  // Ceiling downlights (kept minimal — 3 on desktop, 1 on mobile)
+  // Ceiling downlights
   (_isMobile ? [[0,7,-1]] : [[-4.5,7,-4],[4.5,7,-4],[0,7,2]]).forEach(([x,y,z]) => {
-    const tl = new THREE.PointLight(0xFFEDD0, _isMobile ? 4 : 2.2, _isMobile ? 24 : 12);
+    const tl = new THREE.PointLight(0xFFEDD0, _isMobile ? 2.5 : 1.5, _isMobile ? 20 : 11);
     tl.position.set(x,y,z); _threeScene.add(tl); _torchLights.push(tl);
   });
 
@@ -2003,7 +2004,7 @@ function initThreeScene(canvas) {
     return t;
   })();
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(22,20),
-    new THREE.MeshToonMaterial({ map: floorTex, gradientMap: _toonGrad, color: 0xCB9040 }));
+    new THREE.MeshToonMaterial({ map: floorTex, gradientMap: _toonGrad, color: 0xA87840 }));
   floor.rotation.x = -Math.PI/2;
   _threeScene.add(floor);
 
@@ -2593,15 +2594,15 @@ function initThreeScene(canvas) {
   });
 
   // Desks — all 48 positions from _DESK_POS_3D
-  const deskMat = mToon(0xCC9540);    // saturated honey oak
+  const deskMat = mToon(0x6B4520);    // deep walnut brown
   const monMat  = mToon(0x7A8494);    // slate monitor body
   const scrMat  = new THREE.MeshBasicMaterial({ color: 0x1A3A5C });  // blue glow
   const _deskGeo = box(1.6,0.08,0.9);
   _DESK_POS_3D.forEach(([x,z], dIdx) => {
     const desk = new THREE.Mesh(_deskGeo, deskMat);
     desk.position.set(x,0.76,z); _threeScene.add(desk);
-    // Ink outline on desk surface
-    const deskOl = _ol(_deskGeo, 1.05);
+    // Ink outline on desk surface (細描邊)
+    const deskOl = _ol(_deskGeo, 1.025, 0x1A1208);
     deskOl.position.copy(desk.position); _threeScene.add(deskOl);
     desk.userData.deskIdx = dIdx;
     desk.userData.isDesk = true;
@@ -2674,16 +2675,16 @@ function initThreeScene(canvas) {
     } // end dIdx < 12 full-detail block
 
     // Chair at every desk — seat + backrest + legs
-    const _cBlue = mToon(0x2E5FA8);   // vivid royal blue
+    const _cBlue = mToon(0x1E3A2D);   // deep forest green
     const _cWood = mToon(0x7A4A28);
     const _cSeatGeo = box(0.54,0.06,0.48);
     const cSeat = new THREE.Mesh(_cSeatGeo, _cBlue);
     cSeat.position.set(x,0.44,z+0.64);
-    cSeat.add(_ol(_cSeatGeo, 1.06)); _threeScene.add(cSeat);
+    cSeat.add(_ol(_cSeatGeo, 1.025)); _threeScene.add(cSeat);
     const _cBackGeo = box(0.50,0.42,0.06);
     const cBack = new THREE.Mesh(_cBackGeo, _cBlue);
     cBack.position.set(x,0.68,z+0.40);
-    cBack.add(_ol(_cBackGeo, 1.07)); _threeScene.add(cBack);
+    cBack.add(_ol(_cBackGeo, 1.025)); _threeScene.add(cBack);
     if(!_isMobile||dIdx<6){
       [[-0.22,z+0.41],[0.22,z+0.41],[-0.22,z+0.87],[0.22,z+0.87]].forEach(([lx,lz])=>{
         const cl=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.44,6),_cWood);
@@ -3106,8 +3107,9 @@ function initThreeScene(canvas) {
 // 24 desk positions: 4 columns × 6 rows, wide center aisle, library layout
 // Left pair: -5,-2.5 | Right pair: 2.5,5  Rows: z=-5.5→3
 const _DESK_POS_3D = (()=>{
-  const cols=[-5,-2.5,0,2.5,5];
-  const rows=[-7.0,-5.5,-4.0,-2.5,-1.0,0.5,2.0,3.5,5.0,6.5];
+  // 4×5 = 20 seats，間距加大讓空間更舒適
+  const cols=[-4.5,-1.5,1.5,4.5];
+  const rows=[-6.5,-4.0,-1.5,1.0,3.5];
   const p=[]; rows.forEach(z=>cols.forEach(x=>p.push([x,z]))); return p;
 })();
 
