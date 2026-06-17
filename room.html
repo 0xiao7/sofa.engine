@@ -454,10 +454,10 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 /* ── Shout banner ── */
 #shout-banner{
   position:fixed;top:70px;left:50%;transform:translateX(-50%);
-  background:var(--navy);border:1px solid var(--peach);border-radius:10px;
-  padding:10px 20px;font-size:.85rem;color:var(--peach-2);
+  background:rgba(6,14,26,0.94);border:1px solid rgba(91,175,214,.45);border-radius:2px;
+  padding:10px 20px;font-size:.85rem;color:#7AC3E4;
   z-index:50;display:none;max-width:90vw;text-align:center;
-  box-shadow:0 4px 20px rgba(0,0,0,.4);
+  box-shadow:0 4px 20px rgba(0,0,0,.6),0 0 20px rgba(91,175,214,.08);
 }
 
 /* ── Desktop desk hover ── */
@@ -3589,7 +3589,7 @@ function _updateThreeAvatars(users) {
     if (!_usedGLB) {
       // Chibi toon character — dark pants + subject-color shirt + black hair + outlines
       const _T = (hex, isSelf) => {
-        const m = new THREE.MeshToonMaterial({ color: hex });
+        const m = new THREE.MeshToonMaterial({ color: hex, gradientMap: _toonGrad });
         if(isSelf && u.isSelf) m.emissive = new THREE.Color(0x221100);
         return m;
       };
