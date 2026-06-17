@@ -1091,7 +1091,7 @@ let _mixerLastTime = 0;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _DESK_VISUAL_POS_3D = []; // stores {vx,vz,ry} for each desk after scatter
 const _seenUserIds = new Set();
-let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [], _pendantGlows = [], _canopyAura = null, _sparkles = [], _permLanternLights = [], _moonShaftSprite = null, _floatingBooks = [], _mistPlanes = [];
+let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [], _pendantGlows = [], _canopyAura = null, _sparkles = [], _permLanternLights = [], _moonShaftSprite = null, _floatingBooks = [], _mistPlanes = [], _floatingEma = [];
 let _snowParticles = [];
 let _waterDroplets = [], _waterTx = null; // Wave132: tree watering
 let _sakuraParticles = [];
@@ -4511,6 +4511,62 @@ function initThreeScene(canvas) {
     });
   }
 
+  // v58: Floating ema wish boards — shrine prayer tablets near the tree ────────
+  { const _eRng=_rng(58);
+    const emaMessages=['合格祈願','一生懸命','頑張ります','必ず合格','夢が叶う','自信を持て'];
+    const emaColors=[0xF5D89A,0xEDCE80,0xF8E4A8,0xF0D090,0xFAEAB4,0xE8C870];
+    emaMessages.forEach((msg,ei)=>{
+      // Ema texture (wooden board with text)
+      const emaTex=(()=>{
+        const ec=document.createElement('canvas'); ec.width=192; ec.height=148;
+        const ectx=ec.getContext('2d');
+        // Wood gradient background
+        const eg=ectx.createLinearGradient(0,0,0,148);
+        eg.addColorStop(0,'#C8A840'); eg.addColorStop(0.5,'#D8B850'); eg.addColorStop(1,'#C0A030');
+        ectx.fillStyle=eg; ectx.fillRect(0,0,192,148);
+        // Grain lines
+        ectx.strokeStyle='rgba(100,70,20,0.15)'; ectx.lineWidth=1;
+        for(let gl=0;gl<8;gl++){
+          ectx.beginPath(); ectx.moveTo(gl*28,0); ectx.lineTo(gl*28+10,148); ectx.stroke();
+        }
+        // Dark border
+        ectx.strokeStyle='#5A3010'; ectx.lineWidth=4;
+        ectx.strokeRect(5,5,182,138);
+        // Red top stripe (traditional ema top)
+        ectx.fillStyle='#8A1010'; ectx.fillRect(5,5,182,26);
+        // Text
+        ectx.fillStyle='#1A0808';
+        ectx.font='bold 28px serif';
+        ectx.textAlign='center'; ectx.textBaseline='middle';
+        ectx.fillText(msg,96,92);
+        // Small hole at top for rope
+        ectx.fillStyle='#3A2008';
+        ectx.beginPath(); ectx.arc(96,18,6,0,Math.PI*2); ectx.fill();
+        return new THREE.CanvasTexture(ec);
+      })();
+      const emaMat=new THREE.MeshLambertMaterial({map:emaTex,side:THREE.DoubleSide});
+      const ema=new THREE.Mesh(new THREE.BoxGeometry(0.18,0.14,0.008),emaMat);
+      // Hanging rope (pink/purple)
+      const ropeMat=new THREE.MeshLambertMaterial({color:0xFF88AA});
+      const rope=new THREE.Mesh(new THREE.CylinderGeometry(0.004,0.004,0.25,4),ropeMat);
+      // Group: rope above, ema below
+      const eg2=new THREE.Group();
+      rope.position.y=0.19; eg2.add(rope);
+      ema.position.y=0.05; eg2.add(ema);
+      // Spread them around tree at various heights and angles
+      const ang=ei*(Math.PI*2/6)+_eRng()*0.5;
+      const rad=0.6+_eRng()*1.1;
+      const ey=2.4+_eRng()*1.5;
+      const ex2=Math.cos(ang)*rad, ez2=3.0+Math.sin(ang)*rad;
+      eg2.position.set(ex2,ey,ez2);
+      eg2.rotation.y=ang+Math.PI/2;
+      _threeScene.add(eg2);
+      _floatingEma.push({group:eg2,ex:ex2,ey,ez:ez2,ang,rad,
+        bobPhase:_eRng()*Math.PI*2,swayPhase:_eRng()*Math.PI*2,
+        bobAmp:0.05+_eRng()*0.08,bobSpd:0.45+_eRng()*0.35});
+    });
+  }
+
   // v50: Floating magical open books — drift gently above the study floor ─────
   { const _fbRng = _rng(88);
     // Book page texture
@@ -7552,6 +7608,15 @@ function startThreeAnimation(canvas) {
         bk.light.position.x = bk.group.position.x;
         bk.light.intensity = 0.10 + 0.04*Math.sin(_threeTime*1.1+bk.phase);
       }
+    });
+    // Floating ema wish boards — gentle bob + slow drift around tree
+    _floatingEma.forEach(em => {
+      em.group.position.y = em.ey + Math.sin(_threeTime*em.bobSpd + em.bobPhase)*em.bobAmp;
+      em.group.rotation.y += 0.0012;
+      // Slight forward/back sway
+      const sw = Math.sin(_threeTime*0.28 + em.swayPhase)*0.04;
+      em.group.position.x = em.ex + Math.cos(em.ang)*sw;
+      em.group.position.z = em.ez + Math.sin(em.ang)*sw;
     });
     // Ground mist — gentle drift and pulse at floor level
     _mistPlanes.forEach(ms => {
