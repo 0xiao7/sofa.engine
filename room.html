@@ -78,6 +78,14 @@ select option{background:var(--navy-3);}
 }
 .btn-enter:hover{opacity:.88;}
 .entry-tip{margin-top:14px;font-size:.76rem;color:var(--cream-2);opacity:.45;text-align:center;}
+/* ── Entry tabs (訪客 / 序號登入) ── */
+.entry-tabs{display:flex;gap:6px;margin-bottom:22px;}
+.entry-tab{flex:1;padding:9px 4px;background:rgba(255,255,255,0.05);border:1px solid rgba(91,175,214,0.15);border-radius:8px;color:rgba(200,190,175,0.7);font-size:.82rem;cursor:pointer;transition:all .18s;font-family:var(--sans);}
+.entry-tab.active{background:rgba(91,175,214,0.16);border-color:rgba(91,175,214,0.42);color:#5BAFD6;font-weight:600;}
+.serial-row-entry{display:flex;align-items:stretch;border:1px solid rgba(91,175,214,0.22);border-radius:8px;overflow:hidden;margin-bottom:14px;background:rgba(7,18,28,0.6);}
+.serial-prefix-entry{padding:11px 12px;color:#5BAFD6;font-size:.85rem;font-family:monospace;letter-spacing:.05em;border-right:1px solid rgba(91,175,214,0.15);}
+.serial-row-entry input{flex:1;background:transparent;border:none;outline:none;padding:11px 12px;color:#E8DCC8;font-size:.9rem;font-family:monospace;letter-spacing:.1em;text-transform:uppercase;}
+#serial-entry-msg{font-size:.78rem;margin-bottom:10px;min-height:16px;text-align:center;}
 
 /* ── Room layout ── */
 #room{display:flex;min-height:100dvh;flex-direction:column;}
@@ -666,19 +674,43 @@ input[type=text], select, .btn-enter {
   <div class="entry-card">
     <h1>SoFa 自習室</h1>
     <p>和備考同學一起讀書，不孤單。</p>
-    <label for="inp-name">你的暱稱</label>
-    <input type="text" id="inp-name" placeholder="考生甲" maxlength="12" autocomplete="off"/>
-    <label for="inp-subject">備考科目</label>
-    <select id="inp-subject">
-      <option value="記帳士">📒 記帳士</option>
-      <option value="地政士">🏠 地政士</option>
-      <option value="不動產經紀人">🔑 不動產經紀人</option>
-      <option value="財稅行政">📊 財稅行政</option>
-      <option value="初等考試">📝 初等考試</option>
-      <option value="其他">📚 其他</option>
-    </select>
-    <button class="btn-enter" id="btn-enter">進入自習室</button>
-    <p class="entry-tip">暱稱僅在本次在線期間顯示，不儲存帳號資料。</p>
+
+    <!-- tabs -->
+    <div class="entry-tabs">
+      <button class="entry-tab active" id="tab-guest" onclick="switchEntryTab('guest')">訪客進入</button>
+      <button class="entry-tab" id="tab-serial" onclick="switchEntryTab('serial')">序號登入</button>
+    </div>
+
+    <!-- guest panel -->
+    <div id="panel-guest">
+      <label for="inp-name">你的暱稱</label>
+      <input type="text" id="inp-name" placeholder="考生甲" maxlength="12" autocomplete="off"/>
+      <label for="inp-subject">備考科目</label>
+      <select id="inp-subject">
+        <option value="記帳士">📒 記帳士</option>
+        <option value="地政士">🏠 地政士</option>
+        <option value="不動產經紀人">🔑 不動產經紀人</option>
+        <option value="財稅行政">📊 財稅行政</option>
+        <option value="初等考試">📝 初等考試</option>
+        <option value="其他">📚 其他</option>
+      </select>
+      <button class="btn-enter" id="btn-enter">進入自習室</button>
+      <p class="entry-tip">暱稱僅在本次在線期間顯示，不儲存帳號資料。</p>
+    </div>
+
+    <!-- serial panel -->
+    <div id="panel-serial" style="display:none">
+      <div class="serial-row-entry">
+        <span class="serial-prefix-entry">SOFA-</span>
+        <input type="text" id="inp-serial" placeholder="XXXX-XXXX" maxlength="9"
+               autocomplete="off" spellcheck="false"
+               oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')"
+               onkeydown="if(event.key==='Enter') enterWithSerial()"/>
+      </div>
+      <p id="serial-entry-msg" style="color:#5BAFD6"></p>
+      <button class="btn-enter" onclick="enterWithSerial()">登入並進入</button>
+      <p class="entry-tip">序號為購買 SoFa 會員後取得的 12 碼代碼。</p>
+    </div>
   </div>
 </div>
 
@@ -5485,6 +5517,35 @@ async function detectMember(){
   }catch(e){}
 }
 detectMember();
+
+// ── Entry tabs ────────────────────────────────────────────────────────
+function switchEntryTab(tab){
+  document.getElementById('tab-guest').classList.toggle('active', tab==='guest');
+  document.getElementById('tab-serial').classList.toggle('active', tab==='serial');
+  document.getElementById('panel-guest').style.display  = tab==='guest'  ? '' : 'none';
+  document.getElementById('panel-serial').style.display = tab==='serial' ? '' : 'none';
+  if(tab==='serial') setTimeout(()=>document.getElementById('inp-serial').focus(), 50);
+}
+
+async function enterWithSerial(){
+  const raw = document.getElementById('inp-serial').value.trim().toUpperCase();
+  const serial = 'SOFA-' + raw;
+  const msg = document.getElementById('serial-entry-msg');
+  if(raw.replace(/-/g,'').length < 8){ msg.style.color='#E8846A'; msg.textContent='請輸入完整序號（格式 XXXX-XXXX）'; return; }
+  msg.style.color='#5BAFD6'; msg.textContent='驗證中…';
+  try{
+    const r = await fetch(`${API}/api/verify-serial`, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ serial })
+    });
+    const d = await r.json();
+    if(!r.ok || !d.token){ msg.style.color='#E8846A'; msg.textContent=d.detail||'序號無效，請確認後再試'; return; }
+    localStorage.setItem('sofa_uid',   d.uid);
+    localStorage.setItem('sofa_token', d.token);
+    msg.style.color='#7DC987'; msg.textContent='驗證成功，正在進入…';
+    await detectMember();
+  }catch(e){ msg.style.color='#E8846A'; msg.textContent='網路錯誤，請稍後再試'; }
+}
 
 // ── Entry ─────────────────────────────────────────────────────────────
 document.getElementById('inp-name').addEventListener('keydown', e => {
