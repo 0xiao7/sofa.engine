@@ -4350,6 +4350,56 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v45a: Tiny bow/ribbon on cat's head ───────────────────────────────────
+  { const cX=TX+1.3, cZ=TZ+1.85;
+    const bowColors=[0xFF4D88,0xFF77AA]; // hot pink bow
+    // Two bow wings (tiny flattened cones facing front)
+    [-0.062,0.062].forEach((bx,i)=>{
+      const wing=new THREE.Mesh(new THREE.ConeGeometry(0.040,0.060,4), mToon(bowColors[i%2]));
+      wing.rotation.z = bx>0 ? Math.PI/3 : -Math.PI/3;
+      wing.rotation.y = 0.25 * (bx>0 ? 1 : -1);
+      wing.position.set(cX+bx, 0.798, cZ-0.030);
+      _threeScene.add(wing);
+    });
+    // Center bead of bow
+    const bead=new THREE.Mesh(new THREE.SphereGeometry(0.022,5,5), mToon(0xFF2266));
+    bead.position.set(cX, 0.798, cZ-0.040); _threeScene.add(bead);
+  }
+
+  // v45b: Sakura sparkle sprites floating around the tree ───────────────────
+  { const _spRng=_rng(91);
+    const spTex=(()=>{
+      const sc=document.createElement('canvas'); sc.width=sc.height=16;
+      const sctx=sc.getContext('2d');
+      const sg=sctx.createRadialGradient(8,8,0,8,8,7);
+      sg.addColorStop(0,'rgba(255,235,248,1.00)');
+      sg.addColorStop(0.4,'rgba(255,200,230,0.80)');
+      sg.addColorStop(1,'rgba(255,160,210,0)');
+      sctx.fillStyle=sg; sctx.fillRect(0,0,16,16);
+      return new THREE.CanvasTexture(sc);
+    })();
+    const spMat=new THREE.SpriteMaterial({
+      map:spTex, transparent:true, blending:THREE.AdditiveBlending, depthWrite:false, opacity:0.88
+    });
+    // 45 sparkle sprites scattered within the sakura canopy (orbit TX/TZ via render loop)
+    for(let si=0;si<45;si++){
+      const ang=_spRng()*Math.PI*2;
+      const r=0.30+_spRng()*2.10;
+      const sy=3.20+_spRng()*3.50;
+      const sc2=_spRng()*0.25+0.12;
+      const sp=new THREE.Sprite(spMat.clone());
+      sp.material.opacity=0.40+_spRng()*0.55;
+      sp.scale.set(sc2,sc2,1);
+      _threeScene.add(sp);
+      // _sparkles render loop expects {sprite, ang, r, y, speed, blink}
+      _sparkles.push({
+        sprite:sp, ang, r, y:sy,
+        speed:0.0006+_spRng()*0.0012, // slow dreamy orbit
+        blink:_spRng()*Math.PI*2
+      });
+    }
+  }
+
   // v44: Kawaii owl mascot — ground level left of tree, faces camera (visible from wide) ──
   { const owX=TX-1.5, owY=0, owZ=TZ+2.2; // ground level, left of cat, toward camera
     const owBr=mToon(0xC8906A), owCr=mToon(0xF0E2C8), owYl=mToon(0xF0C020);
