@@ -859,13 +859,21 @@ input[type=text], select, .btn-enter {
             <button class="react-btn" data-emoji="✨">✨</button>
           </div>
         </div>
-        <div id="board-modal" style="display:none;position:absolute;inset:0;background:rgba(60,45,30,0.70);align-items:center;justify-content:center;z-index:20;">
-          <div style="background:#F5F0E6;border:1px solid rgba(160,130,80,0.4);border-radius:12px;padding:20px;width:260px;">
-            <div style="color:#3A2C18;font-weight:700;margin-bottom:10px;">📌 貼在布告欄</div>
-            <textarea id="board-input" maxlength="40" placeholder="今天的讀書目標、鼓勵的話…（40字）" style="width:100%;height:80px;background:#EDE8DC;color:#3A2C18;border:1px solid rgba(160,130,80,0.35);border-radius:8px;padding:8px;font-size:13px;resize:none;box-sizing:border-box;"></textarea>
-            <div style="display:flex;gap:8px;margin-top:10px;justify-content:flex-end;">
-              <button onclick="document.getElementById('board-modal').style.display='none'" style="background:transparent;color:#7A6A50;border:none;cursor:pointer;padding:6px 12px;">取消</button>
-              <button id="board-post-btn" style="background:#8B6A40;color:#fff;border:none;border-radius:6px;padding:6px 16px;cursor:pointer;font-weight:600;">貼上去</button>
+        <div id="board-modal" style="display:none;position:absolute;inset:0;background:rgba(28,16,8,0.80);align-items:center;justify-content:center;z-index:20;" onclick="this.style.display='none'">
+          <div onclick="event.stopPropagation()" style="background:#7B4A24;border:3px solid #4A2810;border-radius:10px;padding:18px 20px 16px;width:270px;box-shadow:0 8px 28px rgba(0,0,0,0.5);">
+            <!-- 標題列 -->
+            <div style="display:flex;align-items:center;gap:7px;margin-bottom:12px;">
+              <span style="font-size:16px;">📌</span>
+              <span style="color:#F5E8C8;font-weight:700;font-size:14px;">今日讀書目標</span>
+            </div>
+            <!-- 便利貼本體 -->
+            <div style="background:#FDED9C;border-radius:4px;padding:2px 2px 6px;box-shadow:2px 3px 8px rgba(0,0,0,0.35);">
+              <textarea id="board-input" maxlength="40" placeholder="寫下今天的目標或加油話…（40字）" style="width:100%;height:78px;background:transparent;color:#2A1A08;border:none;padding:8px;font-size:14px;line-height:1.6;resize:none;box-sizing:border-box;font-family:serif;outline:none;"></textarea>
+              <div style="text-align:right;padding-right:8px;font-size:10px;color:rgba(80,50,10,0.5);" id="board-char-count">0 / 40</div>
+            </div>
+            <div style="display:flex;gap:8px;margin-top:12px;justify-content:flex-end;">
+              <button onclick="document.getElementById('board-modal').style.display='none'" style="background:rgba(255,255,255,0.12);color:#D4C0A0;border:none;border-radius:6px;cursor:pointer;padding:6px 14px;font-size:13px;">取消</button>
+              <button id="board-post-btn" style="background:#D4A020;color:#1A0E00;border:none;border-radius:6px;padding:7px 18px;cursor:pointer;font-weight:700;font-size:13px;">📌 貼上去</button>
             </div>
           </div>
         </div>
@@ -1976,18 +1984,22 @@ function initThreeScene(canvas) {
   const floorTex = (() => {
     const c = document.createElement('canvas'); c.width = 256; c.height = 256;
     const ctx = c.getContext('2d');
-    ctx.fillStyle = '#C4893A'; ctx.fillRect(0,0,256,256);
-    // Plank lines
-    ctx.strokeStyle = '#A06828'; ctx.lineWidth = 1.5;
-    [32,64,96,128,160,192,224].forEach(y => {
-      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(256,y); ctx.stroke();
+    // Warm cream-tan base
+    ctx.fillStyle = '#C8935E'; ctx.fillRect(0,0,256,256);
+    // Tile grid — 64px cells (4×4 tiles per repeat)
+    ctx.strokeStyle = 'rgba(75,40,15,0.5)'; ctx.lineWidth = 2.5;
+    [64,128,192].forEach(v => {
+      ctx.beginPath(); ctx.moveTo(v,0); ctx.lineTo(v,256); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,v); ctx.lineTo(256,v); ctx.stroke();
     });
-    ctx.strokeStyle = '#B5793288'; ctx.lineWidth = 1;
-    [48,80,112,144,176,208,240].forEach(y => {
-      ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(256,y); ctx.stroke();
+    // Subtle inner texture lines
+    ctx.strokeStyle = 'rgba(75,40,15,0.13)'; ctx.lineWidth = 1;
+    [16,32,48,80,96,112,144,160,176,208,224,240].forEach(v => {
+      ctx.beginPath(); ctx.moveTo(v,0); ctx.lineTo(v,256); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0,v); ctx.lineTo(256,v); ctx.stroke();
     });
     const t = new THREE.CanvasTexture(c);
-    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(6,5);
+    t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(4,4);
     return t;
   })();
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(22,20),
@@ -2840,15 +2852,29 @@ function initThreeScene(canvas) {
     }
   };
 
-  // Bulletin board (clickable)
-  const boardMesh = new THREE.Mesh(box(2.4,1.6,0.12), mToon(0x3D2510));
-  boardMesh.position.set(0,3,-7.8);
+  // Bulletin board (clickable) — 軟木欄質感
+  const boardMesh = new THREE.Mesh(box(2.4,1.6,0.10), new THREE.MeshBasicMaterial({color:0x8B5E3C}));
+  boardMesh.position.set(0,3,-7.80);
   boardMesh.userData.isBoard = true;
   _threeScene.add(boardMesh);
-  const boardFrame = new THREE.Mesh(box(2.6,1.8,0.08), mToon(0x6B4520));
-  boardFrame.position.set(0,3,-7.85); _threeScene.add(boardFrame);
-  // Board label
-  const boardPinMesh = new THREE.Mesh(new THREE.SphereGeometry(0.06,6,6), new THREE.MeshBasicMaterial({color:0xFFDD00}));
+  const boardFrame = new THREE.Mesh(box(2.64,1.74,0.06), new THREE.MeshBasicMaterial({color:0x4A2A10}));
+  boardFrame.position.set(0,3,-7.86); _threeScene.add(boardFrame);
+  // Cork texture overlay (subtle dots via canvas)
+  (() => {
+    const cc = document.createElement('canvas'); cc.width = 128; cc.height = 128;
+    const cx = cc.getContext('2d');
+    cx.fillStyle = '#8B5E3C'; cx.fillRect(0,0,128,128);
+    for (let i = 0; i < 180; i++) {
+      cx.fillStyle = `rgba(${60+Math.random()*40|0},${30+Math.random()*20|0},${10+Math.random()*10|0},0.35)`;
+      const r = 1 + Math.random() * 2.5;
+      cx.beginPath(); cx.arc(Math.random()*128, Math.random()*128, r, 0, Math.PI*2); cx.fill();
+    }
+    const ct = new THREE.CanvasTexture(cc);
+    ct.wrapS = ct.wrapT = THREE.RepeatWrapping; ct.repeat.set(3,2);
+    boardMesh.material = new THREE.MeshBasicMaterial({map: ct, color: 0x9B6E4C});
+  })();
+  // Pin (釘子)
+  const boardPinMesh = new THREE.Mesh(new THREE.SphereGeometry(0.055,6,6), new THREE.MeshBasicMaterial({color:0xDD3333}));
   boardPinMesh.position.set(0,3.65,-7.73); _threeScene.add(boardPinMesh);
 
   // Law posters on back wall
@@ -5001,6 +5027,38 @@ function _buildWindow() {
     _threeScene.add(strip);
   });
 
+  // ── Back wall: left & right windows (share same scene texture) ────────
+  // 後牆 z=-8；窗放在 z=-7.82，在布告欄(x=0)和法條海報(±3.2)之間的空白區段
+  const _bwMat = new THREE.MeshBasicMaterial({ map: _windowTex, side: THREE.FrontSide });
+  const _bwFm  = new THREE.MeshBasicMaterial({ color: 0x3A2212 });
+  const _bft = 0.065;
+  [-5.5, 5.5].forEach(cx => {
+    const cy = 3.5, cz = -7.82, wW = 2.5, wH = 2.2;
+    const glass = new THREE.Mesh(new THREE.PlaneGeometry(wW, wH), _bwMat);
+    glass.position.set(cx, cy, cz);
+    _threeScene.add(glass);
+    // 4 frame bars
+    [
+      [wW+_bft*2, _bft,    cx,              cy+wH/2+_bft/2, cz+0.04],
+      [wW+_bft*2, _bft,    cx,              cy-wH/2-_bft/2, cz+0.04],
+      [_bft,      wH+_bft, cx-wW/2-_bft/2, cy,             cz+0.04],
+      [_bft,      wH+_bft, cx+wW/2+_bft/2, cy,             cz+0.04],
+    ].forEach(([w, h, px, py, pz]) => {
+      const b = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.08), _bwFm);
+      b.position.set(px, py, pz);
+      _threeScene.add(b);
+    });
+    // Horizontal divider
+    const hbar = new THREE.Mesh(new THREE.BoxGeometry(wW, _bft * 0.65, 0.05), _bwFm);
+    hbar.position.set(cx, cy, cz + 0.02);
+    _threeScene.add(hbar);
+    // Window sill (底台) — 增加層次感
+    const sill = new THREE.Mesh(new THREE.BoxGeometry(wW + 0.24, 0.08, 0.22),
+      new THREE.MeshBasicMaterial({ color: 0x4A2E18 }));
+    sill.position.set(cx, cy - wH/2 - 0.01, cz + 0.08);
+    _threeScene.add(sill);
+  });
+
   // Draw the initial scene
   _drawWindowScene(new Date().getHours());
   _windowHour = new Date().getHours();
@@ -6053,6 +6111,10 @@ function showShoutBanner({ text, from }){
   _saveChalkMessages(); // Wave111: persist to localStorage
 }
 
+document.getElementById('board-input')?.addEventListener('input', function() {
+  const el = document.getElementById('board-char-count');
+  if (el) el.textContent = this.value.length + ' / 40';
+});
 document.getElementById('board-post-btn')?.addEventListener('click', async () => {
   const txt = document.getElementById('board-input').value.trim();
   if (!txt) return;
