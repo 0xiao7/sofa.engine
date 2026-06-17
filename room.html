@@ -4393,6 +4393,36 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v63: Sakura rainbow arch — glowing light spheres arching above Torii gate ─
+  { const archColors=[0xFF80B8,0xFF60A8,0xFF40C8,0xCC40D8,0xBB60FF,0xA080FF,0xC060FF,0xFF80C8,0xFF50B0];
+    const GZa=6.5; // same z as gate
+    const nDots=36; // number of spheres in arch
+    for(let di=0;di<nDots;di++){
+      const t=di/(nDots-1); // 0→1
+      const ang=Math.PI*t; // half circle from left to right
+      const ax=-2.10*Math.cos(ang); // x: -2.10 to +2.10
+      const ay=3.62+1.10*Math.sin(ang); // y: 3.62 at ends, 4.72 at top
+      const aCol=archColors[di % archColors.length];
+      const dotMat=new THREE.MeshBasicMaterial({color:aCol});
+      const dot=new THREE.Mesh(new THREE.SphereGeometry(0.038,6,5),dotMat);
+      dot.position.set(ax,ay,GZa); _threeScene.add(dot);
+      // Tiny glow point light every 4th sphere
+      if(di%4===0){
+        const aLight=new THREE.PointLight(aCol,0.12,1.5);
+        aLight.position.set(ax,ay,GZa); _threeScene.add(aLight);
+      }
+    }
+    // Thin black wire connecting the arch
+    const wirePts=[];
+    for(let di=0;di<nDots;di++){
+      const t=di/(nDots-1), ang=Math.PI*t;
+      wirePts.push(new THREE.Vector3(-2.10*Math.cos(ang), 3.62+1.10*Math.sin(ang), GZa));
+    }
+    const wireGeo=new THREE.BufferGeometry().setFromPoints(wirePts);
+    const wire=new THREE.Line(wireGeo,new THREE.LineBasicMaterial({color:0x1A0808,opacity:0.6,transparent:true}));
+    _threeScene.add(wire);
+  }
+
   // v61: Bamboo grove — entrance forest framing the shrine path ──────────────
   { const _brng=_rng(61);
     const bambooM=new THREE.MeshLambertMaterial({color:0x3A8020});
