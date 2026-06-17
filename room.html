@@ -3595,6 +3595,28 @@ function initThreeScene(canvas) {
     canvas.style.cursor = ''; // Wave 121: reset bookshelf cursor
   });
 
+  // Desk pendant lamps — 4 columns × 4 rows of hanging brass shades
+  { const shadeMat = new THREE.MeshLambertMaterial({ color: 0x2E1E08 }); // dark shade exterior
+    const chainMat = new THREE.MeshLambertMaterial({ color: 0xA07830 }); // brass chain
+    const innerMat = new THREE.MeshBasicMaterial({ color: 0xFFEE80 }); // warm glow face
+    const lampCols = [-9.5, -7.5, 7.5, 9.5];
+    const lampRows = [-6.0, -2.5, 1.0, 4.5];
+    lampCols.forEach(lx => {
+      lampRows.forEach(lz => {
+        const chainLen = 3.0, shadeY = 9.0 - chainLen - 0.11;
+        const ch = new THREE.Mesh(new THREE.CylinderGeometry(0.011,0.011,chainLen,4), chainMat);
+        ch.position.set(lx, 9.0-chainLen/2, lz); _threeScene.add(ch);
+        const sh = new THREE.Mesh(new THREE.CylinderGeometry(0.08,0.22,0.20,8), shadeMat);
+        sh.position.set(lx, shadeY, lz); _threeScene.add(sh);
+        const gd = new THREE.Mesh(new THREE.CircleGeometry(0.08,8), innerMat);
+        gd.rotation.x = Math.PI/2; gd.position.set(lx, shadeY-0.09, lz); _threeScene.add(gd);
+        const pl = new THREE.PointLight(0xFFD060, 0.35, 4.5);
+        pl.position.set(lx, shadeY-0.14, lz); _threeScene.add(pl);
+        _torchLights.push(pl);
+      });
+    });
+  }
+
   // Wave113: Ceiling fan — permanent room feature
   _buildCeilingFan();
   // Wave133: Center rug — permanent room feature
