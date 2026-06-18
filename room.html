@@ -2937,11 +2937,12 @@ function initThreeScene(canvas) {
   platRing.position.set(TX,0.05,TZ); _threeScene.add(platRing);
   const platInner = new THREE.Mesh(new THREE.CylinderGeometry(2.8,2.8,0.05,32), mToon(0xD4A848));
   platInner.position.set(TX,0.09,TZ); _threeScene.add(platInner);
-  // Ambient tree glow — warm magical light from below the canopy
-  const treeGlow = new THREE.PointLight(0xFFEE88, 0.55, 5.0);
+  // Ambient tree glow — warm magical light from below the canopy (v85: softened)
+  const treeGlow = new THREE.PointLight(0xFFF4D8, 0.28, 5.0);
   treeGlow.position.set(TX, 3.5, TZ); _threeScene.add(treeGlow);
   _torchLights.push(treeGlow);
 
+  if(!ABETO_MINIMAL){
   // Magical canopy aura — soft green-gold halo emanating from tree center
   { const _cgTex = (() => {
       const cc = document.createElement('canvas'); cc.width = 128; cc.height = 128;
@@ -3023,6 +3024,7 @@ function initThreeScene(canvas) {
       });
     }
   }
+  } // end !ABETO_MINIMAL — canopy aura + tree paper lanterns + gems
 
   // ── Moonlight shaft (night only) ─────────────────────────────────────────
   { const msSm = new THREE.SpriteMaterial({
@@ -3268,7 +3270,8 @@ function initThreeScene(canvas) {
   }
   // 圓形地毯由 _buildRug() 在 initThreeScene 末段統一建立（Persian canvas texture）
   // 枝葉 — 三層茂盛樹冠，參考影片中央大樹風格
-  const foliageColors = [0x2E9A48,0x3DAA58,0x4DB86A,0x5CC870,0x26883C,0x48C060,0x38B050,0x309040,0x5AD068,0x22803A];
+  // v85: muted sage palette (abeto-style desaturation) instead of bright greens
+  const foliageColors = [0x6E8A5E,0x7A9568,0x84A072,0x90AC7E,0x647E56,0x88A876,0x7C9A6A,0x6A8A5C,0x94B084,0x5E7850];
   [
     // Bottom spreading layer (5 balls)
     [-1.0,4.0,-0.7,1.05],[0.9,4.1,0.6,1.00],[-0.3,3.9,1.0,0.90],[0.5,4.0,-0.9,0.95],[0,4.3,0,1.15],
@@ -3292,7 +3295,8 @@ function initThreeScene(canvas) {
   });
 
   // Cherry blossom clusters — outer-canopy pink puffs, clearly protruding beyond green
-  { const blossomColors = [0xFFB0C8, 0xFFC8D8, 0xFF90B0, 0xFFD0E0, 0xFFAEC0, 0xFFA8C8];
+  // v85: muted dusty-rose palette (abeto-style desaturation) instead of bright pinks
+  { const blossomColors = [0xE6C8D2, 0xDEBCCC, 0xD8B0C0, 0xE8D0DA, 0xDDC0CE, 0xD6B8C6];
     [
       // Lower outer edge — clearly beyond green foliage perimeter (~1.6+ from trunk)
       [-1.85, 4.2, -0.6, 0.68],[ 1.70, 4.1,  0.9, 0.62],[-0.5, 4.0, -1.80, 0.58],[ 0.8, 4.3,  1.75, 0.60],
@@ -3306,13 +3310,13 @@ function initThreeScene(canvas) {
       const bGeo = new THREE.IcosahedronGeometry(r, 0);
       const bMesh = new THREE.Mesh(bGeo, mToon(blossomColors[bi % blossomColors.length]));
       bMesh.position.set(TX+dx, y, TZ+dz); _threeScene.add(bMesh);
-      const bOl = _ol(bGeo, 1.07, 0x8B1A3A);
+      const bOl = _ol(bGeo, 1.07, 0xB89AA4); // v85: muted mauve outline (was crimson)
       bOl.position.copy(bMesh.position); _threeScene.add(bOl);
       bMesh.userData.isTree = true;
       _foliageMeshes.push({ mesh:bMesh, ox:TX+dx, oy:y, oz:TZ+dz, phase:bi*0.9+3.2, amp:0.04+bi*0.002 });
     });
-    // Blossom point light — soft rose glow from within canopy
-    const bPL = new THREE.PointLight(0xFF88B0, 0.35, 5.5);
+    // Blossom point light — soft rose glow from within canopy (v85: dimmer, paler)
+    const bPL = new THREE.PointLight(0xE8C4D2, 0.16, 5.0);
     bPL.position.set(TX+0.3, 5.0, TZ-0.3); _threeScene.add(bPL);
     _torchLights.push(bPL);
   }
