@@ -728,6 +728,48 @@ input[type=text], select, .btn-enter {
 .tp-swatch:hover { transform:scale(1.12); }
 .tp-swatch.active { border-color:#ffffff; box-shadow:0 0 0 1px rgba(255,255,255,0.3); }
 .tp-label { font-size:10px; color:#556677; text-align:center; margin-top:8px; letter-spacing:.04em; }
+
+/* ── v87: ABETO full-screen immersive layout (desktop) ──────────────────────
+   3D canvas fills the whole viewport; topbar + sidebar float as glass HUD;
+   the redundant 2D user-card list is hidden. Mobile (≤640) keeps its own
+   layout untouched. */
+@media(min-width:641px){
+  html,body{height:100%;overflow:hidden;}
+  #room{height:100dvh;min-height:100dvh;overflow:hidden;}
+  main{display:block;position:static;min-height:0;}
+  /* 3D fills entire viewport as a fixed background layer */
+  #lib-scene-wrap{
+    position:fixed;inset:0;width:100vw;height:100dvh;
+    z-index:0;border:none;border-radius:0;overflow:hidden;
+  }
+  #room-canvas{width:100%!important;height:100%!important;display:block;}
+  #desk-area{position:static;overflow:visible;background:transparent;flex:none;}
+  /* hide the redundant 2D user cards + floor divider — the 3D room IS the list */
+  #desk-grid-wrap,.room-floor-label{display:none!important;}
+  /* topbar: translucent glass floating on top */
+  header{
+    position:fixed;top:0;left:0;right:0;z-index:30;
+    background:linear-gradient(180deg,rgba(10,22,34,.80),rgba(10,22,34,.28));
+    -webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);
+    border-bottom:1px solid rgba(91,175,214,.16);
+    box-shadow:0 2px 18px rgba(0,0,0,.32);
+  }
+  /* sidebar: translucent glass panel floating at the right */
+  #sidebar{
+    position:fixed;top:64px;right:16px;bottom:16px;
+    width:250px;z-index:25;
+    border:1px solid rgba(91,175,214,.18);border-left:1px solid rgba(91,175,214,.18);
+    border-radius:16px;
+    background:rgba(9,20,33,.52);
+    -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+    box-shadow:0 10px 44px rgba(0,0,0,.42);
+    padding:16px 14px;
+  }
+  /* stronger vignette for cinematic immersion */
+  #lib-scene-wrap::after{
+    background:radial-gradient(ellipse at 50% 48%, transparent 52%, rgba(2,8,18,0.62) 100%);
+  }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="OrbitControls.js"></script>
@@ -9092,7 +9134,10 @@ function resizeThreeCanvas() {
   const wrap = document.getElementById('lib-scene-wrap');
   if (!canvas || !wrap) return;
   canvas.width  = wrap.clientWidth;
-  canvas.height = Math.min(520, Math.max(340, wrap.clientWidth * 0.52));
+  // v87: desktop = full-screen immersive (fill viewport); mobile = original band
+  const _fullImmersive = window.matchMedia('(min-width:641px)').matches;
+  canvas.height = _fullImmersive ? window.innerHeight
+                                 : Math.min(520, Math.max(340, wrap.clientWidth * 0.52));
   if (_threeRenderer) {
     _threeRenderer.setSize(canvas.width, canvas.height);
     if (_threeCamera) _threeCamera.aspect = canvas.width / canvas.height;
