@@ -2000,7 +2000,7 @@ function initThreeScene(canvas) {
   const ABETO_MINIMAL = true;
   // 深色背景：室內暗、窗外亮，對比才有美感
   _threeScene.background = new THREE.Color(0x0A1628);  // bright sky blue
-  _threeScene.fog = new THREE.Fog(0x0A1628, 28, 55);   // subtle linear fog
+  _threeScene.fog = new THREE.Fog(0x0A1628, 12, 35);   // v89: nearer fog for depth
 
   // 相機：眼睛高度，正面看向全景窗，景深自然出現
   // 眼睛高度站在入口直視前方 — 參考影片的廊道景深感
@@ -2216,7 +2216,7 @@ function initThreeScene(canvas) {
   }
 
   // Walls — 奶油米色，明亮圖書館感
-  const wallMat = mToon(0xEDE5D5);
+  const wallMat = mToon(0x1A2E42); // v89: dark interior walls (was cream 0xEDE5D5)
   // 後牆：落地窗，不留實牆
   const sillMat = new THREE.MeshLambertMaterial({ color: 0xDDD5C4 });
   // 地板邊框（窗底）
@@ -2736,7 +2736,7 @@ function initThreeScene(canvas) {
   lintel.position.set(0, 7.90, 13.83); _threeScene.add(lintel);
   const bWallTop = new THREE.Mesh(box(28,3,0.3), wallMat);
   bWallTop.position.set(0, 9.5, -8.1); _threeScene.add(bWallTop);
-  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(28,28), mToon(0xF2EDE0));
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(28,28), mToon(0x0E1E2E)); // v89: dark ceiling
   ceil.rotation.x = Math.PI/2; ceil.position.set(0, 9, 0); _threeScene.add(ceil);
   // Ceiling wooden beams — dark walnut coffered grid
   const beamMat = new THREE.MeshLambertMaterial({ color: 0x6B4422 });
