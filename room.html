@@ -2030,11 +2030,11 @@ function initThreeScene(canvas) {
   // 相機：眼睛高度，正面看向全景窗，景深自然出現
   // 眼睛高度站在入口直視前方 — 參考影片的廊道景深感
   _threeCamera = new THREE.PerspectiveCamera(80, canvas.width / canvas.height, 0.1, 80);
-  _threeCamera.position.set(0, 3.0, 13);
-  _threeCamera.lookAt(0, 1.2, -5);
+  _threeCamera.position.set(-4, 3.0, 12);  // v102 刀三: left-shifted for corridor perspective
+  _threeCamera.lookAt(2, 1.2, -5);
 
   _threeControls = new THREE.OrbitControls(_threeCamera, canvas);
-  _threeControls.target.set(0, 1.8, -3); // v94: big-hall resting view
+  _threeControls.target.set(2, 1.2, -5); // v102: resting view looks down the right corridor
   _threeControls.enableDamping = true;
   _threeControls.dampingFactor = _isMobile ? 0.12 : 0.06;
   _threeControls.rotateSpeed = _isMobile ? 0.5 : 0.7;
@@ -2129,18 +2129,7 @@ function initThreeScene(canvas) {
     _pendantGlows.push(glow);
   });
 
-  // Entrance flanking plants — moved deep into corners so entrance stays open
-  [[-10,0,6],[10,0,6]].forEach(([px,py,pz]) => {
-    const ePot = new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.25,0.55,12),
-      new THREE.MeshLambertMaterial({color:0xA06030}));
-    ePot.position.set(px,0.28,pz); _threeScene.add(ePot);
-    const eBall = new THREE.Mesh(new THREE.SphereGeometry(0.48,12,10),
-      new THREE.MeshLambertMaterial({color:0x3A8A30,flatShading:true}));
-    eBall.position.set(px,0.88,pz); _threeScene.add(eBall);
-    const eTip = new THREE.Mesh(new THREE.SphereGeometry(0.30,10,8),
-      new THREE.MeshLambertMaterial({color:0x4EAA3A,flatShading:true}));
-    eTip.position.set(px,1.26,pz); _threeScene.add(eTip);
-  });
+  // v102 刀二: entrance flanking plants removed (keep the entrance/corridor open)
 
   const mLambert = (hex, flat=false) => new THREE.MeshLambertMaterial({ color: hex, flatShading: flat });
 
@@ -2859,7 +2848,7 @@ function initThreeScene(canvas) {
     0xC04030, 0x3A2A80, 0x506020, 0x7A2060,
   ].map(c => new THREE.MeshLambertMaterial({ color: c }));
   // 書架沿左右兩側（x=±11.5）— 高書架接近天花板 + 5 排書
-  const _shelfZ = [-7,-4.5,-2,0.5,3,5.5];
+  const _shelfZ = [-9.5,-7,-4.5,-2,0.5,3,5.5,8,10.5,13]; // v102: full-depth corridor of shelves
   const _shelfSeed = _rng(55);
   // Decorative top items per shelf unit
   const _topDeco = ['globe','vase','none','lamp','plant','none'];
@@ -6077,7 +6066,7 @@ function initThreeScene(canvas) {
   }
 
   // ── 入口迎賓台 (reception desk) ─────────────────────────────────────────
-  {
+  if(false){ // v102 刀一: reception desk removed — keep the entrance/corridor open
     const rDeskMat  = new THREE.MeshLambertMaterial({ color: 0x7A5220 }); // warm dark wood
     const rTopMat   = new THREE.MeshLambertMaterial({ color: 0x5A3A10 });
     const rFacingMat= new THREE.MeshLambertMaterial({ color: 0xD8C8A0 }); // cream facing panel
@@ -8587,12 +8576,12 @@ function startThreeAnimation(canvas) {
     } else if(!_flyInDone){
       const t = Math.min(1, (performance.now() - _flyInStart) / 2000);
       const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
-      _threeCamera.position.x = 0;
+      _threeCamera.position.x = 0 - ease * (0 - (-4));   // v102: settle left for corridor view
       _threeCamera.position.y = 9 - ease * (9 - 3.0);   // lower = more floor visible
-      _threeCamera.position.z = 16 - ease * (16 - 13);  // doorway distance
+      _threeCamera.position.z = 16 - ease * (16 - 12);  // doorway distance
       _threeCamera.fov = 75 - ease * (75 - 72);          // wide FOV = grand hall
       _threeCamera.updateProjectionMatrix();
-      _threeCamera.lookAt(0, 1.2, -5);
+      _threeCamera.lookAt(2, 1.2, -5);                    // v102: look down the right corridor
       if(t >= 1) { _flyInDone = true; if(_threeControls) _threeControls.enabled = true; _wasDrag = false; }
     } else {
       if(_threeControls) _threeControls.update();
