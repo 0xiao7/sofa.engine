@@ -4637,6 +4637,58 @@ function initThreeScene(canvas) {
     _threeScene.userData.tanzaku=_t74strips;
   }
 
+  // v75: 加油黑板 — encouragement chalkboard on left wall ─────────────────────
+  { const bc=document.createElement('canvas'); bc.width=256; bc.height=192;
+    const bctx=bc.getContext('2d');
+    // Chalkboard green base
+    const bbg=bctx.createRadialGradient(128,96,20,128,96,150);
+    bbg.addColorStop(0,'#1E3A22'); bbg.addColorStop(1,'#162810');
+    bctx.fillStyle=bbg; bctx.fillRect(0,0,256,192);
+    // Border lines (chalk)
+    bctx.strokeStyle='rgba(200,210,200,0.30)'; bctx.lineWidth=2.5;
+    bctx.strokeRect(10,10,236,172);
+    bctx.strokeStyle='rgba(200,210,200,0.15)'; bctx.lineWidth=1;
+    bctx.strokeRect(15,15,226,162);
+    // Corner flower doodles (chalk pink)
+    [[28,28],[228,28],[28,164],[228,164]].forEach(([cx,cy])=>{
+      bctx.strokeStyle='rgba(255,160,180,0.55)'; bctx.lineWidth=1.5;
+      for(let p=0;p<5;p++){
+        const pa=(p/5)*Math.PI*2;
+        bctx.beginPath(); bctx.ellipse(cx+Math.cos(pa)*7,cy+Math.sin(pa)*7,4,3,pa,0,Math.PI*2); bctx.stroke();
+      }
+      bctx.fillStyle='rgba(255,220,100,0.60)';
+      bctx.beginPath(); bctx.arc(cx,cy,3,0,Math.PI*2); bctx.fill();
+    });
+    // Main chalk text
+    bctx.font='bold 34px "Noto Serif TC", serif';
+    bctx.fillStyle='rgba(240,240,230,0.92)';
+    bctx.textAlign='center'; bctx.textBaseline='middle';
+    bctx.fillText('今日も頑張ろう！',128,75);
+    // Subtitle
+    bctx.font='18px "Noto Serif TC", serif';
+    bctx.fillStyle='rgba(200,220,200,0.72)';
+    bctx.fillText('一緒に頑張ろう 📚',128,110);
+    // Star doodles
+    bctx.fillStyle='rgba(255,230,100,0.55)'; bctx.font='16px serif';
+    [[50,140],[130,148],[210,140],[80,155],[175,152]].forEach(([sx,sy])=>{
+      bctx.fillText('✦',sx,sy);
+    });
+    const boardTex=new THREE.CanvasTexture(bc);
+    const boardMat=new THREE.MeshBasicMaterial({map:boardTex,side:THREE.FrontSide});
+    const board=new THREE.Mesh(new THREE.PlaneGeometry(2.2,1.6),boardMat);
+    board.position.set(-11.46,4.2,0); board.rotation.y=Math.PI/2;
+    _threeScene.add(board);
+    // Wooden frame
+    const frameMat=new THREE.MeshLambertMaterial({color:0x6A3A12});
+    [[0,0.82],[0,-0.82],[1.12,0],[-1.12,0]].forEach(([fx,fy],fi)=>{
+      const isH=fi<2;
+      const fGeo=isH ? new THREE.BoxGeometry(2.28,0.08,0.04) : new THREE.BoxGeometry(0.08,1.68,0.04);
+      const fm=new THREE.Mesh(fGeo,frameMat);
+      fm.position.set(-11.44,4.2+fy,0+fx); fm.rotation.y=Math.PI/2;
+      _threeScene.add(fm);
+    });
+  }
+
   // v73: 香煙裊裊 — incense smoke rising from offering box ────────────────────
   { const smokeMat=new THREE.MeshBasicMaterial({color:0xF0EEDD,transparent:true,opacity:0,depthWrite:false});
     const smokeGeo=new THREE.SphereGeometry(0.022,5,4);
