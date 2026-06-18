@@ -4605,6 +4605,36 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v70: 落花鋪地 — sakura petal clusters on shrine path floor ───────────────
+  { const _p70c=document.createElement('canvas'); _p70c.width=_p70c.height=64;
+    const _p70x=_p70c.getContext('2d');
+    const petalPiles=[
+      {dx:0,dy:0,rx:22,ry:16,a:0.10,col:'rgba(255,168,192,0.55)'},
+      {dx:16,dy:8,rx:16,ry:11,a:0.35,col:'rgba(255,210,224,0.50)'},
+      {dx:-14,dy:10,rx:18,ry:12,a:-0.25,col:'rgba(255,180,210,0.48)'},
+      {dx:8,dy:-12,rx:14,ry:10,a:0.55,col:'rgba(255,200,218,0.45)'},
+      {dx:-8,dy:-8,rx:12,ry:9,a:-0.40,col:'rgba(255,140,175,0.42)'},
+      {dx:20,dy:-4,rx:10,ry:8,a:0.80,col:'rgba(255,230,240,0.40)'},
+    ];
+    petalPiles.forEach(({dx,dy,rx,ry,a,col})=>{
+      _p70x.save(); _p70x.translate(32+dx,32+dy); _p70x.rotate(a);
+      _p70x.fillStyle=col; _p70x.beginPath(); _p70x.ellipse(0,0,rx,ry,0,0,Math.PI*2); _p70x.fill();
+      _p70x.restore();
+    });
+    const _p70t=new THREE.CanvasTexture(_p70c);
+    const _p70rng=_rng(70);
+    // 14 scattered petal clusters along path z=1.5–6.5
+    for(let pi=0;pi<14;pi++){
+      const px=(_p70rng()-0.5)*4.2;
+      const pz=1.5+_p70rng()*5.0;
+      const sc=0.55+_p70rng()*0.50;
+      const mat=new THREE.MeshBasicMaterial({map:_p70t,transparent:true,depthWrite:false,side:THREE.DoubleSide,opacity:0.75});
+      const mesh=new THREE.Mesh(new THREE.PlaneGeometry(sc,sc),mat);
+      mesh.rotation.x=-Math.PI/2; mesh.rotation.z=_p70rng()*Math.PI*2;
+      mesh.position.set(px,0.005,pz); _threeScene.add(mesh);
+    }
+  }
+
   // v65: Magic study circle — rotating rune rings on shrine path floor ────────
   { const _mkRuneTex=()=>{
       const rc=document.createElement('canvas'); rc.width=rc.height=512;
