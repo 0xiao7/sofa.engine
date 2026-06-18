@@ -776,6 +776,8 @@ document.addEventListener('DOMContentLoaded',function(){
 document.getElementById('lawSelect').addEventListener('change', async function(){
   // Wave 73: save selected law to localStorage
   localStorage.setItem('sofa_last_law', this.value);
+  // 手動切換法規時關閉自動出題模式
+  if(!this._skipAutoNextReset) _autoNextOnCorrect = false;
   // Reset streak when changing law
   _quizStreak = 0;
   document.getElementById('streak-badge')?.classList.remove('show');
@@ -963,6 +965,7 @@ function refreshWrongCount() {
 
 // ── 連刷模式 ──────────────────────────────────────────────────
 let wrongMode = false;
+let _autoNextOnCorrect = false; // 弱點練習模式：答對自動下一題
 let _sessionMode = false, _sessionTotal = 0, _sessionDone = 0;
 
 let _countdownInterval = null, _countdownSecs = 0;
@@ -1786,6 +1789,10 @@ async function loadQuiz(){
         _feedbackAnim(btn,isCorrect,_elapsed);
         onAnswerDone(isCorrect);
         updateScore();
+        // 弱點練習自動下一題：答對 500ms 後自動前進，答錯停下讀解析
+        if(_autoNextOnCorrect && !_sessionMode && isCorrect){
+          setTimeout(()=>{ wrongMode ? loadWrongQuiz() : loadQuiz(); }, 500);
+        }
         // 顯示出處條號
         (function(){
           const _cit=document.getElementById('quiz-citation');
@@ -2263,7 +2270,7 @@ function _renderRailWeakness() {
     return `<div style="margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
         <span style="font-size:11px;color:#C8DDE8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${esc(name)}</span>
-        <button onclick="closeStats();_drillWrongLaw(${JSON.stringify(name)})" style="flex-shrink:0;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:#E98880;border-radius:8px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:var(--mono)">練習</button>
+        <button onclick="_drillLawAuto(${JSON.stringify(name)})" style="flex-shrink:0;background:rgba(231,76,60,.1);border:1px solid rgba(231,76,60,.3);color:#E98880;border-radius:8px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:var(--mono)">練習</button>
       </div>
       <div style="font-family:var(--mono);font-size:10px;color:#E74C3C">✗ ${wrong}題 &nbsp;<span style="color:rgba(245,240,234,.35)">${pct}%正確</span></div>
       ${bar}
@@ -2353,21 +2360,29 @@ function _renderWrongList() {
 
 function _drillWrongLaw(lawName) {
   closeStats();
-  // Set law selector to this law
   const sel = document.getElementById('lawSelect');
   if (sel) {
     const opt = Array.from(sel.options).find(o => o.value === lawName || o.text === lawName);
-    if (opt) {
-      sel.value = opt.value;
-      sel.dispatchEvent(new Event('change'));
-    }
+    if (opt) { sel.value = opt.value; sel.dispatchEvent(new Event('change')); }
   }
-  // Enable wrong mode and start
   wrongMode = true;
   const btnW = document.getElementById('btnWrong');
   if (btnW) btnW.classList.add('active');
-  // Small delay to let lawSelect change event settle
   setTimeout(() => loadWrongQuiz(), 120);
+}
+
+function _drillLawAuto(lawName) {
+  closeStats();
+  _autoNextOnCorrect = true;
+  wrongMode = false;
+  const btnW = document.getElementById('btnWrong');
+  if (btnW) btnW.classList.remove('active');
+  const sel = document.getElementById('lawSelect');
+  if (sel) {
+    const opt = Array.from(sel.options).find(o => o.value === lawName || o.text === lawName);
+    if (opt) { sel.value = opt.value; sel._skipAutoNextReset = true; sel.dispatchEvent(new Event('change')); sel._skipAutoNextReset = false; }
+  }
+  setTimeout(() => loadQuiz(), 120);
 }
 
 function _clearWrongListFromPanel() {
