@@ -2427,6 +2427,45 @@ function initThreeScene(canvas) {
   rope.position.set(-0.5, 8.15, -7.78);
   _threeScene.add(rope);
 
+  // v67: Wisteria entrance curtain — 3 hanging vine clusters framing the view ─
+  { // Canvas sprite: a wisteria cluster strip (64×256)
+    const _mkWistTex=(baseCol,tipCol)=>{
+      const wc=document.createElement('canvas'); wc.width=64; wc.height=256;
+      const wctx=wc.getContext('2d');
+      // 10 oval florets top→bottom, getting smaller toward tip
+      for(let fi=0;fi<10;fi++){
+        const t=fi/9;
+        const rx=22-t*10, ry=16-t*6;
+        const fy=12+fi*23;
+        const col=`rgba(${lerp(155,232,t)|0},${lerp(48,192,t)|0},${lerp(216,255,t)|0},${0.92-t*0.15})`;
+        wctx.fillStyle=col;
+        wctx.beginPath(); wctx.ellipse(32,fy,rx,ry,0,0,Math.PI*2); wctx.fill();
+        // Highlight
+        wctx.fillStyle=`rgba(255,255,255,0.18)`;
+        wctx.beginPath(); wctx.ellipse(32-rx*0.25,fy-ry*0.28,rx*0.45,ry*0.38,0,0,Math.PI*2); wctx.fill();
+      }
+      function lerp(a,b,t){return a+(b-a)*t;}
+      return new THREE.CanvasTexture(wc);
+    };
+    // 3 vine positions across entrance z=8.4
+    [[-1.4, 0xAA44EE, 0xDDAAFF],[0.0, 0x9930DD, 0xCCAAFF],[1.4, 0xBB55FF, 0xEECCFF]].forEach(([vx,bc,tc],vi)=>{
+      const wTex=_mkWistTex(bc,tc);
+      const wMat=new THREE.MeshBasicMaterial({map:wTex,transparent:true,alphaTest:0.05,side:THREE.DoubleSide,depthWrite:false});
+      // Vine strand — 3 overlapping planes per cluster for fullness
+      [-0.10,0,0.10].forEach(dx=>{
+        const wMesh=new THREE.Mesh(new THREE.PlaneGeometry(0.32,1.60),wMat);
+        wMesh.position.set(vx+dx, 6.5, 8.4+vi*0.04);
+        _threeScene.add(wMesh);
+      });
+      // Hanging cord from ceiling
+      const cord=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.70,4),new THREE.MeshBasicMaterial({color:0x887766,transparent:true,opacity:0.55}));
+      cord.position.set(vx,7.52,8.4); _threeScene.add(cord);
+      // Soft purple glow
+      const wgl=new THREE.PointLight(0xBB88FF,0.10,2.2);
+      wgl.position.set(vx,6.8,8.4); _threeScene.add(wgl);
+    });
+  }
+
   // v66: Ceiling garland string lights — 3 warm lantern rows across the room ──
   { const garlCols=[0xFFE8B0,0xFFBBCC,0xCCDDFF,0xFFCCDD,0xDDFFCC,0xFFE0A0,0xFFCCFF,0xCCEEFF];
     const _g66=_rng(66);
