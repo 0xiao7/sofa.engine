@@ -1129,6 +1129,7 @@ const mToon = (hex) => new THREE.MeshLambertMaterial({ color: hex });
 const mToonFlat = (hex) => new THREE.MeshLambertMaterial({ color: hex, flatShading: true });
 const _isMobile = /iPhone|iPad|Android|Mobi/i.test(navigator.userAgent) || window.innerWidth < 768;
 let _characterGLTF = null; // loaded GLB template for user avatars
+const _USE_GLB_AVATAR = false; // v100: unify on cute chibi (GLB human = flat faceless)
 let _mixers = [];           // AnimationMixer array — updated every frame
 let _mixerLastTime = 0;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
@@ -6145,7 +6146,7 @@ function initThreeScene(canvas) {
   }
 
   // Preload animated character GLB (698KB, cached after first load)
-  if (THREE.GLTFLoader) {
+  if (_USE_GLB_AVATAR && THREE.GLTFLoader) {
     new THREE.GLTFLoader().load('models/human.glb', gltf => {
       _characterGLTF = gltf;
       // Re-render avatars now that model is ready
@@ -6720,10 +6721,12 @@ function _updateThreeAvatars(users) {
     const avz = _vpos.vz + 0.64;   // character z = chair seat (behind desk)
 
     // GLB animated character avatar (falls back to rounded humanoid if model unavailable)
+    // v100: unify on the cute chibi (see _USE_GLB_AVATAR) — the GLB human loads as
+    // a flat single-colour faceless humanoid; chibi is the polished kawaii look.
     let body;
     const avatarY = 0;
     let _usedGLB = false;
-    if (_characterGLTF) {
+    if (_characterGLTF && _USE_GLB_AVATAR) {
       try {
         // Native clone — all avatars share the original armature bones (idle sync is fine visually)
         const clone = _characterGLTF.scene.clone(true);
