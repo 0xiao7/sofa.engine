@@ -4661,6 +4661,68 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v77: 垂れ幕 — crimson hanging banners on Torii gate pillars ────────────────
+  { const _makeBanner=(chars,seed77)=>{
+      const bc=document.createElement('canvas'); bc.width=72; bc.height=256;
+      const bctx=bc.getContext('2d');
+      // Crimson fabric
+      const bg=bctx.createLinearGradient(0,0,72,256);
+      bg.addColorStop(0,'#A81818'); bg.addColorStop(0.5,'#8B1010'); bg.addColorStop(1,'#701010');
+      bctx.fillStyle=bg; bctx.fillRect(0,0,72,256);
+      // Highlight sheen (fabric fold on left side)
+      const sh=bctx.createLinearGradient(0,0,30,0);
+      sh.addColorStop(0,'rgba(255,200,180,0.10)'); sh.addColorStop(1,'rgba(255,200,180,0)');
+      bctx.fillStyle=sh; bctx.fillRect(0,0,72,256);
+      // Gold border outer
+      bctx.strokeStyle='#C8A040'; bctx.lineWidth=2.5;
+      bctx.strokeRect(5,5,62,246);
+      // Gold border inner
+      bctx.strokeStyle='rgba(230,180,60,0.55)'; bctx.lineWidth=1;
+      bctx.strokeRect(10,10,52,236);
+      // Bottom fringe line
+      bctx.strokeStyle='#C8A040'; bctx.lineWidth=1.5;
+      bctx.beginPath(); bctx.moveTo(8,238); bctx.lineTo(64,238); bctx.stroke();
+      // Vertical fringe threads below
+      bctx.strokeStyle='rgba(200,160,50,0.65)'; bctx.lineWidth=0.8;
+      for(let fi=0;fi<9;fi++){
+        const fx=14+fi*6;
+        bctx.beginPath(); bctx.moveTo(fx,238); bctx.lineTo(fx+1+fi%3,250); bctx.stroke();
+      }
+      // Kanji characters stacked vertically
+      bctx.font='bold 68px "Noto Serif TC", serif';
+      bctx.fillStyle='rgba(255,230,160,0.96)';
+      bctx.textAlign='center'; bctx.textBaseline='middle';
+      chars.forEach((ch,ci)=>{ bctx.fillText(ch,36,80+ci*96); });
+      return new THREE.CanvasTexture(bc);
+    };
+    // Left banner: 必勝 (certain victory — classic exam phrase)
+    // Right banner: 合格 (passing the exam — the goal)
+    const bannerData=[
+      {x:-1.58, chars:['必','勝'], phase:0.0},
+      {x: 1.58, chars:['合','格'], phase:1.9},
+    ];
+    const _t77banners=[];
+    bannerData.forEach(({x,chars,phase})=>{
+      const tex=_makeBanner(chars);
+      const mat=new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide,transparent:true,alphaTest:0.02});
+      const banner=new THREE.Mesh(new THREE.PlaneGeometry(0.40,1.40),mat);
+      // Hang from nuki y=2.90 → center at y=2.20
+      banner.position.set(x,2.20,6.46);
+      _threeScene.add(banner);
+      // Horizontal wooden rod at top
+      const rod=new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,0.44,6),
+        new THREE.MeshLambertMaterial({color:0x3A1A08}));
+      rod.rotation.z=Math.PI/2; rod.position.set(x,2.92,6.46);
+      _threeScene.add(rod);
+      // Thin cord from nuki to rod
+      const cord=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.04,4),
+        new THREE.MeshLambertMaterial({color:0xC8A040}));
+      cord.position.set(x,2.94,6.46); _threeScene.add(cord);
+      _t77banners.push({banner,bx:x,phase,swayAmp:0.022+Math.random()*0.010});
+    });
+    _threeScene.userData.taremaku=_t77banners;
+  }
+
   // v75: 加油黑板 — encouragement chalkboard on left wall ─────────────────────
   { const bc=document.createElement('canvas'); bc.width=256; bc.height=192;
     const bctx=bc.getContext('2d');
@@ -8296,6 +8358,9 @@ function startThreeAnimation(canvas) {
     // Tanzaku strips — gentle z sway
     const _tz=_threeScene.userData.tanzaku;
     if(_tz){ _tz.forEach(s=>{ s.mesh.rotation.z=0.06*Math.sin(_threeTime*0.9+s.phase); s.mesh.rotation.x=-0.04*Math.cos(_threeTime*0.7+s.phase*1.2); }); }
+    // Taremaku banners — gentle pendulum sway on torii pillars
+    const _tm=_threeScene.userData.taremaku;
+    if(_tm){ _tm.forEach(b=>{ b.banner.rotation.z=b.swayAmp*Math.sin(_threeTime*0.38+b.phase); }); }
     // Magic study circle — counter-rotating rings, pulsing opacity
     const _sc=_threeScene.userData.studyCircle;
     if(_sc){
