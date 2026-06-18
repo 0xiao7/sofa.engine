@@ -839,6 +839,7 @@ input[type=text], select, .btn-enter {
       <span id="count-badge">1 人在線</span>
     </span>
     <span id="weather-badge" style="font-size:.7rem;color:rgba(175,195,215,.6);letter-spacing:.04em;font-family:var(--mono);"></span>
+    <span id="room-level-badge" title="全體本週讀書時數越多，自習室等級越高，解鎖更多裝飾" style="display:none;align-items:center;gap:6px;font-size:.7rem;color:#E8C868;letter-spacing:.04em;font-family:var(--mono);cursor:default;"></span>
     <div style="display:flex;gap:6px;align-items:center;">
       <button id="btn-lock">🔒 鎖定</button>
       <button class="btn-leave" id="btn-leave">離開</button>
@@ -1151,6 +1152,8 @@ const _HOURLY_CHALLENGES = [
   {law:'稅捐稽徵法', art:'§35', q:'復查的申請期限？'},
   {law:'營業稅法', art:'§51', q:'漏開發票的罰則？'},
 ];
+// v110: room level system — total weekly study unlocks decorations
+let _roomLevel = 0, _levelUnlocks = [];
 let _deskPlantPos = []; // v97: per-desk potted-plant top position {x,y,z} for blooms
 let _deskBlooms = [];   // v97: active bloom flower sprites (rebuilt each avatar update)
 const _seenUserIds = new Set();
@@ -6150,6 +6153,47 @@ function initThreeScene(canvas) {
     _updateChallenge();
   }
 
+  // v110: level-unlock decorations — built hidden, revealed by _applyRoomLevel
+  { // Lv2 — warm entrance string lights (festive swag across the entrance)
+    const g2 = new THREE.Group(); g2.visible = false;
+    const bulbMat2 = new THREE.MeshBasicMaterial({ color: 0xFFD98A });
+    const cord2 = new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,11,5),
+      new THREE.MeshLambertMaterial({ color: 0x4A3A20 }));
+    cord2.rotation.z = Math.PI/2; cord2.position.set(0, 5.6, 9.5); g2.add(cord2);
+    for(let x=-5; x<=5; x+=1.25){
+      const sag = 0.28*Math.cos(x/5*Math.PI/2); // gentle catenary
+      const b = new THREE.Mesh(new THREE.SphereGeometry(0.08,8,6), bulbMat2);
+      b.position.set(x, 5.45 - sag, 9.5); g2.add(b);
+      if(Math.abs(x)%2 < 1.25){ const pl=new THREE.PointLight(0xFFD98A,0.18,3); pl.position.set(x,5.4,9.5); g2.add(pl); }
+    }
+    _threeScene.add(g2); _levelUnlocks.push({ group:g2, minLevel:2 });
+
+    // Lv3 — two round potted plants flanking the entrance
+    const g3 = new THREE.Group(); g3.visible = false;
+    [[-5.5,9.8],[5.5,9.8]].forEach(([px,pz])=>{
+      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.34,0.27,0.6,12), new THREE.MeshLambertMaterial({color:0xA8784A}));
+      pot.position.set(px,0.3,pz); g3.add(pot);
+      const ball = new THREE.Mesh(new THREE.IcosahedronGeometry(0.5,2), new THREE.MeshLambertMaterial({color:0x6E8A5E}));
+      ball.position.set(px,1.0,pz); g3.add(ball);
+      const top = new THREE.Mesh(new THREE.IcosahedronGeometry(0.32,2), new THREE.MeshLambertMaterial({color:0x84A072}));
+      top.position.set(px,1.42,pz); g3.add(top);
+    });
+    _threeScene.add(g3); _levelUnlocks.push({ group:g3, minLevel:3 });
+
+    // Lv4 — central low flowering plant on the rug (kept low so it never blocks the view)
+    const g4 = new THREE.Group(); g4.visible = false;
+    { const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.4,0.32,0.5,14), new THREE.MeshLambertMaterial({color:0xB07A4A}));
+      pot.position.set(0,0.27,3.0); g4.add(pot);
+      const foli = new THREE.Mesh(new THREE.IcosahedronGeometry(0.55,2), new THREE.MeshLambertMaterial({color:0x7A9568}));
+      foli.position.set(0,0.78,3.0); g4.add(foli);
+      const blossomCols=[0xE6C8D2,0xDEBCCC,0xF7B8CE,0xE8D0DA];
+      for(let bi=0;bi<10;bi++){ const a=bi/10*Math.PI*2;
+        const fl=new THREE.Mesh(new THREE.IcosahedronGeometry(0.09,1), new THREE.MeshBasicMaterial({color:blossomCols[bi%4]}));
+        fl.position.set(Math.cos(a)*0.45, 0.78+Math.sin(bi)*0.18, 3.0+Math.sin(a)*0.45); g4.add(fl); }
+    }
+    _threeScene.add(g4); _levelUnlocks.push({ group:g4, minLevel:4 });
+  }
+
   // ── 光柱效果：全景窗陽光斜射入室內 ─────────────────────────────────────
   if (!_isMobile) {
     const shaftMat = new THREE.MeshBasicMaterial({
@@ -6727,8 +6771,26 @@ function _updateChallenge() {
   _chalHour = hr;
 }
 
+// v110: room level from total weekly study — unlocks decorations + topbar badge
+function _applyRoomLevel(users) {
+  const STEP = 200, MAXLV = 6;
+  const total = (users||[]).filter(u => u && !u.isGhost).reduce((s,u)=>s+(u.weekPts||0), 0);
+  const level = Math.max(1, Math.min(MAXLV, Math.floor(total/STEP) + 1));
+  const leveledUp = level > _roomLevel;
+  _roomLevel = level;
+  _levelUnlocks.forEach(u => { if(u.group) u.group.visible = level >= u.minLevel; });
+  const b = document.getElementById('room-level-badge');
+  if (b) {
+    b.style.display = 'inline-flex';
+    const pct = level >= MAXLV ? 100 : Math.round(((total - (level-1)*STEP) / STEP) * 100);
+    b.innerHTML = '🏛 Lv.' + level + ' <span style="opacity:.55">·' + total + '分 ' + (level>=MAXLV?'MAX':pct+'%') + '</span>';
+  }
+  if (leveledUp && _roomLevel > 1 && typeof _showEntryToast !== 'function') { /* no-op guard */ }
+}
+
 function _updateThreeAvatars(users) {
   _updateStele(users); // v107: refresh weekly leaderboard stele
+  _applyRoomLevel(users); // v110: room level + unlock decorations
   // Detect new user joins (toast only after initial room load)
   const _isFirstRenderLocal = _seenUserIds.size === 0;
   const _newArrivals = new Set(); // Wave 44: track indices of newly-joined users
