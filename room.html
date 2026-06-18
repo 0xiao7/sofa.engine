@@ -4605,6 +4605,38 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v74: 七夕短冊 — Tanabata wish strips hanging from shimenawa ───────────────
+  { const tanzakuCols=['#FFB8D0','#FFE8A0','#B8D8FF','#B8FFD0','#E8B8FF','#FFF0D0','#FFD0B8','#D0E8FF','#FFB8E8'];
+    const tanzakuChars=['勉','志','勝','學','福','心','夢','願','努'];
+    const _t74strips=[];
+    const nStrips=9;
+    for(let ti=0;ti<nStrips;ti++){
+      const tc=document.createElement('canvas'); tc.width=24; tc.height=80;
+      const tctx=tc.getContext('2d');
+      // Paper base
+      tctx.fillStyle=tanzakuCols[ti%tanzakuCols.length]; tctx.fillRect(0,0,24,80);
+      // Vertical line guides
+      tctx.strokeStyle='rgba(80,60,40,0.18)'; tctx.lineWidth=0.6;
+      [8,16].forEach(lx=>{tctx.beginPath();tctx.moveTo(lx,6);tctx.lineTo(lx,74);tctx.stroke();});
+      // Kanji character
+      tctx.font='bold 34px "Noto Serif TC", serif';
+      tctx.fillStyle='rgba(40,20,10,0.80)';
+      tctx.textAlign='center'; tctx.textBaseline='middle';
+      tctx.fillText(tanzakuChars[ti],12,40);
+      // Gold foil top hole
+      tctx.strokeStyle='rgba(180,140,40,0.60)'; tctx.lineWidth=1.5;
+      tctx.beginPath(); tctx.arc(12,6,3,0,Math.PI*2); tctx.stroke();
+      const tTex=new THREE.CanvasTexture(tc);
+      const tMat=new THREE.MeshBasicMaterial({map:tTex,transparent:true,alphaTest:0.05,side:THREE.DoubleSide});
+      const tMesh=new THREE.Mesh(new THREE.PlaneGeometry(0.065,0.22),tMat);
+      const tx=(ti/(nStrips-1)-0.5)*3.6; // x: -1.8 to +1.8
+      tMesh.position.set(tx,2.61,6.5); // hang below shimenawa y=2.72
+      _threeScene.add(tMesh);
+      _t74strips.push({mesh:tMesh,phase:ti*0.7,tx});
+    }
+    _threeScene.userData.tanzaku=_t74strips;
+  }
+
   // v73: 香煙裊裊 — incense smoke rising from offering box ────────────────────
   { const smokeMat=new THREE.MeshBasicMaterial({color:0xF0EEDD,transparent:true,opacity:0,depthWrite:false});
     const smokeGeo=new THREE.SphereGeometry(0.022,5,4);
@@ -8176,6 +8208,9 @@ function startThreeAnimation(canvas) {
       kf.position.z=-0.5+Math.sin(a)*r*1.15;
       kf.material.rotation=-a; // face direction of travel
     }); }
+    // Tanzaku strips — gentle z sway
+    const _tz=_threeScene.userData.tanzaku;
+    if(_tz){ _tz.forEach(s=>{ s.mesh.rotation.z=0.06*Math.sin(_threeTime*0.9+s.phase); s.mesh.rotation.x=-0.04*Math.cos(_threeTime*0.7+s.phase*1.2); }); }
     // Magic study circle — counter-rotating rings, pulsing opacity
     const _sc=_threeScene.userData.studyCircle;
     if(_sc){
