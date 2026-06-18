@@ -8797,6 +8797,8 @@ function _startRealMode() {
   _flyInDone = false;
   _flyInStart = performance.now();
   _launchHUD();
+  // v116: safety — guarantee camera drag is enabled shortly after entry
+  setTimeout(() => { if (_threeControls) { _threeControls.enabled = true; _threeControls.enableRotate = true; } }, 2400);
 }
 
 function startThreeAnimation(canvas) {
