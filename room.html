@@ -9598,9 +9598,11 @@ function lcg(seed){
 }
 
 function getGhosts(realCount){
-  const needed = Math.max(0, 20 - realCount);
-  if(!needed) return [];
   const win = Math.floor(Date.now() / 300000); // 5-min window
+  // v120: modest, time-varying companion count (was always pad-to-20 → looked fake)
+  const target = 4 + (win % 6); // 4–9, drifts over time
+  const needed = Math.max(0, target - realCount);
+  if(!needed) return [];
   const rng = lcg(win * 0x9e3779b9);
   const pool = [...GHOST_POOL];
   for(let i = pool.length - 1; i > 0; i--){
@@ -9818,11 +9820,13 @@ function startPresence(name, subject){
 function renderRoom(){
   const state    = channel.presenceState();
   const real     = Object.entries(state).map(([key, [u]]) => ({ key, ...u }));
-  const count    = real.length + getGhosts(real.length).length; // total for badge
-  // Display: self always first, then top-30 others by weekPts
+  // v120: actually RENDER the companion ghosts (were counted but not drawn → "20人"
+  // claimed but empty room). Count now matches the people actually shown.
+  const ghosts   = getGhosts(real.length);
   const selfReal = real.find(u => u.key === myKey);
   const othersReal = real.filter(u => u.key !== myKey).sort((a,b) => (b.weekPts||0)-(a.weekPts||0)).slice(0,30);
-  const users    = selfReal ? [selfReal, ...othersReal] : othersReal; // empty desks stay empty
+  const users    = [ ...(selfReal ? [selfReal] : []), ...othersReal, ...ghosts ];
+  const count    = users.length; // honest: badge = avatars actually in the room
 
   // 更新 3D 場景用戶列表
   _currentUsers = users.map((u, i) => ({
