@@ -2380,17 +2380,35 @@ function initThreeScene(canvas) {
         ctx.fillStyle=mColors[li]; ctx.beginPath(); ctx.moveTo(0,H);
         pts.forEach(([x,y])=>ctx.lineTo(x,H*y)); ctx.lineTo(W,H); ctx.closePath(); ctx.fill();
       });
-      // Grass (green during day, dark amber tint at sunset)
-      const grassGrad=ctx.createLinearGradient(0,H*.80,0,H);
+      // v99: lake at the foot of the mountains — adds water + depth to the view
+      { const lT=H*0.745, lB=H*0.835;
+        const lg=ctx.createLinearGradient(0,lT,0,lB);
+        if(isSunset){ lg.addColorStop(0,'#8A5560'); lg.addColorStop(1,'#3A2230'); }
+        else { lg.addColorStop(0,'#86BFDD'); lg.addColorStop(0.5,'#5E9EC8'); lg.addColorStop(1,'#4682B0'); }
+        ctx.fillStyle=lg; ctx.fillRect(0,lT,W,lB-lT);
+        // ripple highlight lines
+        ctx.strokeStyle=isSunset?'rgba(255,210,170,0.16)':'rgba(255,255,255,0.20)'; ctx.lineWidth=2;
+        for(let ri=0;ri<6;ri++){
+          const ry=lT+8+ri*((lB-lT-10)/6);
+          ctx.beginPath();
+          for(let xi=0;xi<=24;xi++){ const x=W*(xi/24), y=ry+Math.sin(xi*0.8+ri*1.3)*1.8; xi===0?ctx.moveTo(x,y):ctx.lineTo(x,y); }
+          ctx.stroke();
+        }
+        // sun/sky glitter on water
+        ctx.fillStyle=isSunset?'rgba(255,180,90,0.22)':'rgba(255,250,225,0.22)';
+        ctx.beginPath(); ctx.ellipse(W*0.72,(lT+lB)/2,140,9,0,0,Math.PI*2); ctx.fill();
+      }
+      // Grass (green during day, dark amber tint at sunset) — near shore below the lake
+      const grassGrad=ctx.createLinearGradient(0,H*.835,0,H);
       if(isSunset){
         grassGrad.addColorStop(0,'#3A1820'); grassGrad.addColorStop(1,'#281008');
       } else {
         grassGrad.addColorStop(0,'#48A838'); grassGrad.addColorStop(0.5,'#5EC245'); grassGrad.addColorStop(1,'#78D85A');
       }
-      ctx.fillStyle=grassGrad; ctx.fillRect(0,H*.80,W,H*.20);
+      ctx.fillStyle=grassGrad; ctx.fillRect(0,H*.835,W,H*.165);
       // Cherry blossom trees — spring garden beyond the window
       if(!isSunset){
-        [[W*.06,H*.79],[W*.19,H*.77],[W*.33,H*.80],[W*.50,H*.76],[W*.64,H*.78],[W*.80,H*.77],[W*.92,H*.80]].forEach(([tx,ty],ti)=>{
+        [[W*.06,H*.90],[W*.19,H*.88],[W*.33,H*.91],[W*.50,H*.87],[W*.64,H*.89],[W*.80,H*.88],[W*.92,H*.91]].forEach(([tx,ty],ti)=>{
           const sc=0.55+Math.abs(Math.sin(ti*1.7))*0.30;
           // Trunk
           ctx.fillStyle='#4A2808';
@@ -2415,7 +2433,7 @@ function initThreeScene(canvas) {
         });
       } else {
         // Sunset: dark silhouettes with amber edge glow
-        [[W*.08,H*.79],[W*.22,H*.77],[W*.42,H*.80],[W*.58,H*.76],[W*.72,H*.78],[W*.88,H*.79]].forEach(([tx,ty],ti)=>{
+        [[W*.08,H*.90],[W*.22,H*.88],[W*.42,H*.91],[W*.58,H*.87],[W*.72,H*.89],[W*.88,H*.90]].forEach(([tx,ty],ti)=>{
           const sc=0.50+Math.abs(Math.sin(ti*1.9))*0.28;
           ctx.fillStyle='#1A0808'; ctx.fillRect(tx-5*sc, ty-50*sc, 10*sc, 56*sc);
           [{dx:0,dy:-72,rx:36,ry:26},{dx:-20,dy:-58,rx:26,ry:20},{dx:20,dy:-60,rx:28,ry:21},{dx:6,dy:-88,rx:24,ry:18}].forEach(({dx,dy,rx,ry})=>{
