@@ -1135,6 +1135,22 @@ let _mixerLastTime = 0;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _DESK_VISUAL_POS_3D = []; // stores {vx,vz,ry} for each desk after scatter
 let _steleCanvas = null, _steleCtx = null, _steleTex = null; // v107: weekly leaderboard stele
+// v109: hourly law challenge plaque
+let _chalCanvas = null, _chalCtx = null, _chalTex = null, _chalMesh = null, _chalHour = -1;
+const _HOURLY_CHALLENGES = [
+  {law:'記帳士法', art:'§3', q:'記帳士資格如何取得？'},
+  {law:'稅捐稽徵法', art:'§21', q:'核課期間是幾年？'},
+  {law:'所得稅法', art:'§71', q:'結算申報的期限？'},
+  {law:'營業稅法', art:'§35', q:'營業人多久申報一次？'},
+  {law:'記帳士法', art:'§13', q:'記帳士的業務範圍？'},
+  {law:'稅捐稽徵法', art:'§48-1', q:'自動補報免罰的要件？'},
+  {law:'商業會計法', art:'§5', q:'商業會計事務由誰處理？'},
+  {law:'遺產及贈與稅法', art:'§4', q:'「贈與」的定義為何？'},
+  {law:'記帳士法', art:'§2', q:'記帳士法的立法目的？'},
+  {law:'所得稅法', art:'§14', q:'十類所得各是什麼？'},
+  {law:'稅捐稽徵法', art:'§35', q:'復查的申請期限？'},
+  {law:'營業稅法', art:'§51', q:'漏開發票的罰則？'},
+];
 let _deskPlantPos = []; // v97: per-desk potted-plant top position {x,y,z} for blooms
 let _deskBlooms = [];   // v97: active bloom flower sprites (rebuilt each avatar update)
 const _seenUserIds = new Set();
@@ -4309,7 +4325,7 @@ function initThreeScene(canvas) {
       // Walk up to find userData on self or ancestor
       let _ud = hit.object.userData;
       let _p = hit.object.parent;
-      while(_p && !(_ud.isLawBoard||_ud.isBulletinBoard||_ud.isBoard||_ud.isBookshelf||_ud.isDesk||_ud.isTree||_ud.userIndex!==undefined)){
+      while(_p && !(_ud.isLawBoard||_ud.isBulletinBoard||_ud.isBoard||_ud.isBookshelf||_ud.isDesk||_ud.isTree||_ud.isChallenge||_ud.userIndex!==undefined)){
         _ud = {..._p.userData, ..._ud}; _p = _p.parent;
       }
       // Wave 121: bookshelf → open dashboard
@@ -4324,6 +4340,14 @@ function initThreeScene(canvas) {
           document.getElementById('lbm-text').textContent = _lawBoardData.text || '';
           modal.style.display = 'flex';
         }
+        return;
+      }
+      if (_ud.isChallenge) { // v109: hourly challenge → open the quiz
+        window.open('quiz.html', '_blank');
+        const el = document.createElement('div'); el.className = 'room-toast';
+        el.textContent = '挑戰本小時法條 💪';
+        const ct = document.getElementById('toast-container');
+        if(ct){ ct.appendChild(el); setTimeout(()=>el.remove(), 2600); }
         return;
       }
       if (_ud.isBulletinBoard) {
@@ -6102,6 +6126,30 @@ function initThreeScene(canvas) {
     _updateStele(_currentUsers || []);
   }
 
+  // v109: 整點法條挑戰 — hanging plaque near the entrance, content rotates by hour
+  { _chalCanvas = document.createElement('canvas'); _chalCanvas.width = 384; _chalCanvas.height = 200;
+    _chalCtx = _chalCanvas.getContext('2d');
+    _chalTex = new THREE.CanvasTexture(_chalCanvas);
+    const CX = -6.5, CY = 4.4, CZ = 6.5;
+    const woodMat = new THREE.MeshLambertMaterial({ color: 0x5A3A18 });
+    const chainMat = new THREE.MeshLambertMaterial({ color: 0x3A2A14 });
+    // two chains from the ceiling
+    [-0.75, 0.75].forEach(dx => {
+      const chain = new THREE.Mesh(new THREE.CylinderGeometry(0.018,0.018,4.6,5), chainMat);
+      chain.position.set(CX+dx, CY+2.9, CZ); _threeScene.add(chain);
+    });
+    // plaque board + textured face
+    const board = new THREE.Mesh(new THREE.BoxGeometry(2.05,1.10,0.09), woodMat);
+    board.position.set(CX, CY, CZ); _threeScene.add(board);
+    const face = new THREE.Mesh(new THREE.PlaneGeometry(1.92,0.97),
+      new THREE.MeshBasicMaterial({ map: _chalTex, transparent: true }));
+    face.position.set(CX, CY, CZ+0.055); face.userData.isChallenge = true; _threeScene.add(face);
+    // warm spotlight
+    const sp = new THREE.PointLight(0xFFE0A0, 0.4, 4.0); sp.position.set(CX, CY-0.2, CZ+1.0); _threeScene.add(sp);
+    _chalMesh = { board, face, bx:CX, by:CY, bz:CZ };
+    _updateChallenge();
+  }
+
   // ── 光柱效果：全景窗陽光斜射入室內 ─────────────────────────────────────
   if (!_isMobile) {
     const shaftMat = new THREE.MeshBasicMaterial({
@@ -6651,6 +6699,32 @@ function _updateStele(users) {
     });
   }
   _steleTex.needsUpdate = true;
+}
+
+// v109: redraw the hourly law-challenge plaque (content rotates by hour)
+function _updateChallenge() {
+  if (!_chalCtx || !_chalTex) return;
+  const hr = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
+  const ch = _HOURLY_CHALLENGES[hr % _HOURLY_CHALLENGES.length];
+  const c = _chalCtx, W = 384, H = 200;
+  const bg = c.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#F6ECCF'); bg.addColorStop(1,'#E8D7AC');
+  c.fillStyle = bg; c.fillRect(0,0,W,H);
+  c.strokeStyle = '#9A6A28'; c.lineWidth = 6; c.strokeRect(8,8,W-16,H-16);
+  c.strokeStyle = 'rgba(154,106,40,0.5)'; c.lineWidth = 2; c.strokeRect(16,16,W-32,H-32);
+  // header
+  c.fillStyle = '#B5451E'; c.font = 'bold 26px serif'; c.textAlign = 'center';
+  c.fillText('⏰ 本小時挑戰', W/2, 50);
+  // law + article (big)
+  c.fillStyle = '#3A2A12'; c.font = 'bold 30px serif';
+  c.fillText(ch.law + ' ' + ch.art, W/2, 100);
+  // question
+  c.fillStyle = '#5A4422'; c.font = '19px sans-serif';
+  c.fillText(ch.q, W/2, 138);
+  // CTA
+  c.fillStyle = '#1A6A8A'; c.font = 'bold 18px sans-serif';
+  c.fillText('👉 點我去作答', W/2, 174);
+  _chalTex.needsUpdate = true;
+  _chalHour = hr;
 }
 
 function _updateThreeAvatars(users) {
@@ -8672,6 +8746,16 @@ function startThreeAnimation(canvas) {
     { const _wh = new Date().getHours(); if(_wh !== _windowHour){ _windowHour=_wh; _drawWindowScene(_wh); } }
     // Wave 148: 入口歡迎地墊 — redraw when hour changes
     { const _mh = new Date().getHours(); if(_mh !== _matHour){ _matHour=_mh; _drawWelcomeMat(_mh); } }
+    // v109: hourly challenge plaque — refresh content on the hour + gentle bob
+    if (_chalMesh) {
+      const _ch = new Date().getHours();
+      if (_ch !== _chalHour) _updateChallenge();
+      const bob = Math.sin(_threeTime * 0.9) * 0.05;
+      _chalMesh.board.position.y = _chalMesh.by + bob;
+      _chalMesh.face.position.y  = _chalMesh.by + bob;
+      _chalMesh.board.rotation.z = Math.sin(_threeTime * 0.6) * 0.02;
+      _chalMesh.face.rotation.z  = _chalMesh.board.rotation.z;
+    }
     // Wave 90: moonlight breathing animation (every frame)
     if (_moonlightPatch) {
       _moonlightPatch.material.opacity = 0.25 + Math.sin(_threeTime * 0.02) * 0.1;
