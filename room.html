@@ -3825,6 +3825,16 @@ function initThreeScene(canvas) {
   const scrMat  = new THREE.MeshBasicMaterial({ color: 0x1A3A5C });  // blue glow
   const _deskGeo = box(1.6,0.08,0.9);
   const _deskRng = _rng(77);  // deterministic scatter seed
+  // v105: shared soft contact-shadow decal — grounds desks/chairs to the floor
+  const _shadowTex = (() => {
+    const sc = document.createElement('canvas'); sc.width = sc.height = 64;
+    const sx = sc.getContext('2d');
+    const g = sx.createRadialGradient(32,32,2, 32,32,31);
+    g.addColorStop(0,'rgba(20,14,8,0.34)'); g.addColorStop(0.6,'rgba(20,14,8,0.16)'); g.addColorStop(1,'rgba(20,14,8,0)');
+    sx.fillStyle = g; sx.fillRect(0,0,64,64);
+    return new THREE.CanvasTexture(sc);
+  })();
+  const _shadowMat = new THREE.MeshBasicMaterial({ map:_shadowTex, transparent:true, depthWrite:false });
   _DESK_POS_3D.forEach(([x,z], dIdx) => {
     // 隨機偏移讓桌子鬆散（不要整齊排列）— v86: looser scatter for open feel
     const ox = (_deskRng()-0.5)*0.85;
@@ -3835,6 +3845,11 @@ function initThreeScene(canvas) {
     desk.position.set(vx,0.76,vz);
     desk.rotation.y = ry;
     _threeScene.add(desk);
+    // v105: contact shadow on the floor under the desk + chair footprint
+    const shadow = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 2.0), _shadowMat);
+    shadow.rotation.x = -Math.PI/2; shadow.rotation.z = ry;
+    shadow.position.set(vx, 0.012, vz + 0.35);
+    _threeScene.add(shadow);
     const deskOl = _ol(_deskGeo, 1.025, 0x1A1208);
     deskOl.position.copy(desk.position); _threeScene.add(deskOl);
     desk.userData.deskIdx = dIdx;
