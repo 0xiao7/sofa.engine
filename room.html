@@ -1138,20 +1138,70 @@ let _DESK_VISUAL_POS_3D = []; // stores {vx,vz,ry} for each desk after scatter
 let _steleCanvas = null, _steleCtx = null, _steleTex = null; // v107: weekly leaderboard stele
 // v109: hourly law challenge plaque
 let _chalCanvas = null, _chalCtx = null, _chalTex = null, _chalMesh = null, _chalHour = -1;
-const _HOURLY_CHALLENGES = [
-  {law:'記帳士法', art:'§3', q:'記帳士資格如何取得？'},
-  {law:'稅捐稽徵法', art:'§21', q:'核課期間是幾年？'},
-  {law:'所得稅法', art:'§71', q:'結算申報的期限？'},
-  {law:'營業稅法', art:'§35', q:'營業人多久申報一次？'},
-  {law:'記帳士法', art:'§13', q:'記帳士的業務範圍？'},
-  {law:'稅捐稽徵法', art:'§48-1', q:'自動補報免罰的要件？'},
-  {law:'商業會計法', art:'§5', q:'商業會計事務由誰處理？'},
-  {law:'遺產及贈與稅法', art:'§4', q:'「贈與」的定義為何？'},
-  {law:'記帳士法', art:'§2', q:'記帳士法的立法目的？'},
-  {law:'所得稅法', art:'§14', q:'十類所得各是什麼？'},
-  {law:'稅捐稽徵法', art:'§35', q:'復查的申請期限？'},
-  {law:'營業稅法', art:'§51', q:'漏開發票的罰則？'},
-];
+// v114: hourly challenges adapt to the user's chosen subject (was 記帳士-only)
+const _CHALLENGES_BY_SUBJECT = {
+  '記帳士': [
+    {law:'記帳士法', art:'§3', q:'記帳士資格如何取得？'},
+    {law:'稅捐稽徵法', art:'§21', q:'核課期間是幾年？'},
+    {law:'所得稅法', art:'§71', q:'結算申報的期限？'},
+    {law:'營業稅法', art:'§35', q:'營業人多久申報一次？'},
+    {law:'記帳士法', art:'§13', q:'記帳士的業務範圍？'},
+    {law:'商業會計法', art:'§5', q:'商業會計事務由誰處理？'},
+    {law:'遺產及贈與稅法', art:'§4', q:'「贈與」的定義為何？'},
+    {law:'稅捐稽徵法', art:'§35', q:'復查的申請期限？'},
+  ],
+  '地政士': [
+    {law:'地政士法', art:'§2', q:'地政士的業務範圍？'},
+    {law:'土地法', art:'§43', q:'登記的絕對效力？'},
+    {law:'土地登記規則', art:'§7', q:'登記完畢的時點？'},
+    {law:'民法物權編', art:'§758', q:'不動產物權變動要件？'},
+    {law:'平均地權條例', art:'§3', q:'地價的定義？'},
+    {law:'土地稅法', art:'§28', q:'土地增值稅課徵時機？'},
+    {law:'地政士法', art:'§26-1', q:'實價登錄的申報義務？'},
+    {law:'土地法', art:'§34-1', q:'共有土地處分的多數決？'},
+  ],
+  '不動產經紀人': [
+    {law:'不動產經紀業管理條例', art:'§4', q:'經紀業的定義？'},
+    {law:'不動產經紀業管理條例', art:'§22', q:'應記載及不得記載事項？'},
+    {law:'公寓大廈管理條例', art:'§3', q:'區分所有的定義？'},
+    {law:'民法債編', art:'§565', q:'居間的定義？'},
+    {law:'消費者保護法', art:'§11-1', q:'契約審閱期間？'},
+    {law:'公平交易法', art:'§21', q:'不實廣告的規範？'},
+    {law:'不動產經紀業管理條例', art:'§24-1', q:'成交價金的申報？'},
+    {law:'公寓大廈管理條例', art:'§10', q:'共用部分修繕費用負擔？'},
+  ],
+  '財稅行政': [
+    {law:'所得稅法', art:'§14', q:'十類所得各是什麼？'},
+    {law:'稅捐稽徵法', art:'§21', q:'核課期間是幾年？'},
+    {law:'營業稅法', art:'§1', q:'營業稅的課徵範圍？'},
+    {law:'遺產及贈與稅法', art:'§4', q:'「贈與」的定義？'},
+    {law:'稅捐稽徵法', art:'§48-1', q:'自動補報免罰要件？'},
+    {law:'所得稅法', art:'§17', q:'綜所稅的列舉扣除額？'},
+    {law:'土地稅法', art:'§28', q:'土地增值稅課徵時機？'},
+    {law:'財政學', art:'—', q:'公共財的兩大特性？'},
+  ],
+  '初等考試': [
+    {law:'法學大意', art:'—', q:'法律的位階關係？'},
+    {law:'行政法概要', art:'—', q:'行政處分的要件？'},
+    {law:'公民', art:'—', q:'我國的中央政府體制？'},
+    {law:'憲法', art:'§7', q:'平等權的內涵？'},
+    {law:'法學大意', art:'—', q:'法律不溯及既往原則？'},
+    {law:'行政法概要', art:'—', q:'信賴保護原則？'},
+  ],
+  '其他': [
+    {law:'憲法', art:'§7', q:'平等權的內涵？'},
+    {law:'民法總則', art:'§12', q:'成年的年齡？'},
+    {law:'行政程序法', art:'§92', q:'行政處分的定義？'},
+    {law:'刑法總則', art:'§12', q:'故意與過失？'},
+    {law:'法學緒論', art:'—', q:'法律的效力範圍？'},
+    {law:'憲法', art:'§23', q:'基本權限制的要件？'},
+  ],
+};
+function _getChallengeList() {
+  let subj = '記帳士';
+  try { subj = (document.getElementById('inp-subject')||{}).value || subj; } catch(e){}
+  return _CHALLENGES_BY_SUBJECT[subj] || _CHALLENGES_BY_SUBJECT['其他'];
+}
 // v110: room level system — total weekly study unlocks decorations
 let _roomLevel = 0, _levelUnlocks = [];
 let _deskPlantPos = []; // v97: per-desk potted-plant top position {x,y,z} for blooms
@@ -6766,7 +6816,8 @@ function _updateStele(users) {
 function _updateChallenge() {
   if (!_chalCtx || !_chalTex) return;
   const hr = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
-  const ch = _HOURLY_CHALLENGES[hr % _HOURLY_CHALLENGES.length];
+  const _clist = _getChallengeList();
+  const ch = _clist[hr % _clist.length];
   const c = _chalCtx, W = 384, H = 200;
   const bg = c.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#F6ECCF'); bg.addColorStop(1,'#E8D7AC');
   c.fillStyle = bg; c.fillRect(0,0,W,H);
