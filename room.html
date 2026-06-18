@@ -2124,14 +2124,17 @@ function initThreeScene(canvas) {
   _threeCamera.lookAt(2, 1.2, -5);
 
   _threeControls = new THREE.OrbitControls(_threeCamera, canvas);
-  _threeControls.target.set(2, 1.2, -5); // v102: resting view looks down the right corridor
+  _threeControls.target.set(1, 1.4, -1); // v119: orbit centre pulled inward (was near back wall → rotated outside)
   _threeControls.enableDamping = true;
   _threeControls.dampingFactor = _isMobile ? 0.12 : 0.06;
   _threeControls.rotateSpeed = _isMobile ? 0.8 : 1.0;
-  _threeControls.minDistance = 3;
-  _threeControls.maxDistance = 34;
-  _threeControls.minPolarAngle = 0.15;
-  _threeControls.maxPolarAngle = Math.PI * 0.82;
+  // v119: clamp so the camera always stays INSIDE the room (no more rotating out the window)
+  _threeControls.minDistance = 5;
+  _threeControls.maxDistance = 13;
+  _threeControls.minPolarAngle = Math.PI * 0.33;   // not above the ceiling
+  _threeControls.maxPolarAngle = Math.PI * 0.55;   // not below the floor
+  _threeControls.minAzimuthAngle = -1.15;          // limit horizontal swing to a front arc
+  _threeControls.maxAzimuthAngle = 1.15;           // (can't swing behind the back wall/window)
   _threeControls.enablePan = false;
   _threeControls.enabled = false;
   _threeControls.addEventListener('change', () => { _wasDrag = true; });
