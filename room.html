@@ -2014,7 +2014,7 @@ function initThreeScene(canvas) {
   _threeControls.dampingFactor = _isMobile ? 0.12 : 0.06;
   _threeControls.rotateSpeed = _isMobile ? 0.5 : 0.7;
   _threeControls.minDistance = 3;
-  _threeControls.maxDistance = 20;
+  _threeControls.maxDistance = 24;
   _threeControls.minPolarAngle = 0.15;
   _threeControls.maxPolarAngle = Math.PI * 0.56;
   _threeControls.enablePan = false;
@@ -2181,7 +2181,7 @@ function initThreeScene(canvas) {
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(4,4);
     return t;
   })();
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(28,26),
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(36,26),
     new THREE.MeshLambertMaterial({ map: floorTex, color: 0xFFFFFF }));
   floor.rotation.x = -Math.PI/2;
   _threeScene.add(floor);
@@ -2203,15 +2203,15 @@ function initThreeScene(canvas) {
     });
     // Left wall strip
     const aoL = new THREE.Mesh(new THREE.PlaneGeometry(26,0.70), aoMat);
-    aoL.position.set(-12.70, 0.35, 0); aoL.rotation.y = Math.PI/2; _threeScene.add(aoL);
+    aoL.position.set(-16.70, 0.35, 0); aoL.rotation.y = Math.PI/2; _threeScene.add(aoL);
     // Right wall strip
     const aoR = new THREE.Mesh(new THREE.PlaneGeometry(26,0.70), aoMat);
-    aoR.position.set(12.70, 0.35, 0); aoR.rotation.y = -Math.PI/2; _threeScene.add(aoR);
+    aoR.position.set(16.70, 0.35, 0); aoR.rotation.y = -Math.PI/2; _threeScene.add(aoR);
     // Back wall strip
-    const aoB = new THREE.Mesh(new THREE.PlaneGeometry(24,0.70), aoMat);
+    const aoB = new THREE.Mesh(new THREE.PlaneGeometry(32,0.70), aoMat);
     aoB.position.set(0, 0.35, -7.70); _threeScene.add(aoB);
     // Front wall strip
-    const aoF = new THREE.Mesh(new THREE.PlaneGeometry(24,0.70), aoMat);
+    const aoF = new THREE.Mesh(new THREE.PlaneGeometry(32,0.70), aoMat);
     aoF.position.set(0, 0.35, 7.90); aoF.rotation.y = Math.PI; _threeScene.add(aoF);
   }
 
@@ -2220,7 +2220,7 @@ function initThreeScene(canvas) {
   // 後牆：落地窗，不留實牆
   const sillMat = new THREE.MeshLambertMaterial({ color: 0xDDD5C4 });
   // 地板邊框（窗底）
-  const windowSill = new THREE.Mesh(box(22.2,0.12,0.30), sillMat);
+  const windowSill = new THREE.Mesh(box(30.2,0.12,0.30), sillMat);
   windowSill.position.set(0, 0.06, -7.8); _threeScene.add(windowSill);
   // 全景玻璃（Canvas 畫天空 + 山脈，時段變化）
   const _panoramaTex = (() => {
@@ -2444,7 +2444,7 @@ function initThreeScene(canvas) {
   })();
   // 落地全景玻璃（28 wide × 9 tall，整面後牆都是窗）
   const panoramaGlass = new THREE.Mesh(
-    new THREE.PlaneGeometry(28, 9.0),
+    new THREE.PlaneGeometry(36, 9.0),
     new THREE.MeshBasicMaterial({ map: _panoramaTex, side: THREE.FrontSide })
   );
   panoramaGlass.position.set(0, 4.5, -7.93);
@@ -2465,7 +2465,7 @@ function initThreeScene(canvas) {
       return new THREE.CanvasTexture(gc);
     })();
     const glassPane = new THREE.Mesh(
-      new THREE.PlaneGeometry(28, 9.0),
+      new THREE.PlaneGeometry(36, 9.0),
       new THREE.MeshBasicMaterial({
         map: gTex, transparent:true, depthWrite:false,
         blending: THREE.NormalBlending, opacity: 1.0, side: THREE.FrontSide
@@ -2688,32 +2688,32 @@ function initThreeScene(canvas) {
   }
   // 房間加寬到 28 units，書架廊道感更強
   const lWall = new THREE.Mesh(box(0.3,10,26), wallMat);
-  lWall.position.set(-13, 5, 0); _threeScene.add(lWall);
-  const rWall = lWall.clone(); rWall.position.set(13,5,0); _threeScene.add(rWall);
-  const fWall = new THREE.Mesh(box(28,10,0.3), wallMat);
+  lWall.position.set(-17, 5, 0); _threeScene.add(lWall);
+  const rWall = lWall.clone(); rWall.position.set(17,5,0); _threeScene.add(rWall);
+  const fWall = new THREE.Mesh(box(36,10,0.3), wallMat);
   fWall.position.set(0, 5, 14); _threeScene.add(fWall);
   // Wainscoting: dado rails + crown molding on inside face of side walls
   const dadoMat = new THREE.MeshLambertMaterial({ color: 0xEED8B2 });
   const _dadoW = 24; // depth of wall span
   // Chair rail at y=1.15
   const dadoL = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.10,_dadoW), dadoMat);
-  dadoL.position.set(-12.84,1.15,0); _threeScene.add(dadoL);
-  const dadoR = dadoL.clone(); dadoR.position.set(12.84,1.15,0); _threeScene.add(dadoR);
+  dadoL.position.set(-16.84,1.15,0); _threeScene.add(dadoL);
+  const dadoR = dadoL.clone(); dadoR.position.set(16.84,1.15,0); _threeScene.add(dadoR);
   // Upper panel rail at y=2.60
   const railL = new THREE.Mesh(new THREE.BoxGeometry(0.06,0.07,_dadoW), dadoMat);
-  railL.position.set(-12.84,2.60,0); _threeScene.add(railL);
-  const railR = railL.clone(); railR.position.set(12.84,2.60,0); _threeScene.add(railR);
+  railL.position.set(-16.84,2.60,0); _threeScene.add(railL);
+  const railR = railL.clone(); railR.position.set(16.84,2.60,0); _threeScene.add(railR);
   // Crown molding at ceiling junction
   const crownL = new THREE.Mesh(new THREE.BoxGeometry(0.10,0.12,_dadoW), dadoMat);
-  crownL.position.set(-12.85,8.86,0); _threeScene.add(crownL);
-  const crownR = crownL.clone(); crownR.position.set(12.85,8.86,0); _threeScene.add(crownR);
+  crownL.position.set(-16.85,8.86,0); _threeScene.add(crownL);
+  const crownR = crownL.clone(); crownR.position.set(16.85,8.86,0); _threeScene.add(crownR);
   // Baseboard at floor
   const baseL = new THREE.Mesh(new THREE.BoxGeometry(0.07,0.14,_dadoW), dadoMat);
-  baseL.position.set(-12.84,0.07,0); _threeScene.add(baseL);
-  const baseR = baseL.clone(); baseR.position.set(12.84,0.07,0); _threeScene.add(baseR);
+  baseL.position.set(-16.84,0.07,0); _threeScene.add(baseL);
+  const baseR = baseL.clone(); baseR.position.set(16.84,0.07,0); _threeScene.add(baseR);
   // Bookshelf-top frieze — gold band marking the transition from shelves to upper wall
   { const frzMat = new THREE.MeshLambertMaterial({ color: 0xC0963C });
-    [-12.83, 12.83].forEach(fx => {
+    [-16.83, 16.83].forEach(fx => {
       const fr = new THREE.Mesh(new THREE.BoxGeometry(0.09,0.13,27.0), frzMat);
       fr.position.set(fx, 7.07, 0); _threeScene.add(fr);
     });
@@ -2734,9 +2734,9 @@ function initThreeScene(canvas) {
   const lintelMat = new THREE.MeshLambertMaterial({ color: 0xD8C8A0 });
   const lintel = new THREE.Mesh(new THREE.BoxGeometry(8.2,0.22,0.28), lintelMat);
   lintel.position.set(0, 7.90, 13.83); _threeScene.add(lintel);
-  const bWallTop = new THREE.Mesh(box(28,3,0.3), wallMat);
+  const bWallTop = new THREE.Mesh(box(36,3,0.3), wallMat);
   bWallTop.position.set(0, 9.5, -8.1); _threeScene.add(bWallTop);
-  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(28,28), mToon(0x0E1E2E)); // v89: dark ceiling
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(36,28), mToon(0x0E1E2E)); // v89: dark ceiling
   ceil.rotation.x = Math.PI/2; ceil.position.set(0, 9, 0); _threeScene.add(ceil);
   // Ceiling wooden beams — dark walnut coffered grid
   const beamMat = new THREE.MeshLambertMaterial({ color: 0x6B4422 });
@@ -2795,7 +2795,7 @@ function initThreeScene(canvas) {
     const shY = shH / 2;
     // 左書架
     const shL = new THREE.Mesh(box(0.5,shH,2.2), shelfWoodMat);
-    shL.position.set(-11.5, shY, z); _threeScene.add(shL);
+    shL.position.set(-15.5, shY, z); _threeScene.add(shL);
     // 5 shelf boards
     [0.8,1.9,3.0,4.1,5.2].forEach(ry=>{
       const pl=new THREE.Mesh(box(0.4,0.07,2.1),shelfWoodMat);
@@ -2825,7 +2825,7 @@ function initThreeScene(canvas) {
 
     // 右書架
     const shR = new THREE.Mesh(box(0.5,shH,2.2), shelfWoodMat);
-    shR.position.set(11.5, shY, z); _threeScene.add(shR);
+    shR.position.set(15.5, shY, z); _threeScene.add(shR);
     [0.8,1.9,3.0,4.1,5.2].forEach(ry=>{
       const pl=new THREE.Mesh(box(0.4,0.07,2.1),shelfWoodMat);
       pl.position.set(11.25,ry,z); _threeScene.add(pl);
@@ -2911,7 +2911,7 @@ function initThreeScene(canvas) {
         blending: THREE.AdditiveBlending, opacity: 0.75
       }));
       sl.scale.set(0.45, 0.45, 0.45);
-      sl.position.set(-11.18, shelfH+0.05, bz);
+      sl.position.set(-15.18, shelfH+0.05, bz);
       _threeScene.add(sl);
     }
   });
@@ -2924,7 +2924,7 @@ function initThreeScene(canvas) {
         blending: THREE.AdditiveBlending, opacity: 0.75
       }));
       sl.scale.set(0.45, 0.45, 0.45);
-      sl.position.set(11.18, shelfH+0.05, bz);
+      sl.position.set(15.18, shelfH+0.05, bz);
       _threeScene.add(sl);
     }
   });
@@ -6074,7 +6074,8 @@ const _DESK_POS_3D = (()=>{
     [-8.0,-4.5], [-4.0,-4.5], [ 0.0,-4.5], [ 4.0,-4.5], [ 8.0,-4.5],
     // Back row (z≈-7) — full width
     [-9.5,-7.0], [-6.0,-7.0], [-2.0,-7.0], [ 2.0,-7.0], [ 6.0,-7.0], [ 9.5,-7.0],
-  ];
+  // v90: spread desks wider to fill the enlarged room (walls now ±17)
+  ].map(([x,z]) => [x * 1.35, z]);
 })();
 
 function _makeLabel(name, color) {
