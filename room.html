@@ -4661,6 +4661,75 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v80: 暖簾 — indigo split noren curtain framing the entrance ───────────────────
+  { const _makeNorenPanel=(kanji)=>{
+      const nc=document.createElement('canvas'); nc.width=128; nc.height=320;
+      const nctx=nc.getContext('2d');
+      // Deep indigo fabric with slight variation
+      const nbg=nctx.createLinearGradient(0,0,128,320);
+      nbg.addColorStop(0,'#1E2D72'); nbg.addColorStop(0.45,'#162460'); nbg.addColorStop(0.80,'#1A2868'); nbg.addColorStop(1,'#0E1840');
+      nctx.fillStyle=nbg; nctx.fillRect(0,0,128,320);
+      // Woven texture — subtle vertical lines
+      nctx.strokeStyle='rgba(100,120,200,0.12)'; nctx.lineWidth=0.8;
+      for(let wl=4;wl<128;wl+=5){ nctx.beginPath(); nctx.moveTo(wl,0); nctx.lineTo(wl,320); nctx.stroke(); }
+      // Woven texture — horizontal lines
+      nctx.strokeStyle='rgba(80,100,180,0.08)'; nctx.lineWidth=0.5;
+      for(let hl=3;hl<320;hl+=4){ nctx.beginPath(); nctx.moveTo(0,hl); nctx.lineTo(128,hl); nctx.stroke(); }
+      // Gold top binding stripe
+      const tbg=nctx.createLinearGradient(0,0,128,0);
+      tbg.addColorStop(0,'#8A6010'); tbg.addColorStop(0.5,'#C8A040'); tbg.addColorStop(1,'#8A6010');
+      nctx.fillStyle=tbg; nctx.fillRect(0,0,128,22);
+      // Gold separator line below binding
+      nctx.strokeStyle='rgba(200,160,50,0.60)'; nctx.lineWidth=1.5;
+      nctx.beginPath(); nctx.moveTo(0,24); nctx.lineTo(128,24); nctx.stroke();
+      // Central kanji — white with gold shadow
+      nctx.shadowColor='rgba(200,170,50,0.60)'; nctx.shadowBlur=8;
+      nctx.fillStyle='rgba(240,240,255,0.92)';
+      nctx.font='bold 52px "Noto Serif TC", serif';
+      nctx.textAlign='center'; nctx.textBaseline='middle';
+      nctx.fillText(kanji,64,175);
+      nctx.shadowBlur=0;
+      // Small decorative mon (family crest circle) above kanji
+      nctx.strokeStyle='rgba(200,160,50,0.55)'; nctx.lineWidth=1.5;
+      nctx.beginPath(); nctx.arc(64,90,14,0,Math.PI*2); nctx.stroke();
+      // Cherry blossom 5 petals inside mon
+      for(let mp=0;mp<5;mp++){
+        const ma=(mp/5)*Math.PI*2-Math.PI/2;
+        nctx.beginPath();
+        nctx.ellipse(64+Math.cos(ma)*9, 90+Math.sin(ma)*9, 4, 3, ma, 0, Math.PI*2);
+        nctx.fillStyle='rgba(220,160,200,0.55)'; nctx.fill();
+      }
+      // Bottom hem fade + fringe threads
+      const hfade=nctx.createLinearGradient(0,280,0,320);
+      hfade.addColorStop(0,'rgba(0,0,0,0)'); hfade.addColorStop(1,'rgba(0,0,0,0.45)');
+      nctx.fillStyle=hfade; nctx.fillRect(0,280,128,40);
+      nctx.strokeStyle='rgba(140,160,220,0.50)'; nctx.lineWidth=0.8;
+      for(let fr=8;fr<122;fr+=7){ nctx.beginPath(); nctx.moveTo(fr,308); nctx.lineTo(fr+(_rng(80)()-0.5)*3,320); nctx.stroke(); }
+      return new THREE.CanvasTexture(nc);
+    };
+    // Horizontal curtain rod — short, just for two side panels
+    const rodMat=new THREE.MeshLambertMaterial({color:0x3A1808});
+    const rod=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,3.60,8),rodMat);
+    rod.rotation.z=Math.PI/2; rod.position.set(0,3.18,8.8);
+    _threeScene.add(rod);
+    [-1.82,1.82].forEach(rx=>{
+      const cap=new THREE.Mesh(new THREE.SphereGeometry(0.032,8,6),rodMat);
+      cap.position.set(rx,3.18,8.8); _threeScene.add(cap);
+    });
+    // Two narrow side panels with center gap — 試 (exam) and 読 (reading)
+    // Panel width 0.68, height 1.15, top at y=3.18 → center y=2.605
+    // x=±1.12 gives a ~1.56-unit open center gap
+    [[-1.12,'試'],[ 1.12,'讀']].forEach(([px,ch])=>{
+      const panelMat=new THREE.MeshBasicMaterial({
+        map:_makeNorenPanel(ch),
+        side:THREE.DoubleSide, transparent:true, opacity:0.88, alphaTest:0.02
+      });
+      const panel=new THREE.Mesh(new THREE.PlaneGeometry(0.68,1.15),panelMat);
+      panel.position.set(px, 2.605, 8.8);
+      _threeScene.add(panel);
+    });
+  }
+
   // v79: 壁燈 — paper lantern wall sconces along side walls ─────────────────────
   { // Lantern paper texture: parchment with warm center glow
     const _sconceTex=(()=>{
