@@ -2188,7 +2188,7 @@ function initThreeScene(canvas) {
     t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(4,4);
     return t;
   })();
-  const floor = new THREE.Mesh(new THREE.PlaneGeometry(46,26),
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(46,46),
     new THREE.MeshLambertMaterial({ map: floorTex, color: 0xFFFFFF }));
   floor.rotation.x = -Math.PI/2;
   _threeScene.add(floor);
@@ -2209,10 +2209,10 @@ function initThreeScene(canvas) {
       map:aoTex, transparent:true, depthWrite:false, side:THREE.FrontSide, opacity:1.0
     });
     // Left wall strip
-    const aoL = new THREE.Mesh(new THREE.PlaneGeometry(26,0.70), aoMat);
+    const aoL = new THREE.Mesh(new THREE.PlaneGeometry(46,0.70), aoMat);
     aoL.position.set(-21.70, 0.35, 0); aoL.rotation.y = Math.PI/2; _threeScene.add(aoL);
     // Right wall strip
-    const aoR = new THREE.Mesh(new THREE.PlaneGeometry(26,0.70), aoMat);
+    const aoR = new THREE.Mesh(new THREE.PlaneGeometry(46,0.70), aoMat);
     aoR.position.set(21.70, 0.35, 0); aoR.rotation.y = -Math.PI/2; _threeScene.add(aoR);
     // Back wall strip
     const aoB = new THREE.Mesh(new THREE.PlaneGeometry(42,0.70), aoMat);
@@ -2725,11 +2725,11 @@ function initThreeScene(canvas) {
     _threeScene.add(tick);
   }
   // 房間加寬到 28 units，書架廊道感更強
-  const lWall = new THREE.Mesh(box(0.3,10,26), wallMat);
+  const lWall = new THREE.Mesh(box(0.3,10,46), wallMat);
   lWall.position.set(-22, 5, 0); _threeScene.add(lWall);
   const rWall = lWall.clone(); rWall.position.set(22,5,0); _threeScene.add(rWall);
   const fWall = new THREE.Mesh(box(46,10,0.3), wallMat);
-  fWall.position.set(0, 5, 14); _threeScene.add(fWall);
+  fWall.position.set(0, 5, 20); _threeScene.add(fWall);
   // Wainscoting: dado rails + crown molding on inside face of side walls
   const dadoMat = new THREE.MeshLambertMaterial({ color: 0xEED8B2 });
   const _dadoW = 24; // depth of wall span
@@ -2762,19 +2762,19 @@ function initThreeScene(canvas) {
   [[-3.8,3.8]].forEach(() => {
     [-3.8, 3.8].forEach(px => {
       const pil = new THREE.Mesh(new THREE.BoxGeometry(0.22,7.8,0.22), pilMat);
-      pil.position.set(px, 3.9, 13.82); _threeScene.add(pil);
+      pil.position.set(px, 3.9, 19.82); _threeScene.add(pil);
       // Capital (decorative top block)
       const cap = new THREE.Mesh(new THREE.BoxGeometry(0.38,0.22,0.38), pilMat);
-      cap.position.set(px, 7.9, 13.82); _threeScene.add(cap);
+      cap.position.set(px, 7.9, 19.82); _threeScene.add(cap);
     });
   });
   // Arch lintel over entrance
   const lintelMat = new THREE.MeshLambertMaterial({ color: 0xD8C8A0 });
   const lintel = new THREE.Mesh(new THREE.BoxGeometry(8.2,0.22,0.28), lintelMat);
-  lintel.position.set(0, 7.90, 13.83); _threeScene.add(lintel);
+  lintel.position.set(0, 7.90, 19.83); _threeScene.add(lintel);
   const bWallTop = new THREE.Mesh(box(46,3,0.3), wallMat);
   bWallTop.position.set(0, 9.5, -8.1); _threeScene.add(bWallTop);
-  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(46,28), mToon(0x0E1E2E)); // v89: dark ceiling
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(46,46), mToon(0x0E1E2E)); // v89: dark ceiling
   ceil.rotation.x = Math.PI/2; ceil.position.set(0, 9, 0); _threeScene.add(ceil);
   // Ceiling wooden beams — dark walnut coffered grid
   const beamMat = new THREE.MeshLambertMaterial({ color: 0x6B4422 });
