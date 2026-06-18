@@ -770,6 +770,26 @@ input[type=text], select, .btn-enter {
     background:radial-gradient(ellipse at 50% 48%, transparent 52%, rgba(2,8,18,0.62) 100%);
   }
 }
+/* ── v118: full-screen immersive on MOBILE too — 3D fills the screen, topbar
+   floats, bottom nav (#mob-bar) is the control, 2D list hidden (in 名單 sheet) */
+@media(max-width:640px){
+  html,body{height:100%;overflow:hidden;}
+  #room{height:100dvh;min-height:100dvh;overflow:hidden;}
+  main{display:block;position:static;min-height:0;}
+  #lib-scene-wrap{position:fixed;inset:0;width:100vw;height:100dvh;z-index:0;border:none;border-radius:0;overflow:hidden;}
+  #room-canvas{width:100%!important;height:100%!important;display:block;}
+  #desk-area{position:static;overflow:visible;background:transparent;flex:none;padding:0;}
+  #desk-grid-wrap,.room-floor-label{display:none!important;}
+  header{
+    position:fixed;top:0;left:0;right:0;z-index:30;
+    background:linear-gradient(180deg,rgba(10,22,34,.82),rgba(10,22,34,.30));
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+    border-bottom:1px solid rgba(91,175,214,.16);
+  }
+  #lib-scene-wrap::after{
+    background:radial-gradient(ellipse at 50% 46%, transparent 56%, rgba(2,8,18,0.50) 100%);
+  }
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="OrbitControls.js"></script>
@@ -9531,10 +9551,8 @@ function resizeThreeCanvas() {
   const wrap = document.getElementById('lib-scene-wrap');
   if (!canvas || !wrap) return;
   canvas.width  = wrap.clientWidth;
-  // v117: desktop = full-screen immersive; mobile = taller hero band (was ~340px)
-  const _fullImmersive = window.matchMedia('(min-width:641px)').matches;
-  canvas.height = _fullImmersive ? window.innerHeight
-                                 : Math.min(620, Math.max(420, Math.round(window.innerHeight * 0.56)));
+  // v118: full-screen immersive on both desktop and mobile (canvas fills viewport)
+  canvas.height = window.innerHeight;
   if (_threeRenderer) {
     _threeRenderer.setSize(canvas.width, canvas.height);
     if (_threeCamera) _threeCamera.aspect = canvas.width / canvas.height;
