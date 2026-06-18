@@ -1953,6 +1953,9 @@ function initThreeScene(canvas) {
   _threeRenderer.outputColorSpace = THREE.SRGBColorSpace;
 
   _threeScene = new THREE.Scene();
+  // v84: ABETO_MINIMAL — declutter toward abeto.co aesthetic (minimal, muted,
+  // negative space). Gates off the maximalist shrine/magical decoration pile.
+  const ABETO_MINIMAL = true;
   // 深色背景：室內暗、窗外亮，對比才有美感
   _threeScene.background = new THREE.Color(0xC8E0F5);  // bright sky blue
   _threeScene.fog = new THREE.Fog(0xC8E0F5, 28, 55);   // subtle linear fog
@@ -1985,12 +1988,14 @@ function initThreeScene(canvas) {
 
   // v47: Sakura bloom point light — permanent soft pink glow from tree crown ──
   // TX=0, TZ=3.0 defined later; use literals here
+  if(!ABETO_MINIMAL){
   { const sakuraPL = new THREE.PointLight(0xFFBBCC, 0.42, 10.0);
     sakuraPL.position.set(0, 5.5, 3.0); // mid-tree height, pink bloom glow
     _threeScene.add(sakuraPL);
     const sakuraPL2 = new THREE.PointLight(0xFFCCDD, 0.25, 6.5);
     sakuraPL2.position.set(0, 2.0, 4.5); // lower fill toward cat/rug
     _threeScene.add(sakuraPL2);
+  }
   }
 
   // 窗光：柔和自然光從後方照進
@@ -2451,6 +2456,7 @@ function initThreeScene(canvas) {
   rope.position.set(-0.5, 8.15, -7.78);
   _threeScene.add(rope);
 
+  if(!ABETO_MINIMAL){
   // v67: Wisteria entrance curtain — 3 hanging vine clusters framing the view ─
   { // Canvas sprite: a wisteria cluster strip (64×256)
     const _mkWistTex=(baseCol,tipCol)=>{
@@ -2526,6 +2532,7 @@ function initThreeScene(canvas) {
       }
     });
   }
+  } // end !ABETO_MINIMAL — wisteria curtain + ceiling garlands
 
   // Sunlight floor wash — warm additive glow pooling in front of back windows
   { const sfC = document.createElement('canvas'); sfC.width = sfC.height = 256;
@@ -3029,6 +3036,7 @@ function initThreeScene(canvas) {
     _threeScene.add(_moonShaftSprite);
   }
 
+  if(!ABETO_MINIMAL){
   // v42: Hanging wisteria clusters cascading from ceiling near tree ─────────
   { const _wRng = _rng(77);
     const wisMats = [0xCC88DD, 0xBB77CC, 0xDD99EE, 0xAA66BB, 0xEEAAFF, 0xD4A0E8]
@@ -3151,6 +3159,7 @@ function initThreeScene(canvas) {
       }
     });
   }
+  } // end !ABETO_MINIMAL — hanging wisteria + star garland chains
 
   // ── 中央水晶吊燈環（atrium chandelier ring above tree） ────────────────
   { const CRY = 8.20, CRR = 1.85; // ring height, ring radius
@@ -4328,6 +4337,7 @@ function initThreeScene(canvas) {
     });
   }
 
+  if(!ABETO_MINIMAL){
   // v51: Torii gate — vermilion arch framing the tree, visible from wide shot ───
   { const tzMat=new THREE.MeshLambertMaterial({color:0xCC2200});
     const tzOl =new THREE.MeshBasicMaterial({color:0x601000,side:THREE.BackSide});
@@ -5465,6 +5475,7 @@ function initThreeScene(canvas) {
         rotSpd:0.0015+_fbRng()*0.0020,driftAmp:0.12+_fbRng()*0.10});
     });
   }
+  } // end !ABETO_MINIMAL — shrine/magical decoration block
 
   // Decorative potted plants — entrance pair + mid-room pair flanking tree
   { const potClayMat = new THREE.MeshLambertMaterial({ color: 0xA05030 });
@@ -5560,6 +5571,7 @@ function initThreeScene(canvas) {
   _buildCeilingFan();
   // Wave133: Center rug — permanent room feature
   _buildRug();
+  if(!ABETO_MINIMAL){
   // v46: Magical sakura ground aura — soft pink additive glow on rug/floor ──
   { const auraTex = (()=>{
       const ac=document.createElement('canvas'); ac.width=ac.height=128;
@@ -5884,6 +5896,7 @@ function initThreeScene(canvas) {
       f.scale.set(1.55,0.45,1.05); f.position.set(owX+fx,owY+0.055,owZ+0.015); _threeScene.add(f);
     });
   }
+  } // end !ABETO_MINIMAL — tree aura / koi / mascots block
 
   _buildEntryMedallion();
   // Wave138: Decorative picture frames on side walls
