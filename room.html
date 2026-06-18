@@ -4605,6 +4605,40 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v71: 紅地毯 — decorative shrine path runner mat ──────────────────────────
+  { const rc=document.createElement('canvas'); rc.width=128; rc.height=512;
+    const rctx=rc.getContext('2d');
+    // Deep crimson base
+    const rbg=rctx.createLinearGradient(0,0,0,512);
+    rbg.addColorStop(0,'#6A1010'); rbg.addColorStop(0.5,'#8B1A1A'); rbg.addColorStop(1,'#6A1010');
+    rctx.fillStyle=rbg; rctx.fillRect(0,0,128,512);
+    // Outer gold border
+    rctx.strokeStyle='rgba(212,168,60,0.85)'; rctx.lineWidth=5;
+    rctx.strokeRect(5,5,118,502);
+    // Inner gold border
+    rctx.strokeStyle='rgba(255,215,80,0.55)'; rctx.lineWidth=2;
+    rctx.strokeRect(11,11,106,490);
+    // Diamond tile pattern repeated every 64px
+    rctx.strokeStyle='rgba(220,180,60,0.42)'; rctx.lineWidth=1.5;
+    for(let dy=32;dy<512;dy+=64){
+      const cx2=64;
+      rctx.beginPath();
+      rctx.moveTo(cx2,dy-22); rctx.lineTo(cx2+18,dy); rctx.lineTo(cx2,dy+22); rctx.lineTo(cx2-18,dy);
+      rctx.closePath(); rctx.stroke();
+      rctx.fillStyle='rgba(255,215,80,0.18)'; rctx.fill();
+    }
+    // Center spine line
+    rctx.strokeStyle='rgba(212,168,60,0.30)'; rctx.lineWidth=1;
+    rctx.setLineDash([8,6]);
+    rctx.beginPath(); rctx.moveTo(64,14); rctx.lineTo(64,498); rctx.stroke();
+    rctx.setLineDash([]);
+    const runnerTex=new THREE.CanvasTexture(rc);
+    const runnerMat=new THREE.MeshBasicMaterial({map:runnerTex,transparent:true,opacity:0.58,depthWrite:false,side:THREE.DoubleSide});
+    const runner=new THREE.Mesh(new THREE.PlaneGeometry(1.40,7.0),runnerMat);
+    runner.rotation.x=-Math.PI/2; runner.position.set(0,0.004,4.0);
+    _threeScene.add(runner);
+  }
+
   // v70: 落花鋪地 — sakura petal clusters on shrine path floor ───────────────
   { const _p70c=document.createElement('canvas'); _p70c.width=_p70c.height=64;
     const _p70x=_p70c.getContext('2d');
