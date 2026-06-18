@@ -1091,7 +1091,7 @@ let _mixerLastTime = 0;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _DESK_VISUAL_POS_3D = []; // stores {vx,vz,ry} for each desk after scatter
 const _seenUserIds = new Set();
-let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [], _pendantGlows = [], _canopyAura = null, _sparkles = [], _permLanternLights = [], _moonShaftSprite = null, _floatingBooks = [], _mistPlanes = [], _floatingEma = [], _mahouSparkles = [];
+let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [], _pendantGlows = [], _canopyAura = null, _sparkles = [], _permLanternLights = [], _moonShaftSprite = null, _floatingBooks = [], _mistPlanes = [], _floatingEma = [], _mahouSparkles = [], _pathFireflies = [];
 let _snowParticles = [];
 let _waterDroplets = [], _waterTx = null; // Wave132: tree watering
 let _sakuraParticles = [];
@@ -4635,6 +4635,30 @@ function initThreeScene(canvas) {
       _t74strips.push({mesh:tMesh,phase:ti*0.7,tx});
     }
     _threeScene.userData.tanzaku=_t74strips;
+  }
+
+  // v76: 路徑螢火蟲 — low path-level fireflies along shrine walkway ─────────────
+  { const pfTex=(()=>{
+      const pc=document.createElement('canvas'); pc.width=pc.height=12;
+      const pctx=pc.getContext('2d');
+      const pg=pctx.createRadialGradient(6,6,0,6,6,5);
+      pg.addColorStop(0,'rgba(230,255,200,1)'); pg.addColorStop(0.5,'rgba(180,255,120,0.6)'); pg.addColorStop(1,'rgba(100,220,60,0)');
+      pctx.fillStyle=pg; pctx.beginPath(); pctx.arc(6,6,6,0,Math.PI*2); pctx.fill();
+      return new THREE.CanvasTexture(pc);
+    })();
+    const _pf76=_rng(76);
+    for(let pi=0;pi<18;pi++){
+      const mat=new THREE.SpriteMaterial({map:pfTex,transparent:true,depthWrite:false,blending:THREE.AdditiveBlending,opacity:0.0});
+      const sp=new THREE.Sprite(mat);
+      const sc=0.10+_pf76()*0.08;
+      sp.scale.set(sc,sc,sc);
+      const pz=2.0+_pf76()*5.5; // z: 2–7.5
+      const px=(_pf76()-0.5)*2.8; // x: ±1.4
+      const py=0.28+_pf76()*0.88; // y: 0.28–1.16
+      sp.position.set(px,py,pz);
+      _threeScene.add(sp);
+      _pathFireflies.push({sprite:sp,bx:px,by:py,bz:pz,phase:_pf76()*Math.PI*2,vx:(_pf76()-0.5)*0.004,blink:_pf76()*Math.PI*2,blinkSpd:0.7+_pf76()*1.2});
+    }
   }
 
   // v75: 加油黑板 — encouragement chalkboard on left wall ─────────────────────
@@ -8211,6 +8235,15 @@ function startThreeAnimation(canvas) {
       ff.sprite.material.opacity = baseOpFF * (0.35 + 0.65 * blink);
       const sc = ff.sprite.userData.baseScale * (1.0 + nightFactor * 0.9 + blink * 0.3);
       ff.sprite.scale.set(sc, sc, sc);
+    });
+    // Path-level fireflies — low ground twinkle along shrine walkway
+    _pathFireflies.forEach(pf=>{
+      pf.sprite.position.x = pf.bx + Math.sin(_threeTime*0.35+pf.phase)*0.45;
+      pf.sprite.position.z = pf.bz + Math.cos(_threeTime*0.28+pf.phase*1.2)*0.22;
+      pf.sprite.position.y = pf.by + Math.sin(_threeTime*0.5+pf.phase)*0.12;
+      const nightF=1.0-Math.min(tod.ambI/2.5,1.0);
+      const bk=Math.sin(_threeTime*pf.blinkSpd+pf.blink)*0.5+0.5;
+      pf.sprite.material.opacity=(0.02+nightF*0.55)*(0.4+0.6*bk);
     });
     // Dust motes — slow gentle drift through room air
     // Pendant glow: brighter at night, breathe with torch flicker
