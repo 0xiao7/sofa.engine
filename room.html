@@ -3025,7 +3025,11 @@ function initThreeScene(canvas) {
 
   // Tree — 中央主角大樹，移近入口讓它在眼睛高度視角下顯得巨大
   const TX = 0, TZ = 3.0;
+  // v96: central tree removed — it blocked the hall view. Study-progress
+  // visualization moves to per-desk blooming instead. Flip true to restore.
+  const SHOW_CENTRAL_TREE = false;
 
+  if(SHOW_CENTRAL_TREE){
   // ── 樹台底座 (raised platform under tree) ───────────────────────────────
   const platMat = new THREE.MeshLambertMaterial({ color: 0xC09850 }); // warm stone
   const platRing = new THREE.Mesh(new THREE.CylinderGeometry(3.2,3.2,0.10,32), platMat);
@@ -3036,6 +3040,7 @@ function initThreeScene(canvas) {
   const treeGlow = new THREE.PointLight(0xFFF4D8, 0.28, 5.0);
   treeGlow.position.set(TX, 3.5, TZ); _threeScene.add(treeGlow);
   _torchLights.push(treeGlow);
+  } // end SHOW_CENTRAL_TREE (platform + glow)
 
   if(!ABETO_MINIMAL){
   // Magical canopy aura — soft green-gold halo emanating from tree center
@@ -3341,6 +3346,7 @@ function initThreeScene(canvas) {
     _pendantGlows.push(cgbSp); // pulses with night factor
   }
 
+  if(SHOW_CENTRAL_TREE){
   // Trunk — lower wide base + upper tapered cylinder for natural look
   const trunkMat = tMat('trunk',_barkTex);
   const trunkBase = new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.52,1.2,10), trunkMat);
@@ -3421,7 +3427,9 @@ function initThreeScene(canvas) {
     cPL.position.set(TX, 6.8, TZ); _threeScene.add(cPL);
     _torchLights.push(cPL); // scales with daylight via torchMult
   }
+  } // end SHOW_CENTRAL_TREE (trunk / roots / foliage / blossom / canopy light)
 
+  if(SHOW_CENTRAL_TREE){
   // Magical fireflies around tree
   const _ffRng = _rng(33);
   const FIREFLY_COUNT = 30;
@@ -3492,6 +3500,7 @@ function initThreeScene(canvas) {
       _sparkles.push({ sprite:sSp, ang, r, y:hy, speed:0.003+Math.random()*0.004, blink:Math.random()*Math.PI*2 });
     }
   }
+  } // end SHOW_CENTRAL_TREE (fireflies + canopy sparkles)
 
   // ── 金色塵埃粒子 (floating dust motes, always active) ─────────────────────
   if (!_isMobile) {
@@ -3754,6 +3763,7 @@ function initThreeScene(canvas) {
     });
   }
 
+  if(SHOW_CENTRAL_TREE){
   // Diagonal branches (offset to tree corner position TX, TZ)
   const branchMat = tMat('trunk', _barkTex);
   [
@@ -3773,6 +3783,7 @@ function initThreeScene(canvas) {
     _threeScene.add(tip);
     _foliageMeshes.push({ mesh: tip, ox: tip.position.x, oy: tip.position.y, oz: tip.position.z, phase: Math.random()*Math.PI*2, amp: 0.04 });
   });
+  } // end SHOW_CENTRAL_TREE (diagonal branches)
 
   // Desks — all 48 positions from _DESK_POS_3D
   const deskMat = mToon(0x9B6E38);    // warm honey wood
