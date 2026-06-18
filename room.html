@@ -1134,6 +1134,7 @@ let _mixers = [];           // AnimationMixer array — updated every frame
 let _mixerLastTime = 0;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _DESK_VISUAL_POS_3D = []; // stores {vx,vz,ry} for each desk after scatter
+let _steleCanvas = null, _steleCtx = null, _steleTex = null; // v107: weekly leaderboard stele
 let _deskPlantPos = []; // v97: per-desk potted-plant top position {x,y,z} for blooms
 let _deskBlooms = [];   // v97: active bloom flower sprites (rebuilt each avatar update)
 const _seenUserIds = new Set();
@@ -6073,6 +6074,34 @@ function initThreeScene(canvas) {
     tabScrn.position.set(CX-0.7, CH+0.05, CZ-0.01); tabScrn.rotation.x = -Math.PI/2+0.35; _threeScene.add(tabScrn);
   }
 
+  // v107: 本週讀書榜石碑 — weekly leaderboard stele near the entrance
+  { _steleCanvas = document.createElement('canvas'); _steleCanvas.width = 256; _steleCanvas.height = 384;
+    _steleCtx = _steleCanvas.getContext('2d');
+    _steleTex = new THREE.CanvasTexture(_steleCanvas);
+    const stoneMat = new THREE.MeshLambertMaterial({ color: 0x8C867A });
+    const SX = 7.5, SZ = 9.0;
+    const steleGroup = new THREE.Group();
+    steleGroup.position.set(SX, 0, SZ); steleGroup.rotation.y = -0.20; // face entrance/camera
+    const base = new THREE.Mesh(new THREE.CylinderGeometry(0.60,0.72,0.30,10), stoneMat);
+    base.position.set(0, 0.15, 0); steleGroup.add(base);
+    const base2 = new THREE.Mesh(new THREE.BoxGeometry(1.15,0.18,0.55), stoneMat);
+    base2.position.set(0, 0.36, 0); steleGroup.add(base2);
+    const slab = new THREE.Mesh(new THREE.BoxGeometry(1.30, 2.05, 0.18), stoneMat);
+    slab.position.set(0, 1.50, 0); steleGroup.add(slab);
+    // rounded top cap
+    const cap = new THREE.Mesh(new THREE.CylinderGeometry(0.65,0.65,0.18,12,1,false,0,Math.PI), stoneMat);
+    cap.rotation.set(Math.PI/2, 0, 0); cap.position.set(0, 2.52, 0); steleGroup.add(cap);
+    // leaderboard face plane
+    const face = new THREE.Mesh(new THREE.PlaneGeometry(1.12, 1.78),
+      new THREE.MeshBasicMaterial({ map: _steleTex, transparent: true }));
+    face.position.set(0, 1.52, 0.10); steleGroup.add(face);
+    _threeScene.add(steleGroup);
+    // warm uplight on the stele
+    const upl = new THREE.PointLight(0xFFE0A0, 0.45, 4.5); upl.position.set(SX, 0.9, SZ+0.7);
+    _threeScene.add(upl);
+    _updateStele(_currentUsers || []);
+  }
+
   // ── 光柱效果：全景窗陽光斜射入室內 ─────────────────────────────────────
   if (!_isMobile) {
     const shaftMat = new THREE.MeshBasicMaterial({
@@ -6584,7 +6613,48 @@ window._triggerConfetti = function() {
   }
 };
 
+// v107: redraw the weekly leaderboard stele face (top 3 by weekPts)
+function _updateStele(users) {
+  if (!_steleCtx || !_steleTex) return;
+  const c = _steleCtx, W = 256, H = 384;
+  const bg = c.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#3C3A33'); bg.addColorStop(1,'#26241F');
+  c.fillStyle = bg; c.fillRect(0,0,W,H);
+  c.strokeStyle = '#C8A84E'; c.lineWidth = 5; c.strokeRect(10,10,W-20,H-20);
+  c.strokeStyle = 'rgba(200,168,78,0.45)'; c.lineWidth = 2; c.strokeRect(18,18,W-36,H-36);
+  c.fillStyle = '#E8C868'; c.font = 'bold 30px serif'; c.textAlign = 'center';
+  c.fillText('本週讀書榜', W/2, 56);
+  c.fillStyle = 'rgba(220,200,150,0.7)'; c.font = '13px sans-serif';
+  c.fillText('SoFa 自習室', W/2, 78);
+  c.strokeStyle = 'rgba(200,168,78,0.4)'; c.lineWidth = 1.5;
+  c.beginPath(); c.moveTo(28,94); c.lineTo(W-28,94); c.stroke();
+  const top = (users||[]).filter(u => u && !u.isGhost)
+    .sort((a,b) => (b.weekPts||0)-(a.weekPts||0)).slice(0,3);
+  if (top.length === 0) {
+    c.fillStyle = 'rgba(220,210,180,0.55)'; c.font = '17px sans-serif'; c.textAlign = 'center';
+    c.fillText('還沒有人上榜', W/2, 190);
+    c.fillStyle = 'rgba(220,210,180,0.4)'; c.font = '14px sans-serif';
+    c.fillText('開始讀書搶第一', W/2, 218);
+  } else {
+    const medalCol = ['#E8C84E','#C2C6CE','#CC8A54'];
+    const rowY = [150, 232, 314];
+    top.forEach((u,i) => {
+      const y = rowY[i];
+      c.fillStyle = medalCol[i]; c.beginPath(); c.arc(46, y-6, 19, 0, Math.PI*2); c.fill();
+      c.fillStyle = '#3A2E10'; c.font = 'bold 22px sans-serif'; c.textAlign = 'center';
+      c.fillText(String(i+1), 46, y+2);
+      c.fillStyle = '#F2E6C2'; c.font = 'bold 23px sans-serif'; c.textAlign = 'left';
+      c.fillText((u.name||'考生').slice(0,6), 78, y-2);
+      c.fillStyle = '#D8B85A'; c.font = '16px sans-serif';
+      c.fillText((u.weekPts||0) + ' 分', 78, y+22);
+      if (u.subject) { c.fillStyle = 'rgba(205,195,165,0.6)'; c.font = '13px sans-serif';
+        c.fillText(u.subject, 150, y+22); }
+    });
+  }
+  _steleTex.needsUpdate = true;
+}
+
 function _updateThreeAvatars(users) {
+  _updateStele(users); // v107: refresh weekly leaderboard stele
   // Detect new user joins (toast only after initial room load)
   const _isFirstRenderLocal = _seenUserIds.size === 0;
   const _newArrivals = new Set(); // Wave 44: track indices of newly-joined users
