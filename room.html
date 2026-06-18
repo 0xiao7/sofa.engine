@@ -2030,8 +2030,8 @@ function initThreeScene(canvas) {
   // 相機：眼睛高度，正面看向全景窗，景深自然出現
   // 眼睛高度站在入口直視前方 — 參考影片的廊道景深感
   _threeCamera = new THREE.PerspectiveCamera(80, canvas.width / canvas.height, 0.1, 80);
-  _threeCamera.position.set(0, 4.5, 14);
-  _threeCamera.lookAt(0, 1.8, -3);
+  _threeCamera.position.set(0, 3.0, 13);
+  _threeCamera.lookAt(0, 1.2, -5);
 
   _threeControls = new THREE.OrbitControls(_threeCamera, canvas);
   _threeControls.target.set(0, 1.8, -3); // v94: big-hall resting view
@@ -2129,15 +2129,14 @@ function initThreeScene(canvas) {
     _pendantGlows.push(glow);
   });
 
-  // Entrance flanking plants (frame the doorway view)
-  [[-5.5,0,10.5],[5.5,0,10.5]].forEach(([px,py,pz]) => {
+  // Entrance flanking plants — moved deep into corners so entrance stays open
+  [[-10,0,6],[10,0,6]].forEach(([px,py,pz]) => {
     const ePot = new THREE.Mesh(new THREE.CylinderGeometry(0.32,0.25,0.55,12),
       new THREE.MeshLambertMaterial({color:0xA06030}));
     ePot.position.set(px,0.28,pz); _threeScene.add(ePot);
     const eBall = new THREE.Mesh(new THREE.SphereGeometry(0.48,12,10),
       new THREE.MeshLambertMaterial({color:0x3A8A30,flatShading:true}));
     eBall.position.set(px,0.88,pz); _threeScene.add(eBall);
-    // Leafy top
     const eTip = new THREE.Mesh(new THREE.SphereGeometry(0.30,10,8),
       new THREE.MeshLambertMaterial({color:0x4EAA3A,flatShading:true}));
     eTip.position.set(px,1.26,pz); _threeScene.add(eTip);
@@ -8590,11 +8589,11 @@ function startThreeAnimation(canvas) {
       const t = Math.min(1, (performance.now() - _flyInStart) / 2000);
       const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
       _threeCamera.position.x = 0;
-      _threeCamera.position.y = 9 - ease * (9 - 4.5);   // v94: big-hall view (higher)
-      _threeCamera.position.z = 16 - ease * (16 - 14);  // v94: stand-in-doorway distance
-      _threeCamera.fov = 75 - ease * (75 - 68);          // v94: wider FOV for whole hall
+      _threeCamera.position.y = 9 - ease * (9 - 3.0);   // lower = more floor visible
+      _threeCamera.position.z = 16 - ease * (16 - 13);  // doorway distance
+      _threeCamera.fov = 75 - ease * (75 - 72);          // wide FOV = grand hall
       _threeCamera.updateProjectionMatrix();
-      _threeCamera.lookAt(0, 1.8, -3);
+      _threeCamera.lookAt(0, 1.2, -5);
       if(t >= 1) { _flyInDone = true; if(_threeControls) _threeControls.enabled = true; _wasDrag = false; }
     } else {
       if(_threeControls) _threeControls.update();
