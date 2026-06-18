@@ -4493,6 +4493,63 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v69: 賽錢箱 (offering box) + 石燈籠 (stone lanterns) at shrine entrance ──
+  { const stoneMat=new THREE.MeshLambertMaterial({color:0x7A7A68});
+    const woodMat=new THREE.MeshLambertMaterial({color:0x3A1A08});
+    const capMat=new THREE.MeshLambertMaterial({color:0x4A2810});
+    const metalMat=new THREE.MeshLambertMaterial({color:0x886622});
+    // --- 賽錢箱 at z=7.2, center of path ---
+    { const bx=0,bz=7.2;
+      const body=new THREE.Mesh(new THREE.BoxGeometry(0.55,0.45,0.55),woodMat);
+      body.position.set(bx,0.50,bz); _threeScene.add(body);
+      const lid=new THREE.Mesh(new THREE.BoxGeometry(0.58,0.06,0.58),capMat);
+      lid.position.set(bx,0.75,bz); _threeScene.add(lid);
+      // Metal grate strips (3 horizontal × 3 vertical)
+      [-0.14,0,0.14].forEach(gx=>{
+        const bar=new THREE.Mesh(new THREE.BoxGeometry(0.008,0.015,0.52),metalMat);
+        bar.position.set(bx+gx,0.76,bz); _threeScene.add(bar);
+      });
+      [-0.14,0,0.14].forEach(gz=>{
+        const bar=new THREE.Mesh(new THREE.BoxGeometry(0.52,0.015,0.008),metalMat);
+        bar.position.set(bx,0.76,bz+gz); _threeScene.add(bar);
+      });
+      // Legs
+      [[-0.22,bz-0.22],[-0.22,bz+0.22],[0.22,bz-0.22],[0.22,bz+0.22]].forEach(([lx,lz])=>{
+        const leg=new THREE.Mesh(new THREE.CylinderGeometry(0.022,0.022,0.28,6),woodMat);
+        leg.position.set(bx+lx,0.14,lz); _threeScene.add(leg);
+      });
+      // Offering glow
+      const oLight=new THREE.PointLight(0xFFCC60,0.16,2.4);
+      oLight.position.set(bx,1.0,bz); _threeScene.add(oLight);
+    }
+    // --- 石燈籠 pair at z=7.9, x=±2.05 ---
+    [-2.05,2.05].forEach(lx=>{
+      const lz=7.9;
+      // Base
+      const base=new THREE.Mesh(new THREE.CylinderGeometry(0.14,0.17,0.18,8),stoneMat);
+      base.position.set(lx,0.09,lz); _threeScene.add(base);
+      // Pillar
+      const pillar=new THREE.Mesh(new THREE.CylinderGeometry(0.065,0.085,0.65,8),stoneMat);
+      pillar.position.set(lx,0.51,lz); _threeScene.add(pillar);
+      // Lamp chamber
+      const chamber=new THREE.Mesh(new THREE.BoxGeometry(0.38,0.28,0.38),new THREE.MeshLambertMaterial({color:0x909080,transparent:true,opacity:0.82}));
+      chamber.position.set(lx,0.98,lz); _threeScene.add(chamber);
+      // Flame glow inside
+      const flame=new THREE.Mesh(new THREE.SphereGeometry(0.06,6,5),new THREE.MeshBasicMaterial({color:0xFFEE80}));
+      flame.position.set(lx,0.98,lz); _threeScene.add(flame);
+      // Cap
+      const cap=new THREE.Mesh(new THREE.CylinderGeometry(0.24,0.21,0.12,8),stoneMat);
+      cap.position.set(lx,1.20,lz); _threeScene.add(cap);
+      // Finial
+      const fin=new THREE.Mesh(new THREE.SphereGeometry(0.04,6,5),stoneMat);
+      fin.position.set(lx,1.32,lz); _threeScene.add(fin);
+      // Warm glow
+      const gl=new THREE.PointLight(0xFFE880,0.20,2.8);
+      gl.position.set(lx,0.96,lz); _threeScene.add(gl);
+      _permLanternLights.push(gl);
+    });
+  }
+
   // v63: Sakura rainbow arch — glowing light spheres arching above Torii gate ─
   { const archColors=[0xFF80B8,0xFF60A8,0xFF40C8,0xCC40D8,0xBB60FF,0xA080FF,0xC060FF,0xFF80C8,0xFF50B0];
     const GZa=6.5; // same z as gate
