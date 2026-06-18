@@ -2888,14 +2888,31 @@ function initThreeScene(canvas) {
 
   // 書架：兩側牆，深酒紅書本，統一色系，精品圖書館感
   const shelfWoodMat = new THREE.MeshLambertMaterial({ color: 0x8C6530 });
-  // Library-style varied book colors
+  // Library-style varied book colors — v112: spine texture w/ archive label band
+  // (abeto-style "dated archive" look; shared 16 textures = performant)
+  const _bookTex = (hex) => {
+    const c = document.createElement('canvas'); c.width = 32; c.height = 64;
+    const x = c.getContext('2d');
+    const col = '#' + hex.toString(16).padStart(6,'0');
+    x.fillStyle = col; x.fillRect(0,0,32,64);
+    x.fillStyle = 'rgba(0,0,0,0.20)'; x.fillRect(0,0,32,4); x.fillRect(0,60,32,4); // head/tail
+    x.fillStyle = 'rgba(255,255,255,0.16)'; x.fillRect(0,5,2,54); // spine highlight
+    // faint embossed title near top
+    x.fillStyle = 'rgba(255,255,255,0.22)'; x.fillRect(8,14,16,2); x.fillRect(10,19,12,2);
+    // pale archive label sticker (lower spine) with faint date-ish lines
+    x.fillStyle = 'rgba(246,240,224,0.94)'; x.fillRect(6,40,20,15);
+    x.strokeStyle = 'rgba(0,0,0,0.18)'; x.lineWidth = 1; x.strokeRect(6,40,20,15);
+    x.strokeStyle = 'rgba(70,55,40,0.55)'; x.lineWidth = 1.2;
+    x.beginPath(); x.moveTo(9,46); x.lineTo(23,46); x.stroke();
+    x.beginPath(); x.moveTo(9,50); x.lineTo(19,50); x.stroke();
+    return new THREE.CanvasTexture(c);
+  };
   const bookMats = [
-    // Rich jewel-tone library palette — saturated, visible from distance
     0xA02020, 0x8B1A1A, 0x1E3D70, 0x1A5C30,
     0x7A4010, 0x1A4A9A, 0x7A1040, 0x2A6040,
     0xD4B020, 0x5A1A7A, 0x8A3A10, 0x0A4A6A,
     0xC04030, 0x3A2A80, 0x506020, 0x7A2060,
-  ].map(c => new THREE.MeshLambertMaterial({ color: c }));
+  ].map(c => new THREE.MeshLambertMaterial({ map: _bookTex(c) }));
   // 書架沿左右兩側（x=±11.5）— 高書架接近天花板 + 5 排書
   const _shelfZ = [-9.5,-7,-4.5,-2,0.5,3,5.5,8,10.5,13]; // v102: full-depth corridor of shelves
   const _shelfSeed = _rng(55);
