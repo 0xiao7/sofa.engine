@@ -6866,6 +6866,21 @@ function _updateThreeAvatars(users) {
       _threeScene.add(hBack); _userAvatarLabels.push(hBack);
     }
 
+    // v98: pomodoro focus indicator — floating amber hourglass above studying users
+    if (u.pomodoro) {
+      const hgMat = new THREE.MeshBasicMaterial({ color: 0xFFC860, transparent: true, opacity: 0.92 });
+      const capMat = new THREE.MeshBasicMaterial({ color: 0x8A5A2A });
+      const hgTop = new THREE.Mesh(new THREE.ConeGeometry(0.06,0.085,8), hgMat);
+      hgTop.position.set(avx, 1.95, avz); hgTop.rotation.x = Math.PI; // point down
+      const hgBot = new THREE.Mesh(new THREE.ConeGeometry(0.06,0.085,8), hgMat);
+      hgBot.position.set(avx, 1.865, avz);
+      const capT = new THREE.Mesh(new THREE.CylinderGeometry(0.066,0.066,0.014,8), capMat);
+      capT.position.set(avx, 1.998, avz);
+      const capB = new THREE.Mesh(new THREE.CylinderGeometry(0.066,0.066,0.014,8), capMat);
+      capB.position.set(avx, 1.818, avz);
+      [hgTop, hgBot, capT, capB].forEach(m => { _threeScene.add(m); _userAvatarLabels.push(m); });
+    }
+
     // Subject accessories (hat / marker / glasses / house / pencil / star)
     const _addAcc = (mesh) => { _threeScene.add(mesh); _userAvatarLabels.push(mesh); };
     const subj = u.subject || '';
