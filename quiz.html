@@ -1707,6 +1707,23 @@ async function loadQuiz(){
       }
       const pick=filtered[Math.floor(Math.random()*filtered.length)];
       url=`${API}/api/quiz?page_id=${encodeURIComponent(pick.id)}`;
+    } else if(law && _artCache[law] && _artCache[law].length) {
+      // Smart weighting: wrong answers first, then high-importance, else random
+      const _wb = loadWrongBank();
+      const _wrongSet = new Set(_wb.filter(e=>e.law===law).map(e=>e.id));
+      const _pool = _artCache[law];
+      const _wrongArts = _pool.filter(a=>_wrongSet.has(a.id));
+      const _hiArts  = _pool.filter(a=>!_wrongSet.has(a.id) && parseInt(a.importance||0)>=4);
+      const _rnd = Math.random();
+      let _pick;
+      if(_wrongArts.length && _rnd < 0.55){
+        _pick = _wrongArts[Math.floor(Math.random()*_wrongArts.length)];
+      } else if(_hiArts.length && _rnd < 0.85){
+        _pick = _hiArts[Math.floor(Math.random()*_hiArts.length)];
+      } else {
+        _pick = _pool[Math.floor(Math.random()*_pool.length)];
+      }
+      url = `${API}/api/quiz?page_id=${encodeURIComponent(_pick.id)}`;
     } else {
       url=law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`;
       var _subVal=(document.getElementById('prSubSel')||{}).value||'';
@@ -2083,6 +2100,9 @@ async function loadWrongQuiz() {
 
 // ── DOMContentLoaded 事件綁定 ─────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
+  try { localStorage.setItem('sofa_last_tool', 'quiz'); } catch(e) {}
+  const _openParam = new URLSearchParams(location.search).get('open');
+  if(_openParam === 'weakness') { setTimeout(()=>{ _openWeakness(); }, 400); }
   refreshWrongCount();
   _updateDailyBtn();
   _renderQuizStreak(); // Wave 124: 每日連刷天數

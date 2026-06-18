@@ -1575,7 +1575,26 @@
               <span class="idx">07</span>
               <h2>備考工具</h2>
             </div>
-            <div class="r"><span class="eb">4 種模式</span></div>
+            <div class="r"><span class="eb">5 種模式</span></div>
+          </div>
+
+          <!-- 繼續練習 CTA -->
+          <div id="resume-tool-wrap" style="display:none;margin-bottom:20px">
+            <a id="resume-tool-link" href="quiz.html" style="
+              display:flex;align-items:center;justify-content:space-between;
+              background:rgba(231,187,167,.06);border:1px solid rgba(231,187,167,.25);
+              border-radius:4px;padding:14px 20px;color:var(--cream);text-decoration:none;
+              transition:.18s;
+            " onmouseover="this.style.background='rgba(231,187,167,.12)'" onmouseout="this.style.background='rgba(231,187,167,.06)'">
+              <div style="display:flex;align-items:center;gap:12px">
+                <span id="resume-tool-icon" style="font-size:18px">📖</span>
+                <div>
+                  <div style="font-family:var(--mono);font-size:10px;letter-spacing:.2em;color:rgba(245,240,234,.5);text-transform:uppercase;margin-bottom:3px">繼續上次</div>
+                  <div id="resume-tool-label" style="font-family:var(--serif);font-weight:600;font-size:15px;color:var(--cream)">選擇題</div>
+                </div>
+              </div>
+              <span style="font-family:var(--mono);font-size:12px;color:var(--peach);letter-spacing:.1em">繼續練習 →</span>
+            </a>
           </div>
 
           <div class="tool-grid">
@@ -1614,6 +1633,15 @@
               </div>
               <p class="desc">手機直接查、<br/>每日 08:00 推播。</p>
               <span class="arrow">加入 <span class="glyph">→</span></span>
+            </a>
+            <a class="tool" href="quiz.html?open=weakness" style="border-color:rgba(231,76,60,.25)">
+              <div class="num" style="color:rgba(231,76,60,.32)">05</div>
+              <div>
+                <div class="code" style="color:rgba(231,76,60,.7)">WEAK</div>
+                <div class="name" style="margin-top:6px">弱點分析</div>
+              </div>
+              <p class="desc">哪些法規最弱、<br/>錯題自動重練。</p>
+              <span class="arrow" style="color:rgba(231,76,60,.8)">查看 <span class="glyph">→</span></span>
             </a>
           </div>
         </section>
@@ -2821,6 +2849,7 @@ function _readArticle(btn, text) {
 
       // 套用個人考科偏好
       if(profile.exam_key && typeof applyExamFilter === 'function'){
+        try { localStorage.setItem('sofa_exam_key', profile.exam_key); } catch(e) {}
         applyExamFilter(profile.exam_key);
       }
     }
@@ -3956,6 +3985,34 @@ function switchToFree(){
   }
   window.location.href='/';
 }
+</script>
+
+<!-- 繼續練習 CTA -->
+<script>
+(function(){
+  var _TOOL_META = {
+    quiz:     { icon:'🎯', label:'選擇題', lawKey:'sofa_last_law',     url:'quiz.html' },
+    practice: { icon:'⌨️', label:'打字練習', lawKey:'sofa_practice_law', url:'practice.html' },
+    fill:     { icon:'✏️', label:'填空練習', lawKey:'sofa_fill_law',     url:'fill.html' }
+  };
+  function _initResumeCta(){
+    var lastTool = localStorage.getItem('sofa_last_tool') || '';
+    var meta = _TOOL_META[lastTool];
+    if(!meta) return;
+    var lastLaw = localStorage.getItem(meta.lawKey) || '';
+    var wrap = document.getElementById('resume-tool-wrap');
+    var link = document.getElementById('resume-tool-link');
+    var icon = document.getElementById('resume-tool-icon');
+    var lbl  = document.getElementById('resume-tool-label');
+    if(!wrap) return;
+    icon.textContent = meta.icon;
+    lbl.textContent  = lastLaw && !lastLaw.startsWith('__') ? meta.label + ' — ' + lastLaw : meta.label;
+    link.href = meta.url;
+    wrap.style.display = '';
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', _initResumeCta);
+  else _initResumeCta();
+})();
 </script>
 
 <!-- Compass widget 載入 (放最末避免阻塞 dashboard 主流程) -->

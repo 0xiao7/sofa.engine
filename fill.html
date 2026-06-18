@@ -127,6 +127,16 @@
     color:rgba(245,240,234,.22);
     font-family:var(--mono);font-size:13px;letter-spacing:.04em;
   }
+  .handwrite-mode .blank{
+    min-height:48px;min-width:160px!important;
+    font-size:22px;padding:6px 16px;
+    vertical-align:middle;border-radius:6px;
+  }
+  #btn-handwrite.active{
+    background:rgba(231,187,167,.15)!important;
+    border-color:var(--peach)!important;
+    color:var(--peach)!important;
+  }
   .blank-tag{
     font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
     color:var(--peach);text-transform:uppercase;
@@ -337,6 +347,7 @@
       <button id="btnNext" class="btn btn-sec" style="padding:8px 16px;font-size:13px">換一條</button>
       <button id="btnFillSession" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(91,175,214,0.15);border-color:rgba(91,175,214,0.6)">⚡ 連刷模式</button>
       <button onclick="openFillStats()" title="個人填空統計" style="background:none;border:1px solid rgba(91,175,214,0.3);color:#5BAFD6;border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">📊</button>
+      <button id="btn-handwrite" onclick="_toggleHandwrite(this)" title="iPad 手寫模式（放大輸入格）" style="background:none;border:1px solid rgba(245,240,234,.25);color:rgba(245,240,234,.6);border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">✏</button>
       <button id="btnFillDaily" onclick="startFillDailyChallenge()">📅 今日填空</button>
       <span id="fill-daily-badge"></span>
       <div id="fill-streak" style="
@@ -650,6 +661,12 @@ document.addEventListener('DOMContentLoaded',function(){
   var _subSel=document.getElementById('prSubSel');
   if(_subSel)_subSel.addEventListener('change',_updateChipLock);
   _renderFillStreak(); // Wave 125: 每日連刷天數
+  try { localStorage.setItem('sofa_last_tool', 'fill'); } catch(e) {}
+  if(localStorage.getItem('sofa_fill_handwrite')==='1'){
+    document.body.classList.add('handwrite-mode');
+    const _hbtn=document.getElementById('btn-handwrite');
+    if(_hbtn) _hbtn.classList.add('active');
+  }
 });
 document.getElementById('lawSelect').addEventListener('change', async function(){
   // Wave 74: persist law selection to localStorage
@@ -1646,6 +1663,12 @@ function _drillWeakFillLaw(lawName) {
   }
   closeFillStats();
   startFillSession && startFillSession(1);
+}
+
+function _toggleHandwrite(btn){
+  const on = document.body.classList.toggle('handwrite-mode');
+  btn.classList.toggle('active', on);
+  try { localStorage.setItem('sofa_fill_handwrite', on ? '1' : '0'); } catch(e) {}
 }
 
 function openFillStats() {
