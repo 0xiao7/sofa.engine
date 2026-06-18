@@ -4661,6 +4661,29 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v83: 欄干 — low wooden railing separating shrine path from desk area ──────────
+  { const railMat=new THREE.MeshLambertMaterial({color:0x3A1A08});
+    const postMat=new THREE.MeshLambertMaterial({color:0x2E1406});
+    const RZ_START=-2.0, RZ_END=8.2;
+    const rLen=RZ_END-RZ_START; // 10.2
+    [-3.10, 3.10].forEach(rx=>{
+      // Top horizontal rail
+      const topRail=new THREE.Mesh(new THREE.BoxGeometry(0.055,0.055,rLen),railMat);
+      topRail.position.set(rx,0.88,RZ_START+rLen/2); _threeScene.add(topRail);
+      // Bottom horizontal rail
+      const botRail=new THREE.Mesh(new THREE.BoxGeometry(0.050,0.040,rLen),railMat);
+      botRail.position.set(rx,0.46,RZ_START+rLen/2); _threeScene.add(botRail);
+      // Vertical posts every 1.8 units
+      for(let pz=RZ_START;pz<=RZ_END+0.1;pz+=1.8){
+        const post=new THREE.Mesh(new THREE.CylinderGeometry(0.038,0.042,0.96,8),postMat);
+        post.position.set(rx,0.48,pz); _threeScene.add(post);
+        // Post cap ball
+        const cap=new THREE.Mesh(new THREE.SphereGeometry(0.045,6,5),postMat);
+        cap.position.set(rx,0.96+0.022,pz); _threeScene.add(cap);
+      }
+    });
+  }
+
   // v82: 板の間 — warm hardwood floor planks in main walkway ──────────────────────
   { const fc=document.createElement('canvas'); fc.width=256; fc.height=512;
     const fctx=fc.getContext('2d');
