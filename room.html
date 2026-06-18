@@ -3686,10 +3686,10 @@ function initThreeScene(canvas) {
   const _deskGeo = box(1.6,0.08,0.9);
   const _deskRng = _rng(77);  // deterministic scatter seed
   _DESK_POS_3D.forEach(([x,z], dIdx) => {
-    // 隨機偏移讓桌子鬆散（不要整齊排列）
-    const ox = (_deskRng()-0.5)*0.55;
-    const oz = (_deskRng()-0.5)*0.55;
-    const ry = (_deskRng()-0.5)*0.22;  // 輕微旋轉
+    // 隨機偏移讓桌子鬆散（不要整齊排列）— v86: looser scatter for open feel
+    const ox = (_deskRng()-0.5)*0.85;
+    const oz = (_deskRng()-0.5)*0.85;
+    const ry = (_deskRng()-0.5)*0.40;  // 輕微旋轉
     const vx = x+ox, vz = z+oz;
     const desk = new THREE.Mesh(_deskGeo, deskMat);
     desk.position.set(vx,0.76,vz);
@@ -6013,11 +6013,24 @@ function initThreeScene(canvas) {
 // 24 desk positions: 4 columns × 6 rows, wide center aisle, library layout
 // Left pair: -5,-2.5 | Right pair: 2.5,5  Rows: z=-5.5→3
 const _DESK_POS_3D = (()=>{
-  // 寬廣房間：桌子靠兩側書架，中央完全空出給大樹
-  const cols=[-9.5,-7.5,7.5,9.5];
-  const rows=[-7.5,-5.5,-3.5,-1.5,0.5,2.5,4.5,6.5];
-  // Fill from front (near entrance) to back so first users are most visible from camera
-  const p=[]; [...rows].reverse().forEach(z=>cols.forEach(x=>p.push([x,z]))); return p;
+  // v86: open scattered layout (abeto-style 廣闊 + 桌子散佈各地) — desks spread
+  // across the whole floor instead of two dense wall columns. Center kept clear
+  // for the tree (0,3.0) + entrance sightline; avoids topiary (±2.5,6.5 / ±4,4.2)
+  // and reception desk (2.8,8.8). Ordered front→back so visible desks fill first.
+  return [
+    // Front zone (z≈7) — sparse, keeps entrance open
+    [-9.0, 7.0], [-6.5, 7.0], [ 8.5, 7.0],
+    // Mid-front sides (z≈4) — clear of topiary
+    [-9.0, 4.0], [ 9.0, 4.0],
+    // Mid sides (z≈0.5–1.5) — flanking the tree
+    [-7.0, 1.5], [ 7.0, 1.5], [-9.5, 0.5], [ 9.5, 0.5],
+    // Just behind tree zone (z≈-2)
+    [-9.5,-2.0], [-6.5,-2.0], [ 6.5,-2.0], [ 9.5,-2.0],
+    // Back-mid (z≈-4.5) — can use full width incl. centre (behind tree)
+    [-8.0,-4.5], [-4.0,-4.5], [ 0.0,-4.5], [ 4.0,-4.5], [ 8.0,-4.5],
+    // Back row (z≈-7) — full width
+    [-9.5,-7.0], [-6.0,-7.0], [-2.0,-7.0], [ 2.0,-7.0], [ 6.0,-7.0], [ 9.5,-7.0],
+  ];
 })();
 
 function _makeLabel(name, color) {
@@ -7440,7 +7453,7 @@ function _rugTex() {
   ctx.beginPath(); ctx.arc(MX,MY,256,0,Math.PI*2); ctx.clip();
 
   // Deep crimson Persian base
-  ctx.fillStyle = '#7A1010'; ctx.fillRect(0,0,S,S);
+  ctx.fillStyle = '#BFB098'; ctx.fillRect(0,0,S,S);
 
   // Outer gold border ring
   ctx.strokeStyle = '#C8A030'; ctx.lineWidth = 22;
@@ -7450,7 +7463,7 @@ function _rugTex() {
   for(let i=0;i<36;i++){
     const a=(i/36)*Math.PI*2;
     const mx=MX+Math.cos(a)*238, my=MY+Math.sin(a)*238;
-    ctx.fillStyle = i%2===0 ? '#E8C840' : '#7A1010';
+    ctx.fillStyle = i%2===0 ? '#E8C840' : '#BFB098';
     ctx.beginPath(); ctx.arc(mx,my,5,0,Math.PI*2); ctx.fill();
   }
 
@@ -7481,7 +7494,7 @@ function _rugTex() {
     ctx.closePath(); ctx.fill();
   };
   star8(100,45,'#C8A020');  // gold outer star
-  star8(78,36,'#7A1010');   // crimson cutout
+  star8(78,36,'#BFB098');   // crimson cutout
   star8(58,26,'#D4B030');   // bright gold inner star
 
   // 8 floral petals around star
@@ -7490,15 +7503,15 @@ function _rugTex() {
     ctx.save(); ctx.rotate(a);
     ctx.fillStyle='#B09020';
     ctx.beginPath(); ctx.ellipse(130,0,26,10,0,0,Math.PI*2); ctx.fill();
-    ctx.fillStyle='#7A1010';
+    ctx.fillStyle='#BFB098';
     ctx.beginPath(); ctx.ellipse(130,0,16,5,0,0,Math.PI*2); ctx.fill();
     ctx.restore();
   }
 
   // Center circles
-  ctx.fillStyle='#7A1010'; ctx.beginPath(); ctx.arc(0,0,28,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#BFB098'; ctx.beginPath(); ctx.arc(0,0,28,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='#D4AC30'; ctx.beginPath(); ctx.arc(0,0,18,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#7A1010'; ctx.beginPath(); ctx.arc(0,0,9,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#BFB098'; ctx.beginPath(); ctx.arc(0,0,9,0,Math.PI*2); ctx.fill();
   ctx.fillStyle='#E8C840'; ctx.beginPath(); ctx.arc(0,0,4,0,Math.PI*2); ctx.fill();
 
   // 4 quarter medallions
@@ -7511,7 +7524,7 @@ function _rugTex() {
       i===0?ctx.moveTo(Math.cos(a)*r,Math.sin(a)*r):ctx.lineTo(Math.cos(a)*r,Math.sin(a)*r);
     }
     ctx.closePath(); ctx.fill();
-    ctx.fillStyle='#7A1010'; ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.fill();
+    ctx.fillStyle='#BFB098'; ctx.beginPath(); ctx.arc(0,0,12,0,Math.PI*2); ctx.fill();
     ctx.restore();
   });
 
