@@ -1129,7 +1129,7 @@ const mToon = (hex) => new THREE.MeshLambertMaterial({ color: hex });
 const mToonFlat = (hex) => new THREE.MeshLambertMaterial({ color: hex, flatShading: true });
 const _isMobile = /iPhone|iPad|Android|Mobi/i.test(navigator.userAgent) || window.innerWidth < 768;
 let _characterGLTF = null; // loaded GLB template for user avatars
-const _USE_GLB_AVATAR = false; // v100: unify on cute chibi (GLB human = flat faceless)
+const _USE_GLB_AVATAR = false; // v101: chibi with full hair shell (looks right from every angle)
 let _mixers = [];           // AnimationMixer array — updated every frame
 let _mixerLastTime = 0;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
@@ -6844,46 +6844,45 @@ function _updateThreeAvatars(users) {
       _fc.beginPath(); _fc.arc(64,84,10,0,Math.PI); _fc.fill();
       const faceTex = new THREE.CanvasTexture(_fC);
 
-      // Head — large chibi sphere with skin material
-      const headGeo = new THREE.SphereGeometry(0.36,14,12);
-      const headMesh = new THREE.Mesh(headGeo, _T(skinHex));
-      headMesh.position.set(avx, 1.10, avz);
+      // v101: head as ONE group (skin sphere + full hair shell + face + halo) so
+      // bob/rotation moves everything together — fixes the head/face detaching.
+      const headBaseY = 1.16;
+      const headGroup = new THREE.Group();
+      headGroup.position.set(avx, headBaseY, avz);
+      // skin sphere (smaller, better proportion)
+      const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.30,16,14), _T(skinHex));
       headMesh.userData.userIndex = i;
-      if(u.isSelf){
-        const halo = new THREE.Mesh(
-          new THREE.TorusGeometry(0.46,0.032,8,24),
-          new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.70})
-        );
-        halo.position.set(avx, 1.10, avz);
-        halo.rotation.x = Math.PI/2;
-        _threeScene.add(halo); _userAvatarLabels.push(halo);
-        _threeScene.userData._selfAvatarPos = {x:avx, y:1.10, z:avz};
-      }
-      _threeScene.add(headMesh); _userAvatarLabels.push(headMesh);
-      _avatarHeads.push({mesh:headMesh, baseX:avx, baseZ:avz, phase:i*1.37});
-
-      // Face plane — placed in front of head, facing +z (toward entrance/camera)
+      headGroup.add(headMesh);
+      // full hair shell covering top/back/sides (so it's never a blank dome)
+      const hairShell = new THREE.Mesh(new THREE.SphereGeometry(0.322,16,14), _T(hairHex));
+      hairShell.position.set(0, 0.022, -0.015); hairShell.scale.set(1.0,1.04,1.02);
+      headGroup.add(hairShell);
+      // hair tuft (ahoge) for character
+      const tuft = new THREE.Mesh(new THREE.ConeGeometry(0.028,0.10,6), _T(hairHex));
+      tuft.position.set(0.05,0.34,-0.03); tuft.rotation.z = -0.4;
+      headGroup.add(tuft);
+      // face plane in front of the hair shell
       const facePlane = new THREE.Mesh(
-        new THREE.PlaneGeometry(0.55,0.55),
+        new THREE.PlaneGeometry(0.46,0.46),
         new THREE.MeshBasicMaterial({
           map:faceTex, transparent:true, depthWrite:false,
-          polygonOffset:true, polygonOffsetFactor:-2, polygonOffsetUnits:-2
+          polygonOffset:true, polygonOffsetFactor:-4, polygonOffsetUnits:-4
         })
       );
-      facePlane.position.set(avx, 1.10, avz+0.43);
-      _threeScene.add(facePlane); _userAvatarLabels.push(facePlane);
-
-      // Hair cap (covers top of head)
-      const hairGeo = new THREE.CylinderGeometry(0.358,0.350,0.14,14);
-      const hair = new THREE.Mesh(hairGeo, _T(hairHex));
-      hair.position.set(avx, 1.40, avz);
-      _threeScene.add(hair); _userAvatarLabels.push(hair);
-
-      // Anime back hair drape (behind head toward -z = toward desk)
-      const hbGeo = new THREE.CylinderGeometry(0.29,0.19,0.36,10);
-      const hBack = new THREE.Mesh(hbGeo, _T(hairHex));
-      hBack.position.set(avx, 1.18, avz-0.18);
-      _threeScene.add(hBack); _userAvatarLabels.push(hBack);
+      facePlane.position.set(0, 0.01, 0.315);
+      headGroup.add(facePlane);
+      // self halo floating above the head
+      if(u.isSelf){
+        const halo = new THREE.Mesh(
+          new THREE.TorusGeometry(0.16,0.024,8,20),
+          new THREE.MeshBasicMaterial({color:0xFFDD44,transparent:true,opacity:0.8})
+        );
+        halo.position.set(0,0.46,0); halo.rotation.x = Math.PI/2;
+        headGroup.add(halo);
+        _threeScene.userData._selfAvatarPos = {x:avx, y:headBaseY, z:avz};
+      }
+      _threeScene.add(headGroup); _userAvatarLabels.push(headGroup);
+      _avatarHeads.push({mesh:headGroup, baseX:avx, baseZ:avz, baseY:headBaseY, phase:i*1.37});
     }
 
     // v98: pomodoro focus indicator — floating amber hourglass above studying users
@@ -8658,12 +8657,13 @@ function startThreeAnimation(canvas) {
     });
     // Avatar head idle look-around
     _avatarHeads.forEach((h, i) => {
-      // Slow yaw (left-right): period ~8s, amplitude ±18°
-      h.mesh.rotation.y = Math.sin(_threeTime * 0.8 + h.phase) * 0.32;
-      // Very slight nod: period ~5s, amplitude ±5°
-      h.mesh.rotation.x = Math.sin(_threeTime * 1.2 + h.phase * 0.7) * 0.09;
-      // Keep head Y position synced with body bob (body bobs, head should follow)
-      h.mesh.position.y = 1.45 + 0.05 * Math.sin(_threeTime * 1.5 + i * 0.8);
+      // Gentle look-around yaw (smaller so head accessories stay roughly aligned)
+      h.mesh.rotation.y = Math.sin(_threeTime * 0.8 + h.phase) * 0.18;
+      // Very slight nod
+      h.mesh.rotation.x = Math.sin(_threeTime * 1.2 + h.phase * 0.7) * 0.07;
+      // Bob around the head's true base Y (v101: was hard-coded 1.45 → detached the head)
+      const _by = (h.baseY != null) ? h.baseY : 1.45;
+      h.mesh.position.y = _by + 0.035 * Math.sin(_threeTime * 1.5 + i * 0.8);
     });
     // Study ring pulse (Pomodoro focus indicator)
     _studyRings.forEach(r => {
