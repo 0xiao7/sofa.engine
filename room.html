@@ -6735,6 +6735,21 @@ function _updateThreeAvatars(users) {
     const avx = _vpos.vx;          // character x aligns with desk
     const avz = _vpos.vz + 0.64;   // character z = chair seat (behind desk)
 
+    // v108: personal-colour seat glow under the self's chosen desk (佔位亮燈)
+    if (u.isSelf) {
+      const ringGeo = new THREE.RingGeometry(0.66, 0.92, 36);
+      const ringMat = new THREE.MeshBasicMaterial({ color, transparent:true, opacity:0.75,
+        side:THREE.DoubleSide, depthWrite:false, blending:THREE.AdditiveBlending });
+      const ring = new THREE.Mesh(ringGeo, ringMat);
+      ring.rotation.x = -Math.PI/2; ring.position.set(_vpos.vx, 0.02, _vpos.vz + 0.55);
+      _threeScene.add(ring); _userAvatarLabels.push(ring);
+      _studyRings.push(ring); // pulse animation reuses _studyRings
+      ring.userData.phase = 0;
+      const seatLight = new THREE.PointLight(color.getHex(), 0.7, 3.6);
+      seatLight.position.set(_vpos.vx, 0.7, _vpos.vz + 0.55);
+      _threeScene.add(seatLight); _userAvatarLabels.push(seatLight);
+    }
+
     // GLB animated character avatar (falls back to rounded humanoid if model unavailable)
     // v100: unify on the cute chibi (see _USE_GLB_AVATAR) — the GLB human loads as
     // a flat single-colour faceless humanoid; chibi is the polished kawaii look.
