@@ -1133,6 +1133,8 @@ let _mixers = [];           // AnimationMixer array — updated every frame
 let _mixerLastTime = 0;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _DESK_VISUAL_POS_3D = []; // stores {vx,vz,ry} for each desk after scatter
+let _deskPlantPos = []; // v97: per-desk potted-plant top position {x,y,z} for blooms
+let _deskBlooms = [];   // v97: active bloom flower sprites (rebuilt each avatar update)
 const _seenUserIds = new Set();
 let _namePlates = [], _deskLampLights = [], _avatarHeads = [], _confettiParticles = [], _fireflies = [], _foliageMeshes = [], _petalParticles = [], _dustMotes = [], _pendantGlows = [], _canopyAura = null, _sparkles = [], _permLanternLights = [], _moonShaftSprite = null, _floatingBooks = [], _mistPlanes = [], _floatingEma = [], _mahouSparkles = [], _pathFireflies = [];
 let _snowParticles = [];
@@ -3901,6 +3903,17 @@ function initThreeScene(canvas) {
     } else {
       _deskLampLights.push(null);
     }
+    // v97: small potted plant on the desk (back-left) — blooms with study (see _updateThreeAvatars)
+    { const ppx = vx - 0.55, ppz = vz - 0.18, deskTop = 0.80;
+      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.075,0.06,0.13,10), mToon(0xC8794A));
+      pot.position.set(ppx, deskTop + 0.065, ppz); _threeScene.add(pot);
+      const rim = new THREE.Mesh(new THREE.CylinderGeometry(0.082,0.075,0.025,10), mToon(0xB36A40));
+      rim.position.set(ppx, deskTop + 0.12, ppz); _threeScene.add(rim);
+      // small green foliage ball
+      const foli = new THREE.Mesh(new THREE.IcosahedronGeometry(0.13,2), mToon(0x7A9568));
+      foli.position.set(ppx, deskTop + 0.24, ppz); _threeScene.add(foli);
+      _deskPlantPos[dIdx] = { x: ppx, y: deskTop + 0.27, z: ppz };
+    }
     // Store visual position for avatar alignment
     _DESK_VISUAL_POS_3D.push({ vx, vz, ry });
   });
@@ -6631,6 +6644,8 @@ function _updateThreeAvatars(users) {
   _namePlates.length = 0; _avatarHeads.length = 0;
   _studyRings.forEach(m => _threeScene.remove(m));
   _studyRings.length = 0;
+  _deskBlooms.forEach(m => _threeScene.remove(m)); // v97: clear desk-plant blooms
+  _deskBlooms.length = 0;
   _focusSparkles.forEach(s => _threeScene.remove(s));
   _focusSparkles.length = 0;
   _mixers.forEach(mx => mx.stopAllAction());
@@ -6640,6 +6655,29 @@ function _updateThreeAvatars(users) {
   users.slice(0, _DESK_POS_3D.length).forEach((u, i) => {
     // Self can choose any empty desk locally; others stay at rank position
     const pos = (u.isSelf && _selfDeskIdx !== i) ? _DESK_POS_3D[_selfDeskIdx] : _DESK_POS_3D[i];
+
+    // v97: desk-plant blooms — weekly study points → number of flowers
+    { const _bdIdx = (u.isSelf && _selfDeskIdx !== i) ? _selfDeskIdx : i;
+      const pp = _deskPlantPos[_bdIdx];
+      if(pp){
+        const pts = Math.max(0, u.weekPts || 0);
+        const nBloom = Math.min(8, Math.floor(pts / 15)); // 0–8 flowers
+        const bloomCols = [0xFFC8DC, 0xFFB0CE, 0xF7A8C8, 0xFFD0E0];
+        for(let bk=0; bk<nBloom; bk++){
+          const ang = (bk / Math.max(1,nBloom)) * Math.PI*2 + bk*0.7;
+          const rr = 0.07 + (bk%2)*0.035;
+          const fl = new THREE.Mesh(new THREE.IcosahedronGeometry(0.04,1),
+            new THREE.MeshBasicMaterial({ color: bloomCols[bk%bloomCols.length] }));
+          fl.position.set(pp.x+Math.cos(ang)*rr, pp.y + (bk%3)*0.028, pp.z+Math.sin(ang)*rr);
+          _threeScene.add(fl); _deskBlooms.push(fl);
+        }
+        if(pts >= 120){ // top studier — crown bloom
+          const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(0.042,1),
+            new THREE.MeshBasicMaterial({ color: 0xFF90B8 }));
+          crown.position.set(pp.x, pp.y+0.07, pp.z); _threeScene.add(crown); _deskBlooms.push(crown);
+        }
+      }
+    }
 
     // Wave 44: spawn golden arrival burst for newly-joined users
     if(_newArrivals.has(i)){
