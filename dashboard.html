@@ -4055,5 +4055,72 @@ ch.on('presence', { event: 'sync' }, () => {
   if (el) el.textContent = n > 0 ? `自習室 ${n}人` : '自習室';
 }).subscribe();
 </script>
+
+<!-- ── 手機版今日快速入口列 ────────────────────────────────────── -->
+<style>
+  #mobile-daily-bar{
+    display:none;
+    position:fixed;bottom:0;left:0;right:0;
+    background:#07121C;border-top:1px solid rgba(231,187,167,.12);
+    z-index:130;height:58px;
+    align-items:center;justify-content:space-around;
+    padding:0 4px;
+    box-shadow:0 -4px 20px rgba(0,0,0,.5);
+  }
+  @media(max-width:768px){ #mobile-daily-bar{display:flex} }
+  .mdb-btn{
+    display:flex;flex-direction:column;align-items:center;gap:2px;
+    flex:1;text-decoration:none;color:rgba(245,240,234,.5);
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.04em;
+    padding:6px 4px;border-radius:8px;transition:.15s;
+    position:relative;
+  }
+  .mdb-btn:hover,.mdb-btn.done{ color:var(--peach); }
+  .mdb-btn .mdb-ic{ font-size:18px;line-height:1; }
+  .mdb-btn .mdb-lbl{ white-space:nowrap; }
+  .mdb-btn .mdb-check{
+    position:absolute;top:4px;right:8px;
+    font-size:10px;color:#44cc88;display:none;
+  }
+  .mdb-btn.done .mdb-check{ display:block; }
+  /* 手機頁面底部留白，避免內容被遮 */
+  @media(max-width:768px){ body.has-mobile-bar { padding-bottom:62px; } }
+</style>
+
+<div id="mobile-daily-bar">
+  <a class="mdb-btn" id="mdb-quiz" href="quiz.html">
+    <span class="mdb-ic">📅</span>
+    <span class="mdb-lbl">今日挑戰</span>
+    <span class="mdb-check">✓</span>
+  </a>
+  <a class="mdb-btn" id="mdb-fill" href="fill.html">
+    <span class="mdb-ic">✏</span>
+    <span class="mdb-lbl">今日填空</span>
+    <span class="mdb-check">✓</span>
+  </a>
+  <a class="mdb-btn" href="practice.html">
+    <span class="mdb-ic">⌨</span>
+    <span class="mdb-lbl">打字練習</span>
+    <span class="mdb-check" style="display:none"></span>
+  </a>
+  <a class="mdb-btn" href="quiz.html?open=weakness">
+    <span class="mdb-ic">⚠</span>
+    <span class="mdb-lbl">弱點分析</span>
+    <span class="mdb-check" style="display:none"></span>
+  </a>
+</div>
+<script>
+(function(){
+  var _d = new Date();
+  var _today = _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');
+  var quizDone = !!localStorage.getItem('sofa_daily_'+_today);
+  var fillDone = !!localStorage.getItem('sofa_fill_daily_'+_today);
+  var qBtn = document.getElementById('mdb-quiz');
+  var fBtn = document.getElementById('mdb-fill');
+  if(quizDone && qBtn) qBtn.classList.add('done');
+  if(fillDone && fBtn) fBtn.classList.add('done');
+  document.body.classList.add('has-mobile-bar');
+})();
+</script>
 </body>
 </html>
