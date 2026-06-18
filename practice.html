@@ -625,6 +625,52 @@ if(isFree){
   }catch(e){}
 })();
 
+// ── 考科 → 法規對應表（NODES.json n72/n74/n83）─────────────────
+const _EXAM_LAWS = {
+  bookkeeper: ['記帳士法','記帳士職業倫理道德規範','中華民國記帳士職業道德規範','記帳士法第三十五條規定之管理辦法','記帳士暨記帳及報稅代理人防制洗錢與打擊資恐辦法','記帳士懲戒委員會與懲戒覆審委員會組織及審議規則','公司法','公司登記辦法','商業登記法','商業登記申請辦法','商業會計法','商業會計處理準則','商業使用電子方式處理會計資料辦法','行政程序法','稅捐稽徵法','稅捐稽徵法施行細則','納稅者權利保護法','納稅者權利保護法施行細則','所得稅法','所得稅法施行細則','所得基本稅額條例','所得基本稅額條例施行細則','各類所得扣繳率標準','營利事業所得稅查核準則','加值型及非加值型營業稅法','加值型及非加值型營業稅法施行細則','兼營營業人營業稅額計算辦法','統一發票使用辦法','統一發票給獎辦法','遺產及贈與稅法','遺產及贈與稅法施行細則','特種貨物及勞務稅條例','特種貨物及勞務稅條例施行細則'],
+  landadmin:  ['民法','信託法','土地法','土地法施行法','平均地權條例','平均地權條例施行細則','土地徵收條例','土地徵收條例施行細則','地政士法','地政士法施行細則','土地登記規則','地籍測量實施規則','土地稅法','土地稅法施行細則','遺產及贈與稅法','遺產及贈與稅法施行細則','契稅條例','房屋稅條例','稅捐稽徵法','稅捐稽徵法施行細則','工程受益費徵收條例','所得稅法','所得稅法施行細則'],
+  realestate: ['民法','土地法','平均地權條例','平均地權條例施行細則','土地徵收條例','非都市土地使用管制規則','區域計畫法','都市計畫法','土地稅法','土地稅法施行細則','契稅條例','房屋稅條例','所得稅法','所得稅法施行細則','不動產經紀業管理條例','不動產經紀業管理條例施行細則','公平交易法','消費者保護法','公寓大廈管理條例'],
+};
+const _EXAM_NAMES = {bookkeeper:'記帳士',landadmin:'地政士',realestate:'不動產經紀人'};
+let _allLoadedPrLaws = [];
+
+function _filterLawsForExam(laws, key) {
+  const set = _EXAM_LAWS[key] ? new Set(_EXAM_LAWS[key]) : null;
+  return set ? laws.filter(l => set.has(l.name)) : laws;
+}
+
+function _repopulatePrSel(laws) {
+  const sel = document.getElementById('lawSelect');
+  // Remove existing law options (keep __ special ones)
+  Array.from(sel.options).forEach(o => { if(!o.value.startsWith('__')&&!o.disabled)sel.removeChild(o); });
+  laws.forEach(l => { const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o); });
+}
+
+function _saveAndApplyPrExam(key) {
+  localStorage.setItem('sofa_exam_key', key);
+  if(uid && key!=='all') fetch(`${API}/api/me/profile`,{method:'PATCH',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({exam_key:key})}).catch(()=>{});
+  const bar=document.getElementById('_exam-picker-pr');
+  if(bar) bar.remove();
+  const filtered = _filterLawsForExam(_allLoadedPrLaws, key);
+  _repopulatePrSel(filtered);
+  const sel = document.getElementById('lawSelect');
+  const firstLaw = filtered[0];
+  if(firstLaw&&sel){ sel.value=firstLaw.name; sel.dispatchEvent(new Event('change')); }
+  _updatePracticeStatusBar(sel&&sel.value||'');
+}
+
+function _showPrExamBanner() {
+  if(document.getElementById('_exam-picker-pr')) return;
+  const bar=document.createElement('div');
+  bar.id='_exam-picker-pr';
+  bar.style.cssText='background:#0B1820;border-bottom:2px solid rgba(231,187,167,.35);padding:11px 32px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:56px;z-index:200;';
+  bar.innerHTML='<span style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:rgba(231,187,167,.9);white-space:nowrap">你要備考哪一科？</span>'
+    +Object.entries(_EXAM_NAMES).map(([k,n])=>`<button onclick="_saveAndApplyPrExam('${k}')" style="font-family:var(--mono);font-size:11px;padding:5px 14px;border:1px solid rgba(231,187,167,.5);border-radius:2px;background:transparent;color:var(--cream);cursor:pointer">${n}</button>`).join('')
+    +'<button onclick="_saveAndApplyPrExam(\'all\')" style="font-family:var(--mono);font-size:11px;padding:5px 14px;border:1px solid rgba(245,240,234,.15);border-radius:2px;background:transparent;color:rgba(245,240,234,.4);cursor:pointer">先看全部</button>';
+  const nav=document.querySelector('.pr-bar')||document.querySelector('.top-bar')||document.body;
+  nav.before ? nav.before(bar) : document.body.prepend(bar);
+}
+
 (async()=>{
   const sel = document.getElementById('lawSelect');
   // Special filters
@@ -636,16 +682,20 @@ if(isFree){
   }
   try {
     const d = await fetch(`${API}/api/laws`).then(r=>r.json());
-    (d.laws||[]).forEach(l=>{ const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o); });
+    _allLoadedPrLaws = d.laws || [];
+    const examKey = localStorage.getItem('sofa_exam_key');
+    if(!examKey) _showPrExamBanner();
+    const lawsToShow = _filterLawsForExam(_allLoadedPrLaws, examKey||'');
+    lawsToShow.forEach(l=>{ const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o); });
   } catch{}
-  // Wave 80 — restore last selected law; default to 記帳士法 for first-time visitors
+  // Wave 80 — restore last selected law; default to first in list
   const _saved = localStorage.getItem('sofa_practice_law');
   if (_saved && sel.querySelector(`option[value="${CSS.escape(_saved)}"]`)) {
     sel.value = _saved;
     sel.dispatchEvent(new Event('change'));
   } else {
-    const _defOpt = sel.querySelector('option[value="記帳士法"]');
-    if (_defOpt) { sel.value = '記帳士法'; sel.dispatchEvent(new Event('change')); }
+    const _defOpt = sel.querySelector('option[value="記帳士法"]') || sel.querySelector('option:not([disabled]):not([value^="__"])');
+    if (_defOpt) { sel.value = _defOpt.value; sel.dispatchEvent(new Event('change')); }
   }
   _updatePracticeStatusBar(sel.value);
 })();
