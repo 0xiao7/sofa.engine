@@ -2080,6 +2080,10 @@ function initThreeScene(canvas) {
   topLight.position.set(0, 15, 0);
   topLight.target.position.set(0, 0, 0);
   _threeScene.add(topLight); _threeScene.add(topLight.target);
+  // v106: subtle warm-sky / cool-floor hemisphere — adds gentle dimensional gradient
+  const hemiLight = new THREE.HemisphereLight(0xFFF0DC, 0xCAD4E2, 0.38);
+  hemiLight.position.set(0, 12, 0);
+  _threeScene.add(hemiLight);
 
   // 室內吊燈：暖琥珀光，只照桌面周圍
   // Pendant lights — 3 rows along corridor for depth perception
