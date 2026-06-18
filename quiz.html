@@ -681,7 +681,8 @@ function _showQzExamBanner() {
   try{
     const d=await fetch(`${API}/api/laws`).then(r=>r.json());
     _allLoadedQzLaws = d.laws || [];
-    const examKey = localStorage.getItem('sofa_exam_key');
+    const examKey = localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || '';
+    if(examKey) localStorage.setItem('sofa_exam_key', examKey);
     if(!examKey) _showQzExamBanner();
     // Wave 109: insert 🎲 全部法規 as first real option (after special __ options)
     const allOpt=document.createElement('option');allOpt.value='__all__';allOpt.textContent='🎲 全部法規';sel.appendChild(allOpt);

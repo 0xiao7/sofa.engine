@@ -683,9 +683,10 @@ function _showPrExamBanner() {
   try {
     const d = await fetch(`${API}/api/laws`).then(r=>r.json());
     _allLoadedPrLaws = d.laws || [];
-    const examKey = localStorage.getItem('sofa_exam_key');
+    const examKey = localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || '';
+    if(examKey) localStorage.setItem('sofa_exam_key', examKey);
     if(!examKey) _showPrExamBanner();
-    const lawsToShow = _filterLawsForExam(_allLoadedPrLaws, examKey||'');
+    const lawsToShow = _filterLawsForExam(_allLoadedPrLaws, examKey);
     lawsToShow.forEach(l=>{ const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o); });
   } catch{}
   // Wave 80 — restore last selected law; default to first in list

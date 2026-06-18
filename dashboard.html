@@ -3163,7 +3163,7 @@ function saveNickname(){
   window.cycleExam = function(){
     if(EXAMS.length<=1) return;
     _idx = (_idx+1) % EXAMS.length;
-    try{ localStorage.setItem(PICK_KEY, EXAMS[_idx].key); }catch(e){}
+    try{ localStorage.setItem(PICK_KEY, EXAMS[_idx].key); localStorage.setItem('sofa_exam_key', EXAMS[_idx].key); }catch(e){}
     renderExam();
   };
 
@@ -3171,7 +3171,7 @@ function saveNickname(){
     var i = EXAMS.findIndex(function(e){ return e.key === key; });
     if(i >= 0 && i !== _idx){
       _idx = i;
-      try{ localStorage.setItem(PICK_KEY, key); }catch(e){}
+      try{ localStorage.setItem(PICK_KEY, key); localStorage.setItem('sofa_exam_key', key); }catch(e){}
       renderExam();
     }
   };
