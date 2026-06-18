@@ -4605,6 +4605,50 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v72: 掛け軸 kakejiku — hanging scroll on back wall behind the tree ──────
+  { const kc=document.createElement('canvas'); kc.width=160; kc.height=320;
+    const kctx=kc.getContext('2d');
+    // Rice-paper cream base with slight texture
+    const kbg=kctx.createRadialGradient(80,160,10,80,160,160);
+    kbg.addColorStop(0,'#F8F2E4'); kbg.addColorStop(1,'#EEE4C8');
+    kctx.fillStyle=kbg; kctx.fillRect(0,0,160,320);
+    // Ink wash mountain silhouette (distant, faint)
+    kctx.fillStyle='rgba(60,40,20,0.10)';
+    [[20,280,60],[55,270,80],[90,265,70],[125,275,55],[145,282,35]].forEach(([mx,my,mh])=>{
+      kctx.beginPath(); kctx.moveTo(mx-mh*0.5,my); kctx.quadraticCurveTo(mx,my-mh,mx+mh*0.5,my); kctx.closePath(); kctx.fill();
+    });
+    // Side border lines
+    kctx.strokeStyle='rgba(80,50,20,0.40)'; kctx.lineWidth=2;
+    kctx.strokeRect(8,8,144,304);
+    kctx.strokeStyle='rgba(80,50,20,0.20)'; kctx.lineWidth=1;
+    kctx.strokeRect(12,12,136,296);
+    // Large kanji 志 (aspiration) centered
+    kctx.font='bold 148px "Noto Serif TC", serif';
+    kctx.fillStyle='rgba(28,16,8,0.82)';
+    kctx.textAlign='center'; kctx.textBaseline='middle';
+    kctx.fillText('志',80,148);
+    // Small subtitle text
+    kctx.font='16px "Noto Serif TC", serif';
+    kctx.fillStyle='rgba(60,40,20,0.55)';
+    kctx.fillText('自強不息',80,270);
+    const scrollTex=new THREE.CanvasTexture(kc);
+    const scrollMat=new THREE.MeshBasicMaterial({map:scrollTex,side:THREE.FrontSide});
+    // Place right of tree (x=4.5) so it's visible beside the cherry blossom canopy
+    const SX=4.5, SZ=-7.82;
+    const scroll=new THREE.Mesh(new THREE.PlaneGeometry(1.0,2.0),scrollMat);
+    scroll.position.set(SX,4.2,SZ); _threeScene.add(scroll);
+    // Top wooden roller
+    const roller=new THREE.Mesh(new THREE.CylinderGeometry(0.04,0.04,1.05,8),new THREE.MeshLambertMaterial({color:0x6A3A12}));
+    roller.rotation.z=Math.PI/2; roller.position.set(SX,5.25,SZ); _threeScene.add(roller);
+    // Bottom wooden roller
+    const rollerB=roller.clone(); rollerB.position.set(SX,3.15,SZ); _threeScene.add(rollerB);
+    // Hanging cords
+    [-0.45,0.45].forEach(cx=>{
+      const cord=new THREE.Mesh(new THREE.CylinderGeometry(0.006,0.006,0.45,4),new THREE.MeshBasicMaterial({color:0x8A6A40}));
+      cord.position.set(SX+cx,5.70,SZ); _threeScene.add(cord);
+    });
+  }
+
   // v71: 紅地毯 — decorative shrine path runner mat ──────────────────────────
   { const rc=document.createElement('canvas'); rc.width=128; rc.height=512;
     const rctx=rc.getContext('2d');
