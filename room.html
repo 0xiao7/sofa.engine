@@ -4661,6 +4661,55 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v82: 板の間 — warm hardwood floor planks in main walkway ──────────────────────
+  { const fc=document.createElement('canvas'); fc.width=256; fc.height=512;
+    const fctx=fc.getContext('2d');
+    // Base warm wood color
+    const fbg=fctx.createLinearGradient(0,0,256,512);
+    fbg.addColorStop(0,'#A87840'); fbg.addColorStop(0.5,'#C09050'); fbg.addColorStop(1,'#A07038');
+    fctx.fillStyle=fbg; fctx.fillRect(0,0,256,512);
+    // Plank horizontal divider lines (planks run left-right = perpendicular to path)
+    const _f82=_rng(82);
+    let py=0;
+    while(py<512){
+      const plankH=38+_f82()*18; // plank height 38–56px
+      // Slight color variation per plank
+      const var1=_f82()*0.12-0.06;
+      fctx.fillStyle=`rgba(${var1>0?'255,230,180':'180,120,60'},${Math.abs(var1)*0.6})`;
+      fctx.fillRect(0,py,256,plankH);
+      // Plank end seam
+      fctx.strokeStyle='rgba(60,30,10,0.30)'; fctx.lineWidth=1.5;
+      fctx.beginPath(); fctx.moveTo(0,py); fctx.lineTo(256,py); fctx.stroke();
+      // Subtle grain lines within plank
+      fctx.strokeStyle='rgba(80,50,20,0.08)'; fctx.lineWidth=0.6;
+      for(let gl=1;gl<5;gl++){
+        const gy=py+gl*(plankH/5)+(_f82()-0.5)*2;
+        fctx.beginPath(); fctx.moveTo(0,gy); fctx.lineTo(256,gy); fctx.stroke();
+      }
+      // Wood knot (1 per ~3 planks)
+      if(_f82()<0.33){
+        const kx=20+_f82()*216, ky=py+plankH*0.4;
+        const kr=_f82()*8+4;
+        fctx.strokeStyle='rgba(60,30,10,0.30)'; fctx.lineWidth=1.2;
+        fctx.beginPath(); fctx.ellipse(kx,ky,kr,kr*0.55,0,0,Math.PI*2); fctx.stroke();
+        fctx.beginPath(); fctx.ellipse(kx,ky,kr*0.5,kr*0.25,0,0,Math.PI*2); fctx.stroke();
+      }
+      py+=plankH;
+    }
+    // Subtle vignette fade at edges (blend with room edges)
+    const edgeFade=fctx.createLinearGradient(0,0,60,0);
+    edgeFade.addColorStop(0,'rgba(0,0,0,0.45)'); edgeFade.addColorStop(1,'rgba(0,0,0,0)');
+    fctx.fillStyle=edgeFade; fctx.fillRect(0,0,60,512);
+    const edgeFadeR=fctx.createLinearGradient(196,0,256,0);
+    edgeFadeR.addColorStop(0,'rgba(0,0,0,0)'); edgeFadeR.addColorStop(1,'rgba(0,0,0,0.45)');
+    fctx.fillStyle=edgeFadeR; fctx.fillRect(196,0,60,512);
+    const floorTex=new THREE.CanvasTexture(fc);
+    const floorMat=new THREE.MeshBasicMaterial({map:floorTex,transparent:true,opacity:0.65,depthWrite:false});
+    const floorPlane=new THREE.Mesh(new THREE.PlaneGeometry(10,18),floorMat);
+    floorPlane.rotation.x=-Math.PI/2; floorPlane.position.set(0,0.001,2.5);
+    _threeScene.add(floorPlane);
+  }
+
   // v81: 天井格子 — dark wood coffered ceiling grid ──────────────────────────────
   { const beamMat=new THREE.MeshLambertMaterial({color:0x2A1208});
     const beamH=0.09, beamThick=0.065, BY=6.97;
