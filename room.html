@@ -2355,6 +2355,30 @@ function initThreeScene(canvas) {
         });
       }
     } else {
+      // v68: Aurora borealis — 3 curtain bands across night sky
+      if(hour>=21||hour<5){
+        const auroras=[
+          {col:'rgba(30,255,170,0.20)',yw:0.14,amp:0.055,phase:0.0,thick:0.06},
+          {col:'rgba(150,60,255,0.16)',yw:0.22,amp:0.065,phase:1.4,thick:0.07},
+          {col:'rgba(20,200,255,0.13)',yw:0.08,amp:0.045,phase:2.7,thick:0.05},
+        ];
+        auroras.forEach(({col,yw,amp,phase,thick})=>{
+          ctx.save(); ctx.globalAlpha=1;
+          // Top edge — sinusoidal wave
+          const topY=(xi)=>H*(yw + amp*Math.sin(xi*0.75+phase));
+          const botY=(xi)=>H*(yw + thick + amp*1.3*Math.sin(xi*0.9+phase+0.6));
+          // Fill with vertical gradient fade
+          const ag=ctx.createLinearGradient(0,H*yw,0,H*(yw+thick+amp));
+          ag.addColorStop(0,col.replace(/[\d.]+\)$/,'0)'));
+          ag.addColorStop(0.4,col);
+          ag.addColorStop(1,col.replace(/[\d.]+\)$/,'0)'));
+          ctx.fillStyle=ag;
+          ctx.beginPath(); ctx.moveTo(0,topY(0));
+          for(let xi=0;xi<=12;xi++) ctx.lineTo(W*(xi/12),topY(xi));
+          for(let xi=12;xi>=0;xi--) ctx.lineTo(W*(xi/12),botY(xi));
+          ctx.closePath(); ctx.fill(); ctx.restore();
+        });
+      }
       // Nighttime
       const mColors=['#1A2E40','#0E1E2E','#081218','#040A0C'];
       const mLayers=[
