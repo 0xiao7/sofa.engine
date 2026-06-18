@@ -1255,10 +1255,10 @@ function _timeOfDayPalette() {
   const hour = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
   if (hour >= 6 && hour < 11) {
     // Morning: warm bright library with soft cherry blossom pink cast
-    return { ambR:1.04, ambG:0.92, ambB:0.92, ambI:1.2, torchMult:0.25, fogDensity:0.002 };
+    return { ambR:1.04, ambG:0.92, ambB:0.92, ambI:2.0, torchMult:0.25, fogDensity:0.002 };
   } else if (hour >= 11 && hour < 17) {
     // Afternoon: bright with gentle spring rose tint
-    return { ambR:1.04, ambG:0.94, ambB:0.95, ambI:1.2, torchMult:0.15, fogDensity:0.001 };
+    return { ambR:1.04, ambG:0.94, ambB:0.95, ambI:2.0, torchMult:0.15, fogDensity:0.001 };
   } else if (hour >= 17 && hour < 21) {
     // Evening: golden hour warmth
     // Golden hour: warm amber tint, torches glow at moderate level, slight fog
@@ -2021,8 +2021,8 @@ function initThreeScene(canvas) {
   // negative space). Gates off the maximalist shrine/magical decoration pile.
   const ABETO_MINIMAL = true;
   // 深色背景：室內暗、窗外亮，對比才有美感
-  _threeScene.background = new THREE.Color(0x0A1628);  // bright sky blue
-  _threeScene.fog = new THREE.Fog(0x0A1628, 12, 35);   // v89: nearer fog for depth
+  _threeScene.background = new THREE.Color(0xD4E8F5);  // bright sky blue
+  _threeScene.fog = new THREE.Fog(0xD4E8F5, 30, 60);   // v89: nearer fog for depth
 
   // 相機：眼睛高度，正面看向全景窗，景深自然出現
   // 眼睛高度站在入口直視前方 — 參考影片的廊道景深感
@@ -2176,10 +2176,10 @@ function initThreeScene(canvas) {
   const floorTex = (() => {
     const c = document.createElement('canvas'); c.width = 512; c.height = 512;
     const ctx = c.getContext('2d');
-    // Warm honey wood plank base
-    ctx.fillStyle = '#C8955A'; ctx.fillRect(0,0,512,512);
+    // v94: pale oak plank base (bright library — lighter floor = bigger space)
+    ctx.fillStyle = '#E8DCC6'; ctx.fillRect(0,0,512,512);
     // Plank color variation (alternating plank strips)
-    const plankColors = ['#C89050','#BE8848','#CC9860','#C08C50','#D0A068'];
+    const plankColors = ['#E6DAC2','#EADFC9','#E1D3B6','#ECE3CE','#E4D6BC'];
     for(let pi=0;pi<16;pi++){
       ctx.fillStyle = plankColors[pi%plankColors.length];
       ctx.fillRect(0, pi*32, 512, 31);
@@ -2238,7 +2238,7 @@ function initThreeScene(canvas) {
   }
 
   // Walls — 奶油米色，明亮圖書館感
-  const wallMat = mToon(0x1A2E42); // v89: dark interior walls (was cream 0xEDE5D5)
+  const wallMat = mToon(0xEEE6D8); // v89: dark interior walls (was cream 0xEDE5D5)
   // 後牆：落地窗，不留實牆
   const sillMat = new THREE.MeshLambertMaterial({ color: 0xDDD5C4 });
   // 地板邊框（窗底）
@@ -2789,7 +2789,7 @@ function initThreeScene(canvas) {
   lintel.position.set(0, 7.90, 19.83); _threeScene.add(lintel);
   const bWallTop = new THREE.Mesh(box(46,3,0.3), wallMat);
   bWallTop.position.set(0, 9.5, -8.1); _threeScene.add(bWallTop);
-  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(46,46), mToon(0x0E1E2E)); // v89: dark ceiling
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(46,46), mToon(0xF2EDE0)); // v89: dark ceiling
   ceil.rotation.x = Math.PI/2; ceil.position.set(0, 9, 0); _threeScene.add(ceil);
   // Ceiling wooden beams — dark walnut coffered grid
   const beamMat = new THREE.MeshLambertMaterial({ color: 0x6B4422 });
