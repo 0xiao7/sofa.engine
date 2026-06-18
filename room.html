@@ -756,14 +756,14 @@ input[type=text], select, .btn-enter {
   }
   /* sidebar: translucent glass panel floating at the right */
   #sidebar{
-    position:fixed;top:64px;right:16px;bottom:16px;
-    width:250px;z-index:25;
-    border:1px solid rgba(91,175,214,.18);border-left:1px solid rgba(91,175,214,.18);
+    position:fixed;top:60px;right:14px;bottom:14px;
+    width:208px;z-index:25;
+    border:1px solid rgba(91,175,214,.14);border-left:1px solid rgba(91,175,214,.14);
     border-radius:16px;
-    background:rgba(9,20,33,.52);
-    -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
-    box-shadow:0 10px 44px rgba(0,0,0,.42);
-    padding:16px 14px;
+    background:rgba(9,20,33,.40);
+    -webkit-backdrop-filter:blur(16px);backdrop-filter:blur(16px);
+    box-shadow:0 10px 44px rgba(0,0,0,.36);
+    padding:14px 12px;
   }
   /* stronger vignette for cinematic immersion */
   #lib-scene-wrap::after{
@@ -1254,10 +1254,10 @@ function _timeOfDayPalette() {
   const hour = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
   if (hour >= 6 && hour < 11) {
     // Morning: warm bright library with soft cherry blossom pink cast
-    return { ambR:1.04, ambG:0.92, ambB:0.92, ambI:2.5, torchMult:0.25, fogDensity:0.002 };
+    return { ambR:1.04, ambG:0.92, ambB:0.92, ambI:1.2, torchMult:0.25, fogDensity:0.002 };
   } else if (hour >= 11 && hour < 17) {
     // Afternoon: bright with gentle spring rose tint
-    return { ambR:1.04, ambG:0.94, ambB:0.95, ambI:2.5, torchMult:0.15, fogDensity:0.001 };
+    return { ambR:1.04, ambG:0.94, ambB:0.95, ambI:1.2, torchMult:0.15, fogDensity:0.001 };
   } else if (hour >= 17 && hour < 21) {
     // Evening: golden hour warmth
     // Golden hour: warm amber tint, torches glow at moderate level, slight fog
@@ -1999,17 +1999,17 @@ function initThreeScene(canvas) {
   // negative space). Gates off the maximalist shrine/magical decoration pile.
   const ABETO_MINIMAL = true;
   // 深色背景：室內暗、窗外亮，對比才有美感
-  _threeScene.background = new THREE.Color(0xC8E0F5);  // bright sky blue
-  _threeScene.fog = new THREE.Fog(0xC8E0F5, 28, 55);   // subtle linear fog
+  _threeScene.background = new THREE.Color(0x0A1628);  // bright sky blue
+  _threeScene.fog = new THREE.Fog(0x0A1628, 28, 55);   // subtle linear fog
 
   // 相機：眼睛高度，正面看向全景窗，景深自然出現
   // 眼睛高度站在入口直視前方 — 參考影片的廊道景深感
   _threeCamera = new THREE.PerspectiveCamera(80, canvas.width / canvas.height, 0.1, 80);
   _threeCamera.position.set(0, 1.9, 11);
-  _threeCamera.lookAt(0, 2.6, -3);
+  _threeCamera.lookAt(0, 2.35, -3);
 
   _threeControls = new THREE.OrbitControls(_threeCamera, canvas);
-  _threeControls.target.set(0, 2.6, -3);
+  _threeControls.target.set(0, 2.35, -3);
   _threeControls.enableDamping = true;
   _threeControls.dampingFactor = _isMobile ? 0.12 : 0.06;
   _threeControls.rotateSpeed = _isMobile ? 0.5 : 0.7;
@@ -3328,7 +3328,7 @@ function initThreeScene(canvas) {
     // Extra upper fill
     [0.5,6.8,0.4,0.60],[-0.5,6.7,-0.3,0.58],[0.2,7.5,-0.4,0.50],[-0.4,7.8,0.3,0.42],
   ].forEach(([dx,y,dz,r],fi) => {
-    const leafGeo = new THREE.IcosahedronGeometry(r,0);
+    const leafGeo = new THREE.IcosahedronGeometry(r,2); // v88: smooth foliage (was blocky detail 0)
     const leaf = new THREE.Mesh(leafGeo, mToon(foliageColors[fi % foliageColors.length]));
     leaf.position.set(TX+dx,y,TZ+dz); _threeScene.add(leaf);
     const lOl = _ol(leafGeo,1.06); lOl.position.copy(leaf.position); _threeScene.add(lOl);
@@ -3349,7 +3349,7 @@ function initThreeScene(canvas) {
       // Upper crown outer hints
       [-1.4, 6.2, -0.8, 0.50],[ 1.3, 6.5,  0.6, 0.46],[-0.5, 6.8,  1.4, 0.42],
     ].forEach(([dx,y,dz,r],bi) => {
-      const bGeo = new THREE.IcosahedronGeometry(r, 0);
+      const bGeo = new THREE.IcosahedronGeometry(r, 2); // v88: smooth blossom puffs (was blocky)
       const bMesh = new THREE.Mesh(bGeo, mToon(blossomColors[bi % blossomColors.length]));
       bMesh.position.set(TX+dx, y, TZ+dz); _threeScene.add(bMesh);
       const bOl = _ol(bGeo, 1.07, 0xB89AA4); // v85: muted mauve outline (was crimson)
@@ -3864,6 +3864,7 @@ function initThreeScene(canvas) {
     });
   }
 
+  if(!ABETO_MINIMAL){ // v88: gate colorful bunting (too busy for the clean look)
   // Colorful pennant bunting — triangle flags across room, visible from standard camera
   { const flagColors = [0xE84040, 0xF0A020, 0x40C840, 0x3088E0, 0xC030C0, 0xFFD700, 0xFF6080, 0x20D0C0];
     const flagGeo = (() => {
@@ -3897,6 +3898,7 @@ function initThreeScene(canvas) {
       }
     });
   }
+  } // end !ABETO_MINIMAL — colorful pennant bunting
   // Bookshelf section label signs — subject category plaques at the front of each shelf
   { const _shelfLabels = ['民法','稅法','商法','土地法','行政法','記帳士'];
     const _rShelfLabels= ['地政士','財稅法','法學緒論','不動產','考古題','憲法'];
@@ -5526,7 +5528,7 @@ function initThreeScene(canvas) {
   // Decorative potted plants — entrance pair + mid-room pair flanking tree
   { const potClayMat = new THREE.MeshLambertMaterial({ color: 0xA05030 });
     const soilMat = new THREE.MeshLambertMaterial({ color: 0x3A2010 });
-    const leafColors = [0x2A8A30, 0x3A9A40, 0x1E7228, 0x448A38, 0x38A858];
+    const leafColors = [0x6E8A5E, 0x7A9568, 0x647E56, 0x84A072, 0x88A876]; // v88: muted sage (match tree)
     const _makePlant = (px, pz, sc=1.0) => {
       const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.30*sc,0.23*sc,0.58*sc,10), potClayMat);
       pot.position.set(px, 0.29*sc, pz); _threeScene.add(pot);
@@ -5537,8 +5539,8 @@ function initThreeScene(canvas) {
       pTrunk.position.set(px, 0.58*sc + 0.775*sc, pz); _threeScene.add(pTrunk);
       [[0,0.58*sc+1.60*sc,0,0.60*sc],[0.24*sc,0.58*sc+1.38*sc,-0.14*sc,0.44*sc],
        [-0.22*sc,0.58*sc+1.42*sc,0.16*sc,0.40*sc]].forEach(([dx,dy,dz,r],li) => {
-        const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(r,0),
-          new THREE.MeshLambertMaterial({ color: leafColors[li%leafColors.length], flatShading:true }));
+        const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(r,2), // v88: smooth topiary
+          new THREE.MeshLambertMaterial({ color: leafColors[li%leafColors.length] }));
         leaf.position.set(px+dx, dy, pz+dz); _threeScene.add(leaf);
       });
     };
@@ -8442,11 +8444,11 @@ function startThreeAnimation(canvas) {
       const t = Math.min(1, (performance.now() - _flyInStart) / 2000);
       const ease = t < 0.5 ? 2*t*t : -1+(4-2*t)*t;
       _threeCamera.position.x = 0;
-      _threeCamera.position.y = 9 - ease * (9 - 3.2);
-      _threeCamera.position.z = 16 - ease * (16 - 10);
-      _threeCamera.fov = 75 - ease * (75 - 65);
+      _threeCamera.position.y = 9 - ease * (9 - 2.9);   // v88: lower settle (less ceiling)
+      _threeCamera.position.z = 16 - ease * (16 - 11);  // v88: pull back slightly
+      _threeCamera.fov = 75 - ease * (75 - 55);          // v88: tighter FOV for full-screen frame
       _threeCamera.updateProjectionMatrix();
-      _threeCamera.lookAt(0, 2.2, -4);
+      _threeCamera.lookAt(0, 2.4, -4);
       if(t >= 1) { _flyInDone = true; if(_threeControls) _threeControls.enabled = true; _wasDrag = false; }
     } else {
       if(_threeControls) _threeControls.update();
