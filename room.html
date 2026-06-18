@@ -5616,77 +5616,6 @@ function initThreeScene(canvas) {
   }
   } // end !ABETO_MINIMAL — shrine/magical decoration block
 
-  // Decorative potted plants — entrance pair + mid-room pair flanking tree
-  { const potClayMat = new THREE.MeshLambertMaterial({ color: 0xA05030 });
-    const soilMat = new THREE.MeshLambertMaterial({ color: 0x3A2010 });
-    const leafColors = [0x6E8A5E, 0x7A9568, 0x647E56, 0x84A072, 0x88A876]; // v88: muted sage (match tree)
-    const _makePlant = (px, pz, sc=1.0) => {
-      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.30*sc,0.23*sc,0.58*sc,10), potClayMat);
-      pot.position.set(px, 0.29*sc, pz); _threeScene.add(pot);
-      const soil = new THREE.Mesh(new THREE.CircleGeometry(0.29*sc,10), soilMat);
-      soil.rotation.x = -Math.PI/2; soil.position.set(px, 0.58*sc, pz); _threeScene.add(soil);
-      const pTrunk = new THREE.Mesh(new THREE.CylinderGeometry(0.07*sc,0.10*sc,1.55*sc,8),
-        new THREE.MeshLambertMaterial({ color: 0x6A4018 }));
-      pTrunk.position.set(px, 0.58*sc + 0.775*sc, pz); _threeScene.add(pTrunk);
-      [[0,0.58*sc+1.60*sc,0,0.60*sc],[0.24*sc,0.58*sc+1.38*sc,-0.14*sc,0.44*sc],
-       [-0.22*sc,0.58*sc+1.42*sc,0.16*sc,0.40*sc]].forEach(([dx,dy,dz,r],li) => {
-        const leaf = new THREE.Mesh(new THREE.IcosahedronGeometry(r,2), // v88: smooth topiary
-          new THREE.MeshLambertMaterial({ color: leafColors[li%leafColors.length] }));
-        leaf.position.set(px+dx, dy, pz+dz); _threeScene.add(leaf);
-      });
-    };
-    // Entrance pair (slightly larger)
-    _makePlant(-2.5, 6.5, 1.1);
-    _makePlant( 2.5, 6.5, 1.1);
-    // Mid-room pair flanking tree rug edge
-    _makePlant(-4.0, 4.2, 0.85);
-    _makePlant( 4.0, 4.2, 0.85);
-    // Warm glow pool at each plant base — small additive circle on floor
-    { const pgC = document.createElement('canvas'); pgC.width = pgC.height = 64;
-      const pgCtx = pgC.getContext('2d');
-      const pgG = pgCtx.createRadialGradient(32,32,0,32,32,30);
-      pgG.addColorStop(0,'rgba(255,220,120,0.7)'); pgG.addColorStop(0.5,'rgba(255,190,60,0.3)');
-      pgG.addColorStop(1,'rgba(255,160,20,0)');
-      pgCtx.fillStyle=pgG; pgCtx.fillRect(0,0,64,64);
-      const pgTex = new THREE.CanvasTexture(pgC);
-      [[-2.5,6.5,1.0],[2.5,6.5,1.0],[-4.0,4.2,0.8],[4.0,4.2,0.8]].forEach(([px,pz,sc])=>{
-        const pg = new THREE.Mesh(
-          new THREE.PlaneGeometry(2.0*sc, 2.0*sc),
-          new THREE.MeshBasicMaterial({ map:pgTex, transparent:true, depthWrite:false,
-            blending:THREE.AdditiveBlending, opacity:0.45 })
-        );
-        pg.rotation.x = -Math.PI/2; pg.position.set(px, 0.012, pz);
-        _threeScene.add(pg);
-        _threeScene.userData._plantGlows = (_threeScene.userData._plantGlows||[]);
-        _threeScene.userData._plantGlows.push(pg);
-      });
-    }
-  }
-
-  // Flowering accents on potted trees — small pink clusters matching central sakura
-  { const fColors=[0xFFB8CC,0xFFCCD8,0xFF9AB8,0xFFD5E5];
-    // Entrance pair (scale 1.1 → trunk top at y≈1.55+1.08=2.63, foliage y≈2.0-3.2)
-    [[-2.5,6.5],[2.5,6.5]].forEach(([px,pz])=>{
-      [[0.42,2.55,-0.15,0.28],[-.38,2.65,0.22,0.25],[0.15,2.80,0.38,0.22],
-       [-.28,2.45,-.32,0.24],[0.35,2.75,-.28,0.20]].forEach(([dx,dy,dz,r],bi)=>{
-        const bGeo=new THREE.IcosahedronGeometry(r,0);
-        const b=new THREE.Mesh(bGeo,new THREE.MeshToonMaterial({color:fColors[bi%fColors.length]}));
-        b.position.set(px+dx,dy,pz+dz); _threeScene.add(b);
-        const bOl=_ol(bGeo,1.08,0x8B1A3A); bOl.position.copy(b.position); _threeScene.add(bOl);
-      });
-    });
-    // Mid-room pair (scale 0.85 → slightly shorter)
-    [[-4.0,4.2],[4.0,4.2]].forEach(([px,pz])=>{
-      [[0.32,2.05,-0.12,0.22],[-.30,2.10,0.18,0.20],[0.12,2.22,0.28,0.18],
-       [-.20,1.98,-.24,0.19]].forEach(([dx,dy,dz,r],bi)=>{
-        const bGeo=new THREE.IcosahedronGeometry(r,0);
-        const b=new THREE.Mesh(bGeo,new THREE.MeshToonMaterial({color:fColors[bi%fColors.length]}));
-        b.position.set(px+dx,dy,pz+dz); _threeScene.add(b);
-        const bOl=_ol(bGeo,1.08,0x8B1A3A); bOl.position.copy(b.position); _threeScene.add(bOl);
-      });
-    });
-  }
-
   // Library leaning ladder against left bookshelf
   { const ladderMat = new THREE.MeshLambertMaterial({ color: 0x8C5C28 });
     const railLen = 3.8, tiltZ = Math.PI * 0.11; // lean ~20° from vertical
@@ -6048,22 +5977,6 @@ function initThreeScene(canvas) {
   _buildWindow();
   // Wave148: 入口歡迎地墊
   _buildWelcomeMat();
-
-  // 圓球型盆栽（topiary）— 參考影片圖書館的標誌性裝飾
-  {
-    const potMat = new THREE.MeshLambertMaterial({ color: 0xA06030 });
-    const ballMat = [
-      new THREE.MeshLambertMaterial({ color: 0x3A8A30 }),
-      new THREE.MeshLambertMaterial({ color: 0x2E7028 }),
-      new THREE.MeshLambertMaterial({ color: 0x459938 }),
-    ];
-    [[-12.0,0,6.5],[-12.0,0,-4.5],[12.0,0,6.5],[12.0,0,-4.5]].forEach(([bx,by,bz],i) => {
-      const pot = new THREE.Mesh(new THREE.CylinderGeometry(0.28,0.22,0.45,12), potMat);
-      pot.position.set(bx, 0.22, bz); _threeScene.add(pot);
-      const ball = new THREE.Mesh(new THREE.SphereGeometry(0.52,12,12), ballMat[i%3]);
-      ball.position.set(bx, 0.95, bz); _threeScene.add(ball);
-    });
-  }
 
   // ── 入口迎賓台 (reception desk) ─────────────────────────────────────────
   if(false){ // v102 刀一: reception desk removed — keep the entrance/corridor open
@@ -6771,10 +6684,10 @@ function _updateThreeAvatars(users) {
       thighs.position.set(avx, 0.38, avz);
       _threeScene.add(thighs); _userAvatarLabels.push(thighs);
 
-      // Torso / shirt (subject color, body-bob anchor)
-      const torsoGeo = new THREE.CylinderGeometry(0.15,0.17,0.30,12);
+      // Torso / shirt (subject color, body-bob anchor) — v103: taller for better proportion
+      const torsoGeo = new THREE.CylinderGeometry(0.165,0.19,0.42,12);
       body = new THREE.Mesh(torsoGeo, _T(color));
-      body.position.set(avx, 0.68, avz);
+      body.position.set(avx, 0.70, avz);
       body.userData.userIndex = i; body.userData.baseScaleY = 1;
       _threeScene.add(body); _userAvatarMeshes.push(body);
 
@@ -6835,9 +6748,10 @@ function _updateThreeAvatars(users) {
 
       // v101: head as ONE group (skin sphere + full hair shell + face + halo) so
       // bob/rotation moves everything together — fixes the head/face detaching.
-      const headBaseY = 1.16;
+      const headBaseY = 1.14;
       const headGroup = new THREE.Group();
       headGroup.position.set(avx, headBaseY, avz);
+      headGroup.scale.setScalar(0.85); // v103: smaller head — less bobblehead
       // skin sphere (smaller, better proportion)
       const headMesh = new THREE.Mesh(new THREE.SphereGeometry(0.30,16,14), _T(skinHex));
       headMesh.userData.userIndex = i;
