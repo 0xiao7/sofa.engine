@@ -2427,6 +2427,43 @@ function initThreeScene(canvas) {
   rope.position.set(-0.5, 8.15, -7.78);
   _threeScene.add(rope);
 
+  // v66: Ceiling garland string lights — 3 warm lantern rows across the room ──
+  { const garlCols=[0xFFE8B0,0xFFBBCC,0xCCDDFF,0xFFCCDD,0xDDFFCC,0xFFE0A0,0xFFCCFF,0xCCEEFF];
+    const _g66=_rng(66);
+    // 3 strings at different z depths, all at y=7.0
+    [[-2.5,16],[ 1.2,16],[ 4.8,14]].forEach(([gz,nBulbs],si)=>{
+      const strX0=-10.5, strX1=10.5;
+      const strLen=strX1-strX0;
+      // String rope
+      const strGeo=new THREE.CylinderGeometry(0.010,0.010,strLen,4);
+      strGeo.applyMatrix4(new THREE.Matrix4().makeRotationZ(Math.PI/2));
+      const strMesh=new THREE.Mesh(strGeo,new THREE.MeshBasicMaterial({color:0x888060,transparent:true,opacity:0.55}));
+      strMesh.position.set((strX0+strX1)/2,7.02,gz); _threeScene.add(strMesh);
+      // Bulbs along the string
+      for(let bi=0;bi<nBulbs;bi++){
+        const bx=strX0+(bi/(nBulbs-1))*strLen;
+        const col=garlCols[(si*5+bi)%garlCols.length];
+        // Small cord drop
+        const cord=new THREE.Mesh(new THREE.CylinderGeometry(0.005,0.005,0.12,4),new THREE.MeshBasicMaterial({color:0x888060}));
+        cord.position.set(bx,6.97,gz); _threeScene.add(cord);
+        // Lantern body — squat cylinder
+        const body=new THREE.Mesh(new THREE.CylinderGeometry(0.068,0.068,0.11,8),new THREE.MeshBasicMaterial({color:col,transparent:true,opacity:0.88}));
+        body.position.set(bx,6.88,gz); _threeScene.add(body);
+        // Caps top+bottom
+        [6.94,6.82].forEach(cy=>{
+          const cap=new THREE.Mesh(new THREE.CylinderGeometry(0.042,0.042,0.022,8),new THREE.MeshBasicMaterial({color:0xCCB080}));
+          cap.position.set(bx,cy,gz); _threeScene.add(cap);
+        });
+        // Warm glow light (every 3rd bulb)
+        if(bi%3===0){
+          const gl=new THREE.PointLight(col,0.14,2.8);
+          gl.position.set(bx,6.85,gz); _threeScene.add(gl);
+          _permLanternLights.push(gl);
+        }
+      }
+    });
+  }
+
   // Sunlight floor wash — warm additive glow pooling in front of back windows
   { const sfC = document.createElement('canvas'); sfC.width = sfC.height = 256;
     const sfCtx = sfC.getContext('2d');
