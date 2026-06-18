@@ -881,6 +881,7 @@ input[type=text], select, .btn-enter {
         <div id="tod-label" style="position:absolute;top:8px;right:50px;z-index:15;font-size:9px;color:rgba(91,175,214,0.5);font-family:monospace;letter-spacing:.08em;pointer-events:none;"></div>
         <div id="jieqi-label" style="position:absolute;top:22px;right:50px;z-index:15;font-size:9px;color:rgba(200,220,255,0.45);font-family:'Noto Serif TC',serif;letter-spacing:0.12em;pointer-events:none;display:none;"></div>
         <canvas id="room-canvas"></canvas>
+        <div id="room-lightning" style="position:absolute;inset:0;background:#e8f4ff;opacity:0;pointer-events:none;z-index:12;transition:opacity 0.08s ease-out;border-radius:12px;"></div>
         <div id="dpad">
           <button class="dp" onclick="(()=>{const nx=rpgPlayer.tx,ny=rpgPlayer.ty-1;if(!isBlocked(nx,ny)){rpgPlayer.ty=ny;centerCam(document.getElementById('room-canvas'),nx,ny);}})()">▲</button>
           <div style="display:flex;gap:4px;">
@@ -1272,6 +1273,14 @@ function _timeOfDayPalette() {
 function _isRaining(){ const c=_weatherCode; return (c>=51&&c<=67)||(c>=80&&c<=82)||c>=95; }
 function _isThunderstorm(){ return _weatherCode>=95; }
 function _isFoggy(){ return _weatherCode>=45&&_weatherCode<=48; }
+// Wave158: rain intensity multiplier (affects particle speed + opacity)
+function _rainIntensity(){
+  const c=_weatherCode;
+  if(c>=95) return 2.2;                       // thunderstorm
+  if((c>=80&&c<=82)||(c>=65&&c<=67)) return 1.6; // heavy rain / showers
+  if(c>=61&&c<=64) return 1.1;                // moderate rain
+  return 0.75;                                // drizzle
+}
 function _weatherIcon(){
   if(_isThunderstorm()) return '⛈';
   const c=_weatherCode;
@@ -1291,6 +1300,12 @@ async function fetchTaipeiWeather(){
       _weatherTemp=Math.round(d.current?.temperature_2m??25);
       // Apply immediately
       _updateRainGlass();
+      // Wave158: auto-sync rain/bird sound with live weather (only when user hasn't saved explicit prefs)
+      if(typeof _audioPrefs!=='undefined' && !localStorage.getItem('sofa_audio_prefs')){
+        if(_isRaining()){ _audioPrefs.rain=true; _audioPrefs.birds=false; _audioPrefs.crickets=false; }
+        else { _audioPrefs.rain=false; _audioPrefs.birds=true; _audioPrefs.crickets=true; }
+        if(typeof _renderAudioPanel==='function') _renderAudioPanel();
+      }
       if(_threeScene?.fog){
         if(_isFoggy()) _threeScene.fog.density=0.015;
         else if(_isRaining()) _threeScene.fog.density=0.007;
@@ -4098,21 +4113,28 @@ function initThreeScene(canvas) {
       dpAttr.array[i*3+2] = _dPos0[i*3+2] + Math.cos(_dustT*0.35+i*0.6)*0.2;
     }
     dpAttr.needsUpdate=true;
-    // Rain particles (weather OR night)
+    // Rain particles (weather OR night) — Wave158: intensity-aware
     const rs = _threeScene.userData._rainSystem;
     if(rs){
       const showRain = _isRaining() || _timeOfDayPalette().fogDensity > 0.011;
       rs.visible = showRain;
       if(showRain){
+        const _ri = _isRaining() ? _rainIntensity() : 0.5;
+        rs.material.opacity = Math.min(0.55, 0.28 * _ri);
         const rp = _threeScene.userData._rainPos;
         const rv = _threeScene.userData._rainVy;
         const rc = _threeScene.userData.RAIN_COUNT;
         for(let ri=0; ri<rc; ri++){
-          rp[ri*3+1] -= rv[ri];
+          rp[ri*3+1] -= rv[ri] * _ri;
           if(rp[ri*3+1] < 0) rp[ri*3+1] = 7.5;
         }
         rs.geometry.attributes.position.needsUpdate = true;
       }
+    }
+    // Wave158: lightning flash during thunderstorm
+    if(_isThunderstorm() && Math.random() < 0.0008){
+      const lf = document.getElementById('room-lightning');
+      if(lf){ lf.style.opacity='0.7'; setTimeout(()=>{ lf.style.opacity='0'; },120); }
     }
   };
 
