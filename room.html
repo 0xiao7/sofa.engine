@@ -2638,6 +2638,31 @@ function initThreeScene(canvas) {
   }
   } // end !ABETO_MINIMAL — wisteria curtain + ceiling garlands
 
+  // v104: corridor pendant lamps — receding rows of warm hanging lights down both
+  // bookshelf corridors; leading lines that strengthen depth + add cozy warmth.
+  { const cordMat = new THREE.MeshLambertMaterial({ color: 0x3A2A18 });
+    const shadeMat = new THREE.MeshLambertMaterial({ color: 0x2A2018 });
+    const bulbMat  = new THREE.MeshBasicMaterial({ color: 0xFFE6B0 });
+    const CEIL_Y = 9.0;
+    [-14.5, 14.5].forEach(px => {
+      for(let z = -7; z <= 14; z += 3.5){
+        // cord from ceiling
+        const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.012,0.012,1.5,5), cordMat);
+        cord.position.set(px, CEIL_Y - 0.75, z); _threeScene.add(cord);
+        // conical shade
+        const shade = new THREE.Mesh(new THREE.ConeGeometry(0.34,0.32,14, 1, true), shadeMat);
+        shade.position.set(px, CEIL_Y - 1.55, z); _threeScene.add(shade);
+        // glowing bulb
+        const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.10,10,8), bulbMat);
+        bulb.position.set(px, CEIL_Y - 1.62, z); _threeScene.add(bulb);
+        // warm light pool
+        const pl = new THREE.PointLight(0xFFD890, 0.32, 6.0);
+        pl.position.set(px, CEIL_Y - 1.9, z); _threeScene.add(pl);
+        _permLanternLights.push(pl);
+      }
+    });
+  }
+
   // Sunlight floor wash — warm additive glow pooling in front of back windows
   { const sfC = document.createElement('canvas'); sfC.width = sfC.height = 256;
     const sfCtx = sfC.getContext('2d');
