@@ -4605,6 +4605,24 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v73: 香煙裊裊 — incense smoke rising from offering box ────────────────────
+  { const smokeMat=new THREE.MeshBasicMaterial({color:0xF0EEDD,transparent:true,opacity:0,depthWrite:false});
+    const smokeGeo=new THREE.SphereGeometry(0.022,5,4);
+    const _s73rng=_rng(73);
+    for(let si=0;si<22;si++){
+      const sm=new THREE.Mesh(smokeGeo,smokeMat.clone());
+      const sy=0.90+_s73rng()*1.80; // staggered start heights
+      sm.position.set((_s73rng()-0.5)*0.06, sy, 7.2+(_s73rng()-0.5)*0.05);
+      sm.userData.vy=0.0022+_s73rng()*0.0020;
+      sm.userData.vx=(_s73rng()-0.5)*0.0006;
+      sm.userData.baseY=0.90;
+      sm.userData.phase=_s73rng()*Math.PI*2;
+      sm.userData.isShrineSmoke=true;
+      _threeScene.add(sm);
+      _dustMotes.push(sm); // reuse _dustMotes render loop but with custom logic below
+    }
+  }
+
   // v72: 掛け軸 kakejiku — hanging scroll on back wall behind the tree ──────
   { const kc=document.createElement('canvas'); kc.width=160; kc.height=320;
     const kctx=kc.getContext('2d');
@@ -8197,6 +8215,19 @@ function startThreeAnimation(canvas) {
       if(sk.mesh.position.y > 6.2){ sk.mesh.position.set(sk.bx,sk.by,sk.bz); }
     });
     _dustMotes.forEach(dm => {
+      if(dm.userData.isShrineSmoke){
+        // Shrine incense smoke — rises upward, gentle side sway, fades out
+        dm.position.x += dm.userData.vx + 0.0004*Math.sin(_threeTime*0.6+dm.userData.phase);
+        dm.position.y += dm.userData.vy;
+        const t=(dm.position.y - dm.userData.baseY)/2.0; // 0→1 as it rises 2m
+        dm.material.opacity = Math.max(0, 0.32*(1-t));
+        dm.scale.setScalar(1+t*1.8); // puff out as it rises
+        if(dm.position.y > dm.userData.baseY+2.2){
+          dm.position.set((_threeTime*0-0), dm.userData.baseY, 7.2);
+          dm.position.x=(_threeTime*0.1%1-0.5)*0.06;
+        }
+        return;
+      }
       dm.position.x += dm.userData.vx + 0.0012*Math.sin(_threeTime*0.3 + dm.userData.phase);
       dm.position.y += dm.userData.vy + 0.0005*Math.cos(_threeTime*0.4 + dm.userData.phase);
       dm.position.z += dm.userData.vz;
