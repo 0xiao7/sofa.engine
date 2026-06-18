@@ -2910,28 +2910,28 @@ function initThreeScene(canvas) {
     // 5 shelf boards
     [0.8,1.9,3.0,4.1,5.2].forEach(ry=>{
       const pl=new THREE.Mesh(box(0.4,0.07,2.1),shelfWoodMat);
-      pl.position.set(-11.25,ry,z); _threeScene.add(pl);
+      pl.position.set(-20.30,ry,z); _threeScene.add(pl);
     });
     // 5 rows of books
     [0.35,1.35,2.45,3.55,4.65].forEach(ry=>{
       for(let b=0;b<8;b++){
         const bk=new THREE.Mesh(box(0.07,0.62+_shelfSeed()*0.28,0.21),bookMats[(si*8+b)%bookMats.length]);
-        bk.position.set(-11.22,ry,z-0.88+b*0.26); _threeScene.add(bk);
+        bk.position.set(-20.27,ry,z-0.88+b*0.26); _threeScene.add(bk);
       }
     });
     // Top decoration
     const dc = _topDeco[si];
     if(dc==='globe'){
       const g=new THREE.Mesh(new THREE.SphereGeometry(0.16,10,8),new THREE.MeshLambertMaterial({color:0x5A9CC0}));
-      g.position.set(-11.25,shH+0.18,z); _threeScene.add(g);
+      g.position.set(-20.30,shH+0.18,z); _threeScene.add(g);
     } else if(dc==='vase'){
       const v=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.10,0.30,8),new THREE.MeshLambertMaterial({color:0xC47A3A}));
-      v.position.set(-11.25,shH+0.16,z+0.2); _threeScene.add(v);
+      v.position.set(-20.30,shH+0.16,z+0.2); _threeScene.add(v);
     } else if(dc==='plant'){
       const pot=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.07,0.15,8),new THREE.MeshLambertMaterial({color:0xA05A30}));
-      pot.position.set(-11.25,shH+0.08,z-0.2); _threeScene.add(pot);
+      pot.position.set(-20.30,shH+0.08,z-0.2); _threeScene.add(pot);
       const leaf=new THREE.Mesh(new THREE.SphereGeometry(0.15,8,6),new THREE.MeshLambertMaterial({color:0x3A8A30,flatShading:true}));
-      leaf.position.set(-11.25,shH+0.30,z-0.2); _threeScene.add(leaf);
+      leaf.position.set(-20.30,shH+0.30,z-0.2); _threeScene.add(leaf);
     }
 
     // 右書架
@@ -2939,26 +2939,26 @@ function initThreeScene(canvas) {
     shR.position.set(20.5, shY, z); _threeScene.add(shR);
     [0.8,1.9,3.0,4.1,5.2].forEach(ry=>{
       const pl=new THREE.Mesh(box(0.4,0.07,2.1),shelfWoodMat);
-      pl.position.set(11.25,ry,z); _threeScene.add(pl);
+      pl.position.set(20.30,ry,z); _threeScene.add(pl);
     });
     [0.35,1.35,2.45,3.55,4.65].forEach(ry=>{
       for(let b=0;b<8;b++){
         const bk=new THREE.Mesh(box(0.07,0.62+_shelfSeed()*0.28,0.21),bookMats[(si*8+b+5)%bookMats.length]);
-        bk.position.set(11.22,ry,z-0.88+b*0.26); _threeScene.add(bk);
+        bk.position.set(20.27,ry,z-0.88+b*0.26); _threeScene.add(bk);
       }
     });
     // Mirror top decoration on right side
     if(dc==='globe'){
       const g=new THREE.Mesh(new THREE.SphereGeometry(0.16,10,8),new THREE.MeshLambertMaterial({color:0x8AC060}));
-      g.position.set(11.25,shH+0.18,z); _threeScene.add(g);
+      g.position.set(20.30,shH+0.18,z); _threeScene.add(g);
     } else if(dc==='vase'){
       const v=new THREE.Mesh(new THREE.CylinderGeometry(0.06,0.10,0.30,8),new THREE.MeshLambertMaterial({color:0x6A3AA0}));
-      v.position.set(11.25,shH+0.16,z+0.2); _threeScene.add(v);
+      v.position.set(20.30,shH+0.16,z+0.2); _threeScene.add(v);
     } else if(dc==='plant'){
       const pot=new THREE.Mesh(new THREE.CylinderGeometry(0.09,0.07,0.15,8),new THREE.MeshLambertMaterial({color:0xA05A30}));
-      pot.position.set(11.25,shH+0.08,z-0.2); _threeScene.add(pot);
+      pot.position.set(20.30,shH+0.08,z-0.2); _threeScene.add(pot);
       const leaf=new THREE.Mesh(new THREE.SphereGeometry(0.15,8,6),new THREE.MeshLambertMaterial({color:0x3A8A30,flatShading:true}));
-      leaf.position.set(11.25,shH+0.30,z-0.2); _threeScene.add(leaf);
+      leaf.position.set(20.30,shH+0.30,z-0.2); _threeScene.add(leaf);
     }
   });
 
@@ -4067,13 +4067,13 @@ function initThreeScene(canvas) {
         new THREE.PlaneGeometry(0.60, 0.15),
         new THREE.MeshBasicMaterial({ map: makeLabelTex(_shelfLabels[si] || '法律'), transparent:true, side:THREE.DoubleSide })
       );
-      lSign.position.set(-10.98, 7.18, z+1.05); _threeScene.add(lSign);
+      lSign.position.set(-20.05, 7.18, z+1.05); _threeScene.add(lSign);
       // Right shelf sign
       const rSign = new THREE.Mesh(
         new THREE.PlaneGeometry(0.60, 0.15),
         new THREE.MeshBasicMaterial({ map: makeLabelTex(_rShelfLabels[si] || '考試'), transparent:true, side:THREE.DoubleSide })
       );
-      rSign.position.set(10.98, 7.18, z+1.05); _threeScene.add(rSign);
+      rSign.position.set(20.05, 7.18, z+1.05); _threeScene.add(rSign);
     });
   }
 
