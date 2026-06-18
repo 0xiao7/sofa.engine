@@ -4661,6 +4661,21 @@ function initThreeScene(canvas) {
     }
   }
 
+  // v81: 天井格子 — dark wood coffered ceiling grid ──────────────────────────────
+  { const beamMat=new THREE.MeshLambertMaterial({color:0x2A1208});
+    const beamH=0.09, beamThick=0.065, BY=6.97;
+    // Z-axis beams (run front-to-back, spaced across x)
+    [-8,-5,-2, 0, 2, 5, 8].forEach(bx=>{
+      const bm=new THREE.Mesh(new THREE.BoxGeometry(beamThick,beamH,20),beamMat);
+      bm.position.set(bx,BY,0); _threeScene.add(bm);
+    });
+    // X-axis beams (run left-to-right, spaced along z)
+    [-6,-3, 0, 3, 6].forEach(bz=>{
+      const bm=new THREE.Mesh(new THREE.BoxGeometry(22,beamH,beamThick),beamMat);
+      bm.position.set(0,BY,bz); _threeScene.add(bm);
+    });
+  }
+
   // v80: 暖簾 — indigo split noren curtain framing the entrance ───────────────────
   { const _makeNorenPanel=(kanji)=>{
       const nc=document.createElement('canvas'); nc.width=128; nc.height=320;
