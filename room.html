@@ -8930,11 +8930,17 @@ function startThreeAnimation(canvas) {
     });
     // Avatar head idle look-around
     _avatarHeads.forEach((h, i) => {
-      // Gentle look-around yaw (smaller so head accessories stay roughly aligned)
-      h.mesh.rotation.y = Math.sin(_threeTime * 0.8 + h.phase) * 0.18;
-      // Very slight nod
-      h.mesh.rotation.x = Math.sin(_threeTime * 1.2 + h.phase * 0.7) * 0.07;
-      // Bob around the head's true base Y (v101: was hard-coded 1.45 → detached the head)
+      // v121: head faces the camera so the 2D face is always front-on & visible
+      // (fixes "blank head from the side" when orbiting). Soft follow + idle sway.
+      if (h.baseX != null && _threeCamera) {
+        const targetYaw = Math.atan2(_threeCamera.position.x - h.baseX,
+                                     _threeCamera.position.z - h.baseZ);
+        const sway = Math.sin(_threeTime * 0.8 + h.phase) * 0.06; // tiny life
+        h.mesh.rotation.y = targetYaw + sway;
+      } else {
+        h.mesh.rotation.y = Math.sin(_threeTime * 0.8 + h.phase) * 0.18;
+      }
+      h.mesh.rotation.x = Math.sin(_threeTime * 1.2 + h.phase * 0.7) * 0.05; // gentle nod
       const _by = (h.baseY != null) ? h.baseY : 1.45;
       h.mesh.position.y = _by + 0.035 * Math.sin(_threeTime * 1.5 + i * 0.8);
     });
