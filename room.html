@@ -1295,6 +1295,13 @@ async function fetchTaipeiWeather(){
         if(_isFoggy()) _threeScene.fog.density=0.015;
         else if(_isRaining()) _threeScene.fog.density=0.007;
       }
+      // v91: rebuild window panorama so the sky matches live Taipei weather
+      if(window._panoramaMesh && window._makePanorama){
+        const _oldMap = window._panoramaMesh.material.map;
+        window._panoramaMesh.material.map = window._makePanorama();
+        window._panoramaMesh.material.needsUpdate = true;
+        if(_oldMap && _oldMap.dispose) _oldMap.dispose();
+      }
       const wb=document.getElementById('weather-badge');
       if(wb) wb.textContent=`${_weatherIcon()} ${_weatherTemp}°`;
     }
@@ -2223,7 +2230,8 @@ function initThreeScene(canvas) {
   const windowSill = new THREE.Mesh(box(30.2,0.12,0.30), sillMat);
   windowSill.position.set(0, 0.06, -7.8); _threeScene.add(windowSill);
   // 全景玻璃（Canvas 畫天空 + 山脈，時段變化）
-  const _panoramaTex = (() => {
+  // v91: rebuildable so it can reflect live Taipei weather (see _weatherCode)
+  window._makePanorama = function() {
     const W = 2048, H = 512;
     const c = document.createElement('canvas'); c.width = W; c.height = H;
     const ctx = c.getContext('2d');
@@ -2439,9 +2447,38 @@ function initThreeScene(canvas) {
         pts.forEach(([x,y])=>ctx.lineTo(x,H*y)); ctx.lineTo(W,H); ctx.closePath(); ctx.fill();
       });
     }
+    // v91: Taipei live-weather overlay — overcast / rain / thunder
+    (function(){
+      const wc = (typeof _weatherCode!=='undefined') ? _weatherCode : 0;
+      const isCloud=(wc>=2&&wc<=3), isFog=(wc>=45&&wc<=48);
+      const isRain=(wc>=51&&wc<=67)||(wc>=80&&wc<=82)||wc>=95;
+      const isThunder=wc>=95;
+      if(!(isCloud||isFog||isRain||isThunder)) return; // clear / mostly clear — keep vivid
+      let wash=0, tint='170,180,190';
+      if(isCloud){ wash=0.30; tint='168,178,190'; }
+      if(isFog){ wash=0.44; tint='198,204,210'; }
+      if(isRain){ wash=0.46; tint='86,102,120'; }
+      if(isThunder){ wash=0.58; tint='54,64,84'; }
+      ctx.fillStyle=`rgba(${tint},${wash})`; ctx.fillRect(0,0,W,H*0.80); // wash sky+mountains, keep grass
+      // grey overcast cloud bank
+      for(let i=0;i<7;i++){
+        const cx=W*(0.05+i*0.135), cy=H*(0.05+(i%3)*0.05), cw=180+(i%4)*40, ch=46+(i%3)*12;
+        ctx.fillStyle='rgba(150,158,168,0.50)';
+        ctx.beginPath(); ctx.ellipse(cx,cy,cw,ch,0,0,Math.PI*2); ctx.fill();
+        ctx.fillStyle='rgba(118,126,140,0.35)';
+        ctx.beginPath(); ctx.ellipse(cx+cw*0.2,cy+ch*0.5,cw*0.7,ch*0.6,0,0,Math.PI*2); ctx.fill();
+      }
+      if(isRain){
+        ctx.strokeStyle='rgba(200,215,230,0.35)'; ctx.lineWidth=1.5;
+        for(let i=0;i<260;i++){ const rx=Math.random()*W, ry=Math.random()*H*0.85, len=10+Math.random()*16;
+          ctx.beginPath(); ctx.moveTo(rx,ry); ctx.lineTo(rx-4,ry+len); ctx.stroke(); }
+      }
+      if(isThunder){ ctx.fillStyle='rgba(230,235,255,0.10)'; ctx.fillRect(0,0,W,H*0.5); }
+    })();
     const t=new THREE.CanvasTexture(c);
     return t;
-  })();
+  };
+  const _panoramaTex = window._makePanorama();
   // 落地全景玻璃（28 wide × 9 tall，整面後牆都是窗）
   const panoramaGlass = new THREE.Mesh(
     new THREE.PlaneGeometry(36, 9.0),
@@ -2449,6 +2486,7 @@ function initThreeScene(canvas) {
   );
   panoramaGlass.position.set(0, 4.5, -7.93);
   _threeScene.add(panoramaGlass);
+  window._panoramaMesh = panoramaGlass; // v91: rebuild target for live weather
   // 玻璃反光層 — 微弱藍白光澤，讓窗戶看起來像真的玻璃
   { const gTex = (() => {
       const gc = document.createElement('canvas'); gc.width = 256; gc.height = 512;
