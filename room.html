@@ -2057,11 +2057,11 @@ function initThreeScene(canvas) {
   _threeControls.target.set(2, 1.2, -5); // v102: resting view looks down the right corridor
   _threeControls.enableDamping = true;
   _threeControls.dampingFactor = _isMobile ? 0.12 : 0.06;
-  _threeControls.rotateSpeed = _isMobile ? 0.5 : 0.7;
+  _threeControls.rotateSpeed = _isMobile ? 0.8 : 1.0;
   _threeControls.minDistance = 3;
   _threeControls.maxDistance = 34;
   _threeControls.minPolarAngle = 0.15;
-  _threeControls.maxPolarAngle = Math.PI * 0.56;
+  _threeControls.maxPolarAngle = Math.PI * 0.82;
   _threeControls.enablePan = false;
   _threeControls.enabled = false;
   _threeControls.addEventListener('change', () => { _wasDrag = true; });
@@ -3589,7 +3589,7 @@ function initThreeScene(canvas) {
       return new THREE.CanvasTexture(dc);
     })();
     const _dmRng = _rng(77);
-    for(let di=0; di<45; di++){
+    for(let di=0; di<14; di++){
       const dm = new THREE.Sprite(new THREE.SpriteMaterial({
         map:_dmTex, transparent:true, depthWrite:false,
         blending:THREE.AdditiveBlending, opacity: 0.15 + _dmRng()*0.25
@@ -3614,7 +3614,7 @@ function initThreeScene(canvas) {
   const _mo = new Date().getMonth();
   if(_mo >= 5 && _mo <= 7){
     const ptex = _petalTex();
-    for(let pi=0; pi<45; pi++){
+    for(let pi=0; pi<12; pi++){
       const pm = new THREE.SpriteMaterial({map:ptex, transparent:true, opacity:0.80, depthWrite:false});
       const ps = new THREE.Sprite(pm);
       const sc = 0.30 + Math.random()*0.18; // 0.30–0.48 (bigger than before)
@@ -3628,7 +3628,7 @@ function initThreeScene(canvas) {
       _petalParticles.push(ps);
     }
     // v59: Hero petals — larger, concentrated in gate-to-tree corridor
-    for(let hp=0; hp<22; hp++){
+    for(let hp=0; hp<6; hp++){
       const hpm=new THREE.SpriteMaterial({map:ptex,transparent:true,opacity:0.88+Math.random()*0.12,depthWrite:false});
       const hps=new THREE.Sprite(hpm);
       const sc2=0.48+Math.random()*0.30; // 0.48–0.78 (hero scale)
@@ -7487,13 +7487,15 @@ function _buildClouds() {
   for (let i = 0; i < 3; i++) {
     _cloudTxCache.push(_cloudTex(i));
   }
+  // v113: clouds sit just in front of the sky panorama (z≈-7.93) so they're
+  // visible drifting across the window (were at z≈-9 → hidden behind it)
   const specs = [
-    { x: -4,   y: 4.8, z: -8.8,  s: 4.0, speed: 0.0008 },
-    { x:  3,   y: 5.2, z: -9.2,  s: 3.2, speed: 0.0006 },
-    { x: -1,   y: 4.2, z: -9.6,  s: 2.8, speed: 0.0007 },
-    { x:  5,   y: 4.6, z: -8.6,  s: 2.4, speed: 0.0009 },
-    { x: -6,   y: 5.0, z: -9.0,  s: 3.6, speed: 0.0005 },
-    { x:  1,   y: 3.8, z: -10.0, s: 2.0, speed: 0.0010 },
+    { x: -13, y: 6.4, z: -7.86, s: 3.4, speed: 0.0011 },
+    { x:  -6, y: 5.5, z: -7.86, s: 2.7, speed: 0.0008 },
+    { x:  -1, y: 6.8, z: -7.86, s: 3.8, speed: 0.0012 },
+    { x:   5, y: 5.7, z: -7.86, s: 2.5, speed: 0.0009 },
+    { x:  11, y: 6.4, z: -7.86, s: 3.1, speed: 0.0007 },
+    { x:  15, y: 5.1, z: -7.86, s: 2.3, speed: 0.0013 },
   ];
   specs.forEach((sp, i) => {
     const mat = new THREE.SpriteMaterial({
@@ -7524,8 +7526,8 @@ function _animClouds() {
   if (!_clouds.length) return;
   _clouds.forEach(c => {
     c.position.x -= c.userData.speed;
-    if (c.position.x < -12) {
-      c.position.x = c.userData.startX + 18;
+    if (c.position.x < -19) {        // v113: wrap across the wider window
+      c.position.x = 19;
     }
   });
 }
