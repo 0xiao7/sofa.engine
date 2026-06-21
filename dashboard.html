@@ -2044,6 +2044,8 @@ function _renderRecentViews() {
   var section = document.getElementById('recent-views-section');
   var list = document.getElementById('recent-views-list');
   if (!section || !list) return;
+  // 「最近瀏覽」已收起：與「最近查詢」（跨裝置、按日分組）重複，只留後者避免混淆
+  section.style.display = 'none'; return;
   var views = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
   if (views.length === 0) { section.style.display = 'none'; return; }
   section.style.display = 'block';
