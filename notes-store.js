@@ -24,6 +24,16 @@
   function _write(obj) {
     try { localStorage.setItem(KEY, JSON.stringify(obj)); } catch (e) { /* ignore quota */ }
   }
+  // 刪除碑：記「某條在何時被刪」。跨裝置 sync 時用它判定刪除是否該勝過雲端版，
+  // 避免「本地刪了、雲端還在 → 下次 sync 又被拉回來」的復活問題。
+  var TOMB = 'sofa_notes_tomb_v1';
+  function _readTomb() {
+    try { return JSON.parse(localStorage.getItem(TOMB) || '{}'); }
+    catch (e) { return {}; }
+  }
+  function _writeTomb(obj) {
+    try { localStorage.setItem(TOMB, JSON.stringify(obj)); } catch (e) { /* ignore */ }
+  }
   function _loggedIn() {
     var tok = localStorage.getItem('sofa_token');
     var uid = localStorage.getItem('sofa_uid');
@@ -37,9 +47,9 @@
     else if (uid) h['X-Sofa-UID'] = uid;
     return h;
   }
-  function _newer(a, b) {
-    // 回傳 updatedAt 較新者；缺值視為最舊
-    return (new Date(a || 0)) >= (new Date(b || 0));
+  function _strictNewer(a, b) {
+    // a 嚴格晚於 b？缺值視為最舊。平手回 false（不回推、不覆蓋，減少無謂寫入）
+    return (new Date(a || 0)) > (new Date(b || 0));
   }
 
   // ── 雲端最佳努力呼叫（失敗靜默，不擋本地）──
@@ -89,6 +99,7 @@
           articleNo: data.articleNo || (o[id] && o[id].articleNo) || ''
         };
         _write(o);
+        var t = _readTomb(); if (t[id]) { delete t[id]; _writeTomb(t); }  // 重新建立＝撤銷刪除碑
         _cloudPost(id, o[id]);
       } else {
         this.remove(id);
@@ -98,6 +109,7 @@
     remove: function (id) {
       var o = _read();
       if (o[id]) { delete o[id]; _write(o); }
+      var t = _readTomb(); t[id] = new Date().toISOString(); _writeTomb(t);  // 留刪除碑
       _cloudDelete(id);
     },
 
@@ -117,21 +129,38 @@
               lawName: c.law_name || '', articleNo: c.article_no || ''
             };
           });
+          var tomb = _readTomb();
           var ids = {};
           Object.keys(local).forEach(function (k) { ids[k] = 1; });
           Object.keys(cloud).forEach(function (k) { ids[k] = 1; });
+          Object.keys(tomb).forEach(function (k) { ids[k] = 1; });
           var merged = {};
+          var newTomb = {};
           var toPush = [];
+          var toDelete = [];
           Object.keys(ids).forEach(function (id) {
-            var l = local[id], c = cloud[id];
+            var l = local[id], c = cloud[id], tt = tomb[id];
+            // 刪除碑比雲端版新（或雲端已無）→ 維持刪除：不放進 merged，雲端若還在就補送 DELETE
+            if (tt && (!c || !_strictNewer(c.updatedAt, tt))) {
+              if (c) toDelete.push(id);
+              newTomb[id] = tt;                 // 留碑直到 90 天 prune
+              return;
+            }
+            // 走到這＝雲端版比刪除碑新（別處又重建了）或本無碑：撤碑、正常合併
             if (l && c) {
-              if (_newer(l.updatedAt, c.updatedAt)) { merged[id] = l; toPush.push(id); }
-              else { merged[id] = c; }
-            } else if (l) { merged[id] = l; toPush.push(id); }  // 雲端缺＝上推
+              if (_strictNewer(l.updatedAt, c.updatedAt)) { merged[id] = l; toPush.push(id); }
+              else { merged[id] = c; }          // 平手或雲端較新＝採雲端，不回推
+            } else if (l) { merged[id] = l; toPush.push(id); }  // 雲端缺＝上推（含首登）
             else { merged[id] = c; }                            // 本地缺＝拉下
           });
+          // prune 90 天前的刪除碑
+          var cutoff = Date.now() - 90 * 86400000;
+          Object.keys(newTomb).forEach(function (id) {
+            if (new Date(newTomb[id]).getTime() < cutoff) delete newTomb[id];
+          });
           _write(merged);
-          // 回推本地較新/雲端缺的（含首登舊筆記）
+          _writeTomb(newTomb);
+          toDelete.forEach(function (id) { _cloudDelete(id); });
           toPush.forEach(function (id) {
             if (merged[id] && merged[id].text) _cloudPost(id, merged[id]);
           });
