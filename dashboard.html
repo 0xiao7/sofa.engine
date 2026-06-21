@@ -1091,7 +1091,7 @@
   .dr-chip.on{background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:600}
 
   .drawer-tabs{display:flex;gap:8px;margin-bottom:14px}
-  .drawer-tab{padding:5px 14px;border-radius:14px;border:1px solid var(--line-2);background:none;color:rgba(245,240,234,.6);font-size:13px;cursor:pointer;transition:all 0.2s}
+  .drawer-tab{padding:5px 14px;border-radius:14px;border:1px solid rgba(31,56,72,.2);background:none;color:rgba(31,56,72,.6);font-size:13px;cursor:pointer;transition:all 0.2s}
   .drawer-tab.active{background:rgba(231,187,167,.10);border-color:var(--peach-dim);color:var(--peach-2)}
   #drawer-original{display:none;line-height:1.9;font-size:15px;color:rgba(31,56,72,.88);white-space:pre-wrap;padding:4px 0}
   #drawer-analysis{display:block}
@@ -2156,12 +2156,12 @@ function _renderDrawer(d){
     + '<button class="drawer-tab" id="dtab-original" onclick="_switchDrawerTab(\'original\')">📖 原文</button>'
     + '<button class="drawer-tab" id="dtab-analysis" onclick="_switchDrawerTab(\'analysis\')">🔍 分析</button>'
     + '<div id="font-controls" style="margin-left:auto;display:none;align-items:center;gap:4px;">'
-    + '<button onclick="_setReadFont(_getReadFont()-1)" style="background:none;border:1px solid var(--line-2);color:rgba(245,240,234,.6);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:13px;">A−</button>'
-    + '<span id="font-size-label" style="color:rgba(245,240,234,.6);font-size:12px;min-width:32px;text-align:center;">15px</span>'
-    + '<button onclick="_setReadFont(_getReadFont()+1)" style="background:none;border:1px solid var(--line-2);color:rgba(245,240,234,.6);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:13px;">A+</button>'
+    + '<button onclick="_setReadFont(_getReadFont()-1)" style="background:none;border:1px solid rgba(31,56,72,.2);color:rgba(31,56,72,.6);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:13px;">A−</button>'
+    + '<span id="font-size-label" style="color:rgba(31,56,72,.6);font-size:12px;min-width:32px;text-align:center;">15px</span>'
+    + '<button onclick="_setReadFont(_getReadFont()+1)" style="background:none;border:1px solid rgba(31,56,72,.2);color:rgba(31,56,72,.6);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:13px;">A+</button>'
     + '</div>'
     + '</div>'
-    + '<div id="drawer-original"><div id="dr-ring-wrap" style="position:sticky;top:8px;float:right;margin:0 0 6px 8px;width:32px;height:32px;z-index:10;"><svg id="dr-ring-svg" width="32" height="32" viewBox="0 0 32 32" style="display:block;"><circle cx="16" cy="16" r="13" fill="none" stroke="var(--line-2,#2a4250)" stroke-width="3"/><circle id="rpr-arc" cx="16" cy="16" r="13" fill="none" stroke="var(--peach,#E7BBA7)" stroke-width="3" stroke-linecap="round" stroke-dasharray="81.7" stroke-dashoffset="81.7" transform="rotate(-90 16 16)"/></svg><span id="rpr-pct" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:9px;font-family:var(--mono);color:var(--navy,#1F3848);line-height:1;pointer-events:none;white-space:nowrap;">0%</span></div>' + rawText + '</div>'
+    + '<div id="drawer-original"><div id="dr-ring-wrap" style="position:sticky;top:8px;float:right;margin:0 0 6px 8px;width:32px;height:32px;z-index:10;"><svg id="dr-ring-svg" width="32" height="32" viewBox="0 0 32 32" style="display:block;"><circle cx="16" cy="16" r="13" fill="none" stroke="rgba(31,56,72,.15)" stroke-width="3"/><circle id="rpr-arc" cx="16" cy="16" r="13" fill="none" stroke="var(--peach,#E7BBA7)" stroke-width="3" stroke-linecap="round" stroke-dasharray="81.7" stroke-dashoffset="81.7" transform="rotate(-90 16 16)"/></svg><span id="rpr-pct" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:9px;font-family:var(--mono);color:var(--navy,#1F3848);line-height:1;pointer-events:none;white-space:nowrap;">0%</span></div>' + rawText + '</div>'
     + '<div id="drawer-analysis">' + origHtml + accHtml + '</div>'
     + '<div id="note-section" style="margin-top:14px;border-top:1px solid rgba(31,56,72,0.12);padding-top:12px">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;cursor:pointer" onclick="_toggleNoteEditor()">'
@@ -2189,10 +2189,10 @@ function _renderDrawer(d){
     + '</div>';
 
   var diffRowHtml =
-    '<div class="diff-row" style="display:flex;align-items:center;gap:6px;padding:6px 0;font-size:13px;color:rgba(245,240,234,.6);">'
+    '<div class="diff-row" style="display:flex;align-items:center;gap:6px;padding:6px 0;font-size:13px;color:rgba(31,56,72,.6);">'
     + '<span>難度自評：</span>'
     + '<span id="diff-stars-' + d.id + '" class="diff-stars" style="display:flex;gap:2px;cursor:pointer;font-size:18px;"></span>'
-    + '<span id="diff-label-' + d.id + '" style="font-size:11px;color:rgba(245,240,234,.5);margin-left:4px;"></span>'
+    + '<span id="diff-label-' + d.id + '" style="font-size:11px;color:rgba(31,56,72,.5);margin-left:4px;"></span>'
     + '</div>';
 
   body.innerHTML =
