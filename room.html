@@ -728,6 +728,15 @@ input[type=text], select, .btn-enter {
 .tp-swatch:hover { transform:scale(1.12); }
 .tp-swatch.active { border-color:#ffffff; box-shadow:0 0 0 1px rgba(255,255,255,0.3); }
 .tp-label { font-size:10px; color:#556677; text-align:center; margin-top:8px; letter-spacing:.04em; }
+.scene-mode-toggle{display:flex;gap:6px;margin-top:8px;}
+.scene-mode-toggle button{
+  flex:1;border:1px solid rgba(140,175,200,.20);border-radius:10px;
+  background:rgba(255,255,255,.08);color:#a0b8c8;padding:7px 9px;
+  font:600 12px var(--sans);cursor:pointer;
+}
+.scene-mode-toggle button.active{
+  background:rgba(91,175,214,.20);border-color:rgba(91,175,214,.42);color:#E8F4FA;
+}
 
 /* ── v87: ABETO full-screen immersive layout (desktop) ──────────────────────
    3D canvas fills the whole viewport; topbar + sidebar float as glass HUD;
@@ -925,6 +934,79 @@ header{
   #btn-sound{left:14px!important;}#audio-settings-btn{left:54px!important;}
   #achieve-btn{left:94px!important;}#theme-btn{left:134px!important;}
 }
+
+/* ── SoFa Airy Room visual reset ───────────────────────────────────────── */
+body.airy-room{background:#F8F5EC;color:#2F2A24;}
+body.airy-room #desk-area{background:#F8F5EC;}
+body.airy-room header{
+  background:rgba(255,255,255,.50)!important;
+  border-bottom:1px solid rgba(170,150,120,.16)!important;
+  box-shadow:none!important;
+  backdrop-filter:blur(18px);
+}
+body.airy-room .logo{color:rgba(62,56,48,.72);text-shadow:none;}
+body.airy-room .online-badge{color:rgba(72,92,80,.64);}
+body.airy-room #room-level-badge,
+body.airy-room #weather-badge{color:rgba(108,96,78,.62)!important;}
+body.airy-room #btn-sound,
+body.airy-room #audio-settings-btn,
+body.airy-room #achieve-btn,
+body.airy-room #theme-btn{
+  background:rgba(255,255,255,.58)!important;
+  border:1px solid rgba(160,140,110,.20)!important;
+  color:rgba(76,70,60,.66)!important;
+  box-shadow:0 12px 26px rgba(130,110,70,.08)!important;
+}
+body.airy-room #three-loader{background:#F8F5EC!important;color:#8A7A60!important;}
+body.airy-room #lib-scene-wrap::after{
+  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.12) 55%,rgba(248,245,236,.20))!important;
+}
+body.airy-room #sidebar{
+  width:236px;
+  background:rgba(255,255,255,.48)!important;
+  border-left:1px solid rgba(170,150,120,.16)!important;
+  box-shadow:-20px 0 60px rgba(120,105,78,.08)!important;
+  color:#3C352D;
+}
+body.airy-room .sidebar-section{color:rgba(86,78,66,.48);}
+body.airy-room .pom-time{color:#51483B;}
+body.airy-room .pom-mode,
+body.airy-room .pom-round,
+body.airy-room .online-item-tag,
+body.airy-room .rank-self-pts,
+body.airy-room .online-overflow-note{color:rgba(86,78,66,.56)!important;}
+body.airy-room .online-item.me-item,
+body.airy-room .rank-item.rank-self{background:rgba(111,201,140,.12);}
+body.airy-room .shout-form textarea,
+body.airy-room textarea,
+body.airy-room input[type=text],
+body.airy-room select{
+  background:rgba(255,255,255,.64)!important;
+  border-color:rgba(170,150,120,.18)!important;
+  color:#3C352D!important;
+}
+body.airy-room .pom-btn.primary,
+body.airy-room .btn-shout{
+  background:rgba(116,190,216,.22)!important;
+  color:#356C7D!important;
+  border-color:rgba(116,190,216,.34)!important;
+}
+body.airy-room #mob-bar{
+  background:rgba(255,255,255,.72)!important;
+  border-top:1px solid rgba(170,150,120,.16)!important;
+  backdrop-filter:blur(20px);
+}
+body.airy-room #mob-bar button{color:rgba(64,58,50,.62)!important;}
+body.airy-room #mob-bar .mob-count{background:#76C98E;color:#fff;}
+body.airy-room #dpad,
+body.airy-room #dpad-hint{opacity:.36;color:rgba(86,78,66,.55);}
+body.airy-room #greet-overlay{display:none!important;}
+body.airy-room .scene-mode-toggle button{
+  background:rgba(255,255,255,.58);border-color:rgba(170,150,120,.18);color:rgba(70,60,48,.58);
+}
+body.airy-room .scene-mode-toggle button.active{
+  background:rgba(116,190,216,.22);border-color:rgba(116,190,216,.38);color:#356C7D;
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="OrbitControls.js"></script>
@@ -1021,6 +1103,11 @@ header{
           <div class="tp-title">🎨 主題色</div>
           <div class="tp-swatches" id="theme-swatches"></div>
           <div class="tp-label" id="theme-color-label">學院藍</div>
+          <div class="tp-title" style="margin-top:14px;">場景</div>
+          <div class="scene-mode-toggle" id="scene-mode-toggle">
+            <button type="button" data-scene-mode="library" onclick="_setRoomSceneMode('library')">圖書館</button>
+            <button type="button" data-scene-mode="island" onclick="_setRoomSceneMode('island')">小島</button>
+          </div>
         </div>
         <div id="achieve-panel">
           <div style="color:#ffd700;font-size:13px;font-weight:bold;margin-bottom:10px;">🏆 學習成就</div>
@@ -1284,6 +1371,7 @@ let _toonGrad = null; // 3-tone gradient map — set during scene init, used by 
 const mToon = (hex) => new THREE.MeshLambertMaterial({ color: hex });
 const mToonFlat = (hex) => new THREE.MeshLambertMaterial({ color: hex, flatShading: true });
 const _isMobile = /iPhone|iPad|Android|Mobi/i.test(navigator.userAgent) || window.innerWidth < 768;
+const SOFA_AIRY_ROOM = true;
 const LOW_POWER_SCENE = _isMobile || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const SCENE_USER_LIMIT = 20;
 const SCENE_OTHER_LIMIT = 19;
@@ -1481,6 +1569,14 @@ let rpgPlayer = { tx: 0, ty: 0 };
 function isBlocked(){ return false; }
 
 function centerCam(canvas, tx = 0, ty = 0) {
+  if (SOFA_AIRY_ROOM) {
+    _airyWalk.x = tx;
+    _airyWalk.y = ty;
+    const hint = document.getElementById('dpad-hint');
+    if (hint) hint.textContent = '安靜散步中・場景固定載入・Enter 回座位';
+    if (canvas) canvas.dataset.walkSegment = `${tx}-${ty}`;
+    return;
+  }
   if (!_threeCamera || !_threeControls) return;
   const wrapX = ((tx % ENDLESS_WALK_SEGMENTS) + ENDLESS_WALK_SEGMENTS) % ENDLESS_WALK_SEGMENTS;
   const wrapY = ((ty % ENDLESS_WALK_SEGMENTS) + ENDLESS_WALK_SEGMENTS) % ENDLESS_WALK_SEGMENTS;
@@ -1500,6 +1596,354 @@ function _resetWalkSeat() {
   rpgPlayer.tx = 0;
   rpgPlayer.ty = 0;
   centerCam(document.getElementById('room-canvas'), 0, 0);
+}
+
+let _airyRAF = null;
+let _airyStart = 0;
+let _airyCanvas = null;
+let _airyCtx = null;
+let _airyWalk = { x: 0, y: 0 };
+const _ROOM_SCENE_KEY = 'sofa_room_scene_mode';
+let _roomSceneMode = localStorage.getItem(_ROOM_SCENE_KEY) || 'library';
+
+function _setRoomSceneMode(mode) {
+  _roomSceneMode = mode === 'island' ? 'island' : 'library';
+  localStorage.setItem(_ROOM_SCENE_KEY, _roomSceneMode);
+  _renderRoomSceneModeControls();
+}
+
+function _renderRoomSceneModeControls() {
+  document.querySelectorAll('[data-scene-mode]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.sceneMode === _roomSceneMode);
+  });
+}
+
+function _airyRoundRect(ctx, x, y, w, h, r) {
+  const rr = Math.min(r, w / 2, h / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + rr, y);
+  ctx.lineTo(x + w - rr, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+  ctx.lineTo(x + w, y + h - rr);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+  ctx.lineTo(x + rr, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+  ctx.lineTo(x, y + rr);
+  ctx.quadraticCurveTo(x, y, x + rr, y);
+  ctx.closePath();
+}
+
+function _airyText(ctx, text, x, y, size, color, weight = '600', align = 'center') {
+  ctx.save();
+  ctx.font = `${weight} ${size}px "Noto Sans TC", system-ui, sans-serif`;
+  ctx.fillStyle = color;
+  ctx.textAlign = align;
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, x, y);
+  ctx.restore();
+}
+
+function _airyDrawPlant(ctx, x, y, scale = 1, stage = 1) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(scale, scale);
+  ctx.fillStyle = '#C99B6E';
+  _airyRoundRect(ctx, -10, 10, 20, 15, 4);
+  ctx.fill();
+  ctx.fillStyle = '#8CB779';
+  for (let i = 0; i < 5 + stage; i++) {
+    const a = -Math.PI * 0.9 + i * (Math.PI * 0.45);
+    ctx.beginPath();
+    ctx.ellipse(Math.cos(a) * 8, Math.sin(a) * 7 + 6, 7, 12, a, 0, Math.PI * 2);
+    ctx.fill();
+  }
+  if (stage >= 2) {
+    ctx.fillStyle = '#F0AFC2';
+    for (let i = 0; i < Math.min(6, stage * 2); i++) {
+      const a = i / Math.max(1, stage * 2) * Math.PI * 2;
+      ctx.beginPath();
+      ctx.arc(Math.cos(a) * 9, Math.sin(a) * 7 + 2, 2.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+
+function _airyDrawChibi(ctx, x, y, u, i, t, scale = 1) {
+  const bob = Math.sin(t * 1.4 + i * 0.8) * 1.8;
+  const skin = ['#F4C9A8', '#EFC09D', '#D9A47E', '#F1D1B7'][i % 4];
+  const hair = ['#5C4636', '#3E3A35', '#6B4A3D', '#2F3843'][i % 4];
+  const shirt = ['#8DBED4', '#B8D79C', '#E6B7BE', '#C8B9E6', '#E6C48E'][i % 5];
+  ctx.save();
+  ctx.translate(x, y + bob);
+  ctx.scale(scale, scale);
+  ctx.globalAlpha = u && u.isGhost ? 0.72 : 1;
+  ctx.fillStyle = 'rgba(90,70,42,.12)';
+  ctx.beginPath(); ctx.ellipse(0, 27, 22, 6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = shirt;
+  _airyRoundRect(ctx, -14, 6, 28, 24, 9); ctx.fill();
+  ctx.fillStyle = skin;
+  ctx.beginPath(); ctx.arc(0, -8, 16, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = hair;
+  ctx.beginPath(); ctx.arc(0, -12, 17, Math.PI, Math.PI * 2); ctx.fill();
+  ctx.fillRect(-16, -12, 32, 8);
+  ctx.fillStyle = '#3A342E';
+  ctx.beginPath(); ctx.arc(-5, -7, 1.7, 0, Math.PI * 2); ctx.arc(5, -7, 1.7, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(70,50,38,.56)';
+  ctx.lineWidth = 1.6;
+  ctx.beginPath(); ctx.arc(0, -4, 5, 0.15, Math.PI - 0.15); ctx.stroke();
+  if (u && u.isSelf) {
+    ctx.strokeStyle = '#79C98C';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(0, -8, 22, 0, Math.PI * 2); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function _airyDrawDesk(ctx, x, y, w, h, u, i, t) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(100,75,46,.09)';
+  ctx.beginPath(); ctx.ellipse(x + w * 0.5, y + h + 17, w * 0.54, 12, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#D7B882';
+  _airyRoundRect(ctx, x, y, w, h, 9); ctx.fill();
+  ctx.fillStyle = '#C59B64';
+  ctx.fillRect(x + 8, y + h - 5, w - 16, 5);
+  ctx.fillStyle = '#A77B4E';
+  ctx.fillRect(x + 12, y + h, 6, 22);
+  ctx.fillRect(x + w - 18, y + h, 6, 22);
+  ctx.fillStyle = '#F4E7C9';
+  _airyRoundRect(ctx, x + w * 0.36, y + 9, w * 0.28, 12, 3); ctx.fill();
+  _airyDrawPlant(ctx, x + w - 18, y + 6, 0.48, _flowerStageForMinutes(Math.floor(_studyMsForUser(u || {}) / 60000)));
+  if (u) _airyDrawChibi(ctx, x + w * 0.5, y + h + 5, u, i, t, 0.78);
+  ctx.restore();
+}
+
+function _airyDrawIslandRoom(canvas, ctx, t) {
+  const w = canvas.width, h = canvas.height;
+  const mobile = w < 700;
+  const sceneUsers = _sceneUsers.length ? _sceneUsers : _selectSceneUsers(_currentUsers);
+  ctx.clearRect(0, 0, w, h);
+
+  const sky = ctx.createLinearGradient(0, 0, 0, h);
+  sky.addColorStop(0, '#EFF8FA');
+  sky.addColorStop(0.55, '#FBF5E6');
+  sky.addColorStop(1, '#F6E8C9');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, w, h);
+
+  for (let i = 0; i < (mobile ? 5 : 9); i++) {
+    const cx = (i * 173 + (t * 10) % 173) % (w + 120) - 60;
+    const cy = h * (0.13 + (i % 4) * 0.08);
+    ctx.fillStyle = 'rgba(255,255,255,.58)';
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, mobile ? 34 : 52, mobile ? 11 : 16, 0, 0, Math.PI * 2);
+    ctx.ellipse(cx + 26, cy - 4, mobile ? 24 : 34, mobile ? 9 : 13, 0, 0, Math.PI * 2);
+    ctx.fill();
+  }
+
+  const islandCx = w * 0.50 + Math.sin(_airyWalk.x * 0.08) * 10;
+  const islandCy = h * (mobile ? 0.64 : 0.62) + Math.sin(t * 0.55) * 3;
+  const islandW = w * (mobile ? 0.80 : 0.56);
+  const islandH = h * (mobile ? 0.22 : 0.22);
+  ctx.fillStyle = 'rgba(150,126,78,.14)';
+  ctx.beginPath(); ctx.ellipse(islandCx, islandCy + islandH * 0.52, islandW * 0.48, islandH * 0.22, 0, 0, Math.PI * 2); ctx.fill();
+  const grass = ctx.createLinearGradient(0, islandCy - islandH * 0.42, 0, islandCy + islandH * 0.18);
+  grass.addColorStop(0, '#D7E8B6');
+  grass.addColorStop(1, '#B9D793');
+  ctx.fillStyle = grass;
+  ctx.beginPath(); ctx.ellipse(islandCx, islandCy, islandW * 0.50, islandH * 0.36, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#C9A16D';
+  ctx.beginPath();
+  ctx.moveTo(islandCx - islandW * 0.42, islandCy + islandH * 0.12);
+  ctx.quadraticCurveTo(islandCx, islandCy + islandH * 0.52, islandCx + islandW * 0.42, islandCy + islandH * 0.12);
+  ctx.quadraticCurveTo(islandCx, islandCy + islandH * 0.28, islandCx - islandW * 0.42, islandCy + islandH * 0.12);
+  ctx.fill();
+
+  const houseX = islandCx - islandW * 0.24;
+  const houseY = islandCy - islandH * 0.52;
+  const houseW = islandW * 0.48;
+  const houseH = islandH * 0.48;
+  ctx.fillStyle = 'rgba(255,255,255,.78)';
+  _airyRoundRect(ctx, houseX, houseY, houseW, houseH, 18); ctx.fill();
+  ctx.fillStyle = '#D6B77C';
+  ctx.beginPath();
+  ctx.moveTo(houseX - 10, houseY + 8);
+  ctx.lineTo(houseX + houseW * 0.50, houseY - houseH * 0.34);
+  ctx.lineTo(houseX + houseW + 10, houseY + 8);
+  ctx.closePath();
+  ctx.fill();
+  ctx.fillStyle = '#D9EEF1';
+  _airyRoundRect(ctx, houseX + houseW * 0.10, houseY + houseH * 0.22, houseW * 0.28, houseH * 0.34, 8); ctx.fill();
+  _airyRoundRect(ctx, houseX + houseW * 0.62, houseY + houseH * 0.22, houseW * 0.28, houseH * 0.34, 8); ctx.fill();
+  _airyText(ctx, 'Quiet Study Island', islandCx, houseY + houseH + 18, mobile ? 12 : 15, 'rgba(80,70,50,.58)', '700');
+
+  const deskW = mobile ? 58 : 86;
+  const deskH = mobile ? 26 : 34;
+  const deskPositions = mobile
+    ? [
+        [islandCx - islandW * 0.28, islandCy - 2],
+        [islandCx + islandW * 0.10, islandCy + 0],
+        [islandCx - islandW * 0.05, islandCy + islandH * 0.18],
+      ]
+    : [
+        [islandCx - islandW * 0.32, islandCy - islandH * 0.02],
+        [islandCx - islandW * 0.10, islandCy + islandH * 0.10],
+        [islandCx + islandW * 0.16, islandCy - islandH * 0.02],
+        [islandCx + islandW * 0.30, islandCy + islandH * 0.13],
+      ];
+  deskPositions.forEach((p, i) => _airyDrawDesk(ctx, p[0], p[1], deskW, deskH, sceneUsers[i], i, t));
+
+  _airyDrawPlant(ctx, islandCx + islandW * 0.37, islandCy - islandH * 0.10, mobile ? 0.8 : 1.1, 4);
+  _airyDrawPlant(ctx, islandCx - islandW * 0.40, islandCy + islandH * 0.02, mobile ? 0.7 : 0.95, 3);
+
+  ctx.fillStyle = 'rgba(255,255,255,.64)';
+  _airyRoundRect(ctx, mobile ? 18 : w - 330, mobile ? 76 : 78, mobile ? w - 36 : 260, mobile ? 56 : 62, 18);
+  ctx.fill();
+  _airyText(ctx, 'Quiet Study Island', mobile ? w / 2 : w - 200, mobile ? 100 : 102, mobile ? 13 : 14, 'rgba(70,60,48,.68)', '700');
+  _airyText(ctx, '場景固定載入，安靜陪讀', mobile ? w / 2 : w - 200, mobile ? 120 : 124, mobile ? 10 : 11, 'rgba(70,60,48,.44)', '500');
+}
+
+function _airyDrawRoom(canvas, ctx, t) {
+  if (_roomSceneMode === 'island') {
+    _airyDrawIslandRoom(canvas, ctx, t);
+    return;
+  }
+  const w = canvas.width, h = canvas.height;
+  const mobile = w < 700;
+  const sceneUsers = _sceneUsers.length ? _sceneUsers : _selectSceneUsers(_currentUsers);
+  ctx.clearRect(0, 0, w, h);
+
+  const sky = ctx.createLinearGradient(0, 0, 0, h);
+  sky.addColorStop(0, '#FDFBF4');
+  sky.addColorStop(0.58, '#F4EAD7');
+  sky.addColorStop(1, '#ECE0C8');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, w, h);
+
+  const horizon = h * (mobile ? 0.53 : 0.45) + _airyWalk.y * 3;
+  ctx.fillStyle = '#FBF8EF';
+  ctx.fillRect(0, 0, w, horizon);
+  ctx.fillStyle = '#EDE0C8';
+  ctx.fillRect(0, horizon, w, h - horizon);
+
+  const sunX = w * 0.78 + Math.sin(t * 0.12) * 16;
+  const sunY = h * 0.12;
+  const sun = ctx.createRadialGradient(sunX, sunY, 20, sunX, sunY, Math.max(w, h) * 0.65);
+  sun.addColorStop(0, 'rgba(255,236,174,.62)');
+  sun.addColorStop(1, 'rgba(255,236,174,0)');
+  ctx.fillStyle = sun;
+  ctx.fillRect(0, 0, w, h);
+
+  const winX = mobile ? w * 0.10 : w * 0.14;
+  const winY = mobile ? h * 0.11 : h * 0.10;
+  const winW = mobile ? w * 0.80 : w * 0.55;
+  const winH = mobile ? h * 0.29 : h * 0.32;
+  ctx.fillStyle = '#D9EEF3';
+  _airyRoundRect(ctx, winX, winY, winW, winH, 18); ctx.fill();
+  const mountain = ctx.createLinearGradient(0, winY, 0, winY + winH);
+  mountain.addColorStop(0, '#B9D7DC');
+  mountain.addColorStop(1, '#E6F3EF');
+  ctx.fillStyle = mountain;
+  ctx.beginPath();
+  ctx.moveTo(winX, winY + winH * 0.78);
+  ctx.lineTo(winX + winW * 0.25, winY + winH * 0.48);
+  ctx.lineTo(winX + winW * 0.48, winY + winH * 0.70);
+  ctx.lineTo(winX + winW * 0.70, winY + winH * 0.43);
+  ctx.lineTo(winX + winW, winY + winH * 0.74);
+  ctx.lineTo(winX + winW, winY + winH);
+  ctx.lineTo(winX, winY + winH);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(155,130,94,.28)';
+  ctx.lineWidth = mobile ? 5 : 7;
+  _airyRoundRect(ctx, winX, winY, winW, winH, 18); ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(winX + winW / 2, winY); ctx.lineTo(winX + winW / 2, winY + winH);
+  ctx.moveTo(winX, winY + winH / 2); ctx.lineTo(winX + winW, winY + winH / 2);
+  ctx.stroke();
+
+  for (let i = 0; i < (mobile ? 1 : 3); i++) {
+    const sx = winX + winW * (0.35 + i * 0.18);
+    const sy = winY + winH * 0.1;
+    const beam = ctx.createLinearGradient(sx, sy, sx - w * 0.22, h);
+    beam.addColorStop(0, 'rgba(255,245,210,.30)');
+    beam.addColorStop(1, 'rgba(255,245,210,0)');
+    ctx.fillStyle = beam;
+    ctx.beginPath();
+    ctx.moveTo(sx, sy);
+    ctx.lineTo(sx + w * 0.13, sy);
+    ctx.lineTo(sx - w * 0.18, h);
+    ctx.lineTo(sx - w * 0.34, h);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  ctx.strokeStyle = 'rgba(190,160,110,.14)';
+  ctx.lineWidth = 1;
+  for (let y = horizon + 14; y < h + 40; y += mobile ? 24 : 30) {
+    ctx.beginPath();
+    ctx.moveTo(0, y + _airyWalk.y * 2);
+    ctx.lineTo(w, y + _airyWalk.y * 2);
+    ctx.stroke();
+  }
+
+  _airyDrawPlant(ctx, mobile ? w - 42 : w * 0.86, horizon - 8, mobile ? 0.9 : 1.25, 3);
+  if (!mobile) _airyDrawPlant(ctx, w * 0.07, horizon - 4, 1.1, 2);
+
+  const rugX = mobile ? w * 0.5 : w * 0.46;
+  const rugY = h * (mobile ? 0.70 : 0.74);
+  ctx.fillStyle = 'rgba(128,184,190,.20)';
+  ctx.beginPath(); ctx.ellipse(rugX, rugY, w * (mobile ? 0.36 : 0.20), h * 0.055, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(128,184,190,.34)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.ellipse(rugX, rugY, w * (mobile ? 0.31 : 0.17), h * 0.040, 0, 0, Math.PI * 2); ctx.stroke();
+
+  const desks = mobile
+    ? [
+        [w * 0.20, horizon + 36, 70, 34],
+        [w * 0.58, horizon + 46, 72, 34],
+        [w * 0.30, horizon + 118, 78, 36],
+        [w * 0.64, horizon + 132, 76, 36],
+      ]
+    : [
+        [w * 0.13, horizon + 64, 112, 44],
+        [w * 0.32, horizon + 52, 122, 46],
+        [w * 0.53, horizon + 58, 124, 46],
+        [w * 0.72, horizon + 78, 116, 44],
+        [w * 0.23, horizon + 170, 130, 48],
+        [w * 0.48, horizon + 164, 138, 50],
+        [w * 0.70, horizon + 184, 132, 48],
+      ];
+  desks.forEach((d, i) => _airyDrawDesk(ctx, d[0] + Math.sin(_airyWalk.x * 0.08 + i) * 2, d[1], d[2], d[3], sceneUsers[i], i, t));
+
+  if (!mobile) {
+    ctx.fillStyle = 'rgba(255,255,255,.48)';
+    _airyRoundRect(ctx, w * 0.08, h * 0.10, 150, 58, 18); ctx.fill();
+    _airyText(ctx, 'SoFa 自習室', w * 0.08 + 75, h * 0.10 + 23, 16, 'rgba(70,60,48,.72)', '700');
+    _airyText(ctx, 'quiet companion room', w * 0.08 + 75, h * 0.10 + 43, 10, 'rgba(70,60,48,.45)', '500');
+  }
+
+  ctx.fillStyle = 'rgba(255,255,255,.48)';
+  _airyRoundRect(ctx, mobile ? 18 : w - 330, mobile ? 72 : 76, mobile ? w - 36 : 260, mobile ? 56 : 62, 18);
+  ctx.fill();
+  _airyText(ctx, '最久 19 名＋自己', mobile ? w / 2 : w - 200, mobile ? 96 : 100, mobile ? 13 : 14, 'rgba(70,60,48,.68)', '700');
+  _airyText(ctx, '其他同學都在名單，場景固定載入', mobile ? w / 2 : w - 200, mobile ? 116 : 122, mobile ? 10 : 11, 'rgba(70,60,48,.44)', '500');
+}
+
+function _startAiryRoom(canvas) {
+  _airyCanvas = canvas;
+  _airyCtx = canvas.getContext('2d');
+  _airyStart = performance.now();
+  document.body.classList.add('airy-room');
+  _renderRoomSceneModeControls();
+  const loaderEl = document.getElementById('three-loader');
+  if(loaderEl){ loaderEl.style.opacity='0'; setTimeout(()=>{ loaderEl.style.display='none'; },260); }
+  if (_airyRAF) cancelAnimationFrame(_airyRAF);
+  function loop(now) {
+    _airyRAF = requestAnimationFrame(loop);
+    if (!_airyCanvas || !_airyCtx) return;
+    _airyDrawRoom(_airyCanvas, _airyCtx, (now - _airyStart) / 1000);
+  }
+  loop(performance.now());
 }
 
 document.addEventListener('keydown', (e) => {
@@ -6729,6 +7173,7 @@ function _showEntryToast(name) {
 }
 
 function _spawnShoutLight(x, z) {
+  if (SOFA_AIRY_ROOM || !_threeScene || !window.THREE) return;
   const light = new THREE.PointLight(0xFFE8C0, 2.2, 6.0);
   light.position.set(x, 1.8, z);
   light.userData.born = Date.now();
@@ -6890,6 +7335,7 @@ function _restoreChalkMessages() {
 }
 
 function _updateBoardNotes3D() {
+  if (SOFA_AIRY_ROOM || !_threeScene) return;
   // Remove old note meshes
   _threeScene.children.filter(c=>c.userData.isBoardNote).forEach(c=>_threeScene.remove(c));
 
@@ -6949,6 +7395,7 @@ function _spawnReactEmoji(emoji, deskIdx) {
 }
 
 function _spawnSpeechBubble(text, senderName) {
+  if (SOFA_AIRY_ROOM || !_threeScene || !window.THREE) return;
   // Find sender's desk position
   const idx = _currentUsers.findIndex(u => u.name === senderName);
   const pos = _DESK_POS_3D[idx >= 0 ? idx % _DESK_POS_3D.length : 0];
@@ -7116,6 +7563,7 @@ function _applyRoomLevel(users) {
 function _updateThreeAvatars(users) {
   users = Array.isArray(users) ? users : [];
   _sceneUsers = _selectSceneUsers(users);
+  if (SOFA_AIRY_ROOM) return;
   _updateStele(_sceneUsers);
   _applyRoomLevel(_sceneUsers);
   // Detect new user joins (toast only after initial room load)
@@ -9041,10 +9489,16 @@ function _launchHUD() {
   if(loaderEl) loaderEl.style.display='none';
   setTimeout(_showGreeting, 100);
   if(window._startStudyHud) window._startStudyHud();
-  setTimeout(_checkAchievements, 2000);
+  if(!SOFA_AIRY_ROOM) setTimeout(_checkAchievements, 2000);
 }
 function _startRealMode() {
   const canvas = document.getElementById('room-canvas');
+  if (SOFA_AIRY_ROOM) {
+    resizeThreeCanvas();
+    startThreeAnimation(canvas);
+    _launchHUD();
+    return;
+  }
   // If preview init failed (canvas was 0×0 at load time), do a full init now
   if (!_threeRenderer || !canvas || canvas.width === 0) {
     resizeThreeCanvas();
@@ -9061,6 +9515,10 @@ function _startRealMode() {
 }
 
 function startThreeAnimation(canvas) {
+  if (SOFA_AIRY_ROOM) {
+    _startAiryRoom(canvas);
+    return;
+  }
   const loaderEl = document.getElementById('three-loader');
   if(loaderEl){ loaderEl.style.opacity='1'; loaderEl.style.display='flex'; }
   setTimeout(()=>{
@@ -9789,6 +10247,7 @@ function startThreeAnimation(canvas) {
 
 function stopThreeAnimation() {
   if (_threeRAF) { cancelAnimationFrame(_threeRAF); _threeRAF = null; }
+  if (_airyRAF) { cancelAnimationFrame(_airyRAF); _airyRAF = null; }
 }
 
 function resizeThreeCanvas() {
@@ -9798,6 +10257,10 @@ function resizeThreeCanvas() {
   canvas.width  = wrap.clientWidth;
   // v118: full-screen immersive on both desktop and mobile (canvas fills viewport)
   canvas.height = window.innerHeight;
+  if (SOFA_AIRY_ROOM && _airyCanvas) {
+    _airyCanvas.width = canvas.width;
+    _airyCanvas.height = canvas.height;
+  }
   if (_threeRenderer) {
     _threeRenderer.setSize(canvas.width, canvas.height);
     if (_threeCamera) _threeCamera.aspect = canvas.width / canvas.height;
@@ -10013,19 +10476,37 @@ function enter(){
   document.body.classList.remove('entry-phase');
   _selfDeskIdx = 0; // reset seat to default on each entry
   resizeThreeCanvas();
+  if (SOFA_AIRY_ROOM) {
+    const seedUsers = [
+      { key: myKey, name, subject, joinedAt, isSelf: true, isGhost: false, weekPts: _getWeekPts() },
+      ...getGhosts(1).map((u, i) => ({
+        key: u.key || `ghost_seed_${i}`,
+        name: u.name || u.n || '讀友',
+        subject: u.subject || u.s || '記帳士',
+        joinedAt: u.joined_at || Date.now(),
+        isSelf: false,
+        isGhost: true,
+        weekPts: u.weekPts || 0,
+      }))
+    ];
+    _currentUsers = seedUsers;
+    _sceneUsers = _selectSceneUsers(seedUsers);
+  }
   _startRealMode();
-  // Wave144: apply tree growth stage immediately on room entry
-  const _initStage = _getTreeGrowthStage();
-  _lastTreeStage = _initStage;
-  _applyTreeGrowth(_initStage);
-  _updateRainGlass(); // Wave 66: set initial rain-glass state
   fetchTaipeiWeather(); // Wave150: 台北即時天氣（首次載入）
   setInterval(fetchTaipeiWeather, 10*60*1000); // 每 10 分鐘更新一次
-  _updateMoonlightPatch(); // Wave 90: set initial moonlight patch state
-  _updateRainbow(); // Wave 127: set initial rainbow state (6-9am only)
-  _updateClouds(); // Wave 128: set initial cloud state (6-21h daytime only)
-  _scheduleLightning(); // Wave 116: start lightning scheduler
-  setTimeout(()=>_updateBoardNotes3D(),500);
+  if (!SOFA_AIRY_ROOM) {
+    // Wave144: apply tree growth stage immediately on room entry
+    const _initStage = _getTreeGrowthStage();
+    _lastTreeStage = _initStage;
+    _applyTreeGrowth(_initStage);
+    _updateRainGlass(); // Wave 66: set initial rain-glass state
+    _updateMoonlightPatch(); // Wave 90: set initial moonlight patch state
+    _updateRainbow(); // Wave 127: set initial rainbow state (6-9am only)
+    _updateClouds(); // Wave 128: set initial cloud state (6-21h daytime only)
+    _scheduleLightning(); // Wave 116: start lightning scheduler
+    setTimeout(()=>_updateBoardNotes3D(),500);
+  }
   if(isMember) initNote();
   startPresence(name, subject);
 }
@@ -11292,6 +11773,7 @@ window._toggleAudioPanel = _toggleAudioPanel;
 window._toggleAchievePanel = _toggleAchievePanel;
 window._toggleThemePanel = _toggleThemePanel;
 window._toggleLayer = _toggleLayer;
+window._setRoomSceneMode = _setRoomSceneMode;
 window.rpgPlayer = rpgPlayer;
 window.isBlocked = isBlocked;
 window.centerCam = centerCam;
