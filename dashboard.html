@@ -1565,10 +1565,10 @@
               <div style="display:flex;gap:8px;min-width:0">
                 <button id="search-btn" onclick="doSearch()" style="flex:1;background:var(--peach);color:var(--navy);border:none;border-radius:3px;padding:0 20px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:.18s;letter-spacing:.04em" onmouseover="this.style.background='var(--peach-2)'" onmouseout="this.style.background='var(--peach)'">搜尋</button>
                 <button id="random-article-btn" onclick="loadRandomArticle()" title="隨機法條"
-                  style="background:rgba(255,255,255,0.07);border:1px solid rgba(100,160,220,0.3);
+                  style="background:rgba(255,255,255,0.07);border:1px solid var(--line);
                          color:var(--peach);border-radius:3px;width:44px;flex-shrink:0;font-size:16px;cursor:pointer;
                          transition:background 0.2s;letter-spacing:0"
-                  onmouseover="this.style.background='rgba(100,160,220,0.18)'"
+                  onmouseover="this.style.background='rgba(231,187,167,0.18)'"
                   onmouseout="this.style.background='rgba(255,255,255,0.07)'">🎲</button>
               </div>
             </div>
@@ -1586,8 +1586,8 @@
             </div>
 
             <div id="read-progress-wrap" style="display:none; padding:8px 16px 0; align-items:center; gap:6px">
-              <span id="read-progress" style="display:inline-flex; align-items:center; gap:2px; font-size:13px; padding:2px 8px; background:rgba(26,46,61,0.6); border-radius:10px; border:1px solid rgba(91,175,214,0.2);"></span>
-              <div style="flex:1; height:2px; background:rgba(91,175,214,0.1); border-radius:1px;">
+              <span id="read-progress" style="display:inline-flex; align-items:center; gap:2px; font-size:13px; padding:2px 8px; background:rgba(26,46,61,0.6); border-radius:10px; border:1px solid var(--line);"></span>
+              <div style="flex:1; height:2px; background:var(--line); border-radius:1px;">
                 <div id="read-bar" style="height:100%; background:var(--peach); border-radius:1px; width:0%; transition:width 0.5s;"></div>
               </div>
             </div>
@@ -2060,10 +2060,10 @@ function _renderRecentViews() {
     var art  = esc(v.articleNo || '');
     return '<div onclick="_openRecentView(\'' + v.id + '\',\'' + law.replace(/'/g,"\\'") + '\',\'' + art + '\')" '
       + 'style="cursor:pointer;background:rgba(255,255,255,0.04);'
-      + 'border:1px solid rgba(100,160,220,0.15);border-radius:6px;padding:7px 10px;'
+      + 'border:1px solid var(--line);border-radius:6px;padding:7px 10px;'
       + 'display:flex;justify-content:space-between;align-items:center;'
       + 'transition:background 0.15s" '
-      + 'onmouseover="this.style.background=\'rgba(100,160,220,0.1)\'"'
+      + 'onmouseover="this.style.background=\'rgba(231,187,167,0.10)\'"'
       + 'onmouseout="this.style.background=\'rgba(255,255,255,0.04)\'">'
       + '<div>'
       + '<span style="font-size:11px;color:var(--peach-3)">' + law + '</span>'
@@ -3575,7 +3575,7 @@ function _hlMatch(text, q){
   if(!q) return text;
   var i = text.indexOf(q);
   if(i < 0) return text;
-  return text.slice(0,i)+'<mark style="background:rgba(91,175,214,0.28);color:inherit;border-radius:2px;padding:0 1px">'+text.slice(i,i+q.length)+'</mark>'+text.slice(i+q.length);
+  return text.slice(0,i)+'<mark style="background:rgba(231,187,167,0.42);color:inherit;border-radius:2px;padding:0 1px">'+text.slice(i,i+q.length)+'</mark>'+text.slice(i+q.length);
 }
 function _renderLawsToc(page){
   _lawsPage = page || 0;
@@ -4083,9 +4083,9 @@ sections.forEach(s=>io.observe(s));
 
 <!-- ── P0-C 到期覆蓋層 ───────────────────────────────────── -->
 <div id="expire-overlay" style="display:none;position:fixed;inset:0;z-index:9999;
-  background:rgba(27,43,75,0.97);
+  background:rgba(13,28,40,0.97);
   display:none;align-items:center;justify-content:center;flex-direction:column;
-  font-family:'Noto Serif TC',serif;color:#F5F0EA;text-align:center;padding:2rem;">
+  font-family:var(--serif);color:var(--cream);text-align:center;padding:2rem;">
   <div style="max-width:380px;">
     <div style="font-size:2.4rem;margin-bottom:1rem;">⏳</div>
     <h2 style="font-size:1.4rem;font-weight:700;margin:0 0 0.6rem;">
@@ -4260,7 +4260,7 @@ ch.on('presence', { event: 'sync' }, () => {
   #mobile-daily-bar{
     display:none;
     position:fixed;bottom:0;left:0;right:0;
-    background:#07121C;border-top:1px solid rgba(231,187,167,.12);
+    background:var(--navy-4);border-top:1px solid rgba(231,187,167,.12);
     z-index:130;height:58px;
     align-items:center;justify-content:space-around;
     padding:0 4px;
@@ -4270,7 +4270,7 @@ ch.on('presence', { event: 'sync' }, () => {
   .mdb-btn{
     display:flex;flex-direction:column;align-items:center;gap:2px;
     flex:1;text-decoration:none;color:rgba(245,240,234,.5);
-    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.04em;
+    font-family:var(--mono);font-size:10px;letter-spacing:.04em;
     padding:6px 4px;border-radius:3px;transition:.15s;
     position:relative;
   }

@@ -11,43 +11,53 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <title>SoFa Engine — 2026 記帳士備考</title>
-<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@300;400;500&family=Noto+Sans+TC:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-/* ── 色卡取色：昨日青空 × 茉莉花茶 × 烟雨江南 × 粉墨登場 ── */
+/* ── SoFa Engine · Twilight Study Palette ── */
 :root {
-  --bg:        #f6f4f0;
-  --surface:   #ede9e2;
-  --card:      #faf8f5;
-  --blue:      #a1c7f6;   /* 昨日青空 */
-  --blue-m:    #7aa8d4;
-  --blue-d:    #4a7aaa;
-  --blue-l:    #daeeff;
-  --teal:      #a0d1ca;   /* 烟雨江南 */
-  --teal-m:    #5fa8a0;
-  --teal-l:    #dcf2f0;
-  --rose:      #f8bcb5;   /* 茉莉花茶/水蜜桃 */
-  --rose-m:    #e88c84;
-  --rose-l:    #fde8e6;
-  --purple:    #cab3c7;   /* 粉墨登場 */
-  --purple-m:  #9d7898;
-  --purple-l:  #eedde9;
-  --amber:     #f8e0b8;   /* 加州日落 */
-  --amber-m:   #d4a865;
-  --amber-l:   #fdf3e3;
-  --sage:      #c6deb4;   /* 抹茶/柳葉 */
-  --sage-m:    #89b870;
-  --sage-l:    #eaf4e2;
-  --text:      #3a3530;
-  --muted:     #7a726a;
-  --hint:      #aaa098;
-  --border:    rgba(58,53,48,.09);
-  --borderM:   rgba(58,53,48,.18);
-  --r:9px; --rl:14px;
-  --shadow: 0 2px 14px rgba(58,53,48,.07);
+  /* 底色：navy 系（原米底→深底） */
+  --bg:        #142836;   /* --navy-3 主底 */
+  --surface:   #19303E;   /* --navy-2 卡片次底 */
+  --card:      #19303E;   /* --navy-2 卡片底 */
+  /* 主強調：peach（原昨日青空藍） */
+  --blue:      #E7BBA7;   /* --peach */
+  --blue-m:    #C89580;   /* --peach-3 */
+  --blue-d:    #F0CDBD;   /* --peach-2（深底上要亮） */
+  --blue-l:    rgba(231,187,167,.14);
+  /* good 綠（原烟雨江南 teal） */
+  --teal:      #9FB89F;   /* --good */
+  --teal-m:    #9FB89F;   /* --good */
+  --teal-l:    rgba(159,184,159,.14);
+  /* bad（原茉莉花茶玫瑰） */
+  --rose:      #C77B6A;   /* --bad */
+  --rose-m:    #C77B6A;   /* --bad */
+  --rose-l:    rgba(199,123,106,.14);
+  /* plum/peach-3（原粉墨登場紫） */
+  --purple:    #4A6373;   /* --plum-2 */
+  --purple-m:  #C89580;   /* --peach-3 */
+  --purple-l:  rgba(74,99,115,.20);
+  /* warn 琥珀（原加州日落 amber） */
+  --amber:     #D9B084;   /* --warn */
+  --amber-m:   #D9B084;   /* --warn */
+  --amber-l:   rgba(217,176,132,.14);
+  /* good 綠（原抹茶 sage） */
+  --sage:      #9FB89F;   /* --good */
+  --sage-m:    #9FB89F;   /* --good */
+  --sage-l:    rgba(159,184,159,.14);
+  /* 文字：cream 系（深底上要亮） */
+  --text:      #F5F0EA;   /* --cream */
+  --muted:     #E0D6C7;   /* --cream-3 */
+  --hint:      rgba(245,240,234,.55);
+  --border:    rgba(245,240,234,.10);
+  --borderM:   rgba(245,240,234,.18);
+  --r:3px; --rl:4px;
+  --shadow: 0 2px 14px rgba(13,28,40,.35);
 }
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
 html{-webkit-text-size-adjust:100%;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;}
+body{font-family:'Noto Sans TC',sans-serif;background:var(--bg);color:var(--text);min-height:100dvh;}
 
 /* ── Shell ── */
 .shell{display:flex;height:100dvh;overflow:hidden;}
@@ -69,7 +79,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   padding:9px 11px;border-radius:var(--r);
   cursor:pointer;font-size:13px;color:var(--muted);
   border:none;background:transparent;text-align:left;width:100%;
-  transition:all .15s;font-family:'DM Sans',sans-serif;
+  transition:all .15s;font-family:'Noto Sans TC',sans-serif;
 }
 .ni:hover{background:var(--surface);color:var(--text);}
 .ni.on{background:var(--blue-l);color:var(--text);font-weight:500;}
@@ -79,7 +89,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .streak{
   display:flex;align-items:center;gap:6px;
   background:var(--amber-l);border-radius:99px;
-  padding:5px 11px;font-size:11px;color:#8a6020;font-weight:500;
+  padding:5px 11px;font-size:11px;color:var(--amber);font-weight:500;
+  font-family:'JetBrains Mono',monospace;
   border:0.5px solid var(--amber);
 }
 .exam-cd{margin-top:.75rem;text-align:center;}
@@ -162,7 +173,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   padding:5px 13px;border-radius:99px;
   border:0.5px solid var(--borderM);background:transparent;
   cursor:pointer;font-size:11px;color:var(--muted);
-  transition:all .15s;font-family:'DM Sans',sans-serif;
+  transition:all .15s;font-family:'Noto Sans TC',sans-serif;
 }
 .pill.on{background:var(--blue-l);border-color:var(--blue-m);color:var(--text);}
 .pill:hover:not(.on){background:var(--surface);color:var(--text);}
@@ -185,7 +196,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   width:100%;border:0.5px solid var(--borderM);
   background:var(--card);border-radius:var(--r);
   padding:11px 14px;font-size:14px;
-  font-family:'DM Sans',sans-serif;color:var(--text);
+  font-family:'Noto Sans TC',sans-serif;color:var(--text);
   outline:none;resize:none;height:46px;
   -webkit-appearance:none;transition:border-color .2s;
   ime-mode:auto;
@@ -201,7 +212,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .lt{
   padding:5px 14px;border-radius:99px;border:none;
   background:transparent;cursor:pointer;font-size:12px;
-  font-family:'DM Sans',sans-serif;color:var(--muted);transition:all .2s;
+  font-family:'Noto Sans TC',sans-serif;color:var(--muted);transition:all .2s;
 }
 .lt.on{background:var(--card);color:var(--text);font-weight:500;box-shadow:0 1px 4px rgba(0,0,0,.08);}
 
@@ -250,7 +261,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .n-in{
   width:100%;border:0.5px solid var(--borderM);
   background:var(--card);border-radius:var(--r);
-  padding:9px 12px;font-size:13px;font-family:'DM Sans',sans-serif;
+  padding:9px 12px;font-size:13px;font-family:'Noto Sans TC',sans-serif;
   color:var(--text);outline:none;margin-bottom:7px;
   transition:border-color .2s;
 }
@@ -270,7 +281,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 /* ── GAS guide ── */
 .code-block{
   background:var(--surface);border-radius:var(--r);
-  padding:.9rem 1rem;font-size:11px;font-family:monospace;
+  padding:.9rem 1rem;font-size:11px;font-family:'JetBrains Mono',monospace;
   color:var(--text);line-height:1.7;overflow-x:auto;
   border:0.5px solid var(--border);margin-bottom:.75rem;
   white-space:pre-wrap;word-break:break-all;
@@ -280,27 +291,31 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .btn{
   padding:7px 16px;border-radius:var(--r);
   border:0.5px solid var(--borderM);background:transparent;
-  cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;
+  cursor:pointer;font-size:12px;font-family:'Noto Sans TC',sans-serif;
   color:var(--text);transition:all .15s;
 }
 .btn:hover{background:var(--surface);}
-.btn-blue{background:var(--blue);border-color:var(--blue-m);color:var(--text);}
-.btn-blue:hover{background:var(--blue-l);}
-.btn-teal{background:var(--teal);border-color:var(--teal-m);color:var(--text);}
-.btn-rose{background:var(--rose);border-color:var(--rose-m);color:var(--text);}
+/* 多色按鈕統一成 peach 主鈕（深底上的主行動色） */
+.btn-blue{background:var(--blue);border-color:var(--blue);color:#142836;font-weight:500;}
+.btn-blue:hover{background:var(--blue-d);}
+.btn-teal{background:var(--blue);border-color:var(--blue);color:#142836;font-weight:500;}
+.btn-teal:hover{background:var(--blue-d);}
+.btn-rose{background:var(--blue);border-color:var(--blue);color:#142836;font-weight:500;}
+.btn-rose:hover{background:var(--blue-d);}
 .btn-sm{padding:5px 11px;font-size:11px;}
 
 /* ── Toast ── */
 .toast{
   position:fixed;bottom:20px;right:20px;
-  background:var(--teal-m);color:#fff;border-radius:var(--r);
+  background:var(--blue);color:#142836;border-radius:var(--r);
   padding:10px 16px;font-size:12px;display:none;z-index:999;
-  box-shadow:0 4px 16px rgba(0,0,0,.15);
+  font-family:'JetBrains Mono',monospace;
+  box-shadow:0 4px 16px rgba(13,28,40,.45);
 }
 .toast.show{display:block;}
 
 /* ── Tag ── */
-.tag{font-size:10px;font-family:'DM Sans',sans-serif;padding:2px 7px;border-radius:4px;background:var(--surface);color:var(--muted);}
+.tag{font-size:10px;font-family:'Noto Sans TC',sans-serif;padding:2px 7px;border-radius:4px;background:var(--surface);color:var(--muted);}
 .flex{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 .divider{height:0.5px;background:var(--border);margin:.75rem 0;}
 
@@ -322,7 +337,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 /* ── 會計練習 ── */
 .acct-tabs{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:1rem;}
-.at{padding:6px 14px;border-radius:99px;border:0.5px solid var(--borderM);background:transparent;cursor:pointer;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--muted);transition:all .15s;}
+.at{padding:6px 14px;border-radius:99px;border:0.5px solid var(--borderM);background:transparent;cursor:pointer;font-size:12px;font-family:'Noto Sans TC',sans-serif;color:var(--muted);transition:all .15s;}
 .at.on{background:var(--teal-l);border-color:var(--teal-m);color:var(--text);}
 .at:hover:not(.on){background:var(--surface);}
 
@@ -335,7 +350,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   padding:.75rem 1rem;border-radius:var(--r);
   border:0.5px solid var(--border);background:var(--surface);
   cursor:pointer;font-size:13px;text-align:left;
-  font-family:'DM Sans',sans-serif;color:var(--text);
+  font-family:'Noto Sans TC',sans-serif;color:var(--text);
   transition:all .15s;
 }
 .mcq-opt:hover:not(:disabled){background:var(--blue-l);border-color:var(--blue);}
@@ -349,7 +364,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   display:none;margin-bottom:1rem;
 }
 .mcq-exp.show{display:block;}
-.mcq-prog{font-size:11px;color:var(--hint);font-family:'DM Sans',sans-serif;margin-bottom:.5rem;}
+.mcq-prog{font-size:11px;color:var(--hint);font-family:'Noto Sans TC',sans-serif;margin-bottom:.5rem;}
 
 /* Fill */
 .fill-q{font-size:15px;line-height:1.8;margin-bottom:.75rem;font-family:'Noto Serif TC',serif;}
@@ -379,8 +394,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .dc-card.rev{border-top:3px solid var(--sage-m);}
 .dc-card.exp{border-top:3px solid var(--amber-m);}
 .dc-name{font-size:14px;font-weight:500;margin-bottom:4px;}
-.dc-type{font-size:10px;color:var(--hint);font-family:'DM Sans',sans-serif;margin-bottom:6px;}
-.dc-sides{display:flex;justify-content:space-between;font-size:11px;font-family:'DM Sans',sans-serif;}
+.dc-type{font-size:10px;color:var(--hint);font-family:'Noto Sans TC',sans-serif;margin-bottom:6px;}
+.dc-sides{display:flex;justify-content:space-between;font-size:11px;font-family:'Noto Sans TC',sans-serif;}
 .dc-dr{color:var(--blue-d);} .dc-cr{color:var(--rose-m);}
 .dc-flip{
   background:var(--teal-l);border-radius:var(--r);
@@ -461,7 +476,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
         <circle cx="45" cy="45" r="34" fill="none" stroke="var(--purple)" stroke-width="13" stroke-dasharray="43 171" stroke-dashoffset="-102" transform="rotate(-90 45 45)"/>
         <circle cx="45" cy="45" r="34" fill="none" stroke="var(--rose)" stroke-width="13" stroke-dasharray="32 182" stroke-dashoffset="-145" transform="rotate(-90 45 45)"/>
         <circle cx="45" cy="45" r="34" fill="none" stroke="var(--sage)" stroke-width="13" stroke-dasharray="75 139" stroke-dashoffset="-177" transform="rotate(-90 45 45)"/>
-        <text x="45" y="48" text-anchor="middle" font-size="10" font-family="DM Sans" fill="var(--muted)">220條</text>
+        <text x="45" y="48" text-anchor="middle" font-size="10" font-family="JetBrains Mono" fill="var(--muted)">220條</text>
       </svg>
       <div class="dr">
         <div class="drow"><span><span style="display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--blue);margin-right:6px"></span>第0輪（未讀）</span><span style="color:var(--muted)">30%</span></div>
@@ -1300,9 +1315,9 @@ function renderSchedRows(){
       <div class="sr" style="align-items:flex-start;gap:6px;">
         <div class="sd" style="background:${s.color};margin-top:12px;flex-shrink:0"></div>
         <input value="${s.time}" onchange="schedData[${i}].time=this.value;saveSched();"
-          style="flex:1;border:none;border-bottom:0.5px solid var(--borderM);background:transparent;font-size:12px;font-family:'DM Sans',sans-serif;color:var(--muted);padding:4px;outline:none;"/>
+          style="flex:1;border:none;border-bottom:0.5px solid var(--borderM);background:transparent;font-size:12px;font-family:'Noto Sans TC',sans-serif;color:var(--muted);padding:4px;outline:none;"/>
         <input value="${s.task}" onchange="schedData[${i}].task=this.value;saveSched();"
-          style="flex:2;border:none;border-bottom:0.5px solid var(--borderM);background:transparent;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);padding:4px;outline:none;"/>
+          style="flex:2;border:none;border-bottom:0.5px solid var(--borderM);background:transparent;font-size:13px;font-family:'Noto Sans TC',sans-serif;color:var(--text);padding:4px;outline:none;"/>
         <button onclick="deleteSchedRow(${i})" style="border:none;background:transparent;color:var(--rose-m);cursor:pointer;font-size:14px;padding:4px;">×</button>
       </div>`).join('');
   } else {
