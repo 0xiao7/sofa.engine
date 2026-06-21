@@ -698,7 +698,7 @@ body {
       <div class="serial-wrap">
         <span class="serial-prefix">SOFA-</span>
         <input id="serial" type="text" placeholder="XXXX-XXXX" maxlength="9"
-          autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text">
+          autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="latin" lang="en">
       </div>
       <div class="hint" id="hint">序號格式 SOFA-XXXX-XXXX · 8 位英數</div>
     </div>
@@ -744,14 +744,21 @@ const hintEl   = document.getElementById('hint');
 const btn      = document.getElementById('btn');
 const errEl    = document.getElementById('err');
 
-serialEl.addEventListener('input', function() {
-  let raw = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 8);
-  if (!raw) { this.value = ''; return; }
-  this.value = raw.length > 4 ? raw.slice(0, 4) + '-' + raw.slice(4) : raw;
+function formatSerial(el) {
+  let raw = el.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 8);
+  if (!raw) { el.value = ''; return; }
+  el.value = raw.length > 4 ? raw.slice(0, 4) + '-' + raw.slice(4) : raw;
   hintEl.textContent = DEFAULT_HINT;
   hintEl.classList.remove('err');
   errEl.classList.remove('show');
+}
+
+// 注音/拼音「組字中」不要去動欄位值，否則候選字會卡掉；組完才整理
+serialEl.addEventListener('input', function(e) {
+  if (e.isComposing) return;
+  formatSerial(this);
 });
+serialEl.addEventListener('compositionend', function() { formatSerial(this); });
 
 serialEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
