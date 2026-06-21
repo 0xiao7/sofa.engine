@@ -59,10 +59,12 @@ test('web load budget markers keep the browser version practical', () => {
 
 test('airy visual direction replaces the old dark game lobby first impression', () => {
   assert.match(html, /SOFA_AIRY_ROOM\s*=\s*true/);
+  assert.match(html, /SOFA_ROOM_SINGLE_SCENE\s*=\s*true/);
   assert.match(html, /function\s+_startAiryRoom/);
   assert.match(html, /function\s+_airyDrawRoom/);
   assert.match(html, /function\s+_airyDrawIslandRoom/);
   assert.match(html, /function\s+_airyDrawChibi/);
+  assert.match(html, /body\.airy-room \.scene-mode-toggle\{display:none;\}/);
   assert.match(html, /body\.airy-room/);
   assert.match(html, /quiet companion room/);
   assert.match(html, /Quiet Study Island/);

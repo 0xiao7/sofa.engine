@@ -937,9 +937,118 @@ header{
 
 /* ── SoFa Airy Room visual reset ───────────────────────────────────────── */
 body.airy-room{background:#F8F5EC;color:#2F2A24;}
+body.airy-room #entry{
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255,248,220,.56), rgba(255,248,220,0) 36%),
+    linear-gradient(180deg, rgba(248,245,236,.18), rgba(248,245,236,.36));
+  backdrop-filter:blur(2px);
+  -webkit-backdrop-filter:blur(2px);
+}
+body.airy-room .entry-card{
+  width:min(392px,88vw);
+  padding:0 0 24px;
+  background:rgba(255,255,255,.72);
+  border:1px solid rgba(172,150,116,.18);
+  border-radius:28px;
+  box-shadow:0 26px 72px rgba(128,105,68,.18),0 1px 0 rgba(255,255,255,.85) inset;
+  backdrop-filter:blur(22px);
+  -webkit-backdrop-filter:blur(22px);
+}
+body.airy-room .entry-banner{
+  background:transparent;
+  border-bottom:0;
+  margin:0;
+  padding:24px 28px 6px;
+  justify-content:center;
+}
+body.airy-room .entry-banner-icon{
+  width:32px;height:32px;border-radius:13px;
+  display:inline-flex;align-items:center;justify-content:center;
+  background:rgba(116,190,216,.16);
+  font-size:1rem;opacity:.86;
+}
+body.airy-room .entry-banner-title{
+  color:rgba(80,70,58,.48);
+  letter-spacing:.16em;
+  font-family:var(--sans);
+  font-size:.66rem;
+}
+body.airy-room .entry-card-body{padding:0 30px;}
+body.airy-room .entry-card h1{
+  text-align:center;
+  color:#463C30;
+  font-family:var(--sans);
+  font-size:1.64rem;
+  font-weight:800;
+  letter-spacing:.02em;
+  margin:8px 0 6px;
+}
+body.airy-room .entry-card>p,
+body.airy-room .entry-card-body>p:not(.entry-tip){
+  text-align:center;
+  color:rgba(78,68,56,.54);
+  font-size:.88rem;
+  margin-bottom:20px;
+}
+body.airy-room .entry-tabs{
+  padding:4px;
+  background:rgba(235,226,207,.58);
+  border:1px solid rgba(172,150,116,.14);
+  border-radius:18px;
+  gap:4px;
+}
+body.airy-room .entry-tab{
+  border:0;
+  border-radius:14px;
+  background:transparent;
+  color:rgba(75,65,54,.55);
+  font-weight:700;
+}
+body.airy-room .entry-tab.active{
+  background:rgba(255,255,255,.76);
+  color:#3E6F7D;
+  box-shadow:0 6px 18px rgba(120,100,70,.10);
+}
+body.airy-room .entry-card-body label{
+  color:rgba(86,76,64,.48);
+  text-transform:none;
+  letter-spacing:.03em;
+}
+body.airy-room .entry-card-body input[type=text],
+body.airy-room .entry-card-body select,
+body.airy-room .serial-row-entry{
+  background:rgba(255,255,255,.68)!important;
+  border:1px solid rgba(172,150,116,.18)!important;
+  border-radius:16px!important;
+  color:#463C30!important;
+  box-shadow:0 8px 22px rgba(120,100,70,.06) inset;
+}
+body.airy-room .serial-row-entry{overflow:hidden;margin-bottom:12px;}
+body.airy-room .serial-prefix-entry{
+  color:#6A9BAB;
+  background:rgba(116,190,216,.10);
+  border-right:1px solid rgba(116,190,216,.18);
+}
+body.airy-room .serial-row-entry input{
+  color:#463C30!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+body.airy-room .btn-enter{
+  border-radius:18px;
+  background:linear-gradient(180deg,#C8EEF5,#9ED5E3);
+  color:#315E6B;
+  box-shadow:0 12px 24px rgba(70,145,165,.18);
+  font-family:var(--sans);
+  letter-spacing:.04em;
+}
+body.airy-room .btn-enter:hover{background:linear-gradient(180deg,#D6F5FA,#A9DCE8);}
+body.airy-room .entry-tip,
+body.airy-room #serial-entry-msg{color:rgba(78,68,56,.45);}
 body.airy-room #desk-area{background:#F8F5EC;}
 body.airy-room header{
-  background:rgba(255,255,255,.50)!important;
+  background:rgba(255,255,255,.38)!important;
   border-bottom:1px solid rgba(170,150,120,.16)!important;
   box-shadow:none!important;
   backdrop-filter:blur(18px);
@@ -952,10 +1061,11 @@ body.airy-room #btn-sound,
 body.airy-room #audio-settings-btn,
 body.airy-room #achieve-btn,
 body.airy-room #theme-btn{
-  background:rgba(255,255,255,.58)!important;
+  background:rgba(255,255,255,.46)!important;
   border:1px solid rgba(160,140,110,.20)!important;
   color:rgba(76,70,60,.66)!important;
-  box-shadow:0 12px 26px rgba(130,110,70,.08)!important;
+  box-shadow:0 12px 26px rgba(130,110,70,.06)!important;
+  opacity:.78;
 }
 body.airy-room #three-loader{background:#F8F5EC!important;color:#8A7A60!important;}
 body.airy-room #lib-scene-wrap::after{
@@ -963,7 +1073,7 @@ body.airy-room #lib-scene-wrap::after{
 }
 body.airy-room #sidebar{
   width:236px;
-  background:rgba(255,255,255,.48)!important;
+  background:rgba(255,255,255,.58)!important;
   border-left:1px solid rgba(170,150,120,.16)!important;
   box-shadow:-20px 0 60px rgba(120,105,78,.08)!important;
   color:#3C352D;
@@ -1007,6 +1117,7 @@ body.airy-room .scene-mode-toggle button{
 body.airy-room .scene-mode-toggle button.active{
   background:rgba(116,190,216,.22);border-color:rgba(116,190,216,.38);color:#356C7D;
 }
+body.airy-room .scene-mode-toggle{display:none;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="OrbitControls.js"></script>
@@ -1372,6 +1483,7 @@ const mToon = (hex) => new THREE.MeshLambertMaterial({ color: hex });
 const mToonFlat = (hex) => new THREE.MeshLambertMaterial({ color: hex, flatShading: true });
 const _isMobile = /iPhone|iPad|Android|Mobi/i.test(navigator.userAgent) || window.innerWidth < 768;
 const SOFA_AIRY_ROOM = true;
+const SOFA_ROOM_SINGLE_SCENE = true;
 const LOW_POWER_SCENE = _isMobile || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const SCENE_USER_LIMIT = 20;
 const SCENE_OTHER_LIMIT = 19;
@@ -1604,9 +1716,14 @@ let _airyCanvas = null;
 let _airyCtx = null;
 let _airyWalk = { x: 0, y: 0 };
 const _ROOM_SCENE_KEY = 'sofa_room_scene_mode';
-let _roomSceneMode = localStorage.getItem(_ROOM_SCENE_KEY) || 'library';
+let _roomSceneMode = SOFA_ROOM_SINGLE_SCENE ? 'library' : (localStorage.getItem(_ROOM_SCENE_KEY) || 'library');
 
 function _setRoomSceneMode(mode) {
+  if (SOFA_ROOM_SINGLE_SCENE) {
+    _roomSceneMode = 'library';
+    _renderRoomSceneModeControls();
+    return;
+  }
   _roomSceneMode = mode === 'island' ? 'island' : 'library';
   localStorage.setItem(_ROOM_SCENE_KEY, _roomSceneMode);
   _renderRoomSceneModeControls();
@@ -1669,6 +1786,104 @@ function _airyDrawPlant(ctx, x, y, scale = 1, stage = 1) {
   ctx.restore();
 }
 
+function _airyDrawRoomShadow(ctx, x, y, w, h, alpha = .12) {
+  ctx.save();
+  ctx.fillStyle = `rgba(116,91,50,${alpha})`;
+  ctx.beginPath();
+  ctx.ellipse(x, y, w, h, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function _airyDrawSoftWindow(ctx, x, y, w, h, mobile) {
+  ctx.save();
+  ctx.shadowColor = 'rgba(120,100,70,.12)';
+  ctx.shadowBlur = 24;
+  ctx.shadowOffsetY = 12;
+  ctx.fillStyle = '#DDF2F5';
+  _airyRoundRect(ctx, x, y, w, h, mobile ? 18 : 24);
+  ctx.fill();
+  ctx.shadowColor = 'transparent';
+  const sky = ctx.createLinearGradient(0, y, 0, y + h);
+  sky.addColorStop(0, '#DFF4F7');
+  sky.addColorStop(.62, '#EAF5EF');
+  sky.addColorStop(1, '#F8F0D9');
+  ctx.fillStyle = sky;
+  _airyRoundRect(ctx, x + 8, y + 8, w - 16, h - 16, mobile ? 14 : 20);
+  ctx.fill();
+  ctx.fillStyle = 'rgba(151,192,184,.32)';
+  ctx.beginPath();
+  ctx.moveTo(x + 8, y + h * .76);
+  ctx.lineTo(x + w * .28, y + h * .50);
+  ctx.lineTo(x + w * .46, y + h * .68);
+  ctx.lineTo(x + w * .66, y + h * .44);
+  ctx.lineTo(x + w - 8, y + h * .76);
+  ctx.lineTo(x + w - 8, y + h - 8);
+  ctx.lineTo(x + 8, y + h - 8);
+  ctx.closePath();
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(174,154,116,.26)';
+  ctx.lineWidth = mobile ? 5 : 7;
+  _airyRoundRect(ctx, x + 4, y + 4, w - 8, h - 8, mobile ? 16 : 22);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x + w / 2, y + 8); ctx.lineTo(x + w / 2, y + h - 8);
+  ctx.moveTo(x + 8, y + h / 2); ctx.lineTo(x + w - 8, y + h / 2);
+  ctx.stroke();
+  ctx.globalAlpha = .34;
+  ctx.fillStyle = '#FFF7D7';
+  for (let i = 0; i < 3; i++) {
+    const bx = x + w * (.22 + i * .23);
+    ctx.beginPath();
+    ctx.moveTo(bx, y + 10);
+    ctx.lineTo(bx + w * .13, y + 10);
+    ctx.lineTo(bx - w * .12, y + h + 210);
+    ctx.lineTo(bx - w * .27, y + h + 210);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+function _airyDrawShelf(ctx, x, y, w, h, mobile) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,.56)';
+  _airyRoundRect(ctx, x, y, w, h, 16); ctx.fill();
+  ctx.fillStyle = '#D5B57B';
+  for (let r = 0; r < 3; r++) {
+    const by = y + 16 + r * (h - 26) / 3;
+    _airyRoundRect(ctx, x + 12, by + 26, w - 24, 6, 3); ctx.fill();
+    for (let i = 0; i < 8; i++) {
+      const bw = Math.max(5, w / 16 + (i % 3) * 2);
+      const bh = 16 + ((i + r) % 4) * 4;
+      const bx = x + 18 + i * (w - 34) / 8;
+      ctx.fillStyle = ['#AFC98A', '#D7AFA2', '#99BED0', '#D8C38B'][i % 4];
+      _airyRoundRect(ctx, bx, by + 28 - bh, bw, bh, 3); ctx.fill();
+    }
+  }
+  if (!mobile) {
+    ctx.fillStyle = 'rgba(93,80,62,.42)';
+    _airyText(ctx, '考科牆面', x + w / 2, y + h + 18, 11, 'rgba(80,70,52,.42)', '700');
+  }
+  ctx.restore();
+}
+
+function _airyDrawSubjectPanel(ctx, x, y, w, h, label) {
+  ctx.save();
+  ctx.fillStyle = 'rgba(255,255,255,.50)';
+  _airyRoundRect(ctx, x, y, w, h, 17); ctx.fill();
+  ctx.fillStyle = 'rgba(116,190,216,.16)';
+  _airyRoundRect(ctx, x + 12, y + 13, w - 24, 18, 9); ctx.fill();
+  _airyText(ctx, label, x + w / 2, y + 22, 10, 'rgba(62,94,104,.62)', '800');
+  ctx.strokeStyle = 'rgba(166,145,110,.20)';
+  ctx.lineWidth = 1.4;
+  for (let i = 0; i < 4; i++) {
+    const yy = y + 46 + i * 14;
+    ctx.beginPath(); ctx.moveTo(x + 18, yy); ctx.lineTo(x + w - 18, yy); ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function _airyDrawChibi(ctx, x, y, u, i, t, scale = 1) {
   const bob = Math.sin(t * 1.4 + i * 0.8) * 1.8;
   const skin = ['#F4C9A8', '#EFC09D', '#D9A47E', '#F1D1B7'][i % 4];
@@ -1702,19 +1917,28 @@ function _airyDrawChibi(ctx, x, y, u, i, t, scale = 1) {
 
 function _airyDrawDesk(ctx, x, y, w, h, u, i, t) {
   ctx.save();
-  ctx.fillStyle = 'rgba(100,75,46,.09)';
-  ctx.beginPath(); ctx.ellipse(x + w * 0.5, y + h + 17, w * 0.54, 12, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#D7B882';
-  _airyRoundRect(ctx, x, y, w, h, 9); ctx.fill();
-  ctx.fillStyle = '#C59B64';
-  ctx.fillRect(x + 8, y + h - 5, w - 16, 5);
-  ctx.fillStyle = '#A77B4E';
-  ctx.fillRect(x + 12, y + h, 6, 22);
-  ctx.fillRect(x + w - 18, y + h, 6, 22);
-  ctx.fillStyle = '#F4E7C9';
-  _airyRoundRect(ctx, x + w * 0.36, y + 9, w * 0.28, 12, 3); ctx.fill();
-  _airyDrawPlant(ctx, x + w - 18, y + 6, 0.48, _flowerStageForMinutes(Math.floor(_studyMsForUser(u || {}) / 60000)));
-  if (u) _airyDrawChibi(ctx, x + w * 0.5, y + h + 5, u, i, t, 0.78);
+  _airyDrawRoomShadow(ctx, x + w * .50, y + h + 20, w * .52, h * .24, .11);
+  const top = ctx.createLinearGradient(x, y, x, y + h);
+  top.addColorStop(0, '#E5C78F');
+  top.addColorStop(1, '#CDA46B');
+  ctx.fillStyle = top;
+  ctx.shadowColor = 'rgba(104,75,36,.14)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 5;
+  _airyRoundRect(ctx, x, y, w, h, 11); ctx.fill();
+  ctx.shadowColor = 'transparent';
+  ctx.fillStyle = 'rgba(255,246,217,.32)';
+  _airyRoundRect(ctx, x + 9, y + 7, w - 18, h * .28, 7); ctx.fill();
+  ctx.fillStyle = '#B88450';
+  ctx.fillRect(x + 11, y + h - 4, w - 22, 5);
+  ctx.fillRect(x + 13, y + h, 6, 23);
+  ctx.fillRect(x + w - 19, y + h, 6, 23);
+  ctx.fillStyle = '#FFF2CF';
+  _airyRoundRect(ctx, x + w * 0.36, y + 8, w * 0.28, Math.max(10, h * .25), 4); ctx.fill();
+  ctx.fillStyle = '#8FB6C6';
+  _airyRoundRect(ctx, x + w * .18, y + h * .34, w * .13, 6, 3); ctx.fill();
+  _airyDrawPlant(ctx, x + w - 18, y + 5, 0.44, _flowerStageForMinutes(Math.floor(_studyMsForUser(u || {}) / 60000)));
+  if (u) _airyDrawChibi(ctx, x + w * 0.5, y + h + 6, u, i, t, 0.74);
   ctx.restore();
 }
 
@@ -1804,7 +2028,7 @@ function _airyDrawIslandRoom(canvas, ctx, t) {
 }
 
 function _airyDrawRoom(canvas, ctx, t) {
-  if (_roomSceneMode === 'island') {
+  if (!SOFA_ROOM_SINGLE_SCENE && _roomSceneMode === 'island') {
     _airyDrawIslandRoom(canvas, ctx, t);
     return;
   }
@@ -1813,120 +2037,133 @@ function _airyDrawRoom(canvas, ctx, t) {
   const sceneUsers = _sceneUsers.length ? _sceneUsers : _selectSceneUsers(_currentUsers);
   ctx.clearRect(0, 0, w, h);
 
-  const sky = ctx.createLinearGradient(0, 0, 0, h);
-  sky.addColorStop(0, '#FDFBF4');
-  sky.addColorStop(0.58, '#F4EAD7');
-  sky.addColorStop(1, '#ECE0C8');
-  ctx.fillStyle = sky;
+  const bg = ctx.createLinearGradient(0, 0, 0, h);
+  bg.addColorStop(0, '#FEFCF6');
+  bg.addColorStop(0.48, '#F8F1DF');
+  bg.addColorStop(1, '#EEDDBD');
+  ctx.fillStyle = bg;
   ctx.fillRect(0, 0, w, h);
 
-  const horizon = h * (mobile ? 0.53 : 0.45) + _airyWalk.y * 3;
-  ctx.fillStyle = '#FBF8EF';
-  ctx.fillRect(0, 0, w, horizon);
-  ctx.fillStyle = '#EDE0C8';
-  ctx.fillRect(0, horizon, w, h - horizon);
+  const usableW = mobile ? w : Math.max(720, w - 246);
+  const cx = usableW * 0.50;
+  const wallX = mobile ? w * 0.07 : usableW * 0.075;
+  const wallY = mobile ? h * 0.105 : h * 0.078;
+  const wallW = mobile ? w * 0.86 : usableW * 0.84;
+  const wallH = mobile ? h * 0.38 : h * 0.43;
+  const floorTop = wallY + wallH - (mobile ? 24 : 34);
 
-  const sunX = w * 0.78 + Math.sin(t * 0.12) * 16;
-  const sunY = h * 0.12;
-  const sun = ctx.createRadialGradient(sunX, sunY, 20, sunX, sunY, Math.max(w, h) * 0.65);
-  sun.addColorStop(0, 'rgba(255,236,174,.62)');
-  sun.addColorStop(1, 'rgba(255,236,174,0)');
-  ctx.fillStyle = sun;
+  const glow = ctx.createRadialGradient(cx + wallW * .18, wallY + 12, 30, cx + wallW * .18, wallY + 12, Math.max(wallW, wallH) * .92);
+  glow.addColorStop(0, 'rgba(255,246,206,.62)');
+  glow.addColorStop(1, 'rgba(255,246,206,0)');
+  ctx.fillStyle = glow;
   ctx.fillRect(0, 0, w, h);
 
-  const winX = mobile ? w * 0.10 : w * 0.14;
-  const winY = mobile ? h * 0.11 : h * 0.10;
-  const winW = mobile ? w * 0.80 : w * 0.55;
-  const winH = mobile ? h * 0.29 : h * 0.32;
-  ctx.fillStyle = '#D9EEF3';
-  _airyRoundRect(ctx, winX, winY, winW, winH, 18); ctx.fill();
-  const mountain = ctx.createLinearGradient(0, winY, 0, winY + winH);
-  mountain.addColorStop(0, '#B9D7DC');
-  mountain.addColorStop(1, '#E6F3EF');
-  ctx.fillStyle = mountain;
-  ctx.beginPath();
-  ctx.moveTo(winX, winY + winH * 0.78);
-  ctx.lineTo(winX + winW * 0.25, winY + winH * 0.48);
-  ctx.lineTo(winX + winW * 0.48, winY + winH * 0.70);
-  ctx.lineTo(winX + winW * 0.70, winY + winH * 0.43);
-  ctx.lineTo(winX + winW, winY + winH * 0.74);
-  ctx.lineTo(winX + winW, winY + winH);
-  ctx.lineTo(winX, winY + winH);
-  ctx.closePath(); ctx.fill();
-  ctx.strokeStyle = 'rgba(155,130,94,.28)';
-  ctx.lineWidth = mobile ? 5 : 7;
-  _airyRoundRect(ctx, winX, winY, winW, winH, 18); ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(winX + winW / 2, winY); ctx.lineTo(winX + winW / 2, winY + winH);
-  ctx.moveTo(winX, winY + winH / 2); ctx.lineTo(winX + winW, winY + winH / 2);
-  ctx.stroke();
+  _airyDrawRoomShadow(ctx, cx, floorTop + wallH * .32, wallW * .48, wallH * .17, .07);
+  ctx.fillStyle = 'rgba(255,255,255,.42)';
+  _airyRoundRect(ctx, wallX, wallY, wallW, wallH, mobile ? 24 : 34);
+  ctx.fill();
 
-  for (let i = 0; i < (mobile ? 1 : 3); i++) {
-    const sx = winX + winW * (0.35 + i * 0.18);
-    const sy = winY + winH * 0.1;
-    const beam = ctx.createLinearGradient(sx, sy, sx - w * 0.22, h);
-    beam.addColorStop(0, 'rgba(255,245,210,.30)');
-    beam.addColorStop(1, 'rgba(255,245,210,0)');
-    ctx.fillStyle = beam;
-    ctx.beginPath();
-    ctx.moveTo(sx, sy);
-    ctx.lineTo(sx + w * 0.13, sy);
-    ctx.lineTo(sx - w * 0.18, h);
-    ctx.lineTo(sx - w * 0.34, h);
-    ctx.closePath();
-    ctx.fill();
+  ctx.fillStyle = '#FCF8EE';
+  ctx.beginPath();
+  ctx.moveTo(wallX + (mobile ? 10 : 22), wallY + 10);
+  ctx.lineTo(wallX + wallW - (mobile ? 10 : 22), wallY + 10);
+  ctx.lineTo(wallX + wallW - (mobile ? 18 : 34), floorTop + 8);
+  ctx.lineTo(wallX + (mobile ? 18 : 34), floorTop + 8);
+  ctx.closePath();
+  ctx.fill();
+
+  const winX = mobile ? wallX + wallW * .10 : wallX + wallW * .10;
+  const winY = wallY + (mobile ? 22 : 30);
+  const winW = mobile ? wallW * .80 : wallW * .50;
+  const winH = mobile ? wallH * .52 : wallH * .54;
+  _airyDrawSoftWindow(ctx, winX, winY, winW, winH, mobile);
+
+  if (!mobile) {
+    _airyDrawShelf(ctx, wallX + wallW * .66, wallY + wallH * .16, wallW * .21, wallH * .46, false);
+    _airyDrawSubjectPanel(ctx, wallX + wallW * .72, wallY + wallH * .66, wallW * .18, wallH * .21, '考科牆面');
+  } else {
+    _airyDrawSubjectPanel(ctx, wallX + wallW * .18, wallY + wallH * .70, wallW * .64, wallH * .18, 'SoFa 自習室');
   }
 
-  ctx.strokeStyle = 'rgba(190,160,110,.14)';
+  const floor = ctx.createLinearGradient(0, floorTop, 0, h);
+  floor.addColorStop(0, '#F1E2C3');
+  floor.addColorStop(1, '#E6C999');
+  ctx.fillStyle = floor;
+  ctx.beginPath();
+  ctx.moveTo(wallX + (mobile ? 20 : 36), floorTop);
+  ctx.lineTo(wallX + wallW - (mobile ? 20 : 36), floorTop);
+  ctx.lineTo(usableW + (mobile ? 90 : 160), h + 36);
+  ctx.lineTo(mobile ? -90 : -120, h + 36);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(154,116,64,.11)';
   ctx.lineWidth = 1;
-  for (let y = horizon + 14; y < h + 40; y += mobile ? 24 : 30) {
+  const vanishX = cx, vanishY = floorTop - h * .04;
+  for (let i = -5; i <= 5; i++) {
     ctx.beginPath();
-    ctx.moveTo(0, y + _airyWalk.y * 2);
-    ctx.lineTo(w, y + _airyWalk.y * 2);
+    ctx.moveTo(vanishX + i * (mobile ? 42 : 70), floorTop);
+    ctx.lineTo(vanishX + i * (mobile ? 130 : 210), h + 30);
+    ctx.stroke();
+  }
+  for (let i = 0; i < 11; i++) {
+    const p = i / 10;
+    const y = floorTop + Math.pow(p, 1.55) * (h - floorTop + 36);
+    ctx.beginPath();
+    ctx.moveTo(mobile ? -40 : -90, y);
+    ctx.lineTo(usableW + (mobile ? 40 : 90), y);
     ctx.stroke();
   }
 
-  _airyDrawPlant(ctx, mobile ? w - 42 : w * 0.86, horizon - 8, mobile ? 0.9 : 1.25, 3);
-  if (!mobile) _airyDrawPlant(ctx, w * 0.07, horizon - 4, 1.1, 2);
+  ctx.save();
+  ctx.globalAlpha = mobile ? .34 : .40;
+  ctx.fillStyle = '#FFF6D7';
+  for (let i = 0; i < (mobile ? 2 : 3); i++) {
+    const bx = winX + winW * (.34 + i * .18);
+    ctx.beginPath();
+    ctx.moveTo(bx, winY + winH * .12);
+    ctx.lineTo(bx + winW * .12, winY + winH * .12);
+    ctx.lineTo(bx - usableW * .20, h + 24);
+    ctx.lineTo(bx - usableW * .32, h + 24);
+    ctx.closePath();
+    ctx.fill();
+  }
+  ctx.restore();
 
-  const rugX = mobile ? w * 0.5 : w * 0.46;
-  const rugY = h * (mobile ? 0.70 : 0.74);
-  ctx.fillStyle = 'rgba(128,184,190,.20)';
-  ctx.beginPath(); ctx.ellipse(rugX, rugY, w * (mobile ? 0.36 : 0.20), h * 0.055, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = 'rgba(128,184,190,.34)';
-  ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.ellipse(rugX, rugY, w * (mobile ? 0.31 : 0.17), h * 0.040, 0, 0, Math.PI * 2); ctx.stroke();
+  const rugX = cx + (mobile ? 0 : usableW * .04);
+  const rugY = mobile ? h * .72 : h * .73;
+  ctx.fillStyle = 'rgba(127,184,190,.18)';
+  ctx.beginPath(); ctx.ellipse(rugX, rugY, usableW * (mobile ? .35 : .21), h * .060, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = 'rgba(127,184,190,.28)';
+  ctx.lineWidth = mobile ? 2 : 3;
+  ctx.beginPath(); ctx.ellipse(rugX, rugY, usableW * (mobile ? .28 : .17), h * .044, 0, 0, Math.PI * 2); ctx.stroke();
+
+  _airyDrawPlant(ctx, wallX + wallW * .06, floorTop - 2, mobile ? .82 : 1.05, 3);
+  _airyDrawPlant(ctx, wallX + wallW * .92, floorTop + (mobile ? 26 : 6), mobile ? .86 : 1.12, 4);
 
   const desks = mobile
     ? [
-        [w * 0.20, horizon + 36, 70, 34],
-        [w * 0.58, horizon + 46, 72, 34],
-        [w * 0.30, horizon + 118, 78, 36],
-        [w * 0.64, horizon + 132, 76, 36],
+        [cx - 104, floorTop + 58, 82, 38],
+        [cx + 26, floorTop + 82, 88, 40],
+        [cx - 66, floorTop + 166, 96, 42],
+        [cx + 62, floorTop + 198, 96, 42],
       ]
     : [
-        [w * 0.13, horizon + 64, 112, 44],
-        [w * 0.32, horizon + 52, 122, 46],
-        [w * 0.53, horizon + 58, 124, 46],
-        [w * 0.72, horizon + 78, 116, 44],
-        [w * 0.23, horizon + 170, 130, 48],
-        [w * 0.48, horizon + 164, 138, 50],
-        [w * 0.70, horizon + 184, 132, 48],
+        [cx - 342, floorTop + 72, 122, 46],
+        [cx - 118, floorTop + 58, 132, 48],
+        [cx + 126, floorTop + 74, 128, 48],
+        [cx - 250, floorTop + 204, 146, 52],
+        [cx + 10, floorTop + 188, 154, 54],
+        [cx + 270, floorTop + 218, 144, 52],
       ];
-  desks.forEach((d, i) => _airyDrawDesk(ctx, d[0] + Math.sin(_airyWalk.x * 0.08 + i) * 2, d[1], d[2], d[3], sceneUsers[i], i, t));
+  desks.forEach((d, i) => _airyDrawDesk(ctx, d[0], d[1], d[2], d[3], sceneUsers[i], i, t));
 
   if (!mobile) {
-    ctx.fillStyle = 'rgba(255,255,255,.48)';
-    _airyRoundRect(ctx, w * 0.08, h * 0.10, 150, 58, 18); ctx.fill();
-    _airyText(ctx, 'SoFa 自習室', w * 0.08 + 75, h * 0.10 + 23, 16, 'rgba(70,60,48,.72)', '700');
-    _airyText(ctx, 'quiet companion room', w * 0.08 + 75, h * 0.10 + 43, 10, 'rgba(70,60,48,.45)', '500');
+    ctx.fillStyle = 'rgba(255,255,255,.45)';
+    _airyRoundRect(ctx, wallX + 26, wallY + 24, 132, 48, 18); ctx.fill();
+    _airyText(ctx, 'SoFa 自習室', wallX + 92, wallY + 43, 14, 'rgba(70,60,48,.68)', '800');
+    _airyText(ctx, 'quiet companion room', wallX + 92, wallY + 61, 9, 'rgba(70,60,48,.38)', '600');
   }
-
-  ctx.fillStyle = 'rgba(255,255,255,.48)';
-  _airyRoundRect(ctx, mobile ? 18 : w - 330, mobile ? 72 : 76, mobile ? w - 36 : 260, mobile ? 56 : 62, 18);
-  ctx.fill();
-  _airyText(ctx, '最久 19 名＋自己', mobile ? w / 2 : w - 200, mobile ? 96 : 100, mobile ? 13 : 14, 'rgba(70,60,48,.68)', '700');
-  _airyText(ctx, '其他同學都在名單，場景固定載入', mobile ? w / 2 : w - 200, mobile ? 116 : 122, mobile ? 10 : 11, 'rgba(70,60,48,.44)', '500');
 }
 
 function _startAiryRoom(canvas) {
