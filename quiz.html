@@ -379,15 +379,16 @@
   /* ── Wave 85: 今日挑戰 ── */
   #btnDaily {
     display: none;
-    padding: 8px 16px; border-radius: 18px;
-    background: linear-gradient(135deg, #1a3a5c, #0d2540);
-    border: 1px solid #4a7fff; color: #8ab4ff;
-    font-size: 14px; cursor: pointer; transition: all 0.2s;
+    padding: 8px 14px; border-radius: 8px;
+    background: rgba(91,175,214,0.12);
+    border: 1px solid rgba(91,175,214,0.55); color: #9CCBE0;
+    font-size: 12px; cursor: pointer; transition: all 0.2s;
+    font-family: var(--mono); letter-spacing: .04em;
   }
-  #btnDaily:hover { border-color: #6a9fff; color: #aaccff; }
-  #btnDaily.done { border-color: #44cc88; color: #66ddaa; }
+  #btnDaily:hover { background: rgba(91,175,214,0.2); }
+  #btnDaily.done { border-color: rgba(159,184,159,.55); color: var(--good); background: rgba(159,184,159,.12); }
   #daily-badge {
-    font-size: 11px; color: #44cc88; margin-left: 4px; display: none;
+    font-size: 11px; color: var(--good); margin-left: 4px; display: none;
   }
 </style>
 </head>
@@ -447,7 +448,7 @@
         title="30題混法規，60分鐘限時">
         📋 模擬考試
       </button>
-      <button id="btnDaily" onclick="startDailyChallenge()">📅 今日挑戰</button>
+      <button id="btnDaily" onclick="startDailyChallenge()">今日挑戰</button>
       <span id="daily-badge"></span>
       <div id="quiz-streak" style="display:none;font-size:13px;color:#ff9955;font-weight:600;padding:3px 8px;background:rgba(255,140,0,0.12);border:1px solid rgba(255,140,0,0.3);border-radius:12px;margin-left:8px"></div>
     </div>
@@ -871,11 +872,11 @@ function _updateDailyBtn() {
   const r = _getDailyResult();
   if (r) {
     btn.classList.add('done');
-    btn.textContent = '📅 今日挑戰';
-    if (badge) { badge.textContent = '✅ ' + r.score + '/' + r.total; badge.style.display = 'inline'; }
+    btn.textContent = '今日挑戰';
+    if (badge) { badge.textContent = '✓ ' + r.score + '/' + r.total; badge.style.display = 'inline'; }
   } else {
     btn.classList.remove('done');
-    btn.textContent = '📅 今日挑戰';
+    btn.textContent = '今日挑戰';
     if (badge) badge.style.display = 'none';
   }
 }

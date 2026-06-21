@@ -53,7 +53,7 @@
   }
 
   .stage{
-    padding:48px 64px 96px;background:var(--navy-3);
+    padding:28px 64px 56px;background:var(--navy-3);
     position:relative;min-height:calc(100vh - 70px - 60px - 2px);
   }
   .stage::before{
@@ -67,7 +67,7 @@
   }
   .inner{max-width:1080px;margin:0 auto;position:relative;display:grid;grid-template-columns:1fr 300px;gap:32px}
 
-  .ar-head{margin-bottom:24px}
+  .ar-head{margin-bottom:14px}
   .ar-head .eb{
     font-family:var(--mono);font-size:11px;color:var(--peach);
     letter-spacing:.22em;text-transform:uppercase;
@@ -75,13 +75,13 @@
   }
   .ar-head .eb::before{content:"";width:18px;height:1px;background:var(--peach)}
   .ar-head h2{
-    font-family:var(--serif);font-weight:600;font-size:32px;
-    margin-top:12px;color:var(--cream);
+    font-family:var(--serif);font-weight:600;font-size:27px;
+    margin-top:8px;color:var(--cream);
     display:flex;align-items:baseline;gap:18px;
   }
-  .ar-head h2 .n{font-size:48px;color:var(--peach);font-weight:600;letter-spacing:-.02em}
+  .ar-head h2 .n{font-size:38px;color:var(--peach);font-weight:600;letter-spacing:-.02em}
   .ar-head .row{
-    margin-top:14px;display:flex;gap:18px;align-items:center;
+    margin-top:10px;display:flex;gap:18px;align-items:center;
     font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;
     color:rgba(245,240,234,.55);text-transform:uppercase;flex-wrap:wrap;
   }
@@ -92,8 +92,8 @@
 
   .fill-card{
     background:var(--navy-2);border:1px solid var(--line);border-radius:4px;
-    padding:42px 48px;
-    font-family:var(--serif);font-size:21px;line-height:2.15;
+    padding:28px 44px;
+    font-family:var(--serif);font-size:21px;line-height:2.0;
     color:var(--cream);letter-spacing:.02em;position:relative;
     word-break:keep-all;overflow-wrap:break-word;
   }
@@ -203,14 +203,18 @@
 
   /* Wave 52 — difficulty badge */
   #diff-badge {
-    display:inline-flex;align-items:center;gap:5px;
+    display:inline-flex;align-items:center;gap:6px;
     padding:3px 10px;border-radius:12px;font-size:12px;
     font-weight:600;vertical-align:middle;
     transition:all 0.3s;font-family:var(--mono);letter-spacing:.04em;
   }
-  #diff-badge.easy   { background:rgba(46,204,113,0.15);  color:#2ECC71; border:1px solid rgba(46,204,113,0.3); }
-  #diff-badge.medium { background:rgba(212,168,71,0.15);   color:#D4A847; border:1px solid rgba(212,168,71,0.3); }
-  #diff-badge.hard   { background:rgba(231,76,60,0.15);    color:#E74C3C; border:1px solid rgba(231,76,60,0.3); }
+  #diff-badge .d{width:7px;height:7px;border-radius:50%;flex:none}
+  #diff-badge.easy   { background:rgba(159,184,159,.14); color:var(--good); border:1px solid rgba(159,184,159,.32); }
+  #diff-badge.easy   .d{ background:var(--good) }
+  #diff-badge.medium { background:rgba(217,176,132,.14); color:var(--warn); border:1px solid rgba(217,176,132,.32); }
+  #diff-badge.medium .d{ background:var(--warn) }
+  #diff-badge.hard   { background:rgba(199,123,106,.14); color:var(--bad);  border:1px solid rgba(199,123,106,.32); }
+  #diff-badge.hard   .d{ background:var(--bad) }
 
   /* blank list */
   .blank-list{display:flex;flex-direction:column;gap:8px}
@@ -302,18 +306,20 @@
 
   /* ── Wave 93: 每日填空挑戰 ── */
   #btnFillDaily {
-    padding: 7px 15px; border-radius: 16px;
-    background: rgba(10,20,40,0.7);
-    border: 1px solid #4a7fff; color: #8ab4ff;
-    font-size: 14px; cursor: pointer; transition: all 0.2s;
+    padding: 8px 14px; border-radius: 8px;
+    background: rgba(91,175,214,0.12);
+    border: 1px solid rgba(91,175,214,0.55); color: #9CCBE0;
+    font-size: 12px; cursor: pointer; transition: all 0.2s;
+    font-family: var(--mono); letter-spacing: .04em;
   }
-  #btnFillDaily.done { border-color: #44cc88; color: #66ddaa; }
-  #fill-daily-badge { font-size: 11px; color: #44cc88; margin-left: 4px; display: none; }
+  #btnFillDaily:hover { background: rgba(91,175,214,0.2); }
+  #btnFillDaily.done { border-color: rgba(159,184,159,.55); color: var(--good); background: rgba(159,184,159,.12); }
+  #fill-daily-badge { font-size: 11px; color: var(--good); margin-left: 4px; display: none; }
 </style>
 </head>
 <body>
 
-  <div id="kb-hint">⌨ Tab 切換空格 · Enter 確認/下一篇</div>
+  <div id="kb-hint">⌨ Tab 切換空格 · Enter 確認，全對才換下一篇</div>
 
   <header class="topbar">
     <a class="brand" href="index.html"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
@@ -355,7 +361,7 @@
       <button id="btnFillSession" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(91,175,214,0.15);border-color:rgba(91,175,214,0.6)">⚡ 連刷模式</button>
       <button onclick="openFillStats()" title="個人填空統計" style="background:none;border:1px solid rgba(91,175,214,0.3);color:#5BAFD6;border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">📊</button>
       <button id="btn-handwrite" onclick="_toggleHandwrite(this)" title="iPad 手寫模式（放大輸入格）" style="background:none;border:1px solid rgba(245,240,234,.25);color:rgba(245,240,234,.6);border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">✏</button>
-      <button id="btnFillDaily" onclick="startFillDailyChallenge()">📅 今日填空</button>
+      <button id="btnFillDaily" onclick="startFillDailyChallenge()">今日填空</button>
       <span id="fill-daily-badge"></span>
       <div id="fill-streak" style="
         display:none;
@@ -836,6 +842,7 @@ let _fillStreak = 0;      // Wave 87: consecutive perfect-fill streak
 const _fillToday = new Date().toISOString().slice(0,10);
 const _fillDailyKey = 'sofa_fill_daily_' + _fillToday;
 let _isFillDailyMode = false;
+let _lastFillPerfect = false;  // 全對才允許 Enter 直接跳下一題
 
 function _getFillDailyResult() {
   try { return JSON.parse(localStorage.getItem(_fillDailyKey)||'null'); } catch { return null; }
@@ -847,7 +854,10 @@ function _updateFillDailyBtn() {
   const r = _getFillDailyResult();
   if (r) {
     btn.classList.add('done');
-    if (badge) { badge.textContent = `✅ ${r.pct}%`; badge.style.display='inline'; }
+    // 容錯：舊版 localStorage 可能沒有 pct，改用 score/total 推算，仍無則只顯示「已完成」
+    let pct = (typeof r.pct === 'number') ? r.pct
+            : (r.total ? Math.round((r.score / r.total) * 100) : null);
+    if (badge) { badge.textContent = (pct != null) ? `✓ ${pct}%` : '✓ 已完成'; badge.style.display='inline'; }
   } else {
     btn.classList.remove('done');
     if (badge) badge.style.display='none';
@@ -880,7 +890,7 @@ function _buildFillCalendar() {
   const maxCount = Math.max(...days.map(d => d.count), 1);
 
   let html = `<div style="margin-top:12px">
-    <div style="font-size:10px;color:#aaa;margin-bottom:6px">📅 近30日填空</div>
+    <div style="font-size:10px;color:#aaa;margin-bottom:6px">近 30 日填空</div>
     <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px">`;
 
   days.forEach(({ count, isToday }) => {
@@ -1217,15 +1227,15 @@ function _updateDiffBadge(blankCount){
   badge.className = '';
   if(blankCount <= 2){
     badge.className = 'easy';
-    badge.textContent = '🟢 基礎  ' + blankCount + '格';
+    badge.innerHTML = '<span class="d"></span>基礎 ' + blankCount + '格';
     badge.title = blankCount + ' 個填空';
   } else if(blankCount <= 4){
     badge.className = 'medium';
-    badge.textContent = '🟡 進階  ' + blankCount + '格';
+    badge.innerHTML = '<span class="d"></span>進階 ' + blankCount + '格';
     badge.title = blankCount + ' 個填空';
   } else {
     badge.className = 'hard';
-    badge.textContent = '🔴 挑戰  ' + blankCount + '格';
+    badge.innerHTML = '<span class="d"></span>挑戰 ' + blankCount + '格';
     badge.title = blankCount + ' 個填空';
   }
 }
@@ -1344,6 +1354,7 @@ function checkAnswers(){
     if(answerMatch(inp.value,ans)){inp.classList.add('ok');cor++;}
     else{inp.classList.add('bad');const sp=document.createElement('span');sp.textContent=`（${ans}）`;sp.style.cssText='color:var(--good);font-size:.78rem;font-family:var(--mono);margin-left:.3rem;';inp.after(sp);}
   });
+  _lastFillPerfect = (cor === inputs.length);  // 記住本題是否全對
   // Wave 38: play audio feedback based on score
   if(cor === inputs.length) _fillSoundPerfect();
   else if(cor > 0) _fillSoundPartial();
@@ -1444,6 +1455,7 @@ document.getElementById('fillSourceLink').addEventListener('click',()=>{
 
 async function loadNew(){
   fillData=null;
+  _lastFillPerfect = false;
   // Wave 107: reset per-article timer on new load
   _fillStartTime = 0;
   clearInterval(_fillTimerInterval);
@@ -1561,10 +1573,10 @@ function _fillKeyHandler(e) {
     // Let the per-input Enter handler manage check; only intercept when results are showing
     if (!resultsShowing) return;
   }
-  // Results are showing → Enter loads next article
+  // Results are showing → 只有全對才用 Enter 直接跳下一題；答錯時停留讓使用者看訂正
   if (resultsShowing) {
     e.preventDefault();
-    document.getElementById('btnNext')?.click();
+    if (_lastFillPerfect) document.getElementById('btnNext')?.click();
     return;
   }
   // No blanks yet (no article loaded) → do nothing
