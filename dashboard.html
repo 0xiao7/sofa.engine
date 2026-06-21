@@ -1125,7 +1125,7 @@
   .acc-inner .sec-h{margin:13px 0 5px;color:var(--navy);font-weight:600}
   .acc-inner .sec-h:first-child{margin-top:0}
   .acc-inner .sec-i{position:relative;padding-left:20px;margin:4px 0}
-  .acc-inner .sec-i::before{content:'◦';position:absolute;left:5px;top:-.04em;color:var(--peach-3);font-weight:700}
+  .acc-inner .sec-i::before{content:'';position:absolute;left:6px;top:.66em;width:4px;height:4px;border:1.3px solid var(--peach-3);border-radius:50%;box-sizing:border-box}
 
   .dr-foot{padding:18px 28px;background:var(--cream-2);border-top:1px solid var(--cream-3);display:flex;gap:10px;flex-wrap:wrap}
   #dr-review-picker{display:none;width:100%;gap:8px;padding-top:4px}
@@ -1657,7 +1657,7 @@
               <span class="idx">07</span>
               <h2>備考工具</h2>
             </div>
-            <div class="r"><span class="eb">7 種模式</span></div>
+            <div class="r"><span class="eb">8 種模式</span></div>
           </div>
 
           <!-- 繼續練習 CTA -->
@@ -1743,6 +1743,15 @@
               <p class="desc">哪些法規最弱、<br/>錯題自動排程重練。</p>
               <span class="arrow">查看 <span class="glyph">→</span></span>
             </a>
+            <a class="tool" href="notes.html">
+              <div class="num">08</div>
+              <div>
+                <div class="code">NOTE</div>
+                <div class="name" style="margin-top:6px">私人筆記庫</div>
+              </div>
+              <p class="desc">你寫過筆記的條文，<br/>集中一處回看。</p>
+              <span class="arrow">翻開 <span class="glyph">→</span></span>
+            </a>
           </div>
         </section>
 
@@ -1823,6 +1832,7 @@
     </div>
   </aside>
 
+<script src="notes-store.js"></script>
 <script>
 // ── 全域常數 ─────────────────────────────────────────────
 const API = 'https://sofa-engine-api.onrender.com';
@@ -2041,7 +2051,7 @@ function _renderRecentViews() {
     var snip = (v.snippet || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     var law  = esc(v.lawName || '');
     var art  = esc(v.articleNo || '');
-    return '<div onclick="_openRecentView(' + v.id + ',\'' + law.replace(/'/g,"\\'") + '\',\'' + art + '\')" '
+    return '<div onclick="_openRecentView(\'' + v.id + '\',\'' + law.replace(/'/g,"\\'") + '\',\'' + art + '\')" '
       + 'style="cursor:pointer;background:rgba(255,255,255,0.04);'
       + 'border:1px solid rgba(100,160,220,0.15);border-radius:6px;padding:7px 10px;'
       + 'display:flex;justify-content:space-between;align-items:center;'
@@ -2492,13 +2502,15 @@ function _saveNote() {
   if (!_currentNoteId) return;
   try {
     var text = (document.getElementById('note-input')?.value || '').trim();
-    var notes = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}');
-    if (text) {
-      notes[_currentNoteId] = { text: text, updatedAt: new Date().toISOString(), lawName: _currentNoteLaw, articleNo: _currentNoteArticleNo };
+    // 寫本地 + 登入則背景上雲（offline-first，見 notes-store.js）
+    if (window.notesStore) {
+      notesStore.save(_currentNoteId, { text: text, lawName: _currentNoteLaw, articleNo: _currentNoteArticleNo });
     } else {
-      delete notes[_currentNoteId];
+      var notes = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}');
+      if (text) notes[_currentNoteId] = { text: text, updatedAt: new Date().toISOString(), lawName: _currentNoteLaw, articleNo: _currentNoteArticleNo };
+      else delete notes[_currentNoteId];
+      localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
     }
-    localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
     var hint = document.getElementById('note-saved-hint');
     if (hint) { hint.style.display = 'block'; setTimeout(function() { hint.style.display = 'none'; }, 2000); }
     var btn = document.getElementById('note-save-btn');
@@ -2573,13 +2585,16 @@ async function loadRandomArticle() {
   if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
   try {
     // 用已載入的 _allLaws（頁面啟動時就 fetch 好了），不需重複拉取
-    var laws = (_allLaws && _allLaws.length > 0) ? _allLaws : [];
-    if (laws.length === 0) {
+    var _src = (_allLaws && _allLaws.length > 0) ? _allLaws : [];
+    if (_src.length === 0) {
       // 萬一 _allLaws 尚未就緒，臨時補抓
       var r0 = await fetch(API + '/api/laws');
       var d0 = await r0.json();
-      laws = (d0 && d0.laws) ? d0.laws : [];
+      _src = (d0 && d0.laws) ? d0.laws : [];
     }
+    // 限定在目前選定的考科範圍內隨機（未選考科 _examFilter='all' 才全庫）
+    var _examSet = (typeof _examLawSet === 'function') ? _examLawSet(_examFilter) : null;
+    var laws = _examSet ? _src.filter(function(l){ return _examSet.has(l.name); }) : _src;
     if (laws.length === 0) { _dashToast('法規清單尚未載入，請稍後再試'); return; }
 
     // 隨機選一部法規
@@ -3633,6 +3648,8 @@ function _renderLawsToc(page){
         if(el2) el2.innerHTML = '共 <b>' + cnt + '</b> 部';
         // Wave 69：法規清單載入後觸發 URL ?q= 自動搜尋
         _handleUrlQuery();
+        // 私人筆記庫：?open=<page_id> 落地直接開該條 drawer
+        _handleUrlOpen();
       }
     })
     .catch(function(){});
@@ -4027,6 +4044,18 @@ function _handleUrlQuery(){
   inp.value = decodeURIComponent(q);
   doSearch();
 }
+
+// 私人筆記庫：?open=<page_id> 從筆記庫點卡片落地，直接開該條 drawer（自動展開筆記）
+function _handleUrlOpen(){
+  var params = new URLSearchParams(window.location.search);
+  var pid = params.get('open');
+  if(!pid) return;
+  openDrawer(decodeURIComponent(pid), decodeURIComponent(params.get('law')||''), decodeURIComponent(params.get('art')||''));
+}
+
+// 私人筆記庫：登入後把雲端筆記拉下來與本地合併（跨裝置同步）。
+// 搜尋結果的 📝 徽章每次 render 都重讀 localStorage，合併後自然反映，無需手動刷新。
+if (window.notesStore) { notesStore.sync(); }
 
 // Wave 105: render recent views on page load
 _renderRecentViews();

@@ -237,7 +237,7 @@
   .sec-text .sec-h{margin:10px 0 4px;color:var(--navy);font-weight:600}
   .sec-text .sec-h:first-child{margin-top:0}
   .sec-text .sec-i{position:relative;padding-left:18px;margin:3px 0}
-  .sec-text .sec-i::before{content:'◦';position:absolute;left:4px;top:-.04em;color:var(--peach-3);font-weight:700}
+  .sec-text .sec-i::before{content:'';position:absolute;left:5px;top:.62em;width:4px;height:4px;border:1.2px solid var(--peach-3);border-radius:50%;box-sizing:border-box}
   .sec-lock{margin-top:16px;border-top:1px dashed rgba(31,56,72,.15)}
   .sec-lock .sec-label::after{content:" 🔒";font-size:11px;opacity:.65}
   .sec-lock-preview{position:relative;max-height:80px;overflow:hidden;padding:10px 0 0;pointer-events:none;user-select:none;font-size:13.5px;line-height:1.8;color:rgba(31,56,72,.72)}
@@ -637,8 +637,12 @@ const _EXAM_LAWS = {
   bookkeeper: ['記帳士法','記帳士職業倫理道德規範','中華民國記帳士職業道德規範','記帳士法第三十五條規定之管理辦法','記帳士暨記帳及報稅代理人防制洗錢與打擊資恐辦法','記帳士懲戒委員會與懲戒覆審委員會組織及審議規則','公司法','公司登記辦法','商業登記法','商業登記申請辦法','商業會計法','商業會計處理準則','商業使用電子方式處理會計資料辦法','行政程序法','稅捐稽徵法','稅捐稽徵法施行細則','納稅者權利保護法','納稅者權利保護法施行細則','所得稅法','所得稅法施行細則','所得基本稅額條例','所得基本稅額條例施行細則','各類所得扣繳率標準','營利事業所得稅查核準則','加值型及非加值型營業稅法','加值型及非加值型營業稅法施行細則','兼營營業人營業稅額計算辦法','統一發票使用辦法','統一發票給獎辦法','遺產及贈與稅法','遺產及贈與稅法施行細則','特種貨物及勞務稅條例','特種貨物及勞務稅條例施行細則'],
   landadmin:  ['民法','信託法','土地法','土地法施行法','平均地權條例','平均地權條例施行細則','土地徵收條例','土地徵收條例施行細則','地政士法','地政士法施行細則','土地登記規則','地籍測量實施規則','土地稅法','土地稅法施行細則','遺產及贈與稅法','遺產及贈與稅法施行細則','契稅條例','房屋稅條例','稅捐稽徵法','稅捐稽徵法施行細則','工程受益費徵收條例','所得稅法','所得稅法施行細則'],
   realestate: ['民法','土地法','平均地權條例','平均地權條例施行細則','土地徵收條例','非都市土地使用管制規則','區域計畫法','都市計畫法','土地稅法','土地稅法施行細則','契稅條例','房屋稅條例','所得稅法','所得稅法施行細則','不動產經紀業管理條例','不動產經紀業管理條例施行細則','公平交易法','消費者保護法','公寓大廈管理條例'],
+  'tax-admin': ['民法','稅捐稽徵法','稅捐稽徵法施行細則','納稅者權利保護法','納稅者權利保護法施行細則','所得稅法','所得稅法施行細則','所得基本稅額條例','所得基本稅額條例施行細則','加值型及非加值型營業稅法','加值型及非加值型營業稅法施行細則','土地稅法','土地稅法施行細則','房屋稅條例','契稅條例','貨物稅條例','印花稅法','使用牌照稅法','遺產及贈與稅法','遺產及贈與稅法施行細則'],
+  'tax-law': ['中華民國憲法','中華民國憲法增修條文','行政程序法','行政罰法','行政執行法','訴願法','行政訴訟法','國家賠償法','公務員服務法','公務人員任用法','稅捐稽徵法','稅捐稽徵法施行細則','所得稅法','加值型及非加值型營業稅法','遺產及贈與稅法','土地稅法','民法','刑法','納稅者權利保護法'],
+  'elem-admin': ['中華民國憲法','公務員服務法','公務人員任用法','民法','刑法','行政程序法','行政罰法','行政執行法','訴願法','行政訴訟法','國家賠償法'],
+  'post-acc': ['會計法','預算法','決算法','郵政法','公司法','商業會計法','稅捐稽徵法','所得稅法','加值型及非加值型營業稅法','個人資料保護法'],
 };
-const _EXAM_NAMES = {bookkeeper:'記帳士',landadmin:'地政士',realestate:'不動產經紀人'};
+const _EXAM_NAMES = {bookkeeper:'記帳士',landadmin:'地政士',realestate:'不動產經紀人','tax-admin':'財稅行政','tax-law':'財稅法務','elem-admin':'初等一般行政','post-acc':'中華郵政會計'};
 let _allLoadedPrLaws = [];
 
 function _filterLawsForExam(laws, key) {
@@ -1102,14 +1106,24 @@ async function loadNew(){
         lawMeta=law;
       }
       if(!d){
-        let url=law?`${API}/api/random?law=${encodeURIComponent(law)}`:`${API}/api/random`;
-        // 跨法規 + chip + sub → server-side 篩選
+        const _wasAll=!law;
         var _subVal=(document.getElementById('prSubSel')||{}).value||'';
-        if(!law && _curPrChip!=='all' && _subVal){
+        let _qLaw=law;
+        // 「全部法規」→ 先限定在已選考科範圍內隨機抽一部法規；未選考科才全庫隨機
+        if(_wasAll){
+          const _ek=localStorage.getItem('sofa_exam_key')||localStorage.getItem('sofa.dash.exam.pick')||'';
+          const _scoped=_filterLawsForExam(_allLoadedPrLaws,_ek);
+          if(_EXAM_LAWS[_ek]&&_scoped.length){
+            _qLaw=_scoped[Math.floor(Math.random()*_scoped.length)].name;
+          }
+        }
+        let url=_qLaw?`${API}/api/random?law=${encodeURIComponent(_qLaw)}`:`${API}/api/random`;
+        // 跨法規 + chip + sub → server-side 篩選
+        if(_wasAll && _curPrChip!=='all' && _subVal){
           url+=(url.indexOf('?')>=0?'&':'?')+'chip='+encodeURIComponent(_curPrChip)+'&sub='+encodeURIComponent(_subVal);
         }
         d=await fetch(url,{headers:_authH()}).then(r=>r.json());
-        lawMeta=law||'';
+        lawMeta=_qLaw||'';
       }
     }
     articleSections=d.sections||{}; articlePlan=d._plan||'free';
