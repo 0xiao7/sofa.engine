@@ -38,6 +38,32 @@
   }
   .pr-bar .title .art{font-family:var(--serif);font-weight:600;font-size:18px;color:var(--cream)}
   .pr-bar .title .sub{color:rgba(245,240,234,.6);font-size:13.5px}
+
+  /* 自製法規下拉：原生 <select> 展開時的高亮會吃 macOS 系統強調色（粉紅），CSS 管不到，改用自畫選單 */
+  .law-dd{position:relative;display:inline-flex;align-items:center}
+  .law-dd-btn{
+    display:inline-flex;align-items:center;gap:8px;padding:0;
+    font-family:var(--serif);font-weight:600;font-size:18px;color:var(--cream);
+    background:transparent;border:none;cursor:pointer;
+  }
+  .law-dd-btn .cv{font-family:var(--mono);font-size:11px;color:var(--peach);transition:transform .2s}
+  .law-dd.open .law-dd-btn .cv{transform:rotate(180deg)}
+  .law-dd-pop{
+    position:absolute;top:calc(100% + 10px);left:0;z-index:300;
+    min-width:300px;max-height:64vh;overflow-y:auto;display:none;
+    background:var(--navy);border:1px solid var(--line-2);border-radius:8px;
+    box-shadow:0 18px 48px rgba(0,0,0,.45);padding:6px;
+  }
+  .law-dd.open .law-dd-pop{display:block}
+  .law-dd-item{
+    padding:8px 12px;border-radius:5px;cursor:pointer;white-space:nowrap;transition:.12s;
+    font-family:var(--sans);font-size:14px;color:rgba(245,240,234,.85);letter-spacing:.02em;
+  }
+  .law-dd-item:hover{background:rgba(231,187,167,.12);color:var(--cream)}
+  .law-dd-item.sel{background:rgba(231,187,167,.18);color:var(--peach);font-weight:600}
+  .law-dd-sep{height:1px;background:var(--line);margin:6px 8px}
+  .law-dd-pop::-webkit-scrollbar{width:8px}
+  .law-dd-pop::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px}
   .pr-meta{
     display:flex;align-items:center;gap:22px;
     font-family:var(--mono);font-size:12px;letter-spacing:.08em;
@@ -341,7 +367,11 @@
       <a href="dashboard.html" class="back">← BACK</a>
       <div class="title">
         <span class="law">LAW</span>
-        <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:600;font-size:18px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none"><option value="">全部法規</option></select>
+        <select id="lawSelect" style="display:none"><option value="">全部法規</option></select>
+        <div class="law-dd" id="lawDD">
+          <button type="button" class="law-dd-btn" id="lawDDBtn"><span id="lawDDLabel">全部法規</span><span class="cv">▾</span></button>
+          <div class="law-dd-pop" id="lawDDPop"></div>
+        </div>
         <span id="fill-scope-label" style="font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--peach);white-space:nowrap;display:none"></span>
       </div>
       <div id="fill-status-bar" style="
@@ -629,6 +659,35 @@ function _showFillExamBanner() {
   _updateFillScopeLabel();
 })();
 
+// 自製法規下拉：以隱藏的 <select id="lawSelect"> 為真實狀態，自畫選單只負責顯示與品牌色高亮
+(function(){
+  const sel=document.getElementById('lawSelect');
+  const dd=document.getElementById('lawDD');
+  const btn=document.getElementById('lawDDBtn');
+  const pop=document.getElementById('lawDDPop');
+  const label=document.getElementById('lawDDLabel');
+  if(!sel||!dd||!btn||!pop||!label) return;
+  function syncLabel(){ const o=sel.selectedOptions[0]; label.textContent=o?o.textContent:'全部法規'; }
+  function buildPop(){
+    pop.innerHTML='';
+    Array.from(sel.options).forEach(o=>{
+      if(o.disabled){ const s=document.createElement('div');s.className='law-dd-sep';pop.appendChild(s);return; }
+      const it=document.createElement('div');
+      it.className='law-dd-item'+(o.value===sel.value?' sel':'');
+      it.textContent=o.textContent;
+      it.addEventListener('click',()=>{ sel.value=o.value; sel.dispatchEvent(new Event('change')); syncLabel(); close(); });
+      pop.appendChild(it);
+    });
+  }
+  function open(){ buildPop(); dd.classList.add('open'); const s=pop.querySelector('.sel'); if(s)s.scrollIntoView({block:'nearest'}); }
+  function close(){ dd.classList.remove('open'); }
+  btn.addEventListener('click',e=>{ e.stopPropagation(); dd.classList.contains('open')?close():open(); });
+  document.addEventListener('click',e=>{ if(!dd.contains(e.target))close(); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape')close(); });
+  sel.addEventListener('change',syncLabel);
+  syncLabel();
+})();
+
 let _artCache = {};
 
 // ── 練習區 chip 細篩（期限 / 罰則）─────────────────────────
@@ -843,6 +902,7 @@ const _fillToday = new Date().toISOString().slice(0,10);
 const _fillDailyKey = 'sofa_fill_daily_' + _fillToday;
 let _isFillDailyMode = false;
 let _lastFillPerfect = false;  // 全對才允許 Enter 直接跳下一題
+let _fillEmptyRetry = 0;       // 出到沒有空格的條文時自動換下一條的重試計數
 
 function _getFillDailyResult() {
   try { return JSON.parse(localStorage.getItem(_fillDailyKey)||'null'); } catch { return null; }
@@ -1297,8 +1357,15 @@ function renderFill(){
     }
     allHtml=`<p>${ph}</p>`;
   }
-  box.innerHTML=allHtml;
   const idx=blankIdx;
+  // 防呆：若這條算不出任何空格（偶發的空白/異常條文），自動換下一條，最多重試 6 次，
+  // 不要把空卡片留在畫面上讓使用者以為「沒有自動出題」
+  if(idx===0 && !_isFillDailyMode){
+    if(_fillEmptyRetry < 6){ _fillEmptyRetry++; loadNew(); return; }
+  } else {
+    _fillEmptyRetry = 0;
+  }
+  box.innerHTML=allHtml;
   // 更新 data-label
   document.getElementById('fillCard').dataset.label=`FILL · ${idx} BLANK${idx>1?'S':''}`;
   document.getElementById('blankCount').textContent=idx+' 個空格';
