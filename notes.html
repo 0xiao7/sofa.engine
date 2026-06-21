@@ -110,8 +110,57 @@
 
 <script src="notes-store.js"></script>
 <script>
+  var API = 'https://sofa-engine-api.onrender.com';
   function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+  // ── 全域付費判定（keystone，fail-OPEN）────────────────────────────
+  // 私人筆記庫整頁為升級內容；判定不確定一律「不鎖」，絕不擋付費會員。
+  //   · 明確免費（無 uid 且 sofa_free=FREE）→ 鎖（顯示升級 CTA 取代清單）。
+  //   · 已登入 → 預設付費（fail-open），非同步向 /api/me/profile 確認；
+  //     只有「明確回免費 plan」才降為鎖，其餘（200付費/4xx/5xx/逾時/parse失敗）維持不鎖。
+  var _PAID_PLANS = {'月費':1,'季費':1,'買斷':1,'體驗':1,'Admin':1,'monthly':1,'quarterly':1,'trial':1};
+  var _FREE_PLANS = {'免費':1,'free':1,'':1};
+  var _uid = localStorage.getItem('sofa_uid');
+  var _tok = localStorage.getItem('sofa_token') || '';
+  var _explicitFree = (!_uid && localStorage.getItem('sofa_free') === 'FREE');
+  window.__notesPaid = !_explicitFree;        // fail-open 初值
+  window.__notesPaidResolved = !_uid;          // 未登入沒得查
+  function _authHeaders(){ var h={}; if(_tok) h['Authorization']='Bearer '+_tok; else if(_uid) h['X-Sofa-UID']=_uid; return h; }
+  function _confirmNotesPaid(cb){
+    if(!_uid){ cb(window.__notesPaid); return; }
+    var done=false;
+    var ctrl = (typeof AbortController!=='undefined') ? new AbortController() : null;
+    var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 6000) : null;
+    function finish(v){ if(done) return; done=true; if(timer) clearTimeout(timer); window.__notesPaid=v; window.__notesPaidResolved=true; cb(v); }
+    fetch(API + '/api/me/profile', { headers: _authHeaders(), signal: ctrl ? ctrl.signal : undefined })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        if(!d){ finish(true); return; }                 // 4xx/5xx → fail-open
+        if(d.is_admin){ finish(true); return; }
+        var plan = (d.plan||'').trim();
+        if(_PAID_PLANS[plan]){ finish(true); return; }
+        if(_FREE_PLANS.hasOwnProperty(plan)){ finish(false); return; } // 唯一鎖定條件
+        finish(true);                                    // 未知 plan → fail-open
+      })
+      .catch(function(){ finish(true); });               // 逾時/網路錯 → fail-open
+  }
+
+  function renderUpgradeGate(){
+    var grid = document.getElementById('grid');
+    var sub = document.getElementById('sub');
+    var foot = document.getElementById('footnote');
+    var btn = document.getElementById('exportBtn');
+    btn.style.display = 'none';
+    sub.textContent = '雲端筆記庫 · 升級後解鎖';
+    grid.innerHTML = '<div class="empty"><span class="ic">🔒</span>'
+      + '<div class="t">私人筆記庫是升級功能</div>'
+      + '<div class="d">把你在每條法條寫下的口訣、易混淆點、考前提醒，<br>'
+      + '集中收進這裡，登入後自動雲端同步、跨裝置回看。<br>'
+      + '升級後就能打開你的整座筆記庫。</div>'
+      + '<a class="cta" href="pricing.html">升級解鎖筆記庫 →</a></div>';
+    foot.textContent = '免費版仍可在條文底部寫筆記（存在本機）· 升級後同步雲端';
+  }
 
   function fmtDate(iso){
     if(!iso) return '';
@@ -166,10 +215,20 @@
     if(!n){ alert('尚無筆記可匯出'); }
   }
 
-  // 先用本地內容立即渲染（offline-first），登入則拉雲端合併後再重繪
-  render();
-  if(window.notesStore && notesStore.isLoggedIn()){
-    notesStore.sync().then(function(){ render(); });
+  // 付費判定後決定顯示：免費→升級 CTA；付費/不確定→照常渲染（fail-open）
+  // 明確免費直接擋；已登入先 fail-open 渲染本地內容，確認後若為免費才換成 CTA。
+  if(_explicitFree){
+    renderUpgradeGate();
+  } else {
+    // 先用本地內容立即渲染（offline-first），登入則拉雲端合併後再重繪
+    render();
+    if(window.notesStore && notesStore.isLoggedIn()){
+      notesStore.sync().then(function(){ render(); });
+    }
+    _confirmNotesPaid(function(paid){
+      if(!paid){ renderUpgradeGate(); }
+      // paid 或不確定 → 維持已渲染的清單，不動作
+    });
   }
 </script>
 </body>
