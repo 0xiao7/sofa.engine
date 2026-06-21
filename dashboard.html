@@ -3527,7 +3527,7 @@ function _renderLawsToc(page){
         var cnt = _allLaws.length;
         // article_total = 真實條文數；d.total 是法規數，別誤用成條文數
         var artTotal = d.article_total || 0;
-        var artLabel = artTotal >= 10000 ? Math.floor(artTotal/1000)*1000+'+ 條' : (artTotal > 0 ? artTotal+'+ 條' : '37,000+ 條');
+        var artLabel = artTotal >= 10000 ? (Math.floor(artTotal/1000)*1000).toLocaleString('en-US')+'+ 條' : (artTotal > 0 ? artTotal.toLocaleString('en-US')+'+ 條' : '37,000+ 條');
         var el1 = document.getElementById('search-law-count');
         if(el1) el1.textContent = artLabel + ' · ' + cnt + ' 部';
         var el2 = document.querySelector('.laws-count');
