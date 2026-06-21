@@ -852,12 +852,14 @@ function _updateFillDailyBtn() {
   const badge = document.getElementById('fill-daily-badge');
   if (!btn) return;
   const r = _getFillDailyResult();
-  if (r) {
-    btn.classList.add('done');
-    // 容錯：舊版 localStorage 可能沒有 pct，改用 score/total 推算，仍無則只顯示「已完成」
-    let pct = (typeof r.pct === 'number') ? r.pct
+  // 容錯：舊版 localStorage 可能沒有 pct，改用 score/total 推算；
+  // 仍算不出（壞掉的舊資料）就當作沒紀錄，徽章整個藏起來，等真的跑完一輪才出現
+  const pct = !r ? null
+            : (typeof r.pct === 'number') ? r.pct
             : (r.total ? Math.round((r.score / r.total) * 100) : null);
-    if (badge) { badge.textContent = (pct != null) ? `✓ ${pct}%` : '✓ 已完成'; badge.style.display='inline'; }
+  if (pct != null) {
+    btn.classList.add('done');
+    if (badge) { badge.textContent = `✓ ${pct}%`; badge.style.display='inline'; }
   } else {
     btn.classList.remove('done');
     if (badge) badge.style.display='none';
