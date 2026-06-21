@@ -64,7 +64,7 @@
 <style>
 :root {
   --navy: #1F3848;
-  --bg: #0E0B22;
+  --bg: #142836;
   --cream: #F5F0EA;
   --cream-2: #ECE5DB;
   --peach: #E7BBA7;
@@ -79,8 +79,14 @@
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html, body {
-  background: var(--bg);
+html { background: var(--bg); }
+body {
+  /* 與首頁同調：navy 底 + hero 上方暖色 plum/peach 微光（不 fixed，往下捲自然淡出） */
+  background:
+    radial-gradient(ellipse 1000px 620px at 50% 230px, rgba(179,139,167,.16) 0%, rgba(179,139,167,0) 60%),
+    radial-gradient(ellipse 660px 400px at 50% 190px, rgba(231,187,167,.11) 0%, rgba(231,187,167,0) 55%),
+    var(--bg);
+  background-repeat: no-repeat;
   color: var(--cream);
   font-family: var(--sans);
   font-size: 16px;
