@@ -4,7 +4,7 @@
 <meta charset="utf-8" />
 <link rel="icon" type="image/png" href="favicon.png">
 <title>SoFa Engine — 選擇題</title>
-<meta name="description" content="從 36,000+ 條法規中即時出題，測驗記帳士、地政士等國考法條掌握度。SoFa Engine 選擇題練習，免費使用。" />
+<meta name="description" content="從 37,000+ 條法規中即時出題，測驗記帳士、地政士等國考法條掌握度。SoFa Engine 選擇題練習，免費使用。" />
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
@@ -1731,7 +1731,15 @@ async function loadQuiz(){
         url+=(url.indexOf('?')>=0?'&':'?')+'chip='+encodeURIComponent(_curPrChip)+'&sub='+encodeURIComponent(_subVal);
       }
     }
-    const data=await fetch(url,{headers:_authH()}).then(r=>r.json());
+    let data=await fetch(url,{headers:_authH()}).then(r=>r.json());
+    // Fallback: 指定 page_id 抽到沒有數字的條文時（API 回 404），改讓 API 用法規自己挑可出題條文，避免使用者卡死
+    if((data.error||data.detail) && law){
+      for(let _retry=0; _retry<4 && (data.error||data.detail); _retry++){
+        try{
+          data=await fetch(`${API}/api/quiz?law=${encodeURIComponent(law)}`,{headers:_authH()}).then(r=>r.json());
+        }catch(_e){ break; }
+      }
+    }
     if(data.error||data.detail){
       document.getElementById('questionBox').textContent=data.error||data.detail;
       document.getElementById('questionBox').style.opacity='1';

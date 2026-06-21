@@ -790,6 +790,141 @@ input[type=text], select, .btn-enter {
     background:radial-gradient(ellipse at 50% 46%, transparent 56%, rgba(2,8,18,0.50) 100%);
   }
 }
+
+/* ══════════════════════════════════════════════════════════════════
+   v123 — 安靜書房 calm pass：降噪、減 glow、加留白、統一工具按鈕
+   只動視覺，不改任何 JS / id / 結構 / 功能。放最後 → 覆蓋前面同名規則。
+   ══════════════════════════════════════════════════════════════════ */
+
+/* — 1. 入口卡：去遊戲感，改安靜書房第一印象 — */
+.entry-card{
+  border:1px solid rgba(140,175,200,.18);
+  border-top:1px solid rgba(140,175,200,.26);
+  border-radius:18px;
+  box-shadow:0 24px 80px rgba(0,0,0,.58);
+}
+.entry-banner{
+  background:rgba(255,255,255,.024);
+  border-bottom:1px solid rgba(140,175,200,.12);
+  margin-bottom:24px;padding:12px 26px;
+}
+.entry-banner-icon{opacity:.65;}
+.entry-banner-title{color:rgba(160,185,205,.52);font-weight:600;letter-spacing:.2em;}
+.entry-card h1{
+  font-family:var(--serif);color:#E9DFC8;font-size:1.6rem;
+  letter-spacing:.04em;text-shadow:none;margin-bottom:8px;
+}
+.entry-card>p,.entry-card-body>p:not(.entry-tip){color:rgba(200,190,170,.55);margin-bottom:22px;}
+.entry-card-body label{color:rgba(170,185,200,.6);}
+.entry-tab{border-radius:10px;}
+.entry-tab.active{background:rgba(91,175,214,.12);border-color:rgba(91,175,214,.3);color:#8FC4DE;}
+.btn-enter{
+  border-radius:12px;background:#5BAFD6;color:#06121F;
+  box-shadow:none;letter-spacing:.04em;font-family:var(--sans);font-weight:700;
+}
+.btn-enter:hover{background:#6CB9DD;opacity:1;}
+.btn-enter:active{transform:translateY(1px);box-shadow:none;}
+.serial-row-entry{border-radius:10px;}
+.entry-card-body input[type=text],.entry-card-body select{border-radius:10px;}
+
+/* — 2. 頂部 HUD：安靜、低調，移除霓虹 glow — */
+header{
+  background:linear-gradient(180deg,rgba(10,20,32,.66),rgba(10,20,32,.08))!important;
+  border-bottom:1px solid rgba(140,175,200,.10)!important;
+  box-shadow:none!important;padding:11px 22px;
+}
+.logo{color:rgba(212,224,234,.84);text-shadow:none;letter-spacing:.13em;font-weight:600;}
+#member-badge{
+  background:rgba(150,200,170,.10);border:1px solid rgba(150,200,170,.22);
+  color:rgba(155,208,175,.92);box-shadow:none;border-radius:20px;padding:3px 11px;
+}
+.online-badge{color:rgba(192,206,218,.74);}
+.dot{background:#6FC98C;box-shadow:none;}
+#btn-lock,.btn-leave{
+  border-radius:20px;border-color:rgba(140,175,200,.16);color:rgba(172,187,202,.62);
+}
+#btn-lock:hover,.btn-leave:hover{color:#8FC4DE;border-color:rgba(140,175,200,.4);}
+#weather-badge{opacity:.66;}
+#room-level-badge{opacity:.8;color:rgba(212,190,120,.85);}
+
+/* — 3. 場景工具按鈕：統一成一排安靜玻璃藥丸；移到左上 header 下方
+       （右上是側欄／離開鈕的地盤，避免互相遮擋）— */
+#btn-sound,#audio-settings-btn,#achieve-btn,#theme-btn{
+  top:56px!important;right:auto!important;width:34px;height:34px;
+  background:rgba(10,20,32,.5)!important;
+  border:1px solid rgba(140,175,200,.16)!important;border-radius:11px!important;
+  color:rgba(192,206,218,.72)!important;
+  display:flex!important;align-items:center;justify-content:center;
+  font-size:15px!important;padding:0!important;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  transition:background .2s,border-color .2s,color .2s;box-shadow:none;
+}
+#btn-sound{left:14px!important;}
+#audio-settings-btn{left:54px!important;}
+#achieve-btn{left:94px!important;}
+#theme-btn{left:134px!important;}
+#btn-sound:hover,#audio-settings-btn:hover,#achieve-btn:hover,#theme-btn:hover{
+  background:rgba(20,34,50,.72)!important;border-color:rgba(140,175,200,.34)!important;
+  color:rgba(220,232,242,.95)!important;
+}
+/* 彈出面板從左上工具列下方展開，對齊新位置 */
+#audio-panel,#achieve-panel,#theme-panel{
+  bottom:auto!important;top:98px!important;left:14px!important;right:auto!important;
+  border:1px solid rgba(140,175,200,.18)!important;border-radius:14px!important;
+  background:rgba(10,20,32,.92)!important;
+}
+#tod-label,#jieqi-label{left:14px!important;right:auto!important;top:auto!important;bottom:14px!important;text-align:left;}
+#jieqi-label{bottom:28px!important;}
+#study-hud{border-radius:12px;border-color:rgba(140,175,200,.12);background:rgba(10,20,32,.55);}
+
+/* — 4. 側欄玻璃面板：更多留白、安靜分區、柔化輸入與按鈕 — */
+@media(min-width:641px){
+  #sidebar{
+    border:1px solid rgba(140,175,200,.12)!important;
+    border-left:1px solid rgba(140,175,200,.12)!important;border-radius:18px!important;
+    background:rgba(10,20,32,.44)!important;
+    box-shadow:0 12px 48px rgba(0,0,0,.3)!important;
+    padding:18px 16px!important;gap:18px!important;top:64px!important;
+  }
+}
+.sidebar-section{color:rgba(152,186,210,.5);letter-spacing:.15em;margin-bottom:8px;}
+.note-textarea,.shout-form textarea{border-radius:12px;border-color:rgba(140,175,200,.16);}
+.btn-shout{
+  border-radius:20px;background:rgba(91,175,214,.1);border:1px solid rgba(91,175,214,.34);color:#8FC4DE;
+}
+.btn-shout:hover{background:rgba(91,175,214,.2);}
+.pom-btn{border-radius:20px;}
+.pom-btn.primary{background:#5BAFD6;border-color:#5BAFD6;color:#06121F;}
+.pom-widget{border-bottom-color:rgba(140,175,200,.12);padding-bottom:18px;}
+
+/* — 5. 喊話橫幅 / toast — */
+#shout-banner{
+  border-radius:14px;border-color:rgba(140,175,200,.24);
+  box-shadow:0 8px 28px rgba(0,0,0,.5);
+}
+.room-toast{border-radius:14px;border-color:rgba(140,175,200,.24);}
+
+/* — 6. mobile：底部導覽與 bottom sheet 安靜化 — */
+@media(max-width:640px){
+  #mob-bar{
+    background:rgba(10,20,32,.88)!important;
+    -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+    border-top:1px solid rgba(140,175,200,.12)!important;padding-top:9px;
+  }
+  #mob-bar button{color:rgba(172,187,202,.62);}
+  #mob-bar button:active,#mob-bar button.active{color:#8FC4DE;}
+  #mob-bar .mob-count{background:#6FC98C;}
+  .sheet{border-radius:20px 20px 0 0!important;border-top:1px solid rgba(140,175,200,.16)!important;}
+  .sheet-title{color:#8FC4DE;border-bottom-color:rgba(140,175,200,.1);}
+  /* 窄機 header 降噪：藏裝飾性天氣／等級徽章，留給必要項呼吸 */
+  #weather-badge,#room-level-badge{display:none!important;}
+  header{padding:10px 14px;gap:8px;}
+  .logo{letter-spacing:.06em;font-size:.76rem;white-space:nowrap;}
+  #member-badge,.online-badge,#btn-lock,.btn-leave{white-space:nowrap;}
+  /* 工具列在窄機改 3 顆夠用（主題色面板較少用），避免擠到 study-hud */
+  #btn-sound{left:14px!important;}#audio-settings-btn{left:54px!important;}
+  #achieve-btn{left:94px!important;}#theme-btn{left:134px!important;}
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="OrbitControls.js"></script>
@@ -11047,6 +11182,12 @@ window.startThreeAnimation = startThreeAnimation;
 window.resizeThreeCanvas = resizeThreeCanvas;
 window.switchEntryTab = switchEntryTab;
 window.enterWithSerial = enterWithSerial;
+// 場景右上工具列：這些函式定義在 module scope，inline onclick 找不到 → 補掛 window
+window.toggleAmbientSound = toggleAmbientSound;
+window._toggleAudioPanel = _toggleAudioPanel;
+window._toggleAchievePanel = _toggleAchievePanel;
+window._toggleThemePanel = _toggleThemePanel;
+window._toggleLayer = _toggleLayer;
 window._testInjectUsers = (users) => _updateThreeAvatars(users); // dev-only test hook
 window._testCamera = (x,y,z,tx,ty,tz) => {
   _threeCamera.position.set(x,y,z);

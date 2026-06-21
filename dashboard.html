@@ -1227,7 +1227,8 @@
       <a href="#laws">法規</a>
     </nav>
     <div class="top-right">
-      <a id="btn-room" href="room.html"><span class="room-pulse"></span><span id="room-label">自習室</span></a>
+      <!-- HIDDEN 2026-06-21: 自習室暫時收起，入口先藏不刪 -->
+      <!-- <a id="btn-room" href="room.html"><span class="room-pulse"></span><span id="room-label">自習室</span></a> -->
       <span class="user-pill"><span class="live"></span>——</span>
       <button class="btn-out" onclick="(function(){localStorage.removeItem('sofa_uid');localStorage.removeItem('sofa_free');localStorage.removeItem('sofa_nickname');localStorage.removeItem('sofa_token');window.location.href='login.html';})()">登出</button>
       <button class="menu-btn" onclick="document.querySelector('aside.side').classList.toggle('open')"><span></span></button>
@@ -1272,9 +1273,10 @@
       <div class="side-foot">
         <span class="dash">— LIBRARY —</span>
         坐下來，<br/>一條一條來。
-        <div style="margin-top:14px"><b>36,000+ 條 · 577 部</b></div>
+        <div style="margin-top:14px"><b>37,000+ 條 · 578 部</b></div>
         <div style="margin-top:18px;display:flex;flex-direction:column;gap:6px;border-top:1px solid rgba(245,240,234,.08);padding-top:16px;">
-          <a href="room.html" style="font-family:var(--mono);font-size:11px;color:rgba(231,187,167,.65);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(231,187,167,.95)'" onmouseout="this.style.color='rgba(231,187,167,.65)'">自習室 →</a>
+          <!-- HIDDEN 2026-06-21: 自習室暫時收起，入口先藏不刪 -->
+          <!-- <a href="room.html" style="font-family:var(--mono);font-size:11px;color:rgba(231,187,167,.65);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(231,187,167,.95)'" onmouseout="this.style.color='rgba(231,187,167,.65)'">自習室 →</a> -->
           <a href="law-monitor.html" style="font-family:var(--mono);font-size:11px;color:rgba(231,187,167,.45);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(231,187,167,.85)'" onmouseout="this.style.color='rgba(231,187,167,.45)'">法規更新查核 →</a>
           <a href="terms.html" style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.35);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(245,240,234,.7)'" onmouseout="this.style.color='rgba(245,240,234,.35)'">服務聲明 / 退費政策 →</a>
           <a href="mailto:hi@sofaengine.org" style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.35);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(245,240,234,.7)'" onmouseout="this.style.color='rgba(245,240,234,.35)'">hi@sofaengine.org</a>
@@ -1437,7 +1439,7 @@
               <span class="idx">03</span>
               <h2>直接查法條</h2>
             </div>
-            <div class="r"><span class="eb" id="search-law-count">2,000+ 條 · 33 部</span></div>
+            <div class="r"><span class="eb" id="search-law-count">37,000+ 條 · 578 部</span></div>
           </div>
 
           <div class="exam-row" id="examFilterBar">
@@ -1653,7 +1655,7 @@
               <span class="idx">08</span>
               <h2>法規目錄</h2>
             </div>
-            <div class="r"><span class="laws-count">共 <b>33</b> 部 · <b>2,000+</b> 條</span></div>
+            <div class="r"><span class="laws-count">共 <b>578</b> 部 · <b>37,000+</b> 條</span></div>
           </div>
 
           <div class="laws-head">
@@ -3523,8 +3525,9 @@ function _renderLawsToc(page){
         _renderLawsToc(0);
         // 動態更新法規數字標籤
         var cnt = _allLaws.length;
-        var artTotal = d.total || 0;
-        var artLabel = artTotal >= 10000 ? Math.floor(artTotal/1000)*1000+'+ 條' : (artTotal > 0 ? artTotal+'+ 條' : '多部');
+        // article_total = 真實條文數；d.total 是法規數，別誤用成條文數
+        var artTotal = d.article_total || 0;
+        var artLabel = artTotal >= 10000 ? Math.floor(artTotal/1000)*1000+'+ 條' : (artTotal > 0 ? artTotal+'+ 條' : '37,000+ 條');
         var el1 = document.getElementById('search-law-count');
         if(el1) el1.textContent = artLabel + ' · ' + cnt + ' 部';
         var el2 = document.querySelector('.laws-count');

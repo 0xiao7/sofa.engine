@@ -712,14 +712,16 @@ function daysLeft(){
 // 弱點
 // ══════════════════════════════════════════════
 function renderWeak(){
+  const _wl=document.getElementById('weakList'), _ws=document.getElementById('weakSug');
+  if(!_wl||!_ws) return; // 弱點面板已移除時不執行，避免 Cannot set properties of null
   const mx=WEAK_DATA[0].err;
-  document.getElementById('weakList').innerHTML=WEAK_DATA.map(w=>`
+  _wl.innerHTML=WEAK_DATA.map(w=>`
     <div class="wl">
       <div class="wl-n">${w.name}</div>
       <div class="wl-b"><div class="wl-f" style="width:${Math.round(w.err/mx*100)}%"></div></div>
       <div class="wl-p">${w.err}%</div>
     </div>`).join('');
-  document.getElementById('weakSug').innerHTML=
+  _ws.innerHTML=
     `本週最弱：<strong>稅捐稽徵法 §21 核課期間</strong>（錯誤率 72%）<br>
     建議今日優先安排 30 分鐘複習，配合計時模式英打加深記憶錨點。<br>
     同類陷阱：§24 移送強制執行期間、§35 申請復查期間——三條一起讀效率最高。<br><br>
@@ -1063,7 +1065,7 @@ function init(){
   nextText();
   renderStar5();
   renderWeak();
-  document.getElementById('gasURL').value=ST.gasURL;
+  const _gas=document.getElementById('gasURL'); if(_gas) _gas.value=ST.gasURL; // 元素可能已移除，加 null guard
   setInterval(updateNow,30000);
 }
 
