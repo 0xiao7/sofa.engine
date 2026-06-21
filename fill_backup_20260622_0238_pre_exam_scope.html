@@ -2,6 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8" />
+<link rel="icon" type="image/png" href="favicon.png">
 <title>SoFa Engine — 填空練習</title>
 <meta name="description" content="填入法條關鍵詞，強化對條文細節的記憶。SoFa Engine 填空模式，涵蓋記帳士、地政士等 36,000+ 條國考法規，免費使用。" />
 <!-- Google tag (gtag.js) -->
@@ -13,7 +14,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="SoFa">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23244658'/%3E%3Ctext x='16' y='23.5' font-size='21' font-family='Georgia,serif' font-weight='700' text-anchor='middle' fill='%23E7BBA7'%3ES%3C/text%3E%3C/svg%3E">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -38,8 +38,6 @@
   }
   .pr-bar .title .art{font-family:var(--serif);font-weight:600;font-size:18px;color:var(--cream)}
   .pr-bar .title .sub{color:rgba(245,240,234,.6);font-size:13.5px}
-
-  /* 自製法規下拉樣式已移至 sofa.css（.law-dd*），全站共用 */
   .pr-meta{
     display:flex;align-items:center;gap:22px;
     font-family:var(--mono);font-size:12px;letter-spacing:.08em;
@@ -55,7 +53,7 @@
   }
 
   .stage{
-    padding:28px 64px 56px;background:var(--navy-3);
+    padding:48px 64px 96px;background:var(--navy-3);
     position:relative;min-height:calc(100vh - 70px - 60px - 2px);
   }
   .stage::before{
@@ -69,7 +67,7 @@
   }
   .inner{max-width:1080px;margin:0 auto;position:relative;display:grid;grid-template-columns:1fr 300px;gap:32px}
 
-  .ar-head{margin-bottom:14px}
+  .ar-head{margin-bottom:24px}
   .ar-head .eb{
     font-family:var(--mono);font-size:11px;color:var(--peach);
     letter-spacing:.22em;text-transform:uppercase;
@@ -77,13 +75,13 @@
   }
   .ar-head .eb::before{content:"";width:18px;height:1px;background:var(--peach)}
   .ar-head h2{
-    font-family:var(--serif);font-weight:600;font-size:27px;
-    margin-top:8px;color:var(--cream);
+    font-family:var(--serif);font-weight:600;font-size:32px;
+    margin-top:12px;color:var(--cream);
     display:flex;align-items:baseline;gap:18px;
   }
-  .ar-head h2 .n{font-size:38px;color:var(--peach);font-weight:600;letter-spacing:-.02em}
+  .ar-head h2 .n{font-size:48px;color:var(--peach);font-weight:600;letter-spacing:-.02em}
   .ar-head .row{
-    margin-top:10px;display:flex;gap:18px;align-items:center;
+    margin-top:14px;display:flex;gap:18px;align-items:center;
     font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;
     color:rgba(245,240,234,.55);text-transform:uppercase;flex-wrap:wrap;
   }
@@ -94,8 +92,8 @@
 
   .fill-card{
     background:var(--navy-2);border:1px solid var(--line);border-radius:4px;
-    padding:28px 44px;
-    font-family:var(--serif);font-size:21px;line-height:2.0;
+    padding:42px 48px;
+    font-family:var(--serif);font-size:21px;line-height:2.15;
     color:var(--cream);letter-spacing:.02em;position:relative;
     word-break:keep-all;overflow-wrap:break-word;
   }
@@ -205,18 +203,14 @@
 
   /* Wave 52 — difficulty badge */
   #diff-badge {
-    display:inline-flex;align-items:center;gap:6px;
+    display:inline-flex;align-items:center;gap:5px;
     padding:3px 10px;border-radius:12px;font-size:12px;
     font-weight:600;vertical-align:middle;
     transition:all 0.3s;font-family:var(--mono);letter-spacing:.04em;
   }
-  #diff-badge .d{width:7px;height:7px;border-radius:50%;flex:none}
-  #diff-badge.easy   { background:rgba(159,184,159,.14); color:var(--good); border:1px solid rgba(159,184,159,.32); }
-  #diff-badge.easy   .d{ background:var(--good) }
-  #diff-badge.medium { background:rgba(217,176,132,.14); color:var(--warn); border:1px solid rgba(217,176,132,.32); }
-  #diff-badge.medium .d{ background:var(--warn) }
-  #diff-badge.hard   { background:rgba(199,123,106,.14); color:var(--bad);  border:1px solid rgba(199,123,106,.32); }
-  #diff-badge.hard   .d{ background:var(--bad) }
+  #diff-badge.easy   { background:rgba(46,204,113,0.15);  color:#2ECC71; border:1px solid rgba(46,204,113,0.3); }
+  #diff-badge.medium { background:rgba(212,168,71,0.15);   color:#D4A847; border:1px solid rgba(212,168,71,0.3); }
+  #diff-badge.hard   { background:rgba(231,76,60,0.15);    color:#E74C3C; border:1px solid rgba(231,76,60,0.3); }
 
   /* blank list */
   .blank-list{display:flex;flex-direction:column;gap:8px}
@@ -261,7 +255,7 @@
   .sec-text .sec-h{margin:10px 0 4px;color:var(--navy);font-weight:600}
   .sec-text .sec-h:first-child{margin-top:0}
   .sec-text .sec-i{position:relative;padding-left:18px;margin:3px 0}
-  .sec-text .sec-i::before{content:'';position:absolute;left:5px;top:.62em;width:4px;height:4px;border:1.2px solid var(--peach-3);border-radius:50%;box-sizing:border-box}
+  .sec-text .sec-i::before{content:'◦';position:absolute;left:4px;top:-.04em;color:var(--peach-3);font-weight:700}
   .sec-lock{margin-top:16px;border-top:1px dashed rgba(31,56,72,.15)}
   .sec-lock .sec-label::after{content:" 🔒";font-size:11px;opacity:.65}
   .sec-lock-preview{position:relative;max-height:80px;overflow:hidden;padding:10px 0 0;pointer-events:none;user-select:none;font-size:13.5px;line-height:1.8;color:rgba(31,56,72,.72)}
@@ -285,10 +279,8 @@
     .fill-card{padding:24px 22px;font-size:18px;line-height:2}
     .blank{font-size:17px;min-width:4.5em;padding:2px 10px}
     .fill-actions{flex-direction:column;align-items:stretch}
-    .fill-actions .l{display:none}     /* 鍵盤快捷提示在觸控手機無意義，收起 */
     .fill-actions .r{flex-direction:column}
     .rail{flex-direction:column}
-    #kb-hint{display:none}             /* 浮動鍵盤提示列手機收起 */
   }
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
@@ -310,20 +302,18 @@
 
   /* ── Wave 93: 每日填空挑戰 ── */
   #btnFillDaily {
-    padding: 8px 14px; border-radius: 8px;
-    background: rgba(91,175,214,0.12);
-    border: 1px solid rgba(91,175,214,0.55); color: #9CCBE0;
-    font-size: 12px; cursor: pointer; transition: all 0.2s;
-    font-family: var(--mono); letter-spacing: .04em;
+    padding: 7px 15px; border-radius: 16px;
+    background: rgba(10,20,40,0.7);
+    border: 1px solid #4a7fff; color: #8ab4ff;
+    font-size: 14px; cursor: pointer; transition: all 0.2s;
   }
-  #btnFillDaily:hover { background: rgba(91,175,214,0.2); }
-  #btnFillDaily.done { border-color: rgba(159,184,159,.55); color: var(--good); background: rgba(159,184,159,.12); }
-  #fill-daily-badge { font-size: 11px; color: var(--good); margin-left: 4px; display: none; }
+  #btnFillDaily.done { border-color: #44cc88; color: #66ddaa; }
+  #fill-daily-badge { font-size: 11px; color: #44cc88; margin-left: 4px; display: none; }
 </style>
 </head>
 <body>
 
-  <div id="kb-hint">⌨ Tab 切換空格 · Enter 確認，全對才換下一篇</div>
+  <div id="kb-hint">⌨ Tab 切換空格 · Enter 確認/下一篇</div>
 
   <header class="topbar">
     <a class="brand" href="index.html"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
@@ -345,11 +335,7 @@
       <a href="dashboard.html" class="back">← BACK</a>
       <div class="title">
         <span class="law">LAW</span>
-        <select id="lawSelect" style="display:none"><option value="">全部法規</option></select>
-        <div class="law-dd" id="lawDD">
-          <button type="button" class="law-dd-btn" id="lawDDBtn"><span id="lawDDLabel">全部法規</span><span class="cv">▾</span></button>
-          <div class="law-dd-pop" id="lawDDPop"></div>
-        </div>
+        <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:600;font-size:18px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none"><option value="">全部法規</option></select>
         <span id="fill-scope-label" style="font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--peach);white-space:nowrap;display:none"></span>
       </div>
       <div id="fill-status-bar" style="
@@ -369,7 +355,7 @@
       <button id="btnFillSession" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(91,175,214,0.15);border-color:rgba(91,175,214,0.6)">⚡ 連刷模式</button>
       <button onclick="openFillStats()" title="個人填空統計" style="background:none;border:1px solid rgba(91,175,214,0.3);color:#5BAFD6;border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">📊</button>
       <button id="btn-handwrite" onclick="_toggleHandwrite(this)" title="iPad 手寫模式（放大輸入格）" style="background:none;border:1px solid rgba(245,240,234,.25);color:rgba(245,240,234,.6);border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">✏</button>
-      <button id="btnFillDaily" onclick="startFillDailyChallenge()">今日填空</button>
+      <button id="btnFillDaily" onclick="startFillDailyChallenge()">📅 今日填空</button>
       <span id="fill-daily-badge"></span>
       <div id="fill-streak" style="
         display:none;
@@ -559,12 +545,8 @@ const _EXAM_LAWS = {
   bookkeeper: ['記帳士法','記帳士職業倫理道德規範','中華民國記帳士職業道德規範','記帳士法第三十五條規定之管理辦法','記帳士暨記帳及報稅代理人防制洗錢與打擊資恐辦法','記帳士懲戒委員會與懲戒覆審委員會組織及審議規則','公司法','公司登記辦法','商業登記法','商業登記申請辦法','商業會計法','商業會計處理準則','商業使用電子方式處理會計資料辦法','行政程序法','稅捐稽徵法','稅捐稽徵法施行細則','納稅者權利保護法','納稅者權利保護法施行細則','所得稅法','所得稅法施行細則','所得基本稅額條例','所得基本稅額條例施行細則','各類所得扣繳率標準','營利事業所得稅查核準則','加值型及非加值型營業稅法','加值型及非加值型營業稅法施行細則','兼營營業人營業稅額計算辦法','統一發票使用辦法','統一發票給獎辦法','遺產及贈與稅法','遺產及贈與稅法施行細則','特種貨物及勞務稅條例','特種貨物及勞務稅條例施行細則'],
   landadmin:  ['民法','信託法','土地法','土地法施行法','平均地權條例','平均地權條例施行細則','土地徵收條例','土地徵收條例施行細則','地政士法','地政士法施行細則','土地登記規則','地籍測量實施規則','土地稅法','土地稅法施行細則','遺產及贈與稅法','遺產及贈與稅法施行細則','契稅條例','房屋稅條例','稅捐稽徵法','稅捐稽徵法施行細則','工程受益費徵收條例','所得稅法','所得稅法施行細則'],
   realestate: ['民法','土地法','平均地權條例','平均地權條例施行細則','土地徵收條例','非都市土地使用管制規則','區域計畫法','都市計畫法','土地稅法','土地稅法施行細則','契稅條例','房屋稅條例','所得稅法','所得稅法施行細則','不動產經紀業管理條例','不動產經紀業管理條例施行細則','公平交易法','消費者保護法','公寓大廈管理條例'],
-  'tax-admin': ['民法','稅捐稽徵法','稅捐稽徵法施行細則','納稅者權利保護法','納稅者權利保護法施行細則','所得稅法','所得稅法施行細則','所得基本稅額條例','所得基本稅額條例施行細則','加值型及非加值型營業稅法','加值型及非加值型營業稅法施行細則','土地稅法','土地稅法施行細則','房屋稅條例','契稅條例','貨物稅條例','印花稅法','使用牌照稅法','遺產及贈與稅法','遺產及贈與稅法施行細則'],
-  'tax-law': ['中華民國憲法','中華民國憲法增修條文','行政程序法','行政罰法','行政執行法','訴願法','行政訴訟法','國家賠償法','公務員服務法','公務人員任用法','稅捐稽徵法','稅捐稽徵法施行細則','所得稅法','加值型及非加值型營業稅法','遺產及贈與稅法','土地稅法','民法','刑法','納稅者權利保護法'],
-  'elem-admin': ['中華民國憲法','公務員服務法','公務人員任用法','民法','刑法','行政程序法','行政罰法','行政執行法','訴願法','行政訴訟法','國家賠償法'],
-  'post-acc': ['會計法','預算法','決算法','郵政法','公司法','商業會計法','稅捐稽徵法','所得稅法','加值型及非加值型營業稅法','個人資料保護法'],
 };
-const _EXAM_NAMES = {bookkeeper:'記帳士',landadmin:'地政士',realestate:'不動產經紀人','tax-admin':'財稅行政','tax-law':'財稅法務','elem-admin':'初等一般行政','post-acc':'中華郵政會計'};
+const _EXAM_NAMES = {bookkeeper:'記帳士',landadmin:'地政士',realestate:'不動產經紀人'};
 let _allLoadedFillLaws = [];
 
 function _filterLawsForExam(laws, key) {
@@ -635,35 +617,6 @@ function _showFillExamBanner() {
     if(_defFillOpt){ sel.value = _defFillOpt.value; sel.dispatchEvent(new Event('change')); _updateFillStatusBar(_defFillOpt.value); loadNew(); }
   }
   _updateFillScopeLabel();
-})();
-
-// 自製法規下拉：以隱藏的 <select id="lawSelect"> 為真實狀態，自畫選單只負責顯示與品牌色高亮
-(function(){
-  const sel=document.getElementById('lawSelect');
-  const dd=document.getElementById('lawDD');
-  const btn=document.getElementById('lawDDBtn');
-  const pop=document.getElementById('lawDDPop');
-  const label=document.getElementById('lawDDLabel');
-  if(!sel||!dd||!btn||!pop||!label) return;
-  function syncLabel(){ const o=sel.selectedOptions[0]; label.textContent=o?o.textContent:'全部法規'; }
-  function buildPop(){
-    pop.innerHTML='';
-    Array.from(sel.options).forEach(o=>{
-      if(o.disabled){ const s=document.createElement('div');s.className='law-dd-sep';pop.appendChild(s);return; }
-      const it=document.createElement('div');
-      it.className='law-dd-item'+(o.value===sel.value?' sel':'');
-      it.textContent=o.textContent;
-      it.addEventListener('click',()=>{ sel.value=o.value; sel.dispatchEvent(new Event('change')); syncLabel(); close(); });
-      pop.appendChild(it);
-    });
-  }
-  function open(){ buildPop(); dd.classList.add('open'); const s=pop.querySelector('.sel'); if(s)s.scrollIntoView({block:'nearest'}); }
-  function close(){ dd.classList.remove('open'); }
-  btn.addEventListener('click',e=>{ e.stopPropagation(); dd.classList.contains('open')?close():open(); });
-  document.addEventListener('click',e=>{ if(!dd.contains(e.target))close(); });
-  document.addEventListener('keydown',e=>{ if(e.key==='Escape')close(); });
-  sel.addEventListener('change',syncLabel);
-  syncLabel();
 })();
 
 let _artCache = {};
@@ -879,8 +832,6 @@ let _fillStreak = 0;      // Wave 87: consecutive perfect-fill streak
 const _fillToday = new Date().toISOString().slice(0,10);
 const _fillDailyKey = 'sofa_fill_daily_' + _fillToday;
 let _isFillDailyMode = false;
-let _lastFillPerfect = false;  // 全對才允許 Enter 直接跳下一題
-let _fillEmptyRetry = 0;       // 出到沒有空格的條文時自動換下一條的重試計數
 
 function _getFillDailyResult() {
   try { return JSON.parse(localStorage.getItem(_fillDailyKey)||'null'); } catch { return null; }
@@ -890,14 +841,9 @@ function _updateFillDailyBtn() {
   const badge = document.getElementById('fill-daily-badge');
   if (!btn) return;
   const r = _getFillDailyResult();
-  // 容錯：舊版 localStorage 可能沒有 pct，改用 score/total 推算；
-  // 仍算不出（壞掉的舊資料）就當作沒紀錄，徽章整個藏起來，等真的跑完一輪才出現
-  const pct = !r ? null
-            : (typeof r.pct === 'number') ? r.pct
-            : (r.total ? Math.round((r.score / r.total) * 100) : null);
-  if (pct != null) {
+  if (r) {
     btn.classList.add('done');
-    if (badge) { badge.textContent = `✓ ${pct}%`; badge.style.display='inline'; }
+    if (badge) { badge.textContent = `✅ ${r.pct}%`; badge.style.display='inline'; }
   } else {
     btn.classList.remove('done');
     if (badge) badge.style.display='none';
@@ -930,7 +876,7 @@ function _buildFillCalendar() {
   const maxCount = Math.max(...days.map(d => d.count), 1);
 
   let html = `<div style="margin-top:12px">
-    <div style="font-size:10px;color:#aaa;margin-bottom:6px">近 30 日填空</div>
+    <div style="font-size:10px;color:#aaa;margin-bottom:6px">📅 近30日填空</div>
     <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px">`;
 
   days.forEach(({ count, isToday }) => {
@@ -1090,7 +1036,7 @@ function showFillResults() {
   _sessionStats.forEach((s,i) => {
     const perfect = s.correctBlanks === s.totalBlanks && !s.usedHint;
     const ok = s.correctBlanks === s.totalBlanks;
-    const color = perfect ? '#9FB89F' : ok ? '#5BAFD6' : '#E74C3C';
+    const color = perfect ? '#2ECC71' : ok ? '#5BAFD6' : '#E74C3C';
     const icon = perfect ? '✓' : ok ? '△' : '✗';
     const div = document.createElement('div');
     div.style.cssText = 'background:#0D1F2D;border-radius:8px;padding:10px 12px;border-left:3px solid '+color;
@@ -1133,7 +1079,7 @@ async function _shareFillResult() {
   const lines = [
     `${grade} SoFa 填空成績`,
     `📚 法規：${lawName}`,
-    `✓ 完成：${total} 篇填空　共 ${totalBlanks} 格`,
+    `✅ 完成：${total} 篇填空　共 ${totalBlanks} 格`,
     `🎯 答對率：${pct}%（${correctBlanks}/${totalBlanks} 格）`,
     cleanCount > 0 ? `💯 全對無提示：${cleanCount} 篇` : null,
     `━━━━━━━━━━`,
@@ -1267,15 +1213,15 @@ function _updateDiffBadge(blankCount){
   badge.className = '';
   if(blankCount <= 2){
     badge.className = 'easy';
-    badge.innerHTML = '<span class="d"></span>基礎 ' + blankCount + '格';
+    badge.textContent = '🟢 基礎  ' + blankCount + '格';
     badge.title = blankCount + ' 個填空';
   } else if(blankCount <= 4){
     badge.className = 'medium';
-    badge.innerHTML = '<span class="d"></span>進階 ' + blankCount + '格';
+    badge.textContent = '🟡 進階  ' + blankCount + '格';
     badge.title = blankCount + ' 個填空';
   } else {
     badge.className = 'hard';
-    badge.innerHTML = '<span class="d"></span>挑戰 ' + blankCount + '格';
+    badge.textContent = '🔴 挑戰  ' + blankCount + '格';
     badge.title = blankCount + ' 個填空';
   }
 }
@@ -1335,15 +1281,8 @@ function renderFill(){
     }
     allHtml=`<p>${ph}</p>`;
   }
-  const idx=blankIdx;
-  // 防呆：若這條算不出任何空格（偶發的空白/異常條文），自動換下一條，最多重試 6 次，
-  // 不要把空卡片留在畫面上讓使用者以為「沒有自動出題」
-  if(idx===0 && !_isFillDailyMode){
-    if(_fillEmptyRetry < 6){ _fillEmptyRetry++; loadNew(); return; }
-  } else {
-    _fillEmptyRetry = 0;
-  }
   box.innerHTML=allHtml;
+  const idx=blankIdx;
   // 更新 data-label
   document.getElementById('fillCard').dataset.label=`FILL · ${idx} BLANK${idx>1?'S':''}`;
   document.getElementById('blankCount').textContent=idx+' 個空格';
@@ -1401,7 +1340,6 @@ function checkAnswers(){
     if(answerMatch(inp.value,ans)){inp.classList.add('ok');cor++;}
     else{inp.classList.add('bad');const sp=document.createElement('span');sp.textContent=`（${ans}）`;sp.style.cssText='color:var(--good);font-size:.78rem;font-family:var(--mono);margin-left:.3rem;';inp.after(sp);}
   });
-  _lastFillPerfect = (cor === inputs.length);  // 記住本題是否全對
   // Wave 38: play audio feedback based on score
   if(cor === inputs.length) _fillSoundPerfect();
   else if(cor > 0) _fillSoundPartial();
@@ -1502,7 +1440,6 @@ document.getElementById('fillSourceLink').addEventListener('click',()=>{
 
 async function loadNew(){
   fillData=null;
-  _lastFillPerfect = false;
   // Wave 107: reset per-article timer on new load
   _fillStartTime = 0;
   clearInterval(_fillTimerInterval);
@@ -1620,10 +1557,10 @@ function _fillKeyHandler(e) {
     // Let the per-input Enter handler manage check; only intercept when results are showing
     if (!resultsShowing) return;
   }
-  // Results are showing → 只有全對才用 Enter 直接跳下一題；答錯時停留讓使用者看訂正
+  // Results are showing → Enter loads next article
   if (resultsShowing) {
     e.preventDefault();
-    if (_lastFillPerfect) document.getElementById('btnNext')?.click();
+    document.getElementById('btnNext')?.click();
     return;
   }
   // No blanks yet (no article loaded) → do nothing
@@ -1692,7 +1629,7 @@ _updateFillDailyBtn();
 </script>
 <!-- Wave 137: fill share toast -->
 <div id="fill-share-toast" style="position:fixed;bottom:72px;left:50%;transform:translateX(-50%);
-  background:#9FB89F;color:#0A1F14;padding:8px 20px;border-radius:20px;font-size:13px;
+  background:#2ECC71;color:#0A1F14;padding:8px 20px;border-radius:20px;font-size:13px;
   font-weight:600;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap"></div>
 
 <!-- Wave 40: Fill session results modal -->
@@ -1779,7 +1716,7 @@ function openFillStats() {
     byLawHtml = '<div style="margin-top:16px"><div style="color:#8ABED6;font-size:12px;margin-bottom:8px">各法填空準確率</div>' +
       laws.map(([name,d])=>{
         const p = d.total>0?Math.round(d.correct/d.total*100):0;
-        return `<div style="background:#0D1F2D;border-radius:8px;padding:10px 12px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#C8DDE8">${name}</span><span style="color:#8ABED6">${d.correct}/${d.total}格 (${p}%)</span></div><div style="height:3px;background:rgba(91,175,214,0.1);border-radius:2px;margin-top:6px"><div style="width:${p}%;height:100%;background:${p>=80?'#9FB89F':p>=60?'#5BAFD6':'#E74C3C'};border-radius:2px"></div></div></div>`;
+        return `<div style="background:#0D1F2D;border-radius:8px;padding:10px 12px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#C8DDE8">${name}</span><span style="color:#8ABED6">${d.correct}/${d.total}格 (${p}%)</span></div><div style="height:3px;background:rgba(91,175,214,0.1);border-radius:2px;margin-top:6px"><div style="width:${p}%;height:100%;background:${p>=80?'#2ECC71':p>=60?'#5BAFD6':'#E74C3C'};border-radius:2px"></div></div></div>`;
       }).join('') + '</div>';
   }
   const weakLaw = _getWeakestFillLaw(s);
@@ -1807,7 +1744,7 @@ function openFillStats() {
         <div style="color:#5B7A8D;font-size:10px">${s.todayCorrect||0}/${s.todayTotal||0}格</div>
       </div>
       <div style="background:#0D1F2D;border-radius:10px;padding:14px;text-align:center">
-        <div style="font-size:28px;font-weight:700;color:#9FB89F">${cleanRate}%</div>
+        <div style="font-size:28px;font-weight:700;color:#2ECC71">${cleanRate}%</div>
         <div style="color:#8ABED6;font-size:11px;margin-top:3px">全對無提示率</div>
         <div style="color:#5B7A8D;font-size:10px">${s.clean||0}/${s.articles||0}篇</div>
       </div>
@@ -1872,14 +1809,14 @@ function _renderFillWrongList() {
     .sort((a, b) => b.wrong - a.wrong);
 
   if (lawWrongs.length === 0) {
-    panel.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(245,240,234,0.4);font-size:14px">✓ 目前沒有錯誤紀錄</div>';
+    panel.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(245,240,234,0.4);font-size:14px">✅ 目前沒有錯誤紀錄</div>';
     return;
   }
 
   let html = '<div style="display:flex;flex-direction:column;gap:8px;">';
   lawWrongs.forEach(({ name, wrong, total }) => {
     const pct = Math.round((total - wrong) / total * 100);
-    const color = pct >= 80 ? '#9FB89F' : pct >= 60 ? '#5BAFD6' : '#E74C3C';
+    const color = pct >= 80 ? '#2ECC71' : pct >= 60 ? '#5BAFD6' : '#E74C3C';
     const safeName = name.replace(/'/g, "\\'");
     html += `<div style="background:#0D1F2D;border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
       <div style="flex:1;min-width:0;">

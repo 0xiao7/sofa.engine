@@ -1,0 +1,2538 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<title>SoFa Engine — 會員中心</title>
+<!-- Google tag (gtag.js) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700;900&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --navy:#1F3848;
+    --navy-2:#19303E;
+    --navy-3:#142836;
+    --navy-4:#0D1C28;
+    --plum-1:#2C4A5C;
+    --plum-2:#4A6373;
+    --peach:#E7BBA7;
+    --peach-2:#F0CDBD;
+    --peach-3:#C89580;
+    --peach-dim:rgba(231,187,167,.7);
+    --cream:#F5F0EA;
+    --cream-2:#ECE5DB;
+    --cream-3:#E0D6C7;
+    --good:#9FB89F;
+    --warn:#D9B084;
+    --line:rgba(245,240,234,.08);
+    --line-2:rgba(245,240,234,.16);
+    --line-3:rgba(245,240,234,.28);
+    --serif:"Noto Serif TC","Songti TC",serif;
+    --sans:"Noto Sans TC",system-ui,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--navy-3)}
+  body{
+    font-family:var(--sans);color:var(--cream);
+    font-size:15px;line-height:1.65;
+    -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  }
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit}
+  input{font-family:inherit;color:inherit}
+  ::selection{background:var(--peach);color:var(--navy)}
+
+  /* === Top bar === */
+  .topbar{
+    background:rgba(20,40,54,.85);
+    backdrop-filter:blur(14px) saturate(140%);
+    -webkit-backdrop-filter:blur(14px) saturate(140%);
+    border-bottom:1px solid var(--line);
+    padding:18px 44px;
+    display:flex;align-items:center;justify-content:space-between;
+    position:sticky;top:0;z-index:50;
+  }
+  .brand{
+    font-family:var(--mono);font-weight:500;font-size:16px;
+    letter-spacing:.18em;
+    display:flex;align-items:center;gap:14px;
+  }
+  .brand .dot{
+    width:7px;height:7px;background:var(--peach);border-radius:50%;
+    box-shadow:0 0 0 4px rgba(231,187,167,.16);
+  }
+  .top-mid{
+    display:flex;gap:30px;font-size:13px;
+    font-family:var(--mono);letter-spacing:.08em;
+    color:rgba(245,240,234,.5);
+  }
+  .top-mid a{padding:6px 2px;border-bottom:1px solid transparent;transition:.18s}
+  .top-mid a:hover{color:var(--cream);border-color:var(--peach-dim)}
+  .top-right{display:flex;align-items:center;gap:18px;font-size:14px}
+  .user-pill{
+    display:flex;align-items:center;gap:10px;
+    font-family:var(--mono);font-size:12px;letter-spacing:.12em;
+    color:var(--cream);
+  }
+  .user-pill .live{
+    width:6px;height:6px;background:var(--good);border-radius:50%;
+    box-shadow:0 0 0 3px rgba(159,184,159,.16);
+  }
+  .btn-out{
+    border:1px solid var(--line-2);
+    padding:8px 18px;border-radius:2px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.16em;
+    color:rgba(245,240,234,.7);
+    transition:.2s;
+  }
+  .btn-out:hover{background:rgba(245,240,234,.06);color:var(--cream);border-color:var(--cream)}
+  .menu-btn{display:none;width:36px;height:36px;border:1px solid var(--line-2);border-radius:2px;align-items:center;justify-content:center}
+  .menu-btn span{display:block;width:16px;height:1.5px;background:var(--cream);position:relative}
+  .menu-btn span::before,.menu-btn span::after{content:"";position:absolute;left:0;width:16px;height:1.5px;background:var(--cream)}
+  .menu-btn span::before{top:-5px}
+  .menu-btn span::after{top:5px}
+
+  /* === Layout === */
+  .shell{
+    display:grid;
+    grid-template-columns:280px 1fr;
+    min-height:calc(100vh - 71px);
+  }
+
+  /* === Sidebar === */
+  aside.side{
+    background:var(--navy-2);
+    border-right:1px solid var(--line);
+    padding:36px 30px 48px;
+    position:sticky;top:71px;
+    height:calc(100vh - 71px);
+    overflow-y:auto;
+  }
+  /* almanac-style countdown */
+  .countdown{
+    border:1px solid var(--line-2);
+    border-radius:3px;
+    background:var(--navy);
+    overflow:hidden;
+  }
+  .cd-top{
+    padding:12px 18px;
+    background:rgba(231,187,167,.06);
+    border-bottom:1px solid var(--line-2);
+    display:flex;align-items:center;justify-content:space-between;
+    font-family:var(--mono);font-size:10.5px;
+    letter-spacing:.22em;text-transform:uppercase;
+    color:var(--peach);
+    white-space:nowrap;
+  }
+  .cd-top .tick{color:rgba(231,187,167,.55)}
+  .cd-x{
+    width:20px;height:20px;display:inline-flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:12px;color:rgba(231,187,167,.5);
+    background:transparent;border:none;cursor:pointer;
+    border-radius:2px;transition:.16s;letter-spacing:0;
+    padding:0;line-height:1;
+  }
+  .cd-x:hover{color:var(--peach);background:rgba(231,187,167,.08)}
+  .cd-restore{
+    display:none;width:100%;
+    margin-top:0;padding:14px 16px;
+    background:transparent;
+    border:1px dashed var(--line-2);border-radius:3px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.14em;
+    color:rgba(245,240,234,.45);
+    text-align:center;cursor:pointer;
+    transition:.18s;
+  }
+  .cd-restore:hover{color:var(--peach);border-color:var(--peach-dim)}
+  .countdown.hidden{display:none}
+  .cd-restore.show{display:block}
+  .cd-mid{
+    padding:24px 20px 22px;
+    text-align:center;position:relative;
+  }
+  .cd-num{
+    font-family:var(--serif);font-weight:600;font-size:88px;
+    color:var(--cream);line-height:.95;
+    letter-spacing:-.02em;
+    font-feature-settings:"lnum";
+  }
+  .cd-unit{
+    margin-top:8px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.18em;
+    color:rgba(245,240,234,.55);text-transform:uppercase;
+  }
+  .cd-foot{
+    padding:12px 18px;
+    border-top:1px dashed var(--line-2);
+    display:flex;justify-content:space-between;align-items:baseline;gap:8px;
+    font-family:var(--mono);font-size:11.5px;
+    color:rgba(245,240,234,.55);letter-spacing:.06em;
+    white-space:nowrap;
+  }
+  .cd-foot b{color:var(--cream);font-weight:500;letter-spacing:.04em;white-space:nowrap}
+
+  .nav-section{margin-top:32px}
+  .nav-section .lab{
+    font-family:var(--mono);font-size:10.5px;
+    color:rgba(245,240,234,.36);
+    letter-spacing:.24em;text-transform:uppercase;
+    padding:0 4px 14px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .nav-section .lab::after{
+    content:"";flex:1;height:1px;background:var(--line);
+  }
+  .nav-list{display:flex;flex-direction:column;gap:1px}
+  .nav-list a{
+    display:grid;
+    grid-template-columns:28px 1fr auto;
+    align-items:center;gap:12px;
+    padding:10px 12px;
+    font-size:14px;
+    color:rgba(245,240,234,.65);
+    border-radius:2px;
+    position:relative;
+    transition:.16s;
+  }
+  .nav-list a .num{
+    font-family:var(--mono);font-size:10.5px;
+    color:rgba(245,240,234,.32);letter-spacing:.06em;
+  }
+  .nav-list a .ct{
+    font-family:var(--mono);font-size:11px;
+    color:rgba(245,240,234,.3);letter-spacing:.04em;
+  }
+  .nav-list a:hover{background:rgba(245,240,234,.04);color:var(--cream)}
+  .nav-list a:hover .ct{color:rgba(245,240,234,.55)}
+  .nav-list a.on{background:rgba(231,187,167,.09);color:var(--cream)}
+  .nav-list a.on::before{
+    content:"";position:absolute;left:-30px;top:50%;transform:translateY(-50%);
+    width:3px;height:16px;background:var(--peach);border-radius:0 2px 2px 0;
+  }
+  .nav-list a.on .num{color:var(--peach)}
+  .nav-list a.on .ct{color:var(--peach-dim)}
+
+  .side-foot{
+    margin-top:32px;padding:18px 16px;
+    border-top:1px solid var(--line);
+    font-family:var(--serif);font-size:13px;
+    color:rgba(245,240,234,.6);
+    line-height:1.9;letter-spacing:.04em;
+    text-align:center;
+  }
+  .side-foot .dash{
+    display:block;
+    font-family:var(--mono);font-size:9px;letter-spacing:.32em;
+    color:rgba(245,240,234,.3);margin-bottom:10px;
+  }
+  .side-foot b{color:var(--peach);font-weight:500;font-family:var(--mono);font-size:11px;letter-spacing:.08em}
+
+  /* === Main === */
+  main.main{
+    padding:60px 72px 96px;
+    background:var(--navy-3);
+    position:relative;
+    overflow:hidden;
+  }
+  main.main::before{
+    content:"";position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(245,240,234,.014) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,240,234,.014) 1px, transparent 1px);
+    background-size:64px 64px;
+    mask-image:radial-gradient(ellipse 70% 50% at 50% 0%, #000 30%, transparent 75%);
+    pointer-events:none;
+  }
+  main.main::after{
+    content:"";position:absolute;
+    top:-100px;right:-200px;width:600px;height:600px;
+    background:radial-gradient(circle, rgba(231,187,167,.06) 0%, transparent 60%);
+    pointer-events:none;
+  }
+  .main-inner{max-width:1180px;margin:0 auto;position:relative}
+
+  /* === Hero === */
+  .greet{
+    display:grid;
+    grid-template-columns:1fr auto;
+    align-items:flex-end;
+    gap:48px;
+    padding-bottom:36px;
+    border-bottom:1px solid var(--line);
+  }
+  .greet .eyebrow{
+    font-family:var(--mono);font-size:11px;
+    letter-spacing:.24em;color:var(--peach);
+    text-transform:uppercase;
+    display:flex;align-items:center;gap:12px;
+    margin-bottom:18px;
+  }
+  .greet .eyebrow::after{content:"";flex:0 0 36px;height:1px;background:var(--peach-dim)}
+  .greet h1{
+    font-family:var(--serif);font-weight:500;font-size:46px;
+    color:var(--cream);line-height:1.22;letter-spacing:.005em;
+  }
+  .greet h1 em{font-style:normal;color:var(--peach);font-weight:600}
+  .greet .sub{
+    margin-top:18px;font-size:15.5px;color:rgba(245,240,234,.62);
+    max-width:540px;line-height:1.85;letter-spacing:.01em;
+  }
+  .greet .now{
+    text-align:right;
+    font-family:var(--mono);font-size:11px;
+    color:rgba(245,240,234,.45);
+    letter-spacing:.16em;text-transform:uppercase;
+  }
+  .greet .now .t{
+    font-family:var(--serif);font-size:42px;color:var(--cream);
+    font-weight:500;display:block;margin:8px 0 6px;letter-spacing:.01em;
+    font-feature-settings:"lnum";
+  }
+  .greet .now .l{margin-top:4px;color:rgba(245,240,234,.55)}
+
+  /* tonight strip — quick stats under hero */
+  .tonight{
+    margin-top:32px;
+    display:grid;grid-template-columns:repeat(4,1fr);
+    border:1px solid var(--line-2);
+    border-radius:3px;
+    background:linear-gradient(180deg, rgba(31,56,72,.5), rgba(20,40,54,.2));
+    margin-bottom:64px;
+  }
+  .tn{
+    padding:22px 26px;
+    border-right:1px solid var(--line);
+    position:relative;
+  }
+  .tn:last-child{border-right:none}
+  .tn .k{
+    font-family:var(--mono);font-size:10.5px;
+    letter-spacing:.18em;color:rgba(245,240,234,.5);
+    text-transform:uppercase;
+  }
+  .tn .v{
+    font-family:var(--serif);font-weight:500;font-size:30px;
+    color:var(--cream);margin-top:10px;line-height:1;
+    letter-spacing:.005em;display:flex;align-items:baseline;gap:8px;
+    font-feature-settings:"lnum";
+  }
+  .tn .v .u{
+    font-family:var(--sans);font-size:13px;
+    color:rgba(245,240,234,.55);font-weight:400;letter-spacing:.04em;
+  }
+  .tn .v.peach{color:var(--peach)}
+  .tn .v.good{color:var(--good)}
+
+  /* sections */
+  section.block{margin-bottom:80px;scroll-margin-top:90px}
+  .sec-head{
+    display:flex;align-items:flex-end;justify-content:space-between;
+    margin-bottom:28px;gap:24px;
+    padding-bottom:16px;border-bottom:1px solid var(--line);
+  }
+  .sec-head .l{display:flex;align-items:baseline;gap:18px}
+  .sec-head .idx{
+    font-family:var(--serif);font-weight:500;font-size:14px;
+    color:var(--peach);letter-spacing:.04em;
+    font-feature-settings:"lnum";
+  }
+  .sec-head .idx::after{
+    content:"";display:inline-block;width:18px;height:1px;
+    background:var(--peach-dim);
+    vertical-align:middle;margin-left:14px;margin-right:6px;
+  }
+  .sec-head h2{
+    font-family:var(--serif);font-weight:600;font-size:28px;
+    letter-spacing:.005em;color:var(--cream);
+  }
+  .sec-head .eb{
+    font-family:var(--mono);font-size:10.5px;
+    color:rgba(245,240,234,.4);letter-spacing:.22em;
+    text-transform:uppercase;
+    align-self:center;
+  }
+  .sec-head .r{
+    font-family:var(--mono);font-size:11.5px;
+    color:rgba(245,240,234,.5);letter-spacing:.08em;
+  }
+  .sec-head .r a{color:var(--peach);transition:.18s}
+  .sec-head .r a:hover{color:var(--peach-2)}
+
+  /* === 01 MEMBER — ticket stub === */
+  .member-card{
+    background:
+      linear-gradient(135deg, rgba(231,187,167,.04), transparent 60%),
+      var(--navy-2);
+    border:1px solid var(--line-2);
+    border-radius:4px;
+    display:grid;grid-template-columns:1fr 280px;
+    overflow:hidden;
+    position:relative;
+  }
+  /* perforation between left & right */
+  .member-card .perf{
+    position:absolute;top:0;bottom:0;left:calc(100% - 280px);
+    width:1px;
+    background:repeating-linear-gradient(to bottom, var(--line-3) 0 4px, transparent 4px 10px);
+  }
+  .member-card .perf::before,
+  .member-card .perf::after{
+    content:"";position:absolute;left:-9px;width:18px;height:18px;
+    border-radius:50%;background:var(--navy-3);
+    border:1px solid var(--line-2);
+  }
+  .member-card .perf::before{top:-9px}
+  .member-card .perf::after{bottom:-9px}
+  .mc-l{padding:40px 44px;position:relative}
+  .mc-stub-lab{
+    position:absolute;top:36px;right:60px;
+    font-family:var(--mono);font-size:10.5px;
+    color:rgba(245,240,234,.36);letter-spacing:.24em;text-transform:uppercase;
+  }
+  .mc-tags{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .mc-tag{
+    font-family:var(--mono);font-size:11px;font-weight:600;
+    padding:6px 14px;border-radius:2px;
+    background:var(--peach);color:var(--navy);letter-spacing:.06em;
+  }
+  .mc-status{
+    font-family:var(--mono);font-size:11.5px;
+    color:var(--good);letter-spacing:.16em;
+    display:flex;align-items:center;gap:8px;
+  }
+  .mc-status::before{
+    content:"";width:6px;height:6px;background:var(--good);border-radius:50%;
+    box-shadow:0 0 0 3px rgba(159,184,159,.2);
+  }
+  .mc-name{
+    margin-top:22px;
+    font-family:var(--serif);font-weight:500;font-size:36px;
+    color:var(--cream);letter-spacing:.01em;line-height:1;
+  }
+  .mc-target{
+    margin-top:10px;
+    font-family:var(--mono);font-size:11.5px;
+    color:rgba(245,240,234,.62);letter-spacing:.14em;
+  }
+  .mc-target .yr{color:var(--peach);font-weight:600}
+  .mc-id{
+    margin-top:6px;
+    font-family:var(--mono);font-size:11.5px;
+    color:rgba(245,240,234,.5);letter-spacing:.16em;
+  }
+  .mc-id .sn{color:var(--peach)}
+  .sn-eye{
+    background:none;border:none;cursor:pointer;padding:0 0 0 8px;
+    font-size:11px;color:rgba(245,240,234,.32);vertical-align:middle;
+    transition:color .15s;line-height:1;
+  }
+  .sn-eye:hover{color:var(--peach)}
+  .mc-email-row{
+    margin-top:4px;font-family:var(--mono);font-size:11px;
+    color:rgba(245,240,234,.38);letter-spacing:.12em;
+  }
+  .mc-email-row .em{color:rgba(245,240,234,.6)}
+  .mc-edit-btn{
+    background:none;border:none;cursor:pointer;
+    font-size:15px;color:rgba(245,240,234,.3);
+    padding:0 0 2px 10px;vertical-align:middle;
+    transition:color .15s;line-height:1;
+  }
+  .mc-edit-btn:hover{color:var(--peach)}
+  .mc-nick-edit{
+    display:none;margin-top:10px;
+    align-items:center;gap:8px;flex-wrap:wrap;
+  }
+  .mc-nick-edit.open{display:flex}
+  .mc-nick-input{
+    font-family:var(--serif);font-size:18px;
+    background:rgba(255,255,255,.07);border:1px solid var(--line-2);
+    color:var(--cream);padding:6px 12px;border-radius:2px;
+    outline:none;width:160px;
+  }
+  .mc-nick-input:focus{border-color:var(--peach)}
+  .mc-nick-save,.mc-nick-cancel{
+    font-family:var(--mono);font-size:11px;letter-spacing:.06em;
+    padding:6px 12px;border-radius:2px;cursor:pointer;border:none;
+  }
+  .mc-nick-save{background:var(--peach);color:var(--navy);font-weight:600}
+  .mc-nick-cancel{
+    background:transparent;border:1px solid var(--line-2);
+    color:rgba(245,240,234,.5);
+  }
+  .mc-divider{
+    margin:28px 0 22px;height:1px;
+    background:linear-gradient(to right, var(--line-2), transparent 80%);
+  }
+  .mc-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:36px}
+  .mc-stat .k{
+    font-family:var(--mono);font-size:10.5px;
+    color:rgba(245,240,234,.46);letter-spacing:.18em;text-transform:uppercase;
+  }
+  .mc-stat .v{
+    font-family:var(--serif);font-weight:500;font-size:22px;
+    color:var(--cream);margin-top:10px;letter-spacing:.01em;
+    font-feature-settings:"lnum";
+  }
+  .mc-stat .v.good{color:var(--good)}
+  .mc-stat .v .u{
+    font-family:var(--sans);font-size:13px;color:rgba(245,240,234,.5);
+    font-weight:400;margin-left:4px;
+  }
+
+  /* right stub */
+  .mc-r{
+    padding:40px 30px;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:rgba(13,28,40,.35);
+    position:relative;
+  }
+  .mc-r .lab{
+    position:absolute;top:36px;left:50%;transform:translateX(-50%);
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.24em;
+    color:rgba(245,240,234,.36);text-transform:uppercase;
+  }
+  .avatar{
+    width:84px;height:84px;border-radius:50%;
+    background:linear-gradient(140deg, var(--peach), var(--peach-3));
+    color:var(--navy);
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--serif);font-weight:600;font-size:38px;
+    box-shadow:0 0 0 4px rgba(231,187,167,.12), 0 10px 30px rgba(0,0,0,.25);
+    margin-top:8px;
+  }
+  .mc-r .who{
+    margin-top:18px;text-align:center;
+    font-family:var(--mono);font-size:11px;
+    letter-spacing:.18em;color:rgba(245,240,234,.6);
+  }
+  .mc-r .who b{color:var(--cream);font-weight:500;display:block;font-size:14px;margin-bottom:4px;letter-spacing:.12em}
+  .mc-r .barcode{
+    margin-top:22px;height:30px;width:140px;
+    background:repeating-linear-gradient(to right,
+      var(--cream) 0 1px, transparent 1px 3px,
+      var(--cream) 3px 5px, transparent 5px 7px,
+      var(--cream) 7px 8px, transparent 8px 12px);
+    opacity:.5;
+  }
+
+  /* === 02 PROGRESS === */
+  .prog-card{
+    background:var(--navy-2);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:36px 40px;
+  }
+  .prog-stats{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    border-bottom:1px solid var(--line);
+    padding-bottom:30px;
+  }
+  .ps{padding:0 32px;border-right:1px solid var(--line)}
+  .ps:first-child{padding-left:0}
+  .ps:last-child{border-right:none;padding-right:0}
+  .ps .v{
+    font-family:var(--serif);font-weight:500;font-size:58px;
+    color:var(--peach);line-height:1;letter-spacing:-.01em;
+    font-feature-settings:"lnum";
+    display:flex;align-items:baseline;gap:8px;
+  }
+  .ps .v .u{
+    font-family:var(--sans);font-size:14px;color:rgba(245,240,234,.5);
+    font-weight:400;letter-spacing:.04em;
+  }
+  .ps .k{
+    margin-top:14px;font-family:var(--mono);font-size:10.5px;
+    letter-spacing:.2em;color:rgba(245,240,234,.5);text-transform:uppercase;
+  }
+
+  .prog-list{margin-top:30px;display:flex;flex-direction:column;gap:18px}
+  .prog-row{
+    display:grid;grid-template-columns:200px 1fr 56px;gap:28px;
+    align-items:center;
+  }
+  .prog-row .name{
+    font-size:14px;color:rgba(245,240,234,.86);font-weight:400;
+    font-family:var(--serif);font-size:15px;letter-spacing:.01em;
+  }
+  .prog-bar{
+    height:4px;background:rgba(245,240,234,.06);
+    border-radius:100px;overflow:hidden;position:relative;
+  }
+  .prog-bar .fill{
+    position:absolute;top:0;left:0;height:100%;
+    background:linear-gradient(to right, var(--peach), var(--peach-2));
+    border-radius:100px;
+    box-shadow:0 0 12px rgba(231,187,167,.3);
+  }
+  .prog-row .n{
+    font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.5);
+    text-align:right;letter-spacing:.06em;
+  }
+  .prog-row .n b{color:var(--peach);font-weight:500}
+
+  /* === 03 SEARCH === */
+  .search-card{
+    background:var(--navy-2);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:32px 36px;
+  }
+  .search-row{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:12px;margin-bottom:18px}
+  .field{
+    background:var(--navy-3);
+    border:1px solid var(--line-2);
+    border-radius:3px;
+    padding:14px 18px;
+    display:flex;align-items:center;gap:12px;
+    transition:.18s;
+  }
+  .field:focus-within{border-color:var(--peach);background:var(--navy)}
+  .field .ic{
+    color:rgba(245,240,234,.45);flex-shrink:0;
+    font-family:var(--mono);font-size:14px;
+  }
+  .field input{
+    background:transparent;border:none;outline:none;width:100%;
+    font-size:14px;color:var(--cream);
+  }
+  .field input::placeholder{color:rgba(245,240,234,.38)}
+  .select-field{
+    background:var(--navy-3);
+    border:1px solid var(--line-2);
+    border-radius:3px;
+    padding:14px 18px;
+    font-size:14px;color:rgba(245,240,234,.7);
+    display:flex;align-items:center;justify-content:space-between;
+    cursor:pointer;transition:.18s;
+  }
+  .select-field:hover{border-color:var(--peach-dim);color:var(--cream)}
+  .select-field .car{color:var(--peach);font-family:var(--mono);font-size:11px}
+
+  .chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .chip{
+    padding:7px 16px;border-radius:100px;
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;
+    border:1px solid var(--line-2);
+    background:transparent;color:rgba(245,240,234,.7);
+    transition:.18s;
+    white-space:nowrap;
+  }
+  .chip:hover{border-color:var(--peach-dim);color:var(--cream)}
+  .chip.on{background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:600}
+  .sub-filter-row{display:none;align-items:center;gap:10px;margin-top:10px;padding-top:10px;border-top:1px dashed rgba(245,240,234,.1)}
+  .sub-filter-row .sf-label{font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:rgba(245,240,234,.4);white-space:nowrap}
+  .sub-filter-row select{background:var(--navy-2);border:1px solid var(--line-2);border-radius:3px;color:var(--cream);font-family:var(--mono);font-size:12px;letter-spacing:.04em;padding:5px 10px;cursor:pointer;outline:none}
+  .sub-filter-row select:focus{border-color:var(--peach-dim)}
+
+  .results{
+    margin-top:24px;display:flex;flex-direction:column;
+    padding-top:20px;border-top:1px dashed var(--line-2);
+  }
+  .res-row{
+    display:grid;grid-template-columns:auto auto 1fr auto;
+    align-items:center;gap:18px;
+    padding:14px 14px;border-radius:2px;
+    transition:.16s;cursor:pointer;
+    border-bottom:1px solid var(--line);
+  }
+  .res-row:last-child{border-bottom:none}
+  .res-row:hover{background:rgba(245,240,234,.025)}
+  .res-row .law{
+    color:rgba(245,240,234,.55);font-family:var(--mono);
+    font-size:11.5px;letter-spacing:.08em;min-width:90px;
+  }
+  .res-row .art{
+    color:var(--cream);font-family:var(--serif);font-weight:500;
+    font-size:18px;letter-spacing:.01em;min-width:50px;
+    font-feature-settings:"lnum";
+  }
+  .res-row .ttl{
+    color:rgba(245,240,234,.72);font-size:14px;
+    border-left:1px solid var(--line-2);padding-left:18px;
+  }
+  .star{color:var(--peach);font-size:16px;cursor:pointer;line-height:1}
+  .star.off{color:rgba(245,240,234,.22)}
+
+  /* === 04/05/06 CARDS === */
+  .card-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .li-card{
+    background:var(--navy-2);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:24px 26px;
+    transition:.2s;
+    cursor:pointer;
+    position:relative;
+    overflow:hidden;
+  }
+  .li-card::before{
+    content:"";position:absolute;top:0;left:0;width:3px;height:0%;
+    background:var(--peach);transition:height .3s;
+  }
+  .li-card:hover{background:var(--plum-1);border-color:var(--line-3);transform:translateY(-1px)}
+  .li-card:hover::before{height:100%}
+  .li-card .law{
+    font-family:var(--mono);font-size:10.5px;color:var(--peach);
+    letter-spacing:.2em;text-transform:uppercase;font-weight:600;
+  }
+  .li-card .art{
+    font-family:var(--serif);font-weight:600;font-size:32px;
+    color:var(--cream);margin-top:14px;line-height:1;
+    letter-spacing:-.01em;
+    font-feature-settings:"lnum";
+  }
+  .li-card .sub{
+    font-family:var(--serif);font-size:15px;
+    color:rgba(245,240,234,.78);font-weight:400;
+    margin-top:10px;letter-spacing:.01em;
+  }
+  .li-card .meta{
+    margin-top:22px;padding-top:14px;border-top:1px dashed var(--line);
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.5);
+    letter-spacing:.06em;
+  }
+  .li-card .meta a{color:var(--peach)}
+  .li-card .star{position:absolute;top:22px;right:24px}
+  .li-card.warn .law{color:var(--warn)}
+  .li-card.warn::before{background:var(--warn)}
+  .li-card.warn .meta b{color:var(--warn);font-weight:500}
+
+  /* empty state */
+  .empty{
+    padding:42px 32px;text-align:center;
+    background:rgba(31,56,72,.4);
+    border:1px dashed var(--line-2);
+    border-radius:3px;
+    color:rgba(245,240,234,.5);font-size:13.5px;
+    display:flex;flex-direction:column;align-items:center;gap:12px;
+    line-height:1.8;
+  }
+  .empty .ic{
+    font-family:var(--serif);font-size:46px;color:rgba(245,240,234,.16);
+    line-height:1;letter-spacing:-.02em;
+  }
+  .empty b{color:var(--cream);font-weight:500}
+  .empty.full{grid-column:1/-1}
+
+  /* === 07 TOOLS — index-card style === */
+  .tool-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+  .tool{
+    background:var(--navy-2);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:28px 26px 24px;
+    transition:.2s;cursor:pointer;
+    position:relative;overflow:hidden;
+    display:flex;flex-direction:column;gap:14px;
+    min-height:200px;
+  }
+  .tool:hover{background:var(--plum-1);border-color:var(--line-3);transform:translateY(-2px)}
+  .tool .num{
+    font-family:var(--serif);font-weight:500;font-size:42px;
+    color:rgba(231,187,167,.32);line-height:.9;letter-spacing:-.02em;
+    transition:color .2s;
+  }
+  .tool:hover .num{color:var(--peach)}
+  .tool .code{
+    font-family:var(--mono);font-weight:600;font-size:10.5px;
+    color:rgba(245,240,234,.5);letter-spacing:.24em;
+    text-transform:uppercase;
+  }
+  .tool .name{
+    font-family:var(--serif);font-weight:600;font-size:22px;
+    color:var(--cream);letter-spacing:.005em;
+  }
+  .tool .desc{
+    font-size:13px;color:rgba(245,240,234,.6);line-height:1.7;
+  }
+  .tool .arrow{
+    margin-top:auto;padding-top:12px;
+    border-top:1px dashed var(--line);
+    font-family:var(--mono);font-size:11px;
+    color:var(--peach);letter-spacing:.12em;
+    display:flex;align-items:center;justify-content:space-between;
+    text-transform:uppercase;
+  }
+  .tool .arrow .glyph{transition:transform .2s}
+  .tool:hover .arrow .glyph{transform:translateX(4px)}
+
+  /* === 08 LAWS — table-of-contents === */
+  .laws-head{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:24px;gap:24px;
+  }
+  .laws-search{
+    background:var(--navy-2);
+    border:1px solid var(--line-2);
+    border-radius:3px;
+    padding:11px 16px;width:300px;
+    display:flex;align-items:center;gap:10px;font-size:13px;
+  }
+  .laws-search input{background:transparent;border:none;outline:none;width:100%;color:var(--cream)}
+  .laws-search input::placeholder{color:rgba(245,240,234,.38)}
+  .laws-count{
+    font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.55);
+    letter-spacing:.08em;
+  }
+  .laws-count b{color:var(--peach);font-weight:600}
+
+  .laws-toc{
+    background:var(--navy-2);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:14px 28px;
+  }
+  .toc-row{
+    display:grid;
+    grid-template-columns:40px 1fr 90px 30px;
+    align-items:center;gap:18px;
+    padding:14px 0;
+    border-bottom:1px solid var(--line);
+    cursor:pointer;transition:.18s;
+  }
+  .toc-row:last-child{border-bottom:none}
+  .toc-row:hover{padding-left:8px}
+  .toc-row:hover .nm{color:var(--peach)}
+  .toc-row .idx{
+    font-family:var(--mono);font-size:11px;
+    color:rgba(245,240,234,.38);letter-spacing:.08em;
+    font-feature-settings:"lnum";
+  }
+  .toc-row .nm{
+    font-family:var(--serif);font-size:16px;
+    color:var(--cream);font-weight:400;letter-spacing:.005em;
+    transition:.18s;
+    display:flex;align-items:center;gap:8px;
+    min-width:0;overflow:hidden;
+  }
+  .toc-row .nm .leader{
+    flex:1;height:1px;min-width:8px;
+    background:repeating-linear-gradient(to right, var(--line-2) 0 2px, transparent 2px 6px);
+    margin:0 2px;align-self:center;opacity:0;transition:opacity .18s;
+  }
+  .toc-row:hover .nm .leader{opacity:1}
+  .toc-row .nm .star-mark{
+    font-family:var(--mono);font-size:10px;color:var(--peach);
+    letter-spacing:.12em;padding:2px 6px;border:1px solid rgba(231,187,167,.32);
+    border-radius:2px;white-space:nowrap;flex-shrink:0;
+  }
+  .toc-row .ct{
+    font-family:var(--mono);font-size:11.5px;
+    color:rgba(245,240,234,.5);text-align:right;letter-spacing:.04em;
+  }
+  .toc-row .arrow{
+    font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.32);
+    text-align:right;transition:.18s;
+  }
+  .toc-row:hover .arrow{color:var(--peach);transform:translateX(2px)}
+
+  /* === 09 RECENT — timeline === */
+  .recent-list{
+    background:var(--navy-2);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:8px 0;
+    position:relative;
+  }
+  .rec-group{padding:0 28px}
+  .rec-date-head{
+    display:flex;align-items:center;gap:14px;
+    padding:18px 0 10px;
+    font-family:var(--mono);font-size:10.5px;
+    letter-spacing:.22em;color:rgba(245,240,234,.45);
+    text-transform:uppercase;
+  }
+  .rec-date-head::after{content:"";flex:1;height:1px;background:var(--line)}
+  .rec-row{
+    display:grid;
+    grid-template-columns:auto auto 1fr auto;
+    align-items:center;gap:18px;
+    padding:14px 14px 14px 28px;
+    cursor:pointer;transition:.18s;
+    position:relative;
+    margin-left:-14px;border-radius:2px;
+  }
+  .rec-row::before{
+    content:"";position:absolute;left:6px;top:50%;transform:translateY(-50%);
+    width:6px;height:6px;border-radius:50%;
+    background:var(--peach-dim);opacity:.4;transition:.18s;
+  }
+  .rec-row:hover{background:rgba(245,240,234,.025)}
+  .rec-row:hover::before{opacity:1;background:var(--peach);box-shadow:0 0 0 3px rgba(231,187,167,.18)}
+  .rec-row .law{
+    font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+    color:rgba(245,240,234,.55);min-width:90px;
+  }
+  .rec-row .art{
+    font-family:var(--serif);font-weight:500;font-size:18px;
+    color:var(--cream);min-width:50px;
+    font-feature-settings:"lnum";
+  }
+  .rec-row .ttl{
+    font-size:13.5px;color:rgba(245,240,234,.62);
+    border-left:1px solid var(--line);padding-left:18px;
+  }
+  .rec-row .time{
+    font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.4);
+    letter-spacing:.06em;
+  }
+
+  /* === Drawer (unchanged base) === */
+  .drawer-mask{
+    position:fixed;inset:0;background:rgba(13,28,40,.7);
+    backdrop-filter:blur(4px);z-index:99;
+    opacity:0;pointer-events:none;transition:.25s;
+  }
+  .drawer-mask.open{opacity:1;pointer-events:auto}
+  .drawer{
+    position:fixed;top:0;right:0;bottom:0;width:580px;max-width:100%;
+    background:var(--cream);color:var(--navy);
+    z-index:100;
+    transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);
+    display:flex;flex-direction:column;
+    box-shadow:-20px 0 60px rgba(0,0,0,.4);
+  }
+  .drawer.open{transform:translateX(0)}
+  .dr-head{
+    padding:20px 28px;background:var(--cream-2);
+    border-bottom:1px solid var(--cream-3);
+    display:flex;align-items:center;justify-content:space-between;
+    font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--navy);
+  }
+  .dr-head .x{font-size:18px;cursor:pointer;color:var(--navy)}
+  .dr-body{flex:1;overflow-y:auto;padding:36px 38px 24px}
+  .dr-eyebrow{
+    font-family:var(--mono);font-size:11px;font-weight:600;
+    color:var(--peach-3);letter-spacing:.18em;text-transform:uppercase;
+  }
+  .dr-title{margin-top:10px;display:flex;align-items:baseline;gap:14px}
+  .dr-title .n{
+    font-family:var(--serif);font-weight:600;font-size:58px;
+    letter-spacing:-.02em;line-height:1;color:var(--navy);
+    font-feature-settings:"lnum";
+  }
+  .dr-title .tt{font-family:var(--serif);font-weight:500;font-size:22px;color:var(--navy);line-height:1.4}
+  .dr-meta{
+    margin-top:18px;padding:14px 18px;
+    background:#fff;border-radius:3px;border:1px solid var(--cream-3);
+    display:flex;align-items:center;gap:24px;
+    font-family:var(--mono);font-size:12px;color:var(--navy);
+    letter-spacing:.06em;
+  }
+  .dr-meta b{color:var(--peach-3);font-weight:600}
+  .dr-text{
+    margin-top:24px;padding:24px 26px;background:#fff;border-radius:3px;
+    border-left:3px solid var(--peach);
+    font-size:15.5px;line-height:1.95;color:var(--navy);
+  }
+  .dr-text p{margin-bottom:10px}
+  .dr-text p:last-child{margin-bottom:0}
+  .dr-text .ro{font-family:var(--mono);font-size:13px;color:var(--peach-3);font-weight:600;margin-right:6px}
+  .dr-text .hl{background:rgba(231,187,167,.42);padding:1px 4px;border-radius:2px;color:var(--navy);font-weight:600}
+  .dr-text .but{margin-top:14px;padding-top:12px;border-top:1px dashed rgba(31,56,72,.14);color:rgba(31,56,72,.65);font-size:14px}
+  .dr-text .but b{color:var(--peach-3);font-weight:600}
+
+  .dr-actions{display:flex;gap:8px;margin-top:18px}
+  .dr-chip{
+    flex:0 0 auto;padding:9px 18px;border-radius:3px;
+    border:1px solid var(--cream-3);background:#fff;
+    font-size:13px;color:rgba(31,56,72,.7);
+    cursor:pointer;transition:.18s;
+    display:flex;align-items:center;gap:6px;
+  }
+  .dr-chip:hover{border-color:var(--peach-3);color:var(--navy)}
+  .dr-chip.on{background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:600}
+
+  .dr-acc{margin-top:24px;border-top:1px solid var(--cream-3)}
+  .acc-item{border-bottom:1px solid var(--cream-3)}
+  .acc-head{display:flex;align-items:center;gap:14px;padding:16px 6px;cursor:pointer;transition:.18s}
+  .acc-head:hover{padding-left:12px}
+  .acc-head .cv{font-family:var(--mono);font-size:11px;color:var(--peach-3);transition:transform .25s;width:14px;display:inline-block}
+  .acc-head .num{font-family:var(--mono);font-size:12px;font-weight:600;color:rgba(31,56,72,.45);letter-spacing:.04em}
+  .acc-head .ttl{font-family:var(--serif);font-size:16.5px;font-weight:500;color:rgba(31,56,72,.85);letter-spacing:.01em}
+  .acc-item.open .acc-head .cv{transform:rotate(90deg);color:var(--peach-3)}
+  .acc-item.open .acc-head .ttl{color:var(--navy)}
+  .acc-item.open .acc-head .num{color:var(--peach-3)}
+  .acc-body{max-height:0;overflow:hidden;transition:max-height .3s ease}
+  .acc-item.open .acc-body{max-height:600px}
+  /* locked segments (trial mode) */
+  .acc-item.locked{pointer-events:none;opacity:.55;position:relative}
+  .acc-item.locked .acc-head .ttl::after{content:" 🔒";font-size:12px;opacity:.7}
+  .acc-item.locked-cta{pointer-events:auto;opacity:1}
+  .acc-locked-banner{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:12px 16px;margin:8px 0 4px;
+    background:rgba(231,187,167,.08);
+    border:1px dashed rgba(231,187,167,.3);border-radius:4px;
+    font-size:12.5px;color:rgba(31,56,72,.7);
+  }
+  .acc-locked-banner a{
+    font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em;
+    color:var(--peach-3);text-decoration:none;white-space:nowrap;
+    padding:4px 10px;border:1px solid var(--peach-dim);border-radius:2px;
+    transition:.18s;
+  }
+  .acc-locked-banner a:hover{background:var(--peach-dim)}
+  .acc-inner{padding:4px 22px 22px 28px;font-size:14px;line-height:1.85;color:rgba(31,56,72,.78)}
+  .acc-inner p{margin-bottom:8px}
+  .acc-inner b{color:var(--navy);font-weight:600}
+  .acc-inner .kw{background:rgba(231,187,167,.32);padding:1px 5px;border-radius:2px;color:var(--navy);font-weight:500}
+
+  .dr-foot{padding:18px 28px;background:var(--cream-2);border-top:1px solid var(--cream-3);display:flex;gap:10px;flex-wrap:wrap}
+  #dr-review-picker{display:none;width:100%;gap:8px;padding-top:4px}
+  #dr-review-picker button{flex:1;padding:10px 6px;border-radius:4px;font-family:var(--sans);font-size:13px;font-weight:600;cursor:pointer;border:none;display:flex;flex-direction:column;align-items:center;gap:2px;line-height:1.3}
+  #dr-review-picker button small{font-size:10px;opacity:.8;font-weight:400}
+  .dr-btn{
+    flex:1;padding:14px 18px;border-radius:3px;
+    font-family:var(--sans);font-size:14px;font-weight:600;
+    text-align:center;cursor:pointer;transition:.18s;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  .dr-btn.pri{background:var(--navy);color:var(--cream)}
+  .dr-btn.pri:hover{background:var(--navy-2)}
+  .dr-btn.sec{background:transparent;color:var(--navy);border:1px solid var(--navy)}
+  .dr-btn.sec:hover{background:rgba(31,56,72,.06)}
+  .dr-btn.peach{background:var(--peach);color:var(--navy)}
+  .dr-btn.peach:hover{background:var(--peach-2)}
+
+  /* === RWD === */
+  @media (max-width: 1180px){
+    .shell{grid-template-columns:240px 1fr}
+    main.main{padding:48px 44px 80px}
+    .mc-stats{grid-template-columns:1fr 1fr}
+    .card-grid,.tool-grid{grid-template-columns:repeat(2,1fr)}
+    .search-row{grid-template-columns:1.2fr 0.8fr auto}
+    .tonight{grid-template-columns:repeat(2,1fr)}
+    .tn:nth-child(2){border-right:none}
+    .tn:nth-child(1),.tn:nth-child(2){border-bottom:1px solid var(--line)}
+  }
+  @media (max-width: 760px){
+    .topbar{padding:14px 20px}
+    .top-mid{display:none}
+    .menu-btn{display:flex}
+    .shell{grid-template-columns:1fr}
+    aside.side{
+      position:fixed;top:65px;left:0;width:280px;height:calc(100vh - 65px);
+      transform:translateX(-100%);transition:transform .3s;z-index:40;
+    }
+    aside.side.open{transform:translateX(0)}
+    main.main{padding:32px 22px 60px}
+    .greet{grid-template-columns:1fr;gap:18px}
+    .greet h1{font-size:32px}
+    .greet .now{text-align:left}
+    .greet .now .t{font-size:30px}
+    .tonight{grid-template-columns:1fr 1fr}
+    .member-card{grid-template-columns:1fr}
+    .member-card .perf{display:none}
+    .mc-l{padding:28px 24px}
+    .mc-r{padding:28px 24px;border-top:1px dashed var(--line-2)}
+    .mc-stub-lab{position:static;margin-bottom:14px}
+    .mc-stats{grid-template-columns:1fr 1fr;gap:20px}
+    .prog-card{padding:24px}
+    .prog-stats{grid-template-columns:1fr 1fr;gap:20px 0}
+    .ps{padding:14px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+    .ps:nth-child(2n){border-right:none}
+    .ps:nth-last-child(-n+2){border-bottom:none}
+    .ps .v{font-size:42px}
+    .prog-row{grid-template-columns:120px 1fr 36px;gap:14px}
+    .search-row{grid-template-columns:1fr}
+    .card-grid,.tool-grid{grid-template-columns:1fr}
+    .sec-head{flex-direction:column;align-items:flex-start;gap:8px}
+    .toc-row{grid-template-columns:30px 1fr auto;gap:10px}
+    .toc-row .arrow{display:none}
+    .toc-row .nm{font-size:14.5px}
+    .toc-row .nm .leader{display:none}
+    .toc-row .nm .star-mark{font-size:9px;padding:1px 5px}
+    .rec-row{grid-template-columns:auto 1fr auto;gap:12px}
+    .rec-row .ttl{display:none}
+    .drawer{
+      top:50%;left:50%;right:auto;bottom:auto;
+      width:92%;max-width:480px;max-height:88vh;
+      border-radius:6px;overflow:hidden;
+      box-shadow:0 20px 60px rgba(0,0,0,.5);
+      transform:translate(-50%,-50%) scale(.94);opacity:0;
+      transition:transform .28s cubic-bezier(.4,0,.2,1),opacity .22s;
+    }
+    .drawer.open{transform:translate(-50%,-50%) scale(1);opacity:1}
+    .laws-head{flex-direction:column;align-items:flex-start;gap:12px}
+    .laws-search{width:100%}
+  }
+</style>
+</head>
+<body data-screen-label="01 Dashboard">
+
+  <!-- ============ TOP BAR ============ -->
+  <header class="topbar">
+    <a class="brand" href="index.html"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
+    <nav class="top-mid">
+      <a href="#member">會員</a>
+      <a href="#progress">進度</a>
+      <a href="#search">查法條</a>
+      <a href="#tools">備考工具</a>
+      <a href="#laws">法規</a>
+    </nav>
+    <div class="top-right">
+      <span class="user-pill"><span class="live"></span>——</span>
+      <button class="btn-out" onclick="(function(){localStorage.removeItem('sofa_uid');localStorage.removeItem('sofa_free');localStorage.removeItem('sofa_nickname');localStorage.removeItem('sofa_token');window.location.href='login.html';})()">登出</button>
+      <button class="menu-btn" onclick="document.querySelector('aside.side').classList.toggle('open')"><span></span></button>
+    </div>
+  </header>
+
+  <div class="shell">
+
+    <!-- ============ SIDEBAR ============ -->
+    <aside class="side">
+      <div class="countdown" id="countdown">
+        <div class="cd-top">
+          <span>距 考 試</span>
+          <button class="cd-x" onclick="hideCountdown()" title="關閉倒數">✕</button>
+        </div>
+        <div class="cd-mid">
+          <div class="cd-num">187</div>
+          <div class="cd-unit">天 倒 數 中</div>
+        </div>
+        <div class="cd-foot">
+          <span>考試日</span>
+          <b>2026 / 11 / 14</b>
+        </div>
+      </div>
+      <button class="cd-restore" id="cdRestore" onclick="showCountdown()">+ 顯示考試倒數</button>
+
+      <div class="nav-section">
+        <div class="lab">導 覽</div>
+        <div class="nav-list">
+          <a href="#member" class="on"><span class="num">01</span>會員資訊<span class="ct"></span></a>
+          <a href="#progress"><span class="num">02</span>學習進度<span class="ct">6/7</span></a>
+          <a href="#search"><span class="num">03</span>法條搜尋<span class="ct"></span></a>
+          <a href="#favorites"><span class="num">04</span>我的收藏<span class="ct">1</span></a>
+          <a href="#memorized"><span class="num">05</span>已熟記<span class="ct">0</span></a>
+          <a href="#review"><span class="num">06</span>待複習<span class="ct">1</span></a>
+          <a href="#tools"><span class="num">07</span>備考工具<span class="ct">4</span></a>
+          <a href="#laws"><span class="num">08</span>法規目錄<span class="ct">33</span></a>
+          <a href="#recent"><span class="num">09</span>最近查詢<span class="ct">7d</span></a>
+        </div>
+      </div>
+
+      <div class="side-foot">
+        <span class="dash">— LIBRARY —</span>
+        坐下來，<br/>一條一條來。
+        <div style="margin-top:14px"><b>2,000+ 條 · 33 部</b></div>
+        <div style="margin-top:18px;display:flex;flex-direction:column;gap:6px;border-top:1px solid rgba(245,240,234,.08);padding-top:16px;">
+          <a href="terms.html" style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.35);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(245,240,234,.7)'" onmouseout="this.style.color='rgba(245,240,234,.35)'">服務聲明 / 退費政策 →</a>
+          <a href="mailto:hi@sofaengine.org" style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.35);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(245,240,234,.7)'" onmouseout="this.style.color='rgba(245,240,234,.35)'">hi@sofaengine.org</a>
+          <span style="font-family:var(--mono);font-size:10px;color:rgba(245,240,234,.18);letter-spacing:.06em;margin-top:4px">v3.1.0 · 2026.05</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ============ MAIN ============ -->
+    <main class="main">
+      <div class="main-inner">
+
+        <!-- ============ HERO ============ -->
+        <div class="greet">
+          <div>
+            <div class="eyebrow" id="greet-eyebrow">TONIGHT · TAIPEI</div>
+            <h1><span id="greet-word">晚安</span>，<em id="greet-name">—</em>。<br/>今天讀一條也算數。</h1>
+            <p class="sub">距離考試還有 <span class="greet-days">—</span> 天。本週進度 6 / 7，連續學習 3 天——坐下來繼續吧。</p>
+          </div>
+          <div class="now">
+            <div class="l">CURRENT TIME</div>
+            <div class="t" id="clock-time">--:--</div>
+            <div class="l" id="clock-date">----.--.-- · -</div>
+          </div>
+        </div>
+
+        <!-- tonight strip -->
+        <div class="tonight">
+          <div class="tn">
+            <div class="k">今晚目標</div>
+            <div class="v">1 <span class="u">條</span></div>
+          </div>
+          <div class="tn">
+            <div class="k">本週進度</div>
+            <div class="v peach">6 / 7</div>
+          </div>
+          <div class="tn">
+            <div class="k">連續學習</div>
+            <div class="v good">3 <span class="u">天</span></div>
+          </div>
+          <div class="tn">
+            <div class="k">待複習</div>
+            <div class="v">1 <span class="u">條 · 7 天後</span></div>
+          </div>
+        </div>
+
+        <!-- ============ 01 MEMBER ============ -->
+        <section class="block" id="member">
+          <div class="sec-head">
+            <div class="l">
+              <span class="idx">01</span>
+              <h2>會員資訊</h2>
+            </div>
+            <div class="r"><span class="eb">MEMBER</span></div>
+          </div>
+
+          <div class="member-card">
+            <div class="mc-l">
+              <span class="mc-stub-lab">— MEMBERSHIP TICKET —</span>
+              <div class="mc-tags">
+                <span class="mc-tag" id="mc-plan">——</span>
+                <span class="mc-status" id="mc-status">——</span>
+              </div>
+              <div class="mc-name" id="mc-name"><span id="mc-name-text">——</span><button class="mc-edit-btn" onclick="openNickEdit()" title="修改暱稱">✎</button></div>
+              <div class="mc-nick-edit" id="mc-nick-edit">
+                <input class="mc-nick-input" id="mc-nick-input" type="text" maxlength="30" placeholder="新暱稱">
+                <button class="mc-nick-save" onclick="saveNickname()">儲存</button>
+                <button class="mc-nick-cancel" onclick="cancelNickname()">取消</button>
+              </div>
+              <div class="mc-target">目標 · 記帳士國考 <span class="yr">2026</span></div>
+              <div class="mc-id">NO. <span class="sn" id="mc-serial">——</span><button class="sn-eye" onclick="toggleSerial()" title="顯示完整序號">◉</button></div>
+              <div class="mc-email-row" id="mc-email-row" style="display:none">EMAIL · <span class="em" id="mc-email"></span></div>
+              <div class="mc-divider"></div>
+              <div class="mc-stats">
+                <div class="mc-stat">
+                  <div class="k">到期日</div>
+                  <div class="v" id="mc-expire">——</div>
+                </div>
+                <div class="mc-stat">
+                  <div class="k">連續學習</div>
+                  <div class="v good" id="mc-streak">——</div>
+                </div>
+                <div class="mc-stat">
+                  <div class="k">啟用日</div>
+                  <div class="v" id="mc-start">——</div>
+                </div>
+              </div>
+            </div>
+            <div class="perf"></div>
+            <div class="mc-r">
+              <span class="lab">SEAT · 學員座位</span>
+              <div class="avatar" id="mc-avatar">—</div>
+              <div class="who"><b id="mc-who">——</b>記帳士 · 國考</div>
+              <div class="barcode"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ 02 PROGRESS ============ -->
+        <section class="block" id="progress">
+          <div class="sec-head">
+            <div class="l">
+              <span class="idx">02</span>
+              <h2>學習進度</h2>
+            </div>
+            <div class="r"><a href="#">查看週報 →</a></div>
+          </div>
+
+          <div class="prog-card">
+            <div class="prog-stats">
+              <div class="ps">
+                <div class="v" id="ps-articles">——</div>
+                <div class="k">已查條文</div>
+              </div>
+              <div class="ps">
+                <div class="v" id="ps-laws">——</div>
+                <div class="k">涵蓋法規</div>
+              </div>
+              <div class="ps">
+                <div class="v" id="ps-bookmarks">——</div>
+                <div class="k">已收藏</div>
+              </div>
+              <div class="ps">
+                <div class="v" id="ps-streak">——</div>
+                <div class="k">連續學習</div>
+              </div>
+            </div>
+
+            <div class="prog-list" id="prog-list">
+              <div style="padding:24px 0;text-align:center;opacity:.45;font-size:.85rem;font-family:var(--sans);">載入中…</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ 03 SEARCH ============ -->
+        <section class="block" id="search">
+          <div class="sec-head">
+            <div class="l">
+              <span class="idx">03</span>
+              <h2>直接查法條</h2>
+            </div>
+            <div class="r"><span class="eb">2,000+ 條 · 33 部</span></div>
+          </div>
+
+          <div class="search-card">
+            <div class="search-row">
+              <div class="field" style="position:relative;overflow:visible">
+                <span class="ic">⌕</span>
+                <input id="search-law" placeholder="輸入法規名稱…" autocomplete="off" />
+                <div id="law-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:-1px;right:-1px;background:var(--navy);border:1px solid var(--line-2);border-radius:3px;z-index:30;max-height:220px;overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,.4)"></div>
+              </div>
+              <div class="field">
+                <span class="ic">§</span>
+                <input id="search-art" placeholder="條號（選填）" type="text" inputmode="numeric" />
+              </div>
+              <button id="search-btn" onclick="doSearch()" style="background:var(--peach);color:var(--navy);border:none;border-radius:3px;padding:0 28px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:.18s;letter-spacing:.04em;flex-shrink:0" onmouseover="this.style.background='var(--peach-2)'" onmouseout="this.style.background='var(--peach)'">搜尋</button>
+            </div>
+            <div class="chip-row">
+              <button class="chip on" onclick="setChip(this,'all')">全部</button>
+              <button class="chip" onclick="setChip(this,'5star')">★★★★★</button>
+              <button class="chip" onclick="setChip(this,'4star')">★★★★</button>
+              <button class="chip" onclick="setChip(this,'deadline')">期間 / 時限</button>
+              <button class="chip" onclick="setChip(this,'penalty')">罰則</button>
+            </div>
+            <div class="sub-filter-row" id="subFilterRow">
+              <span class="sf-label">細篩</span>
+              <select id="subFilterSel" onchange="doSearch()">
+                <option value="">全部</option>
+              </select>
+            </div>
+
+            <div class="results" id="search-results">
+              <div style="padding:28px 0;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.38);letter-spacing:.1em">輸入法規名稱後按搜尋 →</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ 04 FAVORITES ============ -->
+        <section class="block" id="favorites">
+          <div class="sec-head">
+            <div class="l">
+              <span class="idx">04</span>
+              <h2>我的收藏</h2>
+            </div>
+            <div class="r"><span id="fav-count">— 條</span></div>
+          </div>
+          <div class="card-grid" id="favorites-list">
+            <div class="empty" style="grid-column:span 3">
+              <span class="ic">☆</span>
+              <div>載入中…</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ 05 MEMORIZED ============ -->
+        <section class="block" id="memorized">
+          <div class="sec-head">
+            <div class="l">
+              <span class="idx">05</span>
+              <h2>已熟記</h2>
+            </div>
+            <div class="r"><span id="mastered-count">0 條</span></div>
+          </div>
+          <div class="card-grid" id="mastered-list">
+            <div class="empty full" style="grid-column:span 3">
+              <span class="ic">✓</span>
+              <div>載入中…</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ 06 REVIEW ============ -->
+        <section class="block" id="review">
+          <div class="sec-head">
+            <div class="l">
+              <span class="idx">06</span>
+              <h2>待複習</h2>
+            </div>
+            <div class="r"><span id="review-count">0 條</span></div>
+          </div>
+          <div class="card-grid" id="review-list">
+            <div class="empty" style="grid-column:span 3">
+              <span class="ic">⊙</span>
+              <div>載入中…</div>
+            </div>
+          </div>
+        </section>
+
+        <!-- ============ 07 TOOLS ============ -->
+        <section class="block" id="tools">
+          <div class="sec-head">
+            <div class="l">
+              <span class="idx">07</span>
+              <h2>備考工具</h2>
+            </div>
+            <div class="r"><span class="eb">4 種模式</span></div>
+          </div>
+
+          <div class="tool-grid">
+            <a class="tool" href="practice.html">
+              <div class="num">01</div>
+              <div>
+                <div class="code">TYPE</div>
+                <div class="name" style="margin-top:6px">打字練習</div>
+              </div>
+              <p class="desc">逐字輸入法條原文，<br/>肌肉記憶法。</p>
+              <span class="arrow">開始 <span class="glyph">→</span></span>
+            </a>
+            <a class="tool" href="quiz.html">
+              <div class="num">02</div>
+              <div>
+                <div class="code">QUIZ</div>
+                <div class="name" style="margin-top:6px">選擇題</div>
+              </div>
+              <p class="desc">四選一，<br/>自動排程錯題重練。</p>
+              <span class="arrow">開始 <span class="glyph">→</span></span>
+            </a>
+            <a class="tool" href="fill.html">
+              <div class="num">03</div>
+              <div>
+                <div class="code">FILL</div>
+                <div class="name" style="margin-top:6px">填空練習</div>
+              </div>
+              <p class="desc">挖空關鍵字，<br/>靠記憶補回去。</p>
+              <span class="arrow">開始 <span class="glyph">→</span></span>
+            </a>
+            <a class="tool" href="https://lin.ee/zUeMwo4">
+              <div class="num">04</div>
+              <div>
+                <div class="code">LINE</div>
+                <div class="name" style="margin-top:6px">LINE 查法條</div>
+              </div>
+              <p class="desc">手機直接查、<br/>每日 08:00 推播。</p>
+              <span class="arrow">加入 <span class="glyph">→</span></span>
+            </a>
+          </div>
+        </section>
+
+        <!-- ============ 08 LAWS ============ -->
+        <section class="block" id="laws">
+          <div class="sec-head">
+            <div class="l">
+              <span class="idx">08</span>
+              <h2>法規目錄</h2>
+            </div>
+            <div class="r"><span class="laws-count">共 <b>33</b> 部 · <b>2,000+</b> 條</span></div>
+          </div>
+
+          <div class="laws-head">
+            <div class="laws-search">
+              <span style="color:rgba(245,240,234,.45);font-family:var(--mono)">⌕</span>
+              <input id="laws-filter-inp" placeholder="搜尋法規名稱…" oninput="_renderLawsToc(0)" />
+            </div>
+            <span id="laws-pager-label" class="laws-count">載入中…</span>
+          </div>
+
+          <div class="laws-toc" id="laws-toc">
+            <div style="padding:24px;text-align:center;opacity:.4;font-size:.85rem;font-family:var(--sans)">載入中…</div>
+          </div>
+          <div id="laws-pager" style="display:flex;justify-content:center;align-items:center;gap:12px;padding:14px 0"></div>
+        </section>
+
+        <!-- ============ 09 RECENT ============ -->
+        <section class="block" id="recent">
+          <div class="sec-head">
+            <div class="l">
+              <span class="idx">09</span>
+              <h2>最近查詢</h2>
+            </div>
+            <div class="r"><span class="eb">最近 7 天</span></div>
+          </div>
+
+          <div class="recent-list" id="recent-list">
+            <div style="padding:24px 0;text-align:center;opacity:.4;font-size:.85rem;font-family:var(--sans)">載入中…</div>
+          </div>
+        </section>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- ============ DRAWER ============ -->
+  <div class="drawer-mask" onclick="closeDrawer()"></div>
+  <aside class="drawer">
+    <div class="dr-head">
+      <div id="dr-breadcrumb">——</div>
+      <span class="x" onclick="closeDrawer()">✕</span>
+    </div>
+    <div class="dr-body" id="dr-body">
+      <div style="padding:48px 0;text-align:center;opacity:.4;font-size:.9rem;font-family:var(--sans)">載入中…</div>
+    </div>
+    <div class="dr-foot">
+      <button class="dr-btn pri"  id="dr-btn-mastered">✓ 已熟記</button>
+      <button class="dr-btn sec"  id="dr-btn-review" onclick="drShowReviewPicker()">加入再讀清單</button>
+      <button class="dr-btn peach" id="dr-btn-bookmark">★ 收藏</button>
+      <div id="dr-review-picker">
+        <button style="background:#c0392b;color:#fff" onclick="drSetReview(3)">困難<small>3 天後複習</small></button>
+        <button style="background:#d4860a;color:#fff" onclick="drSetReview(7)">普通<small>7 天後複習</small></button>
+        <button style="background:#2e7d52;color:#fff" onclick="drSetReview(14)">簡單<small>14 天後複習</small></button>
+      </div>
+    </div>
+  </aside>
+
+<script>
+// ── 全域常數 ─────────────────────────────────────────────
+const API = 'https://sofa-engine-api.onrender.com';
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+// 過渡期：有 sofa_token 用 Bearer，否則 fallback X-Sofa-UID / FREE
+function _authH(extra) {
+  const h = extra ? {...extra} : {};
+  const _tok = localStorage.getItem('sofa_token') || '';
+  const _uid = localStorage.getItem('sofa_uid') || '';
+  const _free = !_uid && localStorage.getItem('sofa_free') === 'FREE';
+  if (_tok) h['Authorization'] = 'Bearer ' + _tok;
+  else if (_uid) h['X-Sofa-UID'] = _uid;
+  else if (_free) h['X-Sofa-UID'] = 'FREE';
+  return h;
+}
+
+// ── Drawer 動態開啟 ──────────────────────────────────────
+var _drPageId = '';
+var _drLawName = '';
+var _drArticle = '';
+
+function openDrawer(pageId, lawName, article){
+  // 統一去除可能的 § 前綴，避免 §§ 重複顯示
+  var artClean = (article||'').replace(/^§+/, '');
+  _drPageId  = pageId   || '';
+  _drLawName = lawName  || '';
+  _drArticle = artClean;
+  document.querySelector('.drawer').classList.add('open');
+  document.querySelector('.drawer-mask').classList.add('open');
+  // 先填入基本資訊
+  var bc = document.getElementById('dr-breadcrumb');
+  if(bc) bc.textContent = lawName ? (lawName + ' §' + artClean) : '——';
+  var body = document.getElementById('dr-body');
+  if(body) body.innerHTML = '<div style="padding:48px 0;text-align:center;opacity:.4;font-size:.9rem;font-family:var(--sans)">載入中…</div>';
+  // 有 pageId 才拉內容；否則直接顯示 fallback，不卡在「載入中」
+  if(!pageId){ _renderDrawerFallback(_drLawName, _drArticle); return; }
+  var uid  = localStorage.getItem('sofa_uid') || '';
+  var headers = _authH();
+  fetch(API + '/api/article/' + encodeURIComponent(pageId), {
+    headers: headers
+  }).then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){ _renderDrawer(d); })
+    .catch(function(){ _renderDrawerFallback(lawName, article); });
+}
+
+function formatLawText(raw){
+  if(!raw) return '';
+  var t=String(raw).replace(/\r\n?/g,'\n').trim();
+  if(t.indexOf('\n')!==-1) return t;
+  t=t.replace(/(?<=\S)\s+(1[0-9]|[2-9])\s+(?=[一-鿿（【「])(?![萬億元個月年日人條項款號次倍種類份件名冊])/g,'\n$1 ');
+  t=t.replace(/[ 　]*(?<!第)([一二三四五六七八九十百千零兩]+、)/g,'\n$1');
+  t=t.replace(/[ 　]*(（[一二三四五六七八九十百]+）)/g,'\n　$1');
+  return t.replace(/^\n+/,'').replace(/\n{2,}/g,'\n').trim();
+}
+
+function _linkifyLaw(escapedText){
+  return escapedText.replace(/《([^》]+)》第(\d+)條/g, function(match, law, art){
+    var safelaw = law.replace(/\\/g,'').replace(/'/g,"\\'");
+    return '<a class="crossref" onclick="event.stopPropagation();searchAndOpen(\''+safelaw+'\',\''+art+'\')" style="color:var(--peach-3);text-decoration:underline;cursor:pointer">'+match+'</a>';
+  });
+}
+
+function searchAndOpen(lawName, artNum){
+  fetch(API + '/api/articles?law=' + encodeURIComponent(lawName))
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if(!d || !d.articles){ openDrawer('', lawName, artNum); return; }
+      var found = d.articles.filter(function(a){
+        var m = (a.title||'').match(/第(\d+)條/);
+        return m && m[1] === artNum;
+      })[0];
+      openDrawer(found ? found.id : '', lawName, artNum);
+    })
+    .catch(function(){ openDrawer('', lawName, artNum); });
+}
+
+function _renderDrawer(d){
+  var body = document.getElementById('dr-body');
+  if(!body || !d) { _renderDrawerFallback(_drLawName, _drArticle); return; }
+
+  var bc = document.getElementById('dr-breadcrumb');
+  if(bc){
+    var parts = [d.law_name || _drLawName];
+    if(d.chapter) parts.push(d.chapter);
+    parts.push('第 ' + (d.title||'').match(/(\d+)/)?.[1] + ' 條');
+    bc.textContent = parts.filter(Boolean).join(' / ');
+  }
+
+  var artNum = (d.title||'').match(/(\d+)/)?.[1] || _drArticle;
+  var artTitle = (d.title||'').replace(/第\d+條\s*/,'').replace(/^§\s*\d+\s*[|｜]\s*/,'').trim() || '——';
+  var imp = d.importance || '';
+
+  // 原文段落
+  var origHtml = '';
+  if(d.original_text){
+    origHtml = '<div class="dr-text">'
+      + formatLawText(d.original_text).split('\n').filter(Boolean).map(function(l){
+          var escaped = l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+          return '<p>' + _linkifyLaw(escaped) + '</p>';
+        }).join('')
+      + '</div>';
+  }
+
+  // 分析段落（付費/體驗才顯示第5、6段）
+  var uid   = localStorage.getItem('sofa_uid') || '';
+  var isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
+  var SEC_NAMES = [
+    '章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示',
+    '核心摘要與記憶策略','修法與聯覺備註','相關法規及注意事項'
+  ];
+  var accHtml = '<div class="dr-acc">';
+  SEC_NAMES.forEach(function(name, idx){
+    var seg  = idx + 1;
+    var text = (d.sections || {})[name] || '';
+    var locked = isFree && seg >= 5;
+    if(locked){
+      accHtml += '<div class="acc-item locked" data-seg="'+seg+'">'
+        + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span>'
+        + '<span class="ttl">'+name+'</span><span style="margin-left:auto;font-size:11px;opacity:.5">🔒 付費解鎖</span></div></div>';
+    } else if(text){
+      accHtml += '<div class="acc-item'+(seg===1?' open':'')+'" data-seg="'+seg+'" onclick="this.classList.toggle(\'open\')">'
+        + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span><span class="ttl">'+name+'</span></div>'
+        + '<div class="acc-body"><div class="acc-inner">'
+        + text.split('\n').filter(Boolean).map(function(l){
+            var escaped = l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            return '<p>'+_linkifyLaw(escaped)+'</p>';
+          }).join('')
+        + '</div></div></div>';
+    }
+  });
+  accHtml += '</div>';
+
+  body.innerHTML =
+    '<span class="dr-eyebrow">ARTICLE' + (imp ? ' · ' + esc(imp) : '') + '</span>'
+    + '<div class="dr-title"><span class="n">' + esc(artNum) + '</span><span class="tt">' + esc(artTitle) + '</span></div>'
+    + '<div class="dr-actions">'
+    + '<button class="dr-chip" onclick="drToggleBookmark(this)"><span>☆</span>收藏</button>'
+    + '<button class="dr-chip" onclick="drToggleMastered(this)"><span>○</span>已熟記</button>'
+    + '<button class="dr-chip" onclick="drShowReviewPicker()"><span>⊙</span>待複習</button>'
+    + '</div>'
+    + origHtml
+    + accHtml;
+}
+
+function _renderDrawerFallback(lawName, article){
+  var body = document.getElementById('dr-body');
+  if(!body) return;
+  var artClean = (article||'').replace(/^§+/,'');
+  body.innerHTML = '<div style="padding:32px;text-align:center;opacity:.5;font-size:.9rem;font-family:var(--sans)">'
+    + (lawName ? '§' + esc(artClean) + '　' + esc(lawName) : '——')
+    + '<br><br>詳細內容請至練習頁查看</div>'
+    + '<div style="padding:0 32px 24px;text-align:center">'
+    + '<a href="practice.html" style="color:var(--peach-3);font-family:var(--sans);font-size:.9rem">前往練習頁 →</a></div>';
+}
+
+function drToggleBookmark(btn){
+  if(!_drPageId) return;
+  var uid  = localStorage.getItem('sofa_uid');
+  if(!uid){ alert('請先登入'); return; }
+  btn.classList.toggle('on');
+  var adding = btn.classList.contains('on');
+  var path = '/api/me/bookmarks' + (adding ? '' : '/'+encodeURIComponent(_drPageId));
+  fetch(API + path, {
+    method: adding ? 'POST' : 'DELETE',
+    headers: _authH({'Content-Type':'application/json'}),
+    body: adding ? JSON.stringify({ page_id:_drPageId, law_name:_drLawName, article:_drArticle }) : undefined,
+  }).catch(function(){});
+}
+function drToggleMastered(btn){
+  if(!_drPageId) return;
+  var uid = localStorage.getItem('sofa_uid');
+  if(!uid){ alert('請先登入'); return; }
+  btn.classList.toggle('on');
+  var status = btn.classList.contains('on') ? 'mastered' : 'none';
+  fetch(API + '/api/me/mastery', {
+    method:'POST', headers:_authH({'Content-Type':'application/json'}),
+    body: JSON.stringify({ page_id:_drPageId, law_name:_drLawName, article:_drArticle, status:status }),
+  }).catch(function(){});
+}
+function drShowReviewPicker(){
+  var picker = document.getElementById('dr-review-picker');
+  if(!picker) return;
+  picker.style.display = picker.style.display === 'flex' ? 'none' : 'flex';
+}
+
+function drSetReview(days){
+  if(!_drPageId) return;
+  var uid = localStorage.getItem('sofa_uid');
+  if(!uid){ alert('請先登入'); return; }
+  // 關閉選擇器
+  var picker = document.getElementById('dr-review-picker');
+  if(picker) picker.style.display = 'none';
+  // 更新按鈕顯示
+  var btn = document.getElementById('dr-btn-review');
+  if(btn){ btn.classList.add('on'); btn.textContent = '⊙ 已加入（' + days + ' 天）'; }
+  // 送出 API
+  fetch(API + '/api/me/mastery', {
+    method:'POST', headers:_authH({'Content-Type':'application/json'}),
+    body: JSON.stringify({ page_id:_drPageId, law_name:_drLawName, article:_drArticle, status:'review', review_days:days }),
+  }).catch(function(){});
+}
+
+function closeDrawer(){
+  document.querySelector('.drawer').classList.remove('open');
+  document.querySelector('.drawer-mask').classList.remove('open');
+}
+
+// ── 登入狀態：讀取用戶名稱 ──────────────────────
+(function(){
+  // LINE Bot 推播連結帶 ?t= 時，用一次性 token 換取 session（舊 ?uid= 已停用）
+  var params = new URLSearchParams(location.search);
+  var magicToken = params.get('t');
+  if(magicToken){
+    history.replaceState(null, '', location.pathname);
+    fetch('https://sofa-engine-api.onrender.com/api/redeem-magic-link', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      credentials: 'include',
+      body: JSON.stringify({token: magicToken})
+    }).then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); })
+      .then(function(d){
+        if(d.uid) localStorage.setItem('sofa_uid', d.uid);
+        if(d.name) localStorage.setItem('sofa_nickname', d.name);
+        location.reload();
+      })
+      .catch(function(){ window.location.href = 'login.html'; });
+    return;
+  }
+
+  const uid = localStorage.getItem('sofa_uid');
+  const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
+  if(!uid && !isFree) { window.location.href = 'login.html'; return; }
+
+  const pill = document.querySelector('.user-pill');
+  if(pill && isFree){
+    pill.innerHTML = '<span class="live"></span>免費版';
+  }
+
+  // ── 免費版：鎖定 5+ 段，遮蓋個人資料 ──────────
+  if(isFree){
+    document.querySelectorAll('.acc-item').forEach(function(item){
+      var seg = parseInt(item.dataset.seg || '0');
+      if(seg >= 5){
+        item.classList.add('locked');
+        item.onclick = function(e){ e.stopPropagation(); };
+      }
+    });
+    var firstLocked = document.querySelector('.acc-item.locked');
+    if(firstLocked){
+      var banner = document.createElement('div');
+      banner.className = 'acc-locked-banner';
+      banner.innerHTML = '🔒 5 / 6 段為付費功能（修法備註 · 關聯法規）<a href="checkout.html">升級解鎖 →</a>';
+      firstLocked.parentNode.insertBefore(banner, firstLocked);
+    }
+    var memberCard = document.querySelector('.member-card');
+    if(memberCard){
+      memberCard.innerHTML = '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版 · 完整會員資訊在升級後解鎖<br><a href="checkout.html" style="color:var(--peach);margin-top:8px;display:inline-block;">查看方案 →</a></div>';
+    }
+    var progCard = document.querySelector('.prog-card');
+    if(progCard){
+      progCard.innerHTML = '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版不儲存學習紀錄<br><span style="opacity:.6;font-size:.8em;">升級後自動累積進度</span></div>';
+    }
+
+    // ── 免費版 30 天 nudge banner ────────────────────
+    var since = localStorage.getItem('sofa_free_since');
+    if(!since){
+      // 第一次進入免費版，補記錄起始日
+      since = new Date().toISOString().slice(0,10);
+      localStorage.setItem('sofa_free_since', since);
+    }
+    var daysSince = Math.floor((Date.now() - new Date(since).getTime()) / 86400000);
+    if(daysSince >= 30){
+      var nudge = document.createElement('div');
+      nudge.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:1000;'+
+        'background:#1B2B4B;color:#F5F0EA;text-align:center;padding:10px 16px;'+
+        'font-family:var(--sans);font-size:.85rem;display:flex;align-items:center;'+
+        'justify-content:center;gap:12px;';
+      nudge.innerHTML = '你已使用免費版 '+daysSince+' 天，升級解鎖完整學習紀錄與全段內容。'+
+        '<a href="checkout.html" style="color:#E8A598;font-weight:700;white-space:nowrap;">查看方案 →</a>'+
+        '<button onclick="this.parentNode.remove()" style="background:none;border:none;'+
+        'color:rgba(245,240,234,.5);cursor:pointer;font-size:1rem;line-height:1;">✕</button>';
+      document.body.prepend(nudge);
+    }
+  }
+})();
+
+// ── 從 API 拉取真實會員資料 ──────────────────────
+(function(){
+  const uid = localStorage.getItem('sofa_uid') || '';
+  const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
+  if(!uid || isFree) return; // 免費版不拉資料
+
+  const API = 'https://sofa-engine-api.onrender.com';
+  const H = _authH();
+
+  function setText(id, val){ var el = document.getElementById(id); if(el) el.textContent = val; }
+  function setHTML(id, val){ var el = document.getElementById(id); if(el) el.innerHTML = val; }
+  function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  // 計算連續學習天數
+  function calcStreak(history){
+    if(!history || !history.length) return 0;
+    var days = {};
+    history.forEach(function(h){
+      var d = (h.timestamp || h.queried_at || '').slice(0,10);
+      if(d) days[d] = true;
+    });
+    var today = new Date().toISOString().slice(0,10);
+    var streak = 0;
+    var cur = new Date(today);
+    for(var i=0; i<365; i++){
+      var key = cur.toISOString().slice(0,10);
+      if(days[key]){ streak++; } else if(i>0){ break; }
+      cur.setDate(cur.getDate()-1);
+    }
+    return streak;
+  }
+
+  // 格式化日期 2026-05-08 → 2026.05.08
+  function fmtDate(s){
+    if(!s) return '——';
+    return s.slice(0,10).replace(/-/g,'.');
+  }
+
+  Promise.all([
+    fetch(API+'/api/me/profile',   { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
+    fetch(API+'/api/me/progress',  { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
+    fetch(API+'/api/me/bookmarks', { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
+    fetch(API+'/api/me/history',   { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
+    fetch(API+'/api/me/mastery',   { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
+  ]).then(function(results){
+    var profile   = results[0];
+    var progress  = results[1];
+    var bookmarks = results[2];
+    var historyRes = results[3];
+    var masteryRes = results[4];
+
+    // ── 會員卡 ──
+    if(profile){
+      var plan   = profile.plan || '';
+      var expire = profile.expire || '';
+      var isExpired = expire && new Date(expire) < new Date();
+
+      // 方案 → 代稱
+      var PLAN_LABEL = {'月費':'準榜生','季費':'準榜生','體驗':'試讀生','免費':'讀友','Admin':'帳號擁有者'};
+      var planBadge = PLAN_LABEL[plan] || plan || '讀友';
+
+      // 暱稱：有設就用，否則用方案預設代稱
+      var name   = profile.name || profile.default_nickname || planBadge;
+      var serial = profile.serial || '';
+
+      if(name) localStorage.setItem('sofa_nickname', name);
+
+      // 序號遮擋
+      _fullSerial = serial;
+
+      setText('mc-name-text', name);
+      setText('mc-serial', serial ? _maskSerial(serial) : '——');
+      setText('mc-plan', planBadge);
+      setText('mc-status', isExpired ? 'EXPIRED' : 'ACTIVE');
+      setText('mc-expire', expire ? fmtDate(expire) : '永久有效');
+      setText('mc-avatar', (name || '—').charAt(0).toUpperCase());
+      setText('mc-who', (name || '—').toUpperCase());
+
+      // P0-C：已到期且非 Admin → 顯示覆蓋層
+      if(isExpired && plan !== 'Admin'){
+        setTimeout(showExpireOverlay, 800); // 讓 UI 先渲染完再蓋上
+      }
+
+      // Email
+      if(profile.email){
+        var emailRow = document.getElementById('mc-email-row');
+        if(emailRow) emailRow.style.display = '';
+        setText('mc-email', profile.email);
+      }
+
+      // 同步更新 topbar 名稱（textContent 防 XSS）
+      var pill = document.querySelector('.user-pill');
+      if(pill){ pill.innerHTML = '<span class="live"></span>'; pill.appendChild(document.createTextNode(name)); }
+      var greetEl = document.getElementById('greet-name');
+      if(greetEl) greetEl.textContent = name;
+    }
+
+    // ── 啟用日（從 history 最舊一筆推算）──
+    if(historyRes && historyRes.history && historyRes.history.length){
+      var hist = historyRes.history;
+      var oldest = hist.reduce(function(a,b){
+        return (a.timestamp||a.queried_at||'') < (b.timestamp||b.queried_at||'') ? a : b;
+      });
+      var startDate = (oldest.timestamp || oldest.queried_at || '').slice(0,10);
+      setText('mc-start', fmtDate(startDate));
+
+      // 連續學習（innerHTML 統一帶單位 span）
+      var streak = calcStreak(hist);
+      var streakHtml = streak + '<span class="u">天</span>';
+      document.getElementById('mc-streak') && (document.getElementById('mc-streak').innerHTML = streakHtml);
+      document.getElementById('ps-streak') && (document.getElementById('ps-streak').innerHTML = streakHtml);
+    } else {
+      setText('mc-start', '——');
+      var zeroHtml = '0<span class="u">天</span>';
+      document.getElementById('mc-streak') && (document.getElementById('mc-streak').innerHTML = zeroHtml);
+      document.getElementById('ps-streak') && (document.getElementById('ps-streak').innerHTML = zeroHtml);
+    }
+
+    // ── 進度統計 ──
+    if(progress){
+      setHTML('ps-articles', (progress.total_articles||0)+'<span class="u">條</span>');
+      setHTML('ps-laws',     (progress.total_laws||0)+'<span class="u">部</span>');
+
+      // 進度列表
+      var byLaw = progress.by_law || [];
+      var maxCount = byLaw.length ? byLaw[0].count : 1;
+      if(byLaw.length){
+        var html = byLaw.slice(0,8).map(function(item){
+          var pct = Math.round((item.count / maxCount) * 100);
+          return '<div class="prog-row"><span class="name">'+esc(item.law)+'</span>'
+            +'<div class="prog-bar"><div class="fill" style="width:'+pct+'%"></div></div>'
+            +'<span class="n"><b>'+esc(String(item.count||0))+'</b> 條</span></div>';
+        }).join('');
+        setHTML('prog-list', html);
+      } else {
+        setHTML('prog-list', '<div style="padding:24px 0;text-align:center;opacity:.45;font-size:.85rem;font-family:var(--sans);">尚無查詢紀錄，去查第一條吧！</div>');
+      }
+    }
+
+    // ── 收藏數 ──
+    if(bookmarks){
+      setHTML('ps-bookmarks', (bookmarks.total||0)+'<span class="u">條</span>');
+    }
+
+    // ── 04 我的收藏 ────────────────────────────────────────
+    (function(){
+      var el = document.getElementById('favorites-list');
+      if(!el) return;
+      var items = (bookmarks && bookmarks.bookmarks) || [];
+      var cnt = document.getElementById('fav-count');
+      if(cnt) cnt.textContent = items.length + ' 條';
+      if(!items.length){
+        el.innerHTML = '<div class="empty" style="grid-column:span 3"><span class="ic">☆</span>'
+          + '<div>還沒有收藏任何條文。<br/>在條文卡片上點 <b>★</b> 即可。</div></div>';
+        return;
+      }
+      el.innerHTML = items.map(function(b){
+        var dateStr  = (b.bookmarked_at||'').slice(5,10).replace('-','.');
+        var pid      = (b.page_id||'').replace(/'/g,'');
+        var ln       = (b.law_name||'').replace(/'/g,'');
+        var artRaw   = (b.article||'').replace(/^§+/,'');  // 去除重複 §
+        var artSafe  = artRaw.replace(/'/g,'');
+        return '<div class="li-card" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artSafe+'\')">'+
+          '<span class="star">★</span>'+
+          '<div class="law">'+esc(b.law_name||'——')+'</div>'+
+          '<div class="art">§'+esc(artRaw||'?')+'</div>'+
+          '<div class="sub">'+esc(b.title||'')+'</div>'+
+          '<div class="meta"><span>收藏於 '+esc(dateStr)+'</span></div>'+
+          '</div>';
+      }).join('');
+    })();
+
+    // ── 05 已熟記 ／ 06 待複習 ──────────────────────────────
+    (function(){
+      var items = (masteryRes && masteryRes.items) || [];
+      var mastered = items.filter(function(m){ return m.status==='mastered'; });
+      var reviews  = items.filter(function(m){ return m.status==='review'; });
+
+      var masteredEl = document.getElementById('mastered-list');
+      var masteredCt = document.getElementById('mastered-count');
+      if(masteredCt) masteredCt.textContent = mastered.length + ' 條';
+      if(masteredEl){
+        if(!mastered.length){
+          masteredEl.innerHTML = '<div class="empty full" style="grid-column:span 3"><span class="ic">✓</span>'
+            +'<div>還沒有標記已熟記的條文。<br/>開啟條文後點 <b>「已熟記」</b>。</div></div>';
+        } else {
+          masteredEl.innerHTML = mastered.map(function(m){
+            var pid     = (m.page_id||'').replace(/'/g,'');
+            var ln      = (m.law_name||'').replace(/'/g,'');
+            var artRaw  = (m.article||'').replace(/^§+/,'');
+            var artSafe = artRaw.replace(/'/g,'');
+            return '<div class="li-card" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artSafe+'\')">'+
+              '<div class="law">'+esc(m.law_name||'——')+'</div>'+
+              '<div class="art">§'+esc(artRaw||'?')+'</div>'+
+              '</div>';
+          }).join('');
+        }
+      }
+
+      var reviewEl = document.getElementById('review-list');
+      var reviewCt = document.getElementById('review-count');
+      if(reviewCt) reviewCt.textContent = reviews.length + ' 條';
+      if(reviewEl){
+        if(!reviews.length){
+          reviewEl.innerHTML = '<div class="empty" style="grid-column:span 3"><span class="ic">⊙</span>'
+            +'<div>尚無待複習條文。<br/>開啟條文後點「加入再讀清單」。</div></div>';
+        } else {
+          reviewEl.innerHTML = reviews.map(function(m){
+            var pid     = (m.page_id||'').replace(/'/g,'');
+            var ln      = (m.law_name||'').replace(/'/g,'');
+            var artRaw  = (m.article||'').replace(/^§+/,'');
+            var artSafe = artRaw.replace(/'/g,'');
+            var days    = m.review_days || 7;
+            return '<div class="li-card warn" style="grid-column:span 3" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artSafe+'\')">'+
+              '<div class="law">'+esc(m.law_name||'——')+'</div>'+
+              '<div class="art">§'+esc(artRaw||'?')+'</div>'+
+              '<div class="meta"><span>複習間隔 · <b>'+esc(String(days))+'</b> 天</span></div>'+
+              '</div>';
+          }).join('');
+        }
+      }
+    })();
+
+    // ── 09 最近查詢 ──────────────────────────────────────────
+    (function(){
+      var el = document.getElementById('recent-list');
+      if(!el) return;
+      var hist = (historyRes && historyRes.history) || [];
+      if(!hist.length){
+        el.innerHTML = '<div style="padding:24px 0;text-align:center;opacity:.4;font-size:.85rem;font-family:var(--sans)">還沒有查詢紀錄，去查第一條吧！</div>';
+        return;
+      }
+      // 按日期分組
+      var groups = {};
+      hist.forEach(function(h){
+        var ts = h.timestamp || h.queried_at || '';
+        var d  = ts.slice(0,10);
+        if(!groups[d]) groups[d]=[];
+        groups[d].push(h);
+      });
+      var days = ['日','一','二','三','四','五','六'];
+      var html = '';
+      Object.keys(groups).sort(function(a,b){return b>a?1:-1;}).slice(0,7).forEach(function(date){
+        var dt  = new Date(date);
+        var label = date.slice(5).replace('-','.') + ' · ' + days[dt.getDay()];
+        html += '<div class="rec-group"><div class="rec-date-head">'+label+'</div>';
+        groups[date].forEach(function(h){
+          var time = (h.timestamp||h.queried_at||'').slice(11,16);
+          var pid  = (h.page_id||'').replace(/'/g,'');
+          var ln   = (h.law_name||'').replace(/'/g,'');
+          // 去掉 Firestore 裡可能已含的 § 前綴，避免顯示 §§9
+          var artRaw   = (h.article||'').replace(/^§+/,'');
+          var artSafe  = artRaw.replace(/'/g,'');
+          html += '<div class="rec-row" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artSafe+'\')">'+
+            '<span class="law">'+esc(h.law_name||'——')+'</span>'+
+            '<span class="art">§'+esc(artRaw||'?')+'</span>'+
+            '<span class="ttl">'+esc(h.title||'')+'</span>'+
+            '<span class="time">'+esc(time)+'</span>'+
+            '</div>';
+        });
+        html += '</div>';
+      });
+      el.innerHTML = html;
+    })();
+  });
+})();
+
+// ── 序號遮擋 + 暱稱編輯 ────────────────────────────
+var _fullSerial = '';
+
+function _maskSerial(s){
+  if(!s) return '——';
+  return s.replace(/^(SOFA-[A-Z0-9]+-)[A-Z0-9]+$/, '$1****');
+}
+
+function toggleSerial(){
+  var el  = document.getElementById('mc-serial');
+  if(!el || !_fullSerial) return;
+  if(el.dataset.revealed === '1'){
+    el.textContent = _maskSerial(_fullSerial);
+    el.dataset.revealed = '0';
+  } else {
+    el.textContent = _fullSerial;
+    el.dataset.revealed = '1';
+  }
+}
+
+function openNickEdit(){
+  var box = document.getElementById('mc-nick-edit');
+  var inp = document.getElementById('mc-nick-input');
+  var cur = document.getElementById('mc-name-text');
+  if(inp && cur) inp.value = cur.textContent.trim();
+  if(box) box.classList.add('open');
+  if(inp) inp.focus();
+}
+
+function cancelNickname(){
+  var box = document.getElementById('mc-nick-edit');
+  if(box) box.classList.remove('open');
+}
+
+function saveNickname(){
+  var inp = document.getElementById('mc-nick-input');
+  if(!inp) return;
+  var nick = inp.value.trim();
+  if(!nick){ inp.focus(); return; }
+  var uid = localStorage.getItem('sofa_uid') || '';
+  fetch('https://sofa-engine-api.onrender.com/api/me/profile', {
+    method: 'PATCH',
+    headers: _authH({'Content-Type':'application/json'}),
+    body: JSON.stringify({nickname: nick})
+  }).then(function(r){ return r.ok ? r.json() : null; }).then(function(res){
+    if(res && res.ok){
+      localStorage.setItem('sofa_nickname', nick);
+      var el; // reuse variable
+      el = document.getElementById('mc-name-text'); if(el) el.textContent = nick;
+      el = document.getElementById('mc-avatar');    if(el) el.textContent = nick.charAt(0).toUpperCase();
+      el = document.getElementById('mc-who');       if(el) el.textContent = nick.toUpperCase();
+      var pill = document.querySelector('.user-pill');
+      if(pill){ pill.innerHTML = '<span class="live"></span>'; pill.appendChild(document.createTextNode(nick)); }
+      el = document.getElementById('greet-name');   if(el) el.textContent = nick;
+      cancelNickname();
+    } else {
+      alert('儲存失敗，請稍後再試');
+    }
+  }).catch(function(){ alert('網路錯誤，請稍後再試'); });
+}
+
+// ── 即時時鐘 + 問候語 ─────────────────────────────
+(function(){
+  const DAY_ZH = ['日','一','二','三','四','五','六'];
+  function pad(n){ return String(n).padStart(2,'0'); }
+  function tick(){
+    const now = new Date();
+    const h = now.getHours();
+    // 時鐘
+    const timeEl = document.getElementById('clock-time');
+    if(timeEl) timeEl.textContent = pad(h) + ':' + pad(now.getMinutes());
+    // 日期
+    const dateEl = document.getElementById('clock-date');
+    if(dateEl){
+      const y = now.getFullYear();
+      const m = pad(now.getMonth()+1);
+      const d = pad(now.getDate());
+      const w = DAY_ZH[now.getDay()];
+      dateEl.textContent = y + '.' + m + '.' + d + ' · ' + w;
+    }
+    // 問候語 & eyebrow
+    const wordEl = document.getElementById('greet-word');
+    const eyeEl  = document.getElementById('greet-eyebrow');
+    let word, label;
+    if(h >= 5 && h < 12)       { word = '早安'; label = 'MORNING'; }
+    else if(h >= 12 && h < 18) { word = '午安'; label = 'AFTERNOON'; }
+    else if(h >= 18 && h < 23) { word = '晚安'; label = 'TONIGHT'; }
+    else                        { word = '還沒睡';  label = 'MIDNIGHT'; }
+    if(wordEl) wordEl.textContent = word;
+    if(eyeEl)  eyeEl.textContent  = label + ' · TAIPEI';
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+
+// ── 動態倒數：考試日 2026/11/14 ──────────────────
+(function(){
+  const EXAM = new Date('2026-11-14T00:00:00+08:00');
+  function calcDays(){
+    return Math.max(Math.ceil((EXAM - Date.now()) / 86400000), 0);
+  }
+  function update(){
+    const d = calcDays();
+    const el = document.querySelector('.cd-num');
+    if(el) el.textContent = d;
+    document.querySelectorAll('.greet-days').forEach(e => e.textContent = d);
+  }
+  update();
+  setInterval(update, 60000);
+})();
+
+// countdown toggle (persisted) — default OFF
+const CD_KEY = 'sofa.dash.countdown.visible';
+function hideCountdown(){
+  document.getElementById('countdown').classList.add('hidden');
+  document.getElementById('cdRestore').classList.add('show');
+  try{ localStorage.removeItem(CD_KEY); }catch(e){}
+}
+function showCountdown(){
+  document.getElementById('countdown').classList.remove('hidden');
+  document.getElementById('cdRestore').classList.remove('show');
+  try{ localStorage.setItem(CD_KEY,'1'); }catch(e){}
+}
+// default: hidden. Only show if user has explicitly opted in.
+try{
+  if(localStorage.getItem(CD_KEY)!=='1'){
+    document.getElementById('countdown').classList.add('hidden');
+    document.getElementById('cdRestore').classList.add('show');
+  }
+}catch(e){
+  document.getElementById('countdown').classList.add('hidden');
+  document.getElementById('cdRestore').classList.add('show');
+}
+// ── 03 法條搜尋 ──────────────────────────────────────────
+var _allLaws    = [];
+var _lawsPage   = 0;
+var _lawsPerPg  = 12;
+var _curChip    = 'all';
+var _curLawName = '';
+// 搜尋結果分頁
+var _srArts  = [];
+var _srLaw   = '';
+var _srPage  = 0;
+var _srSize  = 10;
+
+function _renderSrPage(){
+  var resEl = document.getElementById('search-results');
+  if(!resEl) return;
+  var total = _srArts.length;
+  if(!total){
+    resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">沒有符合條件的條文</div>';
+    return;
+  }
+  var totalPg = Math.ceil(total / _srSize);
+  if(_srPage >= totalPg) _srPage = totalPg - 1;
+  var start = _srPage * _srSize;
+  var slice = _srArts.slice(start, start + _srSize);
+  var html = _renderResRows(slice, _srLaw);
+  // 分頁列
+  var btnS = 'padding:5px 14px;border-radius:3px;border:1px solid rgba(245,240,234,.2);background:transparent;color:rgba(245,240,234,.65);cursor:pointer;font-family:var(--mono);font-size:11.5px';
+  var disS = 'padding:5px 14px;border-radius:3px;border:1px solid rgba(245,240,234,.07);background:transparent;color:rgba(245,240,234,.2);font-family:var(--mono);font-size:11.5px;cursor:default';
+  html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-top:1px solid rgba(245,240,234,.08)">'
+    + '<span style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.38)">' + (start+1) + '–' + (start+slice.length) + ' / 共 ' + total + ' 條</span>'
+    + '<div style="display:flex;gap:6px">'
+    + (_srPage > 0 ? '<button style="'+btnS+'" onclick="_srGoto('+(_srPage-1)+')">‹ 上頁</button>' : '<button style="'+disS+'" disabled>‹ 上頁</button>')
+    + (_srPage < totalPg-1 ? '<button style="'+btnS+'" onclick="_srGoto('+(_srPage+1)+')">下頁 ›</button>' : '<button style="'+disS+'" disabled>下頁 ›</button>')
+    + '</div></div>';
+  resEl.innerHTML = html;
+}
+
+function _srGoto(p){
+  _srPage = p;
+  _renderSrPage();
+  var sec = document.getElementById('search');
+  if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// 法規目錄渲染（分頁 + filter）
+function _renderLawsToc(page){
+  _lawsPage = page || 0;
+  var filter = ((document.getElementById('laws-filter-inp')||{}).value||'').trim();
+  var list = filter
+    ? _allLaws.filter(function(l){ return (l.name||'').indexOf(filter) !== -1; })
+    : _allLaws;
+  var total = list.length;
+  var totalPg = Math.max(1, Math.ceil(total / _lawsPerPg));
+  if(_lawsPage >= totalPg) _lawsPage = totalPg - 1;
+  var start = _lawsPage * _lawsPerPg;
+  var slice = list.slice(start, start + _lawsPerPg);
+
+  var label = document.getElementById('laws-pager-label');
+  var tocEl = document.getElementById('laws-toc');
+  var pagerEl = document.getElementById('laws-pager');
+
+  if(label) label.innerHTML = total
+    ? '顯示 <b>' + (start+1) + '–' + (start+slice.length) + '</b> / ' + total
+    : '找不到符合的法規';
+
+  if(tocEl){
+    if(!slice.length){
+      tocEl.innerHTML = '<div style="padding:24px;text-align:center;opacity:.4;font-size:.85rem;font-family:var(--sans)">找不到符合的法規</div>';
+    } else {
+      tocEl.innerHTML = slice.map(function(l, i){
+        var nm  = esc(l.name||'');
+        var ct  = l.article_count ? l.article_count + ' 條' : '— 條';
+        var star = l.starred ? '<span class="star-mark">★ 高頻</span>' : '';
+        var idx = String(start + i + 1).padStart(2,'0');
+        return '<div class="toc-row" onclick="searchLaw(\''+nm+'\')">'
+          + '<span class="idx">'+idx+'</span>'
+          + '<span class="nm">'+nm+star+'<span class="leader"></span></span>'
+          + '<span class="ct">'+ct+'</span>'
+          + '<span class="arrow">→</span></div>';
+      }).join('');
+    }
+  }
+
+  if(pagerEl){
+    if(totalPg <= 1){
+      pagerEl.innerHTML = '';
+    } else {
+      var btnStyle = 'padding:6px 16px;border-radius:4px;border:1px solid rgba(245,240,234,.2);background:transparent;color:rgba(245,240,234,.7);cursor:pointer;font-family:var(--mono);font-size:12px;transition:.15s';
+      var disStyle = 'padding:6px 16px;border-radius:4px;border:1px solid rgba(245,240,234,.07);background:transparent;color:rgba(245,240,234,.2);font-family:var(--mono);font-size:12px;cursor:default';
+      pagerEl.innerHTML =
+        (_lawsPage > 0
+          ? '<button style="'+btnStyle+'" onclick="_renderLawsToc('+(_lawsPage-1)+')">‹ 上頁</button>'
+          : '<button style="'+disStyle+'" disabled>‹ 上頁</button>')
+        + '<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.4)">'
+          + (_lawsPage+1) + ' / ' + totalPg
+          + '</span>'
+        + (_lawsPage < totalPg-1
+          ? '<button style="'+btnStyle+'" onclick="_renderLawsToc('+(_lawsPage+1)+')">下頁 ›</button>'
+          : '<button style="'+disStyle+'" disabled>下頁 ›</button>');
+    }
+  }
+}
+
+// 頁面載入後抓法規清單，供自動補全 + 目錄渲染
+(function(){
+  fetch(API + '/api/laws')
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if(d && d.laws){ _allLaws = d.laws; _renderLawsToc(0); }
+    })
+    .catch(function(){});
+})();
+
+var _DEADLINE_OPTS = [
+  {l:'全部',v:''},{l:'1日',v:'一日'},{l:'2日',v:'二日'},{l:'3日',v:'三日'},
+  {l:'5日',v:'五日'},{l:'7日',v:'七日'},{l:'10日',v:'十日'},{l:'14日',v:'十四日'},
+  {l:'20日',v:'二十日'},{l:'30日',v:'三十日'},{l:'60日',v:'六十日'},
+  {l:'1個月',v:'一個月'},{l:'2個月',v:'二個月'},{l:'3個月',v:'三個月'},
+  {l:'6個月',v:'六個月'},{l:'1年',v:'一年'},{l:'2年',v:'二年'},
+  {l:'3年',v:'三年'},{l:'5年',v:'五年'},{l:'10年',v:'十年'}
+];
+var _PENALTY_OPTS = [
+  {l:'全部',v:''},{l:'3千元',v:'三千元'},{l:'5千元',v:'五千元'},
+  {l:'1萬元',v:'一萬元'},{l:'3萬元',v:'三萬元'},{l:'5萬元',v:'五萬元'},
+  {l:'10萬元',v:'十萬元'},{l:'15萬元',v:'十五萬元'},{l:'30萬元',v:'三十萬元'},
+  {l:'50萬元',v:'五十萬元'},{l:'100萬元',v:'一百萬元'},{l:'200萬元',v:'二百萬元'},
+  {l:'300萬元',v:'三百萬元'},{l:'500萬元',v:'五百萬元'}
+];
+
+function _populateSubFilter(opts){
+  var sel = document.getElementById('subFilterSel');
+  if(!sel) return;
+  sel.innerHTML = opts.map(function(o){
+    return '<option value="'+esc(o.v)+'">'+esc(o.l)+'</option>';
+  }).join('');
+}
+
+function setChip(btn, key){
+  document.querySelectorAll('.chip-row .chip').forEach(function(c){ c.classList.remove('on'); });
+  btn.classList.add('on');
+  _curChip = key;
+  var row = document.getElementById('subFilterRow');
+  if(key === 'deadline'){
+    _populateSubFilter(_DEADLINE_OPTS);
+    row.style.display = 'flex';
+  } else if(key === 'penalty'){
+    _populateSubFilter(_PENALTY_OPTS);
+    row.style.display = 'flex';
+  } else {
+    row.style.display = 'none';
+  }
+  doSearch();
+}
+
+// 法規名稱 autocomplete
+(function(){
+  var inp = document.getElementById('search-law');
+  var dd  = document.getElementById('law-dropdown');
+  if(!inp || !dd) return;
+
+  inp.addEventListener('input', function(){
+    var v = this.value.trim();
+    if(!v){ dd.style.display = 'none'; return; }
+    var hits = _allLaws.filter(function(l){ return l.name.indexOf(v) !== -1; }).slice(0,10);
+    if(!hits.length){ dd.style.display = 'none'; return; }
+    dd.innerHTML = hits.map(function(l){
+      // escape 法規名稱與關鍵字再做高亮，避免 XSS
+      var escapedName = esc(l.name);
+      var escapedV    = esc(v);
+      var highlighted = escapedName.replace(escapedV, '<b style="color:var(--peach)">'+escapedV+'</b>');
+      return '<div style="padding:11px 16px;cursor:pointer;font-size:13.5px;color:var(--cream);'
+        +'border-bottom:1px solid var(--line);font-family:var(--sans);transition:.13s"'
+        +' onmousedown="event.preventDefault();selectLaw(this.dataset.law)"'
+        +' data-law="'+esc(l.name)+'"'
+        +' onmouseover="this.style.background=\'rgba(245,240,234,.08)\'"'
+        +' onmouseout="this.style.background=\'\'">'
+        + highlighted
+        + '</div>';
+    }).join('');
+    dd.style.display = 'block';
+  });
+
+  inp.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ dd.style.display = 'none'; doSearch(); }
+    if(e.key === 'Escape'){ dd.style.display = 'none'; }
+  });
+  inp.addEventListener('blur', function(){
+    setTimeout(function(){ if(dd) dd.style.display = 'none'; }, 150);
+  });
+
+  var artInp = document.getElementById('search-art');
+  if(artInp) artInp.addEventListener('keydown', function(e){
+    if(e.key === 'Enter') doSearch();
+  });
+})();
+
+function selectLaw(nameOrEl){
+  // 可傳入字串或 element（由 data-law 讀取）
+  var name = (typeof nameOrEl === 'string') ? nameOrEl
+           : (nameOrEl && nameOrEl.dataset && nameOrEl.dataset.law) || '';
+  var inp = document.getElementById('search-law');
+  var dd  = document.getElementById('law-dropdown');
+  if(inp) inp.value = name;
+  if(dd)  dd.style.display = 'none';
+  doSearch();
+}
+
+function _chipFilter(arts, chip){
+  var subVal = ((document.getElementById('subFilterSel')||{}).value||'').trim();
+  function _subMatch(a){
+    if(!subVal) return true;
+    if((a.title||'').indexOf(subVal) !== -1) return true;
+    if((a.tags||[]).some(function(t){ return t.indexOf(subVal) !== -1; })) return true;
+    return false;
+  }
+  if(chip === 'all') return arts;
+  if(chip === '5star') return arts.filter(function(a){ return (a.importance||'').indexOf('★★★★★') !== -1; });
+  if(chip === '4star') return arts.filter(function(a){ var imp = a.importance||''; return imp.indexOf('★★★★') !== -1 && imp.indexOf('★★★★★') === -1; });
+  if(chip === 'deadline') return arts.filter(function(a){
+    var tags = a.tags||[];
+    var hasTag = tags.some(function(t){ return t.indexOf('期間') !== -1 || t.indexOf('時限') !== -1; });
+    var baseMatch = hasTag || (!tags.length && ((a.title||'').indexOf('期間') !== -1 || (a.title||'').indexOf('時限') !== -1));
+    return baseMatch && _subMatch(a);
+  });
+  if(chip === 'penalty') return arts.filter(function(a){
+    var tags = a.tags||[];
+    var hasTag = tags.some(function(t){ return t.indexOf('罰則') !== -1 || t.indexOf('罰') !== -1; });
+    var baseMatch = hasTag || (a.title||'').indexOf('罰') !== -1;
+    return baseMatch && _subMatch(a);
+  });
+  return arts;
+}
+
+function _renderResRows(arts, lawName){
+  var lnSafe = lawName.replace(/'/g,"\\'");
+  return arts.map(function(a){
+    var m = (a.title||'').match(/第(\d+)條/);
+    var artNum  = m ? m[1] : ((a.title||'').match(/(\d+)/)||['',''])[1];
+    var artTtl  = (a.title||'').replace(/^第\d+條\s*/,'').trim();
+    var pid     = (a.id||'').replace(/'/g,'');
+    var dispLaw = a.law_name || lawName;
+    return '<div class="res-row" onclick="openDrawer(\''+pid+'\',\''+lnSafe+'\',\''+artNum+'\')">'
+      + '<span class="law">'+esc(dispLaw)+'</span>'
+      + '<span class="art">§'+esc(artNum)+'</span>'
+      + '<span class="ttl">'+esc(artTtl)+'</span>'
+      + '<span class="star off">☆</span>'
+      + '</div>';
+  }).join('');
+}
+
+function _srSet(arts, law){
+  _srArts = arts; _srLaw = law||''; _srPage = 0;
+  _renderSrPage();
+}
+var _MSG_LOADING = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢中⋯</div>';
+var _MSG_EMPTY   = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">沒有符合條件的條文</div>';
+var _MSG_FAIL    = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢失敗，請稍後再試</div>';
+
+function doSearch(){
+  var lawName = (document.getElementById('search-law')||{}).value||'';
+  lawName = lawName.trim();
+  var artFilter = ((document.getElementById('search-art')||{}).value||'').trim().replace(/^§+/,'');
+  var resEl = document.getElementById('search-results');
+  if(!resEl) return;
+
+  // ── 無法規名稱時依 chip 跨法規搜尋 ──
+  if(!lawName){
+    var chip = _curChip;
+    if(chip === 'all'){
+      resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">選擇分類或輸入法規名稱開始查詢</div>';
+      return;
+    }
+    if(chip === '5star' || chip === '4star'){
+      resEl.innerHTML = _MSG_LOADING;
+      var sec = document.getElementById('search');
+      if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
+      fetch(API + '/api/starred')
+        .then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(d){
+          var arts = _chipFilter((d && d.articles) ? d.articles : [], chip);
+          if(!arts.length){ resEl.innerHTML = _MSG_EMPTY; return; }
+          _srSet(arts, '');
+        })
+        .catch(function(){ resEl.innerHTML = _MSG_FAIL; });
+    } else {
+      resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">請先輸入法規名稱，再使用分類篩選</div>';
+    }
+    return;
+  }
+
+  // ── 有法規名稱：撈全部條文 → chip 過濾 → 分頁顯示 ──
+  _curLawName = lawName;
+  resEl.innerHTML = _MSG_LOADING;
+  var sec = document.getElementById('search');
+  if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
+
+  fetch(API + '/api/articles?law=' + encodeURIComponent(lawName))
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(d){
+      if(!d || !d.articles || !d.articles.length){
+        resEl.innerHTML = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">找不到「'+esc(lawName)+'」的條文</div>';
+        return;
+      }
+      var arts = d.articles;
+      if(artFilter){
+        arts = arts.filter(function(a){
+          var num = ((a.title||'').match(/(\d+)/)||['',''])[1];
+          return num === artFilter || (a.title||'').indexOf(artFilter) !== -1;
+        });
+      }
+      arts = _chipFilter(arts, _curChip);
+      if(!arts.length){ resEl.innerHTML = _MSG_EMPTY; return; }
+      _srSet(arts, lawName);
+    })
+    .catch(function(){ resEl.innerHTML = _MSG_FAIL; });
+}
+
+// 法規目錄點擊 → 填入搜尋並執行
+function searchLaw(name){
+  var inp = document.getElementById('search-law');
+  if(inp){ inp.value = name; }
+  doSearch();
+}
+
+// active nav on scroll
+const navLinks = document.querySelectorAll('.nav-list a');
+const sections = document.querySelectorAll('section.block');
+const setActive = id => {
+  navLinks.forEach(l => l.classList.toggle('on', l.getAttribute('href') === '#'+id));
+};
+const io = new IntersectionObserver((entries)=>{
+  entries.forEach(e=>{
+    if(e.isIntersecting) setActive(e.target.id);
+  });
+},{rootMargin:'-30% 0px -60% 0px'});
+sections.forEach(s=>io.observe(s));
+</script>
+
+<!-- ── P0-C 到期覆蓋層 ───────────────────────────────────── -->
+<div id="expire-overlay" style="display:none;position:fixed;inset:0;z-index:9999;
+  background:rgba(27,43,75,0.93);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;flex-direction:column;
+  font-family:'Noto Serif TC',serif;color:#F5F0EA;text-align:center;padding:2rem;">
+  <div style="max-width:380px;">
+    <div style="font-size:2.4rem;margin-bottom:1rem;">⏳</div>
+    <h2 style="font-size:1.4rem;font-weight:700;margin:0 0 0.6rem;">
+      你的方案已到期
+    </h2>
+    <p style="font-size:0.95rem;opacity:0.8;line-height:1.6;margin:0 0 2rem;">
+      你的備考旅程還沒結束。<br>
+      續訂後馬上恢復所有學習進度。
+    </p>
+    <a href="/checkout.html" style="display:block;background:#E8A598;color:#1B2B4B;
+      border-radius:8px;padding:0.85rem 1.5rem;font-size:1rem;font-weight:700;
+      text-decoration:none;margin-bottom:0.75rem;">
+      立即續訂
+    </a>
+    <button onclick="switchToFree()" style="display:block;width:100%;
+      background:transparent;border:1px solid rgba(245,240,234,0.35);color:#F5F0EA;
+      border-radius:8px;padding:0.75rem 1.5rem;font-size:0.9rem;cursor:pointer;">
+      切換免費版（不保留查詢紀錄）
+    </button>
+  </div>
+</div>
+<script>
+function showExpireOverlay(){
+  var el=document.getElementById('expire-overlay');
+  if(el){ el.style.display='flex'; }
+}
+function switchToFree(){
+  localStorage.removeItem('sofa_uid');
+  localStorage.removeItem('sofa_plan');
+  localStorage.removeItem('sofa_expire');
+  localStorage.removeItem('sofa_token');
+  localStorage.setItem('sofa_free','FREE');
+  if(!localStorage.getItem('sofa_free_since')){
+    localStorage.setItem('sofa_free_since', new Date().toISOString().slice(0,10));
+  }
+  window.location.href='/';
+}
+</script>
+</body>
+</html>

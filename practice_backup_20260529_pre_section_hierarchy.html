@@ -3,18 +3,13 @@
 <head>
 <meta charset="utf-8" />
 <title>SoFa Engine — 打字練習</title>
-<meta name="description" content="逐字打出法條原文，讓條文記憶更紮實。SoFa Engine 打字練習模式，涵蓋 36,000+ 條國考法規，免費使用。" />
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#142836">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="SoFa">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23244658'/%3E%3Ctext x='16' y='23.5' font-size='21' font-family='Georgia,serif' font-weight='700' text-anchor='middle' fill='%23E7BBA7'%3ES%3C/text%3E%3C/svg%3E">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -131,7 +126,7 @@
   }
 
   .ghost{
-    font-family:"Songti TC",var(--serif);font-size:22px;line-height:2.05;
+    font-family:var(--serif);font-size:22px;line-height:2.05;
     color:rgba(245,240,234,.25);letter-spacing:.02em;
     user-select:none;word-break:keep-all;overflow-wrap:break-word;
   }
@@ -234,17 +229,12 @@
   .sec-panel .sec-hd{font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--peach-3);font-weight:600;padding-bottom:12px;border-bottom:1px dashed rgba(31,56,72,.15);margin-bottom:4px}
   .sec-block{margin-top:16px;padding-top:14px;border-top:1px dashed rgba(31,56,72,.15)}
   .sec-label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--peach-3);font-weight:600;margin-bottom:6px}
-  .sec-text{font-size:13px;line-height:1.85;color:rgba(31,56,72,.78)}
-  .sec-text .sec-h{margin:10px 0 4px;color:var(--navy);font-weight:600}
-  .sec-text .sec-h:first-child{margin-top:0}
-  .sec-text .sec-i{position:relative;padding-left:18px;margin:3px 0}
-  .sec-text .sec-i::before{content:'';position:absolute;left:5px;top:.62em;width:4px;height:4px;border:1.2px solid var(--peach-3);border-radius:50%;box-sizing:border-box}
-  .sec-lock{margin-top:16px;border-top:1px dashed rgba(31,56,72,.15)}
-  .sec-lock .sec-label::after{content:" 🔒";font-size:11px;opacity:.65}
-  .sec-lock-preview{position:relative;max-height:80px;overflow:hidden;padding:10px 0 0;pointer-events:none;user-select:none;font-size:13.5px;line-height:1.8;color:rgba(31,56,72,.72)}
-  .sec-lock-preview::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(245,240,234,0) 15%,var(--cream) 82%);pointer-events:none}
-  .sec-lock-cta{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px;padding:10px 16px;font-size:12.5px;color:rgba(31,56,72,.72);background:rgba(231,187,167,.1);border:1px dashed rgba(213,154,120,.4);border-radius:4px}
-  .sec-lock-cta a{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--peach);text-decoration:none;padding:5px 14px;border:1px solid rgba(213,154,120,.4);border-radius:2px;white-space:nowrap}
+  .sec-text{font-size:13px;line-height:1.85;color:rgba(31,56,72,.78);white-space:pre-wrap}
+  .sec-lock{margin-top:16px;position:relative;border-radius:3px;overflow:hidden}
+  .sec-lock-inner{padding:12px 0;border-top:1px dashed rgba(31,56,72,.15);filter:blur(4px);user-select:none;pointer-events:none}
+  .sec-lock-overlay{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:rgba(245,240,234,.92);backdrop-filter:blur(2px)}
+  .sec-lock-overlay p{font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:rgba(27,43,75,.8);text-transform:uppercase;font-weight:600;margin:0}
+  .sec-lock-overlay a{display:inline-block;padding:7px 20px;background:var(--peach);color:var(--navy);font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;border-radius:2px;text-decoration:none}
 
   /* === RWD === */
   @media (max-width:1100px){
@@ -269,7 +259,6 @@
     .type-input .key{min-width:0;align-self:flex-start}
     .mode-strip{grid-template-columns:1fr}
     .kbd-foot{flex-direction:column;align-items:flex-start;gap:14px}
-    .kbd-foot .gp{display:none}        /* 鍵盤快捷提示在觸控手機無意義，收起 */
   }
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
@@ -285,81 +274,6 @@
   .pr-sub.show{display:flex}
   .pr-sub select{background:var(--navy-3);border:1px solid var(--line-2);border-radius:3px;color:var(--cream);font-family:var(--mono);font-size:11.5px;padding:5px 10px;cursor:pointer;outline:none}
   @media (max-width:760px){.pr-chips{padding:10px 18px}}
-
-  /* === Wave 89: TTS button === */
-  #practice-tts-btn {
-    background: none; border: 1px solid #2a4060; cursor: pointer;
-    font-size: 14px; color: #8899aa; padding: 4px 12px;
-    border-radius: 14px; margin-left: 8px;
-    transition: border-color 0.2s, color 0.2s;
-  }
-  #practice-tts-btn:hover { border-color: #4a9eff; color: #4a9eff; }
-  #practice-tts-btn.speaking {
-    color: #4a9eff; border-color: #4a9eff;
-    animation: ttsPulse 1s ease-in-out infinite;
-  }
-  @keyframes ttsPulse { 0%,100%{opacity:0.7} 50%{opacity:1} }
-
-  /* === Wave 45: Answer reveal + completion animations === */
-  @keyframes blank-correct{
-    0%  { background:rgba(212,168,71,.22); border-bottom-color:var(--gold,#D4A847); color:#D4A847; }
-    50% { background:rgba(212,168,71,.42); border-bottom-color:#D4A847; color:#D4A847; box-shadow:0 0 12px rgba(212,168,71,.35); }
-    100%{ background:rgba(159,184,159,.10); border-bottom-color:var(--good); color:var(--good); box-shadow:none; }
-  }
-  @keyframes blank-wrong{
-    0%  { background:rgba(199,123,106,.10); border-bottom-color:var(--bad); }
-    30% { background:rgba(199,123,106,.32); border-bottom-color:#E87B6B; box-shadow:0 0 8px rgba(199,123,106,.4); }
-    100%{ background:rgba(199,123,106,.10); border-bottom-color:var(--bad); box-shadow:none; }
-  }
-  .blank.reveal-ok  { animation: blank-correct .55s ease forwards; }
-  .blank.reveal-bad { animation: blank-wrong   .45s ease forwards; }
-
-  @keyframes card-flash{
-    0%  { box-shadow: 0 0 0 0 rgba(212,168,71,0); }
-    30% { box-shadow: 0 0 0 6px rgba(212,168,71,.35); border-color: rgba(212,168,71,.55); }
-    100%{ box-shadow: 0 0 0 0 rgba(212,168,71,0);  }
-  }
-  .type-card.celebrate { animation: card-flash .8s ease forwards; }
-
-  @keyframes done-slide{
-    from { opacity:0; transform:translateY(10px); }
-    to   { opacity:1; transform:translateY(0); }
-  }
-  .pr-done-banner{
-    display:flex; align-items:center; gap:12px;
-    margin-top:18px; padding:14px 20px;
-    background:rgba(212,168,71,.10); border:1px solid rgba(212,168,71,.35);
-    border-radius:4px; font-family:var(--mono); font-size:12.5px;
-    letter-spacing:.06em; color:#D4A847;
-    animation: done-slide .4s ease forwards;
-  }
-  .pr-done-banner .icon{ font-size:18px; line-height:1; }
-
-  /* === Wave 56: Session timer chip + summary overlay === */
-  #session-timer{
-    position:fixed;top:12px;right:16px;
-    background:rgba(26,46,61,0.85);border:1px solid rgba(91,175,214,0.25);
-    border-radius:20px;padding:5px 12px;font-size:12px;
-    color:#8ABED6;z-index:50;backdrop-filter:blur(6px);
-    font-family:'JetBrains Mono',monospace;
-    cursor:pointer;transition:background 0.2s;
-    user-select:none;
-  }
-  #session-timer:hover{background:rgba(26,46,61,1);color:#5BAFD6;}
-  /* 手機：計時膠囊移到右下，避免壓到 topbar 的登出鍵（放在 base 規則後才蓋得過） */
-  @media (max-width:760px){#session-timer{top:auto;bottom:14px;right:14px}}
-
-  #session-summary{
-    display:none;position:fixed;inset:0;
-    background:rgba(4,13,20,0.95);z-index:200;
-    align-items:center;justify-content:center;
-  }
-  #session-summary.show{display:flex;}
-  .ss-card{
-    background:#0D1F2D;border-radius:16px;padding:32px 36px;
-    border:1px solid rgba(91,175,214,0.2);max-width:380px;width:90%;
-    text-align:center;
-  }
 </style>
 </head>
 <body>
@@ -387,17 +301,9 @@
 
       <div class="pr-pick">
         <span class="lab">LAW</span>
-        <select id="lawSelect" style="display:none"><option value="">全部法規</option></select>
-        <div class="law-dd" id="lawDD"><button type="button" class="law-dd-btn" id="lawDDBtn"><span id="lawDDLabel">全部法規</span><span class="cv">▾</span></button><div class="law-dd-pop" id="lawDDPop"></div></div>
+        <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:500;font-size:15px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none;min-width:80px;max-width:200px"><option value="">全部法規</option></select>
+        <span class="car">▾</span>
       </div>
-      <span id="prScopeLabel" style="display:none;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--peach);background:rgba(231,187,167,.1);border:1px solid rgba(231,187,167,.3);border-radius:3px;padding:4px 10px;white-space:nowrap"></span>
-      <div id="practice-status-bar" style="
-        margin-top:4px;padding:6px 10px;
-        background:rgba(255,255,255,0.04);
-        border-radius:6px;border:1px solid rgba(100,160,220,0.15);
-        font-size:11px;color:#aaa;min-height:28px;
-        transition:opacity 0.2s;display:none
-      "></div>
       <div class="pr-pick" id="artPickWrap" style="display:none">
         <span class="lab">§</span>
         <input id="artNumInput" list="artDatalist" placeholder="條號"
@@ -405,13 +311,6 @@
         <datalist id="artDatalist"></datalist>
       </div>
       <button id="btnNew" class="btn btn-sec" style="padding:8px 16px;font-size:13px">換一條</button>
-      <div id="practice-streak" style="
-        display:none;
-        font-size:13px;color:#ff9955;font-weight:600;
-        padding:3px 8px;background:rgba(255,140,0,0.12);
-        border:1px solid rgba(255,140,0,0.3);border-radius:12px;
-        margin-left:8px
-      "></div>
     </div>
     <div class="pr-meta">
       <div class="seg">WPM <b id="wpm">42</b></div>
@@ -438,7 +337,6 @@
         <span class="eb">TYPING DRILL · ARTICLE</span>
         <h2><span class="n" id="artNum">—</span><span id="artTitle">選擇法規後換一條開始</span></h2>
         <span class="law-tag" id="artMeta" style="display:none">—</span>
-        <button id="practice-tts-btn" title="朗讀法條" onclick="_practiceTTS()">🔊</button>
       </div>
 
       <!-- stat row -->
@@ -515,85 +413,6 @@
     </div>
   </main>
 
-<!-- Wave 56: session timer chip -->
-<div id="session-timer" onclick="showSessionSummary()" title="點擊查看本次練習統計">⏱ 00:00</div>
-
-<!-- Wave 56: session summary overlay -->
-<div id="session-summary">
-  <div class="ss-card">
-    <div style="font-size:14px;color:#5BAFD6;margin-bottom:16px">📊 本次練習統計</div>
-    <div style="font-size:48px;font-weight:700;color:#D4A847;font-family:'JetBrains Mono',monospace" id="ss-time"></div>
-    <div style="color:#8ABED6;font-size:13px;margin-top:4px">練習時長</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0">
-      <div style="background:#1A2E3D;border-radius:10px;padding:14px">
-        <div style="font-size:28px;font-weight:700;color:#9FB89F" id="ss-complete"></div>
-        <div style="color:#8ABED6;font-size:12px;margin-top:4px">完成篇數</div>
-      </div>
-      <div style="background:#1A2E3D;border-radius:10px;padding:14px">
-        <div style="font-size:28px;font-weight:700;color:#5BAFD6" id="ss-attempt"></div>
-        <div style="color:#8ABED6;font-size:12px;margin-top:4px">已練習篇數</div>
-      </div>
-    </div>
-    <button onclick="document.getElementById('session-summary').classList.remove('show')"
-      style="background:#D4A847;border:none;color:#040D14;padding:10px 28px;border-radius:20px;font-size:14px;font-weight:600;cursor:pointer;width:100%">
-      繼續練習
-    </button>
-    <button id="ss-share-btn" onclick="_sharePracticeSession(this)"
-      style="margin-top:10px;background:rgba(70,130,180,0.15);border:1px solid rgba(100,160,220,0.4);
-             color:#7ab8f5;border-radius:20px;padding:8px 28px;font-size:13px;font-weight:500;
-             cursor:pointer;width:100%">
-      📤 分享成績
-    </button>
-  </div>
-</div>
-
-<!-- Wave 139: share button near session timer chip -->
-<button id="practice-share-btn" onclick="_sharePracticeSession(this)"
-  title="分享練習成績"
-  style="display:none;position:fixed;top:12px;right:92px;z-index:50;
-         background:rgba(70,130,180,0.2);border:1px solid rgba(100,160,220,0.4);
-         color:#7ab8f5;border-radius:20px;padding:5px 10px;font-size:12px;cursor:pointer;
-         font-family:'JetBrains Mono',monospace;backdrop-filter:blur(6px);
-         transition:background 0.2s">📤</button>
-
-<!-- Wave 103: persistent stats button -->
-<button id="practice-stats-btn" onclick="openPracticeStats()"
-  title="學習統計"
-  style="position:fixed;bottom:14px;left:14px;z-index:200;background:rgba(20,40,60,0.85);
-         border:1px solid rgba(100,160,220,0.4);color:#7ab8f5;border-radius:8px;
-         padding:6px 10px;font-size:14px;cursor:pointer">📊</button>
-
-<div id="practice-stats-panel" style="display:none;position:fixed;bottom:50px;left:14px;
-     z-index:201;background:rgba(10,20,35,0.95);border:1px solid rgba(100,160,220,0.35);
-     border-radius:10px;padding:16px;min-width:240px;max-width:300px;color:#dce8f5;
-     font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,0.5)">
-  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-    <span style="font-weight:600;font-size:14px">練習統計</span>
-    <span onclick="closePracticeStats()" style="cursor:pointer;color:#aaa;font-size:16px">✕</span>
-  </div>
-  <!-- Wave 149: Tab bar -->
-  <div style="display:flex;gap:4px;margin-bottom:12px;background:rgba(255,255,255,0.06);border-radius:6px;padding:3px">
-    <button id="practice-tab-btn-stats" onclick="_switchPracticeStatsTab('stats')"
-      style="flex:1;border:none;border-radius:4px;padding:5px 0;font-size:11px;cursor:pointer;
-             background:#1A2E3D;color:#fff;font-family:inherit;transition:all 0.15s">
-      📊 統計
-    </button>
-    <button id="practice-tab-btn-drill" onclick="_switchPracticeStatsTab('drill')"
-      style="flex:1;border:none;border-radius:4px;padding:5px 0;font-size:11px;cursor:pointer;
-             background:transparent;color:#888;font-family:inherit;transition:all 0.15s">
-      📉 少練清單
-    </button>
-  </div>
-  <!-- Stats tab (existing content) -->
-  <div id="practice-stats-tab-stats">
-    <div id="practice-stats-body"></div>
-  </div>
-  <!-- Drill tab (Wave 149: least-practiced law list) -->
-  <div id="practice-stats-tab-drill" style="display:none">
-    <div id="practice-drill-body"></div>
-  </div>
-</div>
-
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
 const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
@@ -621,7 +440,7 @@ if(isFree){
   const bar=document.createElement('div');
   bar.style.cssText='background:rgba(231,187,167,.13);border-bottom:1px solid rgba(231,187,167,.3);padding:10px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;';
   bar.innerHTML='<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">🔒 免費版 · 法條內容有限制，練習紀錄不會儲存</span>'
-    +'<a href="pricing.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:5px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
+    +'<a href="checkout.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:5px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
   document.querySelector('.pr-bar').before(bar);
 }
 
@@ -636,95 +455,6 @@ if(isFree){
   }catch(e){}
 })();
 
-// ── 考科 → 法規對應表（NODES.json n72/n74/n83）─────────────────
-const _EXAM_LAWS = {
-  bookkeeper: ['記帳士法','記帳士職業倫理道德規範','中華民國記帳士職業道德規範','記帳士法第三十五條規定之管理辦法','記帳士暨記帳及報稅代理人防制洗錢與打擊資恐辦法','記帳士懲戒委員會與懲戒覆審委員會組織及審議規則','公司法','公司登記辦法','商業登記法','商業登記申請辦法','商業會計法','商業會計處理準則','商業使用電子方式處理會計資料辦法','行政程序法','稅捐稽徵法','稅捐稽徵法施行細則','納稅者權利保護法','納稅者權利保護法施行細則','所得稅法','所得稅法施行細則','所得基本稅額條例','所得基本稅額條例施行細則','各類所得扣繳率標準','營利事業所得稅查核準則','加值型及非加值型營業稅法','加值型及非加值型營業稅法施行細則','兼營營業人營業稅額計算辦法','統一發票使用辦法','統一發票給獎辦法','遺產及贈與稅法','遺產及贈與稅法施行細則','特種貨物及勞務稅條例','特種貨物及勞務稅條例施行細則'],
-  landadmin:  ['民法','信託法','土地法','土地法施行法','平均地權條例','平均地權條例施行細則','土地徵收條例','土地徵收條例施行細則','地政士法','地政士法施行細則','土地登記規則','地籍測量實施規則','土地稅法','土地稅法施行細則','遺產及贈與稅法','遺產及贈與稅法施行細則','契稅條例','房屋稅條例','稅捐稽徵法','稅捐稽徵法施行細則','工程受益費徵收條例','所得稅法','所得稅法施行細則'],
-  realestate: ['民法','土地法','平均地權條例','平均地權條例施行細則','土地徵收條例','非都市土地使用管制規則','區域計畫法','都市計畫法','土地稅法','土地稅法施行細則','契稅條例','房屋稅條例','所得稅法','所得稅法施行細則','不動產經紀業管理條例','不動產經紀業管理條例施行細則','公平交易法','消費者保護法','公寓大廈管理條例'],
-  'tax-admin': ['民法','稅捐稽徵法','稅捐稽徵法施行細則','納稅者權利保護法','納稅者權利保護法施行細則','所得稅法','所得稅法施行細則','所得基本稅額條例','所得基本稅額條例施行細則','加值型及非加值型營業稅法','加值型及非加值型營業稅法施行細則','土地稅法','土地稅法施行細則','房屋稅條例','契稅條例','貨物稅條例','印花稅法','使用牌照稅法','遺產及贈與稅法','遺產及贈與稅法施行細則'],
-  'tax-law': ['中華民國憲法','中華民國憲法增修條文','行政程序法','行政罰法','行政執行法','訴願法','行政訴訟法','國家賠償法','公務員服務法','公務人員任用法','稅捐稽徵法','稅捐稽徵法施行細則','所得稅法','加值型及非加值型營業稅法','遺產及贈與稅法','土地稅法','民法','刑法','納稅者權利保護法'],
-  'elem-admin': ['中華民國憲法','公務員服務法','公務人員任用法','民法','刑法','行政程序法','行政罰法','行政執行法','訴願法','行政訴訟法','國家賠償法'],
-  'post-acc': ['會計法','預算法','決算法','郵政法','公司法','商業會計法','稅捐稽徵法','所得稅法','加值型及非加值型營業稅法','個人資料保護法'],
-};
-const _EXAM_NAMES = {bookkeeper:'記帳士',landadmin:'地政士',realestate:'不動產經紀人','tax-admin':'財稅行政','tax-law':'財稅法務','elem-admin':'初等一般行政','post-acc':'中華郵政會計'};
-let _allLoadedPrLaws = [];
-
-function _filterLawsForExam(laws, key) {
-  const set = _EXAM_LAWS[key] ? new Set(_EXAM_LAWS[key]) : null;
-  return set ? laws.filter(l => set.has(l.name)) : laws;
-}
-
-// ── 出題範圍標示：明確標出「所選考科的全部法規」或單一法規 ──────
-function _updateScopeLabel(lawVal) {
-  const el = document.getElementById('prScopeLabel');
-  if (!el) return;
-  const v = (lawVal !== undefined) ? lawVal
-    : ((document.getElementById('lawSelect') || {}).value || '');
-  const examKey = localStorage.getItem('sofa_exam_key')
-    || localStorage.getItem('sofa.dash.exam.pick') || '';
-  const examName = _EXAM_NAMES[examKey] || '';
-  // 特殊集合（重點/收藏/已熟記/待複習）→ 用選單文字
-  if (v && v.startsWith('__')) {
-    const sel = document.getElementById('lawSelect');
-    const opt = sel && sel.querySelector(`option[value="${CSS.escape(v)}"]`);
-    el.textContent = '出題範圍：' + ((opt && opt.textContent) || v);
-    el.style.display = '';
-    return;
-  }
-  // 全部法規（lawSelect 為空）→ 顯示「{考科}＿全部法規（N 部）」
-  if (!v) {
-    if (examName) {
-      const cnt = _filterLawsForExam(_allLoadedPrLaws, examKey).length
-        || (_EXAM_LAWS[examKey] ? _EXAM_LAWS[examKey].length : 0);
-      el.textContent = '出題範圍：' + examName + '＿全部法規'
-        + (cnt ? '（' + cnt + ' 部）' : '');
-    } else {
-      const cnt = _allLoadedPrLaws.length;
-      el.textContent = '出題範圍：全部法規' + (cnt ? '（' + cnt + ' 部）' : '');
-    }
-    el.style.display = '';
-    return;
-  }
-  // 指定單一法規 → 顯示該法規名稱
-  el.textContent = '出題範圍：' + v;
-  el.style.display = '';
-}
-
-function _repopulatePrSel(laws) {
-  const sel = document.getElementById('lawSelect');
-  // Remove existing law options (keep __ special ones)
-  Array.from(sel.options).forEach(o => { if(!o.value.startsWith('__')&&!o.disabled)sel.removeChild(o); });
-  laws.forEach(l => { const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o); });
-}
-
-function _saveAndApplyPrExam(key) {
-  localStorage.setItem('sofa_exam_key', key);
-  if(uid && key!=='all') fetch(`${API}/api/me/profile`,{method:'PATCH',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({exam_key:key})}).catch(()=>{});
-  const bar=document.getElementById('_exam-picker-pr');
-  if(bar) bar.remove();
-  const filtered = _filterLawsForExam(_allLoadedPrLaws, key);
-  _repopulatePrSel(filtered);
-  const sel = document.getElementById('lawSelect');
-  const firstLaw = filtered[0];
-  if(firstLaw&&sel){ sel.value=firstLaw.name; sel.dispatchEvent(new Event('change')); }
-  _updatePracticeStatusBar(sel&&sel.value||'');
-  _updateScopeLabel(sel&&sel.value||'');
-  // 自動出題：選定考科後立即帶出第一條
-  if(sel&&sel.value&&typeof loadNew==='function') loadNew();
-}
-
-function _showPrExamBanner() {
-  if(document.getElementById('_exam-picker-pr')) return;
-  const bar=document.createElement('div');
-  bar.id='_exam-picker-pr';
-  bar.style.cssText='background:#0B1820;border-bottom:2px solid rgba(231,187,167,.35);padding:11px 32px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:56px;z-index:200;';
-  bar.innerHTML='<span style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:rgba(231,187,167,.9);white-space:nowrap">你要備考哪一科？</span>'
-    +Object.entries(_EXAM_NAMES).map(([k,n])=>`<button onclick="_saveAndApplyPrExam('${k}')" style="font-family:var(--mono);font-size:11px;padding:5px 14px;border:1px solid rgba(231,187,167,.5);border-radius:2px;background:transparent;color:var(--cream);cursor:pointer">${n}</button>`).join('')
-    +'<button onclick="_saveAndApplyPrExam(\'all\')" style="font-family:var(--mono);font-size:11px;padding:5px 14px;border:1px solid rgba(245,240,234,.15);border-radius:2px;background:transparent;color:rgba(245,240,234,.4);cursor:pointer">先看全部</button>';
-  const nav=document.querySelector('.pr-bar')||document.querySelector('.top-bar')||document.body;
-  nav.before ? nav.before(bar) : document.body.prepend(bar);
-}
-
 (async()=>{
   const sel = document.getElementById('lawSelect');
   // Special filters
@@ -736,34 +466,8 @@ function _showPrExamBanner() {
   }
   try {
     const d = await fetch(`${API}/api/laws`).then(r=>r.json());
-    _allLoadedPrLaws = d.laws || [];
-    const examKey = localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || '';
-    if(examKey) localStorage.setItem('sofa_exam_key', examKey);
-    if(!examKey) _showPrExamBanner();
-    const lawsToShow = _filterLawsForExam(_allLoadedPrLaws, examKey);
-    lawsToShow.forEach(l=>{ const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o); });
+    (d.laws||[]).forEach(l=>{ const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o); });
   } catch{}
-  // Wave 80 — restore last selected law; default to first in list
-  const _saved = localStorage.getItem('sofa_practice_law');
-  if (_saved && sel.querySelector(`option[value="${CSS.escape(_saved)}"]`)) {
-    sel.value = _saved;
-    sel.dispatchEvent(new Event('change'));
-  } else {
-    const _defOpt = sel.querySelector('option[value="記帳士法"]') || sel.querySelector('option:not([disabled]):not([value^="__"])');
-    if (_defOpt) { sel.value = _defOpt.value; sel.dispatchEvent(new Event('change')); }
-  }
-  _updatePracticeStatusBar(sel.value);
-  _updateScopeLabel(sel.value);
-  // 「點進練習區就自動出題」：已選考科/法規即立即帶出第一條
-  // 未選考科時不動，沿用 _showPrExamBanner 的「未選考科自動提示」
-  const _examKeyNow = localStorage.getItem('sofa_exam_key')
-    || localStorage.getItem('sofa.dash.exam.pick') || '';
-  if (sel.value && (sel.value.startsWith('__') ? !!uid : true)) {
-    if (typeof loadNew === 'function') loadNew();
-  } else if (_examKeyNow && !sel.value) {
-    // 已選考科但停在「全部法規」→ 一樣自動出題（跨全科）
-    if (typeof loadNew === 'function') loadNew();
-  }
 })();
 
 // ── 條號選單：選法規後填入 datalist ────────────────────────────
@@ -800,7 +504,6 @@ function _updateChipLock(){
   else box.classList.remove('is-locked');
 }
 document.addEventListener('DOMContentLoaded',function(){
-  try { localStorage.setItem('sofa_last_tool', 'practice'); } catch(e) {}
   document.querySelectorAll('.pr-chip').forEach(function(btn){
     btn.addEventListener('click',function(){
       document.querySelectorAll('.pr-chip').forEach(function(c){c.classList.remove('on');});
@@ -818,12 +521,8 @@ document.addEventListener('DOMContentLoaded',function(){
   if(_lawSel)_lawSel.addEventListener('change',_updateChipLock);
   var _subSel=document.getElementById('prSubSel');
   if(_subSel)_subSel.addEventListener('change',_updateChipLock);
-  _renderPracticeStreak();
 });
 document.getElementById('lawSelect').addEventListener('change', async function(){
-  localStorage.setItem('sofa_practice_law', this.value);
-  _updatePracticeStatusBar(this.value);
-  _updateScopeLabel(this.value);
   const law = this.value;
   const wrap = document.getElementById('artPickWrap');
   const dl   = document.getElementById('artDatalist');
@@ -853,49 +552,21 @@ const ti = document.getElementById('ti');
 const ghost = document.getElementById('ghost');
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
-const _FREE_SECS=[
-  '章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示','核心摘要與記憶策略',
-  '條文解析','考點整理','記憶技巧','相關條文'
-];
-const _LOCKED_SECS=[
-  {name:'修法與聯覺備註',  label:'修法與聯覺備註'},
-  {name:'相關法規及注意事項',label:'相關法規及注意事項'}
-];
-function formatSection(text){
-  if(!text) return '';
-  var lines=String(text).replace(/\r\n?/g,'\n').split('\n'),out='';
-  lines.forEach(function(raw){
-    if(!raw||!raw.trim())return;
-    var lead=(raw.match(/^[ \t　]*/)||[''])[0],body=raw.slice(lead.length),isSub=false;
-    var bm=body.match(/^([•◦‣·▪])\s*/);
-    if(bm){isSub=(bm[1]==='◦');body=body.slice(bm[0].length);}
-    else if(lead.length>=2||/　/.test(lead)){isSub=true;}
-    body=body.trim();if(!body)return;
-    var esc=body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    esc=esc.replace(/^([^：:]{1,14}[：:])/,'<b>$1</b>');
-    out+='<p class="'+(isSub?'sec-i':'sec-h')+'">'+esc+'</p>';
-  });
-  return out;
-}
+const _FREE_SECS=['規範意旨與條文解析','條文解析','考點整理','記憶技巧','相關條文'];
 function buildSections(sections,isPaid,wrapEl,beforeEl){
   wrapEl.querySelectorAll('.sec-block,.sec-lock').forEach(e=>e.remove());
   _FREE_SECS.forEach(name=>{
     if(!sections[name])return;
     const d=document.createElement('div');d.className='sec-block';
     const lb=document.createElement('div');lb.className='sec-label';lb.textContent=name;
-    const tx=document.createElement('div');tx.className='sec-text';tx.innerHTML=formatSection(sections[name]);
+    const tx=document.createElement('div');tx.className='sec-text';tx.textContent=sections[name];
     d.append(lb,tx);
     if(beforeEl)wrapEl.insertBefore(d,beforeEl);else wrapEl.appendChild(d);
   });
   if(!isPaid){
-    _LOCKED_SECS.forEach(({name,label})=>{
-      const lk=document.createElement('div');lk.className='sec-lock';
-      const preview=sections[name]||'';
-      lk.innerHTML='<div class="sec-label">'+label+'</div>'
-        +'<div class="sec-lock-preview">'+(preview?formatSection(preview):'')+'</div>'
-        +'<div class="sec-lock-cta">🔒 升級解鎖完整內容 <a href="pricing.html">查看方案 →</a></div>';
-      if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
-    });
+    const lk=document.createElement('div');lk.className='sec-lock';
+    lk.innerHTML='<div class="sec-lock-inner"><div class="sec-label">修法與聯覺備註</div><div class="sec-text">本條文近期修法重點與考試常見出題方向完整分析，含記憶技巧與易混淆比較⋯⋯</div></div><div class="sec-lock-overlay"><p>🔒 付費版完整考情分析</p><a href="checkout.html">升級解鎖 修法備註 · 實務應用 · 常見錯誤 →</a></div>';
+    if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
   }
 }
 let articleSections={}, articlePlan='free';
@@ -922,22 +593,16 @@ function render(){
   ghost.innerHTML=html;
   const cor=[...typeInput].filter((c,i)=>c===typeText[i]).length;
   const err=typeInput.length-cor;
-  const acc=typeInput.length?Math.round(cor/typeInput.length*100):null;
+  const acc=typeInput.length?Math.round(cor/typeInput.length*100):100;
   const prog=Math.min(typeText.length?Math.round(typeInput.length/typeText.length*100):0,100);
-  document.getElementById('acc').textContent=acc!==null?acc+'%':'—';
-  document.getElementById('stat-acc').textContent=acc!==null?acc+'%':'—';
+  document.getElementById('acc').textContent=acc+'%';
+  document.getElementById('stat-acc').textContent=acc+'%';
   document.getElementById('stat-prog').textContent=prog+'%';
   document.getElementById('stat-err').textContent=err;
   document.getElementById('prog').style.width=prog+'%';
   if(typeInput.length>=typeText.length&&typeText.length>0){
     stopTimer();
     ghost.innerHTML+=`<div style="margin-top:16px;font-family:var(--mono);font-size:13px;color:var(--good);letter-spacing:.1em">✓ 完成 · 正確率 ${acc}%</div>`;
-    // celebrate card + banner
-    const card=document.querySelector('.type-card');
-    if(card){ card.classList.add('celebrate'); card.addEventListener('animationend',()=>card.classList.remove('celebrate'),{once:true}); }
-    showDoneBanner(acc,null,'m1');
-    _articlesCompleted++;  // Wave 56
-    _recordPracticeStat(document.getElementById('artMeta').textContent||document.getElementById('lawSelect').value, typeText.length);  // Wave 103
     const sp=document.getElementById('sectionsBox');
     if(sp.style.display==='none'){
       sp.innerHTML='<div class="sec-hd">條文解析</div>';
@@ -959,41 +624,14 @@ ti.addEventListener('input',()=>{
 });
 
 let _sessionStart=null, _sessionIv=null;
-// Wave 56 — article counters
-let _articlesAttempted=0, _articlesCompleted=0;
-let _autoSummaryShown=false;
-
-function _fmtSessionTime(ms){
-  const s=Math.floor(ms/1000), m=Math.floor(s/60), h=Math.floor(m/60);
-  if(h>0) return h+':'+String(m%60).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
-  return String(m).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
-}
-
-function showSessionSummary(){
-  const elapsed=Date.now()-(_sessionStart||Date.now());
-  document.getElementById('ss-time').textContent=_fmtSessionTime(elapsed);
-  document.getElementById('ss-complete').textContent=_articlesCompleted;
-  document.getElementById('ss-attempt').textContent=_articlesAttempted;
-  document.getElementById('session-summary').classList.add('show');
-}
-
 function ensureSessionTimer(){
   if(_sessionIv) return;
   if(!_sessionStart) _sessionStart=Date.now();
   _sessionIv=setInterval(()=>{
-    const elapsed=Date.now()-_sessionStart;
-    const s=Math.floor(elapsed/1000);
+    const s=Math.floor((Date.now()-_sessionStart)/1000);
     const sm=Math.floor(s/60), ss=s%60;
     document.getElementById('sessionInfo').textContent=
       'SESSION · '+String(sm).padStart(2,'0')+':'+(ss<10?'0':'')+ss;
-    // update corner chip
-    const chip=document.getElementById('session-timer');
-    if(chip) chip.textContent='⏱ '+_fmtSessionTime(elapsed);
-    // auto-show summary at 15 min (once)
-    if(!_autoSummaryShown && elapsed>=15*60*1000){
-      _autoSummaryShown=true;
-      showSessionSummary();
-    }
   },1000);
 }
 function startTimer(){
@@ -1011,41 +649,8 @@ function startTimer(){
 }
 function stopTimer(){ if(timerIv){clearInterval(timerIv);timerIv=null;} }
 
-// Wave 45 — done banner helper (shown after any mode completes)
-function showDoneBanner(cor, total, mode){
-  // remove any previous banner
-  const old=document.getElementById('prDoneBanner');
-  if(old)old.remove();
-  let msg='';
-  if(mode==='m1'){
-    // cor = accuracy %
-    const star=cor===100?'★':cor>=90?'◆':'◇';
-    msg=`${star} 正確率 ${cor}%　按 ⌘K 換一條`;
-  } else if(mode==='m2'){
-    // cor = correct sentences, total = total sentences
-    const pct=total?Math.round(cor/total*100):0;
-    const star=pct===100?'★':pct>=80?'◆':'◇';
-    msg=`${star} ${cor}/${total} 句正確（${pct}%）　按 ⌘K 換一條`;
-  } else {
-    // m3
-    const pct=total?Math.round(cor/total*100):0;
-    const star=pct===100?'★':pct>=80?'◆':'◇';
-    msg=`${star} ${cor}/${total} 關鍵字正確（${pct}%）　按 ⌘K 換一條`;
-  }
-  const banner=document.createElement('div');
-  banner.id='prDoneBanner';
-  banner.className='pr-done-banner';
-  banner.innerHTML=`<span class="icon">✓</span><span>${msg}</span>`;
-  // insert after type-card
-  const card=document.querySelector('.type-card');
-  if(card&&card.parentNode) card.parentNode.insertBefore(banner,card.nextSibling);
-}
-
 async function loadNew(){
-  if(speechSynthesis.speaking) speechSynthesis.cancel();
   stopTimer();startTime=null;typeInput='';typeText='';ti.value='';
-  // clear done banner from previous round
-  const _ob=document.getElementById('prDoneBanner');if(_ob)_ob.remove();
   ghost.innerHTML='<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.4);letter-spacing:.1em">載入中…</span>';
   const sp=document.getElementById('sectionsBox');sp.innerHTML='';sp.style.display='none';
   const _srcBtn=document.getElementById('prSourceLink');if(_srcBtn)_srcBtn.style.display='none';
@@ -1110,28 +715,17 @@ async function loadNew(){
         lawMeta=law;
       }
       if(!d){
-        const _wasAll=!law;
-        var _subVal=(document.getElementById('prSubSel')||{}).value||'';
-        let _qLaw=law;
-        // 「全部法規」→ 先限定在已選考科範圍內隨機抽一部法規；未選考科才全庫隨機
-        if(_wasAll){
-          const _ek=localStorage.getItem('sofa_exam_key')||localStorage.getItem('sofa.dash.exam.pick')||'';
-          const _scoped=_filterLawsForExam(_allLoadedPrLaws,_ek);
-          if(_EXAM_LAWS[_ek]&&_scoped.length){
-            _qLaw=_scoped[Math.floor(Math.random()*_scoped.length)].name;
-          }
-        }
-        let url=_qLaw?`${API}/api/random?law=${encodeURIComponent(_qLaw)}`:`${API}/api/random`;
+        let url=law?`${API}/api/random?law=${encodeURIComponent(law)}`:`${API}/api/random`;
         // 跨法規 + chip + sub → server-side 篩選
-        if(_wasAll && _curPrChip!=='all' && _subVal){
+        var _subVal=(document.getElementById('prSubSel')||{}).value||'';
+        if(!law && _curPrChip!=='all' && _subVal){
           url+=(url.indexOf('?')>=0?'&':'?')+'chip='+encodeURIComponent(_curPrChip)+'&sub='+encodeURIComponent(_subVal);
         }
         d=await fetch(url,{headers:_authH()}).then(r=>r.json());
-        lawMeta=_qLaw||'';
+        lawMeta=law||'';
       }
     }
     articleSections=d.sections||{}; articlePlan=d._plan||'free';
-    _articlesAttempted++;  // Wave 56 — count each article load
     typeText=(d.original_text||'').replace(/(?<=[一-鿿]) +(?=[一-鿿])/g,'');
     const m=(d.title||'').match(/第(\d+(?:之\d+)?)條/);
     const artNum=m?m[1]:'—';
@@ -1223,8 +817,8 @@ function renderMode2(){
   document.getElementById('stat-prog').textContent=prog+'%';
   document.getElementById('prog').style.width=prog+'%';
   const cor=[...typeInput].filter((c,i)=>c===(sentences[sentIdx]||'')[i]).length;
-  const acc=typeInput.length?Math.round(cor/typeInput.length*100):null;
-  document.getElementById('stat-acc').textContent=acc!==null?acc+'%':'—';
+  const acc=typeInput.length?Math.round(cor/typeInput.length*100):100;
+  document.getElementById('stat-acc').textContent=acc+'%';
   document.getElementById('stat-err').textContent=typeInput.length-cor;
 }
 
@@ -1238,12 +832,6 @@ function advanceSentence(){
     stopTimer();
     const totalCor=sentDone.filter(Boolean).length;
     ghost.innerHTML+=`<div style="margin-top:16px;font-family:var(--mono);font-size:13px;color:var(--good);letter-spacing:.1em">✓ 完成 · ${totalCor}/${sentences.length} 句正確</div>`;
-    // celebrate card + banner
-    const card=document.querySelector('.type-card');
-    if(card){ card.classList.add('celebrate'); card.addEventListener('animationend',()=>card.classList.remove('celebrate'),{once:true}); }
-    showDoneBanner(totalCor,sentences.length,'m2');
-    _articlesCompleted++;  // Wave 56
-    _recordPracticeStat(document.getElementById('artMeta').textContent||document.getElementById('lawSelect').value, typeText.length);  // Wave 103
     // 顯示條文解析 sections
     const sp=document.getElementById('sectionsBox');
     sp.innerHTML='<div class="sec-hd">條文解析</div>';
@@ -1382,37 +970,17 @@ function checkMode3(){
   let cor=0;
   box.querySelectorAll('.blank').forEach((inp,i)=>{
     inp.disabled=true;
-    if(inp.value.trim()===inp.dataset.ans){
-      // stagger each correct blank by 60ms for cascade effect
-      setTimeout(()=>{
-        inp.classList.remove('ok','bad');
-        inp.classList.add('reveal-ok');
-        inp.addEventListener('animationend',()=>{ inp.classList.remove('reveal-ok'); inp.classList.add('ok'); },{once:true});
-      }, i*60);
-      cor++;
-    } else {
-      setTimeout(()=>{
-        inp.classList.remove('ok','bad');
-        inp.classList.add('reveal-bad');
-        inp.addEventListener('animationend',()=>{ inp.classList.remove('reveal-bad'); inp.classList.add('bad'); },{once:true});
-        const sp=document.createElement('span');
-        sp.textContent=`（${inp.dataset.ans}）`;
-        sp.style.cssText='color:var(--good);font-size:.75rem;font-family:var(--mono);margin-left:.25rem;opacity:0;transition:opacity .3s ease;';
-        inp.after(sp);
-        setTimeout(()=>{ sp.style.opacity='1'; }, 80);
-      }, i*60);
+    if(inp.value.trim()===inp.dataset.ans){inp.classList.add('ok');cor++;}
+    else{
+      inp.classList.add('bad');
+      const sp=document.createElement('span');
+      sp.textContent=`（${inp.dataset.ans}）`;
+      sp.style.cssText='color:var(--good);font-size:.75rem;font-family:var(--mono);margin-left:.25rem;';
+      inp.after(sp);
     }
   });
-  const total=m3Blanks.length;
-  document.getElementById('stat-acc').textContent=total?Math.round(cor/total*100)+'%':'—';
+  document.getElementById('stat-acc').textContent=m3Blanks.length?Math.round(cor/m3Blanks.length*100)+'%':'—';
   document.getElementById('stat-prog').textContent='✓';
-  // celebrate card border flash
-  const card=document.querySelector('.type-card');
-  if(card){ card.classList.add('celebrate'); card.addEventListener('animationend',()=>card.classList.remove('celebrate'),{once:true}); }
-  // show done banner
-  showDoneBanner(cor,total,'m3');
-  _articlesCompleted++;  // Wave 56
-  _recordPracticeStat(document.getElementById('artMeta').textContent||document.getElementById('lawSelect').value, typeText.length);  // Wave 103
   const sp=document.getElementById('sectionsBox');
   if(sp.style.display==='none'){
     sp.innerHTML='<div class="sec-hd">條文解析</div>';
@@ -1458,373 +1026,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){ ti.blur(); }
 });
 
-// Wave 56 — start session timer immediately on page load
-ensureSessionTimer();
 loadNew();
-
-// === Wave 89: TTS (朗讀法條) ===
-let _practiceTtsUtterance = null;
-
-function _practiceTTS() {
-  const btn = document.getElementById('practice-tts-btn');
-  if (!btn) return;
-
-  if (speechSynthesis.speaking) {
-    speechSynthesis.cancel();
-    btn.textContent = '🔊'; btn.classList.remove('speaking');
-    return;
-  }
-
-  if (!('speechSynthesis' in window)) {
-    alert('⚠ 瀏覽器不支援朗讀'); return;
-  }
-
-  const text = typeText || '';
-  if (!text.trim()) return;
-
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.lang = 'zh-TW'; utt.rate = 0.95;
-  const voices = speechSynthesis.getVoices();
-  const twVoice = voices.find(v => v.lang === 'zh-TW') || voices.find(v => v.lang.startsWith('zh'));
-  if (twVoice) utt.voice = twVoice;
-
-  utt.onend = utt.onerror = () => {
-    btn.textContent = '🔊'; btn.classList.remove('speaking');
-  };
-
-  _practiceTtsUtterance = utt;
-  btn.textContent = '⏹'; btn.classList.add('speaking');
-  speechSynthesis.speak(utt);
-}
-
-// === Wave 103: Practice Statistics Panel ===
-const PRACTICE_STATS_KEY = 'sofa_practice_stats_v1';
-
-function _recordPracticeStat(lawName, charCount) {
-  const s = JSON.parse(localStorage.getItem(PRACTICE_STATS_KEY) || '{"total":0,"chars":0,"byLaw":{}}');
-  s.total = (s.total || 0) + 1;
-  s.chars = (s.chars || 0) + (charCount || 0);
-  if (lawName) {
-    if (!s.byLaw) s.byLaw = {};
-    if (!s.byLaw[lawName]) s.byLaw[lawName] = { total: 0, chars: 0 };
-    s.byLaw[lawName].total++;
-    s.byLaw[lawName].chars = (s.byLaw[lawName].chars || 0) + (charCount || 0);
-  }
-  localStorage.setItem(PRACTICE_STATS_KEY, JSON.stringify(s));
-  _updatePracticeStatusBar((document.getElementById('lawSelect') || {}).value || '');
-  _updatePracticeStreak(); _renderPracticeStreak();
-  // Wave 139: show share button after first article completion
-  const shareBtn = document.getElementById('practice-share-btn');
-  if (shareBtn && s.total > 0) shareBtn.style.display = 'inline-block';
-}
-
-// === Wave 126: Daily practice streak ===
-function _getPracticeToday() {
-  return new Date().toLocaleDateString('zh-TW', {
-    timeZone: 'Asia/Taipei',
-    year: 'numeric', month: '2-digit', day: '2-digit'
-  }).replace(/\//g, '-');
-}
-
-function _getPracticeYesterday() {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return d.toLocaleDateString('zh-TW', {
-    timeZone: 'Asia/Taipei',
-    year: 'numeric', month: '2-digit', day: '2-digit'
-  }).replace(/\//g, '-');
-}
-
-function _updatePracticeStreak() {
-  const STREAK_KEY = 'sofa_practice_streak';
-  const today = _getPracticeToday();
-  const s = JSON.parse(localStorage.getItem(STREAK_KEY) || '{"count":0,"lastDate":""}');
-  if (s.lastDate === today) return s.count;
-  const yStr = _getPracticeYesterday();
-  if (s.lastDate === yStr) { s.count += 1; }
-  else if (!s.lastDate) { s.count = 1; }
-  else { s.count = 1; }
-  s.lastDate = today;
-  localStorage.setItem(STREAK_KEY, JSON.stringify(s));
-  return s.count;
-}
-
-function _getPracticeStreakCount() {
-  const s = JSON.parse(localStorage.getItem('sofa_practice_streak') || '{"count":0,"lastDate":""}');
-  if (!s.lastDate || s.lastDate < _getPracticeYesterday()) return 0;
-  return s.count;
-}
-
-function _renderPracticeStreak() {
-  const el = document.getElementById('practice-streak');
-  if (!el) return;
-  const count = _getPracticeStreakCount();
-  if (count >= 2) {
-    el.style.display = 'inline-block';
-    el.textContent = `🔥 ${count}日連刷`;
-  } else {
-    el.style.display = 'none';
-  }
-}
-
-// === Wave 120: Law proficiency status bar ===
-function _updatePracticeStatusBar(lawName) {
-  const bar = document.getElementById('practice-status-bar');
-  if (!bar) return;
-
-  if (!lawName || lawName.startsWith('__')) {
-    bar.style.display = 'none';
-    return;
-  }
-
-  const s = JSON.parse(localStorage.getItem('sofa_practice_stats_v1') || '{}');
-  const d = (s.byLaw || {})[lawName];
-
-  if (!d || d.total === 0) {
-    bar.style.display = 'block';
-    bar.innerHTML = '<span style="color:#667">尚未練習此法規</span>';
-    return;
-  }
-
-  const count = d.total;
-  const kchars = Math.round((d.chars || 0) / 100) / 10; // in k
-  const color = count >= 20 ? '#4d4' : count >= 8 ? '#fa4' : '#7ab8f5';
-  const label = count >= 20 ? '熟練' : count >= 8 ? '練習中' : '起步中';
-  const barPct = Math.min(100, Math.round(count / 25 * 100)); // 25 articles = full bar
-
-  bar.style.display = 'block';
-  bar.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-      <span>已練 <b style="color:#ddd">${count}</b> 條 &nbsp;•&nbsp; ${kchars}k 字</span>
-      <span style="color:${color};font-weight:600">${label}</span>
-    </div>
-    <div style="background:rgba(255,255,255,0.1);border-radius:3px;height:4px">
-      <div style="background:${color};border-radius:3px;height:4px;width:${barPct}%;transition:width 0.4s"></div>
-    </div>
-  `;
-}
-
-function openPracticeStats() {
-  _switchPracticeStatsTab('stats'); // Wave 149: always reset to stats tab on open
-  const s = JSON.parse(localStorage.getItem(PRACTICE_STATS_KEY) || '{"total":0,"chars":0,"byLaw":{}}');
-  const body = document.getElementById('practice-stats-body');
-
-  let html = `
-    <div style="display:flex;gap:12px;margin-bottom:12px">
-      <div style="flex:1;background:rgba(255,255,255,0.06);border-radius:8px;padding:8px;text-align:center">
-        <div style="font-size:20px;font-weight:700;color:#7ab8f5">${s.total||0}</div>
-        <div style="font-size:10px;color:#aaa;margin-top:2px">已練條數</div>
-      </div>
-      <div style="flex:1;background:rgba(255,255,255,0.06);border-radius:8px;padding:8px;text-align:center">
-        <div style="font-size:20px;font-weight:700;color:#7ab8f5">${Math.round((s.chars||0)/100)/10}k</div>
-        <div style="font-size:10px;color:#aaa;margin-top:2px">練習字數</div>
-      </div>
-    </div>`;
-
-  if (s.byLaw && Object.keys(s.byLaw).length > 0) {
-    const maxTotal = Math.max(...Object.values(s.byLaw).map(d => d.total));
-    html += `<div style="font-size:11px;color:#aaa;margin-bottom:6px">各法規練習條數</div>`;
-    for (const [law, d] of Object.entries(s.byLaw).sort((a,b) => b[1].total - a[1].total)) {
-      const pct = maxTotal > 0 ? Math.round(d.total / maxTotal * 100) : 0;
-      html += `
-        <div style="margin-bottom:6px">
-          <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">
-            <span style="color:#ccc;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${law}</span>
-            <span style="color:#7ab8f5">${d.total}條</span>
-          </div>
-          <div style="background:rgba(255,255,255,0.1);border-radius:3px;height:4px">
-            <div style="background:#4a90d9;border-radius:3px;height:4px;width:${pct}%"></div>
-          </div>
-        </div>`;
-    }
-  }
-
-  // Wave 108: least-practiced law hint
-  const leastLaw = _getLeastPracticedLaw(s);
-  if (leastLaw) {
-    html += `
-      <div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.12);padding-top:10px">
-        <div style="font-size:11px;color:#aaa;margin-bottom:6px">📖 練習較少法規</div>
-        <div style="font-size:13px;color:#ffd700;margin-bottom:8px">📋 ${leastLaw}</div>
-        <button onclick="_drillLeastPracticedLaw('${leastLaw.replace(/'/g, "\\'")}')"
-          style="background:#2a4a7f;color:#fff;border:none;border-radius:6px;padding:6px 12px;
-                 font-size:12px;cursor:pointer">
-          🎯 練習此法規
-        </button>
-      </div>`;
-  }
-
-  body.innerHTML = html;
-  document.getElementById('practice-stats-panel').style.display = 'block';
-}
-
-function closePracticeStats() {
-  document.getElementById('practice-stats-panel').style.display = 'none';
-}
-
-// === Wave 108: Least-practiced law helper ===
-function _getLeastPracticedLaw(stats) {
-  if (!stats.byLaw) return null;
-  let least = null, leastCount = Infinity;
-  for (const [name, d] of Object.entries(stats.byLaw)) {
-    if (d.total < 1) continue;
-    if (d.total < leastCount) { leastCount = d.total; least = name; }
-  }
-  // Only surface it if there are multiple laws (otherwise it's not a useful hint)
-  const lawCount = Object.keys(stats.byLaw).length;
-  return lawCount >= 2 ? least : null;
-}
-
-function _drillLeastPracticedLaw(lawName) {
-  const sel = document.getElementById('lawSelect');
-  if (sel) {
-    sel.value = lawName;
-    sel.dispatchEvent(new Event('change'));
-    localStorage.setItem('sofa_practice_law', lawName);
-  }
-  closePracticeStats();
-  // Trigger load of next article for the selected law
-  typeof loadNew === 'function' && loadNew();
-}
-
-// === Wave 149: 少練清單 tab ===
-function _switchPracticeStatsTab(tab) {
-  const statsTab = document.getElementById('practice-stats-tab-stats');
-  const drillTab = document.getElementById('practice-stats-tab-drill');
-  const statsBtn = document.getElementById('practice-tab-btn-stats');
-  const drillBtn = document.getElementById('practice-tab-btn-drill');
-  if (!statsTab || !drillTab) return;
-  if (tab === 'drill') {
-    statsTab.style.display = 'none';
-    drillTab.style.display = 'block';
-    if (statsBtn) { statsBtn.style.background = 'transparent'; statsBtn.style.color = '#888'; }
-    if (drillBtn) { drillBtn.style.background = '#1A2E3D'; drillBtn.style.color = '#fff'; }
-    _renderPracticeDrillList();
-  } else {
-    statsTab.style.display = 'block';
-    drillTab.style.display = 'none';
-    if (statsBtn) { statsBtn.style.background = '#1A2E3D'; statsBtn.style.color = '#fff'; }
-    if (drillBtn) { drillBtn.style.background = 'transparent'; drillBtn.style.color = '#888'; }
-  }
-}
-
-function _renderPracticeDrillList() {
-  const body = document.getElementById('practice-drill-body');
-  if (!body) return;
-  const s = JSON.parse(localStorage.getItem(PRACTICE_STATS_KEY) || '{}');
-  const byLaw = s.byLaw || {};
-  // Filter laws with at least 1 article practiced
-  const entries = Object.entries(byLaw).filter(([, d]) => d.total >= 1);
-  if (entries.length < 2) {
-    body.innerHTML = '<div style="color:#888;font-size:12px;text-align:center;padding:16px 0">📊 練習多幾部法規後再來看</div>';
-    return;
-  }
-  // Sort ascending by total (least practiced first)
-  entries.sort((a, b) => a[1].total - b[1].total);
-  let html = '<div style="font-size:11px;color:#aaa;margin-bottom:8px">由少到多排列，點加練切換法規</div>';
-  for (const [law, d] of entries) {
-    const escaped = law.replace(/'/g, "\\'");
-    html += `
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;gap:6px">
-        <span style="font-size:11px;color:#ccc;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
-              title="${law}">${law} ━━ <span style="color:#7ab8f5">${d.total}篇練過</span></span>
-        <button onclick="_drillPracticeLaw('${escaped}')"
-          style="background:#2a4a7f;color:#fff;border:none;border-radius:5px;padding:3px 8px;
-                 font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">
-          🔁 加練
-        </button>
-      </div>`;
-  }
-  body.innerHTML = html;
-}
-
-function _drillPracticeLaw(lawName) {
-  const sel = document.getElementById('lawSelect');
-  if (sel) {
-    sel.value = lawName;
-    sel.dispatchEvent(new Event('change'));
-    localStorage.setItem('sofa_practice_law', lawName);
-  }
-  closePracticeStats();
-  typeof loadNew === 'function' && loadNew();
-}
-
-document.addEventListener('click', e => {
-  const panel = document.getElementById('practice-stats-panel');
-  const btn = document.getElementById('practice-stats-btn');
-  if (panel && panel.style.display !== 'none' && !panel.contains(e.target) && e.target !== btn) {
-    closePracticeStats();
-  }
-});
-
-// === Wave 139: Share practice session results ===
-async function _sharePracticeSession(triggerEl) {
-  const stats = JSON.parse(localStorage.getItem('sofa_practice_stats_v1') || '{}');
-  const total = stats.total || 0;
-  const kchars = Math.round((stats.chars || 0) / 100) / 10;
-
-  const sel = document.getElementById('lawSelect');
-  const lawName = (sel && sel.value && !sel.value.startsWith('__')) ? sel.value : '法條練習';
-
-  const streak = JSON.parse(localStorage.getItem('sofa_practice_streak') || '{"count":0}');
-
-  const lines = [
-    '📖 SoFa 法條練習',
-    `📚 法規：${lawName}`,
-    `✓ 累積：${total}條，${kchars}k字`,
-    streak.count >= 2 ? `🔥 連刷：${streak.count}日` : null,
-    '━━━━━━━━━━',
-    '記帳士備考 | SoFa Engine',
-  ].filter(Boolean).join('\n');
-
-  try {
-    await navigator.clipboard.writeText(lines);
-    // Brief visual feedback on the button
-    if (triggerEl) {
-      const orig = triggerEl.textContent;
-      triggerEl.textContent = '✓ 已複製！';
-      triggerEl.style.color = '#9FB89F';
-      triggerEl.style.borderColor = '#9FB89F';
-      setTimeout(() => {
-        triggerEl.textContent = orig;
-        triggerEl.style.color = '';
-        triggerEl.style.borderColor = '';
-      }, 1800);
-    }
-  } catch(e) {
-    prompt('複製以下文字分享成績：', lines);
-  }
-}
-</script>
-<script>
-// 自製法規下拉：以隱藏的 <select id="lawSelect"> 為真實狀態，自畫選單只負責顯示與品牌色高亮
-(function(){
-  var sel=document.getElementById('lawSelect');
-  var dd=document.getElementById('lawDD');
-  var btn=document.getElementById('lawDDBtn');
-  var pop=document.getElementById('lawDDPop');
-  var label=document.getElementById('lawDDLabel');
-  if(!sel||!dd||!btn||!pop||!label) return;
-  function syncLabel(){ var o=sel.selectedOptions[0]; label.textContent=o?o.textContent:'全部法規'; }
-  function buildPop(){
-    pop.innerHTML='';
-    Array.prototype.forEach.call(sel.options,function(o){
-      if(o.disabled){ var s=document.createElement('div');s.className='law-dd-sep';pop.appendChild(s);return; }
-      var it=document.createElement('div');
-      it.className='law-dd-item'+(o.value===sel.value?' sel':'');
-      it.textContent=o.textContent;
-      it.addEventListener('click',function(){ sel.value=o.value; sel.dispatchEvent(new Event('change')); syncLabel(); close(); });
-      pop.appendChild(it);
-    });
-  }
-  function open(){ buildPop(); dd.classList.add('open'); var s=pop.querySelector('.sel'); if(s)s.scrollIntoView({block:'nearest'}); }
-  function close(){ dd.classList.remove('open'); }
-  btn.addEventListener('click',function(e){ e.stopPropagation(); dd.classList.contains('open')?close():open(); });
-  document.addEventListener('click',function(e){ if(!dd.contains(e.target))close(); });
-  document.addEventListener('keydown',function(e){ if(e.key==='Escape')close(); });
-  sel.addEventListener('change',syncLabel);
-  syncLabel();
-})();
 </script>
 </body>
 </html>

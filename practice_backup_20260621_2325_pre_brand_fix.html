@@ -3,18 +3,11 @@
 <head>
 <meta charset="utf-8" />
 <title>SoFa Engine — 打字練習</title>
-<meta name="description" content="逐字打出法條原文，讓條文記憶更紮實。SoFa Engine 打字練習模式，涵蓋 36,000+ 條國考法規，免費使用。" />
+<meta name="description" content="逐字打出法條原文，讓條文記憶更紮實。SoFa Engine 打字練習模式，涵蓋 37,000+ 條國考法規，免費使用。" />
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#142836">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="SoFa">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23244658'/%3E%3Ctext x='16' y='23.5' font-size='21' font-family='Georgia,serif' font-weight='700' text-anchor='middle' fill='%23E7BBA7'%3ES%3C/text%3E%3C/svg%3E">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -131,7 +124,7 @@
   }
 
   .ghost{
-    font-family:"Songti TC",var(--serif);font-size:22px;line-height:2.05;
+    font-family:var(--serif);font-size:22px;line-height:2.05;
     color:rgba(245,240,234,.25);letter-spacing:.02em;
     user-select:none;word-break:keep-all;overflow-wrap:break-word;
   }
@@ -238,7 +231,7 @@
   .sec-text .sec-h{margin:10px 0 4px;color:var(--navy);font-weight:600}
   .sec-text .sec-h:first-child{margin-top:0}
   .sec-text .sec-i{position:relative;padding-left:18px;margin:3px 0}
-  .sec-text .sec-i::before{content:'';position:absolute;left:5px;top:.62em;width:4px;height:4px;border:1.2px solid var(--peach-3);border-radius:50%;box-sizing:border-box}
+  .sec-text .sec-i::before{content:'◦';position:absolute;left:4px;top:-.04em;color:var(--peach-3);font-weight:700}
   .sec-lock{margin-top:16px;border-top:1px dashed rgba(31,56,72,.15)}
   .sec-lock .sec-label::after{content:" 🔒";font-size:11px;opacity:.65}
   .sec-lock-preview{position:relative;max-height:80px;overflow:hidden;padding:10px 0 0;pointer-events:none;user-select:none;font-size:13.5px;line-height:1.8;color:rgba(31,56,72,.72)}
@@ -269,7 +262,6 @@
     .type-input .key{min-width:0;align-self:flex-start}
     .mode-strip{grid-template-columns:1fr}
     .kbd-foot{flex-direction:column;align-items:flex-start;gap:14px}
-    .kbd-foot .gp{display:none}        /* 鍵盤快捷提示在觸控手機無意義，收起 */
   }
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
@@ -346,8 +338,6 @@
     user-select:none;
   }
   #session-timer:hover{background:rgba(26,46,61,1);color:#5BAFD6;}
-  /* 手機：計時膠囊移到右下，避免壓到 topbar 的登出鍵（放在 base 規則後才蓋得過） */
-  @media (max-width:760px){#session-timer{top:auto;bottom:14px;right:14px}}
 
   #session-summary{
     display:none;position:fixed;inset:0;
@@ -387,10 +377,9 @@
 
       <div class="pr-pick">
         <span class="lab">LAW</span>
-        <select id="lawSelect" style="display:none"><option value="">全部法規</option></select>
-        <div class="law-dd" id="lawDD"><button type="button" class="law-dd-btn" id="lawDDBtn"><span id="lawDDLabel">全部法規</span><span class="cv">▾</span></button><div class="law-dd-pop" id="lawDDPop"></div></div>
+        <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:500;font-size:15px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none;min-width:80px;max-width:200px"><option value="">全部法規</option></select>
+        <span class="car">▾</span>
       </div>
-      <span id="prScopeLabel" style="display:none;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--peach);background:rgba(231,187,167,.1);border:1px solid rgba(231,187,167,.3);border-radius:3px;padding:4px 10px;white-space:nowrap"></span>
       <div id="practice-status-bar" style="
         margin-top:4px;padding:6px 10px;
         background:rgba(255,255,255,0.04);
@@ -526,7 +515,7 @@
     <div style="color:#8ABED6;font-size:13px;margin-top:4px">練習時長</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0">
       <div style="background:#1A2E3D;border-radius:10px;padding:14px">
-        <div style="font-size:28px;font-weight:700;color:#9FB89F" id="ss-complete"></div>
+        <div style="font-size:28px;font-weight:700;color:#2ECC71" id="ss-complete"></div>
         <div style="color:#8ABED6;font-size:12px;margin-top:4px">完成篇數</div>
       </div>
       <div style="background:#1A2E3D;border-radius:10px;padding:14px">
@@ -641,53 +630,13 @@ const _EXAM_LAWS = {
   bookkeeper: ['記帳士法','記帳士職業倫理道德規範','中華民國記帳士職業道德規範','記帳士法第三十五條規定之管理辦法','記帳士暨記帳及報稅代理人防制洗錢與打擊資恐辦法','記帳士懲戒委員會與懲戒覆審委員會組織及審議規則','公司法','公司登記辦法','商業登記法','商業登記申請辦法','商業會計法','商業會計處理準則','商業使用電子方式處理會計資料辦法','行政程序法','稅捐稽徵法','稅捐稽徵法施行細則','納稅者權利保護法','納稅者權利保護法施行細則','所得稅法','所得稅法施行細則','所得基本稅額條例','所得基本稅額條例施行細則','各類所得扣繳率標準','營利事業所得稅查核準則','加值型及非加值型營業稅法','加值型及非加值型營業稅法施行細則','兼營營業人營業稅額計算辦法','統一發票使用辦法','統一發票給獎辦法','遺產及贈與稅法','遺產及贈與稅法施行細則','特種貨物及勞務稅條例','特種貨物及勞務稅條例施行細則'],
   landadmin:  ['民法','信託法','土地法','土地法施行法','平均地權條例','平均地權條例施行細則','土地徵收條例','土地徵收條例施行細則','地政士法','地政士法施行細則','土地登記規則','地籍測量實施規則','土地稅法','土地稅法施行細則','遺產及贈與稅法','遺產及贈與稅法施行細則','契稅條例','房屋稅條例','稅捐稽徵法','稅捐稽徵法施行細則','工程受益費徵收條例','所得稅法','所得稅法施行細則'],
   realestate: ['民法','土地法','平均地權條例','平均地權條例施行細則','土地徵收條例','非都市土地使用管制規則','區域計畫法','都市計畫法','土地稅法','土地稅法施行細則','契稅條例','房屋稅條例','所得稅法','所得稅法施行細則','不動產經紀業管理條例','不動產經紀業管理條例施行細則','公平交易法','消費者保護法','公寓大廈管理條例'],
-  'tax-admin': ['民法','稅捐稽徵法','稅捐稽徵法施行細則','納稅者權利保護法','納稅者權利保護法施行細則','所得稅法','所得稅法施行細則','所得基本稅額條例','所得基本稅額條例施行細則','加值型及非加值型營業稅法','加值型及非加值型營業稅法施行細則','土地稅法','土地稅法施行細則','房屋稅條例','契稅條例','貨物稅條例','印花稅法','使用牌照稅法','遺產及贈與稅法','遺產及贈與稅法施行細則'],
-  'tax-law': ['中華民國憲法','中華民國憲法增修條文','行政程序法','行政罰法','行政執行法','訴願法','行政訴訟法','國家賠償法','公務員服務法','公務人員任用法','稅捐稽徵法','稅捐稽徵法施行細則','所得稅法','加值型及非加值型營業稅法','遺產及贈與稅法','土地稅法','民法','刑法','納稅者權利保護法'],
-  'elem-admin': ['中華民國憲法','公務員服務法','公務人員任用法','民法','刑法','行政程序法','行政罰法','行政執行法','訴願法','行政訴訟法','國家賠償法'],
-  'post-acc': ['會計法','預算法','決算法','郵政法','公司法','商業會計法','稅捐稽徵法','所得稅法','加值型及非加值型營業稅法','個人資料保護法'],
 };
-const _EXAM_NAMES = {bookkeeper:'記帳士',landadmin:'地政士',realestate:'不動產經紀人','tax-admin':'財稅行政','tax-law':'財稅法務','elem-admin':'初等一般行政','post-acc':'中華郵政會計'};
+const _EXAM_NAMES = {bookkeeper:'記帳士',landadmin:'地政士',realestate:'不動產經紀人'};
 let _allLoadedPrLaws = [];
 
 function _filterLawsForExam(laws, key) {
   const set = _EXAM_LAWS[key] ? new Set(_EXAM_LAWS[key]) : null;
   return set ? laws.filter(l => set.has(l.name)) : laws;
-}
-
-// ── 出題範圍標示：明確標出「所選考科的全部法規」或單一法規 ──────
-function _updateScopeLabel(lawVal) {
-  const el = document.getElementById('prScopeLabel');
-  if (!el) return;
-  const v = (lawVal !== undefined) ? lawVal
-    : ((document.getElementById('lawSelect') || {}).value || '');
-  const examKey = localStorage.getItem('sofa_exam_key')
-    || localStorage.getItem('sofa.dash.exam.pick') || '';
-  const examName = _EXAM_NAMES[examKey] || '';
-  // 特殊集合（重點/收藏/已熟記/待複習）→ 用選單文字
-  if (v && v.startsWith('__')) {
-    const sel = document.getElementById('lawSelect');
-    const opt = sel && sel.querySelector(`option[value="${CSS.escape(v)}"]`);
-    el.textContent = '出題範圍：' + ((opt && opt.textContent) || v);
-    el.style.display = '';
-    return;
-  }
-  // 全部法規（lawSelect 為空）→ 顯示「{考科}＿全部法規（N 部）」
-  if (!v) {
-    if (examName) {
-      const cnt = _filterLawsForExam(_allLoadedPrLaws, examKey).length
-        || (_EXAM_LAWS[examKey] ? _EXAM_LAWS[examKey].length : 0);
-      el.textContent = '出題範圍：' + examName + '＿全部法規'
-        + (cnt ? '（' + cnt + ' 部）' : '');
-    } else {
-      const cnt = _allLoadedPrLaws.length;
-      el.textContent = '出題範圍：全部法規' + (cnt ? '（' + cnt + ' 部）' : '');
-    }
-    el.style.display = '';
-    return;
-  }
-  // 指定單一法規 → 顯示該法規名稱
-  el.textContent = '出題範圍：' + v;
-  el.style.display = '';
 }
 
 function _repopulatePrSel(laws) {
@@ -708,9 +657,6 @@ function _saveAndApplyPrExam(key) {
   const firstLaw = filtered[0];
   if(firstLaw&&sel){ sel.value=firstLaw.name; sel.dispatchEvent(new Event('change')); }
   _updatePracticeStatusBar(sel&&sel.value||'');
-  _updateScopeLabel(sel&&sel.value||'');
-  // 自動出題：選定考科後立即帶出第一條
-  if(sel&&sel.value&&typeof loadNew==='function') loadNew();
 }
 
 function _showPrExamBanner() {
@@ -753,17 +699,6 @@ function _showPrExamBanner() {
     if (_defOpt) { sel.value = _defOpt.value; sel.dispatchEvent(new Event('change')); }
   }
   _updatePracticeStatusBar(sel.value);
-  _updateScopeLabel(sel.value);
-  // 「點進練習區就自動出題」：已選考科/法規即立即帶出第一條
-  // 未選考科時不動，沿用 _showPrExamBanner 的「未選考科自動提示」
-  const _examKeyNow = localStorage.getItem('sofa_exam_key')
-    || localStorage.getItem('sofa.dash.exam.pick') || '';
-  if (sel.value && (sel.value.startsWith('__') ? !!uid : true)) {
-    if (typeof loadNew === 'function') loadNew();
-  } else if (_examKeyNow && !sel.value) {
-    // 已選考科但停在「全部法規」→ 一樣自動出題（跨全科）
-    if (typeof loadNew === 'function') loadNew();
-  }
 })();
 
 // ── 條號選單：選法規後填入 datalist ────────────────────────────
@@ -823,7 +758,6 @@ document.addEventListener('DOMContentLoaded',function(){
 document.getElementById('lawSelect').addEventListener('change', async function(){
   localStorage.setItem('sofa_practice_law', this.value);
   _updatePracticeStatusBar(this.value);
-  _updateScopeLabel(this.value);
   const law = this.value;
   const wrap = document.getElementById('artPickWrap');
   const dl   = document.getElementById('artDatalist');
@@ -1110,24 +1044,14 @@ async function loadNew(){
         lawMeta=law;
       }
       if(!d){
-        const _wasAll=!law;
-        var _subVal=(document.getElementById('prSubSel')||{}).value||'';
-        let _qLaw=law;
-        // 「全部法規」→ 先限定在已選考科範圍內隨機抽一部法規；未選考科才全庫隨機
-        if(_wasAll){
-          const _ek=localStorage.getItem('sofa_exam_key')||localStorage.getItem('sofa.dash.exam.pick')||'';
-          const _scoped=_filterLawsForExam(_allLoadedPrLaws,_ek);
-          if(_EXAM_LAWS[_ek]&&_scoped.length){
-            _qLaw=_scoped[Math.floor(Math.random()*_scoped.length)].name;
-          }
-        }
-        let url=_qLaw?`${API}/api/random?law=${encodeURIComponent(_qLaw)}`:`${API}/api/random`;
+        let url=law?`${API}/api/random?law=${encodeURIComponent(law)}`:`${API}/api/random`;
         // 跨法規 + chip + sub → server-side 篩選
-        if(_wasAll && _curPrChip!=='all' && _subVal){
+        var _subVal=(document.getElementById('prSubSel')||{}).value||'';
+        if(!law && _curPrChip!=='all' && _subVal){
           url+=(url.indexOf('?')>=0?'&':'?')+'chip='+encodeURIComponent(_curPrChip)+'&sub='+encodeURIComponent(_subVal);
         }
         d=await fetch(url,{headers:_authH()}).then(r=>r.json());
-        lawMeta=_qLaw||'';
+        lawMeta=law||'';
       }
     }
     articleSections=d.sections||{}; articlePlan=d._plan||'free';
@@ -1771,7 +1695,7 @@ async function _sharePracticeSession(triggerEl) {
   const lines = [
     '📖 SoFa 法條練習',
     `📚 法規：${lawName}`,
-    `✓ 累積：${total}條，${kchars}k字`,
+    `✅ 累積：${total}條，${kchars}k字`,
     streak.count >= 2 ? `🔥 連刷：${streak.count}日` : null,
     '━━━━━━━━━━',
     '記帳士備考 | SoFa Engine',
@@ -1783,8 +1707,8 @@ async function _sharePracticeSession(triggerEl) {
     if (triggerEl) {
       const orig = triggerEl.textContent;
       triggerEl.textContent = '✓ 已複製！';
-      triggerEl.style.color = '#9FB89F';
-      triggerEl.style.borderColor = '#9FB89F';
+      triggerEl.style.color = '#2ECC71';
+      triggerEl.style.borderColor = '#2ECC71';
       setTimeout(() => {
         triggerEl.textContent = orig;
         triggerEl.style.color = '';
@@ -1795,36 +1719,6 @@ async function _sharePracticeSession(triggerEl) {
     prompt('複製以下文字分享成績：', lines);
   }
 }
-</script>
-<script>
-// 自製法規下拉：以隱藏的 <select id="lawSelect"> 為真實狀態，自畫選單只負責顯示與品牌色高亮
-(function(){
-  var sel=document.getElementById('lawSelect');
-  var dd=document.getElementById('lawDD');
-  var btn=document.getElementById('lawDDBtn');
-  var pop=document.getElementById('lawDDPop');
-  var label=document.getElementById('lawDDLabel');
-  if(!sel||!dd||!btn||!pop||!label) return;
-  function syncLabel(){ var o=sel.selectedOptions[0]; label.textContent=o?o.textContent:'全部法規'; }
-  function buildPop(){
-    pop.innerHTML='';
-    Array.prototype.forEach.call(sel.options,function(o){
-      if(o.disabled){ var s=document.createElement('div');s.className='law-dd-sep';pop.appendChild(s);return; }
-      var it=document.createElement('div');
-      it.className='law-dd-item'+(o.value===sel.value?' sel':'');
-      it.textContent=o.textContent;
-      it.addEventListener('click',function(){ sel.value=o.value; sel.dispatchEvent(new Event('change')); syncLabel(); close(); });
-      pop.appendChild(it);
-    });
-  }
-  function open(){ buildPop(); dd.classList.add('open'); var s=pop.querySelector('.sel'); if(s)s.scrollIntoView({block:'nearest'}); }
-  function close(){ dd.classList.remove('open'); }
-  btn.addEventListener('click',function(e){ e.stopPropagation(); dd.classList.contains('open')?close():open(); });
-  document.addEventListener('click',function(e){ if(!dd.contains(e.target))close(); });
-  document.addEventListener('keydown',function(e){ if(e.key==='Escape')close(); });
-  sel.addEventListener('change',syncLabel);
-  syncLabel();
-})();
 </script>
 </body>
 </html>

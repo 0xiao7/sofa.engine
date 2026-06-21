@@ -12,7 +12,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="SoFa">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23244658'/%3E%3Ctext x='16' y='23.5' font-size='21' font-family='Georgia,serif' font-weight='700' text-anchor='middle' fill='%23E7BBA7'%3ES%3C/text%3E%3C/svg%3E">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -1092,9 +1091,9 @@
   .dr-chip.on{background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:600}
 
   .drawer-tabs{display:flex;gap:8px;margin-bottom:14px}
-  .drawer-tab{padding:5px 14px;border-radius:14px;border:1px solid rgba(31,56,72,.2);background:none;color:rgba(31,56,72,.6);font-size:13px;cursor:pointer;transition:all 0.2s}
+  .drawer-tab{padding:5px 14px;border-radius:14px;border:1px solid var(--line-2);background:none;color:rgba(245,240,234,.6);font-size:13px;cursor:pointer;transition:all 0.2s}
   .drawer-tab.active{background:rgba(231,187,167,.10);border-color:var(--peach-dim);color:var(--peach-2)}
-  #drawer-original{display:none;line-height:1.9;font-size:15px;color:rgba(31,56,72,.88);white-space:pre-wrap;padding:4px 0}
+  #drawer-original{display:none;line-height:1.9;font-size:15px;color:rgba(245,240,234,.82);white-space:pre-wrap;padding:4px 0}
   #drawer-analysis{display:block}
   .dr-acc{margin-top:24px;border-top:1px solid var(--cream-3)}
   .acc-item{border-bottom:1px solid var(--cream-3)}
@@ -1126,7 +1125,7 @@
   .acc-inner .sec-h{margin:13px 0 5px;color:var(--navy);font-weight:600}
   .acc-inner .sec-h:first-child{margin-top:0}
   .acc-inner .sec-i{position:relative;padding-left:20px;margin:4px 0}
-  .acc-inner .sec-i::before{content:'';position:absolute;left:6px;top:.66em;width:4px;height:4px;border:1.3px solid var(--peach-3);border-radius:50%;box-sizing:border-box}
+  .acc-inner .sec-i::before{content:'◦';position:absolute;left:5px;top:-.04em;color:var(--peach-3);font-weight:700}
 
   .dr-foot{padding:18px 28px;background:var(--cream-2);border-top:1px solid var(--cream-3);display:flex;gap:10px;flex-wrap:wrap}
   #dr-review-picker{display:none;width:100%;gap:8px;padding-top:4px}
@@ -1283,7 +1282,7 @@
 
   <!-- ============ TOP BAR ============ -->
   <header class="topbar">
-    <a class="brand" href="dashboard.html">
+    <a class="brand" href="index.html">
       <span class="dot"></span>
       <span class="wm">
         <span class="wm-eb">記帳士備考</span>
@@ -1296,7 +1295,6 @@
       <a href="#search">查法條</a>
       <a href="#tools">備考工具</a>
       <a href="#laws">法規</a>
-      <a href="/blog/">備考文章</a>
     </nav>
     <div class="top-right">
       <!-- HIDDEN 2026-06-21: 自習室暫時收起，入口先藏不刪 -->
@@ -1336,7 +1334,7 @@
           <a href="#favorites"><span class="num">04</span>我的收藏<span class="ct">1</span></a>
           <a href="#memorized"><span class="num">05</span>已熟記<span class="ct">0</span></a>
           <a href="#review"><span class="num">06</span>待複習<span class="ct">1</span></a>
-          <a href="#tools"><span class="num">07</span>備考工具<span class="ct">8</span></a>
+          <a href="#tools"><span class="num">07</span>備考工具<span class="ct">7</span></a>
           <a href="#laws"><span class="num">08</span>法規目錄<span class="ct">33</span></a>
           <a href="#recent"><span class="num">09</span>最近查詢<span class="ct">7d</span></a>
         </div>
@@ -1347,7 +1345,6 @@
         坐下來，<br/>一條一條來。
         <div style="margin-top:14px"><b>36,000+ 條 · 566 部</b></div>
         <div style="margin-top:18px;display:flex;flex-direction:column;gap:6px;border-top:1px solid rgba(245,240,234,.08);padding-top:16px;">
-          <a href="/blog/" style="font-family:var(--mono);font-size:11px;color:rgba(231,187,167,.65);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(231,187,167,.95)'" onmouseout="this.style.color='rgba(231,187,167,.65)'">備考文章 →</a>
           <!-- HIDDEN 2026-06-21: 自習室暫時收起，入口先藏不刪 -->
           <!-- <a href="room.html" style="font-family:var(--mono);font-size:11px;color:rgba(231,187,167,.65);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(231,187,167,.95)'" onmouseout="this.style.color='rgba(231,187,167,.65)'">自習室 →</a> -->
           <!-- HIDDEN 2026-06-22: 法規更新查核是管理工具（需管理金鑰），一般使用者點了會 403/被要求金鑰 → 從使用者 footer 收起，直接打網址仍可進 -->
@@ -1561,16 +1558,14 @@
                 <span class="ic">§</span>
                 <input id="search-art" placeholder="條號（選填）" type="text" inputmode="numeric" />
               </div>
-              <!-- Wave 119+: 搜尋 + 隨機法條 同格，骰子貼在搜尋旁不另佔一行 -->
-              <div style="display:flex;gap:8px;min-width:0">
-                <button id="search-btn" onclick="doSearch()" style="flex:1;background:var(--peach);color:var(--navy);border:none;border-radius:3px;padding:0 20px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:.18s;letter-spacing:.04em" onmouseover="this.style.background='var(--peach-2)'" onmouseout="this.style.background='var(--peach)'">搜尋</button>
-                <button id="random-article-btn" onclick="loadRandomArticle()" title="隨機法條"
-                  style="background:rgba(255,255,255,0.07);border:1px solid rgba(100,160,220,0.3);
-                         color:var(--peach);border-radius:3px;width:44px;flex-shrink:0;font-size:16px;cursor:pointer;
-                         transition:background 0.2s;letter-spacing:0"
-                  onmouseover="this.style.background='rgba(100,160,220,0.18)'"
-                  onmouseout="this.style.background='rgba(255,255,255,0.07)'">🎲</button>
-              </div>
+              <button id="search-btn" onclick="doSearch()" style="background:var(--peach);color:var(--navy);border:none;border-radius:3px;padding:0 28px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:.18s;letter-spacing:.04em;flex-shrink:0" onmouseover="this.style.background='var(--peach-2)'" onmouseout="this.style.background='var(--peach)'">搜尋</button>
+              <!-- Wave 119: 隨機法條按鈕 -->
+              <button id="random-article-btn" onclick="loadRandomArticle()" title="隨機法條"
+                style="background:rgba(255,255,255,0.07);border:1px solid rgba(100,160,220,0.3);
+                       color:var(--peach);border-radius:3px;padding:0 14px;font-size:16px;cursor:pointer;
+                       flex-shrink:0;height:100%;min-height:40px;transition:background 0.2s;letter-spacing:0"
+                onmouseover="this.style.background='rgba(100,160,220,0.18)'"
+                onmouseout="this.style.background='rgba(255,255,255,0.07)'">🎲</button>
             </div>
             <div class="chip-row">
               <button class="chip on" onclick="setChip(this,'all')">全部</button>
@@ -1662,7 +1657,7 @@
               <span class="idx">07</span>
               <h2>備考工具</h2>
             </div>
-            <div class="r"><span class="eb">8 種模式</span></div>
+            <div class="r"><span class="eb">7 種模式</span></div>
           </div>
 
           <!-- 繼續練習 CTA -->
@@ -1748,15 +1743,6 @@
               <p class="desc">哪些法規最弱、<br/>錯題自動排程重練。</p>
               <span class="arrow">查看 <span class="glyph">→</span></span>
             </a>
-            <a class="tool" href="notes.html">
-              <div class="num">08</div>
-              <div>
-                <div class="code">NOTE</div>
-                <div class="name" style="margin-top:6px">私人筆記庫</div>
-              </div>
-              <p class="desc">你寫過筆記的條文，<br/>集中一處回看。</p>
-              <span class="arrow">翻開 <span class="glyph">→</span></span>
-            </a>
           </div>
         </section>
 
@@ -1837,7 +1823,6 @@
     </div>
   </aside>
 
-<script src="notes-store.js"></script>
 <script>
 // ── 全域常數 ─────────────────────────────────────────────
 const API = 'https://sofa-engine-api.onrender.com';
@@ -2049,8 +2034,6 @@ function _renderRecentViews() {
   var section = document.getElementById('recent-views-section');
   var list = document.getElementById('recent-views-list');
   if (!section || !list) return;
-  // 「最近瀏覽」已收起：與「最近查詢」（跨裝置、按日分組）重複，只留後者避免混淆
-  section.style.display = 'none'; return;
   var views = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]');
   if (views.length === 0) { section.style.display = 'none'; return; }
   section.style.display = 'block';
@@ -2058,7 +2041,7 @@ function _renderRecentViews() {
     var snip = (v.snippet || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     var law  = esc(v.lawName || '');
     var art  = esc(v.articleNo || '');
-    return '<div onclick="_openRecentView(\'' + v.id + '\',\'' + law.replace(/'/g,"\\'") + '\',\'' + art + '\')" '
+    return '<div onclick="_openRecentView(' + v.id + ',\'' + law.replace(/'/g,"\\'") + '\',\'' + art + '\')" '
       + 'style="cursor:pointer;background:rgba(255,255,255,0.04);'
       + 'border:1px solid rgba(100,160,220,0.15);border-radius:6px;padding:7px 10px;'
       + 'display:flex;justify-content:space-between;align-items:center;'
@@ -2157,23 +2140,23 @@ function _renderDrawer(d){
     + '<button class="drawer-tab" id="dtab-original" onclick="_switchDrawerTab(\'original\')">📖 原文</button>'
     + '<button class="drawer-tab" id="dtab-analysis" onclick="_switchDrawerTab(\'analysis\')">🔍 分析</button>'
     + '<div id="font-controls" style="margin-left:auto;display:none;align-items:center;gap:4px;">'
-    + '<button onclick="_setReadFont(_getReadFont()-1)" style="background:none;border:1px solid rgba(31,56,72,.2);color:rgba(31,56,72,.6);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:13px;">A−</button>'
-    + '<span id="font-size-label" style="color:rgba(31,56,72,.6);font-size:12px;min-width:32px;text-align:center;">15px</span>'
-    + '<button onclick="_setReadFont(_getReadFont()+1)" style="background:none;border:1px solid rgba(31,56,72,.2);color:rgba(31,56,72,.6);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:13px;">A+</button>'
+    + '<button onclick="_setReadFont(_getReadFont()-1)" style="background:none;border:1px solid var(--line-2);color:rgba(245,240,234,.6);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:13px;">A−</button>'
+    + '<span id="font-size-label" style="color:rgba(245,240,234,.6);font-size:12px;min-width:32px;text-align:center;">15px</span>'
+    + '<button onclick="_setReadFont(_getReadFont()+1)" style="background:none;border:1px solid var(--line-2);color:rgba(245,240,234,.6);border-radius:6px;padding:2px 8px;cursor:pointer;font-size:13px;">A+</button>'
     + '</div>'
     + '</div>'
-    + '<div id="drawer-original"><div id="dr-ring-wrap" style="position:sticky;top:8px;float:right;margin:0 0 6px 8px;width:32px;height:32px;z-index:10;"><svg id="dr-ring-svg" width="32" height="32" viewBox="0 0 32 32" style="display:block;"><circle cx="16" cy="16" r="13" fill="none" stroke="rgba(31,56,72,.15)" stroke-width="3"/><circle id="rpr-arc" cx="16" cy="16" r="13" fill="none" stroke="var(--peach,#E7BBA7)" stroke-width="3" stroke-linecap="round" stroke-dasharray="81.7" stroke-dashoffset="81.7" transform="rotate(-90 16 16)"/></svg><span id="rpr-pct" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:9px;font-family:var(--mono);color:var(--navy,#1F3848);line-height:1;pointer-events:none;white-space:nowrap;">0%</span></div>' + rawText + '</div>'
+    + '<div id="drawer-original"><div id="dr-ring-wrap" style="position:sticky;top:8px;float:right;margin:0 0 6px 8px;width:32px;height:32px;z-index:10;"><svg id="dr-ring-svg" width="32" height="32" viewBox="0 0 32 32" style="display:block;"><circle cx="16" cy="16" r="13" fill="none" stroke="var(--line-2,#2a4250)" stroke-width="3"/><circle id="rpr-arc" cx="16" cy="16" r="13" fill="none" stroke="var(--peach,#E7BBA7)" stroke-width="3" stroke-linecap="round" stroke-dasharray="81.7" stroke-dashoffset="81.7" transform="rotate(-90 16 16)"/></svg><span id="rpr-pct" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:9px;font-family:var(--mono);color:var(--cream,#F5F0EA);line-height:1;pointer-events:none;white-space:nowrap;">0%</span></div>' + rawText + '</div>'
     + '<div id="drawer-analysis">' + origHtml + accHtml + '</div>'
-    + '<div id="note-section" style="margin-top:14px;border-top:1px solid rgba(31,56,72,0.12);padding-top:12px">'
+    + '<div id="note-section" style="margin-top:14px;border-top:1px solid rgba(255,255,255,0.1);padding-top:12px">'
     + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;cursor:pointer" onclick="_toggleNoteEditor()">'
-    + '<span style="font-size:12px;color:rgba(31,56,72,.55)">📝 我的筆記</span>'
-    + '<span id="note-toggle-icon" style="font-size:12px;color:rgba(31,56,72,.45)">▼</span>'
+    + '<span style="font-size:12px;color:rgba(245,240,234,.5)">📝 我的筆記</span>'
+    + '<span id="note-toggle-icon" style="font-size:12px;color:rgba(245,240,234,.45)">▼</span>'
     + '</div>'
     + '<div id="note-editor" style="display:none">'
     + '<textarea id="note-input" placeholder="記下你的想法、記憶口訣、易混淆點..."'
-    + ' style="width:100%;min-height:80px;background:#fff;'
-    + 'border:1px solid rgba(31,56,72,0.22);border-radius:6px;'
-    + 'color:var(--navy);font-size:12px;padding:8px;resize:vertical;'
+    + ' style="width:100%;min-height:80px;background:rgba(255,255,255,0.06);'
+    + 'border:1px solid rgba(100,160,220,0.25);border-radius:6px;'
+    + 'color:var(--cream);font-size:12px;padding:8px;resize:vertical;'
     + 'font-family:inherit;line-height:1.5;box-sizing:border-box"'
     + ' oninput="_noteUnsaved()"'
     + '></textarea>'
@@ -2182,7 +2165,7 @@ function _renderDrawer(d){
     + ' style="background:rgba(159,184,159,.18);color:var(--good);border:none;border-radius:5px;'
     + 'padding:4px 12px;font-size:11px;cursor:pointer">💾 儲存</button>'
     + '<button onclick="_clearNote()"'
-    + ' style="background:rgba(31,56,72,0.06);color:rgba(31,56,72,.55);border:none;border-radius:5px;'
+    + ' style="background:rgba(255,255,255,0.08);color:rgba(245,240,234,.5);border:none;border-radius:5px;'
     + 'padding:4px 10px;font-size:11px;cursor:pointer">清除</button>'
     + '</div>'
     + '<div id="note-saved-hint" style="font-size:10px;color:var(--good);margin-top:4px;text-align:right;display:none">✓ 已儲存</div>'
@@ -2190,10 +2173,10 @@ function _renderDrawer(d){
     + '</div>';
 
   var diffRowHtml =
-    '<div class="diff-row" style="display:flex;align-items:center;gap:6px;padding:6px 0;font-size:13px;color:rgba(31,56,72,.6);">'
+    '<div class="diff-row" style="display:flex;align-items:center;gap:6px;padding:6px 0;font-size:13px;color:rgba(245,240,234,.6);">'
     + '<span>難度自評：</span>'
     + '<span id="diff-stars-' + d.id + '" class="diff-stars" style="display:flex;gap:2px;cursor:pointer;font-size:18px;"></span>'
-    + '<span id="diff-label-' + d.id + '" style="font-size:11px;color:rgba(31,56,72,.5);margin-left:4px;"></span>'
+    + '<span id="diff-label-' + d.id + '" style="font-size:11px;color:rgba(245,240,234,.5);margin-left:4px;"></span>'
     + '</div>';
 
   body.innerHTML =
@@ -2304,7 +2287,7 @@ function _attachReadProgress(articleId) {
       var firstTime = _setReadProgressCompleted(articleId);
       if (firstTime && !toastShown) {
         toastShown = true;
-        _dashToast('✓ 全文已讀完！');
+        _dashToast('✅ 全文已讀完！');
       }
     }
   };
@@ -2509,15 +2492,13 @@ function _saveNote() {
   if (!_currentNoteId) return;
   try {
     var text = (document.getElementById('note-input')?.value || '').trim();
-    // 寫本地 + 登入則背景上雲（offline-first，見 notes-store.js）
-    if (window.notesStore) {
-      notesStore.save(_currentNoteId, { text: text, lawName: _currentNoteLaw, articleNo: _currentNoteArticleNo });
+    var notes = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}');
+    if (text) {
+      notes[_currentNoteId] = { text: text, updatedAt: new Date().toISOString(), lawName: _currentNoteLaw, articleNo: _currentNoteArticleNo };
     } else {
-      var notes = JSON.parse(localStorage.getItem(NOTES_KEY) || '{}');
-      if (text) notes[_currentNoteId] = { text: text, updatedAt: new Date().toISOString(), lawName: _currentNoteLaw, articleNo: _currentNoteArticleNo };
-      else delete notes[_currentNoteId];
-      localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
+      delete notes[_currentNoteId];
     }
+    localStorage.setItem(NOTES_KEY, JSON.stringify(notes));
     var hint = document.getElementById('note-saved-hint');
     if (hint) { hint.style.display = 'block'; setTimeout(function() { hint.style.display = 'none'; }, 2000); }
     var btn = document.getElementById('note-save-btn');
@@ -2592,16 +2573,13 @@ async function loadRandomArticle() {
   if (btn) { btn.textContent = '⏳'; btn.disabled = true; }
   try {
     // 用已載入的 _allLaws（頁面啟動時就 fetch 好了），不需重複拉取
-    var _src = (_allLaws && _allLaws.length > 0) ? _allLaws : [];
-    if (_src.length === 0) {
+    var laws = (_allLaws && _allLaws.length > 0) ? _allLaws : [];
+    if (laws.length === 0) {
       // 萬一 _allLaws 尚未就緒，臨時補抓
       var r0 = await fetch(API + '/api/laws');
       var d0 = await r0.json();
-      _src = (d0 && d0.laws) ? d0.laws : [];
+      laws = (d0 && d0.laws) ? d0.laws : [];
     }
-    // 限定在目前選定的考科範圍內隨機（未選考科 _examFilter='all' 才全庫）
-    var _examSet = (typeof _examLawSet === 'function') ? _examLawSet(_examFilter) : null;
-    var laws = _examSet ? _src.filter(function(l){ return _examSet.has(l.name); }) : _src;
     if (laws.length === 0) { _dashToast('法規清單尚未載入，請稍後再試'); return; }
 
     // 隨機選一部法規
@@ -2627,7 +2605,7 @@ function _copyArticle(btn, lawName, artNo, text) {
   var content = lawName + ' 第' + artNo + '條\n' + text;
   var orig = btn.textContent;
   function onSuccess() {
-    btn.textContent = '✓';
+    btn.textContent = '✅';
     _dashToast('📋 已複製');
     setTimeout(function() { btn.textContent = orig; }, 1500);
   }
@@ -3655,8 +3633,6 @@ function _renderLawsToc(page){
         if(el2) el2.innerHTML = '共 <b>' + cnt + '</b> 部';
         // Wave 69：法規清單載入後觸發 URL ?q= 自動搜尋
         _handleUrlQuery();
-        // 私人筆記庫：?open=<page_id> 落地直接開該條 drawer
-        _handleUrlOpen();
       }
     })
     .catch(function(){});
@@ -4052,18 +4028,6 @@ function _handleUrlQuery(){
   doSearch();
 }
 
-// 私人筆記庫：?open=<page_id> 從筆記庫點卡片落地，直接開該條 drawer（自動展開筆記）
-function _handleUrlOpen(){
-  var params = new URLSearchParams(window.location.search);
-  var pid = params.get('open');
-  if(!pid) return;
-  openDrawer(decodeURIComponent(pid), decodeURIComponent(params.get('law')||''), decodeURIComponent(params.get('art')||''));
-}
-
-// 私人筆記庫：登入後把雲端筆記拉下來與本地合併（跨裝置同步）。
-// 搜尋結果的 📝 徽章每次 render 都重讀 localStorage，合併後自然反映，無需手動刷新。
-if (window.notesStore) { notesStore.sync(); }
-
 // Wave 105: render recent views on page load
 _renderRecentViews();
 
@@ -4155,7 +4119,7 @@ function switchToFree(){
 
 <!-- Compass widget 載入 (放最末避免阻塞 dashboard 主流程) -->
 <script src="exam-data.js?v=2"></script>
-<script src="compass-widget.js?v=5"></script>
+<script src="compass-widget.js?v=4"></script>
 <script>
 /* 放開考科：國考目標不限 7 主科，用 NODES（11 體系 172 職務）驅動 — 2026-06-22 */
 (function(){
@@ -4288,7 +4252,7 @@ ch.on('presence', { event: 'sync' }, () => {
 
 <div id="mobile-daily-bar">
   <a class="mdb-btn" id="mdb-quiz" href="quiz.html">
-    <span class="mdb-ic">◎</span>
+    <span class="mdb-ic">📅</span>
     <span class="mdb-lbl">今日挑戰</span>
     <span class="mdb-check">✓</span>
   </a>

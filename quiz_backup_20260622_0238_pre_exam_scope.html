@@ -2,6 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8" />
+<link rel="icon" type="image/png" href="favicon.png">
 <title>SoFa Engine — 選擇題</title>
 <meta name="description" content="從 36,000+ 條法規中即時出題，測驗記帳士、地政士等國考法條掌握度。SoFa Engine 選擇題練習，免費使用。" />
 <!-- Google tag (gtag.js) -->
@@ -13,7 +14,6 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
   <meta name="apple-mobile-web-app-title" content="SoFa">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23244658'/%3E%3Ctext x='16' y='23.5' font-size='21' font-family='Georgia,serif' font-weight='700' text-anchor='middle' fill='%23E7BBA7'%3ES%3C/text%3E%3C/svg%3E">
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -37,10 +37,9 @@
   }
   .pr-bar .title .v{font-family:var(--serif);font-weight:600;font-size:17px;color:var(--cream)}
   .pr-meta{
-    display:flex;align-items:center;gap:22px;flex-wrap:wrap;
+    display:flex;align-items:center;gap:22px;
     font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:rgba(245,240,234,.55);
   }
-  .pr-meta .seg{white-space:nowrap}
   .pr-meta .seg b{color:var(--peach);font-weight:600;font-size:13px;margin-left:6px}
   .pr-meta .timer b{color:var(--cream);font-family:var(--serif);font-size:18px;letter-spacing:.02em}
 
@@ -197,7 +196,7 @@
   .sec-text .sec-h{margin:10px 0 4px;color:var(--navy);font-weight:600}
   .sec-text .sec-h:first-child{margin-top:0}
   .sec-text .sec-i{position:relative;padding-left:18px;margin:3px 0}
-  .sec-text .sec-i::before{content:'';position:absolute;left:5px;top:.62em;width:4px;height:4px;border:1.2px solid var(--peach-3);border-radius:50%;box-sizing:border-box}
+  .sec-text .sec-i::before{content:'◦';position:absolute;left:4px;top:-.04em;color:var(--peach-3);font-weight:700}
   .sec-lock{margin-top:16px;border-top:1px dashed rgba(31,56,72,.15)}
   .sec-lock .sec-label::after{content:" 🔒";font-size:11px;opacity:.65}
   .sec-lock-preview{position:relative;max-height:80px;overflow:hidden;padding:10px 0 0;pointer-events:none;user-select:none;font-size:13.5px;line-height:1.8;color:rgba(31,56,72,.72)}
@@ -272,10 +271,8 @@
     .opt .body{font-size:14.5px}
     .opt.right::after,.opt.wrong::after{display:none}
     .q-foot{flex-direction:column;align-items:stretch}
-    .q-foot .l{display:none}            /* 鍵盤快捷提示在觸控手機無意義，收起 */
     .q-foot .r{flex-direction:column}
     .rail{flex-direction:column}
-    #kb-hint{display:none}              /* 浮動鍵盤提示列會壓到「下一題」，手機收起 */
   }
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
@@ -308,7 +305,7 @@
   #qCountdown.urgent{color:var(--bad);animation:countdown-pulse .5s ease-in-out infinite alternate;}
   @keyframes countdown-pulse{from{opacity:1}to{opacity:.4}}
 
-  #quiz-citation{display:none;text-align:center;margin-top:0;padding:7px 14px;background:rgba(26,46,61,0.7);border:1px solid rgba(91,175,214,0.3);border-radius:16px;color:#8ABED6;font-size:12px;animation:fadeInUp 0.3s ease;}
+  #quiz-citation{display:none;text-align:center;margin-top:10px;padding:7px 14px;background:rgba(26,46,61,0.7);border:1px solid rgba(91,175,214,0.3);border-radius:16px;color:#8ABED6;font-size:12px;animation:fadeInUp 0.3s ease;}
   #quiz-citation.show{display:block;}
   #quiz-citation a{color:#5BAFD6;text-decoration:none;}
   @keyframes fadeInUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
@@ -382,16 +379,15 @@
   /* ── Wave 85: 今日挑戰 ── */
   #btnDaily {
     display: none;
-    padding: 8px 14px; border-radius: 8px;
-    background: rgba(91,175,214,0.12);
-    border: 1px solid rgba(91,175,214,0.55); color: #9CCBE0;
-    font-size: 12px; cursor: pointer; transition: all 0.2s;
-    font-family: var(--mono); letter-spacing: .04em;
+    padding: 8px 16px; border-radius: 18px;
+    background: linear-gradient(135deg, #1a3a5c, #0d2540);
+    border: 1px solid #4a7fff; color: #8ab4ff;
+    font-size: 14px; cursor: pointer; transition: all 0.2s;
   }
-  #btnDaily:hover { background: rgba(91,175,214,0.2); }
-  #btnDaily.done { border-color: rgba(159,184,159,.55); color: var(--good); background: rgba(159,184,159,.12); }
+  #btnDaily:hover { border-color: #6a9fff; color: #aaccff; }
+  #btnDaily.done { border-color: #44cc88; color: #66ddaa; }
   #daily-badge {
-    font-size: 11px; color: var(--good); margin-left: 4px; display: none;
+    font-size: 11px; color: #44cc88; margin-left: 4px; display: none;
   }
 </style>
 </head>
@@ -425,8 +421,7 @@
       <a href="dashboard.html" class="back">← BACK</a>
       <div class="title">
         <span class="lab">LAW</span>
-        <select id="lawSelect" style="display:none"><option value="">全部法規</option></select>
-        <div class="law-dd" id="lawDD"><button type="button" class="law-dd-btn" id="lawDDBtn"><span id="lawDDLabel">全部法規</span><span class="cv">▾</span></button><div class="law-dd-pop" id="lawDDPop"></div></div>
+        <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:600;font-size:17px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none"><option value="">全部法規</option></select>
         <span id="qz-scope-label" style="font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--peach);white-space:nowrap;display:none"></span>
       </div>
       <div id="law-status-bar" style="margin-top:4px;padding:6px 10px;background:rgba(255,255,255,0.04);border-radius:6px;border:1px solid rgba(100,160,220,0.15);font-size:11px;color:#aaa;min-height:28px;transition:opacity 0.2s;display:none"></div>
@@ -452,7 +447,7 @@
         title="30題混法規，60分鐘限時">
         📋 模擬考試
       </button>
-      <button id="btnDaily" onclick="startDailyChallenge()">今日挑戰</button>
+      <button id="btnDaily" onclick="startDailyChallenge()">📅 今日挑戰</button>
       <span id="daily-badge"></span>
       <div id="quiz-streak" style="display:none;font-size:13px;color:#ff9955;font-weight:600;padding:3px 8px;background:rgba(255,140,0,0.12);border:1px solid rgba(255,140,0,0.3);border-radius:12px;margin-left:8px"></div>
     </div>
@@ -463,9 +458,9 @@
       <div class="seg timer">TIMER <b id="topTimer">0:00</b></div>
       <div class="seg" id="sessionProgressWrap" style="display:none">連刷 <b id="sessionProgress">0 / 0</b></div>
       <div class="seg" id="qCountdownWrap" style="display:none">⏱ <b id="qCountdown">30</b></div>
-      <button class="btn btn-sec" style="padding:6px 12px;font-size:11px;white-space:nowrap" id="btnSetSession">📋 設題數</button>
+      <button class="btn btn-sec" style="padding:6px 12px;font-size:11px" id="btnSetSession">📋 設題數</button>
       <button id="btn-stats" onclick="openStats()" title="整體統計" style="background:none;border:1px solid rgba(91,175,214,0.3);color:#5BAFD6;border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">📊</button>
-      <button onclick="_openWeakness()" title="弱點分析" style="background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.35);color:#E98880;border-radius:8px;padding:5px 12px;font-size:13px;cursor:pointer;white-space:nowrap">⚠️ 弱點 <span id="nav-wrong-cnt" style="font-family:'JetBrains Mono',monospace"></span></button>
+      <button onclick="_openWeakness()" title="弱點分析" style="background:rgba(231,76,60,0.1);border:1px solid rgba(231,76,60,0.35);color:#E98880;border-radius:8px;padding:5px 12px;font-size:13px;cursor:pointer">⚠️ 弱點 <span id="nav-wrong-cnt" style="font-family:'JetBrains Mono',monospace"></span></button>
     </div>
   </div>
   <div class="pr-chips">
@@ -499,10 +494,8 @@
 
         <div class="opts" id="optionsBox"></div>
         <div id="streak-badge"></div>
-        <div style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap">
-          <div id="quiz-citation"></div>
-          <button id="view-article-btn" onclick="_openArticleDashboard()">📖 查看法條</button>
-        </div>
+        <div id="quiz-citation"></div>
+        <div style="text-align:center"><button id="view-article-btn" onclick="_openArticleDashboard()">📖 查看法條</button></div>
 
         <div class="explain" id="explainBox" style="display:none">
           <span class="eb">答對了</span>
@@ -649,12 +642,8 @@ const _EXAM_LAWS = {
   bookkeeper: ['記帳士法','記帳士職業倫理道德規範','中華民國記帳士職業道德規範','記帳士法第三十五條規定之管理辦法','記帳士暨記帳及報稅代理人防制洗錢與打擊資恐辦法','記帳士懲戒委員會與懲戒覆審委員會組織及審議規則','公司法','公司登記辦法','商業登記法','商業登記申請辦法','商業會計法','商業會計處理準則','商業使用電子方式處理會計資料辦法','行政程序法','稅捐稽徵法','稅捐稽徵法施行細則','納稅者權利保護法','納稅者權利保護法施行細則','所得稅法','所得稅法施行細則','所得基本稅額條例','所得基本稅額條例施行細則','各類所得扣繳率標準','營利事業所得稅查核準則','加值型及非加值型營業稅法','加值型及非加值型營業稅法施行細則','兼營營業人營業稅額計算辦法','統一發票使用辦法','統一發票給獎辦法','遺產及贈與稅法','遺產及贈與稅法施行細則','特種貨物及勞務稅條例','特種貨物及勞務稅條例施行細則'],
   landadmin:  ['民法','信託法','土地法','土地法施行法','平均地權條例','平均地權條例施行細則','土地徵收條例','土地徵收條例施行細則','地政士法','地政士法施行細則','土地登記規則','地籍測量實施規則','土地稅法','土地稅法施行細則','遺產及贈與稅法','遺產及贈與稅法施行細則','契稅條例','房屋稅條例','稅捐稽徵法','稅捐稽徵法施行細則','工程受益費徵收條例','所得稅法','所得稅法施行細則'],
   realestate: ['民法','土地法','平均地權條例','平均地權條例施行細則','土地徵收條例','非都市土地使用管制規則','區域計畫法','都市計畫法','土地稅法','土地稅法施行細則','契稅條例','房屋稅條例','所得稅法','所得稅法施行細則','不動產經紀業管理條例','不動產經紀業管理條例施行細則','公平交易法','消費者保護法','公寓大廈管理條例'],
-  'tax-admin': ['民法','稅捐稽徵法','稅捐稽徵法施行細則','納稅者權利保護法','納稅者權利保護法施行細則','所得稅法','所得稅法施行細則','所得基本稅額條例','所得基本稅額條例施行細則','加值型及非加值型營業稅法','加值型及非加值型營業稅法施行細則','土地稅法','土地稅法施行細則','房屋稅條例','契稅條例','貨物稅條例','印花稅法','使用牌照稅法','遺產及贈與稅法','遺產及贈與稅法施行細則'],
-  'tax-law': ['中華民國憲法','中華民國憲法增修條文','行政程序法','行政罰法','行政執行法','訴願法','行政訴訟法','國家賠償法','公務員服務法','公務人員任用法','稅捐稽徵法','稅捐稽徵法施行細則','所得稅法','加值型及非加值型營業稅法','遺產及贈與稅法','土地稅法','民法','刑法','納稅者權利保護法'],
-  'elem-admin': ['中華民國憲法','公務員服務法','公務人員任用法','民法','刑法','行政程序法','行政罰法','行政執行法','訴願法','行政訴訟法','國家賠償法'],
-  'post-acc': ['會計法','預算法','決算法','郵政法','公司法','商業會計法','稅捐稽徵法','所得稅法','加值型及非加值型營業稅法','個人資料保護法'],
 };
-const _EXAM_NAMES = {bookkeeper:'記帳士',landadmin:'地政士',realestate:'不動產經紀人','tax-admin':'財稅行政','tax-law':'財稅法務','elem-admin':'初等一般行政','post-acc':'中華郵政會計'};
+const _EXAM_NAMES = {bookkeeper:'記帳士',landadmin:'地政士',realestate:'不動產經紀人'};
 let _allLoadedQzLaws = [];
 
 function _filterLawsForExam(laws, key) {
@@ -878,11 +867,11 @@ function _updateDailyBtn() {
   const r = _getDailyResult();
   if (r) {
     btn.classList.add('done');
-    btn.textContent = '今日挑戰';
-    if (badge) { badge.textContent = '✓ ' + r.score + '/' + r.total; badge.style.display = 'inline'; }
+    btn.textContent = '📅 今日挑戰';
+    if (badge) { badge.textContent = '✅ ' + r.score + '/' + r.total; badge.style.display = 'inline'; }
   } else {
     btn.classList.remove('done');
-    btn.textContent = '今日挑戰';
+    btn.textContent = '📅 今日挑戰';
     if (badge) badge.style.display = 'none';
   }
 }
@@ -1013,8 +1002,6 @@ let _isExamMode = false; // Wave 147: true when inside a 模擬考 session
 // ── 連續答對計數器 ────────────────────────────────────────────────
 let _quizStreak = 0;
 let _currentLawName = '';
-let _currentPageId = '';
-let _currentArtNo = '';
 
 // ── 個人答題統計（localStorage）────────────────────────────────────
 const STATS_KEY = 'sofa_quiz_stats_v1';
@@ -1042,7 +1029,7 @@ function _buildQuizCalendar(s) {
   const maxCount = Math.max(...days.map(d => d.count), 1);
 
   let html = `<div style="margin-top:12px">
-    <div style="font-size:10px;color:#aaa;margin-bottom:6px">近 30 日答題</div>
+    <div style="font-size:10px;color:#aaa;margin-bottom:6px">📅 近30日答題</div>
     <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px">`;
 
   days.forEach(({ count, isToday }) => {
@@ -1437,7 +1424,7 @@ function showSprintResults(timeSec) {
       (a.q.options || []).forEach((opt, oi) => {
         const isChosen = oi === a.chosen, isCorrect = oi === a.correct;
         const bg = isCorrect ? 'rgba(46,204,113,0.15)' : isChosen ? 'rgba(231,76,60,0.15)' : 'transparent';
-        const border = isCorrect ? '#9FB89F' : isChosen ? '#E74C3C' : 'rgba(255,255,255,0.08)';
+        const border = isCorrect ? '#2ECC71' : isChosen ? '#E74C3C' : 'rgba(255,255,255,0.08)';
         const mark = isCorrect ? ' ✓' : isChosen ? ' ✗' : '';
         html += '<div style="border:1px solid ' + border + ';background:' + bg + ';border-radius:6px;padding:6px 10px;margin-top:5px;font-size:13px;color:#B0C8D4">' + ['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][oi] + '  ' + esc(opt) + '<span style="float:right;font-weight:700">' + mark + '</span></div>';
       });
@@ -1497,7 +1484,7 @@ async function _shareQuizResult() {
   const lines = [
     `${grade} SoFa 答題成績`,
     `📚 法規：${lawName}`,
-    `✓ 答對：${correct}/${total} (${pct}%)`,
+    `✅ 答對：${correct}/${total} (${pct}%)`,
     bestStreak >= 3 ? `🔥 最高連對：${bestStreak}題` : null,
     avgSec ? `⏱ 平均作答：${avgSec}秒` : null,
     `━━━━━━━━━━`,
@@ -1633,15 +1620,7 @@ function _feedbackAnim(btn, isCorrect, elapsedSec){
 // Wave 68: 開啟 dashboard.html 並帶入法規名稱
 function _openArticleDashboard() {
   if (!_currentLawName) return;
-  let url;
-  if (_currentPageId) {
-    // 直接深連到該條文（dashboard 的 ?open= 會開抽屜）
-    url = 'dashboard.html?open=' + encodeURIComponent(_currentPageId)
-        + '&law=' + encodeURIComponent(_currentLawName)
-        + (_currentArtNo ? '&art=' + encodeURIComponent(_currentArtNo) : '');
-  } else {
-    url = 'dashboard.html?q=' + encodeURIComponent(_currentLawName);
-  }
+  const url = 'dashboard.html?q=' + encodeURIComponent(_currentLawName);
   window.open(url, '_blank');
 }
 let quizData=null;
@@ -1879,8 +1858,6 @@ async function loadQuiz(){
             q:{text:data.question||'', options:displayOpts}});
         }
         _currentLawName = lawName;
-        _currentPageId = (typeof pageId!=='undefined'?pageId:'') || '';
-        _currentArtNo = (artTitle||'').replace(/^§\s*/,'').replace(/｜.*$/,'').trim();
         _feedbackAnim(btn,isCorrect,_elapsed);
         onAnswerDone(isCorrect);
         updateScore();
@@ -2129,8 +2106,6 @@ async function loadWrongQuiz() {
         }
         cur.correct = isCorrect;
         _currentLawName = lawName;
-        _currentPageId = (typeof pageId!=='undefined'?pageId:'') || '';
-        _currentArtNo = (artTitle||'').replace(/^§\s*/,'').replace(/｜.*$/,'').trim();
         _feedbackAnim(btn, isCorrect, _elapsed);
         onAnswerDone(isCorrect);
         updateScore();
@@ -2284,7 +2259,7 @@ function openStats() {
       byLawHtml = '<div style="margin-top:20px"><div style="color:#8ABED6;font-size:12px;margin-bottom:10px">各法答題分布</div>' +
         laws.map(([name,d]) => {
           const p = Math.round(d.correct/d.total*100);
-          const bar = `<div style="height:4px;background:rgba(91,175,214,0.15);border-radius:2px;margin-top:4px"><div style="width:${p}%;height:100%;background:${p>=80?'#9FB89F':p>=60?'#5BAFD6':'#E74C3C'};border-radius:2px;transition:width 0.6s"></div></div>`;
+          const bar = `<div style="height:4px;background:rgba(91,175,214,0.15);border-radius:2px;margin-top:4px"><div style="width:${p}%;height:100%;background:${p>=80?'#2ECC71':p>=60?'#5BAFD6':'#E74C3C'};border-radius:2px;transition:width 0.6s"></div></div>`;
           return `<div style="background:#0D1F2D;border-radius:8px;padding:10px 12px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#C8DDE8">${name}</span><span style="color:#8ABED6">${d.correct}/${d.total} (${p}%)</span></div>${bar}</div>`;
         }).join('') + '</div>';
     }
@@ -2367,7 +2342,7 @@ function _renderRailWeakness() {
 
   el.innerHTML = lawWrongs.slice(0, 5).map(({ name, wrong, total }) => {
     const pct = Math.round((total - wrong) / total * 100);
-    const bar = `<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin:3px 0 2px"><div style="width:${pct}%;height:100%;background:${pct>=80?'#9FB89F':pct>=50?'#5BAFD6':'#E74C3C'};border-radius:2px"></div></div>`;
+    const bar = `<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin:3px 0 2px"><div style="width:${pct}%;height:100%;background:${pct>=80?'#2ECC71':pct>=50?'#5BAFD6':'#E74C3C'};border-radius:2px"></div></div>`;
     return `<div style="margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
         <span style="font-size:11px;color:#C8DDE8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${esc(name)}</span>
@@ -2433,7 +2408,7 @@ function _renderWrongList() {
     .sort((a, b) => b.wrong - a.wrong);
 
   if (lawWrongs.length === 0 && bank.length === 0) {
-    panel.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(245,240,234,0.4);font-size:14px">✓ 目前沒有錯題紀錄</div>';
+    panel.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(245,240,234,0.4);font-size:14px">✅ 目前沒有錯題紀錄</div>';
     return;
   }
 
@@ -2469,7 +2444,7 @@ function _renderWrongList() {
     html += '<div style="display:flex;flex-direction:column;gap:8px;">';
     lawWrongs.forEach(({ name, wrong, total }) => {
       const pct = Math.round((total - wrong) / total * 100);
-      const color = pct >= 80 ? '#9FB89F' : pct >= 60 ? '#5BAFD6' : '#E74C3C';
+      const color = pct >= 80 ? '#2ECC71' : pct >= 60 ? '#5BAFD6' : '#E74C3C';
       const bar = `<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:5px"><div style="width:${pct}%;height:100%;background:${color};border-radius:2px"></div></div>`;
       html += `<div style="background:#0D1F2D;border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
         <div style="flex:1;min-width:0;">
@@ -2571,7 +2546,7 @@ function _renderExamHistory() {
   const rows = history.slice(0, 10);
   html += '<div style="display:flex;flex-direction:column;gap:8px;">';
   rows.forEach(e => {
-    const color = e.pct >= 80 ? '#9FB89F' : e.pct >= 60 ? '#D4A847' : '#E74C3C';
+    const color = e.pct >= 80 ? '#2ECC71' : e.pct >= 60 ? '#D4A847' : '#E74C3C';
     const bgColor = e.pct >= 80 ? 'rgba(46,204,113,0.08)' : e.pct >= 60 ? 'rgba(212,168,71,0.08)' : 'rgba(231,76,60,0.08)';
     const minStr = Math.floor(e.durationSec / 60);
     const secStr = (e.durationSec % 60).toString().padStart(2, '0');
@@ -2674,36 +2649,6 @@ function _stopExamTimer() {
   const el = document.getElementById('exam-timer');
   if (el) el.style.display = 'none';
 }
-</script>
-<script>
-// 自製法規下拉：以隱藏的 <select id="lawSelect"> 為真實狀態，自畫選單只負責顯示與品牌色高亮
-(function(){
-  var sel=document.getElementById('lawSelect');
-  var dd=document.getElementById('lawDD');
-  var btn=document.getElementById('lawDDBtn');
-  var pop=document.getElementById('lawDDPop');
-  var label=document.getElementById('lawDDLabel');
-  if(!sel||!dd||!btn||!pop||!label) return;
-  function syncLabel(){ var o=sel.selectedOptions[0]; label.textContent=o?o.textContent:'全部法規'; }
-  function buildPop(){
-    pop.innerHTML='';
-    Array.prototype.forEach.call(sel.options,function(o){
-      if(o.disabled){ var s=document.createElement('div');s.className='law-dd-sep';pop.appendChild(s);return; }
-      var it=document.createElement('div');
-      it.className='law-dd-item'+(o.value===sel.value?' sel':'');
-      it.textContent=o.textContent;
-      it.addEventListener('click',function(){ sel.value=o.value; sel.dispatchEvent(new Event('change')); syncLabel(); close(); });
-      pop.appendChild(it);
-    });
-  }
-  function open(){ buildPop(); dd.classList.add('open'); var s=pop.querySelector('.sel'); if(s)s.scrollIntoView({block:'nearest'}); }
-  function close(){ dd.classList.remove('open'); }
-  btn.addEventListener('click',function(e){ e.stopPropagation(); dd.classList.contains('open')?close():open(); });
-  document.addEventListener('click',function(e){ if(!dd.contains(e.target))close(); });
-  document.addEventListener('keydown',function(e){ if(e.key==='Escape')close(); });
-  sel.addEventListener('change',syncLabel);
-  syncLabel();
-})();
 </script>
 </body>
 </html>

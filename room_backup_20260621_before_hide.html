@@ -3,7 +3,6 @@
 <head>
 <meta charset="utf-8"/>
 <title>SoFa 自習室 — 一起讀書</title>
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23244658'/%3E%3Ctext x='16' y='23.5' font-size='21' font-family='Georgia,serif' font-weight='700' text-anchor='middle' fill='%23E7BBA7'%3ES%3C/text%3E%3C/svg%3E">
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -198,11 +197,13 @@ main{display:flex;flex:1;gap:0;min-height:0;}
   z-index:1;
 }
 #room-canvas{display:block;width:100%;cursor:default;touch-action:none;user-select:none;}
-#dpad{position:absolute;bottom:12px;right:12px;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0.22;}
+#dpad,#dpad-hint{display:none!important;}
+
+#dpad{position:absolute;bottom:12px;right:12px;display:flex;flex-direction:column;align-items:center;gap:4px;opacity:0.75;}
 #dpad:hover{opacity:1;}
 .dp{width:34px;height:34px;background:rgba(26,46,61,0.88);color:var(--accent);border:1px solid rgba(91,175,214,0.4);border-radius:8px;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;touch-action:manipulation;}
 .dp:active{background:#1A2E3D;transform:scale(0.9);}
-#dpad-hint{position:absolute;bottom:8px;left:10px;font-size:10px;color:rgba(91,175,214,0.45);letter-spacing:.03em;}
+#dpad-hint{position:absolute;bottom:8px;left:10px;font-size:10px;color:rgba(91,175,214,0.55);letter-spacing:.03em;}
 @media(min-width:600px){#dpad{display:none;}#dpad-hint{font-size:10px;}}
 
 /* 分隔線 */
@@ -288,7 +289,7 @@ main{display:flex;flex:1;gap:0;min-height:0;}
   display:flex;align-items:center;gap:8px;font-size:.78rem;
   padding:6px 8px;border-radius:6px;
 }
-/* Quiet companion summary */
+/* Wave155: 週排名 */
 #rank-section{margin-top:12px;}
 #week-rank-list{display:flex;flex-direction:column;gap:3px;margin-top:4px;}
 .rank-item{display:flex;align-items:center;gap:6px;padding:4px 6px;border-radius:5px;font-size:.74rem;}
@@ -297,7 +298,6 @@ main{display:flex;flex:1;gap:0;min-height:0;}
 .rank-name{color:var(--cream);font-weight:600;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .rank-pts{color:#C8A048;font-size:.68rem;font-weight:700;flex-shrink:0;}
 .rank-self-pts{font-size:.65rem;color:var(--cream-2);opacity:.55;margin-top:6px;padding:0 4px;}
-.online-overflow-note{font-size:.66rem;color:var(--cream-2);opacity:.5;margin:4px 2px 0;}
 .online-item.me-item{background:rgba(91,175,214,.08);}
 .online-item-avatar{font-size:1rem;}
 .online-item-info{flex:1;min-width:0;}
@@ -611,7 +611,7 @@ input[type=text], select, .btn-enter {
 #greet-overlay {
   position: fixed; inset: 0; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  background: rgba(10,20,30,0.42); backdrop-filter: blur(2px);
+  background: rgba(10,20,30,0.75); backdrop-filter: blur(4px);
   z-index: 9000; opacity: 0; pointer-events: none;
   transition: opacity 0.6s;
 }
@@ -790,141 +790,6 @@ input[type=text], select, .btn-enter {
     background:radial-gradient(ellipse at 50% 46%, transparent 56%, rgba(2,8,18,0.50) 100%);
   }
 }
-
-/* ══════════════════════════════════════════════════════════════════
-   v123 — 安靜書房 calm pass：降噪、減 glow、加留白、統一工具按鈕
-   只動視覺，不改任何 JS / id / 結構 / 功能。放最後 → 覆蓋前面同名規則。
-   ══════════════════════════════════════════════════════════════════ */
-
-/* — 1. 入口卡：去遊戲感，改安靜書房第一印象 — */
-.entry-card{
-  border:1px solid rgba(140,175,200,.18);
-  border-top:1px solid rgba(140,175,200,.26);
-  border-radius:18px;
-  box-shadow:0 24px 80px rgba(0,0,0,.58);
-}
-.entry-banner{
-  background:rgba(255,255,255,.024);
-  border-bottom:1px solid rgba(140,175,200,.12);
-  margin-bottom:24px;padding:12px 26px;
-}
-.entry-banner-icon{opacity:.65;}
-.entry-banner-title{color:rgba(160,185,205,.52);font-weight:600;letter-spacing:.2em;}
-.entry-card h1{
-  font-family:var(--serif);color:#E9DFC8;font-size:1.6rem;
-  letter-spacing:.04em;text-shadow:none;margin-bottom:8px;
-}
-.entry-card>p,.entry-card-body>p:not(.entry-tip){color:rgba(200,190,170,.55);margin-bottom:22px;}
-.entry-card-body label{color:rgba(170,185,200,.6);}
-.entry-tab{border-radius:10px;}
-.entry-tab.active{background:rgba(91,175,214,.12);border-color:rgba(91,175,214,.3);color:#8FC4DE;}
-.btn-enter{
-  border-radius:12px;background:#5BAFD6;color:#06121F;
-  box-shadow:none;letter-spacing:.04em;font-family:var(--sans);font-weight:700;
-}
-.btn-enter:hover{background:#6CB9DD;opacity:1;}
-.btn-enter:active{transform:translateY(1px);box-shadow:none;}
-.serial-row-entry{border-radius:10px;}
-.entry-card-body input[type=text],.entry-card-body select{border-radius:10px;}
-
-/* — 2. 頂部 HUD：安靜、低調，移除霓虹 glow — */
-header{
-  background:linear-gradient(180deg,rgba(10,20,32,.66),rgba(10,20,32,.08))!important;
-  border-bottom:1px solid rgba(140,175,200,.10)!important;
-  box-shadow:none!important;padding:11px 22px;
-}
-.logo{color:rgba(212,224,234,.84);text-shadow:none;letter-spacing:.13em;font-weight:600;}
-#member-badge{
-  background:rgba(150,200,170,.10);border:1px solid rgba(150,200,170,.22);
-  color:rgba(155,208,175,.92);box-shadow:none;border-radius:20px;padding:3px 11px;
-}
-.online-badge{color:rgba(192,206,218,.74);}
-.dot{background:#6FC98C;box-shadow:none;}
-#btn-lock,.btn-leave{
-  border-radius:20px;border-color:rgba(140,175,200,.16);color:rgba(172,187,202,.62);
-}
-#btn-lock:hover,.btn-leave:hover{color:#8FC4DE;border-color:rgba(140,175,200,.4);}
-#weather-badge{opacity:.66;}
-#room-level-badge{opacity:.8;color:rgba(212,190,120,.85);}
-
-/* — 3. 場景工具按鈕：統一成一排安靜玻璃藥丸；移到左上 header 下方
-       （右上是側欄／離開鈕的地盤，避免互相遮擋）— */
-#btn-sound,#audio-settings-btn,#achieve-btn,#theme-btn{
-  top:56px!important;right:auto!important;width:34px;height:34px;
-  background:rgba(10,20,32,.5)!important;
-  border:1px solid rgba(140,175,200,.16)!important;border-radius:11px!important;
-  color:rgba(192,206,218,.72)!important;
-  display:flex!important;align-items:center;justify-content:center;
-  font-size:15px!important;padding:0!important;
-  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
-  transition:background .2s,border-color .2s,color .2s;box-shadow:none;
-}
-#btn-sound{left:14px!important;}
-#audio-settings-btn{left:54px!important;}
-#achieve-btn{left:94px!important;}
-#theme-btn{left:134px!important;}
-#btn-sound:hover,#audio-settings-btn:hover,#achieve-btn:hover,#theme-btn:hover{
-  background:rgba(20,34,50,.72)!important;border-color:rgba(140,175,200,.34)!important;
-  color:rgba(220,232,242,.95)!important;
-}
-/* 彈出面板從左上工具列下方展開，對齊新位置 */
-#audio-panel,#achieve-panel,#theme-panel{
-  bottom:auto!important;top:98px!important;left:14px!important;right:auto!important;
-  border:1px solid rgba(140,175,200,.18)!important;border-radius:14px!important;
-  background:rgba(10,20,32,.92)!important;
-}
-#tod-label,#jieqi-label{left:14px!important;right:auto!important;top:auto!important;bottom:14px!important;text-align:left;}
-#jieqi-label{bottom:28px!important;}
-#study-hud{border-radius:12px;border-color:rgba(140,175,200,.12);background:rgba(10,20,32,.55);}
-
-/* — 4. 側欄玻璃面板：更多留白、安靜分區、柔化輸入與按鈕 — */
-@media(min-width:641px){
-  #sidebar{
-    border:1px solid rgba(140,175,200,.12)!important;
-    border-left:1px solid rgba(140,175,200,.12)!important;border-radius:18px!important;
-    background:rgba(10,20,32,.44)!important;
-    box-shadow:0 12px 48px rgba(0,0,0,.3)!important;
-    padding:18px 16px!important;gap:18px!important;top:64px!important;
-  }
-}
-.sidebar-section{color:rgba(152,186,210,.5);letter-spacing:.15em;margin-bottom:8px;}
-.note-textarea,.shout-form textarea{border-radius:12px;border-color:rgba(140,175,200,.16);}
-.btn-shout{
-  border-radius:20px;background:rgba(91,175,214,.1);border:1px solid rgba(91,175,214,.34);color:#8FC4DE;
-}
-.btn-shout:hover{background:rgba(91,175,214,.2);}
-.pom-btn{border-radius:20px;}
-.pom-btn.primary{background:#5BAFD6;border-color:#5BAFD6;color:#06121F;}
-.pom-widget{border-bottom-color:rgba(140,175,200,.12);padding-bottom:18px;}
-
-/* — 5. 喊話橫幅 / toast — */
-#shout-banner{
-  border-radius:14px;border-color:rgba(140,175,200,.24);
-  box-shadow:0 8px 28px rgba(0,0,0,.5);
-}
-.room-toast{border-radius:14px;border-color:rgba(140,175,200,.24);}
-
-/* — 6. mobile：底部導覽與 bottom sheet 安靜化 — */
-@media(max-width:640px){
-  #mob-bar{
-    background:rgba(10,20,32,.88)!important;
-    -webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
-    border-top:1px solid rgba(140,175,200,.12)!important;padding-top:9px;
-  }
-  #mob-bar button{color:rgba(172,187,202,.62);}
-  #mob-bar button:active,#mob-bar button.active{color:#8FC4DE;}
-  #mob-bar .mob-count{background:#6FC98C;}
-  .sheet{border-radius:20px 20px 0 0!important;border-top:1px solid rgba(140,175,200,.16)!important;}
-  .sheet-title{color:#8FC4DE;border-bottom-color:rgba(140,175,200,.1);}
-  /* 窄機 header 降噪：藏裝飾性天氣／等級徽章，留給必要項呼吸 */
-  #weather-badge,#room-level-badge{display:none!important;}
-  header{padding:10px 14px;gap:8px;}
-  .logo{letter-spacing:.06em;font-size:.76rem;white-space:nowrap;}
-  #member-badge,.online-badge,#btn-lock,.btn-leave{white-space:nowrap;}
-  /* 工具列在窄機改 3 顆夠用（主題色面板較少用），避免擠到 study-hud */
-  #btn-sound{left:14px!important;}#audio-settings-btn{left:54px!important;}
-  #achieve-btn{left:94px!important;}#theme-btn{left:134px!important;}
-}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="OrbitControls.js"></script>
@@ -994,7 +859,7 @@ header{
       <span id="count-badge">1 人在線</span>
     </span>
     <span id="weather-badge" style="font-size:.7rem;color:rgba(175,195,215,.6);letter-spacing:.04em;font-family:var(--mono);"></span>
-    <span id="room-level-badge" title="SoFa 自習大廳" style="display:none;align-items:center;gap:6px;font-size:.7rem;color:#E8C868;letter-spacing:.04em;font-family:var(--mono);cursor:default;"></span>
+    <span id="room-level-badge" title="全體本週讀書時數越多，自習室等級越高，解鎖更多裝飾" style="display:none;align-items:center;gap:6px;font-size:.7rem;color:#E8C868;letter-spacing:.04em;font-family:var(--mono);cursor:default;"></span>
     <div style="display:flex;gap:6px;align-items:center;">
       <button id="btn-lock">🔒 鎖定</button>
       <button class="btn-leave" id="btn-leave">離開</button>
@@ -1046,7 +911,7 @@ header{
             <button class="dp" onclick="(()=>{const nx=rpgPlayer.tx+1,ny=rpgPlayer.ty;if(!isBlocked(nx,ny)){rpgPlayer.tx=nx;centerCam(document.getElementById('room-canvas'),nx,ny);}})()">▶</button>
           </div>
         </div>
-        <div id="dpad-hint">方向鍵 / WASD 安靜散步・Enter 回座位・場景固定載入</div>
+        <div id="dpad-hint">方向鍵 / WASD・點地板走路・拖曳移動視角・Enter 回座位</div>
         <div id="rpg-popup" style="display:none;position:absolute;background:rgba(10,21,32,0.95);border:1px solid rgba(91,175,214,0.3);border-radius:10px;padding:12px 14px;min-width:155px;pointer-events:auto;z-index:10;">
           <div id="rpg-popup-name" style="font-weight:700;font-size:13px;color:#fff;margin-bottom:3px;"></div>
           <div id="rpg-popup-subject" style="color:var(--accent);font-size:11px;margin-bottom:3px;"></div>
@@ -1143,8 +1008,8 @@ header{
         <div id="online-list"></div>
       </div>
       <div id="rank-section">
-        <div class="sidebar-section">安靜陪讀</div>
-        <div id="week-rank-list"><div style="font-size:.7rem;color:var(--cream-2);opacity:.35;">場景只顯示最久 19 名＋自己，其餘同學都在名單。</div></div>
+        <div class="sidebar-section">🏅 週排名</div>
+        <div id="week-rank-list"><div style="font-size:.7rem;color:var(--cream-2);opacity:.35;">完成番茄鐘獲得積分</div></div>
         <div class="rank-self-pts" id="rank-self-pts"></div>
       </div>
     </div>
@@ -1284,18 +1149,14 @@ let _toonGrad = null; // 3-tone gradient map — set during scene init, used by 
 const mToon = (hex) => new THREE.MeshLambertMaterial({ color: hex });
 const mToonFlat = (hex) => new THREE.MeshLambertMaterial({ color: hex, flatShading: true });
 const _isMobile = /iPhone|iPad|Android|Mobi/i.test(navigator.userAgent) || window.innerWidth < 768;
-const LOW_POWER_SCENE = _isMobile || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-const SCENE_USER_LIMIT = 20;
-const SCENE_OTHER_LIMIT = 19;
-const ENDLESS_WALK_SEGMENTS = 3;
 let _characterGLTF = null; // loaded GLB template for user avatars
 const _USE_GLB_AVATAR = false; // v101: chibi with full hair shell (looks right from every angle)
 let _mixers = [];           // AnimationMixer array — updated every frame
 let _mixerLastTime = 0;
 let _torchLights = [], _userAvatarMeshes = [], _userAvatarLabels = [];
 let _DESK_VISUAL_POS_3D = []; // stores {vx,vz,ry} for each desk after scatter
-let _steleCanvas = null, _steleCtx = null, _steleTex = null; // quiet companion board
-// Subject wall placeholder
+let _steleCanvas = null, _steleCtx = null, _steleTex = null; // v107: weekly leaderboard stele
+// v109: hourly law challenge plaque
 let _chalCanvas = null, _chalCtx = null, _chalTex = null, _chalMesh = null, _chalHour = -1;
 // v114: hourly challenges adapt to the user's chosen subject (was 記帳士-only)
 const _CHALLENGES_BY_SUBJECT = {
@@ -1361,57 +1222,7 @@ function _getChallengeList() {
   try { subj = (document.getElementById('inp-subject')||{}).value || subj; } catch(e){}
   return _CHALLENGES_BY_SUBJECT[subj] || _CHALLENGES_BY_SUBJECT['其他'];
 }
-
-function _studyMsForUser(u, now = Date.now()) {
-  if (!u) return 0;
-  const started = u.joinedAt || u.joined_at || now;
-  const liveMs = Math.max(0, now - started);
-  const savedMs = Math.max(0, u.todayStudyMs || u.studyMs || 0);
-  return savedMs + liveMs;
-}
-
-function _formatStudyTime(ms) {
-  const secs = Math.max(0, Math.floor(ms / 1000));
-  if (secs < 60) return '剛到';
-  const mins = Math.floor(secs / 60);
-  if (mins < 60) return `已讀 ${mins} 分鐘`;
-  return `已讀 ${Math.floor(mins / 60)} 小時 ${mins % 60} 分`;
-}
-
-function _selectSceneUsers(users, now = Date.now()) {
-  const list = Array.isArray(users) ? users.filter(Boolean) : [];
-  const self = list.find(u => u.isSelf);
-  const seen = new Set(self ? [self.key || self.name || 'self'] : []);
-  const others = list
-    .filter(u => !u.isSelf)
-    .sort((a, b) => {
-      const diff = _studyMsForUser(b, now) - _studyMsForUser(a, now);
-      if (diff) return diff;
-      return String(a.name || a.key || '').localeCompare(String(b.name || b.key || ''), 'zh-Hant');
-    })
-    .filter(u => {
-      const id = u.key || u.name;
-      if (!id || seen.has(id)) return false;
-      seen.add(id);
-      return true;
-    })
-    .slice(0, self ? SCENE_OTHER_LIMIT : SCENE_USER_LIMIT);
-  return self ? [self, ...others] : others;
-}
-
-function _onlineOverflowCount(users, sceneUsers = _selectSceneUsers(users)) {
-  return Math.max(0, (users || []).length - sceneUsers.length);
-}
-
-function _flowerStageForMinutes(minutes) {
-  if (minutes >= 180) return 4;
-  if (minutes >= 90) return 3;
-  if (minutes >= 50) return 2;
-  if (minutes >= 25) return 1;
-  return 0;
-}
-
-// v110: room ambiance system — total quiet presence softly reveals decorations
+// v110: room level system — total weekly study unlocks decorations
 let _roomLevel = 0, _levelUnlocks = [];
 let _deskPlantPos = []; // v97: per-desk potted-plant top position {x,y,z} for blooms
 let _deskBlooms = [];   // v97: active bloom flower sprites (rebuilt each avatar update)
@@ -1476,68 +1287,20 @@ let _threeTime = 0;
 let _flyInDone = false, _flyInStart = 0;
 let _previewOrbit = true, _previewAngle = 2.1;
 let _selfDeskIdx = 0; // local seat choice — not broadcast to others
-let rpgPlayer = { tx: 0, ty: 0 };
-
-function isBlocked(){ return false; }
-
-function centerCam(canvas, tx = 0, ty = 0) {
-  if (!_threeCamera || !_threeControls) return;
-  const wrapX = ((tx % ENDLESS_WALK_SEGMENTS) + ENDLESS_WALK_SEGMENTS) % ENDLESS_WALK_SEGMENTS;
-  const wrapY = ((ty % ENDLESS_WALK_SEGMENTS) + ENDLESS_WALK_SEGMENTS) % ENDLESS_WALK_SEGMENTS;
-  const ox = (wrapX - 1) * 1.4 + Math.sin(tx * 0.7) * 0.35;
-  const oz = (wrapY - 1) * 1.2 + Math.cos(ty * 0.6) * 0.35;
-  _previewOrbit = false;
-  _threeControls.target.set(ox, 1.0, oz);
-  _threeCamera.position.x += (ox - _threeCamera.position.x) * 0.16;
-  _threeCamera.position.z += ((8.5 + oz) - _threeCamera.position.z) * 0.16;
-  _threeControls.update();
-  const hint = document.getElementById('dpad-hint');
-  if (hint) hint.textContent = '安靜散步中・場景固定載入・Enter 回座位';
-  if (canvas) canvas.dataset.walkSegment = `${wrapX}-${wrapY}`;
-}
-
-function _resetWalkSeat() {
-  rpgPlayer.tx = 0;
-  rpgPlayer.ty = 0;
-  centerCam(document.getElementById('room-canvas'), 0, 0);
-}
-
-document.addEventListener('keydown', (e) => {
-  const tag = (e.target && e.target.tagName || '').toLowerCase();
-  if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
-  const keyMap = {
-    ArrowUp: [0, -1], w: [0, -1], W: [0, -1],
-    ArrowDown: [0, 1], s: [0, 1], S: [0, 1],
-    ArrowLeft: [-1, 0], a: [-1, 0], A: [-1, 0],
-    ArrowRight: [1, 0], d: [1, 0], D: [1, 0],
-  };
-  if (e.key === 'Enter') {
-    _resetWalkSeat();
-    return;
-  }
-  const step = keyMap[e.key];
-  if (!step) return;
-  const nx = rpgPlayer.tx + step[0], ny = rpgPlayer.ty + step[1];
-  if (!isBlocked(nx, ny)) {
-    rpgPlayer.tx = nx;
-    rpgPlayer.ty = ny;
-    centerCam(document.getElementById('room-canvas'), nx, ny);
-  }
-});
 // Wave150: 台北即時天氣
 let _weatherCode = 0, _weatherTemp = '--';
 // Wave144: tree growth milestones
 let _lastTreeStage = -1, _treeCheckTimer = 0;
 
 const _QUOTES = [
-  '慢慢讀也很好\n你已經坐下來了',
-  'SoFa 自習室\n有人安靜陪你一段路',
-  '今天先完成一小段\n就值得被記下來',
-  '窗光剛好\n把注意力放回桌面',
-  '不用急著證明什麼\n先陪自己讀 25 分鐘',
-  '翻開一頁\n房間也會跟著安靜下來',
-  '小花陪你長大\n時間會留下柔軟的痕跡',
-  '有想說的話\n輕輕喊一聲就好',
+  '每讀一條，離上榜更近一步',
+  '今日努力的你\n就是明日考場的勝者',
+  '法條不難\n難的是今天有沒有翻開它',
+  '千里之行\n始於今日的 30 分鐘',
+  '你在讀書，對手也在讀書\n但你讀得更用心',
+  '熟讀法條，胸有成竹\n應試如魚得水',
+  '堅持到最後一刻的人\n考場上笑得最燦爛',
+  '每一次練習題\n都是在縮短與及格的距離',
 ];
 
 // ── 24節氣 2026 ──────────────────────────────────────────────────────────
@@ -4585,16 +4348,16 @@ function initThreeScene(canvas) {
   const boardPinMesh = new THREE.Mesh(new THREE.SphereGeometry(0.055,6,6), new THREE.MeshBasicMaterial({color:0xDD3333}));
   boardPinMesh.position.set(0,3.65,-7.73); _threeScene.add(boardPinMesh);
 
-  // Subject posters on back wall
+  // Law posters on back wall
   (function() {
     const posterDefs = [
       {
-        x: -3.2, title: '記帳士',
-        lines: ['法規牆面整理中', '先讀 25 分鐘', '留下今日記錄', '資料將接 LAW_DB'],
+        x: -3.2, title: '記帳士法',
+        lines: ['§1 立法宗旨', '§2 業務範圍', '§3 資格條件', '§4 懲戒規定'],
       },
       {
-        x:  3.2, title: '財稅行政',
-        lines: ['考科牆面整理中', '重點不急著塞滿', '專注今日任務', '資料將接 LAW_DB'],
+        x:  3.2, title: '稅捐稽徵法',
+        lines: ['§1 課稅原則', '§6 優先受償', '§24 保全措施', '§48-1 加計利息'],
       },
     ];
     posterDefs.forEach(def => {
@@ -4672,9 +4435,10 @@ function initThreeScene(canvas) {
         }
         return;
       }
-      if (_ud.isChallenge) {
+      if (_ud.isChallenge) { // v109: hourly challenge → open the quiz
+        window.open('quiz.html', '_blank');
         const el = document.createElement('div'); el.className = 'room-toast';
-        el.textContent = '考科牆面內容整理中，先安靜讀一段。';
+        el.textContent = '挑戰本小時法條 💪';
         const ct = document.getElementById('toast-container');
         if(ct){ ct.appendChild(el); setTimeout(()=>el.remove(), 2600); }
         return;
@@ -4694,12 +4458,13 @@ function initThreeScene(canvas) {
         return;
       }
       if (_ud.userIndex !== undefined) {
-        const u = _sceneUsers[_ud.userIndex];
+        const u = _currentUsers[_ud.userIndex];
         if (u) {
-          const t = _formatStudyTime(_studyMsForUser(u));
+          const secs = Math.floor((Date.now()-(u.joinedAt||Date.now()))/1000);
+          const t = secs<60?'剛到':secs<3600?`已讀 ${Math.floor(secs/60)} 分鐘`:`已讀 ${Math.floor(secs/3600)} 小時 ${Math.floor((secs%3600)/60)} 分`;
           document.getElementById('rpg-popup-name').textContent = u.name;
           document.getElementById('rpg-popup-subject').textContent = (ICONS[u.subject]||'📚')+' '+(u.subject||'記帳士');
-          document.getElementById('rpg-popup-time').textContent = t+(u.isGhost?' · 安靜陪讀':' · 專注中');
+          document.getElementById('rpg-popup-time').textContent = t+(u.isGhost?' · 鬼魂用功中':' · 專注中');
           const popup2 = document.getElementById('rpg-popup');
           popup2.style.left = (e.clientX - rect.left + 10) + 'px';
           popup2.style.top  = (e.clientY - rect.top  - 60) + 'px';
@@ -4717,7 +4482,7 @@ function initThreeScene(canvas) {
       }
       if (_ud.isDesk) {
         const clickedDeskIdx = _ud.deskIdx ?? 0;
-        const otherCount = _sceneUsers.filter(u => !u.isSelf).length;
+        const otherCount = _currentUsers.filter(u => !u.isSelf).length;
         const isOccupied = clickedDeskIdx >= 1 && clickedDeskIdx <= otherCount;
         if (isOccupied) {
           _showDeskMenu(e.clientX, e.clientY); // occupied: study quick-links
@@ -4773,12 +4538,12 @@ function initThreeScene(canvas) {
         glow.visible = true;
         foundDesk = true;
         // Color: gold for empty (available to sit), blue for occupied
-        const otherCount = _sceneUsers.filter(u => !u.isSelf).length;
+        const otherCount = _currentUsers.filter(u => !u.isSelf).length;
         const isAvailable = hdi === 0 || hdi > otherCount;
         glow.material.color.setHex(isAvailable ? 0x90E060 : 0x5BAFD6);
         canvas.style.cursor = isAvailable ? 'pointer' : '';
         // Wave 54: show tooltip for occupied desk
-        const hoveredUser = _sceneUsers[hdi];
+        const hoveredUser = _currentUsers[hdi];
         if(hoveredUser && !hoveredUser.isSelf){
           _showDeskTooltip(e.clientX, e.clientY, hoveredUser);
         } else {
@@ -6426,7 +6191,7 @@ function initThreeScene(canvas) {
     tabScrn.position.set(CX-0.7, CH+0.05, CZ-0.01); tabScrn.rotation.x = -Math.PI/2+0.35; _threeScene.add(tabScrn);
   }
 
-    // Quiet companion board near the entrance
+  // v107: 本週讀書榜石碑 — weekly leaderboard stele near the entrance
   { _steleCanvas = document.createElement('canvas'); _steleCanvas.width = 256; _steleCanvas.height = 384;
     _steleCtx = _steleCanvas.getContext('2d');
     _steleTex = new THREE.CanvasTexture(_steleCanvas);
@@ -6454,7 +6219,7 @@ function initThreeScene(canvas) {
     _updateStele(_currentUsers || []);
   }
 
-  // Subject wall — calm study context, content can later be connected to verified data
+  // v109: 整點法條挑戰 — hanging plaque near the entrance, content rotates by hour
   { _chalCanvas = document.createElement('canvas'); _chalCanvas.width = 384; _chalCanvas.height = 200;
     _chalCtx = _chalCanvas.getContext('2d');
     _chalTex = new THREE.CanvasTexture(_chalCanvas);
@@ -7030,7 +6795,7 @@ window._triggerConfetti = function() {
   }
 };
 
-// Redraw the quiet companion board face.
+// v107: redraw the weekly leaderboard stele face (top 3 by weekPts)
 function _updateStele(users) {
   if (!_steleCtx || !_steleTex) return;
   const c = _steleCtx, W = 256, H = 384;
@@ -7039,29 +6804,30 @@ function _updateStele(users) {
   c.strokeStyle = '#C8A84E'; c.lineWidth = 5; c.strokeRect(10,10,W-20,H-20);
   c.strokeStyle = 'rgba(200,168,78,0.45)'; c.lineWidth = 2; c.strokeRect(18,18,W-36,H-36);
   c.fillStyle = '#E8C868'; c.font = 'bold 30px serif'; c.textAlign = 'center';
-  c.fillText('陪讀大廳', W/2, 56);
+  c.fillText('本週讀書榜', W/2, 56);
   c.fillStyle = 'rgba(220,200,150,0.7)'; c.font = '13px sans-serif';
-  c.fillText('最久 19 名＋自己', W/2, 78);
+  c.fillText('SoFa 自習室', W/2, 78);
   c.strokeStyle = 'rgba(200,168,78,0.4)'; c.lineWidth = 1.5;
   c.beginPath(); c.moveTo(28,94); c.lineTo(W-28,94); c.stroke();
-  const top = (users||[]).filter(u => u && !u.isGhost).slice(0,3);
+  const top = (users||[]).filter(u => u && !u.isGhost)
+    .sort((a,b) => (b.weekPts||0)-(a.weekPts||0)).slice(0,3);
   if (top.length === 0) {
     c.fillStyle = 'rgba(220,210,180,0.55)'; c.font = '17px sans-serif'; c.textAlign = 'center';
-    c.fillText('先坐下來', W/2, 190);
+    c.fillText('還沒有人上榜', W/2, 190);
     c.fillStyle = 'rgba(220,210,180,0.4)'; c.font = '14px sans-serif';
-    c.fillText('慢慢讀也很好', W/2, 218);
+    c.fillText('開始讀書搶第一', W/2, 218);
   } else {
-    const markerCol = ['#E8C84E','#D9C18A','#C8B078'];
+    const medalCol = ['#E8C84E','#C2C6CE','#CC8A54'];
     const rowY = [150, 232, 314];
     top.forEach((u,i) => {
       const y = rowY[i];
-      c.fillStyle = markerCol[i]; c.beginPath(); c.arc(46, y-6, 19, 0, Math.PI*2); c.fill();
+      c.fillStyle = medalCol[i]; c.beginPath(); c.arc(46, y-6, 19, 0, Math.PI*2); c.fill();
       c.fillStyle = '#3A2E10'; c.font = 'bold 22px sans-serif'; c.textAlign = 'center';
-      c.fillText('·', 46, y+2);
+      c.fillText(String(i+1), 46, y+2);
       c.fillStyle = '#F2E6C2'; c.font = 'bold 23px sans-serif'; c.textAlign = 'left';
       c.fillText((u.name||'考生').slice(0,6), 78, y-2);
       c.fillStyle = '#D8B85A'; c.font = '16px sans-serif';
-      c.fillText(_formatStudyTime(_studyMsForUser(u)), 78, y+22);
+      c.fillText((u.weekPts||0) + ' 分', 78, y+22);
       if (u.subject) { c.fillStyle = 'rgba(205,195,165,0.6)'; c.font = '13px sans-serif';
         c.fillText(u.subject, 150, y+22); }
     });
@@ -7069,12 +6835,12 @@ function _updateStele(users) {
   _steleTex.needsUpdate = true;
 }
 
-// Redraw the subject wall. Verified subject content can be connected later.
+// v109: redraw the hourly law-challenge plaque (content rotates by hour)
 function _updateChallenge() {
   if (!_chalCtx || !_chalTex) return;
   const hr = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
-  let subj = '記帳士';
-  try { subj = (document.getElementById('inp-subject')||{}).value || subj; } catch(e){}
+  const _clist = _getChallengeList();
+  const ch = _clist[hr % _clist.length];
   const c = _chalCtx, W = 384, H = 200;
   const bg = c.createLinearGradient(0,0,0,H); bg.addColorStop(0,'#F6ECCF'); bg.addColorStop(1,'#E8D7AC');
   c.fillStyle = bg; c.fillRect(0,0,W,H);
@@ -7082,25 +6848,24 @@ function _updateChallenge() {
   c.strokeStyle = 'rgba(154,106,40,0.5)'; c.lineWidth = 2; c.strokeRect(16,16,W-32,H-32);
   // header
   c.fillStyle = '#B5451E'; c.font = 'bold 26px serif'; c.textAlign = 'center';
-  c.fillText('考科牆面', W/2, 50);
-  // subject
+  c.fillText('⏰ 本小時挑戰', W/2, 50);
+  // law + article (big)
   c.fillStyle = '#3A2A12'; c.font = 'bold 30px serif';
-  c.fillText(subj, W/2, 100);
-  // calm placeholder
+  c.fillText(ch.law + ' ' + ch.art, W/2, 100);
+  // question
   c.fillStyle = '#5A4422'; c.font = '19px sans-serif';
-  c.fillText('內容整理中，之後接真實題庫資料', W/2, 138);
-  // note
+  c.fillText(ch.q, W/2, 138);
+  // CTA
   c.fillStyle = '#1A6A8A'; c.font = 'bold 18px sans-serif';
-  c.fillText('先把今天這段讀完就好', W/2, 174);
+  c.fillText('👉 點我去作答', W/2, 174);
   _chalTex.needsUpdate = true;
   _chalHour = hr;
 }
 
-// Soft room ambiance from total quiet presence.
+// v110: room level from total weekly study — unlocks decorations + topbar badge
 function _applyRoomLevel(users) {
   const STEP = 200, MAXLV = 6;
-  const total = (users||[]).filter(u => u && !u.isGhost)
-    .reduce((s,u)=>s+Math.floor(_studyMsForUser(u)/60000), 0);
+  const total = (users||[]).filter(u => u && !u.isGhost).reduce((s,u)=>s+(u.weekPts||0), 0);
   const level = Math.max(1, Math.min(MAXLV, Math.floor(total/STEP) + 1));
   const leveledUp = level > _roomLevel;
   _roomLevel = level;
@@ -7108,21 +6873,20 @@ function _applyRoomLevel(users) {
   const b = document.getElementById('room-level-badge');
   if (b) {
     b.style.display = 'inline-flex';
-    b.innerHTML = '自習大廳 <span style="opacity:.55">· 靜讀中</span>';
+    const pct = level >= MAXLV ? 100 : Math.round(((total - (level-1)*STEP) / STEP) * 100);
+    b.innerHTML = '🏛 Lv.' + level + ' <span style="opacity:.55">·' + total + '分 ' + (level>=MAXLV?'MAX':pct+'%') + '</span>';
   }
   if (leveledUp && _roomLevel > 1 && typeof _showEntryToast !== 'function') { /* no-op guard */ }
 }
 
 function _updateThreeAvatars(users) {
-  users = Array.isArray(users) ? users : [];
-  _sceneUsers = _selectSceneUsers(users);
-  _updateStele(_sceneUsers);
-  _applyRoomLevel(_sceneUsers);
+  _updateStele(users); // v107: refresh weekly leaderboard stele
+  _applyRoomLevel(users); // v110: room level + unlock decorations
   // Detect new user joins (toast only after initial room load)
   const _isFirstRenderLocal = _seenUserIds.size === 0;
   const _newArrivals = new Set(); // Wave 44: track indices of newly-joined users
-  _sceneUsers.forEach((u, i) => {
-    const uid = u.key || u.id || u.name;
+  users.forEach((u, i) => {
+    const uid = u.id || u.name;
     if(!uid) return;
     if(!_seenUserIds.has(uid)){
       _seenUserIds.add(uid);
@@ -7148,17 +6912,17 @@ function _updateThreeAvatars(users) {
   _mixers.forEach(mx => mx.stopAllAction());
   _mixers.length = 0;
 
-  // Only render the light scene set — no overflow stacking.
-  _sceneUsers.slice(0, Math.min(SCENE_USER_LIMIT, _DESK_POS_3D.length)).forEach((u, i) => {
+  // Only render up to available desk positions — no overflow stacking
+  users.slice(0, _DESK_POS_3D.length).forEach((u, i) => {
     // Self can choose any empty desk locally; others stay at rank position
     const pos = (u.isSelf && _selfDeskIdx !== i) ? _DESK_POS_3D[_selfDeskIdx] : _DESK_POS_3D[i];
 
-    // v97: desk-plant blooms — quiet study duration → number of flowers
+    // v97: desk-plant blooms — weekly study points → number of flowers
     { const _bdIdx = (u.isSelf && _selfDeskIdx !== i) ? _selfDeskIdx : i;
       const pp = _deskPlantPos[_bdIdx];
       if(pp){
-        const minutes = Math.floor(_studyMsForUser(u) / 60000);
-        const nBloom = _flowerStageForMinutes(minutes) * 2; // 0-8 flowers
+        const pts = Math.max(0, u.weekPts || 0);
+        const nBloom = Math.min(8, Math.floor(pts / 15)); // 0–8 flowers
         const bloomCols = [0xFFC8DC, 0xFFB0CE, 0xF7A8C8, 0xFFD0E0];
         for(let bk=0; bk<nBloom; bk++){
           const ang = (bk / Math.max(1,nBloom)) * Math.PI*2 + bk*0.7;
@@ -7168,7 +6932,7 @@ function _updateThreeAvatars(users) {
           fl.position.set(pp.x+Math.cos(ang)*rr, pp.y + (bk%3)*0.028, pp.z+Math.sin(ang)*rr);
           _threeScene.add(fl); _deskBlooms.push(fl);
         }
-        if(minutes >= 180){
+        if(pts >= 120){ // top studier — crown bloom
           const crown = new THREE.Mesh(new THREE.IcosahedronGeometry(0.042,1),
             new THREE.MeshBasicMaterial({ color: 0xFF90B8 }));
           crown.position.set(pp.x, pp.y+0.07, pp.z); _threeScene.add(crown); _deskBlooms.push(crown);
@@ -7597,7 +7361,7 @@ function _updateThreeAvatars(users) {
     dg.fillStyle=gr; dg.fillRect(0,0,32,32);
     return new THREE.CanvasTexture(dc);
   })();
-  _sceneUsers.slice(0, Math.min(SCENE_USER_LIMIT, _DESK_POS_3D.length)).forEach((u, i) => {
+  users.slice(0, _DESK_POS_3D.length).forEach((u, i) => {
     if(_deskLampLights[i]) _deskLampLights[i].intensity = u.pomodoro ? 1.0 : 0.65;
     const vp = _DESK_VISUAL_POS_3D[i]; if(!vp) return;
     const gp = new THREE.Sprite(new THREE.SpriteMaterial({
@@ -7610,20 +7374,37 @@ function _updateThreeAvatars(users) {
     _threeScene.userData._deskGlowPools.push(gp);
   });
 
+  // Wave155: 3D crown 👑 on top-ranked real user
+  const topUser = [...users].filter(u => !u.isGhost && (u.weekPts||0) > 0)
+    .sort((a,b) => (b.weekPts||0)-(a.weekPts||0))[0];
+  if (topUser) {
+    const topIdx = users.indexOf(topUser);
+    if (topIdx >= 0 && topIdx < _DESK_POS_3D.length) {
+      const tp = _DESK_POS_3D[topIdx];
+      const cv = document.createElement('canvas'); cv.width = cv.height = 48;
+      const ctx = cv.getContext('2d');
+      ctx.font = '36px sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('👑', 24, 24);
+      const cr = new THREE.Sprite(new THREE.SpriteMaterial({
+        map: new THREE.CanvasTexture(cv), transparent: true, depthWrite: false
+      }));
+      cr.scale.set(0.45, 0.45, 1);
+      const _tvp = _DESK_VISUAL_POS_3D[topIdx] || {vx:tp[0], vz:tp[1]};
+      cr.position.set(_tvp.vx, 1.95, _tvp.vz + 0.64);
+      _threeScene.add(cr);
+      _userAvatarLabels.push(cr);
+    }
+  }
 }
 
 // Wave 64: time-of-day greeting
 function _showGreeting() {
-  if (LOW_POWER_SCENE) {
-    document.getElementById('greet-overlay')?.remove();
-    return;
-  }
   const h = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Taipei'})).getHours();
   let msg;
-  if (h >= 6 && h < 11)       msg = '早安，慢慢讀 ☀';
-  else if (h >= 11 && h < 17) msg = '午後安靜讀 📚';
-  else if (h >= 17 && h < 21) msg = '黃昏陪讀 🌆';
-  else                         msg = '深夜陪讀 🌙';
+  if (h >= 6 && h < 11)       msg = '早安，備考中 ☀';
+  else if (h >= 11 && h < 17) msg = '午後充電 📚';
+  else if (h >= 17 && h < 21) msg = '黃昏衝刺 🌆';
+  else                         msg = '深夜苦讀 🌙';
   const el = document.getElementById('greet-overlay');
   const main = document.getElementById('greet-main');
   if (!el || !main) return;
@@ -7633,7 +7414,7 @@ function _showGreeting() {
     el.style.transition = 'opacity 0.8s';
     el.style.opacity = '0';
     setTimeout(() => el.remove(), 800);
-  }, 1300);
+  }, 2200);
 }
 
 // Wave 66 — rain-on-glass overlay helpers
@@ -8490,17 +8271,6 @@ let _lawBoardTex = null;
 // 儲存法條文案供 modal 顯示
 let _lawBoardData = { title: '', text: '' };
 
-// 自習室法板：考科 → 法規對應（與 dashboard/practice 一致，7 科）
-const _ROOM_EXAM_LAWS = {
-  'bookkeeper': ['記帳士法','記帳士職業倫理道德規範','中華民國記帳士職業道德規範','記帳士法第三十五條規定之管理辦法','記帳士暨記帳及報稅代理人防制洗錢與打擊資恐辦法','記帳士懲戒委員會與懲戒覆審委員會組織及審議規則','公司法','公司登記辦法','商業登記法','商業登記申請辦法','商業會計法','商業會計處理準則','商業使用電子方式處理會計資料辦法','行政程序法','稅捐稽徵法','稅捐稽徵法施行細則','納稅者權利保護法','納稅者權利保護法施行細則','所得稅法','所得稅法施行細則','所得基本稅額條例','所得基本稅額條例施行細則','各類所得扣繳率標準','營利事業所得稅查核準則','加值型及非加值型營業稅法','加值型及非加值型營業稅法施行細則','兼營營業人營業稅額計算辦法','統一發票使用辦法','統一發票給獎辦法','遺產及贈與稅法','遺產及贈與稅法施行細則','特種貨物及勞務稅條例','特種貨物及勞務稅條例施行細則'],
-  'landadmin': ['民法','信託法','土地法','土地法施行法','平均地權條例','平均地權條例施行細則','土地徵收條例','土地徵收條例施行細則','地政士法','地政士法施行細則','土地登記規則','地籍測量實施規則','土地稅法','土地稅法施行細則','遺產及贈與稅法','遺產及贈與稅法施行細則','契稅條例','房屋稅條例','稅捐稽徵法','稅捐稽徵法施行細則','工程受益費徵收條例','所得稅法','所得稅法施行細則'],
-  'realestate': ['民法','土地法','平均地權條例','平均地權條例施行細則','土地徵收條例','非都市土地使用管制規則','區域計畫法','都市計畫法','土地稅法','土地稅法施行細則','契稅條例','房屋稅條例','所得稅法','所得稅法施行細則','不動產經紀業管理條例','不動產經紀業管理條例施行細則','公平交易法','消費者保護法','公寓大廈管理條例'],
-  'tax-admin': ['民法','稅捐稽徵法','稅捐稽徵法施行細則','納稅者權利保護法','納稅者權利保護法施行細則','所得稅法','所得稅法施行細則','所得基本稅額條例','所得基本稅額條例施行細則','加值型及非加值型營業稅法','加值型及非加值型營業稅法施行細則','土地稅法','土地稅法施行細則','房屋稅條例','契稅條例','貨物稅條例','印花稅法','使用牌照稅法','遺產及贈與稅法','遺產及贈與稅法施行細則'],
-  'tax-law': ['中華民國憲法','中華民國憲法增修條文','行政程序法','行政罰法','行政執行法','訴願法','行政訴訟法','國家賠償法','公務員服務法','公務人員任用法','稅捐稽徵法','稅捐稽徵法施行細則','所得稅法','加值型及非加值型營業稅法','遺產及贈與稅法','土地稅法','民法','刑法','納稅者權利保護法'],
-  'elem-admin': ['中華民國憲法','公務員服務法','公務人員任用法','民法','刑法','行政程序法','行政罰法','行政執行法','訴願法','行政訴訟法','國家賠償法'],
-  'post-acc': ['會計法','預算法','決算法','郵政法','公司法','商業會計法','稅捐稽徵法','所得稅法','加值型及非加值型營業稅法','個人資料保護法'],
-};
-
 function _buildDailyLawBoard() {
   const W = 512, H = 410;
   const bc = document.createElement('canvas');
@@ -8589,13 +8359,7 @@ function _buildDailyLawBoard() {
 
   setTimeout(async () => {
     try {
-      // 限定在使用者考科範圍內隨機（未選考科才全庫）
-      let _ek = '';
-      try { _ek = localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || (typeof memberProfile!=='undefined' && memberProfile && memberProfile.exam_key) || ''; } catch(e){}
-      const _laws = _ROOM_EXAM_LAWS[_ek] || [];
-      let _u = 'https://sofa-engine-api.onrender.com/api/random';
-      if (_laws.length) { _u += '?law=' + encodeURIComponent(_laws[Math.floor(Math.random()*_laws.length)]); }
-      const r = await fetch(_u);
+      const r = await fetch('https://sofa-engine-api.onrender.com/api/random');
       if (r.ok) { const d = await r.json(); _draw(d.title||'每日金句', d.original_text||''); }
       else _draw('每日金句', '今天也加油！備考不孤單。');
     } catch(e) { _draw('每日金句', '今天也加油！備考不孤單。'); }
@@ -9807,7 +9571,6 @@ function resizeThreeCanvas() {
 window.addEventListener('resize', resizeThreeCanvas);
 
 let _currentUsers = [];
-let _sceneUsers = [];
 let _boardNotes = [];
 
 // ── 設定 ──────────────────────────────────────────────────────────────
@@ -9892,13 +9655,13 @@ function _addStudyPoint() {
     channel.track({ name: _myTrackName, subject: _myTrackSubject, joined_at: joinedAt, weekPts: newWeekPts });
   }
   // Floating +1 in 3D
-  const si = _sceneUsers.findIndex(u => u.isSelf);
+  const si = _currentUsers.findIndex(u => u.isSelf);
   if (si >= 0 && si < _DESK_POS_3D.length) {
     const p = _DESK_POS_3D[si];
     _spawnPtsFloater(p[0], p[1]);
   }
   const selfEl = document.getElementById('rank-self-pts');
-  if (selfEl) selfEl.textContent = `小花陪你長大 · 今天完成 ${todayPts + 1} 段`;
+  if (selfEl) selfEl.textContent = `本週：${newWeekPts} 分`;
 }
 function _spawnPtsFloater(x, z) {
   if (!_threeScene) return;
@@ -10052,9 +9815,9 @@ function startPresence(name, subject){
       if(status === 'SUBSCRIBED'){
         _myTrackName = name; _myTrackSubject = subject;
         await channel.track({ name, subject, joined_at: joinedAt, weekPts: _getWeekPts() });
-	        const selfEl = document.getElementById('rank-self-pts');
-	        const wp = _getWeekPts();
-	        if (selfEl && wp > 0) selfEl.textContent = '小花陪你長大 · 完成番茄鐘會慢慢開花';
+        const selfEl = document.getElementById('rank-self-pts');
+        const wp = _getWeekPts();
+        if (selfEl && wp > 0) selfEl.textContent = `本週：${wp} 分`;
       }
     });
 }
@@ -10067,23 +9830,20 @@ function renderRoom(){
   // claimed but empty room). Count now matches the people actually shown.
   const ghosts   = getGhosts(real.length);
   const selfReal = real.find(u => u.key === myKey);
-  const othersReal = real
-    .filter(u => u.key !== myKey)
-    .sort((a,b) => (b.joined_at||Date.now())-(a.joined_at||Date.now()));
+  const othersReal = real.filter(u => u.key !== myKey).sort((a,b) => (b.weekPts||0)-(a.weekPts||0)).slice(0,30);
   const users    = [ ...(selfReal ? [selfReal] : []), ...othersReal, ...ghosts ];
-  const count    = users.length;
+  const count    = users.length; // honest: badge = avatars actually in the room
 
   // 更新 3D 場景用戶列表
   _currentUsers = users.map((u, i) => ({
     name: u.name || u.display_name || '匿名',
-	    subject: u.subject || '記帳士',
-	    joinedAt: u.joined_at || Date.now(),
-	    key: u.key || `user_${i}`,
-	    isSelf: u.key === myKey,
-	    isGhost: !!u.isGhost,
-	    weekPts: u.weekPts || 0,
-	  }));
-	  _updateThreeAvatars(_currentUsers);
+    subject: u.subject || '記帳士',
+    joinedAt: u.joined_at || Date.now(),
+    isSelf: u.key === myKey,
+    isGhost: !!u.isGhost,
+    weekPts: u.weekPts || 0,
+  }));
+  _updateThreeAvatars(_currentUsers);
   if(_threeScene && _threeScene.userData._drawCountSign) _threeScene.userData._drawCountSign(count);
 
   document.getElementById('count-badge').textContent = `${count} 人在線`;
@@ -10097,7 +9857,10 @@ function renderRoom(){
   grid.innerHTML = '';
   users.forEach(u => {
     const isMe = u.key === myKey;
-	    const timeLabel = _formatStudyTime(now - (u.joined_at || now));
+    const secs = Math.floor((now - u.joined_at) / 1000);
+    const timeLabel = secs < 60 ? '剛到' : secs < 3600
+      ? `已讀 ${Math.floor(secs/60)} 分鐘`
+      : `已讀 ${Math.floor(secs/3600)} 小時 ${Math.floor((secs%3600)/60)} 分`;
     const icon = ICONS[u.subject] || '📚';
 
     const el = document.createElement('div');
@@ -10127,32 +9890,30 @@ function renderRoom(){
       </div>
     </div>`;
   }).join('');
-  const overflowNote = _onlineOverflowCount(_currentUsers, _sceneUsers)
-    ? `<div class="online-overflow-note">場景只顯示最久 19 名＋自己，其餘同學都在名單。</div>`
-    : '<div class="online-overflow-note">小花陪你長大，先安靜讀一段。</div>';
-  document.getElementById('online-list').innerHTML = listHTML + overflowNote;
+  document.getElementById('online-list').innerHTML = listHTML;
   const mobList = document.getElementById('online-list-mob');
-  if(mobList) mobList.innerHTML = listHTML + overflowNote;
+  if(mobList) mobList.innerHTML = listHTML;
 
-  _renderQuietCompanions(real);
+  _renderWeekRank(real); // Wave155: 週排名（只計真人）
 }
 
-function _renderQuietCompanions(realUsers) {
+function _renderWeekRank(realUsers) {
   const el = document.getElementById('week-rank-list');
   if (!el) return;
-  const ranked = realUsers
-    .sort((a, b) => (a.joined_at || Date.now()) - (b.joined_at || Date.now()))
+  const ranked = realUsers.filter(u => (u.weekPts || 0) > 0)
+    .sort((a, b) => (b.weekPts || 0) - (a.weekPts || 0))
     .slice(0, 5);
   if (!ranked.length) {
-    el.innerHTML = '<div style="font-size:.7rem;color:var(--cream-2);opacity:.35;">先坐下來，慢慢讀也很好。</div>';
+    el.innerHTML = '<div style="font-size:.7rem;color:var(--cream-2);opacity:.35;">完成番茄鐘獲得積分</div>';
     return;
   }
+  const medals = ['🥇','🥈','🥉','4','5'];
   el.innerHTML = ranked.map((u, i) => {
     const isSelf = u.key === myKey;
     return `<div class="rank-item${isSelf?' rank-self':''}">
-      <span class="rank-medal">·</span>
+      <span class="rank-medal">${medals[i]}</span>
       <span class="rank-name">${esc(u.name || u.display_name || '匿名')}</span>
-      <span class="rank-pts">${_formatStudyTime(Date.now() - (u.joined_at || Date.now()))}</span>
+      <span class="rank-pts">${u.weekPts} 分</span>
     </div>`;
   }).join('');
 }
@@ -10332,13 +10093,13 @@ function showAway(){
   if(document.getElementById('lock-screen').classList.contains('on')) return;
   isAway = true;
   document.getElementById('away-overlay').classList.add('show');
-  const selfIdx = _sceneUsers.findIndex(u=>u.isSelf);
+  const selfIdx = _currentUsers.findIndex(u=>u.isSelf);
   if(selfIdx>=0 && _deskLampLights[selfIdx]) _deskLampLights[selfIdx].intensity = 0.04;
 }
 function hideAway(){
   isAway = false;
   document.getElementById('away-overlay').classList.remove('show');
-  const selfIdx = _sceneUsers.findIndex(u=>u.isSelf);
+  const selfIdx = _currentUsers.findIndex(u=>u.isSelf);
   if(selfIdx>=0 && _deskLampLights[selfIdx]) _deskLampLights[selfIdx].intensity = 0.65;
 }
 document.getElementById('btn-away-back')?.addEventListener('click', hideAway);
@@ -11092,8 +10853,8 @@ function pomTick(){
     clearInterval(pom.tick); pom.tick = null;
     if(pom.state === 'focus'){
       beep('done');
-      _addStudyPoint();
-      if(typeof _spawnConfettiBurst === 'function'){ const si=_sceneUsers.findIndex(u=>u.isSelf); const dp=_DESK_POS_3D[si>=0?si%_DESK_POS_3D.length:0]; _spawnConfettiBurst(dp[0], 2.2, dp[1]+0.9); }
+      _addStudyPoint(); // Wave155: 週積分 +1
+      if(typeof _spawnConfettiBurst === 'function'){ const si=_currentUsers.findIndex(u=>u.isSelf); const dp=_DESK_POS_3D[si>=0?si%_DESK_POS_3D.length:0]; _spawnConfettiBurst(dp[0], 2.2, dp[1]+0.9); }
       if(pom.round >= POM_ROUNDS){
         pom.state = 'longbreak'; pom.total = POM_LONG; pom.remaining = POM_LONG;
       } else {
@@ -11286,17 +11047,6 @@ window.startThreeAnimation = startThreeAnimation;
 window.resizeThreeCanvas = resizeThreeCanvas;
 window.switchEntryTab = switchEntryTab;
 window.enterWithSerial = enterWithSerial;
-// 場景右上工具列：這些函式定義在 module scope，inline onclick 找不到 → 補掛 window
-window.toggleAmbientSound = toggleAmbientSound;
-window._toggleAudioPanel = _toggleAudioPanel;
-window._toggleAchievePanel = _toggleAchievePanel;
-window._toggleThemePanel = _toggleThemePanel;
-window._toggleLayer = _toggleLayer;
-window.rpgPlayer = rpgPlayer;
-window.isBlocked = isBlocked;
-window.centerCam = centerCam;
-window._selectSceneUsers = _selectSceneUsers;
-window._flowerStageForMinutes = _flowerStageForMinutes;
 window._testInjectUsers = (users) => _updateThreeAvatars(users); // dev-only test hook
 window._testCamera = (x,y,z,tx,ty,tz) => {
   _threeCamera.position.set(x,y,z);
