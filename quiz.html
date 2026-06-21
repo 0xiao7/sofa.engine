@@ -416,6 +416,7 @@
       <div class="title">
         <span class="lab">LAW</span>
         <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:600;font-size:17px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none"><option value="">全部法規</option></select>
+        <span id="qz-scope-label" style="font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--peach);white-space:nowrap;display:none"></span>
       </div>
       <div id="law-status-bar" style="margin-top:4px;padding:6px 10px;background:rgba(255,255,255,0.04);border-radius:6px;border:1px solid rgba(100,160,220,0.15);font-size:11px;color:#aaa;min-height:28px;transition:opacity 0.2s;display:none"></div>
       <div class="title" id="artPickWrap" style="display:none">
@@ -661,6 +662,8 @@ function _saveAndApplyQzExam(key) {
   const sel = document.getElementById('lawSelect');
   const first = filtered[0];
   if(first&&sel){ sel.value=first.name; sel.dispatchEvent(new Event('change')); }
+  _updateQzScopeLabel(); // 切換考科後更新範圍標籤
+  loadQuiz();            // 自動出第一題，不必再按「出題」
 }
 
 function _showQzExamBanner() {
@@ -702,15 +705,28 @@ function _showQzExamBanner() {
   // Wave 73: restore last selected law
   function _restoreLastLaw() {
     const saved = localStorage.getItem('sofa_last_law');
-    if (!saved) return;
-    const opt = Array.from(sel.options).find(o => o.value === saved);
-    if (!opt) return;
-    sel.value = saved;
-    sel.dispatchEvent(new Event('change'));
-    // Wave 117: update status bar on page load after law is restored
-    _updateLawStatusBar(saved);
+    if (saved) {
+      const opt = Array.from(sel.options).find(o => o.value === saved);
+      if (opt) {
+        sel.value = saved;
+        sel.dispatchEvent(new Event('change'));
+        // Wave 117: update status bar on page load after law is restored
+        _updateLawStatusBar(saved);
+        return true;
+      }
+    }
+    return false;
   }
-  _restoreLastLaw();
+  const _restored = _restoreLastLaw();
+  // 自動帶入考科第一個範圍：未存過法規時，預設選「全部法規（本考科）」
+  const _hasExam = !!localStorage.getItem('sofa_exam_key');
+  if(!_restored && _hasExam){
+    const _allOpt = sel.querySelector('option[value="__all__"]');
+    if(_allOpt){ sel.value='__all__'; sel.dispatchEvent(new Event('change')); }
+  }
+  _updateQzScopeLabel();
+  // 進頁自動出第一題：只要已選考科（或已有選定法規）就直接出題，不必按「出題」
+  if(_restored || _hasExam){ loadQuiz(); }
 })();
 
 let _artCache = {};
@@ -794,6 +810,8 @@ document.getElementById('lawSelect').addEventListener('change', async function()
   _updateDailyBtn();
   // Wave 117: update law status bar
   _updateLawStatusBar(this.value);
+  // 範圍標籤跟著選單即時更新
+  _updateQzScopeLabel();
   const law = this.value;
   const wrap = document.getElementById('artPickWrap');
   const dl   = document.getElementById('artDatalist');
@@ -1155,6 +1173,29 @@ function _updateLawStatusBar(lawName) {
       <div style="background:${color};border-radius:3px;height:4px;width:${pct}%;transition:width 0.4s"></div>
     </div>
   `;
+}
+
+// ── 出題範圍標籤：{考科顯示名}＿全部法規（N 部）／或單一法規名 ──────────
+function _updateQzScopeLabel() {
+  const el = document.getElementById('qz-scope-label');
+  if (!el) return;
+  const sel = document.getElementById('lawSelect');
+  const v = sel ? sel.value : '';
+  const examKey = localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || '';
+  const examName = _EXAM_NAMES[examKey] || '';
+  // 全部法規 / 未選具體法規 → 顯示「{考科}＿全部法規（N 部）」
+  if (v === '' || v === '__all__') {
+    const n = _allLawNames.length;
+    const scope = examName ? `${examName}＿全部法規` : '全部法規';
+    el.textContent = n ? `${scope}（${n} 部）` : scope;
+    el.style.display = 'inline';
+    return;
+  }
+  // 特殊清單（收藏 / 重點 / 已熟記 / 待複習）→ 不顯示範圍標籤，交由下拉自身呈現
+  if (v.startsWith('__')) { el.style.display = 'none'; return; }
+  // 指定單一法規 → 顯示該法規名
+  el.textContent = v;
+  el.style.display = 'inline';
 }
 
 // ── 音效（Web Audio，懶初始化）────────────────────────────────────
@@ -2111,6 +2152,7 @@ document.addEventListener('DOMContentLoaded', () => {
   try { localStorage.setItem('sofa_last_tool', 'quiz'); } catch(e) {}
   const _openParam = new URLSearchParams(location.search).get('open');
   if(_openParam === 'weakness') { setTimeout(()=>{ _openWeakness(); }, 400); }
+  if(_openParam === 'wrong') { setTimeout(()=>{ const _bw=document.getElementById('btnWrong'); if(_bw){ _bw.click(); _bw.scrollIntoView({behavior:'smooth',block:'center'}); } }, 450); }
   refreshWrongCount();
   _updateDailyBtn();
   _renderQuizStreak(); // Wave 124: 每日連刷天數

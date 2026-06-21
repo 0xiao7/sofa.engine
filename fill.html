@@ -330,6 +330,7 @@
       <div class="title">
         <span class="law">LAW</span>
         <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:600;font-size:18px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none"><option value="">全部法規</option></select>
+        <span id="fill-scope-label" style="font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--peach);white-space:nowrap;display:none"></span>
       </div>
       <div id="fill-status-bar" style="
         margin-top:4px;padding:6px 10px;
@@ -609,6 +610,7 @@ function _showFillExamBanner() {
     const _defFillOpt = sel.querySelector('option[value="記帳士法"]') || sel.querySelector('option:not([disabled]):not([value^="__"])');
     if(_defFillOpt){ sel.value = _defFillOpt.value; sel.dispatchEvent(new Event('change')); _updateFillStatusBar(_defFillOpt.value); loadNew(); }
   }
+  _updateFillScopeLabel();
 })();
 
 let _artCache = {};
@@ -673,6 +675,8 @@ document.getElementById('lawSelect').addEventListener('change', async function()
   localStorage.setItem('sofa_fill_law', this.value);
   // Wave 118: update law proficiency status bar
   _updateFillStatusBar(this.value);
+  // 範圍標籤跟著選單即時更新
+  _updateFillScopeLabel();
   const sfBtn = document.getElementById('btnFillSession');
   // Wave 110: __all__ is a valid practice mode — show session button; other __ values hide it
   if(sfBtn) sfBtn.style.display = (this.value && (!this.value.startsWith('__') || this.value==='__all__')) ? '' : 'none';
@@ -741,6 +745,29 @@ function _updateFillStatusBar(lawName) {
       <div style="background:${color};border-radius:3px;height:4px;width:${barPct}%;transition:width 0.4s"></div>
     </div>
   `;
+}
+
+// ── 填空範圍標籤：{考科顯示名}＿全部法規（N 部）／或單一法規名 ──────────
+function _updateFillScopeLabel() {
+  const el = document.getElementById('fill-scope-label');
+  if (!el) return;
+  const sel = document.getElementById('lawSelect');
+  const v = sel ? sel.value : '';
+  const examKey = localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || '';
+  const examName = _EXAM_NAMES[examKey] || '';
+  // 全部法規 / 未選具體法規 → 顯示「{考科}＿全部法規（N 部）」
+  if (v === '' || v === '__all__') {
+    const n = _allFillLawNames.length;
+    const scope = examName ? `${examName}＿全部法規` : '全部法規';
+    el.textContent = n ? `${scope}（${n} 部）` : scope;
+    el.style.display = 'inline';
+    return;
+  }
+  // 特殊清單（收藏 / 重點 / 已熟記 / 待複習）→ 不顯示範圍標籤
+  if (v.startsWith('__')) { el.style.display = 'none'; return; }
+  // 指定單一法規 → 顯示該法規名
+  el.textContent = v;
+  el.style.display = 'inline';
 }
 
 const _FREE_SECS=[

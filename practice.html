@@ -380,6 +380,7 @@
         <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:500;font-size:15px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none;min-width:80px;max-width:200px"><option value="">全部法規</option></select>
         <span class="car">▾</span>
       </div>
+      <span id="prScopeLabel" style="display:none;font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--peach);background:rgba(231,187,167,.1);border:1px solid rgba(231,187,167,.3);border-radius:3px;padding:4px 10px;white-space:nowrap"></span>
       <div id="practice-status-bar" style="
         margin-top:4px;padding:6px 10px;
         background:rgba(255,255,255,0.04);
@@ -639,6 +640,42 @@ function _filterLawsForExam(laws, key) {
   return set ? laws.filter(l => set.has(l.name)) : laws;
 }
 
+// ── 出題範圍標示：明確標出「所選考科的全部法規」或單一法規 ──────
+function _updateScopeLabel(lawVal) {
+  const el = document.getElementById('prScopeLabel');
+  if (!el) return;
+  const v = (lawVal !== undefined) ? lawVal
+    : ((document.getElementById('lawSelect') || {}).value || '');
+  const examKey = localStorage.getItem('sofa_exam_key')
+    || localStorage.getItem('sofa.dash.exam.pick') || '';
+  const examName = _EXAM_NAMES[examKey] || '';
+  // 特殊集合（重點/收藏/已熟記/待複習）→ 用選單文字
+  if (v && v.startsWith('__')) {
+    const sel = document.getElementById('lawSelect');
+    const opt = sel && sel.querySelector(`option[value="${CSS.escape(v)}"]`);
+    el.textContent = '出題範圍：' + ((opt && opt.textContent) || v);
+    el.style.display = '';
+    return;
+  }
+  // 全部法規（lawSelect 為空）→ 顯示「{考科}＿全部法規（N 部）」
+  if (!v) {
+    if (examName) {
+      const cnt = _filterLawsForExam(_allLoadedPrLaws, examKey).length
+        || (_EXAM_LAWS[examKey] ? _EXAM_LAWS[examKey].length : 0);
+      el.textContent = '出題範圍：' + examName + '＿全部法規'
+        + (cnt ? '（' + cnt + ' 部）' : '');
+    } else {
+      const cnt = _allLoadedPrLaws.length;
+      el.textContent = '出題範圍：全部法規' + (cnt ? '（' + cnt + ' 部）' : '');
+    }
+    el.style.display = '';
+    return;
+  }
+  // 指定單一法規 → 顯示該法規名稱
+  el.textContent = '出題範圍：' + v;
+  el.style.display = '';
+}
+
 function _repopulatePrSel(laws) {
   const sel = document.getElementById('lawSelect');
   // Remove existing law options (keep __ special ones)
@@ -657,6 +694,9 @@ function _saveAndApplyPrExam(key) {
   const firstLaw = filtered[0];
   if(firstLaw&&sel){ sel.value=firstLaw.name; sel.dispatchEvent(new Event('change')); }
   _updatePracticeStatusBar(sel&&sel.value||'');
+  _updateScopeLabel(sel&&sel.value||'');
+  // 自動出題：選定考科後立即帶出第一條
+  if(sel&&sel.value&&typeof loadNew==='function') loadNew();
 }
 
 function _showPrExamBanner() {
@@ -699,6 +739,17 @@ function _showPrExamBanner() {
     if (_defOpt) { sel.value = _defOpt.value; sel.dispatchEvent(new Event('change')); }
   }
   _updatePracticeStatusBar(sel.value);
+  _updateScopeLabel(sel.value);
+  // 「點進練習區就自動出題」：已選考科/法規即立即帶出第一條
+  // 未選考科時不動，沿用 _showPrExamBanner 的「未選考科自動提示」
+  const _examKeyNow = localStorage.getItem('sofa_exam_key')
+    || localStorage.getItem('sofa.dash.exam.pick') || '';
+  if (sel.value && (sel.value.startsWith('__') ? !!uid : true)) {
+    if (typeof loadNew === 'function') loadNew();
+  } else if (_examKeyNow && !sel.value) {
+    // 已選考科但停在「全部法規」→ 一樣自動出題（跨全科）
+    if (typeof loadNew === 'function') loadNew();
+  }
 })();
 
 // ── 條號選單：選法規後填入 datalist ────────────────────────────
@@ -758,6 +809,7 @@ document.addEventListener('DOMContentLoaded',function(){
 document.getElementById('lawSelect').addEventListener('change', async function(){
   localStorage.setItem('sofa_practice_law', this.value);
   _updatePracticeStatusBar(this.value);
+  _updateScopeLabel(this.value);
   const law = this.value;
   const wrap = document.getElementById('artPickWrap');
   const dl   = document.getElementById('artDatalist');
