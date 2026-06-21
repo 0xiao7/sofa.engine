@@ -271,8 +271,10 @@
     .opt .body{font-size:14.5px}
     .opt.right::after,.opt.wrong::after{display:none}
     .q-foot{flex-direction:column;align-items:stretch}
+    .q-foot .l{display:none}            /* 鍵盤快捷提示在觸控手機無意義，收起 */
     .q-foot .r{flex-direction:column}
     .rail{flex-direction:column}
+    #kb-hint{display:none}              /* 浮動鍵盤提示列會壓到「下一題」，手機收起 */
   }
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
@@ -422,7 +424,8 @@
       <a href="dashboard.html" class="back">← BACK</a>
       <div class="title">
         <span class="lab">LAW</span>
-        <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:600;font-size:17px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none"><option value="">全部法規</option></select>
+        <select id="lawSelect" style="display:none"><option value="">全部法規</option></select>
+        <div class="law-dd" id="lawDD"><button type="button" class="law-dd-btn" id="lawDDBtn"><span id="lawDDLabel">全部法規</span><span class="cv">▾</span></button><div class="law-dd-pop" id="lawDDPop"></div></div>
         <span id="qz-scope-label" style="font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--peach);white-space:nowrap;display:none"></span>
       </div>
       <div id="law-status-bar" style="margin-top:4px;padding:6px 10px;background:rgba(255,255,255,0.04);border-radius:6px;border:1px solid rgba(100,160,220,0.15);font-size:11px;color:#aaa;min-height:28px;transition:opacity 0.2s;display:none"></div>
@@ -1038,7 +1041,7 @@ function _buildQuizCalendar(s) {
   const maxCount = Math.max(...days.map(d => d.count), 1);
 
   let html = `<div style="margin-top:12px">
-    <div style="font-size:10px;color:#aaa;margin-bottom:6px">📅 近30日答題</div>
+    <div style="font-size:10px;color:#aaa;margin-bottom:6px">近 30 日答題</div>
     <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px">`;
 
   days.forEach(({ count, isToday }) => {
@@ -1433,7 +1436,7 @@ function showSprintResults(timeSec) {
       (a.q.options || []).forEach((opt, oi) => {
         const isChosen = oi === a.chosen, isCorrect = oi === a.correct;
         const bg = isCorrect ? 'rgba(46,204,113,0.15)' : isChosen ? 'rgba(231,76,60,0.15)' : 'transparent';
-        const border = isCorrect ? '#2ECC71' : isChosen ? '#E74C3C' : 'rgba(255,255,255,0.08)';
+        const border = isCorrect ? '#9FB89F' : isChosen ? '#E74C3C' : 'rgba(255,255,255,0.08)';
         const mark = isCorrect ? ' ✓' : isChosen ? ' ✗' : '';
         html += '<div style="border:1px solid ' + border + ';background:' + bg + ';border-radius:6px;padding:6px 10px;margin-top:5px;font-size:13px;color:#B0C8D4">' + ['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][oi] + '  ' + esc(opt) + '<span style="float:right;font-weight:700">' + mark + '</span></div>';
       });
@@ -1493,7 +1496,7 @@ async function _shareQuizResult() {
   const lines = [
     `${grade} SoFa 答題成績`,
     `📚 法規：${lawName}`,
-    `✅ 答對：${correct}/${total} (${pct}%)`,
+    `✓ 答對：${correct}/${total} (${pct}%)`,
     bestStreak >= 3 ? `🔥 最高連對：${bestStreak}題` : null,
     avgSec ? `⏱ 平均作答：${avgSec}秒` : null,
     `━━━━━━━━━━`,
@@ -2280,7 +2283,7 @@ function openStats() {
       byLawHtml = '<div style="margin-top:20px"><div style="color:#8ABED6;font-size:12px;margin-bottom:10px">各法答題分布</div>' +
         laws.map(([name,d]) => {
           const p = Math.round(d.correct/d.total*100);
-          const bar = `<div style="height:4px;background:rgba(91,175,214,0.15);border-radius:2px;margin-top:4px"><div style="width:${p}%;height:100%;background:${p>=80?'#2ECC71':p>=60?'#5BAFD6':'#E74C3C'};border-radius:2px;transition:width 0.6s"></div></div>`;
+          const bar = `<div style="height:4px;background:rgba(91,175,214,0.15);border-radius:2px;margin-top:4px"><div style="width:${p}%;height:100%;background:${p>=80?'#9FB89F':p>=60?'#5BAFD6':'#E74C3C'};border-radius:2px;transition:width 0.6s"></div></div>`;
           return `<div style="background:#0D1F2D;border-radius:8px;padding:10px 12px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#C8DDE8">${name}</span><span style="color:#8ABED6">${d.correct}/${d.total} (${p}%)</span></div>${bar}</div>`;
         }).join('') + '</div>';
     }
@@ -2363,7 +2366,7 @@ function _renderRailWeakness() {
 
   el.innerHTML = lawWrongs.slice(0, 5).map(({ name, wrong, total }) => {
     const pct = Math.round((total - wrong) / total * 100);
-    const bar = `<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin:3px 0 2px"><div style="width:${pct}%;height:100%;background:${pct>=80?'#2ECC71':pct>=50?'#5BAFD6':'#E74C3C'};border-radius:2px"></div></div>`;
+    const bar = `<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin:3px 0 2px"><div style="width:${pct}%;height:100%;background:${pct>=80?'#9FB89F':pct>=50?'#5BAFD6':'#E74C3C'};border-radius:2px"></div></div>`;
     return `<div style="margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
         <span style="font-size:11px;color:#C8DDE8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${esc(name)}</span>
@@ -2429,7 +2432,7 @@ function _renderWrongList() {
     .sort((a, b) => b.wrong - a.wrong);
 
   if (lawWrongs.length === 0 && bank.length === 0) {
-    panel.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(245,240,234,0.4);font-size:14px">✅ 目前沒有錯題紀錄</div>';
+    panel.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(245,240,234,0.4);font-size:14px">✓ 目前沒有錯題紀錄</div>';
     return;
   }
 
@@ -2465,7 +2468,7 @@ function _renderWrongList() {
     html += '<div style="display:flex;flex-direction:column;gap:8px;">';
     lawWrongs.forEach(({ name, wrong, total }) => {
       const pct = Math.round((total - wrong) / total * 100);
-      const color = pct >= 80 ? '#2ECC71' : pct >= 60 ? '#5BAFD6' : '#E74C3C';
+      const color = pct >= 80 ? '#9FB89F' : pct >= 60 ? '#5BAFD6' : '#E74C3C';
       const bar = `<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:5px"><div style="width:${pct}%;height:100%;background:${color};border-radius:2px"></div></div>`;
       html += `<div style="background:#0D1F2D;border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
         <div style="flex:1;min-width:0;">
@@ -2567,7 +2570,7 @@ function _renderExamHistory() {
   const rows = history.slice(0, 10);
   html += '<div style="display:flex;flex-direction:column;gap:8px;">';
   rows.forEach(e => {
-    const color = e.pct >= 80 ? '#2ECC71' : e.pct >= 60 ? '#D4A847' : '#E74C3C';
+    const color = e.pct >= 80 ? '#9FB89F' : e.pct >= 60 ? '#D4A847' : '#E74C3C';
     const bgColor = e.pct >= 80 ? 'rgba(46,204,113,0.08)' : e.pct >= 60 ? 'rgba(212,168,71,0.08)' : 'rgba(231,76,60,0.08)';
     const minStr = Math.floor(e.durationSec / 60);
     const secStr = (e.durationSec % 60).toString().padStart(2, '0');
@@ -2670,6 +2673,36 @@ function _stopExamTimer() {
   const el = document.getElementById('exam-timer');
   if (el) el.style.display = 'none';
 }
+</script>
+<script>
+// 自製法規下拉：以隱藏的 <select id="lawSelect"> 為真實狀態，自畫選單只負責顯示與品牌色高亮
+(function(){
+  var sel=document.getElementById('lawSelect');
+  var dd=document.getElementById('lawDD');
+  var btn=document.getElementById('lawDDBtn');
+  var pop=document.getElementById('lawDDPop');
+  var label=document.getElementById('lawDDLabel');
+  if(!sel||!dd||!btn||!pop||!label) return;
+  function syncLabel(){ var o=sel.selectedOptions[0]; label.textContent=o?o.textContent:'全部法規'; }
+  function buildPop(){
+    pop.innerHTML='';
+    Array.prototype.forEach.call(sel.options,function(o){
+      if(o.disabled){ var s=document.createElement('div');s.className='law-dd-sep';pop.appendChild(s);return; }
+      var it=document.createElement('div');
+      it.className='law-dd-item'+(o.value===sel.value?' sel':'');
+      it.textContent=o.textContent;
+      it.addEventListener('click',function(){ sel.value=o.value; sel.dispatchEvent(new Event('change')); syncLabel(); close(); });
+      pop.appendChild(it);
+    });
+  }
+  function open(){ buildPop(); dd.classList.add('open'); var s=pop.querySelector('.sel'); if(s)s.scrollIntoView({block:'nearest'}); }
+  function close(){ dd.classList.remove('open'); }
+  btn.addEventListener('click',function(e){ e.stopPropagation(); dd.classList.contains('open')?close():open(); });
+  document.addEventListener('click',function(e){ if(!dd.contains(e.target))close(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape')close(); });
+  sel.addEventListener('change',syncLabel);
+  syncLabel();
+})();
 </script>
 </body>
 </html>

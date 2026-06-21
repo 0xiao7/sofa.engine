@@ -67,7 +67,7 @@ input,textarea{font-family:inherit;color:inherit}
 .btn-out{
   border:1px solid var(--line-2);padding:8px 18px;border-radius:3px;
   font-family:var(--mono);font-size:12px;letter-spacing:.12em;
-  color:rgba(245,240,234,.78);transition:.2s;
+  color:rgba(245,240,234,.78);transition:.2s;white-space:nowrap;flex-shrink:0;
 }
 .btn-out:hover{background:rgba(245,240,234,.06);color:var(--cream);border-color:var(--cream)}
 .menu-btn{display:none;width:36px;height:36px;border:1px solid var(--line-2);border-radius:3px;align-items:center;justify-content:center}
@@ -75,6 +75,32 @@ input,textarea{font-family:inherit;color:inherit}
 .menu-btn span::before,.menu-btn span::after{content:"";position:absolute;left:0;width:16px;height:1.5px;background:var(--cream)}
 .menu-btn span::before{top:-5px}
 .menu-btn span::after{top:5px}
+
+/* 自製法規下拉：原生 <select> 展開高亮會吃 macOS 系統強調色（粉紅），CSS 管不到，改自畫選單 */
+.law-dd{position:relative;display:inline-flex;align-items:center}
+.law-dd-btn{
+  display:inline-flex;align-items:center;gap:8px;padding:0;
+  font-family:var(--serif);font-weight:600;font-size:17px;color:var(--cream);
+  background:transparent;border:none;cursor:pointer;
+}
+.law-dd-btn .cv{font-family:var(--mono);font-size:11px;color:var(--peach);transition:transform .2s}
+.law-dd.open .law-dd-btn .cv{transform:rotate(180deg)}
+.law-dd-pop{
+  position:absolute;top:calc(100% + 10px);left:0;z-index:300;
+  min-width:300px;max-height:64vh;overflow-y:auto;display:none;
+  background:var(--navy);border:1px solid var(--line-2);border-radius:8px;
+  box-shadow:0 18px 48px rgba(0,0,0,.45);padding:6px;
+}
+.law-dd.open .law-dd-pop{display:block}
+.law-dd-item{
+  padding:8px 12px;border-radius:5px;cursor:pointer;white-space:nowrap;transition:.12s;
+  font-family:var(--sans);font-size:14px;color:rgba(245,240,234,.85);letter-spacing:.02em;
+}
+.law-dd-item:hover{background:rgba(231,187,167,.12);color:var(--cream)}
+.law-dd-item.sel{background:rgba(231,187,167,.18);color:var(--peach);font-weight:600}
+.law-dd-sep{height:1px;background:var(--line);margin:6px 8px}
+.law-dd-pop::-webkit-scrollbar{width:8px}
+.law-dd-pop::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px}
 
 /* === main canvas === */
 .main-wrap{
@@ -159,9 +185,11 @@ input,textarea{font-family:inherit;color:inherit}
   .page-head h1{font-size:34px}
 }
 @media (max-width:760px){
-  .topbar{padding:14px 20px}
+  .topbar{padding:14px 16px}
   .top-mid{display:none}
   .menu-btn{display:flex}
+  .top-right{gap:10px}
+  .btn-out{padding:7px 12px;letter-spacing:.06em}
   .main-wrap{padding:28px 20px 60px}
   .page-head{flex-direction:column;align-items:flex-start;gap:18px}
   .page-head h1{font-size:28px}

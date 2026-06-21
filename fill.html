@@ -39,31 +39,7 @@
   .pr-bar .title .art{font-family:var(--serif);font-weight:600;font-size:18px;color:var(--cream)}
   .pr-bar .title .sub{color:rgba(245,240,234,.6);font-size:13.5px}
 
-  /* 自製法規下拉：原生 <select> 展開時的高亮會吃 macOS 系統強調色（粉紅），CSS 管不到，改用自畫選單 */
-  .law-dd{position:relative;display:inline-flex;align-items:center}
-  .law-dd-btn{
-    display:inline-flex;align-items:center;gap:8px;padding:0;
-    font-family:var(--serif);font-weight:600;font-size:18px;color:var(--cream);
-    background:transparent;border:none;cursor:pointer;
-  }
-  .law-dd-btn .cv{font-family:var(--mono);font-size:11px;color:var(--peach);transition:transform .2s}
-  .law-dd.open .law-dd-btn .cv{transform:rotate(180deg)}
-  .law-dd-pop{
-    position:absolute;top:calc(100% + 10px);left:0;z-index:300;
-    min-width:300px;max-height:64vh;overflow-y:auto;display:none;
-    background:var(--navy);border:1px solid var(--line-2);border-radius:8px;
-    box-shadow:0 18px 48px rgba(0,0,0,.45);padding:6px;
-  }
-  .law-dd.open .law-dd-pop{display:block}
-  .law-dd-item{
-    padding:8px 12px;border-radius:5px;cursor:pointer;white-space:nowrap;transition:.12s;
-    font-family:var(--sans);font-size:14px;color:rgba(245,240,234,.85);letter-spacing:.02em;
-  }
-  .law-dd-item:hover{background:rgba(231,187,167,.12);color:var(--cream)}
-  .law-dd-item.sel{background:rgba(231,187,167,.18);color:var(--peach);font-weight:600}
-  .law-dd-sep{height:1px;background:var(--line);margin:6px 8px}
-  .law-dd-pop::-webkit-scrollbar{width:8px}
-  .law-dd-pop::-webkit-scrollbar-thumb{background:var(--line-2);border-radius:4px}
+  /* 自製法規下拉樣式已移至 sofa.css（.law-dd*），全站共用 */
   .pr-meta{
     display:flex;align-items:center;gap:22px;
     font-family:var(--mono);font-size:12px;letter-spacing:.08em;
@@ -309,8 +285,10 @@
     .fill-card{padding:24px 22px;font-size:18px;line-height:2}
     .blank{font-size:17px;min-width:4.5em;padding:2px 10px}
     .fill-actions{flex-direction:column;align-items:stretch}
+    .fill-actions .l{display:none}     /* 鍵盤快捷提示在觸控手機無意義，收起 */
     .fill-actions .r{flex-direction:column}
     .rail{flex-direction:column}
+    #kb-hint{display:none}             /* 浮動鍵盤提示列手機收起 */
   }
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
@@ -1112,7 +1090,7 @@ function showFillResults() {
   _sessionStats.forEach((s,i) => {
     const perfect = s.correctBlanks === s.totalBlanks && !s.usedHint;
     const ok = s.correctBlanks === s.totalBlanks;
-    const color = perfect ? '#2ECC71' : ok ? '#5BAFD6' : '#E74C3C';
+    const color = perfect ? '#9FB89F' : ok ? '#5BAFD6' : '#E74C3C';
     const icon = perfect ? '✓' : ok ? '△' : '✗';
     const div = document.createElement('div');
     div.style.cssText = 'background:#0D1F2D;border-radius:8px;padding:10px 12px;border-left:3px solid '+color;
@@ -1155,7 +1133,7 @@ async function _shareFillResult() {
   const lines = [
     `${grade} SoFa 填空成績`,
     `📚 法規：${lawName}`,
-    `✅ 完成：${total} 篇填空　共 ${totalBlanks} 格`,
+    `✓ 完成：${total} 篇填空　共 ${totalBlanks} 格`,
     `🎯 答對率：${pct}%（${correctBlanks}/${totalBlanks} 格）`,
     cleanCount > 0 ? `💯 全對無提示：${cleanCount} 篇` : null,
     `━━━━━━━━━━`,
@@ -1714,7 +1692,7 @@ _updateFillDailyBtn();
 </script>
 <!-- Wave 137: fill share toast -->
 <div id="fill-share-toast" style="position:fixed;bottom:72px;left:50%;transform:translateX(-50%);
-  background:#2ECC71;color:#0A1F14;padding:8px 20px;border-radius:20px;font-size:13px;
+  background:#9FB89F;color:#0A1F14;padding:8px 20px;border-radius:20px;font-size:13px;
   font-weight:600;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap"></div>
 
 <!-- Wave 40: Fill session results modal -->
@@ -1801,7 +1779,7 @@ function openFillStats() {
     byLawHtml = '<div style="margin-top:16px"><div style="color:#8ABED6;font-size:12px;margin-bottom:8px">各法填空準確率</div>' +
       laws.map(([name,d])=>{
         const p = d.total>0?Math.round(d.correct/d.total*100):0;
-        return `<div style="background:#0D1F2D;border-radius:8px;padding:10px 12px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#C8DDE8">${name}</span><span style="color:#8ABED6">${d.correct}/${d.total}格 (${p}%)</span></div><div style="height:3px;background:rgba(91,175,214,0.1);border-radius:2px;margin-top:6px"><div style="width:${p}%;height:100%;background:${p>=80?'#2ECC71':p>=60?'#5BAFD6':'#E74C3C'};border-radius:2px"></div></div></div>`;
+        return `<div style="background:#0D1F2D;border-radius:8px;padding:10px 12px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#C8DDE8">${name}</span><span style="color:#8ABED6">${d.correct}/${d.total}格 (${p}%)</span></div><div style="height:3px;background:rgba(91,175,214,0.1);border-radius:2px;margin-top:6px"><div style="width:${p}%;height:100%;background:${p>=80?'#9FB89F':p>=60?'#5BAFD6':'#E74C3C'};border-radius:2px"></div></div></div>`;
       }).join('') + '</div>';
   }
   const weakLaw = _getWeakestFillLaw(s);
@@ -1829,7 +1807,7 @@ function openFillStats() {
         <div style="color:#5B7A8D;font-size:10px">${s.todayCorrect||0}/${s.todayTotal||0}格</div>
       </div>
       <div style="background:#0D1F2D;border-radius:10px;padding:14px;text-align:center">
-        <div style="font-size:28px;font-weight:700;color:#2ECC71">${cleanRate}%</div>
+        <div style="font-size:28px;font-weight:700;color:#9FB89F">${cleanRate}%</div>
         <div style="color:#8ABED6;font-size:11px;margin-top:3px">全對無提示率</div>
         <div style="color:#5B7A8D;font-size:10px">${s.clean||0}/${s.articles||0}篇</div>
       </div>
@@ -1894,14 +1872,14 @@ function _renderFillWrongList() {
     .sort((a, b) => b.wrong - a.wrong);
 
   if (lawWrongs.length === 0) {
-    panel.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(245,240,234,0.4);font-size:14px">✅ 目前沒有錯誤紀錄</div>';
+    panel.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(245,240,234,0.4);font-size:14px">✓ 目前沒有錯誤紀錄</div>';
     return;
   }
 
   let html = '<div style="display:flex;flex-direction:column;gap:8px;">';
   lawWrongs.forEach(({ name, wrong, total }) => {
     const pct = Math.round((total - wrong) / total * 100);
-    const color = pct >= 80 ? '#2ECC71' : pct >= 60 ? '#5BAFD6' : '#E74C3C';
+    const color = pct >= 80 ? '#9FB89F' : pct >= 60 ? '#5BAFD6' : '#E74C3C';
     const safeName = name.replace(/'/g, "\\'");
     html += `<div style="background:#0D1F2D;border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
       <div style="flex:1;min-width:0;">
