@@ -1067,6 +1067,7 @@
   .dr-text{
     margin-top:24px;padding:24px 26px;background:#fff;border-radius:3px;
     border-left:3px solid var(--peach);
+    font-family:"Songti TC","Noto Serif TC",serif;
     font-size:15.5px;line-height:1.95;color:var(--navy);
   }
   .dr-text p{margin-bottom:10px}
@@ -1275,7 +1276,7 @@
     --mauve:#B38BA7;
   }
 </style>
-<link rel="stylesheet" href="compass-widget.css?v=2">
+<link rel="stylesheet" href="compass-widget.css?v=3">
 </head>
 <body data-screen-label="01 Dashboard">
 
@@ -4118,11 +4119,72 @@ function switchToFree(){
 
 <!-- Compass widget 載入 (放最末避免阻塞 dashboard 主流程) -->
 <script src="exam-data.js?v=2"></script>
-<script src="compass-widget.js?v=2"></script>
+<script src="compass-widget.js?v=3"></script>
+<script>
+/* 放開考科：國考目標不限 7 主科，用 NODES（11 體系 172 職務）驅動 — 2026-06-22 */
+(function(){
+  function build(){
+    if(typeof NODES==='undefined' || typeof _EXAM_NODE==='undefined'){ return setTimeout(build,200); }
+    var mainNodeIds={};
+    try{ Object.keys(_EXAM_NODE).forEach(function(k){ mainNodeIds[_EXAM_NODE[k]]=1; }); }catch(e){ return; }
+    var bySection={};
+    Object.keys(NODES).forEach(function(nid){
+      var n=NODES[nid];
+      if(!n||!n.name||!n.laws||!n.laws.length) return;
+      if(!_EXAM_NODE[nid]) _EXAM_NODE[nid]=nid;
+      if(!_EXAM_KEY_TO_NAME[nid]) _EXAM_KEY_TO_NAME[nid]=n.name;
+      if(!_EXAM_NAME_TO_KEY[n.name]) _EXAM_NAME_TO_KEY[n.name]=nid;
+      if(mainNodeIds[nid]) return; // 7 主科已有快捷籤
+      var sec=(n.section||'其他').split('/')[0].trim();
+      (bySection[sec]=bySection[sec]||[]).push({id:nid,name:n.name});
+    });
+    // typeahead 全灌
+    var dl=document.getElementById('examDL');
+    if(dl){
+      var names=Object.keys(_EXAM_NAME_TO_KEY).filter(function(x){return x&&x!=='全部';}).sort();
+      dl.innerHTML='<option value="全部">'+names.map(function(nm){return '<option value="'+nm+'">';}).join('');
+    }
+    // 目標 picker 加分組籤
+    var picker=document.getElementById('mc-exam-picker');
+    if(picker && !picker.dataset.unlocked){
+      picker.dataset.unlocked='1';
+      var allChip=picker.querySelector('.ep-chip[data-key="all"]');
+      var frag=document.createDocumentFragment();
+      Object.keys(bySection).forEach(function(sec){
+        var lab=document.createElement('div');
+        lab.textContent=sec;
+        lab.style.cssText='width:100%;font-size:9px;letter-spacing:.1em;opacity:.4;margin:7px 0 1px;font-family:var(--sans)';
+        frag.appendChild(lab);
+        bySection[sec].sort(function(a,b){return a.name.localeCompare(b.name,'zh-Hant');}).forEach(function(it){
+          var c=document.createElement('span');
+          c.className='ep-chip'; c.dataset.key=it.id; c.textContent=it.name;
+          c.addEventListener('click',function(){ pickExam(it.id); });
+          frag.appendChild(c);
+        });
+      });
+      if(allChip) picker.insertBefore(frag,allChip); else picker.appendChild(frag);
+      picker.style.maxHeight='340px'; picker.style.overflowY='auto';
+    }
+  }
+  if(document.readyState!=='loading') build(); else document.addEventListener('DOMContentLoaded',build);
+})();
+</script>
 <script>
 (function(){
   function init(){
-    if(window.CompassWidget) CompassWidget.mount('#compass-widget-mount');
+    if(window.CompassWidget) CompassWidget.mount('#compass-widget-mount', {
+      liveTargets: ['bookkeeper'],
+      onSetGoal: function(key, name, btn){
+        if(typeof pickExam === 'function') pickExam(key);
+        if(btn){
+          btn.textContent = '✓ 已設成目標 · ' + (name||'') + '，往下練習吧';
+          btn.classList.add('done');
+          btn.disabled = true;
+        }
+        var t = document.querySelector('.mc-target');
+        if(t) t.scrollIntoView({behavior:'smooth', block:'center'});
+      }
+    });
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init);
   else init();
