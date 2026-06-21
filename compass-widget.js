@@ -7,8 +7,8 @@
   'use strict';
 
   let plannerSelected = [];  // 預設空白，等使用者自行選擇
-  // 法庫已上線的考科：7 主考科法規 100% 已在 Supabase（566 部 / 36,747 條，2026-06-22 查核）
-  let liveKeys = new Set(['bookkeeper','landadmin','realestate','tax-admin','tax-law','elem-admin','post-acc']);
+  // 法庫覆蓋現況（2026-06-22 全庫查核）：考試樹 172 職能中 153 個法規 100% 在庫、
+  // 其餘 ≥85%、無 0% → 法庫整體已上線，不再分「陸續上線」
   let onSetGoalCb = null;                  // 登入儀表板時：把選的證照設成目標的 callback
 
   // 7 篇上線週公告 target slug → NODE ID (跟 index.html PROFILES 同源)
@@ -137,14 +137,11 @@
       }).join('');
     }
 
-    // 法庫上線狀態：單選且該證照法庫已上線 → 誠實文案 + 設成目標 CTA
+    // 法庫整體已上線（全庫查核無空科）→ 固定誠實文案；CTA 限 7 主考科（dashboard pickExam 可設目標）
     const onlyKey = (plannerSelected.length === 1) ? NODE_TO_TARGET[plannerSelected[0]] : null;
-    const isLive  = !!(onlyKey && liveKeys.has(onlyKey));
-    const statusText = isLive
-      ? '法條庫已上線，可直接對照練習'
-      : '法條庫對照中，陸續上線';
+    const statusText = '法條庫已上線，可直接對照練習';
     let ctaHtml = '';
-    if (isLive && onSetGoalCb) {
+    if (onlyKey && onSetGoalCb) {
       const nm = (window.NODES[plannerSelected[0]] || {}).name || '';
       ctaHtml = `<button class="planner-goal-btn" data-cw-action="setgoal" data-cw-key="${escapeAttr(onlyKey)}" data-cw-name="${escapeAttr(nm)}" type="button">設成我的目標，開始練習 →</button>`;
     }
@@ -262,8 +259,7 @@
     }
     if (initial && initial.length > 0) plannerSelected = initial;
 
-    // 可選：覆寫已上線考科清單 + 設成目標 callback（登入儀表板才傳）
-    if (Array.isArray(opts.liveTargets)) liveKeys = new Set(opts.liveTargets);
+    // 可選：設成目標 callback（登入儀表板才傳）
     if (typeof opts.onSetGoal === 'function') onSetGoalCb = opts.onSetGoal;
 
     mountEl.innerHTML = `
