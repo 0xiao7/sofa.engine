@@ -7,7 +7,8 @@
   'use strict';
 
   let plannerSelected = [];  // 預設空白，等使用者自行選擇
-  let liveKeys = new Set(['bookkeeper']);  // 法庫已上線的考科：記帳士 33 部已在 Supabase，可直接對照
+  // 法庫已上線的考科：7 主考科法規 100% 已在 Supabase（566 部 / 36,747 條，2026-06-22 查核）
+  let liveKeys = new Set(['bookkeeper','landadmin','realestate','tax-admin','tax-law','elem-admin','post-acc']);
   let onSetGoalCb = null;                  // 登入儀表板時：把選的證照設成目標的 callback
 
   // 7 篇上線週公告 target slug → NODE ID (跟 index.html PROFILES 同源)
