@@ -305,7 +305,7 @@
   #qCountdown.urgent{color:var(--bad);animation:countdown-pulse .5s ease-in-out infinite alternate;}
   @keyframes countdown-pulse{from{opacity:1}to{opacity:.4}}
 
-  #quiz-citation{display:none;text-align:center;margin-top:10px;padding:7px 14px;background:rgba(26,46,61,0.7);border:1px solid rgba(91,175,214,0.3);border-radius:16px;color:#8ABED6;font-size:12px;animation:fadeInUp 0.3s ease;}
+  #quiz-citation{display:none;text-align:center;margin-top:0;padding:7px 14px;background:rgba(26,46,61,0.7);border:1px solid rgba(91,175,214,0.3);border-radius:16px;color:#8ABED6;font-size:12px;animation:fadeInUp 0.3s ease;}
   #quiz-citation.show{display:block;}
   #quiz-citation a{color:#5BAFD6;text-decoration:none;}
   @keyframes fadeInUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
@@ -495,8 +495,10 @@
 
         <div class="opts" id="optionsBox"></div>
         <div id="streak-badge"></div>
-        <div id="quiz-citation"></div>
-        <div style="text-align:center"><button id="view-article-btn" onclick="_openArticleDashboard()">📖 查看法條</button></div>
+        <div style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap">
+          <div id="quiz-citation"></div>
+          <button id="view-article-btn" onclick="_openArticleDashboard()">📖 查看法條</button>
+        </div>
 
         <div class="explain" id="explainBox" style="display:none">
           <span class="eb">答對了</span>
@@ -1007,6 +1009,8 @@ let _isExamMode = false; // Wave 147: true when inside a 模擬考 session
 // ── 連續答對計數器 ────────────────────────────────────────────────
 let _quizStreak = 0;
 let _currentLawName = '';
+let _currentPageId = '';
+let _currentArtNo = '';
 
 // ── 個人答題統計（localStorage）────────────────────────────────────
 const STATS_KEY = 'sofa_quiz_stats_v1';
@@ -1625,7 +1629,15 @@ function _feedbackAnim(btn, isCorrect, elapsedSec){
 // Wave 68: 開啟 dashboard.html 並帶入法規名稱
 function _openArticleDashboard() {
   if (!_currentLawName) return;
-  const url = 'dashboard.html?q=' + encodeURIComponent(_currentLawName);
+  let url;
+  if (_currentPageId) {
+    // 直接深連到該條文（dashboard 的 ?open= 會開抽屜）
+    url = 'dashboard.html?open=' + encodeURIComponent(_currentPageId)
+        + '&law=' + encodeURIComponent(_currentLawName)
+        + (_currentArtNo ? '&art=' + encodeURIComponent(_currentArtNo) : '');
+  } else {
+    url = 'dashboard.html?q=' + encodeURIComponent(_currentLawName);
+  }
   window.open(url, '_blank');
 }
 let quizData=null;
@@ -1863,6 +1875,8 @@ async function loadQuiz(){
             q:{text:data.question||'', options:displayOpts}});
         }
         _currentLawName = lawName;
+        _currentPageId = (typeof pageId!=='undefined'?pageId:'') || '';
+        _currentArtNo = (artTitle||'').replace(/^§\s*/,'').replace(/｜.*$/,'').trim();
         _feedbackAnim(btn,isCorrect,_elapsed);
         onAnswerDone(isCorrect);
         updateScore();
@@ -2111,6 +2125,8 @@ async function loadWrongQuiz() {
         }
         cur.correct = isCorrect;
         _currentLawName = lawName;
+        _currentPageId = (typeof pageId!=='undefined'?pageId:'') || '';
+        _currentArtNo = (artTitle||'').replace(/^§\s*/,'').replace(/｜.*$/,'').trim();
         _feedbackAnim(btn, isCorrect, _elapsed);
         onAnswerDone(isCorrect);
         updateScore();
