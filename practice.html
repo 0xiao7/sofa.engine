@@ -901,6 +901,28 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
 let articleSections={}, articlePlan='free';
 
 
+// ── 跨裝置答題紀錄（默寫完成後寫進 Supabase user_stats）─────────────
+let _prArtId='';   // 當前條文對外 id（給 /api/me/answer）
+let _m2Typed='';   // mode2 累積打過的字，供得分點判定
+// 得分點：金額/期間/百分比/數量（與 mode3 挖空同一套規則）；抓不到回 []
+function _prKeyTokens(text){
+  const pats=[/\d+(?:,\d+)*(?:\.\d+)?(?:元|萬元|億元)/g,/\d+(?:日|天|月|年)/g,/百分之\d+(?:\.\d+)?/g,/\d+(?:人|份|次|條)/g];
+  const out=[]; pats.forEach(re=>{let m;re.lastIndex=0;while((m=re.exec(text))!==null)out.push(m[0]);});
+  return out;
+}
+// 判對：得分點（數字/關鍵）全對才算對；該條無得分點時退回字數相似度 ≥90%
+function _prJudge(typed, target){
+  const toks=_prKeyTokens(target);
+  if(toks.length) return toks.every(t=>typed.includes(t));
+  if(!target.length) return false;
+  const cor=[...typed].filter((c,i)=>c===target[i]).length;
+  return cor/target.length>=0.9;
+}
+function _prLogAnswer(isCorrect){
+  if(!_prArtId||!uid||uid==='PREVIEW'||isFree) return;
+  fetch(`${API}/api/me/answer`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({article_id:_prArtId,is_correct:!!isCorrect,mode:'practice'})}).catch(()=>{});
+}
+
 function render(){
   if(!typeText)return;
   // 以 \n 分段渲染
@@ -936,6 +958,7 @@ function render(){
     const card=document.querySelector('.type-card');
     if(card){ card.classList.add('celebrate'); card.addEventListener('animationend',()=>card.classList.remove('celebrate'),{once:true}); }
     showDoneBanner(acc,null,'m1');
+    _prLogAnswer(_prJudge(typeInput, typeText));  // 整篇默寫：得分點全對才算對
     _articlesCompleted++;  // Wave 56
     _recordPracticeStat(document.getElementById('artMeta').textContent||document.getElementById('lawSelect').value, typeText.length);  // Wave 103
     const sp=document.getElementById('sectionsBox');
@@ -1131,6 +1154,7 @@ async function loadNew(){
       }
     }
     articleSections=d.sections||{}; articlePlan=d._plan||'free';
+    _prArtId=d.id||''; _m2Typed='';  // 記住條文 id、清 mode2 累積緩衝
     _articlesAttempted++;  // Wave 56 — count each article load
     typeText=(d.original_text||'').replace(/(?<=[一-鿿]) +(?=[一-鿿])/g,'');
     const m=(d.title||'').match(/第(\d+(?:之\d+)?)條/);
@@ -1232,6 +1256,7 @@ function advanceSentence(){
   const cur=sentences[sentIdx]||'';
   const cor=[...typeInput].filter((c,i)=>c===cur[i]).length;
   sentDone[sentIdx]=(typeInput.trim()===cur.trim()||cor/cur.length>=0.9);
+  _m2Typed += typeInput;  // 累積本句輸入，供完成後得分點判定
   sentIdx++;
   typeInput=''; ti.value='';
   if(sentIdx>=sentences.length){
@@ -1242,6 +1267,7 @@ function advanceSentence(){
     const card=document.querySelector('.type-card');
     if(card){ card.classList.add('celebrate'); card.addEventListener('animationend',()=>card.classList.remove('celebrate'),{once:true}); }
     showDoneBanner(totalCor,sentences.length,'m2');
+    _prLogAnswer(_prJudge(_m2Typed, typeText));  // 逐句默寫：合併輸入後判得分點
     _articlesCompleted++;  // Wave 56
     _recordPracticeStat(document.getElementById('artMeta').textContent||document.getElementById('lawSelect').value, typeText.length);  // Wave 103
     // 顯示條文解析 sections
@@ -1411,6 +1437,7 @@ function checkMode3(){
   if(card){ card.classList.add('celebrate'); card.addEventListener('animationend',()=>card.classList.remove('celebrate'),{once:true}); }
   // show done banner
   showDoneBanner(cor,total,'m3');
+  _prLogAnswer(cor===total && total>0);  // 關鍵字填空：得分點全對才算對
   _articlesCompleted++;  // Wave 56
   _recordPracticeStat(document.getElementById('artMeta').textContent||document.getElementById('lawSelect').value, typeText.length);  // Wave 103
   const sp=document.getElementById('sectionsBox');
