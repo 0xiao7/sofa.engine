@@ -59,14 +59,25 @@ test('web load budget markers keep the browser version practical', () => {
 
 test('airy visual direction replaces the old dark game lobby first impression', () => {
   assert.match(html, /SOFA_AIRY_ROOM\s*=\s*true/);
-  assert.match(html, /SOFA_ROOM_SINGLE_SCENE\s*=\s*true/);
+  assert.match(html, /SOFA_ROOM_SINGLE_SCENE\s*=\s*false/);
+  assert.match(html, /data-scene-mode="library"/);
+  assert.match(html, /data-scene-mode="island"/);
   assert.match(html, /function\s+_startAiryRoom/);
   assert.match(html, /function\s+_airyDrawRoom/);
   assert.match(html, /function\s+_airyDrawIslandRoom/);
   assert.match(html, /function\s+_airyDrawChibi/);
-  assert.match(html, /body\.airy-room \.scene-mode-toggle\{display:none;\}/);
+  assert.doesNotMatch(html, /body\.airy-room \.scene-mode-toggle\{display:none;\}/);
   assert.match(html, /body\.airy-room/);
-  assert.match(html, /quiet companion room/);
+  assert.match(html, /quiet library walk/);
   assert.match(html, /Quiet Study Island/);
   assert.match(html, /#F8F5EC/);
+});
+
+test('airy room scenes are procedural instead of pasted generated mockups', () => {
+  assert.doesNotMatch(html, /preview-library\.png/);
+  assert.doesNotMatch(html, /preview-island\.png/);
+  assert.match(html, /function\s+_airyDrawSoftWindow/);
+  assert.match(html, /function\s+_airyDrawShelf/);
+  assert.match(html, /function\s+_airyDrawDesk/);
+  assert.match(html, /function\s+_airyDrawCloud/);
 });

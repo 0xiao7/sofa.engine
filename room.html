@@ -1067,6 +1067,10 @@ body.airy-room #theme-btn{
   box-shadow:0 12px 26px rgba(130,110,70,.06)!important;
   opacity:.78;
 }
+body.airy-room #btn-sound,
+body.airy-room #audio-settings-btn,
+body.airy-room #achieve-btn{display:none!important;}
+body.airy-room #theme-btn{left:18px!important;top:12px!important;}
 body.airy-room #three-loader{background:#F8F5EC!important;color:#8A7A60!important;}
 body.airy-room #rain-glass,
 body.airy-room #lightning-flash{display:none!important;}
@@ -1119,7 +1123,10 @@ body.airy-room .scene-mode-toggle button{
 body.airy-room .scene-mode-toggle button.active{
   background:rgba(116,190,216,.22);border-color:rgba(116,190,216,.38);color:#356C7D;
 }
-body.airy-room .scene-mode-toggle{display:none;}
+body.airy-room .scene-mode-toggle{
+  display:flex;
+  gap:6px;
+}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="OrbitControls.js"></script>
@@ -1485,7 +1492,8 @@ const mToon = (hex) => new THREE.MeshLambertMaterial({ color: hex });
 const mToonFlat = (hex) => new THREE.MeshLambertMaterial({ color: hex, flatShading: true });
 const _isMobile = /iPhone|iPad|Android|Mobi/i.test(navigator.userAgent) || window.innerWidth < 768;
 const SOFA_AIRY_ROOM = true;
-const SOFA_ROOM_SINGLE_SCENE = true;
+const SOFA_ROOM_SINGLE_SCENE = false;
+const SOFA_AIRY_DRAW_AVATARS = false;
 const LOW_POWER_SCENE = _isMobile || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const SCENE_USER_LIMIT = 20;
 const SCENE_OTHER_LIMIT = 19;
@@ -1766,25 +1774,86 @@ function _airyDrawPlant(ctx, x, y, scale = 1, stage = 1) {
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(scale, scale);
-  ctx.fillStyle = '#C99B6E';
-  _airyRoundRect(ctx, -10, 10, 20, 15, 4);
+  ctx.shadowColor = 'rgba(92,78,48,.10)';
+  ctx.shadowBlur = 10;
+  ctx.shadowOffsetY = 5;
+  ctx.fillStyle = '#D8C5A5';
+  _airyRoundRect(ctx, -11, 12, 22, 16, 5);
   ctx.fill();
-  ctx.fillStyle = '#8CB779';
-  for (let i = 0; i < 5 + stage; i++) {
-    const a = -Math.PI * 0.9 + i * (Math.PI * 0.45);
+  ctx.shadowColor = 'transparent';
+  const leaves = 6 + stage;
+  for (let i = 0; i < leaves; i++) {
+    const a = -Math.PI * 0.88 + i * (Math.PI * 1.76 / Math.max(1, leaves - 1));
+    ctx.fillStyle = i % 2 ? '#AFCF91' : '#88B978';
     ctx.beginPath();
-    ctx.ellipse(Math.cos(a) * 8, Math.sin(a) * 7 + 6, 7, 12, a, 0, Math.PI * 2);
+    ctx.ellipse(Math.cos(a) * 8, Math.sin(a) * 8 + 5, 6.8, 13, a, 0, Math.PI * 2);
     ctx.fill();
   }
   if (stage >= 2) {
-    ctx.fillStyle = '#F0AFC2';
+    ctx.fillStyle = '#F0B8C2';
     for (let i = 0; i < Math.min(6, stage * 2); i++) {
       const a = i / Math.max(1, stage * 2) * Math.PI * 2;
       ctx.beginPath();
-      ctx.arc(Math.cos(a) * 9, Math.sin(a) * 7 + 2, 2.4, 0, Math.PI * 2);
+      ctx.arc(Math.cos(a) * 8.5, Math.sin(a) * 6.5 + 1, 2.2, 0, Math.PI * 2);
       ctx.fill();
     }
   }
+  ctx.restore();
+}
+
+function _airyDrawCloud(ctx, x, y, scale = 1, alpha = .62) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = '#fff';
+  ctx.beginPath();
+  ctx.ellipse(x, y, 46 * scale, 15 * scale, 0, 0, Math.PI * 2);
+  ctx.ellipse(x + 28 * scale, y - 8 * scale, 32 * scale, 14 * scale, 0, 0, Math.PI * 2);
+  ctx.ellipse(x - 30 * scale, y - 5 * scale, 28 * scale, 12 * scale, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function _airyDrawPendant(ctx, x, y, scale = 1) {
+  ctx.save();
+  ctx.strokeStyle = 'rgba(134,118,88,.20)';
+  ctx.lineWidth = 1.5 * scale;
+  ctx.beginPath();
+  ctx.moveTo(x, y - 42 * scale);
+  ctx.lineTo(x, y - 7 * scale);
+  ctx.stroke();
+  const glow = ctx.createRadialGradient(x, y, 0, x, y, 42 * scale);
+  glow.addColorStop(0, 'rgba(255,232,170,.34)');
+  glow.addColorStop(1, 'rgba(255,232,170,0)');
+  ctx.fillStyle = glow;
+  ctx.beginPath();
+  ctx.arc(x, y, 42 * scale, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#E2C98D';
+  ctx.beginPath();
+  ctx.ellipse(x, y - 3 * scale, 14 * scale, 8 * scale, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#FFF0B9';
+  ctx.beginPath();
+  ctx.arc(x, y + 2 * scale, 5 * scale, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
+}
+
+function _airyDrawLightWash(ctx, x, y, w, h, alpha = .30) {
+  ctx.save();
+  ctx.globalAlpha = Math.min(alpha, .16);
+  const beam = ctx.createLinearGradient(x, y, x + w, y + h);
+  beam.addColorStop(0, 'rgba(255,250,218,.82)');
+  beam.addColorStop(.64, 'rgba(255,250,218,.20)');
+  beam.addColorStop(1, 'rgba(255,250,218,0)');
+  ctx.fillStyle = beam;
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x + w * .30, y);
+  ctx.lineTo(x + w, y + h);
+  ctx.lineTo(x + w * .50, y + h);
+  ctx.closePath();
+  ctx.fill();
   ctx.restore();
 }
 
@@ -1799,72 +1868,68 @@ function _airyDrawRoomShadow(ctx, x, y, w, h, alpha = .12) {
 
 function _airyDrawSoftWindow(ctx, x, y, w, h, mobile) {
   ctx.save();
-  ctx.shadowColor = 'rgba(120,100,70,.12)';
-  ctx.shadowBlur = 24;
-  ctx.shadowOffsetY = 12;
-  ctx.fillStyle = '#DDF2F5';
-  _airyRoundRect(ctx, x, y, w, h, mobile ? 18 : 24);
+  ctx.shadowColor = 'rgba(118,98,65,.11)';
+  ctx.shadowBlur = 22;
+  ctx.shadowOffsetY = 10;
+  ctx.fillStyle = 'rgba(255,255,255,.88)';
+  _airyRoundRect(ctx, x, y, w, h, mobile ? 12 : 18);
   ctx.fill();
   ctx.shadowColor = 'transparent';
   const sky = ctx.createLinearGradient(0, y, 0, y + h);
-  sky.addColorStop(0, '#DFF4F7');
-  sky.addColorStop(.62, '#EAF5EF');
-  sky.addColorStop(1, '#F8F0D9');
+  sky.addColorStop(0, '#DDF3F6');
+  sky.addColorStop(.54, '#EAF6EE');
+  sky.addColorStop(1, '#FFF1D7');
   ctx.fillStyle = sky;
-  _airyRoundRect(ctx, x + 8, y + 8, w - 16, h - 16, mobile ? 14 : 20);
+  _airyRoundRect(ctx, x + 7, y + 7, w - 14, h - 14, mobile ? 9 : 14);
   ctx.fill();
-  ctx.fillStyle = 'rgba(151,192,184,.32)';
+  ctx.fillStyle = 'rgba(139,184,160,.24)';
   ctx.beginPath();
-  ctx.moveTo(x + 8, y + h * .76);
-  ctx.lineTo(x + w * .28, y + h * .50);
-  ctx.lineTo(x + w * .46, y + h * .68);
-  ctx.lineTo(x + w * .66, y + h * .44);
-  ctx.lineTo(x + w - 8, y + h * .76);
+  ctx.moveTo(x + 8, y + h * .72);
+  ctx.bezierCurveTo(x + w * .26, y + h * .52, x + w * .40, y + h * .66, x + w * .55, y + h * .54);
+  ctx.bezierCurveTo(x + w * .72, y + h * .40, x + w * .84, y + h * .63, x + w - 8, y + h * .52);
   ctx.lineTo(x + w - 8, y + h - 8);
   ctx.lineTo(x + 8, y + h - 8);
   ctx.closePath();
   ctx.fill();
-  ctx.strokeStyle = 'rgba(174,154,116,.26)';
-  ctx.lineWidth = mobile ? 5 : 7;
-  _airyRoundRect(ctx, x + 4, y + 4, w - 8, h - 8, mobile ? 16 : 22);
+  ctx.strokeStyle = 'rgba(171,149,112,.46)';
+  ctx.lineWidth = mobile ? 3 : 5;
+  _airyRoundRect(ctx, x + 4, y + 4, w - 8, h - 8, mobile ? 10 : 16);
   ctx.stroke();
   ctx.beginPath();
   ctx.moveTo(x + w / 2, y + 8); ctx.lineTo(x + w / 2, y + h - 8);
   ctx.moveTo(x + 8, y + h / 2); ctx.lineTo(x + w - 8, y + h / 2);
   ctx.stroke();
-  ctx.globalAlpha = .34;
-  ctx.fillStyle = '#FFF7D7';
-  for (let i = 0; i < 3; i++) {
-    const bx = x + w * (.22 + i * .23);
-    ctx.beginPath();
-    ctx.moveTo(bx, y + 10);
-    ctx.lineTo(bx + w * .13, y + 10);
-    ctx.lineTo(bx - w * .12, y + h + 210);
-    ctx.lineTo(bx - w * .27, y + h + 210);
-    ctx.closePath();
-    ctx.fill();
-  }
   ctx.restore();
 }
 
 function _airyDrawShelf(ctx, x, y, w, h, mobile) {
   ctx.save();
-  ctx.fillStyle = 'rgba(255,255,255,.56)';
-  _airyRoundRect(ctx, x, y, w, h, 16); ctx.fill();
-  ctx.fillStyle = '#D5B57B';
-  for (let r = 0; r < 3; r++) {
-    const by = y + 16 + r * (h - 26) / 3;
-    _airyRoundRect(ctx, x + 12, by + 26, w - 24, 6, 3); ctx.fill();
-    for (let i = 0; i < 8; i++) {
-      const bw = Math.max(5, w / 16 + (i % 3) * 2);
-      const bh = 16 + ((i + r) % 4) * 4;
-      const bx = x + 18 + i * (w - 34) / 8;
-      ctx.fillStyle = ['#AFC98A', '#D7AFA2', '#99BED0', '#D8C38B'][i % 4];
-      _airyRoundRect(ctx, bx, by + 28 - bh, bw, bh, 3); ctx.fill();
+  ctx.shadowColor = 'rgba(115,93,58,.16)';
+  ctx.shadowBlur = 16;
+  ctx.shadowOffsetY = 8;
+  const wood = ctx.createLinearGradient(x, y, x, y + h);
+  wood.addColorStop(0, '#E6CAA0');
+  wood.addColorStop(1, '#C49A61');
+  ctx.fillStyle = wood;
+  _airyRoundRect(ctx, x, y, w, h, mobile ? 10 : 14); ctx.fill();
+  ctx.shadowColor = 'transparent';
+  ctx.fillStyle = 'rgba(255,255,255,.18)';
+  _airyRoundRect(ctx, x + 6, y + 6, w - 12, h - 12, mobile ? 8 : 12); ctx.fill();
+  for (let r = 0; r < 4; r++) {
+    const rowH = (h - 20) / 4;
+    const by = y + 10 + r * rowH;
+    ctx.fillStyle = 'rgba(116,86,48,.20)';
+    _airyRoundRect(ctx, x + 10, by + rowH - 7, w - 20, 5, 3); ctx.fill();
+    for (let i = 0; i < 7; i++) {
+      const gap = (w - 26) / 7;
+      const bw = Math.max(5, gap * (.34 + (i % 2) * .10));
+      const bh = rowH * (.38 + ((i + r) % 4) * .08);
+      const bx = x + 14 + i * gap;
+      ctx.fillStyle = ['#A8C58B', '#D8B6A6', '#9EC1CE', '#E0C887', '#B9B0D8'][i % 5];
+      _airyRoundRect(ctx, bx, by + rowH - 9 - bh, bw, bh, 2.5); ctx.fill();
     }
   }
   if (!mobile) {
-    ctx.fillStyle = 'rgba(93,80,62,.42)';
     _airyText(ctx, '考科牆面', x + w / 2, y + h + 18, 11, 'rgba(80,70,52,.42)', '700');
   }
   ctx.restore();
@@ -1919,28 +1984,30 @@ function _airyDrawChibi(ctx, x, y, u, i, t, scale = 1) {
 
 function _airyDrawDesk(ctx, x, y, w, h, u, i, t) {
   ctx.save();
-  _airyDrawRoomShadow(ctx, x + w * .50, y + h + 20, w * .52, h * .24, .11);
+  _airyDrawRoomShadow(ctx, x + w * .50, y + h + 16, w * .46, h * .20, .08);
   const top = ctx.createLinearGradient(x, y, x, y + h);
-  top.addColorStop(0, '#E5C78F');
-  top.addColorStop(1, '#CDA46B');
+  top.addColorStop(0, '#E7C38D');
+  top.addColorStop(1, '#BF8E57');
   ctx.fillStyle = top;
-  ctx.shadowColor = 'rgba(104,75,36,.14)';
-  ctx.shadowBlur = 10;
+  ctx.shadowColor = 'rgba(104,75,36,.18)';
+  ctx.shadowBlur = 12;
   ctx.shadowOffsetY = 5;
-  _airyRoundRect(ctx, x, y, w, h, 11); ctx.fill();
+  _airyRoundRect(ctx, x, y, w, h, 10); ctx.fill();
   ctx.shadowColor = 'transparent';
-  ctx.fillStyle = 'rgba(255,246,217,.32)';
-  _airyRoundRect(ctx, x + 9, y + 7, w - 18, h * .28, 7); ctx.fill();
-  ctx.fillStyle = '#B88450';
-  ctx.fillRect(x + 11, y + h - 4, w - 22, 5);
-  ctx.fillRect(x + 13, y + h, 6, 23);
-  ctx.fillRect(x + w - 19, y + h, 6, 23);
-  ctx.fillStyle = '#FFF2CF';
-  _airyRoundRect(ctx, x + w * 0.36, y + 8, w * 0.28, Math.max(10, h * .25), 4); ctx.fill();
-  ctx.fillStyle = '#8FB6C6';
-  _airyRoundRect(ctx, x + w * .18, y + h * .34, w * .13, 6, 3); ctx.fill();
-  _airyDrawPlant(ctx, x + w - 18, y + 5, 0.44, _flowerStageForMinutes(Math.floor(_studyMsForUser(u || {}) / 60000)));
-  if (u) _airyDrawChibi(ctx, x + w * 0.5, y + h + 6, u, i, t, 0.74);
+  ctx.fillStyle = 'rgba(255,248,225,.50)';
+  _airyRoundRect(ctx, x + 8, y + 7, w - 16, h * .28, 6); ctx.fill();
+  ctx.fillStyle = 'rgba(122,87,48,.26)';
+  ctx.fillRect(x + 12, y + h - 3, w - 24, 4);
+  ctx.fillRect(x + 13, y + h, 5, 18);
+  ctx.fillRect(x + w - 18, y + h, 5, 18);
+  ctx.fillStyle = '#FFF5D7';
+  _airyRoundRect(ctx, x + w * 0.34, y + 8, w * 0.31, Math.max(10, h * .25), 4); ctx.fill();
+  ctx.fillStyle = '#88B4C5';
+  _airyRoundRect(ctx, x + w * .18, y + h * .36, w * .14, 5, 3); ctx.fill();
+  ctx.fillStyle = '#7FAE8D';
+  _airyRoundRect(ctx, x + w * .16, y + h * .24, w * .18, 4, 2); ctx.fill();
+  _airyDrawPlant(ctx, x + w - 18, y + 4, 0.40, _flowerStageForMinutes(Math.floor(_studyMsForUser(u || {}) / 60000)));
+  if (SOFA_AIRY_DRAW_AVATARS && u) _airyDrawChibi(ctx, x + w * 0.5, y + h + 6, u, i, t, 0.72);
   ctx.restore();
 }
 
@@ -1951,82 +2018,110 @@ function _airyDrawIslandRoom(canvas, ctx, t) {
   ctx.clearRect(0, 0, w, h);
 
   const sky = ctx.createLinearGradient(0, 0, 0, h);
-  sky.addColorStop(0, '#EFF8FA');
-  sky.addColorStop(0.55, '#FBF5E6');
-  sky.addColorStop(1, '#F6E8C9');
+  sky.addColorStop(0, '#E6F5F7');
+  sky.addColorStop(0.56, '#F8F4E7');
+  sky.addColorStop(1, '#FFF9EE');
   ctx.fillStyle = sky;
   ctx.fillRect(0, 0, w, h);
 
-  for (let i = 0; i < (mobile ? 5 : 9); i++) {
-    const cx = (i * 173 + (t * 10) % 173) % (w + 120) - 60;
-    const cy = h * (0.13 + (i % 4) * 0.08);
-    ctx.fillStyle = 'rgba(255,255,255,.58)';
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, mobile ? 34 : 52, mobile ? 11 : 16, 0, 0, Math.PI * 2);
-    ctx.ellipse(cx + 26, cy - 4, mobile ? 24 : 34, mobile ? 9 : 13, 0, 0, Math.PI * 2);
-    ctx.fill();
+  const sunGlow = ctx.createRadialGradient(w * .78, h * .16, 10, w * .78, h * .16, Math.max(w, h) * .46);
+  sunGlow.addColorStop(0, 'rgba(255,244,198,.78)');
+  sunGlow.addColorStop(1, 'rgba(255,244,198,0)');
+  ctx.fillStyle = sunGlow;
+  ctx.fillRect(0, 0, w, h);
+
+  for (let i = 0; i < (mobile ? 6 : 11); i++) {
+    const cx = (i * 191 + (t * 4) % 191) % (w + 160) - 80;
+    const cy = h * (0.10 + (i % 5) * 0.075);
+    _airyDrawCloud(ctx, cx, cy, mobile ? .55 : .82, .50);
   }
 
-  const islandCx = w * 0.50 + Math.sin(_airyWalk.x * 0.08) * 10;
-  const islandCy = h * (mobile ? 0.64 : 0.62) + Math.sin(t * 0.55) * 3;
-  const islandW = w * (mobile ? 0.80 : 0.56);
-  const islandH = h * (mobile ? 0.22 : 0.22);
-  ctx.fillStyle = 'rgba(150,126,78,.14)';
-  ctx.beginPath(); ctx.ellipse(islandCx, islandCy + islandH * 0.52, islandW * 0.48, islandH * 0.22, 0, 0, Math.PI * 2); ctx.fill();
-  const grass = ctx.createLinearGradient(0, islandCy - islandH * 0.42, 0, islandCy + islandH * 0.18);
-  grass.addColorStop(0, '#D7E8B6');
-  grass.addColorStop(1, '#B9D793');
-  ctx.fillStyle = grass;
-  ctx.beginPath(); ctx.ellipse(islandCx, islandCy, islandW * 0.50, islandH * 0.36, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.fillStyle = '#C9A16D';
-  ctx.beginPath();
-  ctx.moveTo(islandCx - islandW * 0.42, islandCy + islandH * 0.12);
-  ctx.quadraticCurveTo(islandCx, islandCy + islandH * 0.52, islandCx + islandW * 0.42, islandCy + islandH * 0.12);
-  ctx.quadraticCurveTo(islandCx, islandCy + islandH * 0.28, islandCx - islandW * 0.42, islandCy + islandH * 0.12);
-  ctx.fill();
+  const driftX = Math.sin(_airyWalk.x * .12) * (mobile ? 14 : 24);
+  const driftY = Math.cos(_airyWalk.y * .10) * (mobile ? 8 : 14);
+  const cx = w * (mobile ? .52 : .45) + driftX;
+  const cy = h * (mobile ? .47 : .55) + driftY;
+  const islandW = w * (mobile ? 1.06 : .78);
+  const islandH = h * (mobile ? .46 : .52);
 
-  const houseX = islandCx - islandW * 0.24;
-  const houseY = islandCy - islandH * 0.52;
-  const houseW = islandW * 0.48;
-  const houseH = islandH * 0.48;
-  ctx.fillStyle = 'rgba(255,255,255,.78)';
-  _airyRoundRect(ctx, houseX, houseY, houseW, houseH, 18); ctx.fill();
-  ctx.fillStyle = '#D6B77C';
-  ctx.beginPath();
-  ctx.moveTo(houseX - 10, houseY + 8);
-  ctx.lineTo(houseX + houseW * 0.50, houseY - houseH * 0.34);
-  ctx.lineTo(houseX + houseW + 10, houseY + 8);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle = '#D9EEF1';
-  _airyRoundRect(ctx, houseX + houseW * 0.10, houseY + houseH * 0.22, houseW * 0.28, houseH * 0.34, 8); ctx.fill();
-  _airyRoundRect(ctx, houseX + houseW * 0.62, houseY + houseH * 0.22, houseW * 0.28, houseH * 0.34, 8); ctx.fill();
-  _airyText(ctx, 'Quiet Study Island', islandCx, houseY + houseH + 18, mobile ? 12 : 15, 'rgba(80,70,50,.58)', '700');
+  function drawFloatingIsland(ix, iy, iw, ih, alpha = 1, room = true) {
+    ctx.save();
+    ctx.globalAlpha = alpha;
+    ctx.fillStyle = 'rgba(128,110,76,.10)';
+    ctx.beginPath(); ctx.ellipse(ix, iy + ih * .34, iw * .40, ih * .12, 0, 0, Math.PI * 2); ctx.fill();
+    const grass = ctx.createLinearGradient(0, iy - ih * .20, 0, iy + ih * .16);
+    grass.addColorStop(0, '#D7E9B6');
+    grass.addColorStop(1, '#A7C982');
+    ctx.fillStyle = grass;
+    ctx.beginPath();
+    ctx.ellipse(ix, iy, iw * .46, ih * .30, -0.04, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#C29F70';
+    ctx.beginPath();
+    ctx.moveTo(ix - iw * .39, iy + ih * .12);
+    ctx.bezierCurveTo(ix - iw * .20, iy + ih * .46, ix + iw * .20, iy + ih * .46, ix + iw * .39, iy + ih * .12);
+    ctx.bezierCurveTo(ix + iw * .16, iy + ih * .25, ix - iw * .16, iy + ih * .25, ix - iw * .39, iy + ih * .12);
+    ctx.fill();
+    if (room) {
+      const rx = ix - iw * .30, ry = iy - ih * .22, rw = iw * .32, rh = ih * .26;
+      ctx.fillStyle = 'rgba(255,255,255,.86)';
+      _airyRoundRect(ctx, rx, ry, rw, rh, 14); ctx.fill();
+      ctx.fillStyle = '#E2C68F';
+      ctx.beginPath();
+      ctx.moveTo(rx - 4, ry + 4);
+      ctx.lineTo(rx + rw * .50, ry - rh * .22);
+      ctx.lineTo(rx + rw + 5, ry + 4);
+      ctx.closePath();
+      ctx.fill();
+      _airyDrawShelf(ctx, rx + rw * .50, ry + rh * .18, rw * .35, rh * .55, true);
+      _airyDrawDesk(ctx, rx + rw * .14, ry + rh * .54, rw * .34, rh * .17, sceneUsers[0], 0, t);
+      _airyDrawPlant(ctx, rx + rw * .08, ry + rh * .64, .46, 3);
+    }
+    ctx.restore();
+  }
 
-  const deskW = mobile ? 58 : 86;
-  const deskH = mobile ? 26 : 34;
-  const deskPositions = mobile
+  drawFloatingIsland(cx + islandW * .25, cy - islandH * .45, islandW * .42, islandH * .32, .42, true);
+  drawFloatingIsland(cx - islandW * .30, cy - islandH * .30, islandW * .36, islandH * .28, .34, true);
+  drawFloatingIsland(cx, cy, islandW, islandH, 1, true);
+
+  ctx.save();
+  ctx.strokeStyle = 'rgba(255,255,255,.72)';
+  ctx.lineWidth = mobile ? 36 : 54;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(cx - islandW * .33, cy + islandH * .10);
+  ctx.bezierCurveTo(cx - islandW * .16, cy - islandH * .02, cx - islandW * .03, cy + islandH * .16, cx + islandW * .12, cy + islandH * .02);
+  ctx.bezierCurveTo(cx + islandW * .28, cy - islandH * .12, cx + islandW * .18, cy - islandH * .28, cx + islandW * .34, cy - islandH * .38);
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(185,170,132,.18)';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  const desks = mobile
     ? [
-        [islandCx - islandW * 0.28, islandCy - 2],
-        [islandCx + islandW * 0.10, islandCy + 0],
-        [islandCx - islandW * 0.05, islandCy + islandH * 0.18],
+        [cx - islandW * .18, cy - islandH * .08, 74, 30],
+        [cx + islandW * .12, cy + islandH * .05, 76, 31],
       ]
     : [
-        [islandCx - islandW * 0.32, islandCy - islandH * 0.02],
-        [islandCx - islandW * 0.10, islandCy + islandH * 0.10],
-        [islandCx + islandW * 0.16, islandCy - islandH * 0.02],
-        [islandCx + islandW * 0.30, islandCy + islandH * 0.13],
+        [cx - islandW * .25, cy + islandH * .02, 118, 42],
+        [cx - islandW * .02, cy - islandH * .05, 122, 43],
+        [cx + islandW * .20, cy + islandH * .04, 112, 40],
       ];
-  deskPositions.forEach((p, i) => _airyDrawDesk(ctx, p[0], p[1], deskW, deskH, sceneUsers[i], i, t));
+  desks.forEach((p, i) => _airyDrawDesk(ctx, p[0], p[1], p[2], p[3], sceneUsers[i + 1], i + 1, t));
 
-  _airyDrawPlant(ctx, islandCx + islandW * 0.37, islandCy - islandH * 0.10, mobile ? 0.8 : 1.1, 4);
-  _airyDrawPlant(ctx, islandCx - islandW * 0.40, islandCy + islandH * 0.02, mobile ? 0.7 : 0.95, 3);
+  for (let i = 0; i < (mobile ? 9 : 18); i++) {
+    const px = cx - islandW * .40 + (i * 73 % Math.max(1, islandW * .78));
+    const py = cy - islandH * .17 + ((i * 47) % Math.max(1, islandH * .30));
+    _airyDrawPlant(ctx, px, py, mobile ? .34 : .48, 2 + (i % 3));
+  }
 
-  ctx.fillStyle = 'rgba(255,255,255,.64)';
-  _airyRoundRect(ctx, mobile ? 18 : w - 330, mobile ? 76 : 78, mobile ? w - 36 : 260, mobile ? 56 : 62, 18);
-  ctx.fill();
-  _airyText(ctx, 'Quiet Study Island', mobile ? w / 2 : w - 200, mobile ? 100 : 102, mobile ? 13 : 14, 'rgba(70,60,48,.68)', '700');
-  _airyText(ctx, '場景固定載入，安靜陪讀', mobile ? w / 2 : w - 200, mobile ? 120 : 124, mobile ? 10 : 11, 'rgba(70,60,48,.44)', '500');
+  if (!mobile) {
+    ctx.fillStyle = 'rgba(255,255,255,.58)';
+    _airyRoundRect(ctx, w - 340, 86, 244, 92, 22);
+    ctx.fill();
+    _airyText(ctx, 'Quiet Study Island', w - 218, 118, 16, 'rgba(65,58,48,.72)', '800');
+    _airyText(ctx, '漂浮自習空間・低 UI', w - 218, 146, 12, 'rgba(65,58,48,.42)', '600');
+  }
 }
 
 function _airyDrawRoom(canvas, ctx, t) {
@@ -2040,132 +2135,176 @@ function _airyDrawRoom(canvas, ctx, t) {
   ctx.clearRect(0, 0, w, h);
 
   const bg = ctx.createLinearGradient(0, 0, 0, h);
-  bg.addColorStop(0, '#FEFCF6');
-  bg.addColorStop(0.48, '#F8F1DF');
-  bg.addColorStop(1, '#EEDDBD');
+  bg.addColorStop(0, '#FFFCF5');
+  bg.addColorStop(0.52, '#F6EDDA');
+  bg.addColorStop(1, '#EED9B5');
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, w, h);
 
-  const usableW = mobile ? w : Math.max(720, w - 246);
-  const cx = usableW * 0.50;
-  const wallX = mobile ? w * 0.07 : usableW * 0.075;
-  const wallY = mobile ? h * 0.105 : h * 0.078;
-  const wallW = mobile ? w * 0.86 : usableW * 0.84;
-  const wallH = mobile ? h * 0.38 : h * 0.43;
-  const floorTop = wallY + wallH - (mobile ? 24 : 34);
+  const usableW = mobile ? w : Math.max(760, w - 250);
+  const left = mobile ? w * .04 : usableW * .045;
+  const right = mobile ? w * .96 : usableW * .955;
+  const top = mobile ? h * .075 : h * .065;
+  const horizon = mobile ? h * .44 : h * .46;
+  const bottom = h + 40;
+  const vanishX = usableW * .58 + Math.sin(_airyWalk.x * .08) * (mobile ? 12 : 24);
+  const vanishY = horizon - h * .045 + Math.sin(t * .12) * 1.4;
 
-  const glow = ctx.createRadialGradient(cx + wallW * .18, wallY + 12, 30, cx + wallW * .18, wallY + 12, Math.max(wallW, wallH) * .92);
-  glow.addColorStop(0, 'rgba(255,246,206,.62)');
-  glow.addColorStop(1, 'rgba(255,246,206,0)');
+  const glow = ctx.createRadialGradient(left + usableW * .18, top + 18, 16, left + usableW * .18, top + 18, Math.max(w, h) * .76);
+  glow.addColorStop(0, 'rgba(255,247,210,.76)');
+  glow.addColorStop(1, 'rgba(255,247,210,0)');
   ctx.fillStyle = glow;
   ctx.fillRect(0, 0, w, h);
 
-  _airyDrawRoomShadow(ctx, cx, floorTop + wallH * .32, wallW * .48, wallH * .17, .07);
-  ctx.fillStyle = 'rgba(255,255,255,.42)';
-  _airyRoundRect(ctx, wallX, wallY, wallW, wallH, mobile ? 24 : 34);
-  ctx.fill();
-
-  ctx.fillStyle = '#FCF8EE';
+  ctx.fillStyle = 'rgba(255,255,255,.58)';
   ctx.beginPath();
-  ctx.moveTo(wallX + (mobile ? 10 : 22), wallY + 10);
-  ctx.lineTo(wallX + wallW - (mobile ? 10 : 22), wallY + 10);
-  ctx.lineTo(wallX + wallW - (mobile ? 18 : 34), floorTop + 8);
-  ctx.lineTo(wallX + (mobile ? 18 : 34), floorTop + 8);
+  ctx.moveTo(left, top);
+  ctx.lineTo(right, top);
+  ctx.lineTo(vanishX + usableW * .22, horizon + 24);
+  ctx.lineTo(vanishX - usableW * .48, horizon + 18);
   ctx.closePath();
   ctx.fill();
 
-  const winX = mobile ? wallX + wallW * .10 : wallX + wallW * .10;
-  const winY = wallY + (mobile ? 22 : 30);
-  const winW = mobile ? wallW * .80 : wallW * .50;
-  const winH = mobile ? wallH * .52 : wallH * .54;
-  _airyDrawSoftWindow(ctx, winX, winY, winW, winH, mobile);
-
-  if (!mobile) {
-    _airyDrawShelf(ctx, wallX + wallW * .66, wallY + wallH * .16, wallW * .21, wallH * .46, false);
-    _airyDrawSubjectPanel(ctx, wallX + wallW * .72, wallY + wallH * .66, wallW * .18, wallH * .21, '考科牆面');
-  } else {
-    _airyDrawSubjectPanel(ctx, wallX + wallW * .18, wallY + wallH * .70, wallW * .64, wallH * .18, 'SoFa 自習室');
-  }
-
-  const floor = ctx.createLinearGradient(0, floorTop, 0, h);
-  floor.addColorStop(0, '#F1E2C3');
-  floor.addColorStop(1, '#E6C999');
+  const floor = ctx.createLinearGradient(0, horizon, 0, h);
+  floor.addColorStop(0, '#F4E4C7');
+  floor.addColorStop(.62, '#E7C998');
+  floor.addColorStop(1, '#DDBA80');
   ctx.fillStyle = floor;
   ctx.beginPath();
-  ctx.moveTo(wallX + (mobile ? 20 : 36), floorTop);
-  ctx.lineTo(wallX + wallW - (mobile ? 20 : 36), floorTop);
-  ctx.lineTo(usableW + (mobile ? 90 : 160), h + 36);
-  ctx.lineTo(mobile ? -90 : -120, h + 36);
+  ctx.moveTo(vanishX - usableW * .46, horizon);
+  ctx.lineTo(vanishX + usableW * .24, horizon);
+  ctx.lineTo(right + usableW * .18, bottom);
+  ctx.lineTo(left - usableW * .22, bottom);
   ctx.closePath();
   ctx.fill();
 
-  ctx.strokeStyle = 'rgba(154,116,64,.11)';
+  ctx.strokeStyle = 'rgba(145,108,62,.12)';
   ctx.lineWidth = 1;
-  const vanishX = cx, vanishY = floorTop - h * .04;
-  for (let i = -5; i <= 5; i++) {
+  for (let i = -7; i <= 8; i++) {
     ctx.beginPath();
-    ctx.moveTo(vanishX + i * (mobile ? 42 : 70), floorTop);
-    ctx.lineTo(vanishX + i * (mobile ? 130 : 210), h + 30);
+    ctx.moveTo(vanishX + i * (mobile ? 19 : 32), horizon);
+    ctx.lineTo(vanishX + i * (mobile ? 72 : 118), bottom);
     ctx.stroke();
   }
-  for (let i = 0; i < 11; i++) {
-    const p = i / 10;
-    const y = floorTop + Math.pow(p, 1.55) * (h - floorTop + 36);
+  for (let i = 0; i < 15; i++) {
+    const p = i / 14;
+    const y = horizon + Math.pow(p, 1.75) * (bottom - horizon);
     ctx.beginPath();
-    ctx.moveTo(mobile ? -40 : -90, y);
-    ctx.lineTo(usableW + (mobile ? 40 : 90), y);
+    ctx.moveTo(left - usableW * .18, y);
+    ctx.lineTo(right + usableW * .16, y);
     ctx.stroke();
   }
 
-  ctx.save();
-  ctx.globalAlpha = mobile ? .34 : .40;
-  ctx.fillStyle = '#FFF6D7';
-  for (let i = 0; i < (mobile ? 2 : 3); i++) {
-    const bx = winX + winW * (.34 + i * .18);
-    ctx.beginPath();
-    ctx.moveTo(bx, winY + winH * .12);
-    ctx.lineTo(bx + winW * .12, winY + winH * .12);
-    ctx.lineTo(bx - usableW * .20, h + 24);
-    ctx.lineTo(bx - usableW * .32, h + 24);
-    ctx.closePath();
-    ctx.fill();
+  const leftWall = [
+    [left, top],
+    [vanishX - usableW * .48, horizon + 18],
+    [vanishX - usableW * .43, horizon],
+    [left + usableW * .02, top],
+  ];
+  const rightWall = [
+    [right, top],
+    [vanishX + usableW * .22, horizon + 24],
+    [vanishX + usableW * .18, horizon + 2],
+    [right - usableW * .02, top],
+  ];
+  ctx.fillStyle = 'rgba(250,246,236,.76)';
+  ctx.beginPath();
+  leftWall.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  rightWall.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
+  ctx.closePath(); ctx.fill();
+
+  const windowCount = mobile ? 3 : 6;
+  for (let i = 0; i < windowCount; i++) {
+    const depth = i / Math.max(1, windowCount - 1);
+    const ww = (mobile ? 72 : 122) * (1 - depth * .58);
+    const wh = (mobile ? 118 : 178) * (1 - depth * .54);
+    const wx = left + usableW * (.035 + depth * .19);
+    const wy = top + h * (.075 + depth * .030);
+    _airyDrawSoftWindow(ctx, wx, wy, ww, wh, mobile);
+    _airyDrawLightWash(ctx, wx + ww * .42, wy + wh * .12, usableW * (.36 - depth * .11), h * (.54 - depth * .10), mobile ? .09 : .14);
   }
-  ctx.restore();
 
-  const rugX = cx + (mobile ? 0 : usableW * .04);
-  const rugY = mobile ? h * .72 : h * .73;
-  ctx.fillStyle = 'rgba(127,184,190,.18)';
-  ctx.beginPath(); ctx.ellipse(rugX, rugY, usableW * (mobile ? .35 : .21), h * .060, 0, 0, Math.PI * 2); ctx.fill();
-  ctx.strokeStyle = 'rgba(127,184,190,.28)';
-  ctx.lineWidth = mobile ? 2 : 3;
-  ctx.beginPath(); ctx.ellipse(rugX, rugY, usableW * (mobile ? .28 : .17), h * .044, 0, 0, Math.PI * 2); ctx.stroke();
+  const shelfCount = mobile ? 3 : 6;
+  for (let i = 0; i < shelfCount; i++) {
+    const depth = i / Math.max(1, shelfCount - 1);
+    const sw = (mobile ? 80 : 132) * (1 - depth * .50);
+    const sh = (mobile ? 132 : 200) * (1 - depth * .48);
+    const sx = right - usableW * (.12 + depth * .12) - sw;
+    const sy = top + h * (.11 + depth * .030);
+    _airyDrawShelf(ctx, sx, sy, sw, sh, mobile);
+  }
 
-  _airyDrawPlant(ctx, wallX + wallW * .06, floorTop - 2, mobile ? .82 : 1.05, 3);
-  _airyDrawPlant(ctx, wallX + wallW * .92, floorTop + (mobile ? 26 : 6), mobile ? .86 : 1.12, 4);
+  const columnCount = 0;
+  for (let i = 0; i < columnCount; i++) {
+    const depth = i / Math.max(1, columnCount - 1);
+    const scale = 1 - depth * .55;
+    const cy = top + h * (.06 + depth * .065);
+    const colH = h * (.47 - depth * .15);
+    const colW = (mobile ? 22 : 34) * scale;
+    const lx = left + usableW * (.19 + depth * .15);
+    const rx = right - usableW * (.23 + depth * .13);
+    ctx.fillStyle = `rgba(255,252,244,${.72 - depth * .18})`;
+    _airyRoundRect(ctx, lx, cy, colW, colH, colW * .44); ctx.fill();
+    _airyRoundRect(ctx, rx, cy, colW, colH, colW * .44); ctx.fill();
+    ctx.fillStyle = `rgba(166,142,103,${.08 - depth * .035})`;
+    ctx.fillRect(lx + colW - 3, cy + 8, 2, colH - 16);
+    ctx.fillRect(rx + colW - 3, cy + 8, 2, colH - 16);
+  }
 
-  const desks = mobile
-    ? [
-        [cx - 104, floorTop + 58, 82, 38],
-        [cx + 26, floorTop + 82, 88, 40],
-        [cx - 66, floorTop + 166, 96, 42],
-        [cx + 62, floorTop + 198, 96, 42],
-      ]
-    : [
-        [cx - 342, floorTop + 72, 122, 46],
-        [cx - 118, floorTop + 58, 132, 48],
-        [cx + 126, floorTop + 74, 128, 48],
-        [cx - 250, floorTop + 204, 146, 52],
-        [cx + 10, floorTop + 188, 154, 54],
-        [cx + 270, floorTop + 218, 144, 52],
-      ];
+  const beamCount = mobile ? 4 : 7;
+  ctx.strokeStyle = 'rgba(178,157,126,.18)';
+  ctx.lineWidth = mobile ? 7 : 10;
+  ctx.lineCap = 'round';
+  for (let i = 0; i < beamCount; i++) {
+    const p = i / Math.max(1, beamCount - 1);
+    const bx = left + usableW * (.12 + p * .68);
+    ctx.beginPath();
+    ctx.moveTo(bx, top + 2);
+    ctx.lineTo(vanishX + (bx - usableW * .5) * .12, horizon - h * .04);
+    ctx.stroke();
+  }
+  for (let i = 0; i < (mobile ? 3 : 5); i++) {
+    const p = i / Math.max(1, (mobile ? 2 : 4));
+    _airyDrawPendant(ctx, vanishX - usableW * (.28 - p * .34), top + h * (.12 + p * .035), 1 - p * .10);
+  }
+
+  const desks = [];
+  const rows = mobile ? 4 : 7;
+  for (let i = rows - 1; i >= 0; i--) {
+    const p = (i + 1) / rows;
+    const y = horizon + Math.pow(p, 1.72) * (h - horizon) * (mobile ? .72 : .64);
+    const dw = (mobile ? 52 : 58) + p * (mobile ? 58 : 104);
+    const dh = (mobile ? 24 : 22) + p * (mobile ? 20 : 32);
+    const leftX = vanishX - usableW * (.08 + p * (mobile ? .31 : .39)) - dw * .5;
+    const rightX = vanishX + usableW * (.04 + p * (mobile ? .19 : .27)) - dw * .5;
+    desks.push([leftX, y, dw, dh]);
+    desks.push([rightX, y + h * .018, dw, dh]);
+  }
   desks.forEach((d, i) => _airyDrawDesk(ctx, d[0], d[1], d[2], d[3], sceneUsers[i], i, t));
 
+  _airyDrawPlant(ctx, left + 22, horizon + (mobile ? 36 : 74), mobile ? .92 : 1.24, 4);
+  _airyDrawPlant(ctx, right - (mobile ? 48 : 70), horizon + (mobile ? 80 : 100), mobile ? .74 : 1.02, 3);
   if (!mobile) {
-    ctx.fillStyle = 'rgba(255,255,255,.45)';
-    _airyRoundRect(ctx, wallX + 26, wallY + 24, 132, 48, 18); ctx.fill();
-    _airyText(ctx, 'SoFa 自習室', wallX + 92, wallY + 43, 14, 'rgba(70,60,48,.68)', '800');
-    _airyText(ctx, 'quiet companion room', wallX + 92, wallY + 61, 9, 'rgba(70,60,48,.38)', '600');
+    _airyDrawPlant(ctx, left + usableW * .46, horizon + 150, .68, 3);
+    _airyDrawPlant(ctx, right - usableW * .22, horizon + 24, .56, 2);
   }
+
+  if (!mobile) {
+    _airyDrawSubjectPanel(ctx, right - 238, top + 52, 178, 106, '考科牆面');
+    ctx.fillStyle = 'rgba(255,255,255,.58)';
+    _airyRoundRect(ctx, left + 22, top + 20, 154, 54, 20); ctx.fill();
+    _airyText(ctx, 'SoFa 自習室', left + 99, top + 41, 15, 'rgba(70,60,48,.70)', '800');
+    _airyText(ctx, 'quiet library walk', left + 99, top + 60, 9, 'rgba(70,60,48,.38)', '600');
+  }
+
+  const haze = ctx.createLinearGradient(0, 0, 0, h);
+  haze.addColorStop(0, 'rgba(255,255,255,.03)');
+  haze.addColorStop(.46, 'rgba(255,255,255,.06)');
+  haze.addColorStop(1, 'rgba(255,255,255,.02)');
+  ctx.fillStyle = haze;
+  ctx.fillRect(0, 0, w, h);
 }
 
 function _startAiryRoom(canvas) {
