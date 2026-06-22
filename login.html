@@ -743,7 +743,11 @@ const btn      = document.getElementById('btn');
 const errEl    = document.getElementById('err');
 
 function formatSerial(el) {
-  let raw = el.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 8);
+  let raw = el.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  // 容錯：使用者把含「SOFA-」前綴的完整序號整串貼上時自動剝掉前綴
+  // （只在長度 >8 時剝，避免誤砍剛好以 SOFA 開頭的 8 碼序號本體）
+  if (raw.length > 8 && raw.startsWith('SOFA')) raw = raw.slice(4);
+  raw = raw.slice(0, 8);
   if (!raw) { el.value = ''; return; }
   el.value = raw.length > 4 ? raw.slice(0, 4) + '-' + raw.slice(4) : raw;
   hintEl.textContent = DEFAULT_HINT;
