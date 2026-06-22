@@ -1406,6 +1406,15 @@
           <div class="recap-list" id="recap-list"></div>
         </div>
 
+        <!-- ============ 今日複習提醒 — SM-2 到期排程（答題自動排程，到期才亮）============ -->
+        <div class="recap" id="review-due" style="display:none">
+          <div class="recap-head">
+            <span class="recap-eb">REVIEW · 今天該複習</span>
+            <span class="recap-more" id="review-due-count"></span>
+          </div>
+          <div class="recap-list" id="review-due-list"></div>
+        </div>
+
         <!-- ============ 01 MEMBER ============ -->
         <section class="block" id="member">
           <div class="sec-head">
@@ -2918,12 +2927,14 @@ function _readArticle(btn, text) {
     fetch(API+'/api/me/bookmarks', { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
     fetch(API+'/api/me/history',   { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
     fetch(API+'/api/me/mastery',   { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
+    fetch(API+'/api/me/review-due',{ headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
   ]).then(function(results){
     var profile   = results[0];
     var progress  = results[1];
     var bookmarks = results[2];
     var historyRes = results[3];
     var masteryRes = results[4];
+    var dueRes     = results[5];
 
     // ── 會員卡 ──
     if(profile){
@@ -3103,6 +3114,31 @@ function _readArticle(btn, text) {
           }).join('');
         }
       }
+    })();
+
+    // ── 今日複習提醒（SM-2 到期排程，到期才顯示）──────────────
+    (function(){
+      var due  = (dueRes && dueRes.items) || [];
+      var box  = document.getElementById('review-due');
+      var list = document.getElementById('review-due-list');
+      var cnt  = document.getElementById('review-due-count');
+      if(!box || !list) return;
+      if(!due.length){ box.style.display = 'none'; return; }
+      if(cnt) cnt.textContent = due.length + ' 條到期';
+      list.innerHTML = due.map(function(m){
+        var pid    = (m.page_id||'').replace(/'/g,'');
+        var ln     = (m.law_name||'').replace(/'/g,'');
+        var artNo  = (m.article_no||'').replace(/'/g,'');
+        var od     = m.overdue_days || 0;
+        var badge  = od > 0 ? ('逾期 '+od+' 天') : '今天到期';
+        var disp   = (m.article||'').replace(/^§+/,'') || ('§'+artNo);
+        return '<div class="li-card warn" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artNo+'\')">'+
+          '<div class="law">'+esc(m.law_name||'——')+'</div>'+
+          '<div class="art">'+esc(disp)+'</div>'+
+          '<div class="meta"><span>'+esc(badge)+'</span></div>'+
+          '</div>';
+      }).join('');
+      box.style.display = '';
     })();
 
     // ── 09 最近查詢 ──────────────────────────────────────────
