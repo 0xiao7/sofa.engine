@@ -1577,8 +1577,28 @@ async function loadNew(){
         }
       }
     }
-    const resp=await fetch(url,{headers:_authH()});
+    let resp=await fetch(url,{headers:_authH()});
     fillData=await resp.json();
+    // 8.8% 條文無數字可挖空：API 對指定 page_id 會 404（body 是 {detail}，非 {error}），
+    // 舊版會略過守門直接 render 出壞掉的空白題。改為優雅換題：
+    //   指定條文/收藏/熟記等 page_id 路徑挖不了空 → 退回「同一部法」挑挖得了的；
+    //   真的整組都沒數字 → 顯示「換一題」而不是壞掉。
+    if(!resp.ok || !fillData || !fillData.masked_text){
+      const wasPageId = url.indexOf('page_id=')>=0;
+      const realLaw = law && !law.startsWith('__');
+      if(wasPageId && realLaw){
+        try{
+          const r2=await fetch(`${API}/api/fill?law=${encodeURIComponent(law)}`,{headers:_authH()});
+          const d2=await r2.json();
+          if(r2.ok && d2 && d2.masked_text){ fillData=d2; }
+        }catch{}
+      }
+      if(!fillData || !fillData.masked_text){
+        document.getElementById('fillText').innerHTML='<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.45)">這組條件下沒有可以挖空的數字，<a href="#" onclick="loadNew();return false;" style="color:var(--peach);text-decoration:underline">換一題</a></span>';
+        document.getElementById('artTitle').textContent='—';
+        return;
+      }
+    }
     // 補上前端已知的法規名（若 API 未回傳）
     // Wave 110: law is already resolved (never '__all__' at this point), use resolved law name directly
     if(!fillData.law_name&&law&&!law.startsWith('__')){
