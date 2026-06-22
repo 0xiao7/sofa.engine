@@ -139,8 +139,18 @@
         if(!d){ finish(true); return; }                 // 4xx/5xx → fail-open
         if(d.is_admin){ finish(true); return; }
         var plan = (d.plan||'').trim();
-        if(_PAID_PLANS[plan]){ finish(true); return; }
-        if(_FREE_PLANS.hasOwnProperty(plan)){ finish(false); return; } // 唯一鎖定條件
+        if(_PAID_PLANS[plan]){
+          // 過期付費仍全開的漏：付費 plan 但到期日已過 → 視為免費。
+          // fail-open：只有到期日格式正確且嚴格早於今天才鎖；缺/壞/今天/未來日皆不鎖。
+          var _exp = (d.expire||'').slice(0,10);
+          if(/^\d{4}-\d{2}-\d{2}$/.test(_exp)){
+            var _n = new Date();
+            var _today = _n.getFullYear()+'-'+String(_n.getMonth()+1).padStart(2,'0')+'-'+String(_n.getDate()).padStart(2,'0');
+            if(_exp < _today){ finish(false); return; }  // 到期日已過 → 鎖
+          }
+          finish(true); return;                          // 有效 / 無到期日 / 格式異常 → fail-open
+        }
+        if(_FREE_PLANS.hasOwnProperty(plan)){ finish(false); return; } // 明確免費
         finish(true);                                    // 未知 plan → fail-open
       })
       .catch(function(){ finish(true); });               // 逾時/網路錯 → fail-open
