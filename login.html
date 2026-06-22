@@ -798,6 +798,20 @@ serialEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); })
   }
 })();
 
+// LINE 序號卡片/會員中心連結帶 ?s=<序號> 時：自動帶入序號欄並登入（不必手打、永不過期）
+(function autoLoginFromSerialParam(){
+  var params = new URLSearchParams(location.search);
+  var s = params.get('s') || params.get('serial');
+  if(!s) return;
+  var raw = s.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
+  if(raw.length > 8 && raw.startsWith('SOFA')) raw = raw.slice(4);
+  raw = raw.slice(0, 8);
+  if(raw.length < 8) return;
+  serialEl.value = raw.slice(0,4) + '-' + raw.slice(4,8);   // 視覺上「已幫你貼上序號」
+  history.replaceState({}, '', location.pathname);          // 清掉 URL 上的序號
+  doLogin();
+})();
+
 async function doLogin() {
   const raw = serialEl.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
   errEl.classList.remove('show');
