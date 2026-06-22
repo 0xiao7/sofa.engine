@@ -4335,51 +4335,48 @@ ch.on('presence', { event: 'sync' }, () => {
     el.innerHTML = num + (unit?' <span class="u">'+unit+'</span>':'');
   }
 
-  // ── 統計：sofa_quiz_stats_v1 = {total, correct, ...} ──
-  var stats = jget('sofa_quiz_stats_v1','{}');
-  var total = stats.total||0, correct = stats.correct||0;
-  var acc = total>0 ? Math.round(correct/total*100) : null;
-
-  // ── 今日作答數：sofa_quiz_daily_<date> ──
-  var todayCnt = parseInt(localStorage.getItem('sofa_quiz_daily_'+tpeToday())||'0',10)||0;
-
-  // ── 刷題連續天數：sofa_quiz_streak = {count, lastDate} ──
-  var streak = jget('sofa_quiz_streak','{"count":0,"lastDate":""}');
-  var qStreak = (streak && streak.count)||0;
-
-  // ── 錯題本：sofa_wrong_ids = [ids] ──
-  var wrong = jget('sofa_wrong_ids','[]');
-  var wrongCnt = Array.isArray(wrong)?wrong.length:0;
-
-  setV('tn-today', todayCnt, '題');
-  setV('tn-acc', acc==null?'—':acc, '%');
-  setV('tn-streak', qStreak, '天');
-  setV('tn-wrong', wrongCnt, '條');
-
-  // 錯題本工具卡描述帶數字
-  var wEl=document.getElementById('tool-wrong-ct');
-  if(wEl && wrongCnt>0) wEl.textContent = '目前有 '+wrongCnt+' 條錯題';
-
-  // greet sub 帶上今日刷題回饋（不覆蓋倒數天數）
-  var gsub=document.getElementById('greet-sub');
-  if(gsub && (todayCnt>0 || total>0)){
-    var bits=[];
-    if(todayCnt>0) bits.push('今天已刷 '+todayCnt+' 題考古題');
-    if(acc!=null) bits.push('累計答對率 '+acc+'%');
-    if(qStreak>0) bits.push('連續刷題 '+qStreak+' 天');
-    if(bits.length){
-      var daysSpan = gsub.querySelector('.greet-days');
-      var daysTxt = daysSpan ? daysSpan.textContent : '—';
-      gsub.innerHTML = '距離考試還有 <span class="greet-days">'+esc(daysTxt)+'</span> 天。'+esc(bits.join('，'))+'——坐下來繼續吧。';
+  // 渲染四個數字 + greet 回饋（local 與 API 共用）
+  function applyNumbers(s){
+    var acc = s.total>0 ? Math.round(s.correct/s.total*100) : null;
+    setV('tn-today', s.today, '題');
+    setV('tn-acc', acc==null?'—':acc, '%');
+    setV('tn-streak', s.streak, '天');
+    setV('tn-wrong', s.wrong, '條');
+    var wEl=document.getElementById('tool-wrong-ct');
+    if(wEl && s.wrong>0) wEl.textContent = '目前有 '+s.wrong+' 條錯題';
+    var gsub=document.getElementById('greet-sub');
+    if(gsub && (s.today>0 || s.total>0)){
+      var bits=[];
+      if(s.today>0) bits.push('今天已刷 '+s.today+' 題考古題');
+      if(acc!=null) bits.push('累計答對率 '+acc+'%');
+      if(s.streak>0) bits.push('連續刷題 '+s.streak+' 天');
+      if(bits.length){
+        var daysSpan = gsub.querySelector('.greet-days');
+        var daysTxt = daysSpan ? daysSpan.textContent : '—';
+        gsub.innerHTML = '距離考試還有 <span class="greet-days">'+esc(daysTxt)+'</span> 天。'+esc(bits.join('，'))+'——坐下來繼續吧。';
+      }
     }
   }
+  function showRecap(html){
+    var recap=document.getElementById('quiz-recap');
+    var list=document.getElementById('recap-list');
+    if(recap && list && html){ list.innerHTML=html; recap.style.display='block'; }
+  }
 
-  // ── 最近作答回顧：sofa_exam_history_v1 = [{date,score,total,pct,law,durationSec}] ──
+  // ① 先用本機 localStorage 立即渲染（離線/未登入也有畫面）
+  var lsStats = jget('sofa_quiz_stats_v1','{}');
+  var lsWrong = jget('sofa_wrong_ids','[]');
+  applyNumbers({
+    today: parseInt(localStorage.getItem('sofa_quiz_daily_'+tpeToday())||'0',10)||0,
+    total: lsStats.total||0,
+    correct: lsStats.correct||0,
+    streak: (jget('sofa_quiz_streak','{"count":0}').count)||0,
+    wrong: Array.isArray(lsWrong)?lsWrong.length:0,
+  });
+  // 本機「整套練習」回顧（quiz.html sprint）：sofa_exam_history_v1
   var hist = jget('sofa_exam_history_v1','[]');
-  var recap=document.getElementById('quiz-recap');
-  var list=document.getElementById('recap-list');
-  if(recap && list && Array.isArray(hist) && hist.length){
-    list.innerHTML = hist.slice(0,5).map(function(e){
+  if(Array.isArray(hist) && hist.length){
+    showRecap(hist.slice(0,5).map(function(e){
       var pct = (typeof e.pct==='number') ? e.pct : (e.total>0?Math.round(e.score/e.total*100):0);
       var cls = pct>=80?'hi':(pct>=60?'mid':'lo');
       return '<div class="recap-row">'
@@ -4388,8 +4385,34 @@ ch.on('presence', { event: 'sync' }, () => {
         + '<span class="rc-score">'+esc(e.score)+' / '+esc(e.total)+' 題</span>'
         + '<span class="rc-pct '+cls+'">'+pct+'%</span>'
         + '</div>';
-    }).join('');
-    recap.style.display='block';
+    }).join(''));
+  }
+
+  // ② 已登入 → 用後端 quiz_sessions（每日一題＋考古題答題）跨裝置真相覆寫。
+  //    只有真的有伺服器答題紀錄（total>0）才覆寫，避免純網頁用戶被歸零。
+  var _tok = localStorage.getItem('sofa_token')||'';
+  var _uid = localStorage.getItem('sofa_uid')||'';
+  if(_tok || _uid){
+    var H = {}; if(_tok) H['Authorization']='Bearer '+_tok; else H['X-Sofa-UID']=_uid;
+    fetch(API + '/api/me/quiz-stats', { headers: H })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        if(!d || !(d.total>0)) return;  // 沒有後端答題紀錄就保留本機畫面
+        applyNumbers({ today:d.today||0, total:d.total||0, correct:d.correct||0,
+                       streak:d.streak||0, wrong:d.wrong_count||0 });
+        if(Array.isArray(d.recent) && d.recent.length){
+          showRecap(d.recent.slice(0,5).map(function(e){
+            var ok = !!e.is_correct;
+            return '<div class="recap-row">'
+              + '<span class="rc-date">'+esc((e.date||'').slice(5))+'</span>'
+              + '<span class="rc-law">'+esc(e.law||'每日一題')+'</span>'
+              + '<span class="rc-score">'+esc((e.question||'').slice(0,18))+'</span>'
+              + '<span class="rc-pct '+(ok?'hi':'lo')+'">'+(ok?'✓ 答對':'✗ 答錯')+'</span>'
+              + '</div>';
+          }).join(''));
+        }
+      })
+      .catch(function(){});
   }
 })();
 </script>
