@@ -1450,6 +1450,8 @@ function checkAnswers(){
   // 寫入練習紀錄
   if(fillData.id&&uid&&uid!=='PREVIEW'&&!isFree){
     fetch(`${API}/api/me/history`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({page_id:fillData.id,law_name:fillData.law_name||'',article:fillData.title||''})}).catch(()=>{});
+    // 跨裝置答題紀錄：填空全對才算答對該條，寫 user_stats（餵弱點/間隔複習）
+    fetch(`${API}/api/me/answer`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({article_id:fillData.id,is_correct:(cor===inputs.length&&inputs.length>0),mode:'fill'})}).catch(()=>{});
   }
   // Auto-advance after perfect score (2s delay with countdown)
   if(cor === inputs.length && inputs.length > 0){
