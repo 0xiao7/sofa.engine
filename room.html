@@ -737,32 +737,6 @@ input[type=text], select, .btn-enter {
 .scene-mode-toggle button.active{
   background:rgba(91,175,214,.20);border-color:rgba(91,175,214,.42);color:#E8F4FA;
 }
-.airy-scene-pill{
-  position:absolute;left:24px;bottom:30px;z-index:18;
-  width:172px;margin:0;padding:4px;
-  background:rgba(255,255,255,.58);
-  border:1px solid rgba(170,150,120,.18);
-  border-radius:18px;
-  box-shadow:0 18px 50px rgba(116,96,64,.10);
-  backdrop-filter:blur(18px);
-  -webkit-backdrop-filter:blur(18px);
-}
-.airy-scene-pill button{
-  color:rgba(70,60,48,.54);
-  background:transparent;
-  border-color:transparent;
-  border-radius:14px;
-  padding:8px 9px;
-}
-.airy-scene-pill button.active{
-  color:#3E6F7D;
-  background:rgba(255,255,255,.70);
-  border-color:rgba(116,190,216,.18);
-  box-shadow:0 8px 22px rgba(120,100,70,.09);
-}
-@media(max-width:640px){
-  .airy-scene-pill{left:18px;right:18px;bottom:92px;width:auto;}
-}
 
 /* ── v87: ABETO full-screen immersive layout (desktop) ──────────────────────
    3D canvas fills the whole viewport; topbar + sidebar float as glass HUD;
@@ -1143,7 +1117,7 @@ body.airy-room .scene-mode-toggle button{
 body.airy-room .scene-mode-toggle button.active{
   background:rgba(116,190,216,.22);border-color:rgba(116,190,216,.38);color:#356C7D;
 }
-body.airy-room .scene-mode-toggle{display:flex;}
+body.airy-room .scene-mode-toggle{display:none;}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.min.js"></script>
 <script src="OrbitControls.js"></script>
@@ -1236,10 +1210,6 @@ body.airy-room .scene-mode-toggle{display:flex;}
         <button id="audio-settings-btn" title="音效設定" onclick="_toggleAudioPanel()">⚙</button>
         <button id="achieve-btn" title="學習成就" onclick="_toggleAchievePanel()">🏆</button>
         <button id="theme-btn" title="主題色" onclick="_toggleThemePanel()"><span id="theme-btn-dot"></span></button>
-        <div class="scene-mode-toggle airy-scene-pill" aria-label="自習室場景切換">
-          <button type="button" data-scene-mode="library" onclick="_setRoomSceneMode('library')">圖書館</button>
-          <button type="button" data-scene-mode="island" onclick="_setRoomSceneMode('island')">小島</button>
-        </div>
         <div id="theme-panel">
           <div class="tp-title">🎨 主題色</div>
           <div class="tp-swatches" id="theme-swatches"></div>
@@ -1513,7 +1483,7 @@ const mToon = (hex) => new THREE.MeshLambertMaterial({ color: hex });
 const mToonFlat = (hex) => new THREE.MeshLambertMaterial({ color: hex, flatShading: true });
 const _isMobile = /iPhone|iPad|Android|Mobi/i.test(navigator.userAgent) || window.innerWidth < 768;
 const SOFA_AIRY_ROOM = true;
-const SOFA_ROOM_SINGLE_SCENE = false;
+const SOFA_ROOM_SINGLE_SCENE = true;
 const LOW_POWER_SCENE = _isMobile || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const SCENE_USER_LIMIT = 20;
 const SCENE_OTHER_LIMIT = 19;
@@ -1745,21 +1715,6 @@ let _airyStart = 0;
 let _airyCanvas = null;
 let _airyCtx = null;
 let _airyWalk = { x: 0, y: 0 };
-const AIRY_REFERENCE_SCENES = {
-  library: {
-    src: 'assets/room/preview-library.png',
-    desktop: { sx: 38, sy: 198, sw: 700, sh: 760 },
-    mobile: { sx: 1088, sy: 220, sw: 360, sh: 430 },
-    label: 'Endless Minimal Library Walk',
-  },
-  island: {
-    src: 'assets/room/preview-island.png',
-    desktop: { sx: 8, sy: 14, sw: 1064, sh: 998 },
-    mobile: { sx: 1106, sy: 155, sw: 420, sh: 500 },
-    label: 'Quiet Study Island',
-  },
-};
-const _airyReferenceImages = {};
 const _ROOM_SCENE_KEY = 'sofa_room_scene_mode';
 let _roomSceneMode = SOFA_ROOM_SINGLE_SCENE ? 'library' : (localStorage.getItem(_ROOM_SCENE_KEY) || 'library');
 
@@ -1772,7 +1727,6 @@ function _setRoomSceneMode(mode) {
   _roomSceneMode = mode === 'island' ? 'island' : 'library';
   localStorage.setItem(_ROOM_SCENE_KEY, _roomSceneMode);
   _renderRoomSceneModeControls();
-  _ensureAiryReferenceImage(_roomSceneMode);
 }
 
 function _renderRoomSceneModeControls() {
@@ -1988,85 +1942,6 @@ function _airyDrawDesk(ctx, x, y, w, h, u, i, t) {
   ctx.restore();
 }
 
-function _ensureAiryReferenceImage(mode) {
-  const cfg = AIRY_REFERENCE_SCENES[mode] || AIRY_REFERENCE_SCENES.library;
-  if (_airyReferenceImages[mode]) return _airyReferenceImages[mode];
-  const img = new Image();
-  img.decoding = 'async';
-  img.src = cfg.src;
-  img.onload = () => {
-    if (_airyCanvas && _airyCtx) {
-      _drawAiryReferenceScene(_airyCanvas, _airyCtx, (performance.now() - _airyStart) / 1000);
-    }
-  };
-  _airyReferenceImages[mode] = img;
-  return img;
-}
-
-function _airyDrawCroppedCover(ctx, img, crop, dx, dy, dw, dh) {
-  const srcAspect = crop.sw / crop.sh;
-  const dstAspect = dw / dh;
-  let sx = crop.sx, sy = crop.sy, sw = crop.sw, sh = crop.sh;
-  if (srcAspect > dstAspect) {
-    const nextW = crop.sh * dstAspect;
-    sx += (crop.sw - nextW) / 2;
-    sw = nextW;
-  } else {
-    const nextH = crop.sw / dstAspect;
-    sy += (crop.sh - nextH) / 2;
-    sh = nextH;
-  }
-  ctx.drawImage(img, sx, sy, sw, sh, dx, dy, dw, dh);
-}
-
-function _drawAiryReferenceScene(canvas, ctx, t) {
-  const cfg = AIRY_REFERENCE_SCENES[_roomSceneMode] || AIRY_REFERENCE_SCENES.library;
-  const img = _ensureAiryReferenceImage(_roomSceneMode);
-  if (!img.complete || !img.naturalWidth) return false;
-
-  const w = canvas.width, h = canvas.height;
-  const mobile = w < 700;
-  const crop = mobile ? cfg.mobile : cfg.desktop;
-  const panX = Math.sin((_airyWalk.x || 0) * 0.55) * (mobile ? 10 : 22);
-  const panY = Math.sin((_airyWalk.y || 0) * 0.42) * (mobile ? 7 : 14);
-
-  ctx.clearRect(0, 0, w, h);
-  ctx.save();
-  ctx.translate(panX, panY);
-  _airyDrawCroppedCover(ctx, img, crop, -Math.abs(panX) - 4, -Math.abs(panY) - 4, w + Math.abs(panX) * 2 + 8, h + Math.abs(panY) * 2 + 8);
-  ctx.restore();
-
-  const veil = ctx.createLinearGradient(0, 0, 0, h);
-  veil.addColorStop(0, 'rgba(255,252,244,.20)');
-  veil.addColorStop(0.58, 'rgba(255,252,244,.05)');
-  veil.addColorStop(1, 'rgba(248,245,236,.18)');
-  ctx.fillStyle = veil;
-  ctx.fillRect(0, 0, w, h);
-
-  ctx.save();
-  ctx.globalAlpha = _roomSceneMode === 'island' ? 0.18 : 0.14;
-  ctx.fillStyle = '#FFF7D6';
-  const beams = mobile ? 2 : 3;
-  for (let i = 0; i < beams; i++) {
-    const bx = w * (0.16 + i * 0.18) + Math.sin(t * 0.18 + i) * 8;
-    ctx.beginPath();
-    ctx.moveTo(bx, 0);
-    ctx.lineTo(bx + w * 0.12, 0);
-    ctx.lineTo(bx - w * 0.18, h);
-    ctx.lineTo(bx - w * 0.32, h);
-    ctx.closePath();
-    ctx.fill();
-  }
-  ctx.restore();
-
-  if (_roomSceneMode === 'library') {
-    _airyText(ctx, 'Endless Minimal Library Walk', mobile ? w / 2 : 156, mobile ? 78 : h - 74, mobile ? 12 : 12, 'rgba(70,60,48,.36)', '700', mobile ? 'center' : 'left');
-  } else if (!mobile) {
-    _airyText(ctx, 'Quiet Study Island', 62, h - 78, 12, 'rgba(70,60,48,.38)', '700', 'left');
-  }
-  return true;
-}
-
 function _airyDrawIslandRoom(canvas, ctx, t) {
   const w = canvas.width, h = canvas.height;
   const mobile = w < 700;
@@ -2153,7 +2028,6 @@ function _airyDrawIslandRoom(canvas, ctx, t) {
 }
 
 function _airyDrawRoom(canvas, ctx, t) {
-  if (_drawAiryReferenceScene(canvas, ctx, t)) return;
   if (!SOFA_ROOM_SINGLE_SCENE && _roomSceneMode === 'island') {
     _airyDrawIslandRoom(canvas, ctx, t);
     return;
@@ -2297,21 +2171,16 @@ function _startAiryRoom(canvas) {
   _airyCtx = canvas.getContext('2d');
   _airyStart = performance.now();
   document.body.classList.add('airy-room');
-  _ensureAiryReferenceImage(_roomSceneMode);
   _renderRoomSceneModeControls();
   const loaderEl = document.getElementById('three-loader');
   if(loaderEl){ loaderEl.style.opacity='0'; setTimeout(()=>{ loaderEl.style.display='none'; },260); }
-  if (_airyRAF) {
-    cancelAnimationFrame(_airyRAF);
-    clearTimeout(_airyRAF);
-  }
-  function loop() {
+  if (_airyRAF) cancelAnimationFrame(_airyRAF);
+  function loop(now) {
+    _airyRAF = requestAnimationFrame(loop);
     if (!_airyCanvas || !_airyCtx) return;
-    const now = performance.now();
     _airyDrawRoom(_airyCanvas, _airyCtx, (now - _airyStart) / 1000);
-    _airyRAF = setTimeout(loop, 520);
   }
-  loop();
+  loop(performance.now());
 }
 
 document.addEventListener('keydown', (e) => {
