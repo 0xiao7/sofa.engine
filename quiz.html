@@ -1855,9 +1855,11 @@ async function loadQuiz(){
       }
     }
     if(data.error||data.detail){
-      document.getElementById('questionBox').textContent=data.error||data.detail;
+      // 整部法都出不了數字題（~8.8% 法規）→ 友善換題，不要把生硬的 404 文字丟在題目區
+      sessionHistory.pop(); total--; updateScore();
+      document.getElementById('questionBox').innerHTML='<span style="color:rgba(245,240,234,.45)">這組條件下沒有可以出的數字題，<a href="#" onclick="loadQuiz();return false;" style="color:var(--peach);text-decoration:underline">換一題</a></span>';
       document.getElementById('questionBox').style.opacity='1';
-      sessionHistory.pop(); total--; updateScore(); return;
+      return;
     }
     quizData=data;
 
