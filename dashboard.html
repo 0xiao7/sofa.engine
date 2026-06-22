@@ -1331,11 +1331,11 @@
         <div class="lab">導 覽</div>
         <div class="nav-list">
           <a href="#member" class="on"><span class="num">01</span>會員資訊<span class="ct"></span></a>
-          <a href="#progress"><span class="num">02</span>學習進度<span class="ct">6/7</span></a>
+          <a href="#progress"><span class="num">02</span>學習進度<span class="ct" id="nav-ct-prog"></span></a>
           <a href="#search"><span class="num">03</span>法條搜尋<span class="ct"></span></a>
-          <a href="#favorites"><span class="num">04</span>我的收藏<span class="ct">1</span></a>
-          <a href="#memorized"><span class="num">05</span>已熟記<span class="ct">0</span></a>
-          <a href="#review"><span class="num">06</span>待複習<span class="ct">1</span></a>
+          <a href="#favorites"><span class="num">04</span>我的收藏<span class="ct" id="nav-ct-fav"></span></a>
+          <a href="#memorized"><span class="num">05</span>已熟記<span class="ct" id="nav-ct-mem"></span></a>
+          <a href="#review"><span class="num">06</span>待複習<span class="ct" id="nav-ct-rev"></span></a>
           <a href="#tools"><span class="num">07</span>備考工具<span class="ct">8</span></a>
           <a href="#laws"><span class="num">08</span>法規目錄<span class="ct">33</span></a>
           <a href="#recent"><span class="num">09</span>最近查詢<span class="ct">7d</span></a>
@@ -1883,6 +1883,21 @@ function _authH(extra) {
   return h;
 }
 
+// 冷啟動容錯：Render 閒置後第一拍常回 500/503，前端自動重試（指數退避），
+// 避免會員資訊/學習進度等區塊永遠卡在「載入中…」。4xx 不重試（503/429/網路錯才重試）。
+async function _fetchJSON(url, opts, tries){
+  tries = tries || 3;
+  for(var i=0;i<tries;i++){
+    try{
+      var r = await fetch(url, opts);
+      if(r.ok) return await r.json();
+      if(r.status < 500 && r.status !== 429 && r.status !== 503) return null; // 真 4xx 不重試
+    }catch(e){ /* 網路/冷啟動錯，往下重試 */ }
+    if(i < tries-1) await new Promise(function(res){ setTimeout(res, 600*(i+1)); });
+  }
+  return null;
+}
+
 // ── Drawer 動態開啟 ──────────────────────────────────────
 var _drPageId = '';
 var _drLawName = '';
@@ -1905,10 +1920,9 @@ function openDrawer(pageId, lawName, article){
   if(!pageId){ _renderDrawerFallback(_drLawName, _drArticle); return; }
   var uid  = localStorage.getItem('sofa_uid') || '';
   var headers = _authH();
-  fetch(API + '/api/article/' + encodeURIComponent(pageId), {
-    headers: headers
-  }).then(function(r){ return r.ok ? r.json() : null; })
-    .then(function(d){ _renderDrawer(d); })
+  // 冷啟動容錯：條文內容第一拍 500 時自動重試，避免抽屜卡「載入中」
+  _fetchJSON(API + '/api/article/' + encodeURIComponent(pageId), { headers: headers })
+    .then(function(d){ if(d) _renderDrawer(d); else _renderDrawerFallback(lawName, article); })
     .catch(function(){ _renderDrawerFallback(lawName, article); });
 }
 
@@ -2922,12 +2936,12 @@ function _readArticle(btn, text) {
   }
 
   Promise.all([
-    fetch(API+'/api/me/profile',   { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
-    fetch(API+'/api/me/progress',  { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
-    fetch(API+'/api/me/bookmarks', { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
-    fetch(API+'/api/me/history',   { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
-    fetch(API+'/api/me/mastery',   { headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
-    fetch(API+'/api/me/review-due',{ headers: H }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }),
+    _fetchJSON(API+'/api/me/profile',   { headers: H }),
+    _fetchJSON(API+'/api/me/progress',  { headers: H }),
+    _fetchJSON(API+'/api/me/bookmarks', { headers: H }),
+    _fetchJSON(API+'/api/me/history',   { headers: H }),
+    _fetchJSON(API+'/api/me/mastery',   { headers: H }),
+    _fetchJSON(API+'/api/me/review-due',{ headers: H }),
   ]).then(function(results){
     var profile   = results[0];
     var progress  = results[1];
@@ -3018,6 +3032,7 @@ function _readArticle(btn, text) {
 
       // 進度列表
       var byLaw = progress.by_law || [];
+      var navProg = document.getElementById('nav-ct-prog'); if(navProg) navProg.textContent = byLaw.length || '';
       var maxCount = byLaw.length ? byLaw[0].count : 1;
       if(byLaw.length){
         var html = byLaw.slice(0,8).map(function(item){
@@ -3044,6 +3059,7 @@ function _readArticle(btn, text) {
       var items = (bookmarks && bookmarks.bookmarks) || [];
       var cnt = document.getElementById('fav-count');
       if(cnt) cnt.textContent = items.length + ' 條';
+      var navFav = document.getElementById('nav-ct-fav'); if(navFav) navFav.textContent = items.length || '';
       if(!items.length){
         el.innerHTML = '<div class="empty" style="grid-column:span 3"><span class="ic">☆</span>'
           + '<div>還沒有收藏任何條文。<br/>在條文卡片上點 <b>★</b> 即可。</div></div>';
@@ -3070,6 +3086,10 @@ function _readArticle(btn, text) {
       var items = (masteryRes && masteryRes.items) || [];
       var mastered = items.filter(function(m){ return m.status==='mastered'; });
       var reviews  = items.filter(function(m){ return m.status==='review'; });
+
+      // nav 徽章接真實值（0 留白，不顯示假占位數字）
+      var navMem = document.getElementById('nav-ct-mem'); if(navMem) navMem.textContent = mastered.length || '';
+      var navRev = document.getElementById('nav-ct-rev'); if(navRev) navRev.textContent = reviews.length || '';
 
       var masteredEl = document.getElementById('mastered-list');
       var masteredCt = document.getElementById('mastered-count');
@@ -3693,6 +3713,8 @@ function _renderLawsToc(page){
         _handleUrlQuery();
         // 私人筆記庫：?open=<page_id> 落地直接開該條 drawer
         _handleUrlOpen();
+        // tree / 考運羅盤 funnel：?law=<法名> 落地自動搜出該法（導回站內讀，不外連 moj）
+        _handleUrlLaw();
       }
     })
     .catch(function(){});
@@ -4094,6 +4116,20 @@ function _handleUrlOpen(){
   var pid = params.get('open');
   if(!pid) return;
   openDrawer(decodeURIComponent(pid), decodeURIComponent(params.get('law')||''), decodeURIComponent(params.get('art')||''));
+}
+
+// tree / 考運羅盤 funnel：?law=<法名> 落地→自動把該法搜出來，讓考生在站內讀
+// （只在沒有 ?open / ?q 時才動作，避免和上面兩個 handler 重複觸發）
+function _handleUrlLaw(){
+  var params = new URLSearchParams(window.location.search);
+  var law = params.get('law');
+  if(!law || params.get('open') || params.get('q')) return;
+  var inp = document.getElementById('search-law');
+  if(!inp) return;
+  inp.value = decodeURIComponent(law);
+  doSearch();
+  var sec = document.getElementById('search');
+  if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 // 私人筆記庫：登入後把雲端筆記拉下來與本地合併（跨裝置同步）。
