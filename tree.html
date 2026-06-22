@@ -1948,13 +1948,15 @@ const SOFA_READ_URL = (lawName) => `https://sofaengine.org/law-preview.html?law=
         link.removeAttribute('href');
         link.removeAttribute('target');
         link.style.cursor = 'pointer';
-        const isOnline = SOFA_ONLINE_LAWS.has(lawName);
-        link.setAttribute('title', isOnline
+        // 在點擊當下即時查 set（而非裝飾當下捕捉），避免動態 hydrate 還沒
+        // 回來時把實際已上線的法條誤標成未上線。
+        const isOnline = () => SOFA_ONLINE_LAWS.has(lawName);
+        link.setAttribute('title', isOnline()
           ? `「${lawName}」已在 SoFa,點此前往閱讀`
           : `「${lawName}」即將在 SoFa 上線`);
         link.addEventListener('click', (e) => {
           e.preventDefault();
-          if (isOnline) {
+          if (isOnline()) {
             // 已上線:直接跳新分頁
             window.open(SOFA_READ_URL(lawName), '_blank', 'noopener');
           } else {
@@ -1966,8 +1968,8 @@ const SOFA_READ_URL = (lawName) => `https://sofaengine.org/law-preview.html?law=
     }, 0);
   };
 
-  // SoFa 已上線法條 set — 直接對應 Supabase statutes 表（2026-06-05，211 部）
-  // 更新方式: 查 Supabase statutes?select=name 後替換下方陣列
+  // SoFa 已上線法條 set —— 下方陣列只是離線 fallback（2026-06-05 當時 211 部）。
+  // 啟動時會用 live /api/laws 動態覆蓋成現況（566+ 部），不再手動維護這份清單。
   const SOFA_ONLINE_LAWS = new Set([
     "不動產估價師法","不動產估價師法施行細則","不動產估價技術規則",
     "不動產經紀業管理條例","不動產經紀業管理條例施行細則",
@@ -2040,6 +2042,19 @@ const SOFA_READ_URL = (lawName) => `https://sofaengine.org/law-preview.html?law=
     "關稅法","電子簽章法","非訟事件法","非都市土地使用管制規則",
     "預算法","食品安全衛生管理法"
   ]);
+
+  // 啟動時用 live /api/laws 動態覆蓋上線清單（硬編 211 部已過時，實際 566+）。
+  // 失敗則沿用上方 fallback 陣列，頁面照常運作。
+  (function hydrateOnlineLaws() {
+    fetch('https://sofa-engine-api.onrender.com/api/laws')
+      .then(r => r.ok ? r.json() : null)
+      .then(d => {
+        if (!d || !Array.isArray(d.laws) || !d.laws.length) return;
+        SOFA_ONLINE_LAWS.clear();
+        d.laws.forEach(l => { if (l && l.name) SOFA_ONLINE_LAWS.add(l.name); });
+      })
+      .catch(() => {});
+  })();
 
   window.showLawToast = function(lawName) {
     const toast = document.getElementById('plannerToast');
