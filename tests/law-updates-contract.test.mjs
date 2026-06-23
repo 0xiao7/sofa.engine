@@ -46,6 +46,7 @@ function loadInlinePageScript(records = []) {
         return elements.get(id);
       },
       createElement: element,
+      addEventListener() {},
     },
   };
   sandbox.window.SOFA_LAW_UPDATES = { lastChecked: '2026-06-23', method: [], records };
@@ -78,6 +79,53 @@ test('each public law update record has the curated fields only', () => {
     for (const forbidden of forbiddenKeys) {
       assert.equal(Object.hasOwn(record, forbidden), false, `${record.id} leaks ${forbidden}`);
     }
+  }
+});
+
+test('high impact public records include click-through detail copy', () => {
+  const data = loadData();
+  const highImpactRecords = data.records.filter((record) => record.impact === 'high');
+  assert.ok(highImpactRecords.length > 0, 'needs high impact records to explain');
+
+  for (const record of highImpactRecords) {
+    for (const key of ['officialExcerpt', 'changeBefore', 'changeAfter', 'whyItMatters', 'sofaAction']) {
+      assert.equal(typeof record[key], 'string', `${record.id} missing ${key}`);
+      assert.ok(record[key].length >= 8, `${record.id} ${key} is too terse`);
+    }
+  }
+});
+
+test('public page offers a clickable detail view for law update differences', () => {
+  const page = read('law-updates.html');
+  assert.match(page, /id="detailDialog"/);
+  assert.match(page, /function openDetail/);
+  assert.match(page, /data-detail-id/);
+  assert.match(page, /查看差異/);
+  assert.match(page, /改了什麼/);
+});
+
+test('public page keeps user navigation and avoids implying a complete exam list', () => {
+  const page = read('law-updates.html');
+  assert.match(page, /href="dashboard\.html"/);
+  assert.match(page, /儀表板/);
+  assert.match(page, /涉及範圍/);
+  assert.doesNotMatch(page, /涉及考科/);
+});
+
+test('homepage visibly signals law update care and links to public records', () => {
+  const homepage = read('index.html');
+  assert.match(homepage, /law-updates\.html/);
+  assert.match(homepage, /法規更新紀錄/);
+  assert.match(homepage, /修法|法規更新|近期異動/);
+});
+
+test('public law update surfaces include caveats for new-law uncertainty', () => {
+  const page = read('law-updates.html');
+  const homepage = read('index.html');
+  for (const source of [page, homepage]) {
+    assert.match(source, /官方原文為準/);
+    assert.match(source, /非法律意見/);
+    assert.match(source, /函釋|過渡規定|實務見解|命題口徑/);
   }
 });
 

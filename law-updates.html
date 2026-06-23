@@ -77,6 +77,11 @@ button{font:inherit}
   font-size:13px;
   text-decoration:none;
 }
+.top-links{
+  display:flex;
+  gap:14px;
+  align-items:center;
+}
 main{
   width:min(1180px,calc(100% - 32px));
   margin:0 auto;
@@ -294,6 +299,25 @@ h1{
   font-size:13px;
   text-decoration:none;
 }
+.card-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  align-items:center;
+  justify-content:space-between;
+  margin-top:14px;
+}
+.detail-btn{
+  min-height:34px;
+  padding:7px 12px;
+  border:1px solid rgba(231,187,167,.48);
+  border-radius:8px;
+  background:rgba(231,187,167,.1);
+  color:var(--peach-2);
+  font-weight:700;
+  cursor:pointer;
+}
+.detail-btn:hover{background:rgba(231,187,167,.16)}
 .method{
   position:sticky;
   top:76px;
@@ -317,12 +341,85 @@ h1{
   color:var(--cream-2);
 }
 .method li+li{margin-top:8px}
+.caveat{
+  margin-top:14px;
+  padding:12px;
+  border:1px solid rgba(216,140,122,.34);
+  border-radius:8px;
+  background:rgba(216,140,122,.08);
+  color:var(--cream-2);
+  font-size:13px;
+}
 .empty{
   padding:28px;
   border:1px dashed var(--line-2);
   border-radius:8px;
   color:var(--cream-3);
   text-align:center;
+}
+.detail-dialog[hidden]{display:none}
+.detail-dialog{
+  position:fixed;
+  inset:0;
+  z-index:40;
+  display:grid;
+  place-items:center;
+  padding:20px;
+  background:rgba(13,28,40,.72);
+}
+.detail-panel{
+  width:min(760px,100%);
+  max-height:min(82vh,820px);
+  overflow:auto;
+  border:1px solid var(--line-2);
+  border-radius:8px;
+  background:var(--navy-3);
+  box-shadow:0 24px 80px rgba(0,0,0,.35);
+}
+.detail-head{
+  display:flex;
+  justify-content:space-between;
+  gap:16px;
+  padding:20px;
+  border-bottom:1px solid var(--line);
+}
+.detail-head h2{
+  margin:0;
+  font-family:var(--serif);
+  font-size:26px;
+}
+.detail-close{
+  width:36px;
+  height:36px;
+  border:1px solid var(--line-2);
+  border-radius:8px;
+  background:rgba(245,240,234,.04);
+  color:var(--cream);
+  cursor:pointer;
+}
+.detail-body{
+  display:grid;
+  gap:14px;
+  padding:20px;
+}
+.detail-block{
+  padding:14px;
+  border:1px solid var(--line);
+  border-radius:8px;
+  background:rgba(245,240,234,.04);
+}
+.detail-block h3{
+  margin:0 0 8px;
+  color:var(--peach);
+  font-size:13px;
+}
+.detail-block p,.detail-block blockquote{
+  margin:0;
+  color:var(--cream-2);
+}
+.detail-block blockquote{
+  padding-left:12px;
+  border-left:3px solid var(--peach);
 }
 @media (max-width:880px){
   .page-head,.content-grid{grid-template-columns:1fr}
@@ -338,13 +435,18 @@ h1{
   .filter-label{padding-top:0}
   .card-top{display:grid}
   .badges{justify-content:flex-start}
+  .card-actions{display:grid;justify-content:stretch}
+  .detail-btn{width:100%}
 }
 </style>
 </head>
 <body>
 <header class="topbar">
   <div class="brand"><span class="brand-mark">S</span><span>SoFa Engine</span></div>
-  <a href="law/index.html">法規庫</a>
+  <nav class="top-links" aria-label="頁面導覽">
+    <a href="dashboard.html">儀表板</a>
+    <a href="law/index.html">法規庫</a>
+  </nav>
 </header>
 
 <main>
@@ -377,15 +479,15 @@ h1{
       <div class="hint">需比對舊題答案</div>
     </div>
     <div class="stat">
-      <div class="label">涉及考科</div>
+      <div class="label">涉及範圍</div>
       <div class="value" id="examCount">0</div>
-      <div class="hint">依 SoFa 備考用途歸類</div>
+      <div class="hint">本頁已公開整理</div>
     </div>
   </section>
 
   <section class="toolbar" aria-label="篩選法規更新">
     <div class="filter-row">
-      <div class="filter-label">考科</div>
+      <div class="filter-label">範圍</div>
       <div class="filter-buttons" id="examFilters"></div>
     </div>
     <div class="filter-row">
@@ -403,10 +505,25 @@ h1{
     <aside class="method">
       <h2>整理方法</h2>
       <p>SoFa 先追蹤政府公開法規資料，再把更新依考科、考試影響與備考用途整理成可讀紀錄。</p>
+      <p>本頁只列已公開整理的更新範圍，不代表 SoFa 支援考科的完整清單。</p>
+      <p class="caveat">但書：本頁是備考整理，非法律意見；新法剛上路可能還有函釋、過渡規定、實務見解或命題口徑尚未穩定，仍以官方原文為準。</p>
       <ol id="methodList"></ol>
     </aside>
   </section>
 </main>
+
+<div class="detail-dialog" id="detailDialog" role="dialog" aria-modal="true" aria-labelledby="detailTitle" hidden>
+  <div class="detail-panel">
+    <div class="detail-head">
+      <div>
+        <h2 id="detailTitle">法規更新差異</h2>
+        <div class="section" id="detailSection"></div>
+      </div>
+      <button class="detail-close" type="button" id="detailClose" aria-label="關閉">×</button>
+    </div>
+    <div class="detail-body" id="detailBody"></div>
+  </div>
+</div>
 
 <script src="law-updates-data.js"></script>
 <script>
@@ -513,9 +630,39 @@ function recordCard(record) {
       <p class="summary-text">${escapeHtml(record.summary)}</p>
       <p class="study-action">${escapeHtml(record.studyAction)}</p>
       <div class="chip-list">${exams}</div>
-      ${source}
+      <div class="card-actions">
+        <button class="detail-btn" type="button" data-detail-id="${escapeHtml(record.id)}" onclick="openDetail('${escapeHtml(record.id)}')">查看差異</button>
+        ${source}
+      </div>
     </article>
   `;
+}
+
+function detailBlock(title, body, quote = false) {
+  if (!body) return '';
+  const tag = quote ? 'blockquote' : 'p';
+  return `<section class="detail-block"><h3>${escapeHtml(title)}</h3><${tag}>${escapeHtml(body)}</${tag}></section>`;
+}
+
+function openDetail(recordId) {
+  const record = (data.records || []).find((item) => item.id === recordId);
+  if (!record) return;
+  const dialog = document.getElementById('detailDialog');
+  document.getElementById('detailTitle').textContent = `${record.law} ${record.section || ''}`.trim();
+  document.getElementById('detailSection').textContent = `${statusLabels[record.status] || record.status} · ${impactLabels[record.impact] || record.impact}影響`;
+  document.getElementById('detailBody').innerHTML = [
+    detailBlock('官方原文節錄', record.officialExcerpt, true),
+    detailBlock('改了什麼', record.changeAfter),
+    detailBlock('原本容易誤判', record.changeBefore),
+    detailBlock('為什麼影響考題', record.whyItMatters),
+    detailBlock('SoFa 怎麼處理', record.sofaAction),
+    detailBlock('但書', '本頁是備考整理，非法律意見；新法剛上路可能還有函釋、過渡規定、實務見解或命題口徑尚未穩定，仍以官方原文為準。'),
+  ].join('');
+  dialog.hidden = false;
+}
+
+function closeDetail() {
+  document.getElementById('detailDialog').hidden = true;
 }
 
 function renderRecords(records) {
@@ -540,6 +687,14 @@ function render() {
   renderRecords(records);
   renderMethod();
 }
+
+document.getElementById('detailClose').addEventListener('click', closeDetail);
+document.getElementById('detailDialog').addEventListener('click', (event) => {
+  if (event.target.id === 'detailDialog') closeDetail();
+});
+document.addEventListener('keydown', (event) => {
+  if (event.key === 'Escape') closeDetail();
+});
 
 render();
 </script>
