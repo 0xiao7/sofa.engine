@@ -199,7 +199,7 @@
   .sec-text .sec-i{position:relative;padding-left:18px;margin:3px 0}
   .sec-text .sec-i::before{content:'';position:absolute;left:5px;top:.62em;width:4px;height:4px;border:1.2px solid var(--peach-3);border-radius:50%;box-sizing:border-box}
   .sec-lock{margin-top:16px;border-top:1px dashed rgba(31,56,72,.15)}
-  .sec-lock .sec-label::after{content:" 🔒";font-size:11px;opacity:.65}
+  .sec-lock .sec-label::after{content:"";font-size:11px;opacity:.65}
   .sec-lock-preview{position:relative;max-height:80px;overflow:hidden;padding:10px 0 0;pointer-events:none;user-select:none;font-size:13.5px;line-height:1.8;color:rgba(31,56,72,.72)}
   .sec-lock-preview::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(245,240,234,0) 15%,var(--cream) 82%);pointer-events:none}
   .sec-lock-cta{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px;padding:10px 16px;font-size:12.5px;color:rgba(31,56,72,.72);background:rgba(231,187,167,.1);border:1px dashed rgba(213,154,120,.4);border-radius:4px}
@@ -308,9 +308,9 @@
   #qCountdown.urgent{color:var(--bad);animation:countdown-pulse .5s ease-in-out infinite alternate;}
   @keyframes countdown-pulse{from{opacity:1}to{opacity:.4}}
 
-  #quiz-citation{display:none;text-align:center;margin-top:0;padding:7px 14px;background:rgba(26,46,61,0.7);border:1px solid rgba(91,175,214,0.3);border-radius:16px;color:#5BAFD6;font-size:12px;animation:fadeInUp 0.3s ease;}
+  #quiz-citation{display:none;text-align:center;margin-top:0;padding:7px 14px;background:rgba(26,46,61,0.7);border:1px solid rgba(231,187,167,0.3);border-radius:16px;color:var(--peach);font-size:12px;animation:fadeInUp 0.3s ease;}
   #quiz-citation.show{display:block;}
-  #quiz-citation a{color:#5BAFD6;text-decoration:none;}
+  #quiz-citation a{color:var(--peach);text-decoration:none;}
   @keyframes fadeInUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
   /* ── Wave 68: 查看法條按鈕 ── */
@@ -326,7 +326,7 @@
     cursor: pointer;
     transition: border-color 0.2s, color 0.2s;
   }
-  #view-article-btn:hover { border-color: #5BAFD6; color: #5BAFD6; }
+  #view-article-btn:hover { border-color: var(--peach); color: var(--peach); }
 
   /* ── Wave 61: 鍵盤提示徽章 ── */
   #kb-hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(26,46,61,0.85);color:var(--cream-3);font-size:12px;padding:5px 14px;border-radius:12px;pointer-events:none;transition:opacity 0.5s;z-index:100;font-family:var(--mono);letter-spacing:.06em;}
@@ -344,7 +344,7 @@
   #streak-badge.tier1 { color: var(--warn); }
   #streak-badge.tier2 { color: var(--warn); font-size: 17px; }
   #streak-badge.tier3 { color: var(--warn); font-size: 20px; animation: streakPulse 0.5s ease; }
-  #streak-badge.broken { color: #5BAFD6; font-size: 13px; font-weight: 400; }
+  #streak-badge.broken { color: var(--peach); font-size: 13px; font-weight: 400; }
   @keyframes streakPulse {
     0%   { transform: scale(1); }
     40%  { transform: scale(1.3); }
@@ -361,7 +361,7 @@
   #sprint-bar-wrap.active { display: block; }
   #sprint-bar {
     height: 100%; width: 0%;
-    background: linear-gradient(90deg, #5BAFD6, #5BAFD6);
+    background: linear-gradient(90deg, var(--peach), var(--peach));
     border-radius: 3px; transition: width 0.35s ease, background 0.5s;
   }
   #sprint-bar.done { background: linear-gradient(90deg, var(--warn), #ffe080); }
@@ -383,12 +383,12 @@
   #btnDaily {
     display: none;
     padding: 8px 14px; border-radius: 8px;
-    background: rgba(91,175,214,0.12);
-    border: 1px solid rgba(91,175,214,0.55); color: #5BAFD6;
+    background: rgba(231,187,167,0.12);
+    border: 1px solid rgba(231,187,167,0.55); color: var(--peach);
     font-size: 12px; cursor: pointer; transition: all 0.2s;
     font-family: var(--mono); letter-spacing: .04em;
   }
-  #btnDaily:hover { background: rgba(91,175,214,0.2); }
+  #btnDaily:hover { background: rgba(231,187,167,0.2); }
   #btnDaily.done { border-color: rgba(159,184,159,.55); color: var(--good); background: rgba(159,184,159,.12); }
   #daily-badge {
     font-size: 11px; color: var(--good); margin-left: 4px; display: none;
@@ -402,8 +402,8 @@
   background:rgba(10,20,35,0.9);border:1px solid rgba(199,123,106,0.4);
   border-radius:8px;padding:6px 14px;font-size:14px;font-weight:600;
   color:var(--bad);font-family:var(--mono);letter-spacing:0.05em
-">⏱ 60:00</div>
-<div id="kb-hint">⌨ 1-4 選題 · Enter 確認 · → 下一題</div>
+">60:00</div>
+<div id="kb-hint">1-4 選題 · Enter 確認 · → 下一題</div>
 
   <header class="topbar">
     <a class="brand" href="index.html"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
@@ -429,14 +429,14 @@
         <div class="law-dd" id="lawDD"><button type="button" class="law-dd-btn" id="lawDDBtn"><span id="lawDDLabel">全部法規</span><span class="cv">▾</span></button><div class="law-dd-pop" id="lawDDPop"></div></div>
         <span id="qz-scope-label" style="font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--peach);white-space:nowrap;display:none"></span>
       </div>
-      <div id="law-status-bar" style="margin-top:4px;padding:6px 10px;background:rgba(255,255,255,0.04);border-radius:6px;border:1px solid rgba(91,175,214,0.15);font-size:11px;color:var(--cream-3);min-height:28px;transition:opacity 0.2s;display:none"></div>
+      <div id="law-status-bar" style="margin-top:4px;padding:6px 10px;background:rgba(255,255,255,0.04);border-radius:6px;border:1px solid rgba(231,187,167,0.15);font-size:11px;color:var(--cream-3);min-height:28px;transition:opacity 0.2s;display:none"></div>
       <div class="title" id="artPickWrap" style="display:none">
         <span class="lab">§</span>
         <input id="artNumInput" list="artDatalist" placeholder="條號"
           style="background:transparent;border:none;outline:none;font-family:var(--mono);font-size:14px;color:var(--cream);width:64px;cursor:text">
         <datalist id="artDatalist"></datalist>
       </div>
-      <button id="btnWrong" class="btn btn-ghost" style="padding:8px 14px;font-size:12px;border-color:var(--bad);color:var(--bad)">✗ 錯題本 <span id="wrongCount" style="display:none;background:var(--bad);color:white;border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;font-weight:700">0</span></button><button id="btn-clear-wrong" onclick="clearWrongBank()" style="display:none;background:none;border:1px solid rgba(199,123,106,0.4);color:var(--bad);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;margin-left:4px">清空</button>
+      <button id="btnWrong" class="btn btn-ghost" style="padding:8px 14px;font-size:12px;border-color:rgba(231,187,167,.45);color:var(--peach)">錯題本 <span id="wrongCount" style="display:none;background:rgba(231,187,167,.18);color:var(--peach);border-radius:10px;padding:1px 7px;font-size:11px;margin-left:4px;font-weight:700">0</span></button><button id="btn-clear-wrong" onclick="clearWrongBank()" style="display:none;background:none;border:1px solid rgba(231,187,167,0.35);color:var(--peach);border-radius:8px;padding:4px 10px;font-size:12px;cursor:pointer;margin-left:4px">清空</button>
       <button id="btnNew" class="btn btn-sec" style="padding:8px 16px;font-size:13px">出題</button>
       <select id="sprint-count-select" title="衝刺題數" onchange="localStorage.setItem('sofa_sprint_n', this.value)" style="display:none">
         <option value="10">10題</option>
@@ -444,17 +444,17 @@
         <option value="30">30題</option>
         <option value="50">50題</option>
       </select>
-      <button id="btnSprint" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(91,175,214,0.15);border-color:rgba(91,175,214,0.6)">⚡ 衝刺</button>
+      <button id="btnSprint" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(231,187,167,0.15);border-color:rgba(231,187,167,0.6)">衝刺</button>
       <button id="btnExam" onclick="startExamMode()"
         style="display:none;background:rgba(199,123,106,0.2);border:1px solid rgba(199,123,106,0.4);
                color:var(--bad);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;
                margin-left:6px"
         title="30題混法規，60分鐘限時">
-        📋 模擬考試
+        模擬考試
       </button>
       <button id="btnDaily" onclick="startDailyChallenge()">今日挑戰</button>
       <span id="daily-badge"></span>
-      <div id="quiz-streak" style="display:none;font-size:13px;color:#ff9955;font-weight:600;padding:3px 8px;background:rgba(217,176,132,0.12);border:1px solid rgba(217,176,132,0.3);border-radius:12px;margin-left:8px"></div>
+      <div id="quiz-streak" style="display:none;font-size:13px;color:var(--peach);font-weight:600;padding:3px 8px;background:rgba(217,176,132,0.12);border:1px solid rgba(217,176,132,0.3);border-radius:12px;margin-left:8px"></div>
     </div>
     <div class="pr-meta">
       <div class="seg">第 <b id="qNum">—</b></div>
@@ -462,10 +462,10 @@
       <div class="seg">錯誤 <b id="scoreWrong" style="color:var(--bad)">0</b></div>
       <div class="seg timer">TIMER <b id="topTimer">0:00</b></div>
       <div class="seg" id="sessionProgressWrap" style="display:none">連刷 <b id="sessionProgress">0 / 0</b></div>
-      <div class="seg" id="qCountdownWrap" style="display:none">⏱ <b id="qCountdown">30</b></div>
-      <button class="btn btn-sec" style="padding:6px 12px;font-size:11px;white-space:nowrap" id="btnSetSession">📋 設題數</button>
-      <button id="btn-stats" onclick="openStats()" title="整體統計" style="background:none;border:1px solid rgba(91,175,214,0.3);color:#5BAFD6;border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">📊</button>
-      <button onclick="_openWeakness()" title="弱點分析" style="background:rgba(199,123,106,0.1);border:1px solid rgba(199,123,106,0.35);color:var(--bad);border-radius:8px;padding:5px 12px;font-size:13px;cursor:pointer;white-space:nowrap">⚠️ 弱點 <span id="nav-wrong-cnt" style="font-family:var(--mono)"></span></button>
+      <div class="seg" id="qCountdownWrap" style="display:none">倒數 <b id="qCountdown">30</b></div>
+      <button class="btn btn-sec" style="padding:6px 12px;font-size:11px;white-space:nowrap" id="btnSetSession">設題數</button>
+      <button id="btn-stats" onclick="openStats()" title="整體統計" style="background:none;border:1px solid rgba(231,187,167,0.3);color:var(--peach);border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">統計</button>
+      <button onclick="_openWeakness()" title="弱點分析" style="background:rgba(231,187,167,0.1);border:1px solid rgba(231,187,167,0.35);color:var(--peach);border-radius:8px;padding:5px 12px;font-size:13px;cursor:pointer;white-space:nowrap">弱點 <span id="nav-wrong-cnt" style="font-family:var(--mono)"></span></button>
     </div>
   </div>
   <div class="pr-chips">
@@ -501,7 +501,7 @@
         <div id="streak-badge"></div>
         <div style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap">
           <div id="quiz-citation"></div>
-          <button id="view-article-btn" onclick="_openArticleDashboard()">📖 查看法條</button>
+          <button id="view-article-btn" onclick="_openArticleDashboard()">查看法條</button>
         </div>
 
         <div class="explain" id="explainBox" style="display:none">
@@ -596,18 +596,18 @@
   <div style="max-width:680px; margin:0 auto;">
     <div id="sprint-results-header" style="text-align:center; margin-bottom:24px;">
       <div id="sprint-score-big" style="font-size:48px; font-weight:700; color:var(--warn); font-family:var(--serif);"></div>
-      <div id="sprint-score-sub" style="color:#5BAFD6; margin-top:6px; font-size:14px;"></div>
+      <div id="sprint-score-sub" style="color:var(--peach); margin-top:6px; font-size:14px;"></div>
     </div>
     <div id="sprint-wrong-list"></div>
     <div id="sprint-retry-wrap" style="display:none; margin-top:16px;">
-      <button id="retry-wrong-btn" onclick="_retrySprintWrong()" style="margin-top:4px; padding:8px 20px; background:var(--navy-2); border:1px solid #5BAFD6; border-radius:20px; color:#5BAFD6; font-size:14px; cursor:pointer; display:block; width:100%;">🔄 重練錯題</button>
+      <button id="retry-wrong-btn" onclick="_retrySprintWrong()" style="margin-top:4px; padding:8px 20px; background:var(--navy-2); border:1px solid var(--peach); border-radius:20px; color:var(--peach); font-size:14px; cursor:pointer; display:block; width:100%;">重練錯題</button>
     </div>
     <div style="text-align:center; margin-top:28px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
-      <button onclick="restartSprint()" style="background:var(--navy-2); border:1px solid #5BAFD6; color:#5BAFD6; padding:10px 28px; border-radius:20px; font-size:14px; cursor:pointer;">⚡ 再來一次</button>
+      <button onclick="restartSprint()" style="background:var(--navy-2); border:1px solid var(--peach); color:var(--peach); padding:10px 28px; border-radius:20px; font-size:14px; cursor:pointer;">再來一次</button>
       <button onclick="_shareQuizResult()" id="btn-share-result"
-        style="background:rgba(91,175,214,0.2);border:1px solid rgba(91,175,214,0.4);
-               color:#5BAFD6;border-radius:20px;padding:10px 20px;font-size:14px;cursor:pointer;">
-        📤 分享
+        style="background:rgba(231,187,167,0.2);border:1px solid rgba(231,187,167,0.4);
+               color:var(--peach);border-radius:20px;padding:10px 20px;font-size:14px;cursor:pointer;">
+        分享
       </button>
       <button onclick="exitSprintResults()" style="background:var(--warn); border:none; color:#040D14; padding:10px 28px; border-radius:20px; font-size:14px; font-weight:600; cursor:pointer;">完成</button>
     </div>
@@ -639,7 +639,7 @@ document.getElementById('navUid').textContent = isFree ? '免費版' : (localSto
 if(isFree){
   const bar=document.createElement('div');
   bar.style.cssText='background:rgba(231,187,167,.13);border-bottom:1px solid rgba(231,187,167,.3);padding:10px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;';
-  bar.innerHTML='<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">🔒 免費版 · 選擇題範圍有限，答題紀錄不會儲存</span>'
+  bar.innerHTML='<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">免費版 · 選擇題範圍有限，答題紀錄不會儲存</span>'
     +'<a href="pricing.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:5px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
   document.querySelector('.pr-bar').before(bar);
 }
@@ -755,8 +755,8 @@ function _showQzExamBanner() {
     const examKey = localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || '';
     if(examKey) localStorage.setItem('sofa_exam_key', examKey);
     if(!examKey) _showQzExamBanner();
-    // Wave 109: insert 🎲 全部法規 as first real option (after special __ options)
-    const allOpt=document.createElement('option');allOpt.value='__all__';allOpt.textContent='🎲 全部法規';sel.appendChild(allOpt);
+    // Wave 109: insert 全部法規 as first real option (after special __ options)
+    const allOpt=document.createElement('option');allOpt.value='__all__';allOpt.textContent='全部法規';sel.appendChild(allOpt);
     const sep2=document.createElement('option');sep2.disabled=true;sep2.textContent='──────';sel.appendChild(sep2);
     _allLawNames = [];
     const lawsToShow = _filterLawsForExam(_allLoadedQzLaws, examKey||'');
@@ -863,7 +863,7 @@ document.getElementById('lawSelect').addEventListener('change', async function()
   const sprintBtn = document.getElementById('btnSprint');
   const sprintSel = document.getElementById('sprint-count-select');
   const dailyBtn = document.getElementById('btnDaily');
-  // Wave 109: __all__ (🎲 全部法規) should also show sprint/daily buttons
+  // Wave 109: __all__ (全部法規) should also show sprint/daily buttons
   const showSprint = (this.value && (!this.value.startsWith('__') || this.value === '__all__')) ? '' : 'none';
   if(sprintBtn) sprintBtn.style.display = showSprint;
   if(sprintSel) sprintSel.style.display = showSprint;
@@ -989,7 +989,7 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
       const preview=sections[name]||'';
       lk.innerHTML='<div class="sec-label">'+label+'</div>'
         +'<div class="sec-lock-preview">'+(preview?formatSection(preview):'')+'</div>'
-        +'<div class="sec-lock-cta">🔒 升級解鎖完整內容 <a href="pricing.html">查看方案 →</a></div>';
+        +'<div class="sec-lock-cta">升級解鎖完整內容 <a href="pricing.html">查看方案 →</a></div>';
       if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
     });
   }
@@ -1095,8 +1095,8 @@ function _buildQuizCalendar(s) {
     const intensity = count === 0 ? 0 : Math.max(0.15, count / maxCount);
     const bg = count === 0
       ? 'rgba(255,255,255,0.06)'
-      : `rgba(91,175,214,${intensity})`;
-    const border = isToday ? '1px solid #5BAFD6' : '1px solid transparent';
+      : `rgba(231,187,167,${intensity})`;
+    const border = isToday ? '1px solid var(--peach)' : '1px solid transparent';
     const title = count > 0 ? `${count}題` : '0題';
     html += `<div title="${title}" style="
       aspect-ratio:1;border-radius:3px;
@@ -1165,7 +1165,7 @@ function _renderQuizStreak() {
   const count = _getQuizStreak();
   if (count >= 2) {
     el.style.display = 'inline-block';
-    el.textContent = `🔥 ${count}日連刷`;
+    el.textContent = `${count}日連刷`;
   } else {
     el.style.display = 'none';
   }
@@ -1211,7 +1211,7 @@ function _updateLawStatusBar(lawName) {
   if (!lawName || lawName === '__all__' || lawName.startsWith('__')) {
     if (lawName === '__all__') {
       bar.style.display = 'block';
-      bar.innerHTML = '<span style="color:#5BAFD6">🎲 全部法規混題模式</span>';
+      bar.innerHTML = '<span style="color:var(--peach)">全部法規混題模式</span>';
     } else {
       bar.style.display = 'none';
     }
@@ -1226,7 +1226,7 @@ function _updateLawStatusBar(lawName) {
   }
   const { total, correct } = lawData;
   const pct = Math.round(correct / total * 100);
-  const color = pct >= 80 ? '#5BAFD6' : pct >= 60 ? 'var(--warn)' : 'var(--bad)';
+  const color = pct >= 80 ? 'var(--peach)' : pct >= 60 ? 'var(--warn)' : 'var(--bad)';
   const label = pct >= 80 ? '優秀' : pct >= 60 ? '進步中' : '需加強';
   bar.style.display = 'block';
   bar.innerHTML = `
@@ -1360,7 +1360,7 @@ function _updateStreak(correct) {
       badge.classList.remove('show');
       return;
     }
-    badge.textContent = '🔥 ' + _quizStreak + ' 連！';
+    badge.textContent = _quizStreak + ' 連';
     badge.classList.add('show');
     if(_quizStreak >= 10){
       void badge.offsetWidth; // force reflow for animation restart
@@ -1469,23 +1469,23 @@ function showSprintResults(timeSec) {
   const wrong = _sprintAnswers.filter(a => a.chosen !== a.correct);
   document.getElementById('sprint-score-big').textContent = correct + ' / ' + total;
   const pct = total > 0 ? Math.round(correct / total * 100) : 0;
-  const emoji = pct >= 80 ? '🎉' : pct >= 60 ? '💪' : '📖';
-  document.getElementById('sprint-score-sub').textContent = emoji + '  答對率 ' + pct + '%　用時 ' + timeSec + ' 秒';
+  const gradeLabel = pct >= 80 ? '穩定' : pct >= 60 ? '練習中' : '待加強';
+  document.getElementById('sprint-score-sub').textContent = gradeLabel + ' · 答對率 ' + pct + '%　用時 ' + timeSec + ' 秒';
   const list = document.getElementById('sprint-wrong-list');
   list.innerHTML = '';
   if (wrong.length === 0) {
-    list.innerHTML = '<div style="text-align:center;color:#5BAFD6;font-size:16px;padding:20px">🏆 全對！太厲害了！</div>';
+    list.innerHTML = '<div style="text-align:center;color:var(--peach);font-size:16px;padding:20px">全對，狀態穩定</div>';
   } else {
     wrong.forEach((a, i) => {
       const div = document.createElement('div');
       div.style.cssText = 'background:var(--navy-3);border-radius:10px;padding:14px 16px;margin-bottom:12px;border-left:3px solid var(--bad)';
-      let html = '<div style="color:#5BAFD6;font-size:13px;margin-bottom:10px;line-height:1.6">' + (i + 1) + '. ' + (a.q.text || '').replace(/\n/g, '<br>') + '</div>';
+      let html = '<div style="color:var(--peach);font-size:13px;margin-bottom:10px;line-height:1.6">' + (i + 1) + '. ' + (a.q.text || '').replace(/\n/g, '<br>') + '</div>';
       (a.q.options || []).forEach((opt, oi) => {
         const isChosen = oi === a.chosen, isCorrect = oi === a.correct;
         const bg = isCorrect ? 'rgba(159,184,159,0.15)' : isChosen ? 'rgba(199,123,106,0.15)' : 'transparent';
         const border = isCorrect ? '#9FB89F' : isChosen ? 'var(--bad)' : 'rgba(255,255,255,0.08)';
         const mark = isCorrect ? ' ✓' : isChosen ? ' ✗' : '';
-        html += '<div style="border:1px solid ' + border + ';background:' + bg + ';border-radius:6px;padding:6px 10px;margin-top:5px;font-size:13px;color:#5BAFD6">' + ['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][oi] + '  ' + esc(opt) + '<span style="float:right;font-weight:700">' + mark + '</span></div>';
+        html += '<div style="border:1px solid ' + border + ';background:' + bg + ';border-radius:6px;padding:6px 10px;margin-top:5px;font-size:13px;color:var(--peach)">' + ['Ａ', 'Ｂ', 'Ｃ', 'Ｄ'][oi] + '  ' + esc(opt) + '<span style="float:right;font-weight:700">' + mark + '</span></div>';
       });
       div.innerHTML = html;
       list.appendChild(div);
@@ -1497,7 +1497,7 @@ function showSprintResults(timeSec) {
   if (retryWrap && retryBtn) {
     const wrongCount = wrong.length;
     if (wrongCount > 0) {
-      retryBtn.textContent = `🔄 重練錯題 (${wrongCount}題)`;
+      retryBtn.textContent = `重練錯題 (${wrongCount}題)`;
       retryWrap.style.display = 'block';
     } else {
       retryWrap.style.display = 'none';
@@ -1534,18 +1534,18 @@ async function _shareQuizResult() {
     ? (stats.totalTimeSec / stats.timedQuestions).toFixed(1)
     : null;
 
-  const grade = pct >= 90 ? '🏆' : pct >= 80 ? '🌟' : pct >= 70 ? '✨' : pct >= 60 ? '📖' : '💪';
+  const grade = pct >= 90 ? '高穩定' : pct >= 80 ? '穩定' : pct >= 70 ? '接近穩定' : pct >= 60 ? '練習中' : '待加強';
 
   const lawName = _currentLawName && _currentLawName !== '__all__'
     ? _currentLawName
     : '全部法規混題';
 
   const lines = [
-    `${grade} SoFa 答題成績`,
-    `📚 法規：${lawName}`,
+    `${grade} · SoFa 答題成績`,
+    `法規：${lawName}`,
     `✓ 答對：${correct}/${total} (${pct}%)`,
-    bestStreak >= 3 ? `🔥 最高連對：${bestStreak}題` : null,
-    avgSec ? `⏱ 平均作答：${avgSec}秒` : null,
+    bestStreak >= 3 ? `最高連對：${bestStreak}題` : null,
+    avgSec ? `平均作答：${avgSec}秒` : null,
     `━━━━━━━━━━`,
     `記帳士備考 | SoFa Engine`,
   ].filter(Boolean).join('\n');
@@ -1564,7 +1564,7 @@ async function _shareQuizResult() {
 
   try {
     await navigator.clipboard.writeText(lines);
-    _showShareToast('📋 成績已複製到剪貼板！');
+    _showShareToast('成績已複製到剪貼板');
   } catch(e) {
     prompt('複製以下文字分享成績：', lines);
   }
@@ -1628,7 +1628,7 @@ function showSessionSummary() {
   document.getElementById('sumRight').textContent = right;
   document.getElementById('sumWrong').textContent = wrong;
   document.getElementById('sumTitle').textContent =
-    acc >= 80 ? '太猛了 🎉' : acc >= 60 ? '繼續加油 💪' : '再多練幾次 📚';
+    acc >= 80 ? '狀態穩定' : acc >= 60 ? '繼續加強' : '再多練幾次';
   // 顯示弱點法規（從本 session 錯題中取）
   const bank = loadWrongBank();
   const recent = bank.slice(-_sessionTotal);
@@ -1763,7 +1763,7 @@ async function loadQuiz(){
   updateScore();
 
   let law=document.getElementById('lawSelect').value;
-  // Wave 109: 🎲 全部法規 — pick a random law each question
+  // Wave 109: 全部法規 — pick a random law each question
   if(law==='__all__'){
     if(_allLawNames.length){
       law=_allLawNames[Math.floor(Math.random()*_allLawNames.length)];
@@ -2271,14 +2271,14 @@ document.addEventListener('DOMContentLoaded', () => {
 <div id="stats-panel" style="display:none; position:fixed; inset:0; background:rgba(4,13,20,0.96); z-index:200; overflow-y:auto; padding:24px 16px;" onclick="if(event.target===this)closeStats()">
   <div style="max-width:560px; margin:0 auto;" onclick="event.stopPropagation()">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
-      <h2 style="color:var(--cream); font-family:var(--serif); margin:0; font-size:20px">📊 我的答題統計</h2>
-      <button onclick="closeStats()" style="background:none; border:1px solid rgba(91,175,214,0.4); color:#5BAFD6; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:16px">✕</button>
+      <h2 style="color:var(--cream); font-family:var(--serif); margin:0; font-size:20px">我的答題統計</h2>
+      <button onclick="closeStats()" style="background:none; border:1px solid rgba(231,187,167,0.4); color:var(--peach); border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:16px">✕</button>
     </div>
     <!-- Wave 140: Tab bar -->
     <div id="stats-tab-bar" style="display:flex;gap:6px;margin-bottom:16px;">
-      <button id="tab-btn-stats" onclick="_switchStatsTab('stats')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:var(--navy-2);color:var(--cream);font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:600;transition:background 0.2s">📊 統計</button>
-      <button id="tab-btn-wrong" onclick="_switchStatsTab('wrong')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(245,240,234,0.45);font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:400;transition:background 0.2s">⚠️ 弱點清單</button>
-      <button id="tab-btn-exam" onclick="_switchStatsTab('exam')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(245,240,234,0.45);font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:400;transition:background 0.2s">📋 考試紀錄</button>
+      <button id="tab-btn-stats" onclick="_switchStatsTab('stats')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:var(--navy-2);color:var(--cream);font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:600;transition:background 0.2s">統計</button>
+      <button id="tab-btn-wrong" onclick="_switchStatsTab('wrong')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(245,240,234,0.45);font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:400;transition:background 0.2s">弱點清單</button>
+      <button id="tab-btn-exam" onclick="_switchStatsTab('exam')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(245,240,234,0.45);font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:400;transition:background 0.2s">考試紀錄</button>
     </div>
     <!-- Tab: 統計 -->
     <div id="stats-tab-stats">
@@ -2333,11 +2333,11 @@ function openStats() {
   if(s.byLaw){
     const laws = Object.entries(s.byLaw).sort((a,b) => b[1].total - a[1].total).slice(0,8);
     if(laws.length > 0){
-      byLawHtml = '<div style="margin-top:20px"><div style="color:#5BAFD6;font-size:12px;margin-bottom:10px">各法答題分布</div>' +
+      byLawHtml = '<div style="margin-top:20px"><div style="color:var(--peach);font-size:12px;margin-bottom:10px">各法答題分布</div>' +
         laws.map(([name,d]) => {
           const p = Math.round(d.correct/d.total*100);
-          const bar = `<div style="height:4px;background:rgba(91,175,214,0.15);border-radius:2px;margin-top:4px"><div style="width:${p}%;height:100%;background:${p>=80?'#9FB89F':p>=60?'#5BAFD6':'var(--bad)'};border-radius:2px;transition:width 0.6s"></div></div>`;
-          return `<div style="background:var(--navy-3);border-radius:8px;padding:10px 12px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#5BAFD6">${name}</span><span style="color:#5BAFD6">${d.correct}/${d.total} (${p}%)</span></div>${bar}</div>`;
+          const bar = `<div style="height:4px;background:rgba(231,187,167,0.15);border-radius:2px;margin-top:4px"><div style="width:${p}%;height:100%;background:${p>=80?'#9FB89F':p>=60?'var(--peach)':'var(--bad)'};border-radius:2px;transition:width 0.6s"></div></div>`;
+          return `<div style="background:var(--navy-3);border-radius:8px;padding:10px 12px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--peach)">${name}</span><span style="color:var(--peach)">${d.correct}/${d.total} (${p}%)</span></div>${bar}</div>`;
         }).join('') + '</div>';
     }
   }
@@ -2360,23 +2360,23 @@ function openStats() {
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
       <div style="background:var(--navy-3);border-radius:10px;padding:16px;text-align:center">
         <div style="font-size:32px;font-weight:700;color:var(--warn)">${pct}%</div>
-        <div style="color:#5BAFD6;font-size:12px;margin-top:4px">累計答對率</div>
+        <div style="color:var(--peach);font-size:12px;margin-top:4px">累計答對率</div>
         <div style="color:var(--cream-3);font-size:11px;margin-top:2px">${correct}/${total} 題</div>
       </div>
       <div style="background:var(--navy-3);border-radius:10px;padding:16px;text-align:center">
-        <div style="font-size:32px;font-weight:700;color:#5BAFD6">${todayPct}%</div>
-        <div style="color:#5BAFD6;font-size:12px;margin-top:4px">今日答對率</div>
+        <div style="font-size:32px;font-weight:700;color:var(--peach)">${todayPct}%</div>
+        <div style="color:var(--peach);font-size:12px;margin-top:4px">今日答對率</div>
         <div style="color:var(--cream-3);font-size:11px;margin-top:2px">${todayCorrect}/${todayTotal} 題</div>
       </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:0">
       <div style="background:var(--navy-3);border-radius:10px;padding:14px;text-align:center">
-        <div style="font-size:20px;font-weight:700;color:var(--warn)">${bestStreak > 0 ? '🔥 ' + bestStreak : '—'}</div>
-        <div style="color:#5BAFD6;font-size:11px;margin-top:4px">最高連對</div>
+        <div style="font-size:20px;font-weight:700;color:var(--warn)">${bestStreak > 0 ? bestStreak : '—'}</div>
+        <div style="color:var(--peach);font-size:11px;margin-top:4px">最高連對</div>
       </div>
       <div style="background:var(--navy-3);border-radius:10px;padding:14px;text-align:center">
-        <div style="font-size:20px;font-weight:700;color:#5BAFD6">${avgSec}s</div>
-        <div style="color:#5BAFD6;font-size:11px;margin-top:4px">平均答題時間</div>
+        <div style="font-size:20px;font-weight:700;color:var(--peach)">${avgSec}s</div>
+        <div style="color:var(--peach);font-size:11px;margin-top:4px">平均答題時間</div>
         <div style="color:var(--cream-3);font-size:10px;margin-top:2px">${(s.timedQuestions||0) > 0 ? (s.timedQuestions + ' 題計時') : '尚無紀錄'}</div>
       </div>
     </div>
@@ -2428,10 +2428,10 @@ function _renderRailWeakness() {
 
   el.innerHTML = lawWrongs.slice(0, 5).map(({ name, wrong, total }) => {
     const pct = Math.round((total - wrong) / total * 100);
-    const bar = `<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin:3px 0 2px"><div style="width:${pct}%;height:100%;background:${pct>=80?'#9FB89F':pct>=50?'#5BAFD6':'var(--bad)'};border-radius:2px"></div></div>`;
+    const bar = `<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin:3px 0 2px"><div style="width:${pct}%;height:100%;background:${pct>=80?'#9FB89F':pct>=50?'var(--peach)':'var(--bad)'};border-radius:2px"></div></div>`;
     return `<div style="margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
-        <span style="font-size:11px;color:#5BAFD6;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${esc(name)}</span>
+        <span style="font-size:11px;color:var(--peach);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${esc(name)}</span>
         <button onclick="_drillLawAuto(${JSON.stringify(name)})" style="flex-shrink:0;background:rgba(199,123,106,.1);border:1px solid rgba(199,123,106,.3);color:var(--bad);border-radius:8px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:var(--mono)">練習</button>
       </div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--bad)">✗ ${wrong}題 &nbsp;<span style="color:rgba(245,240,234,.35)">${pct}%正確</span></div>
@@ -2512,7 +2512,7 @@ function _renderWrongList() {
         <div style="color:var(--bad);font-size:12px;font-family:var(--mono);letter-spacing:.1em">考古題錯題</div>
         <div style="color:rgba(245,240,234,.45);font-size:11px;margin-top:2px">${bank.length} 條待重練</div>
       </div>
-      ${bank.length ? `<button onclick="_drillAllWrong()" style="background:rgba(199,123,106,0.18);border:1px solid rgba(199,123,106,0.5);color:var(--bad);border-radius:12px;padding:6px 16px;font-size:13px;cursor:pointer;font-weight:600">🔥 重練全部</button>` : '<span style="color:rgba(245,240,234,.3);font-size:12px">（無錯題）</span>'}
+      ${bank.length ? `<button onclick="_drillAllWrong()" style="background:rgba(231,187,167,0.14);border:1px solid rgba(231,187,167,0.42);color:var(--peach);border-radius:12px;padding:6px 16px;font-size:13px;cursor:pointer;font-weight:600">重練全部</button>` : '<span style="color:rgba(245,240,234,.3);font-size:12px">（無錯題）</span>'}
     </div>`;
     if(bankLaws.length) {
       html += '<div style="display:flex;flex-wrap:wrap;gap:6px">';
@@ -2530,19 +2530,19 @@ function _renderWrongList() {
   if(lawWrongs.length) {
     const _paid = (window.__sofaPaid !== false); // 不確定 → 視為付費（不鎖）
     if(_paid) {
-      html += `<div style="color:#5BAFD6;font-size:11px;font-family:var(--mono);letter-spacing:.1em;margin-bottom:8px">法規準確率</div>`;
+      html += `<div style="color:var(--peach);font-size:11px;font-family:var(--mono);letter-spacing:.1em;margin-bottom:8px">法規準確率</div>`;
       html += '<div style="display:flex;flex-direction:column;gap:8px;">';
       lawWrongs.forEach(({ name, wrong, total }) => {
         const pct = Math.round((total - wrong) / total * 100);
-        const color = pct >= 80 ? '#9FB89F' : pct >= 60 ? '#5BAFD6' : 'var(--bad)';
+        const color = pct >= 80 ? '#9FB89F' : pct >= 60 ? 'var(--peach)' : 'var(--bad)';
         const bar = `<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:5px"><div style="width:${pct}%;height:100%;background:${color};border-radius:2px"></div></div>`;
         html += `<div style="background:var(--navy-3);border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
           <div style="flex:1;min-width:0;">
-            <div style="color:#5BAFD6;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(name)}</div>
+            <div style="color:var(--peach);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(name)}</div>
             <div style="color:var(--bad);font-size:11px;margin-top:2px;font-family:var(--mono);">✗ ${wrong}題 &nbsp;•&nbsp; <span style="color:${color}">${pct}%正確</span></div>
             ${bar}
           </div>
-          <button onclick="_drillLawAuto(${JSON.stringify(name)})" style="flex-shrink:0;background:rgba(91,175,214,0.1);border:1px solid rgba(91,175,214,0.3);color:#5BAFD6;border-radius:12px;padding:5px 12px;font-size:12px;cursor:pointer;white-space:nowrap;">練習</button>
+          <button onclick="_drillLawAuto(${JSON.stringify(name)})" style="flex-shrink:0;background:rgba(231,187,167,0.1);border:1px solid rgba(231,187,167,0.3);color:var(--peach);border-radius:12px;padding:5px 12px;font-size:12px;cursor:pointer;white-space:nowrap;">練習</button>
         </div>`;
       });
       html += '</div>';
@@ -2554,20 +2554,20 @@ function _renderWrongList() {
       });
       const { name, wrong, total } = worst;
       const pct = Math.round((total - wrong) / total * 100);
-      const color = pct >= 80 ? '#9FB89F' : pct >= 60 ? '#5BAFD6' : 'var(--bad)';
+      const color = pct >= 80 ? '#9FB89F' : pct >= 60 ? 'var(--peach)' : 'var(--bad)';
       const bar = `<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:5px"><div style="width:${pct}%;height:100%;background:${color};border-radius:2px"></div></div>`;
-      html += `<div style="color:#5BAFD6;font-size:11px;font-family:var(--mono);letter-spacing:.1em;margin-bottom:8px">最弱的一條</div>`;
+      html += `<div style="color:var(--peach);font-size:11px;font-family:var(--mono);letter-spacing:.1em;margin-bottom:8px">最弱的一條</div>`;
       html += `<div style="background:var(--navy-3);border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
         <div style="flex:1;min-width:0;">
-          <div style="color:#5BAFD6;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(name)}</div>
+          <div style="color:var(--peach);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(name)}</div>
           <div style="color:var(--bad);font-size:11px;margin-top:2px;font-family:var(--mono);">✗ ${wrong}題 &nbsp;•&nbsp; <span style="color:${color}">${pct}%正確</span></div>
           ${bar}
         </div>
-        <button onclick="_drillLawAuto(${JSON.stringify(name)})" style="flex-shrink:0;background:rgba(91,175,214,0.1);border:1px solid rgba(91,175,214,0.3);color:#5BAFD6;border-radius:12px;padding:5px 12px;font-size:12px;cursor:pointer;white-space:nowrap;">練習</button>
+        <button onclick="_drillLawAuto(${JSON.stringify(name)})" style="flex-shrink:0;background:rgba(231,187,167,0.1);border:1px solid rgba(231,187,167,0.3);color:var(--peach);border-radius:12px;padding:5px 12px;font-size:12px;cursor:pointer;white-space:nowrap;">練習</button>
       </div>`;
       const hidden = lawWrongs.length - 1;
       html += `<div style="margin-top:12px;background:rgba(231,187,167,.07);border:1px solid rgba(231,187,167,.25);border-radius:10px;padding:16px 16px;text-align:center;">
-        <div style="font-size:13px;color:var(--cream-2);line-height:1.7;">🔒 完整弱點分析還有 <b style="color:var(--peach-2)">${hidden>0?hidden:'更多'}</b> 條法規的準確率<br>升級後一次看完，知道下一步該補哪裡。</div>
+        <div style="font-size:13px;color:var(--cream-2);line-height:1.7;">完整弱點分析還有 <b style="color:var(--peach-2)">${hidden>0?hidden:'更多'}</b> 條法規的準確率<br>升級後一次看完，知道下一步該補哪裡。</div>
         <a href="pricing.html" style="display:inline-block;margin-top:14px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:4px;padding:8px 18px;text-transform:uppercase;text-decoration:none;">升級解鎖完整分析 →</a>
       </div>`;
     }
@@ -2647,14 +2647,14 @@ function _renderExamHistory() {
   try { history = JSON.parse(localStorage.getItem(EXAM_HISTORY_KEY) || '[]'); } catch(e) {}
 
   if (history.length === 0) {
-    panel.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(245,240,234,0.4);font-size:14px">📋 尚無模擬考紀錄</div>';
+    panel.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(245,240,234,0.4);font-size:14px">尚無模擬考紀錄</div>';
     return;
   }
 
   // Average score
   const avgPct = Math.round(history.reduce((s, e) => s + e.pct, 0) / history.length);
   let html = `<div style="background:var(--navy-3);border-radius:10px;padding:12px 16px;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;">
-    <span style="color:#5BAFD6;font-size:13px;">平均得分</span>
+    <span style="color:var(--peach);font-size:13px;">平均得分</span>
     <span style="color:var(--warn);font-size:20px;font-weight:700;font-family:var(--mono);">${avgPct}%<span style="color:var(--cream-3);font-size:12px;font-weight:400;margin-left:6px">共 ${history.length} 次</span></span>
   </div>`;
 
@@ -2667,8 +2667,8 @@ function _renderExamHistory() {
     const secStr = (e.durationSec % 60).toString().padStart(2, '0');
     html += `<div style="background:${bgColor};border:1px solid ${color}33;border-left:3px solid ${color};border-radius:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:8px;">
       <div style="flex:1;min-width:0;">
-        <div style="color:#5BAFD6;font-size:12px;margin-bottom:3px;">${esc(e.date)}<span style="color:var(--cream-3);margin-left:8px;font-size:11px;">⏱ ${minStr}:${secStr}</span></div>
-        <div style="color:#5BAFD6;font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(e.law)}</div>
+        <div style="color:var(--peach);font-size:12px;margin-bottom:3px;">${esc(e.date)}<span style="color:var(--cream-3);margin-left:8px;font-size:11px;">${minStr}:${secStr}</span></div>
+        <div style="color:var(--peach);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(e.law)}</div>
       </div>
       <div style="flex-shrink:0;text-align:right;">
         <div style="color:${color};font-size:18px;font-weight:700;font-family:var(--mono);">${e.pct}%</div>
@@ -2684,7 +2684,7 @@ function _renderExamHistory() {
 
   // Clear history button
   html += `<div style="text-align:center;margin-top:18px;">
-    <button onclick="_clearExamHistory()" style="background:none;border:1px solid rgba(91,175,214,0.3);color:#5BAFD6;border-radius:16px;padding:6px 18px;font-size:12px;cursor:pointer;">🗑️ 清除考試紀錄</button>
+    <button onclick="_clearExamHistory()" style="background:none;border:1px solid rgba(231,187,167,0.3);color:var(--peach);border-radius:16px;padding:6px 18px;font-size:12px;cursor:pointer;">🗑️ 清除考試紀錄</button>
   </div>`;
 
   panel.innerHTML = html;
@@ -2737,7 +2737,7 @@ function _startExamTimer(totalSec) {
     const s = (_examSecondsLeft % 60).toString().padStart(2, '0');
     const el2 = document.getElementById('exam-timer');
     if (el2) {
-      el2.textContent = `⏱ ${m}:${s}`;
+      el2.textContent = `${m}:${s}`;
       // Turn urgent red in last 10 minutes
       el2.style.color = _examSecondsLeft < 600 ? 'var(--bad)' : 'var(--bad)';
       el2.style.borderColor = _examSecondsLeft < 600 ? 'rgba(199,123,106,0.6)' : 'rgba(199,123,106,0.4)';

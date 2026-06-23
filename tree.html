@@ -119,10 +119,21 @@ html, body {
   box-shadow: 0 10px 22px rgba(31,58,92,0.12);
   border-color: #1F3A5C;
 }
-.lv1-emoji {
-  font-size: 32px;
+.lv1-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 30px;
   margin-bottom: 12px;
-  display: block;
+  border: 1px solid rgba(201,122,78,.45);
+  border-radius: 8px;
+  color: #C97A4E;
+  background: rgba(201,122,78,.08);
+  font-family: "JetBrains Mono", "Consolas", monospace;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: .08em;
 }
 .lv1-name {
   font-size: 22px;
@@ -1410,7 +1421,7 @@ function renderHome() {
 
   let cards = '';
   for (const s of SECTIONS) {
-    const emoji = SEC_EMOJI[s] || '📁';
+    const code = SEC_CODE[s] || 'LAW';
     const count = SEC_COUNTS[s];
     const hits = highlightSecs.get(s);
     const cls = hits ? 'lv1-card lv1-card--from-compass' : 'lv1-card';
@@ -1421,7 +1432,7 @@ function renderHome() {
       <div class="${cls}" onclick="enterSection('${s.replace(/'/g, "&#39;")}')">
         ${tag}
         <span class="lv1-dash"></span>
-        <span class="lv1-emoji">${emoji}</span>
+        <span class="lv1-mark">${code}</span>
         <div class="lv1-name">${s}</div>
         <div class="lv1-meta">${count} 個方向</div>
         <span class="lv1-arrow">→</span>
@@ -1783,14 +1794,14 @@ function populateModal(title, excludeIds, callbackName) {
   for (const sec of SECTIONS) {
     const items = SEC_NODES[sec].filter(n => !exSet.has(n.id));
     if (items.length === 0) continue;
-    const emoji = SEC_EMOJI[sec] || '📁';
+    const code = SEC_CODE[sec] || 'LAW';
     let opts = '';
     for (const item of items) {
       opts += `<button class="modal-option" onclick="${callbackName}('${item.id}')">${item.name}</button>`;
     }
     html += `
       <div class="modal-section">
-        <div class="modal-section-title">${emoji} ${sec}</div>
+        <div class="modal-section-title"><span class="lv1-mark">${code}</span> ${sec}</div>
         <div class="modal-options">${opts}</div>
       </div>
     `;

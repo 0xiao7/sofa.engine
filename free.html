@@ -218,7 +218,31 @@ a { color: inherit; text-decoration: none; }
   border-color: rgba(231,187,167,.4);
   background: rgba(245,240,234,.08);
 }
-.exam-icon { font-size: 24px; margin-bottom: 12px; }
+.exam-icon {
+  width: 30px;
+  height: 30px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(231,187,167,.55);
+  border-radius: 8px;
+  position: relative;
+  background: rgba(231,187,167,.08);
+}
+.exam-icon::before,
+.exam-icon::after {
+  content: "";
+  position: absolute;
+  border-color: var(--peach);
+}
+.exam-book::before { left: 8px; top: 6px; width: 12px; height: 17px; border: 1.5px solid var(--peach); border-radius: 2px; }
+.exam-book::after { left: 13px; top: 6px; height: 17px; border-left: 1px solid rgba(231,187,167,.65); }
+.exam-land::before { left: 7px; top: 13px; width: 16px; height: 10px; border: 1.5px solid var(--peach); border-top: none; }
+.exam-land::after { left: 8px; top: 8px; width: 14px; height: 14px; border-left: 1.5px solid var(--peach); border-top: 1.5px solid var(--peach); transform: rotate(45deg); }
+.exam-building::before { left: 8px; top: 6px; width: 14px; height: 18px; border: 1.5px solid var(--peach); }
+.exam-building::after { left: 12px; top: 10px; width: 2px; height: 2px; background: var(--peach); box-shadow: 6px 0 0 var(--peach),0 5px 0 var(--peach),6px 5px 0 var(--peach),0 10px 0 var(--peach),6px 10px 0 var(--peach); }
+.exam-tax::before { left: 8px; top: 16px; width: 3px; height: 7px; background: var(--peach); box-shadow: 5px -4px 0 var(--peach),10px -9px 0 var(--peach); }
+.exam-tax::after { left: 7px; top: 23px; width: 17px; border-top: 1.5px solid rgba(231,187,167,.65); }
+.exam-law::before { left: 14px; top: 6px; height: 18px; border-left: 1.5px solid var(--peach); }
+.exam-law::after { left: 7px; top: 12px; width: 16px; height: 8px; border-top: 1.5px solid var(--peach); border-bottom: 1.5px solid var(--peach); }
 .exam-name {
   font-family: var(--serif); font-weight: 600; font-size: 16px;
   margin-bottom: 6px;
@@ -335,27 +359,27 @@ a { color: inherit; text-decoration: none; }
   <p class="section-sub">以下考科的法規 SoFa 都已收錄完整條文，可直接開始練習。</p>
   <div class="exam-grid">
     <div class="exam-card">
-      <div class="exam-icon">📒</div>
+      <div class="exam-icon exam-book" aria-hidden="true"></div>
       <div class="exam-name">記帳士</div>
       <div class="exam-laws">記帳相關法規 · 稅捐稽徵法 · 商業會計法 · 所得稅法</div>
     </div>
     <div class="exam-card">
-      <div class="exam-icon">🏠</div>
+      <div class="exam-icon exam-land" aria-hidden="true"></div>
       <div class="exam-name">地政士</div>
       <div class="exam-laws">土地法 · 地政士法 · 土地登記規則 · 平均地權條例</div>
     </div>
     <div class="exam-card">
-      <div class="exam-icon">🏢</div>
+      <div class="exam-icon exam-building" aria-hidden="true"></div>
       <div class="exam-name">不動產經紀人</div>
       <div class="exam-laws">不動產經紀業管理條例 · 公平交易法 · 消費者保護法</div>
     </div>
     <div class="exam-card">
-      <div class="exam-icon">📊</div>
+      <div class="exam-icon exam-tax" aria-hidden="true"></div>
       <div class="exam-name">財稅行政</div>
       <div class="exam-laws">稅捐稽徵法 · 所得稅法 · 加值型及非加值型營業稅法</div>
     </div>
     <div class="exam-card">
-      <div class="exam-icon">⚖️</div>
+      <div class="exam-icon exam-law" aria-hidden="true"></div>
       <div class="exam-name">其他考科</div>
       <div class="exam-laws">司法特考 · 公職護理師 · 社會工作師等條文記憶型考科</div>
     </div>

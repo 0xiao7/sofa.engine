@@ -263,7 +263,7 @@
   .sec-text .sec-i{position:relative;padding-left:18px;margin:3px 0}
   .sec-text .sec-i::before{content:'';position:absolute;left:5px;top:.62em;width:4px;height:4px;border:1.2px solid var(--peach-3);border-radius:50%;box-sizing:border-box}
   .sec-lock{margin-top:16px;border-top:1px dashed rgba(31,56,72,.15)}
-  .sec-lock .sec-label::after{content:" 🔒";font-size:11px;opacity:.65}
+  .sec-lock .sec-label::after{content:"";font-size:11px;opacity:.65}
   .sec-lock-preview{position:relative;max-height:80px;overflow:hidden;padding:10px 0 0;pointer-events:none;user-select:none;font-size:13.5px;line-height:1.8;color:rgba(31,56,72,.72)}
   .sec-lock-preview::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(245,240,234,0) 15%,var(--cream) 82%);pointer-events:none}
   .sec-lock-cta{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px;padding:10px 16px;font-size:12.5px;color:rgba(31,56,72,.72);background:rgba(231,187,167,.1);border:1px dashed rgba(213,154,120,.4);border-radius:4px}
@@ -312,12 +312,12 @@
   /* ── Wave 93: 每日填空挑戰 ── */
   #btnFillDaily {
     padding: 8px 14px; border-radius: 8px;
-    background: rgba(91,175,214,0.12);
-    border: 1px solid rgba(91,175,214,0.55); color: #5BAFD6;
+    background: rgba(231,187,167,0.12);
+    border: 1px solid rgba(231,187,167,0.55); color: var(--peach);
     font-size: 12px; cursor: pointer; transition: all 0.2s;
     font-family: var(--mono); letter-spacing: .04em;
   }
-  #btnFillDaily:hover { background: rgba(91,175,214,0.2); }
+  #btnFillDaily:hover { background: rgba(231,187,167,0.2); }
   #btnFillDaily.done { border-color: rgba(159,184,159,.55); color: var(--good); background: rgba(159,184,159,.12); }
   #fill-daily-badge { font-size: 11px; color: var(--good); margin-left: 4px; display: none; }
 </style>
@@ -356,7 +356,7 @@
       <div id="fill-status-bar" style="
         margin-top:4px;padding:6px 10px;
         background:rgba(255,255,255,0.04);
-        border-radius:6px;border:1px solid rgba(91,175,214,0.15);
+        border-radius:6px;border:1px solid rgba(231,187,167,0.15);
         font-size:11px;color:var(--cream-3);min-height:28px;
         transition:opacity 0.2s;display:none
       "></div>
@@ -367,14 +367,14 @@
         <datalist id="artDatalist"></datalist>
       </div>
       <button id="btnNext" class="btn btn-sec" style="padding:8px 16px;font-size:13px">換一條</button>
-      <button id="btnFillSession" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(91,175,214,0.15);border-color:rgba(91,175,214,0.6)">⚡ 連刷模式</button>
-      <button onclick="openFillStats()" title="個人填空統計" style="background:none;border:1px solid rgba(91,175,214,0.3);color:#5BAFD6;border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">📊</button>
+      <button id="btnFillSession" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(231,187,167,0.15);border-color:rgba(231,187,167,0.6)">連刷模式</button>
+      <button onclick="openFillStats()" title="個人填空統計" style="background:none;border:1px solid rgba(231,187,167,0.3);color:var(--peach);border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">統計</button>
       <button id="btn-handwrite" onclick="_toggleHandwrite(this)" title="iPad 手寫模式（放大輸入格）" style="background:none;border:1px solid rgba(245,240,234,.25);color:rgba(245,240,234,.6);border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">✏</button>
       <button id="btnFillDaily" onclick="startFillDailyChallenge()">今日填空</button>
       <span id="fill-daily-badge"></span>
       <div id="fill-streak" style="
         display:none;
-        font-size:13px;color:#ff9955;font-weight:600;
+        font-size:13px;color:var(--peach);font-weight:600;
         padding:3px 8px;background:rgba(217,176,132,0.12);
         border:1px solid rgba(217,176,132,0.3);border-radius:12px;
         margin-left:8px
@@ -503,7 +503,7 @@ document.getElementById('navUid').textContent = isFree ? '免費版' : (localSto
 if(isFree){
   const bar=document.createElement('div');
   bar.style.cssText='background:rgba(231,187,167,.13);border-bottom:1px solid rgba(231,187,167,.3);padding:10px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;';
-  bar.innerHTML='<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">🔒 免費版 · 填空範圍有限，練習紀錄不會儲存</span>'
+  bar.innerHTML='<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">免費版 · 填空範圍有限，練習紀錄不會儲存</span>'
     +'<a href="pricing.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:5px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
   document.querySelector('.pr-bar').before(bar);
 }
@@ -608,10 +608,10 @@ function _showFillExamBanner() {
     });
     const sep=document.createElement('option');sep.disabled=true;sep.textContent='──────';sel.appendChild(sep);
   }
-  // Wave 110: replace the blank 全部法規 option with the explicit 🎲 __all__ option
+  // Wave 110: replace the blank 全部法規 option with the explicit __all__ option
   const _blankOpt=sel.querySelector('option[value=""]');
-  if(_blankOpt){_blankOpt.value='__all__';_blankOpt.textContent='🎲 全部法規';}
-  else{const oAll=document.createElement('option');oAll.value='__all__';oAll.textContent='🎲 全部法規';sel.insertBefore(oAll,sel.firstChild);}
+  if(_blankOpt){_blankOpt.value='__all__';_blankOpt.textContent='全部法規';}
+  else{const oAll=document.createElement('option');oAll.value='__all__';oAll.textContent='全部法規';sel.insertBefore(oAll,sel.firstChild);}
   try {
     const d = await fetch(`${API}/api/laws`).then(r=>r.json());
     _allLoadedFillLaws = d.laws || [];
@@ -768,7 +768,7 @@ function _updateFillStatusBar(lawName) {
   if (!lawName || lawName.startsWith('__')) {
     if (lawName === '__all__') {
       bar.style.display = 'block';
-      bar.innerHTML = '<span style="color:#5BAFD6">🎲 全部法規混練模式</span>';
+      bar.innerHTML = '<span style="color:var(--peach)">全部法規混練模式</span>';
     } else {
       bar.style.display = 'none';
     }
@@ -785,7 +785,7 @@ function _updateFillStatusBar(lawName) {
   }
 
   const count = d.total;
-  const color = count >= 15 ? 'var(--good)' : count >= 5 ? 'var(--warn)' : '#5BAFD6';
+  const color = count >= 15 ? 'var(--good)' : count >= 5 ? 'var(--warn)' : 'var(--peach)';
   const label = count >= 15 ? '熟練' : count >= 5 ? '練習中' : '起步中';
   const barPct = Math.min(100, Math.round(count / 20 * 100)); // 20 articles = full bar
 
@@ -864,13 +864,13 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
       const preview=sections[name]||'';
       lk.innerHTML='<div class="sec-label">'+label+'</div>'
         +'<div class="sec-lock-preview">'+(preview?formatSection(preview):'')+'</div>'
-        +'<div class="sec-lock-cta">🔒 升級解鎖完整內容 <a href="pricing.html">查看方案 →</a></div>';
+        +'<div class="sec-lock-cta">升級解鎖完整內容 <a href="pricing.html">查看方案 →</a></div>';
       if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
     });
   }
 }
 
-let _allFillLawNames = [];  // Wave 110: all real law names for 🎲 全部法規
+let _allFillLawNames = [];  // Wave 110: all real law names for 全部法規
 let _fillSession = false, _fillSessionTotal = 0, _fillSessionDone = 0;
 let _sessionStats = [];   // Wave 40: per-article stats
 let _currentHintUsed = false;
@@ -938,8 +938,8 @@ function _buildFillCalendar() {
     const intensity = count === 0 ? 0 : Math.max(0.15, count / maxCount);
     const bg = count === 0
       ? 'rgba(255,255,255,0.06)'
-      : `rgba(91,175,214,${intensity})`;
-    const border = isToday ? '1px solid #5BAFD6' : '1px solid transparent';
+      : `rgba(231,187,167,${intensity})`;
+    const border = isToday ? '1px solid var(--peach)' : '1px solid transparent';
     html += `<div title="${count}篇" style="
       aspect-ratio:1;border-radius:3px;
       background:${bg};border:${border}
@@ -1038,7 +1038,7 @@ function _renderFillStreak() {
   const count = _getFillStreak();
   if (count >= 2) {
     el.style.display = 'inline-block';
-    el.textContent = `🔥 ${count}日連刷`;
+    el.textContent = `${count}日連刷`;
   } else {
     el.style.display = 'none';
   }
@@ -1083,19 +1083,19 @@ function showFillResults() {
     _updateFillDailyBtn();
     _isFillDailyMode = false;
   }
-  const emoji = pct >= 80 ? '🎉' : pct >= 60 ? '💪' : '📖';
+  const gradeLabel = pct >= 80 ? '穩定' : pct >= 60 ? '練習中' : '待加強';
   document.getElementById('fill-res-score').textContent = correctBlanks + ' / ' + totalBlanks + ' 格';
-  document.getElementById('fill-res-sub').textContent = emoji + '  答對率 ' + pct + '%　全對無提示: ' + cleanCount + '/' + total + ' 篇';
+  document.getElementById('fill-res-sub').textContent = gradeLabel + ' · 答對率 ' + pct + '%　全對無提示: ' + cleanCount + '/' + total + ' 篇';
   const list = document.getElementById('fill-res-list');
   list.innerHTML = '';
   _sessionStats.forEach((s,i) => {
     const perfect = s.correctBlanks === s.totalBlanks && !s.usedHint;
     const ok = s.correctBlanks === s.totalBlanks;
-    const color = perfect ? '#9FB89F' : ok ? '#5BAFD6' : 'var(--bad)';
+    const color = perfect ? '#9FB89F' : ok ? 'var(--peach)' : 'var(--bad)';
     const icon = perfect ? '✓' : ok ? '△' : '✗';
     const div = document.createElement('div');
     div.style.cssText = 'background:var(--navy-3);border-radius:8px;padding:10px 12px;border-left:3px solid '+color;
-    div.innerHTML = '<span style="color:'+color+';font-weight:700">'+icon+'</span> <span style="color:#5BAFD6;font-size:13px">第 '+(i+1)+' 題　'+s.correctBlanks+'/'+s.totalBlanks+'格'+(s.usedHint?' 🔍':'')+'</span>';
+    div.innerHTML = '<span style="color:'+color+';font-weight:700">'+icon+'</span> <span style="color:var(--peach);font-size:13px">第 '+(i+1)+' 題　'+s.correctBlanks+'/'+s.totalBlanks+'格'+(s.usedHint?' · 使用提示':'')+'</span>';
     list.appendChild(div);
   });
   document.getElementById('fill-results').style.display = 'block';
@@ -1124,7 +1124,7 @@ async function _shareFillResult() {
   const correctBlanks = _sessionStats ? _sessionStats.reduce((s,a)=>s+a.correctBlanks,0) : 0;
   const cleanCount = _sessionStats ? _sessionStats.filter(a => a.correctBlanks===a.totalBlanks && !a.usedHint).length : 0;
   const pct = totalBlanks > 0 ? Math.round(correctBlanks / totalBlanks * 100) : 0;
-  const grade = pct >= 90 ? '🏆' : pct >= 80 ? '🌟' : pct >= 70 ? '✨' : pct >= 60 ? '📖' : '💪';
+  const grade = pct >= 90 ? '高穩定' : pct >= 80 ? '穩定' : pct >= 70 ? '接近穩定' : pct >= 60 ? '練習中' : '待加強';
 
   const sel = document.getElementById('lawSelect');
   const lawName = (sel && sel.value && sel.value !== '__all__')
@@ -1132,18 +1132,18 @@ async function _shareFillResult() {
     : '全部法規混練';
 
   const lines = [
-    `${grade} SoFa 填空成績`,
-    `📚 法規：${lawName}`,
+    `${grade} · SoFa 填空成績`,
+    `法規：${lawName}`,
     `✓ 完成：${total} 篇填空　共 ${totalBlanks} 格`,
-    `🎯 答對率：${pct}%（${correctBlanks}/${totalBlanks} 格）`,
-    cleanCount > 0 ? `💯 全對無提示：${cleanCount} 篇` : null,
+    `答對率：${pct}%（${correctBlanks}/${totalBlanks} 格）`,
+    cleanCount > 0 ? `全對無提示：${cleanCount} 篇` : null,
     `━━━━━━━━━━`,
     `記帳士備考 | SoFa Engine`,
   ].filter(Boolean).join('\n');
 
   try {
     await navigator.clipboard.writeText(lines);
-    _showFillShareToast('📋 成績已複製到剪貼板！');
+    _showFillShareToast('成績已複製到剪貼板');
   } catch(e) {
     prompt('複製以下文字分享成績：', lines);
   }
@@ -1522,7 +1522,7 @@ async function loadNew(){
   const srcBtn0=document.getElementById('fillSourceLink');if(srcBtn0)srcBtn0.style.display='none';
   const srcP0=document.getElementById('fillArtInline');if(srcP0){srcP0.style.display='none';srcP0.textContent='';}
   let law=document.getElementById('lawSelect').value;
-  // Wave 110: resolve 🎲 全部法規 to a random real law
+  // Wave 110: resolve 全部法規 to a random real law
   if(law==='__all__'){
     law=_allFillLawNames.length>0?_allFillLawNames[Math.floor(Math.random()*_allFillLawNames.length)]:'';
   }
@@ -1723,16 +1723,16 @@ _updateFillDailyBtn();
   <div style="max-width:640px; margin:0 auto;">
     <div style="text-align:center; margin-bottom:24px;">
       <div id="fill-res-score" style="font-size:48px; font-weight:700; color:var(--warn); font-family:var(--serif);"></div>
-      <div id="fill-res-sub" style="color:#5BAFD6; margin-top:8px; font-size:14px;"></div>
+      <div id="fill-res-sub" style="color:var(--peach); margin-top:8px; font-size:14px;"></div>
     </div>
     <div id="fill-res-list" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
     <div style="text-align:center; margin-top:28px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
       <button onclick="_shareFillResult()"
-        style="background:rgba(91,175,214,0.2);border:1px solid rgba(91,175,214,0.4);
-               color:#5BAFD6;border-radius:20px;padding:10px 20px;font-size:14px;cursor:pointer;">
-        📤 分享
+        style="background:rgba(231,187,167,0.2);border:1px solid rgba(231,187,167,0.4);
+               color:var(--peach);border-radius:20px;padding:10px 20px;font-size:14px;cursor:pointer;">
+        分享
       </button>
-      <button onclick="restartFillSession()" style="background:var(--navy-2); border:1px solid #5BAFD6; color:#5BAFD6; padding:10px 28px; border-radius:20px; font-size:14px; cursor:pointer;">🔄 再來一次</button>
+      <button onclick="restartFillSession()" style="background:var(--navy-2); border:1px solid var(--peach); color:var(--peach); padding:10px 28px; border-radius:20px; font-size:14px; cursor:pointer;">再來一次</button>
       <button onclick="exitFillResults()" style="background:var(--warn); border:none; color:#040D14; padding:10px 28px; border-radius:20px; font-size:14px; font-weight:600; cursor:pointer;">完成</button>
     </div>
   </div>
@@ -1742,13 +1742,13 @@ _updateFillDailyBtn();
 <div id="fill-stats-panel" style="display:none; position:fixed; inset:0; background:rgba(4,13,20,0.96); z-index:210; overflow-y:auto; padding:24px 16px;">
   <div style="max-width:540px; margin:0 auto;">
     <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
-      <h2 style="color:var(--cream); font-family:var(--serif); margin:0; font-size:20px">📊 填空成績統計</h2>
-      <button onclick="closeFillStats()" style="background:none; border:1px solid rgba(91,175,214,0.4); color:#5BAFD6; border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:16px">✕</button>
+      <h2 style="color:var(--cream); font-family:var(--serif); margin:0; font-size:20px">填空成績統計</h2>
+      <button onclick="closeFillStats()" style="background:none; border:1px solid rgba(231,187,167,0.4); color:var(--peach); border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:16px">✕</button>
     </div>
     <!-- Wave 145: Tab bar -->
     <div id="fill-stats-tab-bar" style="display:flex;gap:6px;margin-bottom:16px;">
-      <button id="fill-tab-btn-stats" onclick="_switchFillStatsTab('stats')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:var(--navy-2);color:var(--cream);font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:600;transition:background 0.2s">📊 統計</button>
-      <button id="fill-tab-btn-wrong" onclick="_switchFillStatsTab('wrong')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(245,240,234,0.45);font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:400;transition:background 0.2s">⚠️ 弱點清單</button>
+      <button id="fill-tab-btn-stats" onclick="_switchFillStatsTab('stats')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:var(--navy-2);color:var(--cream);font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:600;transition:background 0.2s">統計</button>
+      <button id="fill-tab-btn-wrong" onclick="_switchFillStatsTab('wrong')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(245,240,234,0.45);font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:400;transition:background 0.2s">弱點清單</button>
     </div>
     <!-- Tab: 統計 -->
     <div id="fill-stats-tab-stats">
@@ -1799,20 +1799,20 @@ function openFillStats() {
   let byLawHtml = '';
   if(s.byLaw){
     const laws = Object.entries(s.byLaw).sort((a,b)=>b[1].total-a[1].total).slice(0,8);
-    byLawHtml = '<div style="margin-top:16px"><div style="color:#5BAFD6;font-size:12px;margin-bottom:8px">各法填空準確率</div>' +
+    byLawHtml = '<div style="margin-top:16px"><div style="color:var(--peach);font-size:12px;margin-bottom:8px">各法填空準確率</div>' +
       laws.map(([name,d])=>{
         const p = d.total>0?Math.round(d.correct/d.total*100):0;
-        return `<div style="background:var(--navy-3);border-radius:8px;padding:10px 12px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:#5BAFD6">${name}</span><span style="color:#5BAFD6">${d.correct}/${d.total}格 (${p}%)</span></div><div style="height:3px;background:rgba(91,175,214,0.1);border-radius:2px;margin-top:6px"><div style="width:${p}%;height:100%;background:${p>=80?'#9FB89F':p>=60?'#5BAFD6':'var(--bad)'};border-radius:2px"></div></div></div>`;
+        return `<div style="background:var(--navy-3);border-radius:8px;padding:10px 12px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--peach)">${name}</span><span style="color:var(--peach)">${d.correct}/${d.total}格 (${p}%)</span></div><div style="height:3px;background:rgba(231,187,167,0.1);border-radius:2px;margin-top:6px"><div style="width:${p}%;height:100%;background:${p>=80?'#9FB89F':p>=60?'var(--peach)':'var(--bad)'};border-radius:2px"></div></div></div>`;
       }).join('') + '</div>';
   }
   const weakLaw = _getWeakestFillLaw(s);
   const weakHtml = weakLaw ? `
     <div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.15);padding-top:10px">
-      <div style="font-size:11px;color:var(--cream-3);margin-bottom:6px">⚠️ 弱點法規</div>
-      <div style="font-size:13px;color:var(--warn);margin-bottom:8px">📖 ${weakLaw}</div>
+      <div style="font-size:11px;color:var(--cream-3);margin-bottom:6px">弱點法規</div>
+      <div style="font-size:13px;color:var(--peach);margin-bottom:8px">${weakLaw}</div>
       <button onclick="_drillWeakFillLaw('${weakLaw.replace(/'/g, "\\'")}')"
-        style="background:#2a4a7f;color:#fff;border:none;border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer">
-        🎯 練習此法規
+        style="background:rgba(231,187,167,.14);color:var(--peach);border:1px solid rgba(231,187,167,.38);border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer">
+        練習此法規
       </button>
     </div>` : '';
   // Wave 107: compute average response time
@@ -1821,21 +1821,21 @@ function openFillStats() {
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
       <div style="background:var(--navy-3);border-radius:10px;padding:14px;text-align:center">
         <div style="font-size:28px;font-weight:700;color:var(--warn)">${pct}%</div>
-        <div style="color:#5BAFD6;font-size:11px;margin-top:3px">累計準確率</div>
+        <div style="color:var(--peach);font-size:11px;margin-top:3px">累計準確率</div>
         <div style="color:var(--cream-3);font-size:10px">${correct}/${total}格</div>
       </div>
       <div style="background:var(--navy-3);border-radius:10px;padding:14px;text-align:center">
-        <div style="font-size:28px;font-weight:700;color:#5BAFD6">${todayPct}%</div>
-        <div style="color:#5BAFD6;font-size:11px;margin-top:3px">今日準確率</div>
+        <div style="font-size:28px;font-weight:700;color:var(--peach)">${todayPct}%</div>
+        <div style="color:var(--peach);font-size:11px;margin-top:3px">今日準確率</div>
         <div style="color:var(--cream-3);font-size:10px">${s.todayCorrect||0}/${s.todayTotal||0}格</div>
       </div>
       <div style="background:var(--navy-3);border-radius:10px;padding:14px;text-align:center">
         <div style="font-size:28px;font-weight:700;color:#9FB89F">${cleanRate}%</div>
-        <div style="color:#5BAFD6;font-size:11px;margin-top:3px">全對無提示率</div>
+        <div style="color:var(--peach);font-size:11px;margin-top:3px">全對無提示率</div>
         <div style="color:var(--cream-3);font-size:10px">${s.clean||0}/${s.articles||0}篇</div>
       </div>
       <div style="background:var(--navy-3);border-radius:10px;padding:14px;text-align:center;grid-column:1/-1">
-        <div style="font-size:20px;font-weight:700;color:#5BAFD6">${avgSec}s</div>
+        <div style="font-size:20px;font-weight:700;color:var(--peach)">${avgSec}s</div>
         <div style="font-size:10px;color:var(--cream-3);margin-top:2px">平均完成時間</div>
       </div>
     </div>${byLawHtml}${weakHtml}
@@ -1902,14 +1902,14 @@ function _renderFillWrongList() {
   let html = '<div style="display:flex;flex-direction:column;gap:8px;">';
   lawWrongs.forEach(({ name, wrong, total }) => {
     const pct = Math.round((total - wrong) / total * 100);
-    const color = pct >= 80 ? '#9FB89F' : pct >= 60 ? '#5BAFD6' : 'var(--bad)';
+    const color = pct >= 80 ? '#9FB89F' : pct >= 60 ? 'var(--peach)' : 'var(--bad)';
     const safeName = name.replace(/'/g, "\\'");
     html += `<div style="background:var(--navy-3);border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
       <div style="flex:1;min-width:0;">
-        <div style="color:#5BAFD6;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
+        <div style="color:var(--peach);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
         <div style="color:var(--bad);font-size:11px;margin-top:2px;font-family:var(--mono);">✗ ${wrong}格錯 &nbsp;•&nbsp; <span style="color:${color}">${pct}%正確</span></div>
       </div>
-      <button onclick="_drillFillWeakLaw('${safeName}')" style="flex-shrink:0;background:rgba(199,123,106,0.12);border:1px solid rgba(199,123,106,0.35);color:var(--bad);border-radius:12px;padding:5px 12px;font-size:12px;cursor:pointer;white-space:nowrap;">🔁 重練</button>
+      <button onclick="_drillFillWeakLaw('${safeName}')" style="flex-shrink:0;background:rgba(231,187,167,0.12);border:1px solid rgba(231,187,167,0.35);color:var(--peach);border-radius:12px;padding:5px 12px;font-size:12px;cursor:pointer;white-space:nowrap;">重練</button>
     </div>`;
   });
   html += '</div>';
@@ -1935,8 +1935,8 @@ function _drillFillWeakLaw(lawName) {
 </script>
 
 <div id="fillSessionModal" style="display:none;position:fixed;inset:0;background:rgba(7,13,20,0.8);align-items:center;justify-content:center;z-index:50;" onclick="if(event.target===this)this.style.display='none'">
-  <div style="background:var(--navy-2,var(--navy-3));border:1px solid rgba(91,175,214,0.3);border-radius:8px;padding:28px 32px;min-width:240px;text-align:center" onclick="event.stopPropagation()">
-    <div style="font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:#5BAFD6;margin-bottom:16px">選擇題數</div>
+  <div style="background:var(--navy-2,var(--navy-3));border:1px solid rgba(231,187,167,0.3);border-radius:8px;padding:28px 32px;min-width:240px;text-align:center" onclick="event.stopPropagation()">
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--peach);margin-bottom:16px">選擇題數</div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
       <button class="btn btn-sec" onclick="startFillSession(10)">10 題</button>
       <button class="btn btn-sec" onclick="startFillSession(20)">20 題</button>
