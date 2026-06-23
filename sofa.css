@@ -23,7 +23,7 @@
   --mono:"JetBrains Mono",ui-monospace,monospace;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{background:var(--navy-3)}
+html,body{background:var(--navy-3);width:100%;overflow-x:hidden}
 body{
   font-family:var(--sans);color:var(--cream);font-size:15px;line-height:1.65;
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
@@ -185,11 +185,32 @@ input,textarea{font-family:inherit;color:inherit}
   .page-head h1{font-size:34px}
 }
 @media (max-width:760px){
-  .topbar{padding:14px 16px}
+  .topbar{
+    padding:calc(10px + env(safe-area-inset-top, 0px)) 12px 10px;
+    gap:8px;
+  }
+  .brand{
+    min-width:0;
+    font-size:14px;
+    letter-spacing:.13em;
+    white-space:nowrap;
+  }
   .top-mid{display:none}
   .menu-btn{display:flex}
-  .top-right{gap:10px}
-  .btn-out{padding:7px 12px;letter-spacing:.06em}
+  .top-right{gap:8px;min-width:0}
+  .user-pill{
+    min-width:0;
+    max-width:88px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    font-size:12px;
+  }
+  .btn-out{padding:8px 12px;font-size:11px;letter-spacing:.06em}
+  .law-dd{min-width:0;width:100%}
+  .law-dd-btn{width:100%;max-width:100%;justify-content:space-between;min-width:0}
+  .law-dd-btn span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .law-dd-pop{left:0;right:0;min-width:0;width:min(92vw,360px);max-height:56vh}
   .main-wrap{padding:28px 20px 60px}
   .page-head{flex-direction:column;align-items:flex-start;gap:18px}
   .page-head h1{font-size:28px}

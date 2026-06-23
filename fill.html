@@ -480,6 +480,7 @@
 
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
+function isIOSReaderApp(){try{return !!(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='ios');}catch(e){return false;}}
 const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
 const tok = localStorage.getItem('sofa_token') || '';
 const freeParam = new URLSearchParams(location.search).get('free') === '1';
@@ -507,20 +508,31 @@ document.getElementById('navUid').textContent = isFree ? '免費版' : (localSto
 if(isFree){
   const bar=document.createElement('div');
   bar.style.cssText='background:rgba(231,187,167,.13);border-bottom:1px solid rgba(231,187,167,.3);padding:10px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;';
-  bar.innerHTML='<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">免費版 · 填空範圍有限，練習紀錄不會儲存</span>'
-    +'<a href="pricing.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:5px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
+  bar.innerHTML=isIOSReaderApp()
+    ? '<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">免費版 · 進階內容，訂閱者可見</span>'
+    : '<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">免費版 · 填空範圍有限，練習紀錄不會儲存</span>'
+      +'<a href="pricing.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:5px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
   document.querySelector('.pr-bar').before(bar);
 }
 
-// 中文數字正規化：二年→2年、三十日→30日
+// 中文數字正規化：二年→2年、三十日→30日、一百二十日→120日
 function normLegalNum(s){
-  const d={'一':'1','二':'2','三':'3','四':'4','五':'5','六':'6','七':'7','八':'8','九':'9'};
-  let r=s;
-  r=r.replace(/[一二三四五六七八九]十[一二三四五六七八九]/g,m=>String(+d[m[0]]*10+ +d[m[2]]));
-  r=r.replace(/[一二三四五六七八九]十/g,m=>String(+d[m[0]]*10));
-  r=r.replace(/十[一二三四五六七八九]/g,m=>String(10+ +d[m[1]]));
-  r=r.replace(/十/g,'10');
-  r=r.replace(/[一二三四五六七八九]/g,c=>d[c]);
+  const d={'零':0,'〇':0,'○':0,'一':1,'二':2,'兩':2,'两':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9};
+  const units={'十':10,'百':100,'千':1000};
+  const parseNum=t=>{
+    if(!/[十百千萬万]/.test(t))return t.replace(/[零〇○一二兩两三四五六七八九]/g,c=>String(d[c]));
+    let total=0, section=0, num=0;
+    [...t].forEach(c=>{
+      if(c in d){num=d[c];return;}
+      if(c in units){section+=(num||1)*units[c];num=0;return;}
+      if(c==='萬'||c==='万'){total+=(section+num||1)*10000;section=0;num=0;}
+    });
+    return String(total+section+num);
+  };
+  let r=String(s||'').normalize('NFKC').replace(/[零〇○一二兩两三四五六七八九十百千萬万]+/g,parseNum);
+  r=r.replace(/(\d+(?:\.\d+)?)\s*[萬万]/g,(_,n)=>String(Number(n)*10000));
+  r=r.replace(/(\d+(?:\.\d+)?)\s*千/g,(_,n)=>String(Number(n)*1000));
+  r=r.replace(/(\d+(?:\.\d+)?)\s*百/g,(_,n)=>String(Number(n)*100));
   return r;
 }
 
@@ -866,9 +878,11 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
     _LOCKED_SECS.forEach(({name,label})=>{
       const lk=document.createElement('div');lk.className='sec-lock';
       const preview=sections[name]||'';
-      lk.innerHTML='<div class="sec-label">'+label+'</div>'
-        +'<div class="sec-lock-preview">'+(preview?formatSection(preview):'')+'</div>'
-        +'<div class="sec-lock-cta">升級解鎖完整內容 <a href="pricing.html">查看方案 →</a></div>';
+      lk.innerHTML=isIOSReaderApp()
+        ? '<div class="sec-label">'+label+'</div><div class="sec-lock-cta">進階內容，訂閱者可見</div>'
+        : '<div class="sec-label">'+label+'</div>'
+          +'<div class="sec-lock-preview">'+(preview?formatSection(preview):'')+'</div>'
+          +'<div class="sec-lock-cta">升級解鎖完整內容 <a href="pricing.html">查看方案 →</a></div>';
       if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
     });
   }

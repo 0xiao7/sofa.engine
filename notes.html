@@ -111,6 +111,7 @@
 <script src="notes-store.js"></script>
 <script>
   var API = 'https://sofa-engine-api.onrender.com';
+  function isIOSReaderApp(){try{return !!(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='ios');}catch(e){return false;}}
   function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
@@ -162,6 +163,12 @@
     var foot = document.getElementById('footnote');
     var btn = document.getElementById('exportBtn');
     btn.style.display = 'none';
+    if(isIOSReaderApp()){
+      sub.textContent = '雲端筆記庫 · 訂閱者可見';
+      grid.innerHTML = '<div class="empty"><div class="t">進階內容，訂閱者可見</div></div>';
+      foot.textContent = '';
+      return;
+    }
     sub.textContent = '雲端筆記庫 · 升級後解鎖';
     grid.innerHTML = '<div class="empty"><span class="ic">🔒</span>'
       + '<div class="t">私人筆記庫是升級功能</div>'

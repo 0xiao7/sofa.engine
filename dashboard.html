@@ -42,7 +42,7 @@
     --mono:"JetBrains Mono",ui-monospace,monospace;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html,body{background:var(--navy-3)}
+  html,body{background:var(--navy-3);width:100%;overflow-x:hidden}
   body{
     font-family:var(--sans);color:var(--cream);
     font-size:15px;line-height:1.65;
@@ -1301,7 +1301,30 @@
     .mc-stats{grid-template-columns:1fr 1fr;gap:20px}
   }
   @media (max-width: 760px){
-    .topbar{padding:14px 20px}
+    .topbar{
+      padding:calc(10px + env(safe-area-inset-top, 0px)) 12px 10px;
+      gap:8px;
+    }
+    .brand{min-width:0;gap:10px}
+    .brand .wm-eb{display:none}
+    .brand .wm-tt{
+      font-family:var(--serif);
+      font-size:18px;
+      letter-spacing:.02em;
+      text-transform:none;
+      white-space:nowrap;
+    }
+    .brand .wm-tt em{display:inline}
+    .top-right{gap:8px;min-width:0}
+    .user-pill{
+      max-width:78px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-size:12px;
+      letter-spacing:.04em;
+    }
+    .btn-out{padding:8px 12px;font-size:11px;flex-shrink:0}
     .top-mid{display:none}
     .menu-btn{display:flex}
     .shell{grid-template-columns:1fr}
@@ -1310,7 +1333,31 @@
       transform:translateX(-100%);transition:transform .3s;z-index:40;
     }
     aside.side.open{transform:translateX(0)}
-    main.main{padding:32px 22px 60px}
+    main.main{padding:16px 12px 56px}
+    .main-inner{display:flex;flex-direction:column}
+    #tools{order:-30;margin-bottom:28px}
+    #tools .sec-head{
+      flex-direction:row;
+      align-items:center;
+      justify-content:space-between;
+      margin-bottom:12px;
+    }
+    #tools .sec-head h2{font-size:20px}
+    #tools .sec-head .idx{font-size:11px}
+    #tools .sec-head .r{font-size:11px}
+    #resume-tool-wrap{margin-bottom:10px!important}
+    .tool-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+    .tool{
+      min-height:84px;
+      padding:10px 11px;
+      gap:7px;
+      border-radius:6px;
+    }
+    .tool .num{font-size:20px;line-height:1}
+    .tool .code{font-size:9px;letter-spacing:.13em}
+    .tool .name{font-size:15px;line-height:1.25}
+    .tool .desc{display:none}
+    .tool .arrow{display:none}
     .greet{grid-template-columns:1fr;gap:18px}
     .greet h1{font-size:32px}
     .greet .now{text-align:left}
@@ -1334,7 +1381,7 @@
     .ps .v{font-size:42px}
     .prog-row{grid-template-columns:120px 1fr 36px;gap:14px}
     .search-row{grid-template-columns:1fr}
-    .card-grid,.tool-grid{grid-template-columns:1fr}
+    .card-grid{grid-template-columns:1fr}
     .sec-head{flex-direction:column;align-items:flex-start;gap:8px}
     .toc-row{grid-template-columns:30px 1fr auto;gap:10px}
     .toc-row .arrow{display:none}
@@ -1957,6 +2004,7 @@
 <script>
 // ── 全域常數 ─────────────────────────────────────────────
 const API = 'https://sofa-engine-api.onrender.com';
+function isIOSReaderApp(){try{return !!(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='ios');}catch(e){return false;}}
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 // ── Wave 123: 關鍵字高亮工具 ──────────────────────────────
 function _getSearchQuery(){
@@ -2258,16 +2306,22 @@ function _renderDrawer(d){
     var text = (d.sections || {})[name] || '';
     var locked = planFree && seg >= 5;
     if(locked){
-      var blurContent = text
-        ? '<div class="acc-locked-blur">'+formatSection(text)+'</div>'
-        : '<div class="acc-locked-blur" style="padding:0 22px 0 28px"><div style="height:10px;border-radius:3px;background:rgba(31,56,72,.13);margin-bottom:9px;width:92%"></div><div style="height:10px;border-radius:3px;background:rgba(31,56,72,.13);margin-bottom:9px;width:76%"></div></div>';
-      accHtml += '<div class="acc-item locked" data-seg="'+seg+'">'
-        + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span><span class="ttl">'+name+'</span></div>'
-        + '<div class="acc-locked-body">'
-        + (!text ? '<div class="acc-locked-lead">'+(LEADS[seg]||'')+'</div>' : '')
-        + blurContent
-        + '<div class="acc-locked-cta">🔒 升級解鎖完整內容<a href="pricing.html">查看方案 →</a></div>'
-        + '</div></div>';
+      if(isIOSReaderApp()){
+        accHtml += '<div class="acc-item locked" data-seg="'+seg+'">'
+          + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span><span class="ttl">'+name+'</span></div>'
+          + '<div class="acc-locked-body"><div class="acc-locked-cta">進階內容，訂閱者可見</div></div></div>';
+      }else{
+        var blurContent = text
+          ? '<div class="acc-locked-blur">'+formatSection(text)+'</div>'
+          : '<div class="acc-locked-blur" style="padding:0 22px 0 28px"><div style="height:10px;border-radius:3px;background:rgba(31,56,72,.13);margin-bottom:9px;width:92%"></div><div style="height:10px;border-radius:3px;background:rgba(31,56,72,.13);margin-bottom:9px;width:76%"></div></div>';
+        accHtml += '<div class="acc-item locked" data-seg="'+seg+'">'
+          + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span><span class="ttl">'+name+'</span></div>'
+          + '<div class="acc-locked-body">'
+          + (!text ? '<div class="acc-locked-lead">'+(LEADS[seg]||'')+'</div>' : '')
+          + blurContent
+          + '<div class="acc-locked-cta">升級解鎖完整內容<a href="pricing.html">查看方案 →</a></div>'
+          + '</div></div>';
+      }
     } else if(text){
       accHtml += '<div class="acc-item'+(seg===1?' open':'')+'" data-seg="'+seg+'" onclick="_toggleAccItem(this)">'
         + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span><span class="ttl">'+name+'</span></div>'
@@ -2942,11 +2996,15 @@ function _readArticle(btn, text) {
   if(isFree){
     var memberCard = document.querySelector('.member-card');
     if(memberCard){
-      memberCard.innerHTML = '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版 · 完整會員資訊在升級後解鎖<br><a href="pricing.html" style="color:var(--peach);margin-top:8px;display:inline-block;">查看方案 →</a></div>';
+      memberCard.innerHTML = isIOSReaderApp()
+        ? '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版 · 進階內容，訂閱者可見</div>'
+        : '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版 · 完整會員資訊在升級後解鎖<br><a href="pricing.html" style="color:var(--peach);margin-top:8px;display:inline-block;">查看方案 →</a></div>';
     }
     var progCard = document.querySelector('.prog-card');
     if(progCard){
-      progCard.innerHTML = '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版不儲存學習紀錄<br><span style="opacity:.6;font-size:.8em;">升級後自動累積進度</span></div>';
+      progCard.innerHTML = isIOSReaderApp()
+        ? '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">進階內容，訂閱者可見</div>'
+        : '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版不儲存學習紀錄<br><span style="opacity:.6;font-size:.8em;">升級後自動累積進度</span></div>';
     }
 
     // ── 免費版 30 天 nudge banner ────────────────────
@@ -2957,7 +3015,7 @@ function _readArticle(btn, text) {
       localStorage.setItem('sofa_free_since', since);
     }
     var daysSince = Math.floor((Date.now() - new Date(since).getTime()) / 86400000);
-    if(daysSince >= 30){
+    if(daysSince >= 30 && !isIOSReaderApp()){
       var nudge = document.createElement('div');
       nudge.style.cssText = 'position:fixed;top:0;left:0;right:0;z-index:1000;'+
         'background:#1B2B4B;color:#F5F0EA;text-align:center;padding:10px 16px;'+
@@ -3091,7 +3149,7 @@ function _readArticle(btn, text) {
       setText('mc-who', (name || '—').toUpperCase());
 
       // P0-C：已到期且非 Admin → 顯示覆蓋層
-      if(isExpired && plan !== 'Admin'){
+      if(isExpired && plan !== 'Admin' && !isIOSReaderApp()){
         setTimeout(showExpireOverlay, 800); // 讓 UI 先渲染完再蓋上
       }
 
@@ -4446,6 +4504,7 @@ sections.forEach(s=>io.observe(s));
 </div>
 <script>
 function showExpireOverlay(){
+  if(isIOSReaderApp()) return;
   var el=document.getElementById('expire-overlay');
   if(el){ el.style.display='flex'; }
 }

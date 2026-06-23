@@ -256,17 +256,84 @@
     .stat:nth-last-child(-n+2){border-bottom:none}
   }
   @media (max-width:760px){
-    .pr-bar{padding:12px 18px;gap:12px}
-    .pr-bar .l{gap:10px}
-    .pr-meta{gap:14px;font-size:11px}
-    .pr-stage{padding:28px 18px 60px}
+    html,body{width:100%;overflow-x:hidden}
+    .topbar{
+      padding:calc(10px + env(safe-area-inset-top, 0px)) 12px 10px;
+      gap:8px;
+    }
+    .brand{font-size:14px;letter-spacing:.13em;white-space:nowrap;min-width:0}
+    .top-right{gap:8px;min-width:0}
+    .user-pill{
+      min-width:0;
+      max-width:84px;
+      overflow:hidden;
+      text-overflow:ellipsis;
+      white-space:nowrap;
+      font-size:12px;
+    }
+    .btn-out{padding:8px 12px;font-size:11px;flex-shrink:0}
+    .pr-bar{
+      padding:12px;
+      gap:10px;
+      flex-direction:column;
+      align-items:stretch;
+    }
+    .pr-bar .l{
+      width:100%;
+      display:grid;
+      grid-template-columns:auto minmax(0,1fr) auto;
+      gap:8px;
+    }
+    .pr-bar .l > a{padding:8px 10px!important;white-space:nowrap}
+    .pr-pick{min-width:0;padding:8px 10px}
+    .pr-pick .lab{display:none}
+    .law-dd{min-width:0;width:100%}
+    .law-dd-btn{width:100%;max-width:100%;justify-content:space-between;min-width:0}
+    .law-dd-btn span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .law-dd-pop{left:0;right:0;width:min(92vw,360px);min-width:0;max-height:52vh}
+    #artPickWrap,#practice-status-bar,#practice-streak{grid-column:1/-1}
+    #btnNew{padding:8px 12px!important;white-space:nowrap}
+    .pr-meta{
+      width:100%;
+      display:grid;
+      grid-template-columns:repeat(4,minmax(0,1fr));
+      gap:6px;
+      font-size:10px;
+    }
+    .pr-meta .seg{gap:4px;justify-content:center;min-width:0}
+    .pr-meta .seg b{font-size:11px}
+    .pr-stage{padding:18px 12px 60px}
+    .pr-inner{max-width:100%;min-width:0}
     .ar-head{flex-direction:column;align-items:flex-start;gap:14px}
-    .ar-head h2{font-size:24px}
-    .ar-head h2 .n{font-size:36px}
-    .type-card{padding:24px 22px}
-    .ghost{font-size:17px;line-height:1.95}
+    .ar-head h2{
+      width:100%;
+      min-width:0;
+      font-size:22px;
+      line-height:1.35;
+      gap:10px;
+      word-break:break-word;
+      overflow-wrap:anywhere;
+    }
+    .ar-head h2 .n{font-size:30px;flex-shrink:0}
+    .stat-row{grid-template-columns:repeat(2,minmax(0,1fr));margin-bottom:18px}
+    .stat .v{font-size:28px}
+    .type-card{padding:20px 16px;overflow:hidden}
+    .ghost{
+      font-size:18px;
+      line-height:1.9;
+      word-break:break-word;
+      overflow-wrap:anywhere;
+    }
     .type-input{flex-direction:column;align-items:stretch}
     .type-input .key{min-width:0;align-self:flex-start}
+    .type-field{min-width:0;padding:12px}
+    .type-field textarea{font-size:17px;max-width:100%}
+    .type-actions{width:100%}
+    .type-actions .btn{width:100%}
+    #m3area{max-width:100%;overflow:hidden}
+    #m3area > div{max-width:100%;overflow-wrap:anywhere;word-break:break-word}
+    .blank{max-width:100%;font-size:18px}
+    #m3area .btn{flex:1;min-width:0}
     .mode-strip{grid-template-columns:1fr}
     .kbd-foot{flex-direction:column;align-items:flex-start;gap:14px}
     .kbd-foot .gp{display:none}        /* 鍵盤快捷提示在觸控手機無意義，收起 */
@@ -596,6 +663,7 @@
 
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
+function isIOSReaderApp(){try{return !!(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='ios');}catch(e){return false;}}
 const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
 const tok = localStorage.getItem('sofa_token') || '';
 // 過渡期：有 token 用 Bearer，否則 fallback X-Sofa-UID
@@ -620,8 +688,10 @@ document.getElementById('navUid').textContent = isFree ? '免費版' : (localSto
 if(isFree){
   const bar=document.createElement('div');
   bar.style.cssText='background:rgba(231,187,167,.13);border-bottom:1px solid rgba(231,187,167,.3);padding:10px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;';
-  bar.innerHTML='<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">🔒 免費版 · 法條內容有限制，練習紀錄不會儲存</span>'
-    +'<a href="pricing.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:5px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
+  bar.innerHTML=isIOSReaderApp()
+    ? '<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">免費版 · 進階內容，訂閱者可見</span>'
+    : '<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">免費版 · 法條內容有限制，練習紀錄不會儲存</span>'
+      +'<a href="pricing.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:5px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
   document.querySelector('.pr-bar').before(bar);
 }
 
@@ -891,9 +961,11 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
     _LOCKED_SECS.forEach(({name,label})=>{
       const lk=document.createElement('div');lk.className='sec-lock';
       const preview=sections[name]||'';
-      lk.innerHTML='<div class="sec-label">'+label+'</div>'
-        +'<div class="sec-lock-preview">'+(preview?formatSection(preview):'')+'</div>'
-        +'<div class="sec-lock-cta">🔒 升級解鎖完整內容 <a href="pricing.html">查看方案 →</a></div>';
+      lk.innerHTML=isIOSReaderApp()
+        ? '<div class="sec-label">'+label+'</div><div class="sec-lock-cta">進階內容，訂閱者可見</div>'
+        : '<div class="sec-label">'+label+'</div>'
+          +'<div class="sec-lock-preview">'+(preview?formatSection(preview):'')+'</div>'
+          +'<div class="sec-lock-cta">升級解鎖完整內容 <a href="pricing.html">查看方案 →</a></div>';
       if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
     });
   }
