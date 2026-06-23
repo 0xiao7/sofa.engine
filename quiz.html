@@ -765,6 +765,28 @@ function _showQzExamBanner() {
       const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);
     });
   }catch{}
+  function _handleUrlLaw(){
+    var params = new URLSearchParams(window.location.search);
+    var law = params.get('law');
+    if(!law) return false;
+    law = decodeURIComponent(law);
+    var opt = Array.from(sel.options).find(o => o.value === law || o.textContent === law);
+    if(!opt && _allLoadedQzLaws.some(l => l.name === law)){
+      opt = document.createElement('option');
+      opt.value = law;
+      opt.textContent = law;
+      sel.appendChild(opt);
+      if(!_allLawNames.includes(law)) _allLawNames.push(law);
+    }
+    if(!opt) return false;
+    sel.value = opt.value;
+    sel.dispatchEvent(new Event('change'));
+    _updateLawStatusBar(sel.value);
+    _updateQzScopeLabel();
+    loadQuiz();
+    return true;
+  }
+  if(_handleUrlLaw()) return;
   // Wave 73: restore last selected law
   function _restoreLastLaw() {
     const saved = localStorage.getItem('sofa_last_law');

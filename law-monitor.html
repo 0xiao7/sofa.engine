@@ -449,7 +449,20 @@ async function loadTasks(){
     renderTaskList();
   } catch(e){
     console.error(e);
+    renderTaskListError(e);
   }
+}
+
+function renderTaskListError(e){
+  const el = document.getElementById('taskList');
+  if(!el) return;
+  const msg = (e && e.message) || '';
+  const isConfig = msg.includes('MONITOR_SECRET 未設定') || msg.includes('403');
+  el.innerHTML = `<div style="padding:18px 16px;color:var(--plum-2);font-size:12px;line-height:1.7">
+    <div style="color:var(--cream-2);font-weight:600;margin-bottom:6px">暫時無法載入查核任務</div>
+    <div>${isConfig ? '管理端尚未設定 MONITOR_SECRET 或管理金鑰。' : esc(msg || '請稍後再試。')}</div>
+    <div style="margin-top:8px;color:rgba(231,187,167,.72)">若這是內部管理頁，請先補環境設定或輸入管理金鑰後再重整。</div>
+  </div>`;
 }
 
 function renderTaskList(){

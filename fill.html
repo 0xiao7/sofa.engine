@@ -624,6 +624,28 @@ function _showFillExamBanner() {
       _allFillLawNames.push(l.name);  // Wave 110: collect for random pick
     });
   } catch{}
+  function _handleUrlLaw(){
+    var params = new URLSearchParams(window.location.search);
+    var law = params.get('law');
+    if(!law) return false;
+    law = decodeURIComponent(law);
+    var opt = Array.from(sel.options).find(o => o.value === law || o.textContent === law);
+    if(!opt && _allLoadedFillLaws.some(l => l.name === law)){
+      opt = document.createElement('option');
+      opt.value = law;
+      opt.textContent = law;
+      sel.appendChild(opt);
+      if(!_allFillLawNames.includes(law)) _allFillLawNames.push(law);
+    }
+    if(!opt) return false;
+    sel.value = opt.value;
+    sel.dispatchEvent(new Event('change'));
+    _updateFillStatusBar(sel.value);
+    _updateFillScopeLabel();
+    loadNew();
+    return true;
+  }
+  if(_handleUrlLaw()) return;
   // Wave 74: restore saved law preference and auto-load; default to 記帳士法 for first-time visitors
   const _savedFillLaw = localStorage.getItem('sofa_fill_law');
   if(_savedFillLaw&&sel.querySelector(`option[value="${CSS.escape(_savedFillLaw)}"]`)){
@@ -1692,6 +1714,7 @@ document.getElementById('btnReveal').addEventListener('click',()=>{
   updateBlankList();
 });
 (function(){
+  if(new URLSearchParams(window.location.search).get('law'))return;
   var law=document.getElementById('lawSelect').value;
   if(law){
     loadNew();
