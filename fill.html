@@ -529,10 +529,11 @@ function normLegalNum(s){
     });
     return String(total+section+num);
   };
-  let r=String(s||'').normalize('NFKC').replace(/[零〇○一二兩两三四五六七八九十百千萬万]+/g,parseNum);
+  let r=String(s||'').normalize('NFKC');
   r=r.replace(/(\d+(?:\.\d+)?)\s*[萬万]/g,(_,n)=>String(Number(n)*10000));
   r=r.replace(/(\d+(?:\.\d+)?)\s*千/g,(_,n)=>String(Number(n)*1000));
   r=r.replace(/(\d+(?:\.\d+)?)\s*百/g,(_,n)=>String(Number(n)*100));
+  r=r.replace(/[零〇○一二兩两三四五六七八九十百千萬万]+/g,parseNum);
   return r;
 }
 
