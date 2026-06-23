@@ -3254,26 +3254,7 @@ function _readArticle(btn, text) {
     // ── 今日複習提醒（SM-2 到期排程，到期才顯示）──────────────
     (function(){
       var due  = (dueRes && dueRes.items) || [];
-      var box  = document.getElementById('review-due');
-      var list = document.getElementById('review-due-list');
-      var cnt  = document.getElementById('review-due-count');
-      if(!box || !list) return;
-      if(!due.length){ box.style.display = 'none'; return; }
-      if(cnt) cnt.textContent = due.length + ' 條到期';
-      list.innerHTML = due.map(function(m){
-        var pid    = (m.page_id||'').replace(/'/g,'');
-        var ln     = (m.law_name||'').replace(/'/g,'');
-        var artNo  = (m.article_no||'').replace(/'/g,'');
-        var od     = m.overdue_days || 0;
-        var badge  = od > 0 ? ('逾期 '+od+' 天') : '今天到期';
-        var disp   = (m.article||'').replace(/^§+/,'') || ('§'+artNo);
-        return '<div class="li-card warn" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artNo+'\')">'+
-          '<div class="law">'+esc(m.law_name||'——')+'</div>'+
-          '<div class="art">'+esc(disp)+'</div>'+
-          '<div class="meta"><span>'+esc(badge)+'</span></div>'+
-          '</div>';
-      }).join('');
-      box.style.display = '';
+      if(typeof renderReviewDue === 'function') renderReviewDue(due);
     })();
 
     // ── 09 最近查詢 ──────────────────────────────────────────
@@ -3400,6 +3381,68 @@ function closeEntitlementPanel(){
 
 function backdropCloseEntitlement(ev){
   if(ev && ev.target && ev.target.id === 'entitlement-backdrop') closeEntitlementPanel();
+}
+
+// ── 今日複習提醒（SRS）────────────────────────────
+var _reviewDueItems = [];
+function _safeClickArg(s){
+  return String(s || '')
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+function renderReviewDue(nextItems){
+  if(Array.isArray(nextItems)) _reviewDueItems = nextItems;
+  var due  = _reviewDueItems || [];
+  var box  = document.getElementById('review-due');
+  var list = document.getElementById('review-due-list');
+  var cnt  = document.getElementById('review-due-count');
+  if(!box || !list) return;
+  if(!due.length){
+    box.style.display = 'none';
+    if(cnt) cnt.textContent = '';
+    list.innerHTML = '';
+    return;
+  }
+  var goalKey = (typeof _examFilter !== 'undefined') ? _examFilter : 'all';
+  var examSet = (goalKey && goalKey !== 'all' && typeof _examLawSet === 'function') ? _examLawSet(goalKey) : null;
+  var rows = due.map(function(item, idx){
+    return { item:item, idx:idx, goalMatch: !!(examSet && item.law_name && examSet.has(item.law_name)) };
+  });
+  var matchCount = rows.filter(function(r){ return r.goalMatch; }).length;
+  if(examSet){
+    rows.sort(function(a,b){
+      if(a.goalMatch !== b.goalMatch) return a.goalMatch ? -1 : 1;
+      var ad = a.item.next_review_date || '';
+      var bd = b.item.next_review_date || '';
+      if(ad !== bd) return ad < bd ? -1 : 1;
+      return a.idx - b.idx;
+    });
+  }
+  if(cnt){
+    cnt.textContent = examSet
+      ? (due.length + ' 條到期 · ' + matchCount + ' 條目標相關')
+      : (due.length + ' 條到期');
+  }
+  list.innerHTML = rows.map(function(row){
+    var m = row.item || {};
+    var pid    = _safeClickArg(m.page_id);
+    var ln     = _safeClickArg(m.law_name);
+    var artNo  = _safeClickArg(m.article_no);
+    var od     = m.overdue_days || 0;
+    var badge  = od > 0 ? ('逾期 '+od+' 天') : '今天到期';
+    var disp   = (m.article||'').replace(/^§+/,'') || ('§'+artNo);
+    var goalTag = row.goalMatch ? '<span>目標相關</span>' : '';
+    return '<div class="li-card warn" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artNo+'\')">'+
+      '<div class="law">'+esc(m.law_name||'——')+'</div>'+
+      '<div class="art">'+esc(disp)+'</div>'+
+      '<div class="meta"><span>'+esc(badge)+'</span>'+goalTag+'</div>'+
+      '</div>';
+  }).join('');
+  box.style.display = '';
 }
 
 document.addEventListener('keydown', function(ev){
@@ -3738,6 +3781,7 @@ function applyExamFilter(key){
       localStorage.removeItem('sofa.dash.exam.pick');
     }catch(e){}
   }
+  if(typeof renderReviewDue === 'function') renderReviewDue();
 }
 
 var _saveExamKeyTimer = null;
@@ -4494,6 +4538,7 @@ function switchToFree(){
       if(allChip) picker.insertBefore(frag,allChip); else picker.appendChild(frag);
       picker.style.maxHeight='340px'; picker.style.overflowY='auto';
     }
+    if(typeof renderReviewDue === 'function') renderReviewDue();
   }
   if(document.readyState!=='loading') build(); else document.addEventListener('DOMContentLoaded',build);
 })();
