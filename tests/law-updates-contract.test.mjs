@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import vm from 'node:vm';
@@ -133,4 +133,8 @@ test('sitemap exposes law updates but not internal law monitor', () => {
   const sitemap = read('sitemap.xml');
   assert.match(sitemap, /law-updates\.html/);
   assert.doesNotMatch(sitemap, /law-monitor\.html/);
+});
+
+test('internal law monitor is not published from the public site root', () => {
+  assert.equal(existsSync(new URL('law-monitor.html', root)), false);
 });
