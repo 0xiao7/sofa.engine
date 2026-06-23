@@ -689,16 +689,16 @@ body {
     <div class="serial-card">
       <div class="lab">
         <span>SERIAL · 序號</span>
-        <span class="req">8 DIGITS · REQUIRED</span>
+        <span class="req">SERIAL · REQUIRED</span>
       </div>
       <label class="label" for="serial">輸入序號，繼續坐下來。</label>
 
       <div class="serial-wrap">
         <span class="serial-prefix">SOFA-</span>
-        <input id="serial" type="text" placeholder="XXXX-XXXX" maxlength="14"
+        <input id="serial" type="text" placeholder="XXXX-XXXX / T-XXXXXXXX" maxlength="20"
           autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="latin" lang="en">
       </div>
-      <div class="hint" id="hint">序號格式 SOFA-XXXX-XXXX · 8 位英數 · 可直接貼上</div>
+      <div class="hint" id="hint">序號格式 SOFA-XXXX-XXXX 或 SOFA-T-XXXXXXXX · 可直接貼上</div>
     </div>
     </div>
 
@@ -735,7 +735,7 @@ body {
 
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
-const DEFAULT_HINT = '序號格式 SOFA-XXXX-XXXX · 購買時寄到信箱';
+const DEFAULT_HINT = '序號格式 SOFA-XXXX-XXXX 或 SOFA-T-XXXXXXXX · 可直接貼上';
 
 const serialEl = document.getElementById('serial');
 const hintEl   = document.getElementById('hint');
@@ -743,16 +743,34 @@ const btn      = document.getElementById('btn');
 const errEl    = document.getElementById('err');
 
 function formatSerial(el) {
-  let raw = el.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
-  // 容錯：使用者把含「SOFA-」前綴的完整序號整串貼上時自動剝掉前綴
-  // （只在長度 >8 時剝，避免誤砍剛好以 SOFA 開頭的 8 碼序號本體）
-  if (raw.length > 8 && raw.startsWith('SOFA')) raw = raw.slice(4);
-  raw = raw.slice(0, 8);
-  if (!raw) { el.value = ''; return; }
-  el.value = raw.length > 4 ? raw.slice(0, 4) + '-' + raw.slice(4) : raw;
+  const serial = normalizeSerialForVerification(el.value, { allowPartial: true });
+  if (!serial || !serial.display) { el.value = ''; return; }
+  el.value = serial.display;
   hintEl.textContent = DEFAULT_HINT;
   hintEl.classList.remove('err');
   errEl.classList.remove('show');
+}
+
+function normalizeSerialForVerification(value, opts) {
+  const allowPartial = !!(opts && opts.allowPartial);
+  let raw = String(value || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  if (raw.startsWith('SOFA')) raw = raw.slice(4);
+  if (raw.startsWith('T')) {
+    const body = raw.slice(1, 9);
+    const display = body
+      ? 'T-' + (body.length > 4 ? body.slice(0, 4) + '-' + body.slice(4) : body)
+      : 'T-';
+    if (body.length < 8) {
+      return allowPartial ? { serial: '', display, kind: 'trial' } : null;
+    }
+    return { serial: 'SOFA-T-' + body, display, kind: 'trial' };
+  }
+  const body = raw.slice(0, 8);
+  const display = body.length > 4 ? body.slice(0, 4) + '-' + body.slice(4) : body;
+  if (body.length < 8) {
+    return allowPartial ? { serial: '', display, kind: 'paid' } : null;
+  }
+  return { serial: 'SOFA-' + body.slice(0, 4) + '-' + body.slice(4), display, kind: 'paid' };
 }
 
 // 注音/拼音「組字中」不要去動欄位值，否則候選字會卡掉；組完才整理
@@ -803,27 +821,25 @@ serialEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); })
   var params = new URLSearchParams(location.search);
   var s = params.get('s') || params.get('serial');
   if(!s) return;
-  var raw = s.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
-  if(raw.length > 8 && raw.startsWith('SOFA')) raw = raw.slice(4);
-  raw = raw.slice(0, 8);
-  if(raw.length < 8) return;
-  serialEl.value = raw.slice(0,4) + '-' + raw.slice(4,8);   // 視覺上「已幫你貼上序號」
+  var serial = normalizeSerialForVerification(s);
+  if(!serial) return;
+  serialEl.value = serial.display;                           // 視覺上「已幫你貼上序號」
   history.replaceState({}, '', location.pathname);          // 清掉 URL 上的序號
   doLogin();
 })();
 
 async function doLogin() {
-  const raw = serialEl.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  const parsedSerial = normalizeSerialForVerification(serialEl.value);
   errEl.classList.remove('show');
 
-  if (raw.length < 8) {
-    hintEl.textContent = '請輸入完整的 8 位序號';
+  if (!parsedSerial) {
+    hintEl.textContent = '請輸入完整序號';
     hintEl.classList.add('err');
     shakeField();
     serialEl.focus();
     return;
   }
-  const serial = 'SOFA-' + raw.slice(0, 4) + '-' + raw.slice(4, 8);
+  const serial = parsedSerial.serial;
 
   const original = btn.innerHTML;
   btn.disabled = true;

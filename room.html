@@ -1173,7 +1173,7 @@ body.airy-room .scene-mode-toggle{
       <div id="panel-serial" style="display:none">
         <div class="serial-row-entry">
           <span class="serial-prefix-entry">SOFA-</span>
-          <input type="text" id="inp-serial" placeholder="XXXX-XXXX" maxlength="9"
+          <input type="text" id="inp-serial" placeholder="XXXX-XXXX / T-XXXXXXXX" maxlength="20"
                  autocomplete="off" spellcheck="false"
                  oninput="this.value=this.value.toUpperCase().replace(/[^A-Z0-9-]/g,'')"
                  onkeydown="if(event.key==='Enter') enterWithSerial()"/>
@@ -10814,10 +10814,12 @@ function switchEntryTab(tab){
 }
 
 async function enterWithSerial(){
-  const raw = document.getElementById('inp-serial').value.replace(/[^A-Za-z0-9]/g,'').toUpperCase();
-  const serial = 'SOFA-' + raw.slice(0,4) + '-' + raw.slice(4,8);
+  const serialInput = document.getElementById('inp-serial');
+  const parsedSerial = normalizeSerialForVerification(serialInput.value);
   const msg = document.getElementById('serial-entry-msg');
-  if(raw.length < 8){ msg.style.color='#E8846A'; msg.textContent='請輸入完整序號（8 位英數）'; return; }
+  if(!parsedSerial){ msg.style.color='#E8846A'; msg.textContent='請輸入完整序號'; return; }
+  serialInput.value = parsedSerial.display;
+  const serial = parsedSerial.serial;
   msg.style.color='#5BAFD6'; msg.textContent='驗證中…';
   try{
     const r = await fetch(`${API}/api/verify-serial`, {
@@ -10837,6 +10839,28 @@ async function enterWithSerial(){
     msg.style.color='#7DC987'; msg.textContent='驗證成功，正在進入…';
     setTimeout(enter, 400);
   }catch(e){ msg.style.color='#E8846A'; msg.textContent='網路錯誤，請稍後再試'; }
+}
+
+function normalizeSerialForVerification(value, opts) {
+  const allowPartial = !!(opts && opts.allowPartial);
+  let raw = String(value || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  if (raw.startsWith('SOFA')) raw = raw.slice(4);
+  if (raw.startsWith('T')) {
+    const body = raw.slice(1, 9);
+    const display = body
+      ? 'T-' + (body.length > 4 ? body.slice(0, 4) + '-' + body.slice(4) : body)
+      : 'T-';
+    if (body.length < 8) {
+      return allowPartial ? { serial: '', display, kind: 'trial' } : null;
+    }
+    return { serial: 'SOFA-T-' + body, display, kind: 'trial' };
+  }
+  const body = raw.slice(0, 8);
+  const display = body.length > 4 ? body.slice(0, 4) + '-' + body.slice(4) : body;
+  if (body.length < 8) {
+    return allowPartial ? { serial: '', display, kind: 'paid' } : null;
+  }
+  return { serial: 'SOFA-' + body.slice(0, 4) + '-' + body.slice(4), display, kind: 'paid' };
 }
 
 // ── Entry ─────────────────────────────────────────────────────────────
