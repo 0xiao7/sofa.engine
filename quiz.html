@@ -744,7 +744,7 @@ function _showQzExamBanner() {
 (async()=>{
   const sel=document.getElementById('lawSelect');
   if(uid){
-    [['__starred__','★ 重點法條'],['__bookmarks__','♥ 我的收藏'],['__mastered__','✓ 已熟記'],['__review__','⏰ 待複習']].forEach(([v,t])=>{
+    [['__starred__','重點法條'],['__bookmarks__','我的收藏'],['__mastered__','已熟記'],['__review__','待複習']].forEach(([v,t])=>{
       const o=document.createElement('option');o.value=v;o.textContent=t;sel.appendChild(o);
     });
     const sep=document.createElement('option');sep.disabled=true;sep.textContent='──────';sel.appendChild(sep);
@@ -1378,7 +1378,7 @@ function _updateStreak(correct) {
     const prev = _quizStreak;
     _quizStreak = 0;
     if(prev >= 3){
-      badge.textContent = '💨 ' + prev + '連 破了';
+      badge.textContent = prev + ' 連中斷';
       badge.classList.add('show', 'broken');
       setTimeout(() => badge.classList.remove('show'), 2000);
       // Wave 82: 破連降調音效，延遲 100ms 避免與 _playWrong 疊音
@@ -1941,7 +1941,7 @@ async function loadQuiz(){
           const _cit=document.getElementById('quiz-citation');
           if(_cit&&(artTitle||lawName)){
             const _artNo=(artTitle||'').replace(/^§\s*/,'').replace(/｜.*$/,'').trim();
-            _cit.innerHTML='📍 第 <strong>'+(_artNo||'—')+'</strong> 條'+(lawName?' ｜ '+lawName:'');
+            _cit.innerHTML='第 <strong>'+(_artNo||'—')+'</strong> 條'+(lawName?' ｜ '+lawName:'');
             _cit.classList.add('show');
           }
         })();
@@ -2191,7 +2191,7 @@ async function loadWrongQuiz() {
           const _cit=document.getElementById('quiz-citation');
           if(_cit&&(artTitle||lawName)){
             const _artNo=(artTitle||'').replace(/^§\s*/,'').replace(/｜.*$/,'').trim();
-            _cit.innerHTML='📍 第 <strong>'+(_artNo||'—')+'</strong> 條'+(lawName?' ｜ '+lawName:'');
+            _cit.innerHTML='第 <strong>'+(_artNo||'—')+'</strong> 條'+(lawName?' ｜ '+lawName:'');
             _cit.classList.add('show');
           }
         })();
@@ -2346,7 +2346,7 @@ function openStats() {
   let weakestHtml = '';
   if (weakest) {
     weakestHtml = `<div id="weakest-law-section" style="margin-top:16px; padding:10px 12px; background:rgba(199,123,106,0.08); border:1px solid rgba(199,123,106,0.25); border-radius:10px;">
-      <div style="color:var(--bad);font-size:12px;margin-bottom:6px;">⚠ 最需加強</div>
+      <div style="color:var(--bad);font-size:12px;margin-bottom:6px;">最需加強</div>
       <div id="weakest-law-name" style="color:var(--bad);font-size:14px;font-weight:bold;">${esc(weakest.law)}</div>
       <div id="weakest-law-pct" style="color:var(--bad);font-size:12px;margin:3px 0 8px;">正確率 ${weakest.pct}%</div>
       <button onclick="_practiceWeakestLaw()" style="background:var(--navy-2);border:1px solid var(--bad);color:#ff9977;padding:5px 14px;border-radius:12px;font-size:13px;cursor:pointer;">立即練習 →</button>
@@ -2684,7 +2684,7 @@ function _renderExamHistory() {
 
   // Clear history button
   html += `<div style="text-align:center;margin-top:18px;">
-    <button onclick="_clearExamHistory()" style="background:none;border:1px solid rgba(231,187,167,0.3);color:var(--peach);border-radius:16px;padding:6px 18px;font-size:12px;cursor:pointer;">🗑️ 清除考試紀錄</button>
+    <button onclick="_clearExamHistory()" style="background:none;border:1px solid rgba(231,187,167,0.3);color:var(--peach);border-radius:16px;padding:6px 18px;font-size:12px;cursor:pointer;">清除考試紀錄</button>
   </div>`;
 
   panel.innerHTML = html;

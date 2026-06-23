@@ -324,7 +324,7 @@
 </head>
 <body>
 
-  <div id="kb-hint">⌨ Tab 切換空格 · Enter 確認，全對才換下一篇</div>
+  <div id="kb-hint">Tab 切換空格 · Enter 確認，全對才換下一篇</div>
 
   <header class="topbar">
     <a class="brand" href="index.html"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
@@ -369,7 +369,7 @@
       <button id="btnNext" class="btn btn-sec" style="padding:8px 16px;font-size:13px">換一條</button>
       <button id="btnFillSession" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(231,187,167,0.15);border-color:rgba(231,187,167,0.6)">連刷模式</button>
       <button onclick="openFillStats()" title="個人填空統計" style="background:none;border:1px solid rgba(231,187,167,0.3);color:var(--peach);border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">統計</button>
-      <button id="btn-handwrite" onclick="_toggleHandwrite(this)" title="iPad 手寫模式（放大輸入格）" style="background:none;border:1px solid rgba(245,240,234,.25);color:rgba(245,240,234,.6);border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">✏</button>
+      <button id="btn-handwrite" onclick="_toggleHandwrite(this)" title="iPad 手寫模式（放大輸入格）" style="background:none;border:1px solid rgba(245,240,234,.25);color:rgba(245,240,234,.6);border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">手寫</button>
       <button id="btnFillDaily" onclick="startFillDailyChallenge()">今日填空</button>
       <span id="fill-daily-badge"></span>
       <div id="fill-streak" style="
@@ -463,7 +463,7 @@
           <div class="hint-row">
             <button class="hint-btn" id="hintFirst">首字<b>顯</b></button>
             <button class="hint-btn" id="hintCount">字數<b id="hintCountVal">?</b></button>
-            <button class="hint-btn" id="hintReveal">看答<b>★</b></button>
+            <button class="hint-btn" id="hintReveal">看答案</button>
           </div>
         </div>
 
@@ -603,7 +603,7 @@ function _showFillExamBanner() {
 (async()=>{
   const sel = document.getElementById('lawSelect');
   if(uid){
-    [['__starred__','★ 重點法條'],['__bookmarks__','♥ 我的收藏'],['__mastered__','✓ 已熟記'],['__review__','⏰ 待複習']].forEach(([v,t])=>{
+    [['__starred__','重點法條'],['__bookmarks__','我的收藏'],['__mastered__','已熟記'],['__review__','待複習']].forEach(([v,t])=>{
       const o=document.createElement('option');o.value=v;o.textContent=t;sel.appendChild(o);
     });
     const sep=document.createElement('option');sep.disabled=true;sep.textContent='──────';sel.appendChild(sep);
