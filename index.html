@@ -1023,6 +1023,75 @@
   .price-fine span::before{content:"";width:4px;height:4px;border-radius:50%;background:var(--peach)}
   .price-fine span:first-child::before{display:none}
 
+  .law-care{
+    padding:72px 0;
+    background:var(--navy-3);
+    color:var(--cream);
+    border-top:1px solid var(--line-on-navy);
+    border-bottom:1px solid var(--line-on-navy);
+  }
+  .law-care .box{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:32px;
+    align-items:center;
+  }
+  .law-care .ey{
+    font-family:var(--mono);
+    font-size:12px;
+    color:var(--peach);
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    font-weight:600;
+  }
+  .law-care h2{
+    margin-top:12px;
+    font-family:var(--serif);
+    font-size:38px;
+    line-height:1.25;
+    font-weight:600;
+  }
+  .law-care p{
+    max-width:720px;
+    margin-top:14px;
+    color:rgba(245,240,234,.78);
+    line-height:1.8;
+  }
+  .law-care .mini{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-top:18px;
+  }
+  .law-care .mini span{
+    padding:6px 10px;
+    border:1px solid var(--line-on-navy);
+    border-radius:4px;
+    color:rgba(245,240,234,.72);
+    font-family:var(--mono);
+    font-size:11px;
+  }
+  .law-care .caveat{
+    margin-top:16px;
+    color:rgba(245,240,234,.62);
+    font-size:13px;
+    line-height:1.7;
+  }
+  .law-care a{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:44px;
+    padding:12px 18px;
+    border:1px solid var(--peach);
+    border-radius:4px;
+    color:var(--navy-4);
+    background:var(--peach);
+    text-decoration:none;
+    font-weight:700;
+    white-space:nowrap;
+  }
+
   /* ---------- FAQ (collapsible) ---------- */
   .faq{padding:120px 0;background:var(--cream)}
   .faq-grid{
@@ -1317,6 +1386,9 @@
     .plan-flag{top:-11px;font-size:10px;padding:5px 10px}
     .price-fine{font-size:10.5px;gap:10px 18px;letter-spacing:.08em}
     .pricing::after{font-size:300px;right:-20px;bottom:-100px}
+    .law-care .box{grid-template-columns:1fr;gap:24px}
+    .law-care h2{font-size:32px}
+    .law-care a{width:100%}
 
     /* faq: stack */
     .faq-grid{grid-template-columns:1fr;gap:32px}
@@ -1421,6 +1493,10 @@
     .price-fine{flex-direction:column;gap:8px;text-align:center}
     .price-fine span::before{display:none}
     .pricing::after{font-size:220px}
+    .law-care{padding:48px 0}
+    .law-care h2{font-size:26px}
+    .law-care p{font-size:14.5px}
+    .law-care .mini{display:grid}
 
     .faq-left h2{font-size:26px}
     .faq-left .contact{padding:16px 18px}
@@ -1961,6 +2037,26 @@
     </div>
   </section>
 
+  <!-- ============ LAW UPDATE SIGNAL ============ -->
+  <section class="law-care" data-screen-label="法規更新紀錄">
+    <div class="container">
+      <div class="box">
+        <div>
+          <div class="ey">LAW UPDATE CARE</div>
+          <h2>修法不是丟進資料庫就好，SoFa 會整理成考生看得懂的差異。</h2>
+          <p>政府資料按日期排，考生需要的是「這條跟舊題有什麼關係」。SoFa 會把公開法規更新依範圍、影響程度、考題複核狀態整理，並附官方原文節錄與判讀提醒。</p>
+          <div class="mini" aria-label="法規更新處理方式">
+            <span>官方原文節錄</span>
+            <span>考題影響判讀</span>
+            <span>新舊答案差異</span>
+          </div>
+          <p class="caveat">但書：SoFa 的整理是備考輔助，非法律意見；新法剛上路可能還有函釋、過渡規定、實務見解或命題口徑尚未穩定，仍以官方原文為準。</p>
+        </div>
+        <a href="law-updates.html">看法規更新紀錄 →</a>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ FAQ (collapsible) ============ -->
   <section class="faq" id="faq" data-screen-label="FAQ">
     <div class="container">
@@ -1997,7 +2093,7 @@
             </summary>
             <div class="ans">
               <span class="label">— 簡短答</span>
-              會。法規修正公布後盡快更新到資料庫（通常於 2 週內），並標記「近期異動」讓你優先複習。期間內無論修法幾次，更新都包含在你的方案裡，不會額外收費。
+              會。法規修正公布後盡快更新到資料庫（通常於 2 週內），並標記「近期異動」讓你優先複習。你也可以看 <a href="law-updates.html" style="color:var(--peach-3);font-weight:700;">法規更新紀錄</a>，了解 SoFa 怎麼整理官方原文、考題影響與新舊答案差異。
             </div>
           </details>
 
@@ -2117,6 +2213,7 @@
           <a href="#pricing">方案</a>
           <a href="#faq">FAQ</a>
           <a href="/blog/">備考指南</a>
+          <a href="law-updates.html">法規更新紀錄</a>
           <a href="https://lin.ee/zUeMwo4">LINE 官方帳號</a>
           <span style="font-size:.7rem;opacity:.45;display:block;margin-top:2px;">@928oakbo</span>
         </div>
