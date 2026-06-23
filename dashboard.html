@@ -482,6 +482,21 @@
     color:rgba(245,240,234,.62);letter-spacing:.14em;
   }
   .mc-target .yr{color:var(--peach);font-weight:600}
+  .mc-target.is-unset #mc-exam-target{color:var(--peach)}
+  .mc-goal-nudge{
+    display:none;margin-top:8px;align-items:center;gap:10px;flex-wrap:wrap;
+    font-family:var(--sans);font-size:12px;letter-spacing:.04em;
+    color:rgba(245,240,234,.52);
+  }
+  .mc-goal-nudge.on{display:flex}
+  .mc-goal-nudge button{
+    appearance:none;border:1px solid rgba(231,187,167,.42);
+    background:rgba(231,187,167,.10);color:var(--peach);
+    border-radius:3px;padding:4px 10px;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+    cursor:pointer;
+  }
+  .mc-goal-nudge button:hover{border-color:var(--peach);background:rgba(231,187,167,.18)}
   .mc-id{
     margin-top:6px;
     font-family:var(--mono);font-size:11.5px;
@@ -1512,7 +1527,11 @@
                 <button class="mc-nick-save" onclick="saveNickname()">儲存</button>
                 <button class="mc-nick-cancel" onclick="cancelNickname()">取消</button>
               </div>
-              <div class="mc-target" onclick="toggleExamPicker()" title="點擊設定考科目標" style="cursor:pointer">目標 · <span id="mc-exam-target">全部</span> · 國考 <span class="yr">2026</span> <span style="font-size:10px;opacity:.5">✏</span></div>
+              <div class="mc-target is-unset" onclick="toggleExamPicker()" title="點擊設定考科目標" style="cursor:pointer">目標 · <span id="mc-exam-target">尚未設定</span><span id="mc-target-year-wrap" style="display:none"> · 國考 <span class="yr">2026</span></span> <span style="font-size:10px;opacity:.5">✏</span></div>
+              <div class="mc-goal-nudge on" id="mc-goal-nudge">
+                <span>設定考試目標後，倒數與練習提醒會更準。</span>
+                <button type="button" onclick="toggleExamPicker()">設定目標</button>
+              </div>
               <div id="mc-exam-picker">
                 <span class="ep-chip" data-key="bookkeeper" onclick="pickExam('bookkeeper')">記帳士</span>
                 <span class="ep-chip" data-key="landadmin" onclick="pickExam('landadmin')">地政士</span>
@@ -3093,6 +3112,8 @@ function _readArticle(btn, text) {
       if(profile.exam_key && typeof applyExamFilter === 'function'){
         try { localStorage.setItem('sofa_exam_key', profile.exam_key); } catch(e) {}
         applyExamFilter(profile.exam_key);
+      } else if(typeof renderExamGoalState === 'function') {
+        renderExamGoalState('all');
       }
     }
 
@@ -3656,16 +3677,28 @@ function focusExamInput(){
   }, 400);
 }
 
+function renderExamGoalState(key){
+  key = key || 'all';
+  var isUnset = key === 'all';
+  var target = document.querySelector('.mc-target');
+  var tEl = document.getElementById('mc-exam-target');
+  var wEl = document.getElementById('mc-who-exam');
+  var yearWrap = document.getElementById('mc-target-year-wrap');
+  var yrEl = document.querySelector('.mc-target .yr');
+  var nudge = document.getElementById('mc-goal-nudge');
+  if(target) target.classList.toggle('is-unset', isUnset);
+  if(tEl) tEl.textContent = isUnset ? '尚未設定' : (_EXAM_KEY_TO_NAME[key] || '全部');
+  if(wEl) wEl.textContent = isUnset ? '尚未設定' : (_EXAM_KEY_TO_NAME[key] || '全部');
+  if(yearWrap) yearWrap.style.display = isUnset ? 'none' : '';
+  if(yrEl) yrEl.textContent = _EXAM_KEY_TO_YEAR[key] || '2026';
+  if(nudge) nudge.classList.toggle('on', isUnset);
+}
+
 function applyExamFilter(key){
-  if(_examFilter === key) return;
+  key = key || 'all';
   _examFilter = key;
   var label = _EXAM_KEY_TO_NAME[key] || '全部';
-  var tEl = document.getElementById('mc-exam-target');
-  if(tEl) tEl.textContent = label;
-  var wEl = document.getElementById('mc-who-exam');
-  if(wEl) wEl.textContent = label;
-  var yrEl = document.querySelector('.mc-target .yr');
-  if(yrEl) yrEl.textContent = _EXAM_KEY_TO_YEAR[key] || '2026';
+  renderExamGoalState(key);
   var regEl = document.getElementById('mc-reg-alert');
   if(regEl){
     var regEnd = window._EXAM_REG_END && window._EXAM_REG_END[key];
@@ -3699,6 +3732,11 @@ function applyExamFilter(key){
   }
   if(key !== 'all' && typeof window.setExamByKey === 'function'){
     window.setExamByKey(key);
+  } else if(key === 'all'){
+    try{
+      localStorage.removeItem('sofa_exam_key');
+      localStorage.removeItem('sofa.dash.exam.pick');
+    }catch(e){}
   }
 }
 
