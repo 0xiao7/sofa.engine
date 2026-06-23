@@ -554,10 +554,79 @@
     color:var(--cream);margin-top:10px;letter-spacing:.01em;
     font-feature-settings:"lnum";
   }
+  .mc-expire-btn{
+    appearance:none;border:0;background:transparent;
+    padding:0;margin:10px 0 0;cursor:pointer;
+    text-align:left;text-decoration:underline;text-underline-offset:3px;
+  }
+  .mc-expire-btn:focus-visible{
+    outline:2px solid var(--peach);outline-offset:3px;border-radius:4px;
+  }
   .mc-stat .v.good{color:var(--good)}
   .mc-stat .v .u{
     font-family:var(--sans);font-size:13px;color:rgba(245,240,234,.5);
     font-weight:400;margin-left:4px;
+  }
+
+  .entitlement-backdrop{
+    position:fixed;inset:0;background:rgba(12,18,32,.58);
+    z-index:9998;display:none;align-items:center;justify-content:center;
+    padding:24px;
+  }
+  .entitlement-backdrop.on{display:flex}
+  .entitlement-panel{
+    width:min(560px,92vw);max-height:88vh;overflow:auto;
+    background:var(--cream);color:var(--navy);
+    border:1px solid rgba(27,43,75,.14);
+    box-shadow:0 24px 80px rgba(0,0,0,.28);
+    padding:22px;border-radius:8px;
+  }
+  .entitlement-panel:focus{outline:none}
+  .entitlement-head{
+    display:flex;align-items:flex-start;justify-content:space-between;
+    gap:16px;margin-bottom:16px;
+  }
+  .entitlement-head h3{
+    font-family:var(--serif);font-size:20px;font-weight:600;
+    margin:0;color:var(--navy);letter-spacing:0;
+  }
+  .entitlement-head p{
+    margin:6px 0 0;font-family:var(--sans);font-size:13px;
+    color:rgba(27,43,75,.68);line-height:1.6;
+  }
+  .entitlement-close{
+    appearance:none;border:1px solid rgba(27,43,75,.18);
+    background:#fff;color:var(--navy);width:34px;height:34px;
+    border-radius:6px;cursor:pointer;font-size:18px;line-height:1;
+  }
+  .entitlement-close:focus-visible{outline:2px solid var(--peach);outline-offset:2px}
+  .entitlement-summary{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;margin-bottom:16px;
+  }
+  .entitlement-summary .item{
+    border:1px solid rgba(27,43,75,.12);border-radius:6px;
+    padding:10px;background:rgba(255,255,255,.55);
+  }
+  .entitlement-summary .k{
+    font-family:var(--mono);font-size:11px;color:rgba(27,43,75,.62);
+    letter-spacing:.08em;
+  }
+  .entitlement-summary .v{
+    font-family:var(--serif);font-size:15px;font-weight:700;
+    margin-top:4px;color:var(--navy);
+  }
+  .entitlement-event{
+    border-top:1px solid rgba(27,43,75,.12);padding:12px 0;
+  }
+  .entitlement-event:first-child{border-top:0}
+  .entitlement-event .line{
+    display:flex;justify-content:space-between;gap:12px;
+  }
+  .entitlement-event .label{font-weight:700}
+  .entitlement-event .delta{color:var(--good);font-weight:700;white-space:nowrap}
+  .entitlement-event .range{
+    font-size:12px;color:rgba(27,43,75,.68);margin-top:4px;line-height:1.5;
   }
 
   /* right stub */
@@ -1036,8 +1105,9 @@
     transform:translateX(100%);transition:transform .35s cubic-bezier(.4,0,.2,1);
     display:flex;flex-direction:column;
     box-shadow:-20px 0 60px rgba(0,0,0,.4);
+    pointer-events:none;
   }
-  .drawer.open{transform:translateX(0)}
+  .drawer.open{transform:translateX(0);pointer-events:auto}
   .dr-head{
     padding:20px 28px;background:var(--cream-2);
     border-bottom:1px solid var(--cream-3);
@@ -1235,6 +1305,10 @@
     .mc-r{padding:28px 24px;border-top:1px dashed var(--line-2)}
     .mc-stub-lab{position:static;margin-bottom:14px}
     .mc-stats{grid-template-columns:1fr 1fr;gap:20px}
+    .entitlement-backdrop{padding:16px}
+    .entitlement-summary{grid-template-columns:1fr}
+    .entitlement-event .line{display:block}
+    .entitlement-event .delta{display:block;margin-top:4px}
     .prog-card{padding:24px}
     .prog-stats{grid-template-columns:1fr 1fr;gap:20px 0}
     .ps{padding:14px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
@@ -1260,7 +1334,7 @@
       transform:translate(-50%,-50%) scale(.94);opacity:0;
       transition:transform .28s cubic-bezier(.4,0,.2,1),opacity .22s;
     }
-    .drawer.open{transform:translate(-50%,-50%) scale(1);opacity:1}
+    .drawer.open{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto}
     .laws-head{flex-direction:column;align-items:flex-start;gap:12px}
     .laws-search{width:100%}
     .search-card{padding:20px 16px}
@@ -1456,7 +1530,7 @@
               <div class="mc-stats">
                 <div class="mc-stat">
                   <div class="k">到期日</div>
-                  <div class="v" id="mc-expire">——</div>
+                  <button class="v mc-expire-btn" id="mc-expire" type="button" aria-haspopup="dialog" aria-controls="entitlement-panel" aria-expanded="false" onclick="openEntitlementPanel()">——</button>
                 </div>
                 <div class="mc-stat">
                   <div class="k">連續學習</div>
@@ -1823,6 +1897,20 @@
       <div class="compass-disclaimer">* 法規覆蓋以國考樹狀圖資料為準,SoFa 實際法條庫對照中</div>
     </div>
   </section>
+
+  <div class="entitlement-backdrop" id="entitlement-backdrop" onclick="backdropCloseEntitlement(event)">
+    <section class="entitlement-panel" id="entitlement-panel" role="dialog" aria-modal="true" aria-labelledby="entitlement-title" tabindex="-1">
+      <div class="entitlement-head">
+        <div>
+          <h3 id="entitlement-title">會員期限明細</h3>
+          <p id="entitlement-source-note">期限、購買、續費與加碼會整理在這裡。</p>
+        </div>
+        <button class="entitlement-close" type="button" onclick="closeEntitlementPanel()" aria-label="關閉">×</button>
+      </div>
+      <div class="entitlement-summary" id="entitlement-summary"></div>
+      <div id="entitlement-timeline"></div>
+    </section>
+  </div>
 
   <!-- ============ DRAWER ============ -->
   <div class="drawer-mask" onclick="closeDrawer()"></div>
@@ -2942,6 +3030,7 @@ function _readArticle(btn, text) {
     _fetchJSON(API+'/api/me/history',   { headers: H }),
     _fetchJSON(API+'/api/me/mastery',   { headers: H }),
     _fetchJSON(API+'/api/me/review-due',{ headers: H }),
+    _fetchJSON(API+'/api/me/entitlements',{ headers: H }),
   ]).then(function(results){
     var profile   = results[0];
     var progress  = results[1];
@@ -2949,6 +3038,11 @@ function _readArticle(btn, text) {
     var historyRes = results[3];
     var masteryRes = results[4];
     var dueRes     = results[5];
+    var entitlementRes = results[6];
+
+    _entitlementState.profile = profile || null;
+    _entitlementState.data = entitlementRes && !entitlementRes.error ? entitlementRes : null;
+    _entitlementState.error = entitlementRes && entitlementRes.error ? entitlementRes.detail || entitlementRes.error : null;
 
     // ── 會員卡 ──
     if(profile){
@@ -3204,6 +3298,95 @@ function _readArticle(btn, text) {
     })();
   });
 })();
+
+// ── 會員期限明細 ────────────────────────────
+var _entitlementState = { profile:null, data:null, error:null };
+var _entitlementReturnFocus = null;
+
+function _serialLast4(s){ return s ? String(s).slice(-4) : ''; }
+function _fmtEntDate(s){ return s ? String(s).slice(0,10).replace(/-/g,'.') : '未確認'; }
+function _escHtml(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+}
+
+function _entitlementData(){
+  var p = _entitlementState.profile || {};
+  var d = _entitlementState.data || {};
+  return {
+    joined_date: d.joined_date || '',
+    current_plan: d.current_plan || p.plan || '',
+    current_expiry: d.current_expiry || p.expire || '',
+    serial_suffix: d.serial_suffix || _serialLast4(p.serial || ''),
+    source_status: d.source_status || 'profile_only',
+    timeline: Array.isArray(d.timeline) ? d.timeline : []
+  };
+}
+
+function renderEntitlementPanel(){
+  var data = _entitlementData();
+  var summary = document.getElementById('entitlement-summary');
+  var timeline = document.getElementById('entitlement-timeline');
+  var note = document.getElementById('entitlement-source-note');
+  if(!summary || !timeline) return;
+  summary.innerHTML = [
+    ['加入日期', _fmtEntDate(data.joined_date)],
+    ['目前方案', data.current_plan || '未確認'],
+    ['目前到期日', data.current_expiry ? _fmtEntDate(data.current_expiry) : '永久有效'],
+    ['序號後 4 碼', data.serial_suffix || '未確認']
+  ].map(function(item){
+    return '<div class="item"><div class="k">'+_escHtml(item[0])+'</div><div class="v">'+_escHtml(item[1])+'</div></div>';
+  }).join('');
+  if(note){
+    note.textContent = data.source_status === 'partial'
+      ? '部分舊紀錄由既有稽核資料推回，若有疑問請附購買信箱或序號後 4 碼。'
+      : '期限、購買、續費與加碼會整理在這裡。';
+  }
+  if(!data.timeline.length){
+    timeline.innerHTML = '<div class="entitlement-event"><div class="label">目前尚無可顯示的期限異動明細</div><div class="range">之後的購買、續費與加碼會出現在這裡。</div></div>';
+    return;
+  }
+  timeline.innerHTML = data.timeline.map(function(ev){
+    var label = ev.label || ev.reason_label || ev.type || '期限異動';
+    var delta = ev.days || ev.days_delta;
+    var deltaText = delta ? ('+' + delta + ' 天') : '';
+    var from = ev.from_expiry || ev.old_expire || '';
+    var to = ev.to_expiry || ev.new_expire || ev.expiry || '';
+    var range = from ? (_fmtEntDate(from)+' → '+_fmtEntDate(to)) : (to ? '到期日 '+_fmtEntDate(to) : '');
+    return '<div class="entitlement-event"><div class="line"><span class="label">'+_escHtml(_fmtEntDate(ev.date || ev.event_date)+' · '+label)+'</span><span class="delta">'+_escHtml(deltaText)+'</span></div><div class="range">'+_escHtml(range)+'</div></div>';
+  }).join('');
+}
+
+function openEntitlementPanel(){
+  _entitlementReturnFocus = document.getElementById('mc-expire') || document.activeElement;
+  renderEntitlementPanel();
+  var backdrop = document.getElementById('entitlement-backdrop');
+  var panel = document.getElementById('entitlement-panel');
+  var trigger = document.getElementById('mc-expire');
+  if(backdrop) backdrop.classList.add('on');
+  if(trigger) trigger.setAttribute('aria-expanded', 'true');
+  if(panel) panel.focus();
+}
+
+function closeEntitlementPanel(){
+  var backdrop = document.getElementById('entitlement-backdrop');
+  var trigger = document.getElementById('mc-expire');
+  if(backdrop) backdrop.classList.remove('on');
+  if(trigger) trigger.setAttribute('aria-expanded', 'false');
+  if(_entitlementReturnFocus && _entitlementReturnFocus.focus) _entitlementReturnFocus.focus();
+}
+
+function backdropCloseEntitlement(ev){
+  if(ev && ev.target && ev.target.id === 'entitlement-backdrop') closeEntitlementPanel();
+}
+
+document.addEventListener('keydown', function(ev){
+  var backdrop = document.getElementById('entitlement-backdrop');
+  if(ev.key === 'Escape' && backdrop && backdrop.classList.contains('on')){
+    closeEntitlementPanel();
+  }
+});
 
 // ── 序號遮擋 + 暱稱編輯 ────────────────────────────
 var _fullSerial = '';
