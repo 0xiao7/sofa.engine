@@ -31,7 +31,7 @@ window.SOFA_LAW_UPDATES = {
       impact: 'high',
       status: 'analysis_updated',
       summary: '退稅年限規則曾修正，舊官方答案可能與現行法判斷不同。',
-      studyAction: '練舊年度稅法題時，優先看 SoFa 的 answer_conflict 與修法備註。',
+      studyAction: '練舊年度稅法題時，優先看 SoFa 的新舊答案差異提示與修法備註。',
       sourceLabel: '全國法規資料庫',
       sourceUrl: 'https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=G0340001',
     },

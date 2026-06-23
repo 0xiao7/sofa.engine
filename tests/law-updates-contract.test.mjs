@@ -16,6 +16,43 @@ function loadData() {
   return sandbox.window.SOFA_LAW_UPDATES;
 }
 
+function publicTextValues(value) {
+  if (typeof value === 'string') return [value];
+  if (Array.isArray(value)) return value.flatMap(publicTextValues);
+  if (value && typeof value === 'object') return Object.values(value).flatMap(publicTextValues);
+  return [];
+}
+
+function loadInlinePageScript(records = []) {
+  const page = read('law-updates.html');
+  const [, inlineScript] = page.match(/<script>\n([\s\S]*)\n<\/script>\n<\/body>/) || [];
+  assert.ok(inlineScript, 'inline page script must be present');
+
+  const elements = new Map();
+  const element = () => ({
+    textContent: '',
+    innerHTML: '',
+    className: '',
+    type: '',
+    setAttribute() {},
+    addEventListener() {},
+    replaceChildren() {},
+  });
+  const sandbox = {
+    window: {},
+    document: {
+      getElementById(id) {
+        if (!elements.has(id)) elements.set(id, element());
+        return elements.get(id);
+      },
+      createElement: element,
+    },
+  };
+  sandbox.window.SOFA_LAW_UPDATES = { lastChecked: '2026-06-23', method: [], records };
+  vm.runInNewContext(inlineScript, sandbox, { filename: 'law-updates.html' });
+  return sandbox;
+}
+
 test('public law updates data exists and exposes required top-level shape', () => {
   const data = loadData();
   assert.equal(typeof data.lastChecked, 'string');
@@ -42,6 +79,46 @@ test('each public law update record has the curated fields only', () => {
       assert.equal(Object.hasOwn(record, forbidden), false, `${record.id} leaks ${forbidden}`);
     }
   }
+});
+
+test('public law update copy avoids internal implementation labels', () => {
+  const data = loadData();
+  const publicText = publicTextValues(data).join('\n');
+  assert.doesNotMatch(publicText, /\banswer_conflict\b/i);
+  assert.doesNotMatch(publicText, /\bmonitor_(task|run|secret)\b/i);
+  assert.doesNotMatch(publicText, /\b(notion|supabase)[_-]?(page|row|id)?\b/i);
+});
+
+test('default ordering prioritizes exam impact before watch-only recency', () => {
+  const sandbox = loadInlinePageScript([
+    {
+      id: 'new-watch',
+      law: '觀察法',
+      examCategories: ['其他追蹤中'],
+      governmentDate: '2026-06-23',
+      detectedDate: '2026-06-23',
+      impact: 'watch',
+      status: 'watching',
+      summary: 'watch',
+      studyAction: 'watch',
+      sourceLabel: 'source',
+    },
+    {
+      id: 'old-high-review',
+      law: '高影響法',
+      examCategories: ['記帳士'],
+      governmentDate: '2024-01-01',
+      detectedDate: '2026-06-22',
+      impact: 'high',
+      status: 'exam_review',
+      summary: 'high',
+      studyAction: 'high',
+      sourceLabel: 'source',
+    },
+  ]);
+
+  const ordered = sandbox.sortRecords(sandbox.window.SOFA_LAW_UPDATES.records);
+  assert.equal(ordered[0].id, 'old-high-review');
 });
 
 test('public page does not call internal monitor endpoints or use monitor key', () => {

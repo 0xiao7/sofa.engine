@@ -22,7 +22,7 @@
   --cream-3:#D8CEC0;
   --green:#9FB89F;
   --gold:#D9B084;
-  --red:#C77B6A;
+  --red:#D88C7A;
   --line:rgba(245,240,234,.13);
   --line-2:rgba(245,240,234,.22);
   --serif:"Noto Serif TC","Songti TC",serif;
@@ -421,6 +421,8 @@ const statusLabels = {
   watching: '觀察中',
   not_relevant: '暫無影響'
 };
+const impactRank = { high: 0, medium: 1, watch: 2, low: 3 };
+const statusRank = { exam_review: 0, analysis_updated: 1, synced: 2, watching: 3, not_relevant: 4 };
 
 function escapeHtml(value) {
   return String(value || '').replace(/[&<>"']/g, (char) => ({
@@ -434,6 +436,10 @@ function escapeHtml(value) {
 
 function sortRecords(records) {
   return [...records].sort((a, b) => {
+    const byImpact = (impactRank[a.impact] ?? 99) - (impactRank[b.impact] ?? 99);
+    if (byImpact) return byImpact;
+    const byStatus = (statusRank[a.status] ?? 99) - (statusRank[b.status] ?? 99);
+    if (byStatus) return byStatus;
     const byGovernmentDate = String(b.governmentDate).localeCompare(String(a.governmentDate));
     return byGovernmentDate || String(b.detectedDate).localeCompare(String(a.detectedDate));
   });
