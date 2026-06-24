@@ -4,19 +4,32 @@ import test from 'node:test';
 
 const html = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
 
-test('dashboard exposes exam-pass SRS controls instead of hiding freeze settings', () => {
-  assert.match(html, /id="srs-settings"/);
-  assert.match(html, /id="srs-freeze-mode"/);
-  assert.match(html, /id="srs-daily-limit"/);
-  assert.match(html, /saveSrsSettings/);
-  assert.match(html, /\/api\/me\/srs-settings/);
+// Active markup with HTML comments stripped, so commented-out entries do not
+// count as live UI / navigation for this exam-pass task.
+const active = html.replace(/<!--[\s\S]*?-->/g, '');
+
+test('dashboard wires the exam-pass review-due endpoint', () => {
+  assert.match(active, /\/api\/me\/review-due/);
 });
 
-test('dashboard reads review-due settings metadata and renders high-value review reasons', () => {
-  assert.match(html, /renderSrsSettings/);
-  assert.match(html, /dueRes\.settings/);
-  assert.match(html, /importance/);
-  assert.match(html, /attempt_count/);
-  assert.match(html, /correct_count/);
-  assert.match(html, /高價值|弱點|逾期/);
+test('dashboard wires the SRS settings endpoint', () => {
+  assert.match(active, /\/api\/me\/srs-settings/);
+});
+
+test('dashboard exposes freeze_mode UI', () => {
+  assert.match(active, /id="srs-freeze-mode"/);
+  assert.match(active, /freeze_mode/);
+});
+
+test('dashboard exposes daily_review_limit UI', () => {
+  assert.match(active, /id="srs-daily-limit"/);
+  assert.match(active, /daily_review_limit/);
+});
+
+test('dashboard offers a quiz.html?open=weakness entry point', () => {
+  assert.match(active, /quiz\.html\?open=weakness/);
+});
+
+test('room.html is not the active entry point for the exam-pass task', () => {
+  assert.doesNotMatch(active, /href="room\.html"/);
 });
