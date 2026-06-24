@@ -389,6 +389,16 @@
   .recap-row .rc-pct.hi{color:var(--good)}
   .recap-row .rc-pct.mid{color:var(--peach)}
   .recap-row .rc-pct.lo{color:var(--warn)}
+  .srs-panel{padding:18px 22px;display:grid;grid-template-columns:1.2fr auto;gap:16px;align-items:center}
+  .srs-copy{font-size:13px;color:rgba(245,240,234,.62);line-height:1.7}
+  .srs-copy b{display:block;color:var(--cream);font-family:var(--serif);font-size:16px;font-weight:500;margin-bottom:2px}
+  .srs-controls{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+  .srs-toggle{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:rgba(245,240,234,.7);white-space:nowrap}
+  .srs-toggle input{accent-color:var(--peach)}
+  .srs-limit{width:74px;background:var(--navy-3);border:1px solid var(--line-2);border-radius:3px;color:var(--cream);font-family:var(--mono);font-size:12px;padding:8px 10px;outline:none}
+  .srs-limit:focus{border-color:var(--peach)}
+  .srs-save{background:var(--peach);color:var(--navy);border-radius:3px;padding:9px 14px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em}
+  .srs-state{font-family:var(--mono);font-size:10.5px;color:rgba(245,240,234,.45);letter-spacing:.06em;min-width:54px}
 
   /* sections */
   section.block{margin-bottom:80px;scroll-margin-top:90px}
@@ -1884,6 +1894,25 @@
             <span class="recap-more" id="review-due-count"></span>
           </div>
           <div class="recap-list" id="review-due-list"></div>
+        </div>
+
+        <div class="recap" id="srs-settings">
+          <div class="recap-head">
+            <span class="recap-eb">EXAM PASS · 複習策略</span>
+            <span class="recap-more" id="srs-settings-summary">載入中</span>
+          </div>
+          <div class="srs-panel">
+            <div class="srs-copy">
+              <b>先讀高價值、到期、常錯的內容</b>
+              考前凍結會優先保留 3★ 以上條文；每日上限控制今天要消化的複習量。
+            </div>
+            <div class="srs-controls">
+              <label class="srs-toggle"><input id="srs-freeze-mode" type="checkbox"> 考前凍結</label>
+              <input class="srs-limit" id="srs-daily-limit" type="number" min="1" max="50" value="10" aria-label="每日複習上限">
+              <button class="srs-save" id="srs-save" type="button" onclick="saveSrsSettings()">儲存</button>
+              <span class="srs-state" id="srs-save-state"></span>
+            </div>
+          </div>
         </div>
 
         <!-- ============ 01 MEMBER ============ -->
@@ -3659,6 +3688,7 @@ function _readArticle(btn, text) {
     // ── 今日複習提醒（SM-2 到期排程，到期才顯示）──────────────
     (function(){
       var due  = (dueRes && dueRes.items) || [];
+      if(dueRes && dueRes.settings && typeof renderSrsSettings === 'function') renderSrsSettings(dueRes.settings);
       if(typeof renderReviewDue === 'function') renderReviewDue(due);
     })();
 
@@ -3791,6 +3821,7 @@ function backdropCloseEntitlement(ev){
 
 // ── 今日複習提醒（SRS）────────────────────────────
 var _reviewDueItems = [];
+var _srsSettings = { freeze_mode:false, daily_review_limit:10 };
 function _safeClickArg(s){
   return String(s || '')
     .replace(/\\/g, '\\\\')
@@ -3799,6 +3830,47 @@ function _safeClickArg(s){
     .replace(/"/g, '&quot;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
+}
+function renderSrsSettings(settings){
+  if(settings) _srsSettings = {
+    freeze_mode: !!settings.freeze_mode,
+    daily_review_limit: settings.daily_review_limit || 10
+  };
+  var freeze = document.getElementById('srs-freeze-mode');
+  var limit = document.getElementById('srs-daily-limit');
+  var summary = document.getElementById('srs-settings-summary');
+  if(freeze) freeze.checked = !!_srsSettings.freeze_mode;
+  if(limit) limit.value = String(_srsSettings.daily_review_limit || 10);
+  if(summary){
+    summary.textContent = (_srsSettings.freeze_mode ? '3★+ 優先' : '全題到期') + ' · 每日 ' + (_srsSettings.daily_review_limit || 10) + ' 條';
+  }
+}
+function saveSrsSettings(){
+  var freeze = document.getElementById('srs-freeze-mode');
+  var limit = document.getElementById('srs-daily-limit');
+  var state = document.getElementById('srs-save-state');
+  var n = parseInt(limit && limit.value, 10);
+  if(!Number.isFinite(n)) n = 10;
+  n = Math.max(1, Math.min(50, n));
+  if(limit) limit.value = String(n);
+  if(state) state.textContent = '儲存中';
+  _fetchJSON(API+'/api/me/srs-settings', {
+    method:'POST',
+    headers: Object.assign({'Content-Type':'application/json'}, H),
+    body: JSON.stringify({ freeze_mode: !!(freeze && freeze.checked), daily_review_limit:n })
+  }).then(function(res){
+    if(res && res.settings){
+      renderSrsSettings(res.settings);
+      if(state) state.textContent = '已儲存';
+      return _fetchJSON(API+'/api/me/review-due',{ headers:H });
+    }
+    throw new Error((res && (res.detail || res.error)) || 'settings failed');
+  }).then(function(dueRes){
+    if(dueRes && dueRes.settings) renderSrsSettings(dueRes.settings);
+    if(dueRes && Array.isArray(dueRes.items)) renderReviewDue(dueRes.items);
+  }).catch(function(){
+    if(state) state.textContent = '稍後再試';
+  });
 }
 function renderReviewDue(nextItems){
   if(Array.isArray(nextItems)) _reviewDueItems = nextItems;
@@ -3841,11 +3913,18 @@ function renderReviewDue(nextItems){
     var od     = m.overdue_days || 0;
     var badge  = od > 0 ? ('逾期 '+od+' 天') : '今天到期';
     var disp   = (m.article||'').replace(/^§+/,'') || ('§'+artNo);
+    var importance = Number(m.importance || 0);
+    var attempts = Number(m.attempt_count || 0);
+    var correct = Number(m.correct_count || 0);
+    var wrong = Math.max(0, attempts - correct);
+    var reason = importance >= 3 ? '高價值 '+importance+'★' : '到期複習';
+    if(wrong > 0) reason += ' · 弱點錯 '+wrong+' 次';
+    if(od > 0) reason += ' · 逾期 '+od+' 天';
     var goalTag = row.goalMatch ? '<span>目標相關</span>' : '';
     return '<div class="li-card warn" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artNo+'\')">'+
       '<div class="law">'+esc(m.law_name||'——')+'</div>'+
       '<div class="art">'+esc(disp)+'</div>'+
-      '<div class="meta"><span>'+esc(badge)+'</span>'+goalTag+'</div>'+
+      '<div class="meta"><span>'+esc(badge)+'</span><span>'+esc(reason)+'</span>'+goalTag+'</div>'+
       '</div>';
   }).join('');
   box.style.display = '';
