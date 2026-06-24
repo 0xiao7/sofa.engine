@@ -930,6 +930,16 @@
   .li-card.warn .law{color:var(--warn)}
   .li-card.warn::before{background:var(--warn)}
   .li-card.warn .meta b{color:var(--warn);font-weight:500}
+  /* 今日複習卡 reason chips：高價值 / 逾期 / 弱點 */
+  .li-card .reasons{display:flex;gap:6px;flex-wrap:wrap;margin-top:14px}
+  .rchip{
+    font-family:var(--mono);font-size:10px;letter-spacing:.08em;
+    padding:3px 8px;border-radius:2px;border:1px solid var(--line-2);
+    color:rgba(245,240,234,.7);white-space:nowrap;line-height:1.4;
+  }
+  .rchip.value{color:var(--peach);border-color:var(--peach-3)}
+  .rchip.overdue{color:var(--warn);border-color:rgba(217,176,132,.5)}
+  .rchip.weak{color:#D98A8A;border-color:rgba(217,138,138,.5)}
 
   /* empty state */
   .empty{
@@ -3872,6 +3882,30 @@ function saveSrsSettings(){
     if(state) state.textContent = '稍後再試';
   });
 }
+// 今日複習卡 reason chips：只在有真實資料時顯示，沒資料不 fake 數字
+function reviewReasonChips(m){
+  m = m || {};
+  var chips = [];
+  var importance = Number(m.importance || 0);
+  var od = Number(m.overdue_days || 0);
+  var wrong;
+  if(m.wrong_count != null){
+    wrong = Number(m.wrong_count) || 0;
+  } else {
+    var attempts = Number(m.attempt_count || 0);
+    var correct = Number(m.correct_count || 0);
+    wrong = Math.max(0, attempts - correct);
+  }
+  if(importance >= 3) chips.push({ type:'value', label:'高價值' });
+  if(od > 0) chips.push({ type:'overdue', label:'逾期 ' + od + ' 天' });
+  if(wrong > 0) chips.push({ type:'weak', label:'錯 ' + wrong + ' 次' });
+  return chips;
+}
+function reviewReasonChipsHTML(m){
+  return reviewReasonChips(m).map(function(c){
+    return '<span class="rchip ' + c.type + '">' + esc(c.label) + '</span>';
+  }).join('');
+}
 function renderReviewDue(nextItems){
   if(Array.isArray(nextItems)) _reviewDueItems = nextItems;
   var due  = _reviewDueItems || [];
@@ -3913,18 +3947,14 @@ function renderReviewDue(nextItems){
     var od     = m.overdue_days || 0;
     var badge  = od > 0 ? ('逾期 '+od+' 天') : '今天到期';
     var disp   = (m.article||'').replace(/^§+/,'') || ('§'+artNo);
-    var importance = Number(m.importance || 0);
-    var attempts = Number(m.attempt_count || 0);
-    var correct = Number(m.correct_count || 0);
-    var wrong = Math.max(0, attempts - correct);
-    var reason = importance >= 3 ? '高價值 '+importance+'★' : '到期複習';
-    if(wrong > 0) reason += ' · 弱點錯 '+wrong+' 次';
-    if(od > 0) reason += ' · 逾期 '+od+' 天';
+    var reasonsHTML = reviewReasonChipsHTML(m);
+    var reasonsBlock = reasonsHTML ? '<div class="reasons">'+reasonsHTML+'</div>' : '';
     var goalTag = row.goalMatch ? '<span>目標相關</span>' : '';
     return '<div class="li-card warn" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artNo+'\')">'+
       '<div class="law">'+esc(m.law_name||'——')+'</div>'+
       '<div class="art">'+esc(disp)+'</div>'+
-      '<div class="meta"><span>'+esc(badge)+'</span><span>'+esc(reason)+'</span>'+goalTag+'</div>'+
+      reasonsBlock+
+      '<div class="meta"><span>'+esc(badge)+'</span>'+goalTag+'</div>'+
       '</div>';
   }).join('');
   box.style.display = '';
