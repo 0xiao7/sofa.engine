@@ -434,6 +434,16 @@
   }
   .sec-head .r a{color:var(--peach);transition:.18s}
   .sec-head .r a:hover{color:var(--peach-2)}
+  /* 待複習標題列：「重練錯題/弱點」入口 — 手機自動換行避免溢出 */
+  #review-head-r{
+    display:flex;align-items:baseline;justify-content:flex-end;
+    gap:14px;flex-wrap:wrap;max-width:100%;
+  }
+  #review-weakness-entry{
+    color:var(--peach);text-decoration:none;white-space:nowrap;
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;
+  }
+  #review-weakness-entry:hover{color:var(--peach-2)}
 
   /* === 01 MEMBER — ticket stub === */
   .member-card{
@@ -2158,7 +2168,10 @@
               <span class="idx">06</span>
               <h2>待複習</h2>
             </div>
-            <div class="r"><span id="review-count">0 條</span></div>
+            <div class="r" id="review-head-r">
+              <a id="review-weakness-entry" href="quiz.html?open=weakness">重練錯題 / 弱點 →</a>
+              <span id="review-count">0 條</span>
+            </div>
           </div>
           <div class="card-grid" id="review-list">
             <div class="empty" style="grid-column:span 3">
