@@ -18,5 +18,6 @@ test('post-answer actions place next question next to view article', () => {
 test('quiz weakness rail fetches authenticated weak-laws fallback', () => {
   assert.match(active, /\/api\/me\/weak-laws/);
   assert.match(active, /function _renderRemoteWeakLaws/);
-  assert.match(active, /目前還沒有弱點資料|答錯題後會累積/);
+  assert.match(active, /不用自己判斷哪裡弱/);
+  assert.match(active, /startSession\(5\)/);
 });

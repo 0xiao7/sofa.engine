@@ -406,6 +406,7 @@
     border:1px solid rgba(231,187,167,0.42);
     color:var(--peach);font-weight:600;
   }
+  .weak-empty .weak-action-primary{margin-top:2px}
   .weak-action-soft{
     background:rgba(231,187,167,0.08);
     border:1px solid rgba(231,187,167,0.28);
@@ -2516,7 +2517,11 @@ let _remoteWeakLawsLoaded = false;
 let _remoteWeakLawsInFlight = false;
 
 function _weakEmptyText() {
-  return '<div class="weak-empty">目前還沒有弱點資料。答錯題後會累積到這裡。</div>';
+  return '<div class="weak-empty" style="text-align:center;padding:26px 0">'
+    + '<b style="display:block;color:var(--peach);font-family:var(--sans);font-size:14px;margin-bottom:8px">不用自己判斷哪裡弱</b>'
+    + '<span style="display:block;color:rgba(245,240,234,.55);font-size:13px;line-height:1.7;margin:0 auto 14px;max-width:280px">先答幾題，系統會用你的答題紀錄整理最常錯的法規。</span>'
+    + '<button class="weak-action-primary" onclick="startSession(5)">先做 5 題</button>'
+    + '</div>';
 }
 
 function _renderRemoteWeakLaws(items) {
@@ -2618,7 +2623,7 @@ function _switchStatsTab(tab) {
   const subEl = document.getElementById('stats-panel-sub');
 
   function _statsPanelTitle(nextTab) {
-    if(nextTab === 'wrong') return ['弱點分析', '看結果：這裡先看最常錯的法規；開始重練：按每列練習或重練全部。'];
+    if(nextTab === 'wrong') return ['弱點分析', '不用自己判斷哪裡弱；系統會用答題紀錄整理最常錯的法規。'];
     if(nextTab === 'exam') return ['考試紀錄', '回看整套練習與模擬考結果。'];
     return ['我的答題統計', '看結果、找弱點，再決定下一輪要練哪裡。'];
   }
@@ -2666,8 +2671,8 @@ function _renderWrongList() {
     .sort((a, b) => b.wrong - a.wrong);
 
   if (lawWrongs.length === 0 && bank.length === 0) {
-    panel.innerHTML = '<div class="weak-panel-guide"><b>看結果</b>：這裡先看最常錯的法規和錯題。<br><b>開始重練</b>：答錯題後會出現重練入口。</div>'
-      + '<div class="weak-empty" style="text-align:center;padding:34px 0">目前沒有錯題紀錄。先做幾題，弱點會自動累積到這裡。</div>';
+    panel.innerHTML = '<div class="weak-panel-guide"><b>看結果</b>：這裡會自動整理最常錯的法規和錯題。<br><b>開始重練</b>：做幾題後，就會出現重練入口。</div>'
+      + _weakEmptyText();
     return;
   }
 

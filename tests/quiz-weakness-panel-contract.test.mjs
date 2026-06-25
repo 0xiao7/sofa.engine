@@ -22,3 +22,10 @@ test('weakness list uses harmonized card classes and explicit next actions', () 
   assert.match(active, /看結果/);
   assert.match(active, /開始重練/);
 });
+
+test('empty weakness state tells the learner what to do without self-judging', () => {
+  assert.match(active, /不用自己判斷哪裡弱/);
+  assert.match(active, /先做 5 題/);
+  assert.match(active, /weak-action-primary[\s\S]*startSession\(5\)/);
+  assert.match(active, /系統會用你的答題紀錄整理/);
+});
