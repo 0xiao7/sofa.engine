@@ -15,6 +15,13 @@ test('post-answer actions place next question next to view article', () => {
   assert.match(actionRow, /id="btnNext"/);
 });
 
+test('native iOS quiz owns the status bar safe area', () => {
+  assert.match(html, /<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" \/>/);
+  assert.match(active, /document\.documentElement\.classList\.add\('ios-reader-app'\)/);
+  const css = readFileSync(new URL('../sofa.css', import.meta.url), 'utf8');
+  assert.match(css, /html\.ios-reader-app\s+\.topbar\{[\s\S]*padding-top:calc\(16px \+ env\(safe-area-inset-top, 0px\)\)/);
+});
+
 test('quiz usage hint is near the question instead of hidden at the page bottom', () => {
   const stemStart = active.indexOf('class="q-stem"');
   const optsStart = active.indexOf('id="optionsBox"', stemStart);
