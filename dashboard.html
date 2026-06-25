@@ -3646,7 +3646,10 @@ function _readArticle(btn, text) {
 (function(){
   const uid = localStorage.getItem('sofa_uid') || '';
   const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
-  if(!uid || isFree) return; // 免費版不拉資料
+  if(!uid || isFree){
+    renderStudyToday(null);
+    return; // 免費版不拉個人資料，但保留今日工具入口
+  }
 
   const API = 'https://sofa-engine-api.onrender.com';
   const H = _authH();
@@ -3763,7 +3766,7 @@ function _readArticle(btn, text) {
     _entitlementState.profile = profile || null;
     _entitlementState.data = entitlementRes && !entitlementRes.error ? entitlementRes : null;
     _entitlementState.error = entitlementRes && entitlementRes.error ? entitlementRes.detail || entitlementRes.error : null;
-    if(studyTodayRes) renderStudyToday(studyTodayRes);
+    renderStudyToday(studyTodayRes || null);
 
     // ── 會員卡 ──
     if(profile){
@@ -4230,7 +4233,17 @@ function renderStudyToday(data){
   var blocksEl = document.getElementById('study-cockpit-blocks');
   var summaryEl = document.getElementById('study-cockpit-summary');
   var weakEl = document.getElementById('study-cockpit-weak-state');
-  if(!box || !subjectsEl || !blocksEl || !data) return;
+  if(!box || !subjectsEl || !blocksEl) return;
+  if(!data) data = {
+    scope_rules: { law_to_subject_mapping: 'many_to_many' },
+    subjects: [
+      { display_name: '記帳相關法規', subject_key: 'bookkeeper_law', implementation_status: 'seeded_moex_mcq' },
+      { display_name: '租稅相關法規', subject_key: 'tax_law', implementation_status: 'seeded_moex_mcq' }
+    ],
+    today: { blocks: [] },
+    weak_law_bridge: { items: [] },
+    fallback: true
+  };
   var rules = data.scope_rules || {};
   var subjectMode = rules.law_to_subject_mapping === 'many_to_many' ? '法規可跨考科' : '考科模式';
   var subjects = Array.isArray(data.subjects) ? data.subjects : [];
@@ -4240,7 +4253,7 @@ function renderStudyToday(data){
     deferred_subject_container_only: '待 seed'
   };
   var seededCount = subjects.filter(function(s){ return s.implementation_status === 'seeded_moex_mcq'; }).length;
-  if(summaryEl) summaryEl.textContent = subjects.length + ' 科 · ' + seededCount + ' 科已啟用';
+  if(summaryEl) summaryEl.textContent = data.fallback ? '先從可用工具開始' : (subjects.length + ' 科 · ' + seededCount + ' 科已啟用');
   var navStudy = document.getElementById('nav-ct-study');
   if(navStudy) navStudy.textContent = seededCount ? (seededCount + '/' + subjects.length) : '';
   if(weakEl){
@@ -4260,7 +4273,7 @@ function renderStudyToday(data){
       + '<span class="sig">常考 '+esc(b.question_signal||'')+' 題</span>'
       + '<span class="sub">'+esc(b.subject||'')+' · '+esc(b.phase_key||'')+' · '+esc(subjectMode)+' · '+esc(laws)+'</span>'
       + '</div>';
-  }).join('') : '<div class="study-empty">登入後會依考科顯示今日備考區塊。</div>';
+  }).join('') : '<div class="study-empty">先用下方工具開始做題、複習或補弱點；登入或輸入序號後會接上個人化讀書區塊。</div>';
   box.style.display = '';
 }
 

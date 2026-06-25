@@ -47,3 +47,14 @@ test('study today makes working tools obvious while planner controls are pending
   assert.match(active, /class="study-pending"[\s\S]*aria-disabled="true"[\s\S]*個人排程準備中/);
   assert.doesNotMatch(active, /onclick="saveStudy|onclick="toggleStudyBlock/);
 });
+
+test('study today remains visible for free users or missing study API data', () => {
+  assert.match(active, /if\(!uid \|\| isFree\)\{[\s\S]*renderStudyToday\(null\);[\s\S]*return;[\s\S]*\}/);
+  assert.match(active, /renderStudyToday\(studyTodayRes \|\| null\)/);
+  const start = active.indexOf('function renderStudyToday');
+  assert.ok(start >= 0, 'renderStudyToday function must exist');
+  const fn = active.slice(start, start + 3600);
+  assert.match(fn, /if\(!data\)\s*data =/);
+  assert.match(fn, /先從可用工具開始/);
+  assert.match(fn, /先用下方工具開始做題、複習或補弱點/);
+});
