@@ -976,6 +976,7 @@ let articleSections={}, articlePlan='free';
 // ── 跨裝置答題紀錄（默寫完成後寫進 Supabase user_stats）─────────────
 let _prArtId='';   // 當前條文對外 id（給 /api/me/answer）
 let _m2Typed='';   // mode2 累積打過的字，供得分點判定
+let _prQuestionText=''; // 給跨裝置統計顯示的可讀題目摘要
 // 得分點：金額/期間/百分比/數量（與 mode3 挖空同一套規則）；抓不到回 []
 function _prKeyTokens(text){
   const pats=[/\d+(?:,\d+)*(?:\.\d+)?(?:元|萬元|億元)/g,/\d+(?:日|天|月|年)/g,/百分之\d+(?:\.\d+)?/g,/\d+(?:人|份|次|條)/g];
@@ -992,7 +993,14 @@ function _prJudge(typed, target){
 }
 function _prLogAnswer(isCorrect){
   if(!_prArtId||!uid||uid==='PREVIEW'||isFree) return;
-  fetch(`${API}/api/me/answer`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({article_id:_prArtId,is_correct:!!isCorrect,mode:'practice'})}).catch(()=>{});
+  fetch(`${API}/api/me/answer`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({
+    article_id:_prArtId,
+    is_correct:!!isCorrect,
+    mode:'practice',
+    question:_prQuestionText||'打字練習',
+    options:[],
+    explanation:(document.getElementById('artMeta')?.textContent||'').trim()
+  })}).catch(()=>{});
 }
 
 function render(){
@@ -1234,8 +1242,10 @@ async function loadNew(){
     document.getElementById('artNum').textContent=artNum;
     document.getElementById('artTitle').textContent=(d.title||'').replace(/第[\d之]+條/,'').trim()||d.title||'—';
     const metaEl=document.getElementById('artMeta');
-    if(lawMeta){metaEl.textContent=lawMeta;metaEl.style.display='';}
+    const prLawLabel=lawMeta||d.law_name||'';
+    if(prLawLabel){metaEl.textContent=prLawLabel;metaEl.style.display='';}
     else{metaEl.style.display='none';}
+    _prQuestionText=`打字練習｜${prLawLabel} ${d.title||''}`.replace(/\s+/g,' ').trim();
     document.getElementById('artLabel').textContent=artNum!=='—'?`ARTICLE ${artNum}`:'ARTICLE —';
     ghost.innerHTML='';
     if(currentMode===2) initMode2(); else if(currentMode===3) initMode3(); else render();

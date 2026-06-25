@@ -2189,7 +2189,16 @@ async function loadQuiz(){
           // 跨裝置答題紀錄：寫 user_stats（SM-2）＋ quiz_sessions（餵儀表板答題卡）
           const _ci=isNewFmt?(data.options||[]).indexOf(correctAnswer):(data.options||[]).findIndex(o=>!!o.is_correct);
           const _opts=isNewFmt?(data.options||[]):(data.options||[]).map(o=>o.snippet||'');
-          fetch(`${API}/api/me/answer`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({article_id:pageId,is_correct:isCorrect,mode:'quiz',question:data.question||'',options:_opts,correct_idx:_ci,choice:i,explanation:data.explanation||''})}).catch(()=>{});
+          fetch(`${API}/api/me/answer`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({
+            article_id:pageId,
+            is_correct:isCorrect,
+            mode:data._past_exam?'past_exam':'quiz',
+            question:data.question||'',
+            options:_opts,
+            correct_idx:_ci,
+            choice:i,
+            explanation:data.explanation||''
+          })}).catch(()=>{});
         }
         // 顯示說明框
         const eb=document.querySelector('#explainBox .eb');
@@ -2440,6 +2449,18 @@ async function loadWrongQuiz() {
         })();
         if (pageId && uid && uid!=='PREVIEW' && !isFree) {
           fetch(`${API}/api/me/history`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({page_id:pageId,law_name:lawName,article:artTitle})}).catch(()=>{});
+          const _ci=isNewFmt?(data.options||[]).indexOf(correctAnswer):(data.options||[]).findIndex(o=>!!o.is_correct);
+          const _opts=isNewFmt?(data.options||[]):(data.options||[]).map(o=>o.snippet||'');
+          fetch(`${API}/api/me/answer`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({
+            article_id:pageId,
+            is_correct:isCorrect,
+            mode:'wrong_review',
+            question:data.question||'',
+            options:_opts,
+            correct_idx:_ci,
+            choice:i,
+            explanation:data.explanation||''
+          })}).catch(()=>{});
         }
         const eb = document.querySelector('#explainBox .eb');
         if (eb) eb.textContent = isCorrect ? '✓ 答對了' : '✗ 答錯了，正確答案已標綠';
