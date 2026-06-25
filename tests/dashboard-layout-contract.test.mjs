@@ -4,6 +4,13 @@ import assert from 'node:assert/strict';
 
 const html = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
 
+test('dashboard serif stack prefers native Songti before web serif fallback', () => {
+  assert.match(html, /--serif:"Songti TC","STSong","Noto Serif TC",serif/);
+  assert.match(html, /\.tool \.name\{font-family:var\(--serif\)/);
+  assert.match(html, /\.greet h1\{\s*font-family:var\(--serif\);/);
+  assert.match(html, /\.greet \.now \.t\{font-family:var\(--serif\)/);
+});
+
 test('today recaps are included in the sidebar navigation and scroll spy', () => {
   assert.match(html, /<nav class="top-mid">[\s\S]*href="#study-cockpit-recap"[\s\S]*今日/);
   assert.match(html, /href="#study-cockpit-recap"[\s\S]*今日任務/);
