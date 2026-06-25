@@ -528,6 +528,61 @@
     cursor:pointer;
   }
   .study-plan-state{font-size:12px;color:rgba(245,240,234,.55)}
+  .study-import{
+    border-top:1px dashed var(--line);
+    padding-top:12px;
+    display:grid;
+    gap:9px;
+  }
+  .study-import-head{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap}
+  .study-import-title{font-family:var(--serif);font-size:14px;color:var(--cream);font-weight:600}
+  .study-import-note{font-size:12px;color:rgba(245,240,234,.55)}
+  .study-import textarea{
+    width:100%;
+    min-height:112px;
+    resize:vertical;
+    border:1px solid rgba(245,240,234,.14);
+    background:rgba(2,12,18,.45);
+    color:var(--cream);
+    padding:10px 11px;
+    border-radius:4px;
+    font-size:12.5px;
+    line-height:1.6;
+  }
+  .study-import-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+  .study-import-actions button{
+    border:1px solid var(--line-2);
+    color:var(--cream);
+    background:rgba(231,187,167,.08);
+    padding:8px 11px;
+    border-radius:4px;
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.08em;
+  }
+  .study-import-actions button.primary{background:var(--peach);border-color:var(--peach);color:var(--navy);font-weight:800}
+  .study-plan-items{display:grid;gap:8px}
+  .study-plan-items h3{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.12em;
+    color:rgba(245,240,234,.48);
+    font-weight:500;
+  }
+  .study-plan-item{
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    gap:8px 12px;
+    align-items:baseline;
+    border:1px solid var(--line-2);
+    background:rgba(255,255,255,.025);
+    padding:10px 12px;
+    border-radius:4px;
+  }
+  .study-plan-item .date{font-family:var(--mono);font-size:11px;color:var(--peach);white-space:nowrap}
+  .study-plan-item .title{font-family:var(--serif);font-size:14px;color:var(--cream);font-weight:600}
+  .study-plan-item .meta{font-size:12px;color:rgba(245,240,234,.52);grid-column:2 / -1}
+  .study-plan-item .status{font-family:var(--mono);font-size:10px;color:rgba(245,240,234,.48);white-space:nowrap}
   @media (max-width:760px){
     .srs-panel{
       grid-template-columns:1fr;
@@ -551,6 +606,8 @@
     .study-action-link,.study-pending{flex:1 1 calc(50% - 8px);min-width:128px}
     .study-plan-grid{grid-template-columns:1fr 1fr}
     .study-plan-field.full{grid-column:1 / -1}
+    .study-plan-item{grid-template-columns:1fr auto}
+    .study-plan-item .date,.study-plan-item .meta{grid-column:1 / -1}
     .review-card{
       grid-template-columns:1fr;
       padding:13px 14px;
@@ -2220,7 +2277,20 @@
                 <button class="study-plan-save" type="button" onclick="saveStudySeries()">排入讀書計畫</button>
                 <span class="study-plan-state" id="study-plan-state">適合函授、補習班課程、模考或自己的週任務。</span>
               </div>
+              <div class="study-import">
+                <div class="study-import-head">
+                  <span class="study-import-title">貼上課表</span>
+                  <span class="study-import-note">只會變成你的私人讀書計畫，不會放進共用題庫。</span>
+                </div>
+                <textarea id="study-plan-import" placeholder="可貼 JSON，或 CSV/表格：date,start,end,subject,title,room,source_label,notes"></textarea>
+                <div class="study-import-actions">
+                  <button type="button" onclick="previewStudyPlanImport()">預覽</button>
+                  <button class="primary" type="button" onclick="saveStudyPlanImport()">匯入私人計畫</button>
+                  <span class="study-plan-state" id="study-plan-import-state">貼上後先預覽。</span>
+                </div>
+              </div>
             </div>
+            <div class="study-plan-items" id="study-plan-items" aria-label="接下來的私人計畫"></div>
             <div class="study-subjects" id="study-cockpit-subjects"></div>
             <div class="study-blocks" id="study-cockpit-blocks"></div>
           </div>
@@ -4414,6 +4484,7 @@ function renderStudyToday(data){
     var bridge = data.weak_law_bridge || {};
     weakEl.textContent = bridge.items && bridge.items.length ? '弱點已接入' : '弱點資料尚未累積';
   }
+  renderStudyPlanItems(data.personal_plan || null);
   subjectsEl.innerHTML = subjects.map(function(s){
     var seeded = s.implementation_status === 'seeded_moex_mcq';
     var cls = seeded ? 'study-subject seeded' : 'study-subject';
@@ -4451,6 +4522,139 @@ function openStudyPlanPanel(){
 function _studyVal(id){
   var el = document.getElementById(id);
   return el ? String(el.value || '').trim() : '';
+}
+
+function renderStudyPlanItems(plan){
+  var el = document.getElementById('study-plan-items');
+  if(!el) return;
+  var items = plan && Array.isArray(plan.items) ? plan.items : [];
+  if(!items.length){
+    el.innerHTML = '';
+    return;
+  }
+  el.innerHTML = '<h3>接下來的私人計畫</h3>' + items.slice(0,8).map(function(item){
+    var meta = [item.subject || '', item.scheduled_time || '', item.source_label || ''].filter(Boolean).join(' · ');
+    return '<div class="study-plan-item">'
+      + '<span class="date">' + esc(item.scheduled_date || '') + '</span>'
+      + '<span class="title">' + esc(item.title || item.subject || '讀書計畫') + '</span>'
+      + '<span class="status">' + esc(item.status || 'planned') + '</span>'
+      + '<span class="meta">' + esc(meta) + '</span>'
+      + '</div>';
+  }).join('');
+}
+
+function _splitStudyCsvLine(line){
+  var out = [];
+  var cur = '';
+  var quote = false;
+  for(var i=0;i<line.length;i++){
+    var ch = line[i];
+    if(ch === '"'){
+      if(quote && line[i+1] === '"'){ cur += '"'; i++; }
+      else quote = !quote;
+    } else if((ch === ',' || ch === '\t') && !quote){
+      out.push(cur.trim());
+      cur = '';
+    } else {
+      cur += ch;
+    }
+  }
+  out.push(cur.trim());
+  return out;
+}
+
+function _studyImportStatus(raw){
+  var s = String(raw || '').trim();
+  if(s === 'past') return 'done';
+  if(s === 'future') return 'planned';
+  return ['planned','done','skipped','postponed','cancelled'].indexOf(s) >= 0 ? s : 'planned';
+}
+
+function _normalizeStudyImportItem(raw, idx){
+  raw = raw || {};
+  var date = raw.scheduled_date || raw.date || '';
+  var subject = raw.subject || '';
+  var title = raw.title || subject;
+  if(!date || !subject || !title) return null;
+  var end = raw.end ? ('結束 ' + raw.end) : '';
+  var notes = [raw.notes || '', end].filter(Boolean).join('；');
+  return {
+    track_key: raw.track_key || 'bookkeeper',
+    subject: String(subject).trim(),
+    title: String(title).trim(),
+    sequence_no: raw.sequence_no || (idx + 1),
+    scheduled_date: String(date).trim(),
+    scheduled_time: String(raw.scheduled_time || raw.start || '').trim(),
+    source_label: String(raw.source_label || '匯入課表').trim(),
+    status: _studyImportStatus(raw.status),
+    room: String(raw.room || '').trim(),
+    notes: notes,
+    import_warning: String(raw.import_warning || '').trim()
+  };
+}
+
+function _parseStudyPlanImport(){
+  var ta = document.getElementById('study-plan-import');
+  var text = ta ? String(ta.value || '').trim().replace(/^\uFEFF/, '') : '';
+  if(!text) return [];
+  try{
+    var parsed = JSON.parse(text);
+    var rows = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.items) ? parsed.items : []);
+    return rows.map(_normalizeStudyImportItem).filter(Boolean);
+  }catch(e){}
+  var lines = text.split(/\r?\n/).map(function(line){ return line.trim(); }).filter(Boolean);
+  if(!lines.length) return [];
+  var first = _splitStudyCsvLine(lines[0]).map(function(x){ return x.replace(/^\uFEFF/, '').trim(); });
+  var hasHeader = first.some(function(x){ return ['date','scheduled_date','subject','title'].indexOf(x) >= 0; });
+  var headers = hasHeader ? first : ['date','start','end','subject','title','room','source_label','notes'];
+  var dataLines = hasHeader ? lines.slice(1) : lines;
+  return dataLines.map(function(line, idx){
+    var cells = _splitStudyCsvLine(line);
+    var raw = {};
+    headers.forEach(function(h, i){ raw[h] = cells[i] || ''; });
+    return _normalizeStudyImportItem(raw, idx);
+  }).filter(Boolean);
+}
+
+function previewStudyPlanImport(){
+  var state = document.getElementById('study-plan-import-state');
+  var items = _parseStudyPlanImport();
+  if(state) state.textContent = items.length ? ('可匯入 ' + items.length + ' 筆私人計畫。') : '讀不到可匯入的日期與科目。';
+  return items;
+}
+
+async function saveStudyPlanImport(){
+  var state = document.getElementById('study-plan-import-state');
+  function tell(msg){ if(state) state.textContent = msg; }
+  var uid = localStorage.getItem('sofa_uid') || '';
+  var token = localStorage.getItem('sofa_token') || '';
+  if(!uid && !token){
+    tell('先登入或輸入序號後，才能把課表存到你的帳號。');
+    return;
+  }
+  var items = previewStudyPlanImport();
+  if(!items.length) return;
+  if(items.length > 120){
+    tell('一次最多匯入 120 筆，請先分批。');
+    return;
+  }
+  tell('匯入中…');
+  try{
+    var res = await _fetchJSON(API + '/api/me/study/plan-items/bulk', {
+      method: 'POST',
+      headers: _authH({'Content-Type':'application/json'}),
+      body: JSON.stringify({ track_key:'bookkeeper', source_label:'匯入課表', import_source:'pasted_schedule', items:items })
+    }, 1);
+    if(res && res.ok){
+      tell('已匯入 ' + (res.count || items.length) + ' 筆私人計畫。');
+      var latest = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
+      renderStudyToday(latest || null);
+    } else {
+      tell('暫時匯入失敗，請稍後再試。');
+    }
+  }catch(e){
+    tell('網路暫時不穩，稍後再匯入。');
+  }
 }
 
 async function saveStudySeries(){

@@ -53,6 +53,23 @@ test('study today makes working tools and personal planning obvious', () => {
   assert.doesNotMatch(active, /total_sessions:\s*count/);
 });
 
+test('study today supports private pasted schedule imports without law search copy', () => {
+  assert.match(active, /id="study-plan-import"/);
+  assert.match(active, /貼上課表/);
+  assert.match(active, /function previewStudyPlanImport/);
+  assert.match(active, /function saveStudyPlanImport/);
+  assert.match(active, /\/api\/me\/study\/plan-items\/bulk/);
+  assert.match(active, /只會變成你的私人讀書計畫/);
+  assert.doesNotMatch(active, /搜尋法條|自動查法條|對應法條/);
+});
+
+test('study today renders personal plan items returned by the study API', () => {
+  assert.match(active, /personal_plan/);
+  assert.match(active, /id="study-plan-items"/);
+  assert.match(active, /renderStudyPlanItems/);
+  assert.match(active, /接下來的私人計畫/);
+});
+
 test('study today uses learner-facing subject status wording, not seed jargon', () => {
   assert.match(active, /已可練習/);
   assert.match(active, /題庫準備中/);
@@ -62,7 +79,7 @@ test('study today uses learner-facing subject status wording, not seed jargon', 
 test('study today puts next-step actions before lower-priority subject detail', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
-  const recap = active.slice(recapStart, recapStart + 4200);
+  const recap = active.slice(recapStart, recapStart + 6200);
   const actionIndex = recap.indexOf('class="study-actions"');
   const subjectsIndex = recap.indexOf('id="study-cockpit-subjects"');
   const blocksIndex = recap.indexOf('id="study-cockpit-blocks"');
