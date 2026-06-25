@@ -1907,6 +1907,15 @@
           <div class="recap-list" id="recap-list"></div>
         </div>
 
+        <!-- ============ 弱點法規 — 依 user_stats 聚合的 law-level 修補目標 ============ -->
+        <div class="recap" id="weak-laws-recap" style="display:none">
+          <div class="recap-head">
+            <span class="recap-eb">WEAKNESS · 最該補的法規</span>
+            <a class="recap-more" href="quiz.html?open=weakness">重練弱點 →</a>
+          </div>
+          <div class="recap-list" id="weak-laws-list"></div>
+        </div>
+
         <!-- ============ 今日複習提醒 — SM-2 到期排程（答題自動排程，到期才亮）============ -->
         <div class="recap" id="review-due" style="display:none">
           <div class="recap-head">
@@ -5243,6 +5252,29 @@ ch.on('presence', { event: 'sync' }, () => {
     var list=document.getElementById('recap-list');
     if(recap && list && html){ list.innerHTML=html; recap.style.display='block'; }
   }
+  function renderWeakLaws(items){
+    var recap=document.getElementById('weak-laws-recap');
+    var list=document.getElementById('weak-laws-list');
+    if(!recap || !list) return;
+    var laws = Array.isArray(items) ? items.filter(function(x){ return x && x.law_name; }) : [];
+    if(!laws.length){
+      recap.style.display='none';
+      list.innerHTML='';
+      return;
+    }
+    list.innerHTML = laws.slice(0,4).map(function(law){
+      var articles = Array.isArray(law.top_articles) ? law.top_articles.slice(0,2) : [];
+      var articleText = articles.map(function(a){
+        return esc(a.article || (a.article_no ? '§'+a.article_no : ''));
+      }).filter(Boolean).join('、');
+      return '<div class="recap-row weak-law-row">'
+        + '<span class="rc-law">'+esc(law.law_name)+'</span>'
+        + '<span class="rc-score">'+(articleText || '先從這部法規重練')+'</span>'
+        + '<span class="rc-pct lo">錯 '+esc(law.wrong_count||0)+' 次</span>'
+        + '</div>';
+    }).join('');
+    recap.style.display='block';
+  }
 
   // ① 先用本機 localStorage 立即渲染（離線/未登入也有畫面）
   var lsStats = jget('sofa_quiz_stats_v1','{}');
@@ -5294,6 +5326,10 @@ ch.on('presence', { event: 'sync' }, () => {
         }
       })
       .catch(function(){});
+    fetch(API + '/api/me/weak-laws', { headers: H })
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){ renderWeakLaws(d && d.items); })
+      .catch(function(){ renderWeakLaws([]); });
   }
 })();
 </script>
