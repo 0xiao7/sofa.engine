@@ -102,6 +102,11 @@
 
   /* options */
   .opts{margin-top:24px;display:flex;flex-direction:column;gap:10px}
+  .opts.compact{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    align-items:stretch;
+  }
   .opt{
     background:var(--navy-2);border:1px solid var(--line);border-radius:4px;
     padding:18px 22px;display:flex;align-items:flex-start;gap:18px;
@@ -269,6 +274,7 @@
     .q-stem{padding:22px 22px}
     .q-stem p{font-size:17px}
     .opt{padding:14px 18px;gap:14px}
+    .opts.compact{display:flex;flex-direction:column}
     .opt .body{font-size:14.5px}
     .opt.right::after,.opt.wrong::after{display:none}
     .q-foot{flex-direction:column;align-items:stretch}
@@ -600,6 +606,17 @@
         title="30題混法規，60分鐘限時">
         模擬考試
       </button>
+      <button id="btnPastExam" onclick="_setPastExamMode(!_pastExamMode)"
+        style="background:rgba(231,187,167,0.12);border:1px solid rgba(231,187,167,0.42);
+               color:var(--peach);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;">
+        考古題
+      </button>
+      <select id="pastExamSubject" onchange="if(_pastExamMode) loadQuiz()"
+        style="display:none;background:var(--navy-3);border:1px solid rgba(231,187,167,0.35);
+               border-radius:8px;color:var(--cream);font-size:12px;padding:6px 10px;">
+        <option value="記帳相關法規概要">記帳法規</option>
+        <option value="稅務相關法規概要">稅務法規</option>
+      </select>
       <button id="btnDaily" onclick="startDailyChallenge()">今日挑戰</button>
       <span id="daily-badge"></span>
       <div id="quiz-streak" style="display:none;font-size:13px;color:var(--peach);font-weight:600;padding:3px 8px;background:rgba(217,176,132,0.12);border:1px solid rgba(217,176,132,0.3);border-radius:12px;margin-left:8px"></div>
@@ -655,11 +672,11 @@
 
         <div class="explain" id="explainBox" style="display:none">
           <span class="eb">答對了</span>
+          <div class="art-inline" id="artInline"></div>
           <div class="src" id="sourceBox">
-            <span>—</span>
+            <span>條文原文</span>
             <button id="sourceLink">查看完整條文 →</button>
           </div>
-          <div class="art-inline" id="artInline"></div>
         </div>
 
         <div class="q-foot">
@@ -767,7 +784,10 @@ const API = 'https://sofa-engine-api.onrender.com';
 function isIOSReaderApp(){try{return !!(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='ios');}catch(e){return false;}}
 const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
 const tok = localStorage.getItem('sofa_token') || '';
-const freeParam = new URLSearchParams(location.search).get('free') === '1';
+const _searchParams = new URLSearchParams(location.search);
+const freeParam = _searchParams.get('free') === '1';
+const _PAST_EXAM_SUBJECTS = ['記帳相關法規概要', '稅務相關法規概要'];
+let _pastExamMode = _searchParams.get('mode') === 'past-exam';
 if (freeParam && !uid && !tok) {
   localStorage.setItem('sofa_free', 'FREE');
 }
@@ -797,6 +817,35 @@ if(isFree){
     : '<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">免費版 · 選擇題範圍有限，答題紀錄不會儲存</span>'
       +'<a href="pricing.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:5px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
   document.querySelector('.pr-bar').before(bar);
+}
+
+function _setPastExamMode(on, opts){
+  _pastExamMode = !!on;
+  const btn = document.getElementById('btnPastExam');
+  const sub = document.getElementById('pastExamSubject');
+  const lawDD = document.getElementById('lawDD');
+  const chips = document.querySelector('.pr-chips');
+  const btnExam = document.getElementById('btnExam');
+  if(btn){
+    btn.textContent = _pastExamMode ? '考古題中' : '考古題';
+    btn.style.background = _pastExamMode ? 'var(--peach)' : 'rgba(231,187,167,0.12)';
+    btn.style.color = _pastExamMode ? 'var(--navy)' : 'var(--peach)';
+  }
+  if(sub) sub.style.display = _pastExamMode ? '' : 'none';
+  if(lawDD) lawDD.style.display = _pastExamMode ? 'none' : '';
+  if(chips) chips.style.display = _pastExamMode ? 'none' : 'flex';
+  if(btnExam && _pastExamMode) btnExam.style.display = 'none';
+  _updateQzScopeLabel();
+  if(_pastExamMode && !(opts&&opts.noHistory)){
+    const url = new URL(location.href);
+    url.searchParams.set('mode', 'past-exam');
+    history.replaceState(null, '', url.toString());
+  }
+  if(!_pastExamMode && !(opts&&opts.noHistory)){
+    const url = new URL(location.href);
+    url.searchParams.delete('mode');
+    history.replaceState(null, '', url.toString());
+  }
 }
 
 // ── 全域付費判定（keystone，fail-OPEN）────────────────────────────
@@ -943,6 +992,11 @@ function _showQzExamBanner() {
     if(_allOpt){ sel.value='__all__'; sel.dispatchEvent(new Event('change')); }
   }
   _updateQzScopeLabel();
+  if(_pastExamMode){
+    _setPastExamMode(true, {noHistory:true});
+    loadQuiz();
+    return;
+  }
   // 進頁自動出第一題：只要已選考科（或已有選定法規）就直接出題，不必按「出題」
   if(_restored || _hasExam){ loadQuiz(); }
 })();
@@ -1402,6 +1456,12 @@ function _updateLawStatusBar(lawName) {
 function _updateQzScopeLabel() {
   const el = document.getElementById('qz-scope-label');
   if (!el) return;
+  if (_pastExamMode) {
+    const sub = document.getElementById('pastExamSubject');
+    el.textContent = '歷屆試題＿' + ((sub && sub.value) || _PAST_EXAM_SUBJECTS[0]);
+    el.style.display = 'inline';
+    return;
+  }
   const sel = document.getElementById('lawSelect');
   const v = sel ? sel.value : '';
   const examKey = localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || '';
@@ -1906,6 +1966,14 @@ function updateScore(){
   document.getElementById('quizProg').style.width=prog+'%';
 }
 
+function _applyOptionLayout(optionTexts) {
+  const box = document.getElementById('optionsBox');
+  if (!box) return;
+  const texts = (optionTexts || []).map(x => String(x || '').trim());
+  const compact = texts.length === 4 && texts.every(t => t.length > 0 && t.length <= 14);
+  box.classList.toggle('compact', compact);
+}
+
 async function loadQuiz(){
   answered=false; total++;
   // 新增到 sessionHistory
@@ -1915,6 +1983,7 @@ async function loadQuiz(){
   document.getElementById('questionBox').textContent='載入中…';
   document.getElementById('questionBox').style.opacity='.45';
   document.getElementById('optionsBox').innerHTML='';
+  document.getElementById('optionsBox').classList.remove('compact');
   (function(){const _cit=document.getElementById('quiz-citation');if(_cit)_cit.classList.remove('show');})();
   document.getElementById('view-article-btn').style.display='none';
   document.getElementById('btnNext').style.display='none';
@@ -1923,17 +1992,22 @@ async function loadQuiz(){
   updateScore();
 
   let law=document.getElementById('lawSelect').value;
-  // Wave 109: 全部法規 — pick a random law each question
-  if(law==='__all__'){
-    if(_allLawNames.length){
-      law=_allLawNames[Math.floor(Math.random()*_allLawNames.length)];
-    } else {
+  try{
+    let data;
+    if(_pastExamMode){
+      data=await _fetchPastExamQuestion();
       law='';
     }
-  }
-  try{
+    // Wave 109: 全部法規 — pick a random law each question
+    if(!_pastExamMode && law==='__all__'){
+      if(_allLawNames.length){
+        law=_allLawNames[Math.floor(Math.random()*_allLawNames.length)];
+      } else {
+        law='';
+      }
+    }
     let pickedPageId='';
-    if(law==='__starred__'){
+    if(!_pastExamMode && law==='__starred__'){
       const sl=await fetch(`${API}/api/starred?min_stars=5`,{headers:_authH()}).then(r=>r.json());
       const arts=(sl.articles||[]).filter(a=>a.law);
       if(!arts.length){
@@ -1942,7 +2016,7 @@ async function loadQuiz(){
         return;
       }
       law=arts[Math.floor(Math.random()*arts.length)].law;
-    } else if(law==='__bookmarks__'){
+    } else if(!_pastExamMode && law==='__bookmarks__'){
       const bm=await fetch(`${API}/api/me/bookmarks`,{headers:_authH()}).then(r=>r.json());
       const ids=(bm.bookmarks||[]);
       if(!ids.length){
@@ -1952,7 +2026,7 @@ async function loadQuiz(){
       }
       pickedPageId=ids[Math.floor(Math.random()*ids.length)];
       law='';
-    } else if(law==='__mastered__'||law==='__review__'){
+    } else if(!_pastExamMode && (law==='__mastered__'||law==='__review__')){
       const wantStatus=law==='__mastered__'?'mastered':'review';
       const mr=await fetch(`${API}/api/me/mastery`,{headers:_authH()}).then(r=>r.json());
       const items=(mr.items||[]).filter(m=>m.status===wantStatus&&m.page_id);
@@ -1965,47 +2039,49 @@ async function loadQuiz(){
       pickedPageId=pick.page_id;
       law='';
     }
-    const artNum = (document.getElementById('artNumInput')||{}).value?.trim();
-    let url;
-    if(pickedPageId){
-      url=`${API}/api/quiz?page_id=${encodeURIComponent(pickedPageId)}`;
-    } else if(artNum && law && _artCache[law]){
-      const match=_artCache[law].find(a=>{const m=(a.title||'').match(/第(\d+(?:之\d+)?)條/);return m&&m[1]===artNum;});
-      url = match ? `${API}/api/quiz?page_id=${encodeURIComponent(match.id)}` : (law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`);
-    } else if(_curPrChip!=='all' && law && _artCache[law]){
-      const filtered=_prFilterByChip(_artCache[law]);
-      if(!filtered.length){
-        document.getElementById('questionBox').textContent='此細篩條件下沒有條文';
-        document.getElementById('questionBox').style.opacity='1';
-        return;
-      }
-      const pick=filtered[Math.floor(Math.random()*filtered.length)];
-      url=`${API}/api/quiz?page_id=${encodeURIComponent(pick.id)}`;
-    } else if(law && _artCache[law] && _artCache[law].length) {
-      // Smart weighting: wrong answers first, then high-importance, else random
-      const _wb = loadWrongBank();
-      const _wrongSet = new Set(_wb.filter(e=>e.law===law).map(e=>e.id));
-      const _pool = _artCache[law];
-      const _wrongArts = _pool.filter(a=>_wrongSet.has(a.id));
-      const _hiArts  = _pool.filter(a=>!_wrongSet.has(a.id) && parseInt(a.importance||0)>=4);
-      const _rnd = Math.random();
-      let _pick;
-      if(_wrongArts.length && _rnd < 0.55){
-        _pick = _wrongArts[Math.floor(Math.random()*_wrongArts.length)];
-      } else if(_hiArts.length && _rnd < 0.85){
-        _pick = _hiArts[Math.floor(Math.random()*_hiArts.length)];
+    if(!_pastExamMode){
+      const artNum = (document.getElementById('artNumInput')||{}).value?.trim();
+      let url;
+      if(pickedPageId){
+        url=`${API}/api/quiz?page_id=${encodeURIComponent(pickedPageId)}`;
+      } else if(artNum && law && _artCache[law]){
+        const match=_artCache[law].find(a=>{const m=(a.title||'').match(/第(\d+(?:之\d+)?)條/);return m&&m[1]===artNum;});
+        url = match ? `${API}/api/quiz?page_id=${encodeURIComponent(match.id)}` : (law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`);
+      } else if(_curPrChip!=='all' && law && _artCache[law]){
+        const filtered=_prFilterByChip(_artCache[law]);
+        if(!filtered.length){
+          document.getElementById('questionBox').textContent='此細篩條件下沒有條文';
+          document.getElementById('questionBox').style.opacity='1';
+          return;
+        }
+        const pick=filtered[Math.floor(Math.random()*filtered.length)];
+        url=`${API}/api/quiz?page_id=${encodeURIComponent(pick.id)}`;
+      } else if(law && _artCache[law] && _artCache[law].length) {
+        // Smart weighting: wrong answers first, then high-importance, else random
+        const _wb = loadWrongBank();
+        const _wrongSet = new Set(_wb.filter(e=>e.law===law).map(e=>e.id));
+        const _pool = _artCache[law];
+        const _wrongArts = _pool.filter(a=>_wrongSet.has(a.id));
+        const _hiArts  = _pool.filter(a=>!_wrongSet.has(a.id) && parseInt(a.importance||0)>=4);
+        const _rnd = Math.random();
+        let _pick;
+        if(_wrongArts.length && _rnd < 0.55){
+          _pick = _wrongArts[Math.floor(Math.random()*_wrongArts.length)];
+        } else if(_hiArts.length && _rnd < 0.85){
+          _pick = _hiArts[Math.floor(Math.random()*_hiArts.length)];
+        } else {
+          _pick = _pool[Math.floor(Math.random()*_pool.length)];
+        }
+        url = `${API}/api/quiz?page_id=${encodeURIComponent(_pick.id)}`;
       } else {
-        _pick = _pool[Math.floor(Math.random()*_pool.length)];
+        url=law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`;
+        var _subVal=(document.getElementById('prSubSel')||{}).value||'';
+        if(!law && _curPrChip!=='all' && _subVal){
+          url+=(url.indexOf('?')>=0?'&':'?')+'chip='+encodeURIComponent(_curPrChip)+'&sub='+encodeURIComponent(_subVal);
+        }
       }
-      url = `${API}/api/quiz?page_id=${encodeURIComponent(_pick.id)}`;
-    } else {
-      url=law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`;
-      var _subVal=(document.getElementById('prSubSel')||{}).value||'';
-      if(!law && _curPrChip!=='all' && _subVal){
-        url+=(url.indexOf('?')>=0?'&':'?')+'chip='+encodeURIComponent(_curPrChip)+'&sub='+encodeURIComponent(_subVal);
-      }
+      data=await fetch(url,{headers:_authH()}).then(r=>r.json());
     }
-    let data=await fetch(url,{headers:_authH()}).then(r=>r.json());
     // Fallback: 指定 page_id 抽到沒有數字的條文時（API 回 404），改讓 API 用法規自己挑可出題條文，避免使用者卡死
     if((data.error||data.detail) && law){
       for(let _retry=0; _retry<4 && (data.error||data.detail); _retry++){
@@ -2047,6 +2123,8 @@ async function loadQuiz(){
     document.getElementById('btnFlag').textContent='⚑ 標記';
 
     const labels=['A','B','C','D'];
+    const optionTexts = (data.options||[]).map(opt => isNewFmt ? opt : (opt.snippet||''));
+    _applyOptionLayout(optionTexts);
     (data.options||[]).forEach((opt,i)=>{
       const btn=document.createElement('div');
       btn.className='opt';
@@ -2117,8 +2195,8 @@ async function loadQuiz(){
         const eb=document.querySelector('#explainBox .eb');
         if(eb)eb.textContent=isCorrect?'✓ 答對了':'✗ 答錯了，正確答案已標綠';
         if(pageId){
-          document.getElementById('sourceBox').querySelector('span').textContent='查看該條完整原文 →';
-          document.getElementById('sourceLink').textContent='查看完整條文 →';
+          document.getElementById('sourceBox').querySelector('span').textContent='條文原文已放在上方';
+          document.getElementById('sourceLink').textContent='收起原文 ↑';
         }
         document.getElementById('artInline').style.display='none';
         document.getElementById('explainBox').style.display='block';
@@ -2129,6 +2207,7 @@ async function loadQuiz(){
               const h=_authH();
               const art=await fetch(`${API}/api/article/${pageId}`,{headers:h}).then(r=>r.json());
               document.getElementById('artInline').textContent=formatLawText(art.original_text);
+              document.getElementById('artInline').style.display='block';
               buildSections(art.sections||{},art._plan!=='free',
                 document.getElementById('explainBox'),document.getElementById('sourceBox'));
             }catch(e){}
@@ -2272,6 +2351,7 @@ async function loadWrongQuiz() {
   document.getElementById('questionBox').textContent='載入中…';
   document.getElementById('questionBox').style.opacity='.45';
   document.getElementById('optionsBox').innerHTML='';
+  document.getElementById('optionsBox').classList.remove('compact');
   (function(){const _cit=document.getElementById('quiz-citation');if(_cit)_cit.classList.remove('show');})();
   document.getElementById('view-article-btn').style.display='none';
   document.getElementById('btnNext').style.display='none';
@@ -2310,6 +2390,8 @@ async function loadWrongQuiz() {
     document.getElementById('btnFlag').textContent = '⚑ 標記';
 
     const labels = ['A','B','C','D'];
+    const optionTexts = (data.options||[]).map(opt => isNewFmt ? opt : (opt.snippet||''));
+    _applyOptionLayout(optionTexts);
     (data.options||[]).forEach((opt,i) => {
       const btn = document.createElement('div');
       btn.className = 'opt';
@@ -2364,10 +2446,15 @@ async function loadWrongQuiz() {
         document.getElementById('artInline').style.display = 'none';
         document.getElementById('explainBox').style.display = 'block';
         if (pageId) {
+          document.getElementById('sourceBox').querySelector('span').textContent = '條文原文已放在上方';
+          document.getElementById('sourceLink').textContent = '收起原文 ↑';
+        }
+        if (pageId) {
           (async()=>{
             try {
               const art = await fetch(`${API}/api/article/${pageId}`,{headers:_authH()}).then(r=>r.json());
               document.getElementById('artInline').textContent = formatLawText(art.original_text);
+              document.getElementById('artInline').style.display = 'block';
               buildSections(art.sections||{},art._plan!=='free',
                 document.getElementById('explainBox'),document.getElementById('sourceBox'));
             } catch(e){}
@@ -2490,8 +2577,35 @@ function _statsToneClass(pct) {
   return 'is-empty';
 }
 
-function openStats() {
-  const s = _loadStats();
+function _normalizePastExamQuestion(raw) {
+  const opts = Array.isArray(raw.options) ? raw.options : [];
+  const correctOpt = opts.find(o=>o.key===raw.answer);
+  return {
+    question: `【歷屆試題】${raw.roc_year || ''} 年第 ${raw.question_no || ''} 題\n${raw.stem || ''}`.trim(),
+    options: opts.map(o=>o.text || ''),
+    answer: correctOpt ? (correctOpt.text || '') : '',
+    page_id: (raw.article_ids || [])[0] || '',
+    law_name: raw.subject || '歷屆試題',
+    title: `${raw.roc_year || ''} Q${raw.question_no || ''}${raw.answer_conflict ? '｜修法提醒' : ''}`,
+    explanation: raw.explanation || '',
+    official_answer: raw.official_answer || '',
+    verified_answer: raw.verified_answer || '',
+    answer_conflict: !!raw.answer_conflict,
+    law_change_note: raw.law_change_note || '',
+    verify_status: raw.verify_status || '',
+    _past_exam: true,
+  };
+}
+
+async function _fetchPastExamQuestion() {
+  const sel = document.getElementById('pastExamSubject');
+  const subject = (sel && sel.value) || _PAST_EXAM_SUBJECTS[0];
+  const raw = await fetch(`${API}/api/past-exam?subject=${encodeURIComponent(subject)}`, {headers:_authH()}).then(r=>r.json());
+  if(raw.error || raw.detail) return raw;
+  return _normalizePastExamQuestion(raw);
+}
+
+function _renderStatsContent(s, sourceLabel) {
   const total = s.total||0, correct = s.correct||0;
   const pct = total > 0 ? Math.round(correct/total*100) : 0;
   const todayTotal = s.todayTotal||0, todayCorrect = s.todayCorrect||0;
@@ -2525,10 +2639,8 @@ function openStats() {
     </div>`;
   }
 
-  // Wave 140: ensure 統計 tab is active when opening stats
-  _switchStatsTab('stats');
-
   document.getElementById('stats-content').innerHTML = `
+    <div class="weak-panel-guide"><b>${esc(sourceLabel||'本機暫存')}</b>：每日一題、LINE 作答與網頁練習會在登入後合併到這裡。</div>
     <div class="quiz-stat-grid">
       <div class="quiz-stat-card">
         <div class="quiz-stat-value">${pct}%</div>
@@ -2554,12 +2666,60 @@ function openStats() {
     </div>
     ${byLawHtml}
     ${weakestHtml}
-    ${_buildQuizCalendar(s)}
+    ${s.serverMerged ? '' : _buildQuizCalendar(s)}
     <div style="text-align:center;margin-top:20px">
       <button onclick="if(confirm('確定清除所有統計？')){localStorage.removeItem(STATS_KEY);closeStats();}" style="background:none;border:1px solid rgba(199,123,106,0.3);color:var(--bad);border-radius:16px;padding:6px 16px;font-size:12px;cursor:pointer">清除紀錄</button>
     </div>`;
+}
+
+function _serverStatsToLocalShape(d) {
+  const total = d && d.total || 0;
+  const correct = d && d.correct || 0;
+  const todayTotal = d && d.today || 0;
+  return {
+    total,
+    correct,
+    todayTotal,
+    todayCorrect: d && d.today_correct || 0,
+    bestStreak: d && d.streak || 0,
+    timedQuestions: 0,
+    totalTimeSec: 0,
+    byLaw: {},
+    serverMerged: true,
+  };
+}
+
+function _loadRemoteQuizStats() {
+  if (!uid || uid === 'PREVIEW' || isFree) return;
+  fetch(`${API}/api/me/quiz-stats`, { headers: _authH() })
+    .then(r => r.ok ? r.json() : null)
+    .then(d => {
+      if (!d || !(d.total > 0)) return;
+      const shaped = _serverStatsToLocalShape(d);
+      _renderStatsContent(shaped, '已合併後端紀錄');
+      if (Array.isArray(d.recent) && d.recent.length) _renderServerRecentAnswers(d.recent);
+    })
+    .catch(()=>{});
+}
+
+function _renderServerRecentAnswers(recent) {
+  const root = document.getElementById('stats-content');
+  if (!root) return;
+  const html = '<div class="quiz-law-section"><div class="quiz-section-label">最近作答</div>'
+    + recent.slice(0,5).map(e => {
+      const ok = !!e.is_correct;
+      return `<div class="quiz-law-stat"><div class="quiz-law-row"><span class="quiz-law-name">${esc(e.law||'每日一題')}</span><span class="quiz-law-count" style="color:${ok?'var(--good)':'var(--bad)'}">${ok?'答對':'答錯'}</span></div><div class="quiz-stat-note" style="text-align:left;margin-top:6px">${esc(e.question||'')}</div></div>`;
+    }).join('') + '</div>';
+  root.insertAdjacentHTML('beforeend', html);
+}
+
+function openStats() {
+  const s = _loadStats();
+  _switchStatsTab('stats');
+  _renderStatsContent(s, '本機暫存');
   document.documentElement.classList.add('stats-open');
   document.getElementById('stats-panel').style.display = 'block';
+  _loadRemoteQuizStats();
 }
 
 function closeStats() {
@@ -2624,9 +2784,44 @@ function _renderRemoteWeakLaws(items) {
   }).join('');
 }
 
-function _loadRemoteWeakLaws() {
+function _renderWrongListFromRemote(items) {
+  const panel = document.getElementById('quiz-wrong-panel');
+  if (!panel) return;
+  const list = Array.isArray(items) ? items.filter(x => (x.wrong_count || 0) > 0) : [];
+  if (!list.length) return;
+  let html = '<div class="weak-panel-guide"><b>已合併後端紀錄</b>：每日一題、LINE 作答與網頁練習都會算進弱點。</div>';
+  html += `<div class="weak-section-title">最常錯的法規</div>`;
+  list.forEach(item => {
+    const law = item.law_name || '未分類法規';
+    const attempts = item.attempt_count || 0;
+    const correct = item.correct_count || 0;
+    const wrong = item.wrong_count || 0;
+    const pct = attempts ? Math.round(correct / attempts * 100) : 0;
+    const color = pct >= 80 ? '#9FB89F' : pct >= 60 ? 'var(--peach)' : 'var(--bad)';
+    const top = (item.top_articles || []).slice(0, 2).map(a => {
+      const label = a.article || (a.article_no ? `§${a.article_no}` : '代表條文');
+      return esc(label);
+    }).filter(Boolean).join('、');
+    const bar = `<div class="weak-bar"><span style="width:${pct}%;background:${color}"></span></div>`;
+    html += `<div class="weak-card">
+      <div class="weak-law-row">
+        <div class="weak-law-main">
+          <div class="weak-law-name">${esc(law)}</div>
+          <div class="weak-law-meta">錯 ${wrong} 題 &nbsp;•&nbsp; <span style="color:${color}">${pct}% 正確</span></div>
+          ${bar}
+          ${top ? `<div class="weak-card-v" style="margin-top:6px">${top}</div>` : ''}
+        </div>
+        <button class="weak-action-soft" onclick="_drillLawAuto(${JSON.stringify(law)})">練習</button>
+      </div>
+    </div>`;
+  });
+  panel.innerHTML = html;
+}
+
+function _loadRemoteWeakLaws(opts) {
+  opts = opts || {};
   const el = document.getElementById('rail-weak-laws');
-  if (!el || _remoteWeakLawsLoaded || _remoteWeakLawsInFlight) return;
+  if (!el || (_remoteWeakLawsLoaded && !opts.force) || _remoteWeakLawsInFlight) return;
   if (!uid || uid === 'PREVIEW' || isFree) {
     el.innerHTML = _weakEmptyText();
     return;
@@ -2637,7 +2832,9 @@ function _loadRemoteWeakLaws() {
     .then(r => r.ok ? r.json() : Promise.reject(new Error('weak-laws ' + r.status)))
     .then(data => {
       _remoteWeakLawsLoaded = true;
-      _renderRemoteWeakLaws((data && data.items) || []);
+      const items = (data && data.items) || [];
+      _renderRemoteWeakLaws(items);
+      if (opts.target === 'panel') _renderWrongListFromRemote(items);
     })
     .catch(() => {
       el.innerHTML = _weakEmptyText();
@@ -2742,6 +2939,7 @@ function _renderWrongList() {
   if (lawWrongs.length === 0 && bank.length === 0) {
     panel.innerHTML = '<div class="weak-panel-guide"><b>看結果</b>：這裡會自動整理最常錯的法規和錯題。<br><b>開始重練</b>：做幾題後，就會出現重練入口。</div>'
       + _weakEmptyText();
+    _loadRemoteWeakLaws({force:true, target:'panel'});
     return;
   }
 
@@ -2829,6 +3027,7 @@ function _renderWrongList() {
   </div>`;
 
   panel.innerHTML = html;
+  _loadRemoteWeakLaws({force:true, target:'panel'});
 }
 
 function _drillAllWrong() {

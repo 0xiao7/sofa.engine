@@ -29,7 +29,7 @@ test('stats overlay owns the iOS safe area instead of leaving a white strip', ()
 });
 
 test('stats summary uses harmonized SoFa card classes instead of bright inline metric colors', () => {
-  const fn = extractFunction('openStats');
+  const fn = extractFunction('_renderStatsContent');
   assert.match(fn, /quiz-stat-grid/);
   assert.match(fn, /quiz-stat-card/);
   assert.match(fn, /quiz-stat-value/);
@@ -38,7 +38,7 @@ test('stats summary uses harmonized SoFa card classes instead of bright inline m
 });
 
 test('law distribution progress bars use brand tone classes', () => {
-  const fn = extractFunction('openStats');
+  const fn = extractFunction('_renderStatsContent');
   assert.match(fn, /quiz-law-stat/);
   assert.match(fn, /quiz-law-bar-fill/);
   assert.match(fn, /_statsToneClass\(p\)/);
