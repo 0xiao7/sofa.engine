@@ -29,3 +29,13 @@ test('empty weakness state tells the learner what to do without self-judging', (
   assert.match(active, /weak-action-primary[\s\S]*startSession\(5\)/);
   assert.match(active, /系統會用你的答題紀錄整理/);
 });
+
+test('weakness panel avoids showing a zero wrong-bank card above law weaknesses', () => {
+  const fnStart = active.indexOf('function _renderWrongList');
+  const fnEnd = active.indexOf('function _drillAllWrong', fnStart);
+  assert.ok(fnStart >= 0 && fnEnd > fnStart, '_renderWrongList must exist');
+  const fn = active.slice(fnStart, fnEnd);
+  const gate = fn.indexOf('if(bank.length)');
+  const card = fn.indexOf('考古題錯題', gate);
+  assert.ok(gate >= 0 && card > gate, 'wrong-bank card should be gated by bank.length');
+});

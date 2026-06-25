@@ -2747,7 +2747,7 @@ function _renderWrongList() {
 
   // ── Section 1: 考古題錯題銀行 ──
   let html = '<div class="weak-panel-guide"><b>看結果</b>：這裡先看最常錯的法規。<br><b>開始重練</b>：按「重練全部」或每列「練習」，就會回到出題頁。</div>';
-  {
+  if(bank.length) {
     // Group wrong bank by law
     const bankByLaw = {};
     bank.forEach(e => { bankByLaw[e.law||''] = (bankByLaw[e.law||'']||0) + 1; });
