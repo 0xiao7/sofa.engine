@@ -45,6 +45,21 @@ test('stats modal merges server quiz sessions and weak laws before relying on lo
   assert.match(active, /_loadRemoteWeakLaws\(\{force:true, target:'panel'\}\)/);
 });
 
+test('wrong review can start from server weak laws when local wrong bank is empty', () => {
+  assert.match(active, /async function _loadRemoteWrongBankForQuiz/);
+  assert.match(active, /\/api\/me\/weak-laws/);
+  assert.match(active, /top_articles/);
+  assert.match(active, /page_id:a\.page_id/);
+
+  const wrongStart = active.indexOf('async function loadWrongQuiz');
+  assert.ok(wrongStart > -1, 'loadWrongQuiz must exist');
+  const wrongEnd = active.indexOf('// ── DOMContentLoaded', wrongStart);
+  const wrongFn = active.slice(wrongStart, wrongEnd > wrongStart ? wrongEnd : wrongStart + 7000);
+  assert.match(wrongFn, /let bank = loadWrongBank\(\)/);
+  assert.match(wrongFn, /bank = await _loadRemoteWrongBankForQuiz\(\)/);
+  assert.match(wrongFn, /後端弱點也還沒有可重練的題/);
+});
+
 test('short multiple-choice options can use compact two-column layout on desktop only', () => {
   assert.match(active, /\.opts\.compact/);
   assert.match(active, /grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);

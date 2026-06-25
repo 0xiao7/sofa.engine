@@ -1253,6 +1253,23 @@ function loadWrongBank() {
   try { return JSON.parse(localStorage.getItem(WRONG_KEY) || '[]'); }
   catch { return []; }
 }
+async function _loadRemoteWrongBankForQuiz() {
+  if (!uid || uid === 'PREVIEW' || isFree) return [];
+  try {
+    const data = await fetch(`${API}/api/me/weak-laws`, { headers: _authH() }).then(r => r.ok ? r.json() : Promise.reject(new Error('weak-laws ' + r.status)));
+    const items = (data && data.items) || [];
+    return items.flatMap(item => (item.top_articles || []).map(a => ({
+      page_id:a.page_id,
+      id:a.page_id,
+      law:item.law_name || '',
+      art:a.article || (a.article_no ? `§${a.article_no}` : ''),
+      errorCount:a.wrong_count || item.wrong_count || 1,
+      source:'server_weak_laws',
+    }))).filter(e => e.id);
+  } catch(e) {
+    return [];
+  }
+}
 function saveWrongBank(bank) {
   localStorage.setItem(WRONG_KEY, JSON.stringify(bank.slice(-WRONG_MAX)));
 }
@@ -2397,9 +2414,10 @@ setTimeout(() => {
 
 // ── 錯題模式出題 ──────────────────────────────────────────────
 async function loadWrongQuiz() {
-  const bank = loadWrongBank();
+  let bank = loadWrongBank();
+  if (!bank.length) bank = await _loadRemoteWrongBankForQuiz();
   if (!bank.length) {
-    alert('錯題本是空的！先做幾題再來吧。');
+    alert('錯題本是空的，後端弱點也還沒有可重練的題。先做幾題再來吧。');
     return;
   }
   const pick = bank[Math.floor(Math.random() * bank.length)];
