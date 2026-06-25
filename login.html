@@ -2,7 +2,7 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#142836">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -683,6 +683,20 @@ body {
   .serial-wrap input { padding: 12px 14px; font-size: 14px; }
 }
 
+html.ios-reader-app .auth-r {
+  padding-top: calc(32px + env(safe-area-inset-top, 0px));
+}
+@media (max-width: 900px) {
+  html.ios-reader-app .auth-r {
+    padding-top: calc(28px + env(safe-area-inset-top, 0px));
+  }
+}
+@media (max-width: 540px) {
+  html.ios-reader-app .auth-r {
+    padding-top: calc(22px + env(safe-area-inset-top, 0px));
+  }
+}
+
 /* 預設不顯示，手機 media query 才打開 */
 .mobile-brand { display: none; }
 </style>
@@ -812,6 +826,7 @@ function isIOSReaderApp(){
 
 function applyIOSReaderLoginCopy(){
   if(!isIOSReaderApp()) return;
+  document.documentElement.classList.add('ios-reader-app');
   document.querySelectorAll('[data-ios-reader-hide]').forEach(function(el){
     el.style.display = 'none';
   });

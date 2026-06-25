@@ -18,6 +18,14 @@ test('native iOS login can hide external purchase and LINE trial prompts', () =>
   assert.match(html, /el\.style\.display = 'none'/);
 });
 
+test('native iOS login reserves the status-bar safe area without affecting normal web', () => {
+  assert.match(html, /<meta name="viewport" content="width=device-width, initial-scale=1\.0, viewport-fit=cover">/);
+  assert.match(html, /document\.documentElement\.classList\.add\('ios-reader-app'\)/);
+  assert.match(html, /html\.ios-reader-app\s+\.auth-r\s*\{[^}]*padding-top:\s*calc\(32px \+ env\(safe-area-inset-top, 0px\)\)/);
+  assert.match(html, /@media \(max-width: 900px\)[\s\S]*html\.ios-reader-app\s+\.auth-r\s*\{[^}]*padding-top:\s*calc\(28px \+ env\(safe-area-inset-top, 0px\)\)/);
+  assert.match(html, /@media \(max-width: 540px\)[\s\S]*html\.ios-reader-app\s+\.auth-r\s*\{[^}]*padding-top:\s*calc\(22px \+ env\(safe-area-inset-top, 0px\)\)/);
+});
+
 test('desktop login keeps the first screen compact and moves long support copy into details', () => {
   assert.match(html, /\.auth-hero\s*\{[^}]*margin-top:\s*0[^}]*padding-bottom:\s*0/);
   assert.match(html, /\.auth-form\s*\{[^}]*flex:\s*0 1 auto/);
