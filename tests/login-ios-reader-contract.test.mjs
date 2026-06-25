@@ -25,3 +25,12 @@ test('desktop login keeps the first screen compact and moves long support copy i
   assert.match(html, /<summary>序號、退費與客服說明<\/summary>/);
   assert.match(html, /購買後 7 天內且序號未啟用/);
 });
+
+test('short desktop viewports keep the login CTA and footer inside the first screen', () => {
+  assert.match(html, /@media \(max-height: 820px\) and \(min-width: 901px\)/);
+  assert.match(html, /\.auth-r\s*\{[^}]*padding:\s*24px 44px 24px/);
+  assert.match(html, /\.auth-form\s*\{[^}]*padding:\s*18px 0 14px/);
+  assert.match(html, /\.auth-form h2\s*\{[^}]*font-size:\s*28px/);
+  assert.match(html, /\.serial-card\s*\{[^}]*padding:\s*20px 22px 18px/);
+  assert.match(html, /\.auth-hint\s*\{[^}]*margin-top:\s*10px/);
+});
