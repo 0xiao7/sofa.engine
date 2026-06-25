@@ -11,7 +11,7 @@ test('dashboard uses one Chinese font stack across serif and sans tokens', () =>
 
 test('today recaps are included in the sidebar navigation and scroll spy', () => {
   assert.match(html, /<nav class="top-mid">[\s\S]*href="#study-cockpit-recap"[\s\S]*今日/);
-  assert.match(html, /href="#study-cockpit-recap"[\s\S]*今日任務/);
+  assert.match(html, /href="#study-cockpit-recap"[\s\S]*今日計畫/);
   assert.match(html, /href="#weak-laws-recap"[\s\S]*弱點法規/);
   assert.match(html, /href="#review-due"[\s\S]*今日複習/);
   assert.match(html, /href="#srs-settings"[\s\S]*複習策略/);
@@ -70,9 +70,10 @@ test('expiry copy reassures records continue after renewal', () => {
 });
 
 test('mobile daily bar prioritizes the exam-pass loop', () => {
-  assert.match(html, /<div id="mobile-daily-bar">[\s\S]*今日任務/);
+  assert.match(html, /<div id="mobile-daily-bar">[\s\S]*今日計畫/);
   assert.match(html, /<div id="mobile-daily-bar">[\s\S]*選擇題/);
   assert.match(html, /<div id="mobile-daily-bar">[\s\S]*今日複習/);
   assert.match(html, /<div id="mobile-daily-bar">[\s\S]*弱點分析/);
   assert.doesNotMatch(html, /<div id="mobile-daily-bar">[\s\S]*今日填空/);
+  assert.doesNotMatch(html, /mdb-fill|sofa_fill_daily_/);
 });

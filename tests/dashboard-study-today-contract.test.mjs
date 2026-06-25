@@ -30,3 +30,10 @@ test('study today empty weak bridge avoids fake zero metrics', () => {
   assert.match(fn, /weak_law_bridge/);
   assert.doesNotMatch(fn, /0 條弱點|目前有 0/);
 });
+
+test('study today uses exam-facing wording instead of internal cockpit jargon', () => {
+  assert.match(active, /TODAY · 今日讀書計畫/);
+  assert.match(active, /今天先讀這些/);
+  assert.match(active, /今日計畫/);
+  assert.doesNotMatch(active, /COCKPIT · 今日備考座艙|今日座艙/);
+});

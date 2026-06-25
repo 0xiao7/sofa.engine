@@ -1953,7 +1953,7 @@
       <div class="nav-section">
         <div class="lab">今 日</div>
         <div class="nav-list today-nav">
-          <a href="#study-cockpit-recap"><span class="num">T1</span>今日任務<span class="ct" id="nav-ct-study"></span></a>
+          <a href="#study-cockpit-recap"><span class="num">T1</span>今日計畫<span class="ct" id="nav-ct-study"></span></a>
           <a href="#weak-laws-recap"><span class="num">T2</span>弱點法規<span class="ct" id="nav-ct-weak">0</span></a>
           <a href="#review-due"><span class="num">T3</span>今日複習<span class="ct" id="nav-ct-due">0</span></a>
           <a href="#srs-settings"><span class="num">T4</span>複習策略<span class="ct"></span></a>
@@ -2076,13 +2076,13 @@
 
         <div class="recap" id="study-cockpit-recap" style="display:none">
           <div class="recap-head">
-            <span class="recap-eb">COCKPIT · 今日備考座艙</span>
+            <span class="recap-eb">TODAY · 今日讀書計畫</span>
             <span class="recap-more" id="study-cockpit-summary">載入中</span>
           </div>
           <div class="study-panel">
             <div class="study-summary">
               <div class="study-copy">
-                <b>照考科走，不把法規硬塞成單一分類</b>
+                <b>今天先讀這些</b>
                 目前先啟用記帳士兩個選擇題法規科目；國文、會計、租稅申報實務保留為考科容器。
               </div>
               <div class="study-weak-state" id="study-cockpit-weak-state"></div>
@@ -5431,7 +5431,7 @@ ch.on('presence', { event: 'sync' }, () => {
 <div id="mobile-daily-bar">
   <a class="mdb-btn" href="#study-cockpit-recap">
     <span class="mdb-ic">◉</span>
-    <span class="mdb-lbl">今日任務</span>
+    <span class="mdb-lbl">今日計畫</span>
     <span class="mdb-check" style="display:none"></span>
   </a>
   <a class="mdb-btn" id="mdb-quiz" href="quiz.html">
@@ -5455,11 +5455,8 @@ ch.on('presence', { event: 'sync' }, () => {
   var _d = new Date();
   var _today = _d.getFullYear()+'-'+String(_d.getMonth()+1).padStart(2,'0')+'-'+String(_d.getDate()).padStart(2,'0');
   var quizDone = !!localStorage.getItem('sofa_daily_'+_today);
-  var fillDone = !!localStorage.getItem('sofa_fill_daily_'+_today);
   var qBtn = document.getElementById('mdb-quiz');
-  var fBtn = document.getElementById('mdb-fill');
   if(quizDone && qBtn) qBtn.classList.add('done');
-  if(fillDone && fBtn) fBtn.classList.add('done');
   document.body.classList.add('has-mobile-bar');
 })();
 </script>
