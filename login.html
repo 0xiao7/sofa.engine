@@ -672,7 +672,7 @@ body {
 
   <div class="top">
     <span>MEMBER ACCESS</span>
-    <span>還沒有序號？<a href="#" onclick="localStorage.setItem('sofa_free','FREE');window.location.href='dashboard.html';return false;">先試免費版 →</a></span>
+    <span data-ios-reader-hide>還沒有序號？<a href="#" onclick="localStorage.setItem('sofa_free','FREE');window.location.href='dashboard.html';return false;">先試免費版 →</a></span>
   </div>
 
   <form class="auth-form" onsubmit="event.preventDefault(); doLogin();">
@@ -685,7 +685,7 @@ body {
 
     <!-- THE CREAM JUMP -->
     <div class="serial-card-wrap">
-    <span class="float-pill"><span class="d"></span>序號購買時寄到信箱</span>
+    <span class="float-pill" id="serial-source-pill"><span class="d"></span>序號購買時寄到信箱</span>
     <div class="serial-card">
       <div class="lab">
         <span>SERIAL · 序號</span>
@@ -708,16 +708,21 @@ body {
     <div class="error" id="err"></div>
 
     <div class="auth-hint">
-      <div class="line-tip">
+      <div class="line-tip" data-ios-reader-hide>
         📱 已加入 <a href="https://lin.ee/zUeMwo4" target="_blank">LINE @SoFa</a> 了嗎？<br/>
         直接在 LINE 傳送「<b>序號</b>」兩個字，Bot 會立刻給你體驗序號。
       </div>
       <div class="serial-warning">
         ⚠️ 序號為個人專屬，請勿與他人分享。一經發現帳號共用，將立即停權且不予退款。
       </div>
-      序號、登入或期限問題請聯絡 <a href="mailto:hi@sofaengine.org?subject=SoFa%20%E6%9C%83%E5%93%A1%E5%95%8F%E9%A1%8C%EF%BD%9C%E8%B3%BC%E8%B2%B7%E4%BF%A1%E7%AE%B1%EF%BD%9C%E5%BA%8F%E8%99%9F%E5%BE%8C4%E7%A2%BC">hi@sofaengine.org</a>，並附購買信箱與序號後 4 碼。<br/>
-      退費申請請附付款日期或付款畫面截圖；購買後 7 天內且序號未啟用，可申請全額退費。
-      <br>想試完整功能？<a href="https://lin.ee/zUeMwo4" target="_blank">加入 LINE 索取體驗序號 →</a>
+      <span data-ios-reader-hide>
+        序號、登入或期限問題請聯絡 <a href="mailto:hi@sofaengine.org?subject=SoFa%20%E6%9C%83%E5%93%A1%E5%95%8F%E9%A1%8C%EF%BD%9C%E8%B3%BC%E8%B2%B7%E4%BF%A1%E7%AE%B1%EF%BD%9C%E5%BA%8F%E8%99%9F%E5%BE%8C4%E7%A2%BC">hi@sofaengine.org</a>，並附購買信箱與序號後 4 碼。<br/>
+        退費申請請附付款日期或付款畫面截圖；購買後 7 天內且序號未啟用，可申請全額退費。
+        <br>想試完整功能？<a href="https://lin.ee/zUeMwo4" target="_blank">加入 LINE 索取體驗序號 →</a>
+      </span>
+      <span id="ios-reader-login-note" style="display:none">
+        如果你已經有 SoFa 會員序號，請在這裡登入；學習紀錄會接回同一個帳號。
+      </span>
       <br/>
       <a class="back" href="index.html">← 回主頁</a>
     </div>
@@ -741,6 +746,35 @@ const serialEl = document.getElementById('serial');
 const hintEl   = document.getElementById('hint');
 const btn      = document.getElementById('btn');
 const errEl    = document.getElementById('err');
+
+function isIOSReaderApp(){
+  try{
+    return !!(window.Capacitor && Capacitor.getPlatform && Capacitor.getPlatform() === 'ios');
+  }catch(e){
+    return false;
+  }
+}
+
+function applyIOSReaderLoginCopy(){
+  if(!isIOSReaderApp()) return;
+  document.querySelectorAll('[data-ios-reader-hide]').forEach(function(el){
+    el.style.display = 'none';
+  });
+  var sub = document.querySelector('.greet-sub');
+  if(sub){
+    sub.textContent = '輸入 SoFa 提供的序號即可登入。上次學習進度會自動接續，你不用記在哪一條。';
+  }
+  var pill = document.getElementById('serial-source-pill');
+  if(pill){
+    pill.textContent = '序號由 SoFa 提供';
+  }
+  var note = document.getElementById('ios-reader-login-note');
+  if(note){
+    note.style.display = 'inline';
+  }
+}
+
+applyIOSReaderLoginCopy();
 
 function formatSerial(el) {
   const serial = normalizeSerialForVerification(el.value, { allowPartial: true });
