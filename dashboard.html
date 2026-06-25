@@ -399,6 +399,31 @@
   .srs-limit:focus{border-color:var(--peach)}
   .srs-save{background:var(--peach);color:var(--navy);border-radius:3px;padding:9px 14px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em}
   .srs-state{font-family:var(--mono);font-size:10.5px;color:rgba(245,240,234,.45);letter-spacing:.06em;min-width:54px}
+  .study-panel{padding:18px 22px;display:grid;gap:18px}
+  .study-summary{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .study-copy{font-size:13px;color:rgba(245,240,234,.62);line-height:1.7;max-width:620px}
+  .study-copy b{display:block;color:var(--cream);font-family:var(--serif);font-size:16px;font-weight:500;margin-bottom:2px}
+  .study-weak-state{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:rgba(245,240,234,.48)}
+  .study-subjects{display:flex;flex-wrap:wrap;gap:8px}
+  .study-subject{
+    border:1px solid var(--line-2);border-radius:3px;
+    padding:7px 10px;font-family:var(--mono);font-size:10.5px;
+    letter-spacing:.06em;color:rgba(245,240,234,.66);background:rgba(255,255,255,.025);
+  }
+  .study-subject.seeded{color:var(--navy);background:var(--peach);border-color:var(--peach)}
+  .study-blocks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;border-top:1px dashed var(--line)}
+  .study-block{
+    padding:13px 0;border-bottom:1px dashed var(--line);
+    display:grid;grid-template-columns:1fr auto;gap:8px 14px;align-items:baseline;
+  }
+  .study-block .law{font-family:var(--serif);font-size:15px;color:var(--cream);font-weight:500}
+  .study-block .sub{font-size:12px;color:rgba(245,240,234,.5);grid-column:1 / -1}
+  .study-block .sig{font-family:var(--mono);font-size:11px;color:var(--peach);white-space:nowrap}
+  .study-empty{font-size:13px;color:rgba(245,240,234,.52);padding-top:2px}
+  @media (max-width:760px){
+    .study-blocks{grid-template-columns:1fr}
+    .study-summary{align-items:flex-start}
+  }
 
   /* sections */
   section.block{margin-bottom:80px;scroll-margin-top:90px}
@@ -1941,6 +1966,24 @@
               <button class="srs-save" id="srs-save" type="button" onclick="saveSrsSettings()">儲存</button>
               <span class="srs-state" id="srs-save-state"></span>
             </div>
+          </div>
+        </div>
+
+        <div class="recap" id="study-cockpit-recap" style="display:none">
+          <div class="recap-head">
+            <span class="recap-eb">COCKPIT · 今日備考座艙</span>
+            <span class="recap-more" id="study-cockpit-summary">載入中</span>
+          </div>
+          <div class="study-panel">
+            <div class="study-summary">
+              <div class="study-copy">
+                <b>照考科走，不把法規硬塞成單一分類</b>
+                目前先啟用記帳士兩個選擇題法規科目；國文、會計、租稅申報實務保留為考科容器。
+              </div>
+              <div class="study-weak-state" id="study-cockpit-weak-state"></div>
+            </div>
+            <div class="study-subjects" id="study-cockpit-subjects"></div>
+            <div class="study-blocks" id="study-cockpit-blocks"></div>
           </div>
         </div>
 
@@ -3514,6 +3557,7 @@ function _readArticle(btn, text) {
     _fetchJSON(API+'/api/me/mastery',   { headers: H }),
     _fetchJSON(API+'/api/me/review-due',{ headers: H }),
     _fetchJSON(API+'/api/me/entitlements',{ headers: H }),
+    _fetchJSON(API+'/api/me/study/today?track=bookkeeper',{ headers: H }),
   ]).then(function(results){
     var profile   = results[0];
     var progress  = results[1];
@@ -3522,10 +3566,12 @@ function _readArticle(btn, text) {
     var masteryRes = results[4];
     var dueRes     = results[5];
     var entitlementRes = results[6];
+    var studyTodayRes = results[7];
 
     _entitlementState.profile = profile || null;
     _entitlementState.data = entitlementRes && !entitlementRes.error ? entitlementRes : null;
     _entitlementState.error = entitlementRes && entitlementRes.error ? entitlementRes.detail || entitlementRes.error : null;
+    if(studyTodayRes) renderStudyToday(studyTodayRes);
 
     // ── 會員卡 ──
     if(profile){
@@ -3979,6 +4025,44 @@ function renderReviewDue(nextItems){
       '<div class="meta"><span>'+esc(badge)+'</span>'+goalTag+'</div>'+
       '</div>';
   }).join('');
+  box.style.display = '';
+}
+
+function renderStudyToday(data){
+  var box = document.getElementById('study-cockpit-recap');
+  var subjectsEl = document.getElementById('study-cockpit-subjects');
+  var blocksEl = document.getElementById('study-cockpit-blocks');
+  var summaryEl = document.getElementById('study-cockpit-summary');
+  var weakEl = document.getElementById('study-cockpit-weak-state');
+  if(!box || !subjectsEl || !blocksEl || !data) return;
+  var rules = data.scope_rules || {};
+  var subjectMode = rules.law_to_subject_mapping === 'many_to_many' ? '法規可跨考科' : '考科模式';
+  var subjects = Array.isArray(data.subjects) ? data.subjects : [];
+  var blocks = data.today && Array.isArray(data.today.blocks) ? data.today.blocks : [];
+  var statusLabels = {
+    seeded_moex_mcq: '已啟用',
+    deferred_subject_container_only: '待 seed'
+  };
+  var seededCount = subjects.filter(function(s){ return s.implementation_status === 'seeded_moex_mcq'; }).length;
+  if(summaryEl) summaryEl.textContent = subjects.length + ' 科 · ' + seededCount + ' 科已啟用';
+  if(weakEl){
+    var bridge = data.weak_law_bridge || {};
+    weakEl.textContent = bridge.items && bridge.items.length ? '弱點已接入' : '弱點資料尚未累積';
+  }
+  subjectsEl.innerHTML = subjects.map(function(s){
+    var seeded = s.implementation_status === 'seeded_moex_mcq';
+    var cls = seeded ? 'study-subject seeded' : 'study-subject';
+    var tag = statusLabels[s.implementation_status] || '待整理';
+    return '<span class="'+cls+'">'+esc(s.display_name||s.subject_key)+' · '+tag+'</span>';
+  }).join('');
+  blocksEl.innerHTML = blocks.length ? blocks.slice(0,6).map(function(b){
+    var laws = Array.isArray(b.law_names) ? b.law_names.join('、') : '';
+    return '<div class="study-block">'
+      + '<span class="law">'+esc(b.display_name||'備考區塊')+'</span>'
+      + '<span class="sig">常考 '+esc(b.question_signal||'')+' 題</span>'
+      + '<span class="sub">'+esc(b.subject||'')+' · '+esc(b.phase_key||'')+' · '+esc(subjectMode)+' · '+esc(laws)+'</span>'
+      + '</div>';
+  }).join('') : '<div class="study-empty">登入後會依考科顯示今日備考區塊。</div>';
   box.style.display = '';
 }
 
