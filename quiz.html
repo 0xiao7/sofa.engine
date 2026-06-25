@@ -348,7 +348,14 @@
   }
   .stats-panel{
     display:none;position:fixed;inset:0;z-index:200;overflow-y:auto;
-    padding:24px 16px;background:rgba(4,13,20,0.96);
+    padding:calc(24px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px));
+    background:rgba(4,13,20,0.97);
+  }
+  html.stats-open, html.stats-open body{
+    background:#040D14;
+  }
+  html.stats-open body{
+    overflow:hidden;
   }
   .stats-panel-shell{max-width:620px;margin:0 auto}
   .stats-panel-head{
@@ -369,6 +376,56 @@
     transition:background .2s,color .2s;
   }
   .stats-tabs button.on{background:var(--navy-2);color:var(--cream);font-weight:600}
+  .quiz-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+  .quiz-stat-grid.compact{margin-bottom:0}
+  .quiz-stat-card{
+    background:var(--navy-2);
+    border:1px solid rgba(245,240,234,.08);
+    border-radius:8px;
+    padding:16px;
+    text-align:center;
+  }
+  .quiz-stat-card.compact{padding:14px}
+  .quiz-stat-value{
+    font-family:var(--serif);
+    font-size:32px;
+    font-weight:700;
+    line-height:1.1;
+    color:var(--peach-2);
+  }
+  .quiz-stat-card.compact .quiz-stat-value{font-size:22px}
+  .quiz-stat-label{
+    color:rgba(231,187,167,.9);
+    font-size:12px;
+    margin-top:8px;
+  }
+  .quiz-stat-note{
+    color:rgba(245,240,234,.58);
+    font-size:11px;
+    margin-top:2px;
+  }
+  .quiz-law-section{margin-top:20px}
+  .quiz-section-label{
+    color:rgba(231,187,167,.9);
+    font-size:12px;
+    margin-bottom:10px;
+  }
+  .quiz-law-stat{
+    background:var(--navy-2);
+    border:1px solid rgba(245,240,234,.08);
+    border-radius:8px;
+    padding:11px 12px;
+    margin-bottom:8px;
+  }
+  .quiz-law-row{display:flex;justify-content:space-between;gap:12px;font-size:13px}
+  .quiz-law-name{color:var(--cream);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .quiz-law-count{color:rgba(231,187,167,.9);white-space:nowrap}
+  .quiz-law-bar{height:4px;background:rgba(245,240,234,.10);border-radius:2px;margin-top:7px;overflow:hidden}
+  .quiz-law-bar-fill{display:block;height:100%;border-radius:2px;transition:width .6s;background:rgba(231,187,167,.72)}
+  .quiz-law-bar-fill.is-strong{background:rgba(159,184,159,.78)}
+  .quiz-law-bar-fill.is-ok{background:rgba(231,187,167,.78)}
+  .quiz-law-bar-fill.is-low{background:rgba(199,123,106,.72)}
+  .quiz-law-bar-fill.is-empty{background:rgba(245,240,234,.18)}
   .weak-panel-guide{
     margin-bottom:14px;padding:13px 15px;
     background:rgba(231,187,167,.07);
@@ -1155,6 +1212,7 @@ let _sprintAnswers = []; // {chosen: idx, correct: idx, q: {text, options[]}}
 let _sprintStart = 0;    // Date.now() when sprint began
 let _examLawName = '';    // Wave 147: law name captured at exam start
 let _isExamMode = false; // Wave 147: true when inside a 模擬考 session
+const SESSION_AUTO_NEXT_DELAY_MS = 260;
 
 // ── 連續答對計數器 ────────────────────────────────────────────────
 let _quizStreak = 0;
@@ -1715,7 +1773,7 @@ function onAnswerDone(isCorrect) {
     setTimeout(showSessionSummary, 700);
   } else {
     // 連刷：答完自動出下一題（延遲讓動畫/toast 跑完）
-    setTimeout(() => { wrongMode ? loadWrongQuiz() : loadQuiz(); }, 1200);
+    setTimeout(() => { wrongMode ? loadWrongQuiz() : loadQuiz(); }, SESSION_AUTO_NEXT_DELAY_MS);
   }
 }
 
@@ -2425,6 +2483,13 @@ function _practiceWeakestLaw() {
   }
 }
 
+function _statsToneClass(pct) {
+  if (pct >= 80) return 'is-strong';
+  if (pct >= 60) return 'is-ok';
+  if (pct > 0) return 'is-low';
+  return 'is-empty';
+}
+
 function openStats() {
   const s = _loadStats();
   const total = s.total||0, correct = s.correct||0;
@@ -2439,11 +2504,12 @@ function openStats() {
   if(s.byLaw){
     const laws = Object.entries(s.byLaw).sort((a,b) => b[1].total - a[1].total).slice(0,8);
     if(laws.length > 0){
-      byLawHtml = '<div style="margin-top:20px"><div style="color:var(--peach);font-size:12px;margin-bottom:10px">各法答題分布</div>' +
+      byLawHtml = '<div class="quiz-law-section"><div class="quiz-section-label">各法答題分布</div>' +
         laws.map(([name,d]) => {
           const p = Math.round(d.correct/d.total*100);
-          const bar = `<div style="height:4px;background:rgba(231,187,167,0.15);border-radius:2px;margin-top:4px"><div style="width:${p}%;height:100%;background:${p>=80?'#9FB89F':p>=60?'var(--peach)':'var(--bad)'};border-radius:2px;transition:width 0.6s"></div></div>`;
-          return `<div style="background:var(--navy-3);border-radius:8px;padding:10px 12px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--peach)">${name}</span><span style="color:var(--peach)">${d.correct}/${d.total} (${p}%)</span></div>${bar}</div>`;
+          const tone = _statsToneClass(p);
+          const bar = `<div class="quiz-law-bar"><span class="quiz-law-bar-fill ${tone}" style="width:${p}%"></span></div>`;
+          return `<div class="quiz-law-stat"><div class="quiz-law-row"><span class="quiz-law-name">${esc(name)}</span><span class="quiz-law-count">${d.correct}/${d.total} (${p}%)</span></div>${bar}</div>`;
         }).join('') + '</div>';
     }
   }
@@ -2463,27 +2529,27 @@ function openStats() {
   _switchStatsTab('stats');
 
   document.getElementById('stats-content').innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px">
-      <div style="background:var(--navy-3);border-radius:10px;padding:16px;text-align:center">
-        <div style="font-size:32px;font-weight:700;color:var(--warn)">${pct}%</div>
-        <div style="color:var(--peach);font-size:12px;margin-top:4px">累計答對率</div>
-        <div style="color:var(--cream-3);font-size:11px;margin-top:2px">${correct}/${total} 題</div>
+    <div class="quiz-stat-grid">
+      <div class="quiz-stat-card">
+        <div class="quiz-stat-value">${pct}%</div>
+        <div class="quiz-stat-label">累計答對率</div>
+        <div class="quiz-stat-note">${correct}/${total} 題</div>
       </div>
-      <div style="background:var(--navy-3);border-radius:10px;padding:16px;text-align:center">
-        <div style="font-size:32px;font-weight:700;color:var(--peach)">${todayPct}%</div>
-        <div style="color:var(--peach);font-size:12px;margin-top:4px">今日答對率</div>
-        <div style="color:var(--cream-3);font-size:11px;margin-top:2px">${todayCorrect}/${todayTotal} 題</div>
+      <div class="quiz-stat-card">
+        <div class="quiz-stat-value">${todayPct}%</div>
+        <div class="quiz-stat-label">今日答對率</div>
+        <div class="quiz-stat-note">${todayCorrect}/${todayTotal} 題</div>
       </div>
     </div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:0">
-      <div style="background:var(--navy-3);border-radius:10px;padding:14px;text-align:center">
-        <div style="font-size:20px;font-weight:700;color:var(--warn)">${bestStreak > 0 ? bestStreak : '—'}</div>
-        <div style="color:var(--peach);font-size:11px;margin-top:4px">最高連對</div>
+    <div class="quiz-stat-grid compact">
+      <div class="quiz-stat-card compact">
+        <div class="quiz-stat-value">${bestStreak > 0 ? bestStreak : '—'}</div>
+        <div class="quiz-stat-label">最高連對</div>
       </div>
-      <div style="background:var(--navy-3);border-radius:10px;padding:14px;text-align:center">
-        <div style="font-size:20px;font-weight:700;color:var(--peach)">${avgSec}s</div>
-        <div style="color:var(--peach);font-size:11px;margin-top:4px">平均答題時間</div>
-        <div style="color:var(--cream-3);font-size:10px;margin-top:2px">${(s.timedQuestions||0) > 0 ? (s.timedQuestions + ' 題計時') : '尚無紀錄'}</div>
+      <div class="quiz-stat-card compact">
+        <div class="quiz-stat-value">${avgSec}s</div>
+        <div class="quiz-stat-label">平均答題時間</div>
+        <div class="quiz-stat-note">${(s.timedQuestions||0) > 0 ? (s.timedQuestions + ' 題計時') : '尚無紀錄'}</div>
       </div>
     </div>
     ${byLawHtml}
@@ -2492,11 +2558,14 @@ function openStats() {
     <div style="text-align:center;margin-top:20px">
       <button onclick="if(confirm('確定清除所有統計？')){localStorage.removeItem(STATS_KEY);closeStats();}" style="background:none;border:1px solid rgba(199,123,106,0.3);color:var(--bad);border-radius:16px;padding:6px 16px;font-size:12px;cursor:pointer">清除紀錄</button>
     </div>`;
+  document.documentElement.classList.add('stats-open');
   document.getElementById('stats-panel').style.display = 'block';
 }
 
 function closeStats() {
-  document.getElementById('stats-panel').style.display = 'none';
+  document.documentElement.classList.remove('stats-open');
+  const panel = document.getElementById('stats-panel');
+  if(panel) panel.style.display = 'none';
 }
 
 function _openWeakness() {
