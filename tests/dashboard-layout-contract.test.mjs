@@ -50,6 +50,7 @@ test('article drawer shows when the current article is in the wrong-question ban
   assert.match(html, /function _getQuizWrongEntry/);
   assert.match(html, /function _renderDrawerWrongAlert/);
   assert.match(html, /_renderDrawerWrongAlert\(d\.id/);
+  assert.match(html, /_renderDrawerWrongAlert\(_drPageId\)/);
   assert.match(html, /這條曾答錯/);
   assert.match(html, /quiz\.html\?open=wrong/);
 });

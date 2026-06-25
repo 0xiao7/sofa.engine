@@ -3169,7 +3169,8 @@ function _renderDrawerFallback(lawName, article){
   var body = document.getElementById('dr-body');
   if(!body) return;
   var artClean = (article||'').replace(/^§+/,'');
-  body.innerHTML = '<div style="padding:32px;text-align:center;opacity:.5;font-size:.9rem;font-family:var(--sans)">'
+  body.innerHTML = _renderDrawerWrongAlert(_drPageId)
+    + '<div style="padding:32px;text-align:center;opacity:.5;font-size:.9rem;font-family:var(--sans)">'
     + (lawName ? '§' + esc(artClean) + '　' + esc(lawName) : '——')
     + '<br><br>詳細內容請至練習頁查看</div>'
     + '<div style="padding:0 32px 24px;text-align:center">'
