@@ -54,6 +54,11 @@ test('study today makes working tools and personal planning obvious', () => {
   assert.doesNotMatch(active, /total_sessions:\s*count/);
 });
 
+test('study today action buttons are sized for mobile app shells', () => {
+  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?min-height:40px/);
+  assert.match(active, /@media \(max-width:760px\)\{[\s\S]*?\.study-action-link,\.study-pending\{[\s\S]*?min-height:44px/);
+});
+
 test('study today exposes a time-first planning box before schedule details', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
