@@ -10,11 +10,11 @@ test('dashboard uses one Chinese font stack across serif and sans tokens', () =>
 });
 
 test('today recaps are included in the sidebar navigation and scroll spy', () => {
-  assert.match(html, /<nav class="top-mid">[\s\S]*href="#study-cockpit-recap"[\s\S]*今日/);
-  assert.match(html, /href="#study-cockpit-recap"[\s\S]*今日計畫/);
-  assert.match(html, /href="#weak-laws-recap"[\s\S]*弱點法規/);
+  assert.match(html, /<nav class="top-mid">[\s\S]*href="#study-cockpit-recap"[\s\S]*今天先做/);
+  assert.match(html, /href="#study-cockpit-recap"[\s\S]*今天先做/);
+  assert.match(html, /href="quiz\.html"[\s\S]*選擇題/);
   assert.match(html, /href="#review-due"[\s\S]*今日複習/);
-  assert.match(html, /href="#srs-settings"[\s\S]*複習策略/);
+  assert.match(html, /href="quiz\.html\?open=weakness"[\s\S]*弱點分析/);
   assert.match(html, /document\.querySelectorAll\('\.nav-list a\[href\^="#"\]'\)/);
   assert.match(html, /document\.querySelectorAll\('section\.block, \.recap\[id\]'\)/);
 });
@@ -70,7 +70,7 @@ test('expiry copy reassures records continue after renewal', () => {
 });
 
 test('mobile daily bar prioritizes the exam-pass loop', () => {
-  assert.match(html, /<div id="mobile-daily-bar">[\s\S]*今日計畫/);
+  assert.match(html, /<div id="mobile-daily-bar">[\s\S]*今天先做/);
   assert.match(html, /<div id="mobile-daily-bar">[\s\S]*選擇題/);
   assert.match(html, /<div id="mobile-daily-bar">[\s\S]*今日複習/);
   assert.match(html, /<div id="mobile-daily-bar">[\s\S]*弱點分析/);
