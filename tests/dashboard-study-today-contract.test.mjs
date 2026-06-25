@@ -37,3 +37,13 @@ test('study today uses exam-facing wording instead of internal cockpit jargon', 
   assert.match(active, /今日計畫/);
   assert.doesNotMatch(active, /COCKPIT · 今日備考座艙|今日座艙/);
 });
+
+test('study today makes working tools obvious while planner controls are pending', () => {
+  assert.match(active, /class="study-actions"/);
+  assert.match(active, /現在可用/);
+  assert.match(active, /href="quiz\.html"[\s\S]*選擇題/);
+  assert.match(active, /href="#review-due"[\s\S]*今日複習/);
+  assert.match(active, /href="#weak-laws-recap"[\s\S]*弱點分析/);
+  assert.match(active, /class="study-pending"[\s\S]*aria-disabled="true"[\s\S]*個人排程準備中/);
+  assert.doesNotMatch(active, /onclick="saveStudy|onclick="toggleStudyBlock/);
+});

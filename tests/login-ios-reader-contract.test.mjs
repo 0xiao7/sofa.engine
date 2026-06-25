@@ -17,3 +17,11 @@ test('native iOS login can hide external purchase and LINE trial prompts', () =>
   assert.match(html, /querySelectorAll\('\[data-ios-reader-hide\]'\)/);
   assert.match(html, /el\.style\.display = 'none'/);
 });
+
+test('desktop login keeps the first screen compact and moves long support copy into details', () => {
+  assert.match(html, /\.auth-hero\s*\{[^}]*margin-top:\s*0[^}]*padding-bottom:\s*0/);
+  assert.match(html, /\.auth-form\s*\{[^}]*flex:\s*0 1 auto/);
+  assert.match(html, /class="auth-support-details"/);
+  assert.match(html, /<summary>序號、退費與客服說明<\/summary>/);
+  assert.match(html, /購買後 7 天內且序號未啟用/);
+});

@@ -434,6 +434,47 @@
   .study-block .sub{font-size:12px;color:rgba(245,240,234,.5);grid-column:1 / -1}
   .study-block .sig{font-family:var(--mono);font-size:11px;color:var(--peach);white-space:nowrap}
   .study-empty{font-size:13px;color:rgba(245,240,234,.52);padding-top:2px}
+  .study-actions{
+    border-top:1px dashed var(--line);
+    padding-top:14px;
+    display:flex;
+    align-items:center;
+    gap:9px;
+    flex-wrap:wrap;
+  }
+  .study-action-label{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.12em;
+    color:rgba(245,240,234,.48);
+    margin-right:2px;
+  }
+  .study-action-link,.study-pending{
+    min-height:34px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:3px;
+    padding:8px 12px;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.08em;
+    border:1px solid var(--line-2);
+  }
+  .study-action-link{
+    color:var(--cream);
+    background:rgba(231,187,167,.08);
+  }
+  .study-action-link:hover{
+    color:var(--navy);
+    background:var(--peach);
+    border-color:var(--peach);
+  }
+  .study-pending{
+    color:rgba(245,240,234,.45);
+    background:rgba(255,255,255,.025);
+    cursor:not-allowed;
+  }
   @media (max-width:760px){
     .srs-panel{
       grid-template-columns:1fr;
@@ -452,6 +493,9 @@
     .srs-limit{min-height:40px}
     .study-blocks{grid-template-columns:1fr}
     .study-summary{align-items:flex-start}
+    .study-actions{align-items:stretch}
+    .study-action-label{width:100%}
+    .study-action-link,.study-pending{flex:1 1 calc(50% - 8px);min-width:128px}
     .review-card{
       grid-template-columns:1fr;
       padding:13px 14px;
@@ -2089,6 +2133,13 @@
             </div>
             <div class="study-subjects" id="study-cockpit-subjects"></div>
             <div class="study-blocks" id="study-cockpit-blocks"></div>
+            <div class="study-actions" aria-label="今日讀書工具">
+              <span class="study-action-label">現在可用</span>
+              <a class="study-action-link" href="quiz.html">選擇題</a>
+              <a class="study-action-link" href="#review-due">今日複習</a>
+              <a class="study-action-link" href="#weak-laws-recap">弱點分析</a>
+              <span class="study-pending" aria-disabled="true">個人排程準備中</span>
+            </div>
           </div>
         </div>
 
