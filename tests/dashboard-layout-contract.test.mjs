@@ -21,7 +21,8 @@ test('today recaps are included in the sidebar navigation and scroll spy', () =>
 
 test('mobile native dashboard owns the iOS safe area', () => {
   assert.match(html, /<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" \/>/);
-  assert.match(html, /\.topbar\{[\s\S]*padding:calc\(10px \+ env\(safe-area-inset-top, 0px\)\) 12px 10px/);
+  assert.match(html, /document\.documentElement\.classList\.add\('ios-reader-app'\)/);
+  assert.match(html, /html\.ios-reader-app\s+\.topbar\{[\s\S]*padding-top:calc\(44px \+ env\(safe-area-inset-top, 0px\)\)/);
   assert.match(html, /#mobile-daily-bar\{[\s\S]*height:calc\(64px \+ env\(safe-area-inset-bottom, 0px\)\)/);
 });
 

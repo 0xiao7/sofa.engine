@@ -1751,6 +1751,9 @@
       border-bottom:1px solid rgba(23,50,68,.12);
       box-shadow:0 1px 0 rgba(255,255,255,.9);
     }
+    html.ios-reader-app .topbar{
+      padding-top:calc(44px + env(safe-area-inset-top, 0px));
+    }
     .brand{min-width:0;gap:10px}
     .brand .wm-eb{display:none}
     .brand .wm-tt{
@@ -2934,6 +2937,7 @@
 const API = 'https://sofa-engine-api.onrender.com';
 const QUIZ_WRONG_KEY = 'sofa_wrong_ids';
 function isIOSReaderApp(){try{return !!(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='ios');}catch(e){return false;}}
+if(isIOSReaderApp()) document.documentElement.classList.add('ios-reader-app');
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function displayArticleNo(raw){
   var clean = String(raw || '').replace(/^§+/, '').trim();
