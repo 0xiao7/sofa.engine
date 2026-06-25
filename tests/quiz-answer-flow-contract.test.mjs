@@ -15,6 +15,18 @@ test('post-answer actions place next question next to view article', () => {
   assert.match(actionRow, /id="btnNext"/);
 });
 
+test('quiz usage hint is near the question instead of hidden at the page bottom', () => {
+  const stemStart = active.indexOf('class="q-stem"');
+  const optsStart = active.indexOf('id="optionsBox"', stemStart);
+  assert.ok(stemStart > -1 && optsStart > stemStart, 'question stem and options must exist');
+  const between = active.slice(stemStart, optsStart);
+
+  assert.match(between, /id="quiz-use-hint"/);
+  assert.match(between, /怎麼作答/);
+  assert.match(between, /點一個答案，答完看法條或下一題/);
+  assert.match(active, /#kb-hint\{display:none\}/);
+});
+
 test('quiz weakness rail fetches authenticated weak-laws fallback', () => {
   assert.match(active, /\/api\/me\/weak-laws/);
   assert.match(active, /function _renderRemoteWeakLaws/);

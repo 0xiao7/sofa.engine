@@ -38,20 +38,23 @@ test('study today uses exam-facing wording instead of internal cockpit jargon', 
   assert.doesNotMatch(active, /COCKPIT · 今日備考座艙|今日座艙/);
 });
 
-test('study today makes working tools obvious while planner controls are pending', () => {
+test('study today makes working tools and personal planning obvious', () => {
   assert.match(active, /class="study-actions"/);
   assert.match(active, /下一步/);
   assert.match(active, /class="study-action-link primary" href="quiz\.html"[\s\S]*開始選擇題/);
   assert.match(active, /href="#review-due"[\s\S]*看今日複習/);
   assert.match(active, /href="quiz\.html\?open=weakness"[\s\S]*看弱點分析/);
-  assert.match(active, /class="study-pending"[\s\S]*aria-disabled="true"[\s\S]*個人排程稍後開放/);
-  assert.doesNotMatch(active, /onclick="saveStudy|onclick="toggleStudyBlock/);
+  assert.match(active, /onclick="openStudyPlanPanel\(\)"[\s\S]*設定讀書課程/);
+  assert.match(active, /id="study-plan-panel"/);
+  assert.match(active, /適合函授、補習班課程、模考或自己的週任務/);
+  assert.match(active, /function saveStudySeries/);
+  assert.match(active, /\/api\/me\/study\/series/);
 });
 
 test('study today puts next-step actions before lower-priority subject detail', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
-  const recap = active.slice(recapStart, recapStart + 2600);
+  const recap = active.slice(recapStart, recapStart + 4200);
   const actionIndex = recap.indexOf('class="study-actions"');
   const subjectsIndex = recap.indexOf('id="study-cockpit-subjects"');
   const blocksIndex = recap.indexOf('id="study-cockpit-blocks"');

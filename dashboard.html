@@ -476,11 +476,58 @@
     background:var(--peach);
     border-color:var(--peach);
   }
+  .study-action-button{
+    appearance:none;
+    font:inherit;
+    cursor:pointer;
+  }
   .study-pending{
     color:rgba(245,240,234,.45);
     background:rgba(255,255,255,.025);
     cursor:not-allowed;
   }
+  .study-plan-panel{
+    display:none;
+    border:1px solid rgba(231,187,167,.2);
+    background:rgba(2,12,18,.18);
+    padding:14px;
+    gap:12px;
+  }
+  .study-plan-panel.on{display:grid}
+  .study-plan-grid{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+  }
+  .study-plan-field label{
+    display:block;
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.12em;
+    color:rgba(245,240,234,.45);
+    margin-bottom:5px;
+  }
+  .study-plan-field input,.study-plan-field select{
+    width:100%;
+    box-sizing:border-box;
+    border:1px solid rgba(245,240,234,.14);
+    background:rgba(2,12,18,.45);
+    color:var(--cream);
+    padding:9px 10px;
+    border-radius:4px;
+    font-size:13px;
+  }
+  .study-plan-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .study-plan-save{
+    border:1px solid var(--peach);
+    background:var(--peach);
+    color:var(--navy);
+    padding:9px 14px;
+    border-radius:4px;
+    font-weight:800;
+    cursor:pointer;
+  }
+  .study-plan-state{font-size:12px;color:rgba(245,240,234,.55)}
   @media (max-width:760px){
     .srs-panel{
       grid-template-columns:1fr;
@@ -502,6 +549,8 @@
     .study-actions{align-items:stretch}
     .study-action-label{width:100%}
     .study-action-link,.study-pending{flex:1 1 calc(50% - 8px);min-width:128px}
+    .study-plan-grid{grid-template-columns:1fr 1fr}
+    .study-plan-field.full{grid-column:1 / -1}
     .review-card{
       grid-template-columns:1fr;
       padding:13px 14px;
@@ -1340,6 +1389,30 @@
     font-feature-settings:"lnum";
   }
   .dr-title .tt{font-family:var(--serif);font-weight:500;font-size:22px;color:var(--navy);line-height:1.4}
+  .dr-wrong-alert{
+    margin-top:14px;
+    border:1px solid rgba(200,149,128,.32);
+    background:rgba(231,187,167,.16);
+    color:var(--navy);
+    padding:12px 14px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    font-size:13px;
+    line-height:1.55;
+  }
+  .dr-wrong-alert b{color:var(--peach-3);font-weight:800}
+  .dr-wrong-alert a{
+    flex-shrink:0;
+    border:1px solid rgba(200,149,128,.42);
+    color:var(--peach-3);
+    padding:6px 10px;
+    border-radius:4px;
+    font-size:12px;
+    font-weight:700;
+  }
+  .dr-wrong-alert a:hover{background:rgba(231,187,167,.18)}
   .dr-meta{
     margin-top:18px;padding:14px 18px;
     background:#fff;border-radius:3px;border:1px solid var(--cream-3);
@@ -2102,7 +2175,51 @@
               <a class="study-action-link primary" href="quiz.html">開始選擇題</a>
               <a class="study-action-link" href="#review-due">看今日複習</a>
               <a class="study-action-link" href="quiz.html?open=weakness">看弱點分析</a>
-              <span class="study-pending" aria-disabled="true">個人排程稍後開放</span>
+              <button class="study-action-link study-action-button" type="button" onclick="openStudyPlanPanel()">設定讀書課程</button>
+            </div>
+            <div class="study-plan-panel" id="study-plan-panel" aria-label="個人讀書課程">
+              <div class="study-plan-grid">
+                <div class="study-plan-field full">
+                  <label for="study-plan-title">課程</label>
+                  <input id="study-plan-title" value="會計學函授" maxlength="40">
+                </div>
+                <div class="study-plan-field">
+                  <label for="study-plan-subject">科目</label>
+                  <input id="study-plan-subject" value="會計學" maxlength="24">
+                </div>
+                <div class="study-plan-field">
+                  <label for="study-plan-count">堂數</label>
+                  <input id="study-plan-count" type="number" min="1" max="60" value="20">
+                </div>
+                <div class="study-plan-field">
+                  <label for="study-plan-weekday">固定日</label>
+                  <select id="study-plan-weekday">
+                    <option value="0">星期一</option>
+                    <option value="1">星期二</option>
+                    <option value="2" selected>星期三</option>
+                    <option value="3">星期四</option>
+                    <option value="4">星期五</option>
+                    <option value="5">星期六</option>
+                    <option value="6">星期日</option>
+                  </select>
+                </div>
+                <div class="study-plan-field">
+                  <label for="study-plan-start">開始日</label>
+                  <input id="study-plan-start" type="date">
+                </div>
+                <div class="study-plan-field">
+                  <label for="study-plan-time">時間</label>
+                  <input id="study-plan-time" type="time" value="19:00">
+                </div>
+                <div class="study-plan-field">
+                  <label for="study-plan-source">來源</label>
+                  <input id="study-plan-source" value="自排" maxlength="24">
+                </div>
+              </div>
+              <div class="study-plan-row">
+                <button class="study-plan-save" type="button" onclick="saveStudySeries()">排入讀書計畫</button>
+                <span class="study-plan-state" id="study-plan-state">適合函授、補習班課程、模考或自己的週任務。</span>
+              </div>
             </div>
             <div class="study-subjects" id="study-cockpit-subjects"></div>
             <div class="study-blocks" id="study-cockpit-blocks"></div>
@@ -2618,6 +2735,7 @@
 <script>
 // ── 全域常數 ─────────────────────────────────────────────
 const API = 'https://sofa-engine-api.onrender.com';
+const QUIZ_WRONG_KEY = 'sofa_wrong_ids';
 function isIOSReaderApp(){try{return !!(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='ios');}catch(e){return false;}}
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function displayArticleNo(raw){
@@ -2826,6 +2944,28 @@ function _switchDrawerTab(tab){
   }
 }
 
+function _getQuizWrongEntry(pageId){
+  if(!pageId) return null;
+  try{
+    var bank = JSON.parse(localStorage.getItem(QUIZ_WRONG_KEY) || '[]');
+    if(!Array.isArray(bank)) return null;
+    return bank.filter(function(item){ return item && item.id === pageId; })[0] || null;
+  }catch(e){
+    return null;
+  }
+}
+
+function _renderDrawerWrongAlert(pageId){
+  var hit = _getQuizWrongEntry(pageId);
+  if(!hit) return '';
+  var count = Math.max(1, parseInt(hit.errorCount || 1, 10) || 1);
+  var countText = count > 1 ? (' ' + count + ' 次') : '';
+  return '<div class="dr-wrong-alert">'
+    + '<span><b>這條曾答錯' + esc(countText) + '</b>，現在看原文就是在補剛剛漏掉的考點。</span>'
+    + '<a href="quiz.html?open=wrong">重練錯題</a>'
+    + '</div>';
+}
+
 // ── Wave 105: 最近瀏覽（Recently Viewed）──────────────────────
 var RECENT_KEY = 'sofa_recent_views';
 
@@ -3007,6 +3147,7 @@ function _renderDrawer(d){
   body.innerHTML =
     '<span class="dr-eyebrow">ARTICLE' + (imp ? ' · ' + esc(imp) : '') + '</span>'
     + '<div class="dr-title"><span class="n">' + esc(artNum) + '</span><span class="tt">' + esc(artTitle) + '</span></div>'
+    + _renderDrawerWrongAlert(d.id)
     + '<div class="dr-actions">'
     + '<button class="dr-chip" onclick="drToggleBookmark(this)"><span>☆</span>收藏</button>'
     + '<button class="dr-chip" onclick="drToggleMastered(this)"><span>○</span>已熟記</button>'
@@ -4287,6 +4428,78 @@ function renderStudyToday(data){
       + '</div>';
   }).join('') : '<div class="study-empty">先從「開始選擇題」做一題；登入或輸入序號後，這裡會接上個人化讀書區塊。</div>';
   box.style.display = '';
+}
+
+function _todayInputValue(){
+  var now = new Date();
+  return now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+}
+
+function openStudyPlanPanel(){
+  var panel = document.getElementById('study-plan-panel');
+  var state = document.getElementById('study-plan-state');
+  var start = document.getElementById('study-plan-start');
+  if(!panel) return;
+  panel.classList.toggle('on');
+  if(start && !start.value) start.value = _todayInputValue();
+  if(state && panel.classList.contains('on')){
+    state.textContent = '填課名、堂數和固定日；排入後每堂仍可單獨調整。';
+  }
+}
+
+function _studyVal(id){
+  var el = document.getElementById(id);
+  return el ? String(el.value || '').trim() : '';
+}
+
+async function saveStudySeries(){
+  var state = document.getElementById('study-plan-state');
+  var saveBtn = document.querySelector('.study-plan-save');
+  function tell(msg){ if(state) state.textContent = msg; }
+  var uid = localStorage.getItem('sofa_uid') || '';
+  var token = localStorage.getItem('sofa_token') || '';
+  if(!uid && !token){
+    tell('先登入或輸入序號後，才能把課程存到你的帳號。');
+    return;
+  }
+  var title = _studyVal('study-plan-title') || '讀書課程';
+  var subject = _studyVal('study-plan-subject') || title;
+  var count = Math.max(1, Math.min(60, parseInt(_studyVal('study-plan-count') || '1', 10) || 1));
+  var weekday = parseInt(_studyVal('study-plan-weekday') || '0', 10);
+  var startDate = _studyVal('study-plan-start') || _todayInputValue();
+  var defaultTime = _studyVal('study-plan-time') || '19:00';
+  var sourceLabel = _studyVal('study-plan-source') || '自排';
+  var body = {
+    track_key: 'bookkeeper',
+    title: title,
+    subject: subject,
+    total_sessions: count,
+    weekday: weekday,
+    start_date: startDate,
+    default_time: defaultTime,
+    source_label: sourceLabel
+  };
+  tell('排入中…');
+  if(saveBtn) saveBtn.disabled = true;
+  try{
+    var res = await _fetchJSON(API + '/api/me/study/series', {
+      method: 'POST',
+      headers: _authH({'Content-Type':'application/json'}),
+      body: JSON.stringify(body)
+    }, 1);
+    if(res && (res.ok || res.items || res.series_id)){
+      var made = Array.isArray(res.items) ? res.items.length : count;
+      tell('已排入 ' + made + ' 堂；之後可以再單堂改期。');
+      var panel = document.getElementById('study-plan-panel');
+      if(panel) panel.classList.remove('on');
+    } else {
+      tell('暫時存不進帳號；先不要重複按，稍後再試一次。');
+    }
+  }catch(e){
+    tell('網路暫時不穩，稍後再排入。');
+  }finally{
+    if(saveBtn) saveBtn.disabled = false;
+  }
 }
 
 document.addEventListener('keydown', function(ev){

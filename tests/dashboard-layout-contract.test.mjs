@@ -45,6 +45,15 @@ test('article result rows protect long titles from vertical squeeze', () => {
   assert.match(html, /\.res-row \.ttl\s*\{[\s\S]*?overflow-wrap:anywhere/);
 });
 
+test('article drawer shows when the current article is in the wrong-question bank', () => {
+  assert.match(html, /const QUIZ_WRONG_KEY = 'sofa_wrong_ids'/);
+  assert.match(html, /function _getQuizWrongEntry/);
+  assert.match(html, /function _renderDrawerWrongAlert/);
+  assert.match(html, /_renderDrawerWrongAlert\(d\.id/);
+  assert.match(html, /這條曾答錯/);
+  assert.match(html, /quiz\.html\?open=wrong/);
+});
+
 test('expire overlay explains feedback and sharing extension rules', () => {
   assert.match(html, /id="expire-overlay"/);
   assert.match(html, /回饋缺點 \+10 天/);
