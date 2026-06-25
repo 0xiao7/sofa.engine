@@ -49,6 +49,14 @@ test('study today makes working tools and personal planning obvious', () => {
   assert.match(active, /適合函授、補習班課程、模考或自己的週任務/);
   assert.match(active, /function saveStudySeries/);
   assert.match(active, /\/api\/me\/study\/series/);
+  assert.match(active, /count:\s*count/);
+  assert.doesNotMatch(active, /total_sessions:\s*count/);
+});
+
+test('study today uses learner-facing subject status wording, not seed jargon', () => {
+  assert.match(active, /已可練習/);
+  assert.match(active, /題庫準備中/);
+  assert.doesNotMatch(active, /待 seed/);
 });
 
 test('study today puts next-step actions before lower-priority subject detail', () => {

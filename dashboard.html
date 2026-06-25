@@ -4403,11 +4403,11 @@ function renderStudyToday(data){
   var subjects = Array.isArray(data.subjects) ? data.subjects : [];
   var blocks = data.today && Array.isArray(data.today.blocks) ? data.today.blocks : [];
   var statusLabels = {
-    seeded_moex_mcq: '已啟用',
-    deferred_subject_container_only: '待 seed'
+    seeded_moex_mcq: '已可練習',
+    deferred_subject_container_only: '題庫準備中'
   };
   var seededCount = subjects.filter(function(s){ return s.implementation_status === 'seeded_moex_mcq'; }).length;
-  if(summaryEl) summaryEl.textContent = data.fallback ? '先做 1 題開始累積弱點' : (subjects.length + ' 科 · ' + seededCount + ' 科已啟用');
+  if(summaryEl) summaryEl.textContent = data.fallback ? '先做 1 題開始累積弱點' : (subjects.length + ' 科 · ' + seededCount + ' 科可練習');
   var navStudy = document.getElementById('nav-ct-study');
   if(navStudy) navStudy.textContent = seededCount ? (seededCount + '/' + subjects.length) : '';
   if(weakEl){
@@ -4474,7 +4474,7 @@ async function saveStudySeries(){
     track_key: 'bookkeeper',
     title: title,
     subject: subject,
-    total_sessions: count,
+    count: count,
     weekday: weekday,
     start_date: startDate,
     default_time: defaultTime,
