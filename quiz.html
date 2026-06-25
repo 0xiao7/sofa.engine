@@ -314,9 +314,16 @@
   @keyframes fadeInUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
 
   /* ── Wave 68: 查看法條按鈕 ── */
+  #quiz-answer-actions {
+    margin-top: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
   #view-article-btn {
     display: none;
-    margin-top: 10px;
     padding: 6px 14px;
     background: none;
     border: 1px solid var(--navy-2);
@@ -327,6 +334,18 @@
     transition: border-color 0.2s, color 0.2s;
   }
   #view-article-btn:hover { border-color: var(--peach); color: var(--peach); }
+  #quiz-answer-actions #btnNext {
+    display: none;
+    padding: 7px 16px;
+    border-radius: 16px;
+    font-size: 13px;
+  }
+  .weak-empty {
+    font-family: var(--mono);
+    font-size: 11px;
+    line-height: 1.7;
+    color: rgba(245,240,234,.42);
+  }
 
   /* ── Wave 61: 鍵盤提示徽章 ── */
   #kb-hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(26,46,61,0.85);color:var(--cream-3);font-size:12px;padding:5px 14px;border-radius:12px;pointer-events:none;transition:opacity 0.5s;z-index:100;font-family:var(--mono);letter-spacing:.06em;}
@@ -499,9 +518,10 @@
 
         <div class="opts" id="optionsBox"></div>
         <div id="streak-badge"></div>
-        <div style="margin-top:10px;display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap">
+        <div id="quiz-answer-actions">
           <div id="quiz-citation"></div>
           <button id="view-article-btn" onclick="_openArticleDashboard()">查看法條</button>
+          <button class="btn btn-pri" id="btnNext">下一題 <span class="k">↵</span></button>
         </div>
 
         <div class="explain" id="explainBox" style="display:none">
@@ -523,7 +543,6 @@
           <div class="r">
             <button class="btn btn-ghost" id="btnFlag">⚑ 標記</button>
             <button class="btn btn-sec">← 上一題</button>
-            <button class="btn btn-pri" id="btnNext">下一題 <span class="k">↵</span></button>
           </div>
         </div>
       </div>
@@ -1683,6 +1702,7 @@ function _feedbackAnim(btn, isCorrect, elapsedSec){
   if(isCorrect){ _playCorrect(); } else { _playWrong(); }
   // Wave 68: 顯示「查看法條」按鈕
   document.getElementById('view-article-btn').style.display = 'inline-block';
+  document.getElementById('btnNext').style.display = 'inline-flex';
 }
 
 // Wave 68: 開啟 dashboard.html 並帶入法規名稱
@@ -1767,6 +1787,7 @@ async function loadQuiz(){
   document.getElementById('optionsBox').innerHTML='';
   (function(){const _cit=document.getElementById('quiz-citation');if(_cit)_cit.classList.remove('show');})();
   document.getElementById('view-article-btn').style.display='none';
+  document.getElementById('btnNext').style.display='none';
   document.getElementById('explainBox').style.display='none';
   document.getElementById('qSrc').innerHTML='—';
   updateScore();
@@ -2123,6 +2144,7 @@ async function loadWrongQuiz() {
   document.getElementById('optionsBox').innerHTML='';
   (function(){const _cit=document.getElementById('quiz-citation');if(_cit)_cit.classList.remove('show');})();
   document.getElementById('view-article-btn').style.display='none';
+  document.getElementById('btnNext').style.display='none';
   document.getElementById('explainBox').style.display='none';
   document.getElementById('qSrc').innerHTML='—';
   updateScore();
@@ -2416,6 +2438,67 @@ onPaidResolved(function(){
   }
 });
 
+let _remoteWeakLawsLoaded = false;
+let _remoteWeakLawsInFlight = false;
+
+function _weakEmptyText() {
+  return '<div class="weak-empty">目前還沒有弱點資料。答錯題後會累積到這裡。</div>';
+}
+
+function _renderRemoteWeakLaws(items) {
+  const el = document.getElementById('rail-weak-laws');
+  const cntEl = document.getElementById('nav-wrong-cnt');
+  if (!el) return;
+  const list = Array.isArray(items) ? items.filter(x => (x.wrong_count || 0) > 0) : [];
+  if (cntEl) cntEl.textContent = list.length ? list.reduce((s, l) => s + (l.wrong_count || 0), 0) : '';
+  if (!list.length) {
+    el.innerHTML = _weakEmptyText();
+    return;
+  }
+  el.innerHTML = list.slice(0, 5).map(item => {
+    const law = item.law_name || '未分類法規';
+    const attempts = item.attempt_count || 0;
+    const correct = item.correct_count || 0;
+    const pct = attempts ? Math.round(correct / attempts * 100) : 0;
+    const top = (item.top_articles || []).slice(0, 2).map(a => {
+      const label = a.article || (a.article_no ? `§${a.article_no}` : '代表條文');
+      return `<div style="font-size:10px;color:rgba(245,240,234,.42);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(label)} ✗${a.wrong_count || 0}</div>`;
+    }).join('');
+    const bar = `<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin:3px 0 2px"><div style="width:${pct}%;height:100%;background:${pct>=80?'#9FB89F':pct>=50?'var(--peach)':'var(--bad)'};border-radius:2px"></div></div>`;
+    return `<div style="margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
+        <span style="font-size:11px;color:var(--peach);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${esc(law)}</span>
+        <button onclick="_drillLawAuto(${JSON.stringify(law)})" style="flex-shrink:0;background:rgba(199,123,106,.1);border:1px solid rgba(199,123,106,.3);color:var(--bad);border-radius:8px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:var(--mono)">練習</button>
+      </div>
+      <div style="font-family:var(--mono);font-size:10px;color:var(--bad)">✗ ${item.wrong_count || 0}題 &nbsp;<span style="color:rgba(245,240,234,.35)">${pct}%正確</span></div>
+      ${bar}${top}
+    </div>`;
+  }).join('');
+}
+
+function _loadRemoteWeakLaws() {
+  const el = document.getElementById('rail-weak-laws');
+  if (!el || _remoteWeakLawsLoaded || _remoteWeakLawsInFlight) return;
+  if (!uid || uid === 'PREVIEW' || isFree) {
+    el.innerHTML = _weakEmptyText();
+    return;
+  }
+  _remoteWeakLawsInFlight = true;
+  el.innerHTML = '<div class="weak-empty">弱點資料載入中...</div>';
+  fetch(`${API}/api/me/weak-laws`, { headers: _authH() })
+    .then(r => r.ok ? r.json() : Promise.reject(new Error('weak-laws ' + r.status)))
+    .then(data => {
+      _remoteWeakLawsLoaded = true;
+      _renderRemoteWeakLaws((data && data.items) || []);
+    })
+    .catch(() => {
+      el.innerHTML = _weakEmptyText();
+    })
+    .finally(() => {
+      _remoteWeakLawsInFlight = false;
+    });
+}
+
 function _renderRailWeakness() {
   const s = _loadStats();
   const byLaw = s.byLaw || {};
@@ -2431,7 +2514,7 @@ function _renderRailWeakness() {
   if (cntEl) cntEl.textContent = lawWrongs.length ? lawWrongs.reduce((s,l)=>s+l.wrong,0) : '';
 
   if (lawWrongs.length === 0) {
-    el.innerHTML = '<div style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.3)">目前無錯題</div>';
+    _loadRemoteWeakLaws();
     return;
   }
 
