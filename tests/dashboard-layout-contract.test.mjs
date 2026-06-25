@@ -56,6 +56,19 @@ test('expire overlay explains feedback and sharing extension rules', () => {
   assert.match(html, /隔天依信任制自動補登體驗天數/);
 });
 
+test('member card surfaces renewal before expiry without hiding payment', () => {
+  assert.match(html, /id="mc-renewal-nudge"/);
+  assert.match(html, /保留弱點分析、今日複習和會員期限明細/);
+  assert.match(html, /href="pricing\.html"[\s\S]*續用方案/);
+  assert.match(html, /function renderMembershipRenewalNudge/);
+  assert.match(html, /daysLeft <= 10/);
+});
+
+test('expiry copy reassures records continue after renewal', () => {
+  assert.match(html, /答題紀錄、弱點分析與今日複習不會消失/);
+  assert.match(html, /續用後會直接接回你的進度/);
+});
+
 test('mobile daily bar prioritizes the exam-pass loop', () => {
   assert.match(html, /<div id="mobile-daily-bar">[\s\S]*今日任務/);
   assert.match(html, /<div id="mobile-daily-bar">[\s\S]*選擇題/);

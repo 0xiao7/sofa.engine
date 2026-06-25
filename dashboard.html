@@ -579,6 +579,22 @@
     cursor:pointer;
   }
   .mc-goal-nudge button:hover{border-color:var(--peach);background:rgba(231,187,167,.18)}
+  .mc-renewal-nudge{
+    display:none;margin-top:20px;padding:14px 16px;
+    border:1px solid rgba(231,187,167,.30);border-radius:4px;
+    background:rgba(231,187,167,.075);
+    align-items:center;justify-content:space-between;gap:14px;
+    color:rgba(245,240,234,.72);
+  }
+  .mc-renewal-nudge.on{display:flex}
+  .mc-renewal-copy{font-size:13px;line-height:1.65;letter-spacing:.03em;min-width:0}
+  .mc-renewal-copy b{display:block;color:var(--peach);font-size:15px;margin-bottom:2px;font-weight:600}
+  .mc-renewal-cta{
+    flex:0 0 auto;border:1px solid rgba(231,187,167,.55);border-radius:4px;
+    padding:7px 14px;color:var(--peach);font-family:var(--mono);
+    font-size:11px;letter-spacing:.08em;text-decoration:none;white-space:nowrap;
+  }
+  .mc-renewal-cta:hover{background:rgba(231,187,167,.14);border-color:var(--peach)}
   .mc-id{
     margin-top:6px;
     font-family:var(--mono);font-size:11.5px;
@@ -1431,6 +1447,7 @@
     .mc-r{display:none}
     .mc-stub-lab{position:static;margin-bottom:14px}
     .mc-stats{grid-template-columns:1fr 1fr;gap:20px}
+    .mc-renewal-nudge{align-items:flex-start;flex-direction:column}
   }
   @media (max-width: 760px){
     :root{
@@ -2130,6 +2147,13 @@
                   <div class="k">啟用日</div>
                   <div class="v" id="mc-start">——</div>
                 </div>
+              </div>
+              <div class="mc-renewal-nudge" id="mc-renewal-nudge">
+                <div class="mc-renewal-copy">
+                  <b id="mc-renewal-title">快到期了</b>
+                  保留弱點分析、今日複習和會員期限明細，續用後會接著現在的進度算。
+                </div>
+                <a class="mc-renewal-cta" href="pricing.html">續用方案</a>
               </div>
             </div>
             <div class="perf"></div>
@@ -3637,6 +3661,35 @@ function _readArticle(btn, text) {
     return s.slice(0,10).replace(/-/g,'.');
   }
 
+  function daysUntilExpiry(expire){
+    if(!expire) return null;
+    var raw = String(expire).slice(0,10);
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(raw)) return null;
+    var today = new Date();
+    today.setHours(0,0,0,0);
+    var end = new Date(raw + 'T00:00:00');
+    if(isNaN(end.getTime())) return null;
+    end.setHours(0,0,0,0);
+    return Math.ceil((end.getTime() - today.getTime()) / 86400000);
+  }
+
+  function renderMembershipRenewalNudge(profile, isExpired){
+    var box = document.getElementById('mc-renewal-nudge');
+    var title = document.getElementById('mc-renewal-title');
+    if(!box || !profile) return;
+    box.classList.remove('on');
+    if(isIOSReaderApp()) return;
+    if((profile.plan || '') === 'Admin' || isExpired) return;
+    var daysLeft = daysUntilExpiry(profile.expire || '');
+    if(daysLeft === null || daysLeft < 0 || !(daysLeft <= 10)) return;
+    if(title){
+      title.textContent = daysLeft === 0
+        ? '今天到期，先把考前節奏留住'
+        : '還有 ' + daysLeft + ' 天到期，先把考前節奏留住';
+    }
+    box.classList.add('on');
+  }
+
   Promise.all([
     _fetchJSON(API+'/api/me/profile',   { headers: H }),
     _fetchJSON(API+'/api/me/progress',  { headers: H }),
@@ -3687,6 +3740,7 @@ function _readArticle(btn, text) {
       setText('mc-expire', expire ? fmtDate(expire) : '永久有效');
       setText('mc-avatar', (name || '—').charAt(0).toUpperCase());
       setText('mc-who', (name || '—').toUpperCase());
+      renderMembershipRenewalNudge(profile, isExpired);
 
       // P0-C：已到期且非 Admin → 顯示覆蓋層
       if(isExpired && plan !== 'Admin' && !isIOSReaderApp()){
@@ -5144,7 +5198,8 @@ sections.forEach(s=>io.observe(s));
     </h2>
     <p style="font-size:0.95rem;opacity:0.8;line-height:1.6;margin:0 0 2rem;">
       你的備考旅程還沒結束。<br>
-      續訂後馬上恢復所有學習進度。
+      答題紀錄、弱點分析與今日複習不會消失；<br>
+      續用後會直接接回你的進度。
     </p>
     <div style="text-align:left;background:rgba(231,187,167,0.08);border:1px solid rgba(231,187,167,0.22);
       border-radius:10px;padding:1rem 1.05rem;margin:0 0 1rem;color:rgba(245,240,234,0.82);font-family:var(--sans);
