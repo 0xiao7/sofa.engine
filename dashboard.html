@@ -2992,6 +2992,36 @@ async function _fetchJSON(url, opts, tries){
   return null;
 }
 
+async function _fetchStudyJSON(url, opts){
+  try{
+    var r = await fetch(url, opts);
+    var text = await r.text();
+    var data = null;
+    if(text){
+      try{ data = JSON.parse(text); }
+      catch(e){ data = { detail: text }; }
+    }
+    if(r.ok) return data || {};
+    data = data && typeof data === 'object' ? data : {};
+    data.__http_status = r.status;
+    return data;
+  }catch(e){
+    return { __network_error: true };
+  }
+}
+
+function _studySaveMessage(res, fallback){
+  var detail = res && res.detail;
+  var reason = detail && typeof detail === 'object' ? detail.reason : res && res.reason;
+  var status = detail && typeof detail === 'object' ? detail.status : res && res.status;
+  if(reason === 'schema_pending' || status === 'unavailable'){
+    return '功能準備中：這筆會等資料表上線後才能儲存，先不要重複送出。';
+  }
+  if(res && res.__http_status === 401) return '先登入或輸入序號後，才能存到你的帳號。';
+  if(res && res.__network_error) return '網路暫時不穩，稍後再試。';
+  return fallback;
+}
+
 // ── Drawer 動態開啟 ──────────────────────────────────────
 var _drPageId = '';
 var _drLawName = '';
@@ -4777,17 +4807,17 @@ async function saveStudyPlanImport(){
   }
   tell('匯入中…');
   try{
-    var res = await _fetchJSON(API + '/api/me/study/plan-items/bulk', {
+    var res = await _fetchStudyJSON(API + '/api/me/study/plan-items/bulk', {
       method: 'POST',
       headers: _authH({'Content-Type':'application/json'}),
       body: JSON.stringify({ track_key:'bookkeeper', source_label:'匯入課表', import_source:'pasted_schedule', items:items })
-    }, 1);
+    });
     if(res && res.ok){
       tell('已匯入 ' + (res.count || items.length) + ' 筆私人計畫。');
       var latest = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
       renderStudyToday(latest || null);
     } else {
-      tell('暫時匯入失敗，請稍後再試。');
+      tell(_studySaveMessage(res, '暫時匯入失敗，請稍後再試。'));
     }
   }catch(e){
     tell('網路暫時不穩，稍後再匯入。');
@@ -4824,18 +4854,18 @@ async function saveStudySeries(){
   tell('排入中…');
   if(saveBtn) saveBtn.disabled = true;
   try{
-    var res = await _fetchJSON(API + '/api/me/study/series', {
+    var res = await _fetchStudyJSON(API + '/api/me/study/series', {
       method: 'POST',
       headers: _authH({'Content-Type':'application/json'}),
       body: JSON.stringify(body)
-    }, 1);
+    });
     if(res && (res.ok || res.items || res.series_id)){
       var made = Array.isArray(res.items) ? res.items.length : count;
       tell('已排入 ' + made + ' 堂；之後可以再單堂改期。');
       var panel = document.getElementById('study-plan-panel');
       if(panel) panel.classList.remove('on');
     } else {
-      tell('暫時存不進帳號；先不要重複按，稍後再試一次。');
+      tell(_studySaveMessage(res, '暫時存不進帳號；先不要重複按，稍後再試一次。'));
     }
   }catch(e){
     tell('網路暫時不穩，稍後再排入。');

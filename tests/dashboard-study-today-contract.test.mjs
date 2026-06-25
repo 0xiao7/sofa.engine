@@ -149,3 +149,14 @@ test('study today remains visible for free users or missing study API data', () 
   assert.match(fn, /先做 1 題開始累積弱點/);
   assert.match(fn, /先從「開始選擇題」做一題/);
 });
+
+test('study planning saves translate schema-pending responses into a readable preparing state', () => {
+  assert.match(active, /function _fetchStudyJSON/);
+  assert.match(active, /__http_status/);
+  assert.match(active, /schema_pending/);
+  assert.match(active, /function _studySaveMessage/);
+  assert.match(active, /功能準備中/);
+  assert.match(active, /saveStudySeries[\s\S]*_fetchStudyJSON\(API \+ '\/api\/me\/study\/series'/);
+  assert.match(active, /saveStudyPlanImport[\s\S]*_fetchStudyJSON\(API \+ '\/api\/me\/study\/plan-items\/bulk'/);
+  assert.doesNotMatch(active, /schema_pending[\s\S]{0,200}暫時存不進帳號；先不要重複按/);
+});
