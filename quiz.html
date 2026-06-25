@@ -346,6 +346,77 @@
     line-height: 1.7;
     color: rgba(245,240,234,.42);
   }
+  .stats-panel{
+    display:none;position:fixed;inset:0;z-index:200;overflow-y:auto;
+    padding:24px 16px;background:rgba(4,13,20,0.96);
+  }
+  .stats-panel-shell{max-width:620px;margin:0 auto}
+  .stats-panel-head{
+    display:flex;align-items:flex-start;justify-content:space-between;gap:18px;
+    margin-bottom:16px;
+  }
+  .stats-panel-title{color:var(--cream);font-family:var(--serif);margin:0;font-size:22px;line-height:1.2}
+  .stats-panel-sub{margin-top:5px;color:rgba(245,240,234,.48);font-size:12px;line-height:1.6}
+  .stats-close{
+    background:none;border:1px solid rgba(231,187,167,0.4);color:var(--peach);
+    border-radius:50%;width:36px;height:36px;cursor:pointer;font-size:16px;flex-shrink:0;
+  }
+  .stats-tabs{display:flex;gap:6px;margin-bottom:16px}
+  .stats-tabs button{
+    flex:1;padding:9px 0;border-radius:20px;border:none;
+    background:rgba(255,255,255,0.06);color:rgba(245,240,234,0.45);
+    font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:400;
+    transition:background .2s,color .2s;
+  }
+  .stats-tabs button.on{background:var(--navy-2);color:var(--cream);font-weight:600}
+  .weak-panel-guide{
+    margin-bottom:14px;padding:13px 15px;
+    background:rgba(231,187,167,.07);
+    border:1px solid rgba(231,187,167,.18);
+    border-radius:10px;color:rgba(245,240,234,.68);
+    font-size:13px;line-height:1.7;
+  }
+  .weak-panel-guide b{color:var(--peach-2);font-weight:600}
+  .weak-section-title{
+    color:var(--peach);font-size:11px;font-family:var(--mono);
+    letter-spacing:.12em;margin:14px 0 8px;text-transform:uppercase;
+  }
+  .weak-card{
+    background:var(--navy-3);
+    border:1px solid rgba(245,240,234,.08);
+    border-radius:10px;padding:12px 14px;
+  }
+  .weak-card + .weak-card{margin-top:8px}
+  .weak-card.alert{background:rgba(199,123,106,.06);border-color:rgba(199,123,106,.22)}
+  .weak-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
+  .weak-card-k{color:var(--bad);font-size:12px;font-family:var(--mono);letter-spacing:.1em}
+  .weak-card-v{color:rgba(245,240,234,.48);font-size:11px;margin-top:2px}
+  .weak-law-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .weak-law-main{flex:1;min-width:0}
+  .weak-law-name{color:var(--peach);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .weak-law-meta{color:var(--bad);font-size:11px;margin-top:2px;font-family:var(--mono)}
+  .weak-bar{height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:5px;overflow:hidden}
+  .weak-bar > span{display:block;height:100%;border-radius:2px}
+  .weak-action-primary,.weak-action-soft{
+    flex-shrink:0;border-radius:12px;cursor:pointer;white-space:nowrap;
+    font-size:12px;padding:6px 13px;
+  }
+  .weak-action-primary{
+    background:rgba(231,187,167,0.14);
+    border:1px solid rgba(231,187,167,0.42);
+    color:var(--peach);font-weight:600;
+  }
+  .weak-action-soft{
+    background:rgba(231,187,167,0.08);
+    border:1px solid rgba(231,187,167,0.28);
+    color:var(--peach);
+  }
+  .weak-chip-row{display:flex;flex-wrap:wrap;gap:6px}
+  .weak-chip{
+    background:var(--navy-3);border:1px solid rgba(199,123,106,.25);
+    color:var(--bad);border-radius:20px;padding:4px 10px;font-size:11px;cursor:pointer;
+  }
+  .weak-clear-wrap{text-align:center;margin-top:18px}
 
   /* ── Wave 61: 鍵盤提示徽章 ── */
   #kb-hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(26,46,61,0.85);color:var(--cream-3);font-size:12px;padding:5px 14px;border-radius:12px;pointer-events:none;transition:opacity 0.5s;z-index:100;font-family:var(--mono);letter-spacing:.06em;}
@@ -2266,7 +2337,7 @@ document.addEventListener('DOMContentLoaded', () => {
   try { localStorage.setItem('sofa_last_tool', 'quiz'); } catch(e) {}
   const _openParam = new URLSearchParams(location.search).get('open');
   if(_openParam === 'weakness') { setTimeout(()=>{ _openWeakness(); }, 400); }
-  if(_openParam === 'wrong') { setTimeout(()=>{ const _bw=document.getElementById('btnWrong'); if(_bw){ _bw.click(); _bw.scrollIntoView({behavior:'smooth',block:'center'}); } }, 450); }
+  if(_openParam === 'wrong') { setTimeout(()=>{ _openWeakness(); }, 450); }
   refreshWrongCount();
   _updateDailyBtn();
   _renderQuizStreak(); // Wave 124: 每日連刷天數
@@ -2299,17 +2370,20 @@ document.addEventListener('DOMContentLoaded', () => {
 </script>
 
 <!-- ── Wave 50: 個人答題統計面板 ─────────────────────────────────── -->
-<div id="stats-panel" style="display:none; position:fixed; inset:0; background:rgba(4,13,20,0.96); z-index:200; overflow-y:auto; padding:24px 16px;" onclick="if(event.target===this)closeStats()">
-  <div style="max-width:560px; margin:0 auto;" onclick="event.stopPropagation()">
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
-      <h2 style="color:var(--cream); font-family:var(--serif); margin:0; font-size:20px">我的答題統計</h2>
-      <button onclick="closeStats()" style="background:none; border:1px solid rgba(231,187,167,0.4); color:var(--peach); border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:16px">✕</button>
+<div id="stats-panel" class="stats-panel" onclick="if(event.target===this)closeStats()">
+  <div class="stats-panel-shell" onclick="event.stopPropagation()">
+    <div class="stats-panel-head">
+      <div>
+        <h2 class="stats-panel-title" id="stats-panel-title">我的答題統計</h2>
+        <div class="stats-panel-sub" id="stats-panel-sub">看結果、找弱點，再決定下一輪要練哪裡。</div>
+      </div>
+      <button class="stats-close" onclick="closeStats()" aria-label="關閉">✕</button>
     </div>
     <!-- Wave 140: Tab bar -->
-    <div id="stats-tab-bar" style="display:flex;gap:6px;margin-bottom:16px;">
-      <button id="tab-btn-stats" onclick="_switchStatsTab('stats')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:var(--navy-2);color:var(--cream);font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:600;transition:background 0.2s">統計</button>
-      <button id="tab-btn-wrong" onclick="_switchStatsTab('wrong')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(245,240,234,0.45);font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:400;transition:background 0.2s">弱點清單</button>
-      <button id="tab-btn-exam" onclick="_switchStatsTab('exam')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(245,240,234,0.45);font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:400;transition:background 0.2s">考試紀錄</button>
+    <div id="stats-tab-bar" class="stats-tabs">
+      <button id="tab-btn-stats" onclick="_switchStatsTab('stats')">統計</button>
+      <button id="tab-btn-wrong" onclick="_switchStatsTab('wrong')">弱點與錯題</button>
+      <button id="tab-btn-exam" onclick="_switchStatsTab('exam')">考試紀錄</button>
     </div>
     <!-- Tab: 統計 -->
     <div id="stats-tab-stats">
@@ -2540,34 +2614,40 @@ function _switchStatsTab(tab) {
   const btnStats = document.getElementById('tab-btn-stats');
   const btnWrong = document.getElementById('tab-btn-wrong');
   const btnExamT = document.getElementById('tab-btn-exam');
+  const titleEl = document.getElementById('stats-panel-title');
+  const subEl = document.getElementById('stats-panel-sub');
 
-  const ACTIVE   = { background: 'var(--navy-2)', color: 'var(--cream)', fontWeight: '600' };
-  const INACTIVE = { background: 'rgba(255,255,255,0.06)', color: 'rgba(245,240,234,0.45)', fontWeight: '400' };
+  function _statsPanelTitle(nextTab) {
+    if(nextTab === 'wrong') return ['弱點分析', '看結果：這裡先看最常錯的法規；開始重練：按每列練習或重練全部。'];
+    if(nextTab === 'exam') return ['考試紀錄', '回看整套練習與模擬考結果。'];
+    return ['我的答題統計', '看結果、找弱點，再決定下一輪要練哪裡。'];
+  }
 
-  function _applyStyle(btn, style) {
+  function _applyStyle(btn, isOn) {
     if (!btn) return;
-    btn.style.background  = style.background;
-    btn.style.color       = style.color;
-    btn.style.fontWeight  = style.fontWeight;
+    btn.classList.toggle('on', !!isOn);
   }
 
   statsDiv.style.display = 'none';
   wrongDiv.style.display = 'none';
   if (examDiv) examDiv.style.display = 'none';
-  _applyStyle(btnStats, INACTIVE);
-  _applyStyle(btnWrong, INACTIVE);
-  _applyStyle(btnExamT, INACTIVE);
+  _applyStyle(btnStats, false);
+  _applyStyle(btnWrong, false);
+  _applyStyle(btnExamT, false);
+  const titlePair = _statsPanelTitle(tab);
+  if(titleEl) titleEl.textContent = titlePair[0];
+  if(subEl) subEl.textContent = titlePair[1];
 
   if (tab === 'stats') {
     statsDiv.style.display = '';
-    _applyStyle(btnStats, ACTIVE);
+    _applyStyle(btnStats, true);
   } else if (tab === 'wrong') {
     wrongDiv.style.display = '';
-    _applyStyle(btnWrong, ACTIVE);
+    _applyStyle(btnWrong, true);
     _renderWrongList();
   } else if (tab === 'exam') {
     if (examDiv) examDiv.style.display = '';
-    _applyStyle(btnExamT, ACTIVE);
+    _applyStyle(btnExamT, true);
     _renderExamHistory();
   }
 }
@@ -2586,30 +2666,31 @@ function _renderWrongList() {
     .sort((a, b) => b.wrong - a.wrong);
 
   if (lawWrongs.length === 0 && bank.length === 0) {
-    panel.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(245,240,234,0.4);font-size:14px">✓ 目前沒有錯題紀錄</div>';
+    panel.innerHTML = '<div class="weak-panel-guide"><b>看結果</b>：這裡先看最常錯的法規和錯題。<br><b>開始重練</b>：答錯題後會出現重練入口。</div>'
+      + '<div class="weak-empty" style="text-align:center;padding:34px 0">目前沒有錯題紀錄。先做幾題，弱點會自動累積到這裡。</div>';
     return;
   }
 
   // ── Section 1: 考古題錯題銀行 ──
-  let html = '';
+  let html = '<div class="weak-panel-guide"><b>看結果</b>：這裡先看最常錯的法規。<br><b>開始重練</b>：按「重練全部」或每列「練習」，就會回到出題頁。</div>';
   {
     // Group wrong bank by law
     const bankByLaw = {};
     bank.forEach(e => { bankByLaw[e.law||''] = (bankByLaw[e.law||'']||0) + 1; });
     const bankLaws = Object.entries(bankByLaw).sort((a,b)=>b[1]-a[1]);
 
-    html += `<div style="background:rgba(199,123,106,.06);border:1px solid rgba(199,123,106,.2);border-radius:10px;padding:12px 14px;margin-bottom:14px">`;
-    html += `<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:${bankLaws.length?'10px':'0'}">
+    html += `<div class="weak-card alert">`;
+    html += `<div class="weak-card-head" style="margin-bottom:${bankLaws.length?'10px':'0'}">
       <div>
-        <div style="color:var(--bad);font-size:12px;font-family:var(--mono);letter-spacing:.1em">考古題錯題</div>
-        <div style="color:rgba(245,240,234,.45);font-size:11px;margin-top:2px">${bank.length} 條待重練</div>
+        <div class="weak-card-k">考古題錯題</div>
+        <div class="weak-card-v">${bank.length} 條待重練</div>
       </div>
-      ${bank.length ? `<button onclick="_drillAllWrong()" style="background:rgba(231,187,167,0.14);border:1px solid rgba(231,187,167,0.42);color:var(--peach);border-radius:12px;padding:6px 16px;font-size:13px;cursor:pointer;font-weight:600">重練全部</button>` : '<span style="color:rgba(245,240,234,.3);font-size:12px">（無錯題）</span>'}
+      ${bank.length ? `<button class="weak-action-primary" onclick="_drillAllWrong()">重練全部</button>` : '<span style="color:rgba(245,240,234,.3);font-size:12px">（無錯題）</span>'}
     </div>`;
     if(bankLaws.length) {
-      html += '<div style="display:flex;flex-wrap:wrap;gap:6px">';
+      html += '<div class="weak-chip-row">';
       bankLaws.forEach(([law, cnt]) => {
-        html += `<button onclick="_drillWrongLaw(${JSON.stringify(law||'')})" style="background:var(--navy-3);border:1px solid rgba(199,123,106,.25);color:var(--bad);border-radius:20px;padding:3px 10px;font-size:11px;cursor:pointer">${esc(law||'(未知)')} ×${cnt}</button>`;
+        html += `<button class="weak-chip" onclick="_drillWrongLaw(${JSON.stringify(law||'')})">${esc(law||'(未知)')} ×${cnt}</button>`;
       });
       html += '</div>';
     }
@@ -2622,22 +2703,22 @@ function _renderWrongList() {
   if(lawWrongs.length) {
     const _paid = (window.__sofaPaid !== false); // 不確定 → 視為付費（不鎖）
     if(_paid) {
-      html += `<div style="color:var(--peach);font-size:11px;font-family:var(--mono);letter-spacing:.1em;margin-bottom:8px">法規準確率</div>`;
-      html += '<div style="display:flex;flex-direction:column;gap:8px;">';
+      html += `<div class="weak-section-title">法規準確率</div>`;
       lawWrongs.forEach(({ name, wrong, total }) => {
         const pct = Math.round((total - wrong) / total * 100);
         const color = pct >= 80 ? '#9FB89F' : pct >= 60 ? 'var(--peach)' : 'var(--bad)';
-        const bar = `<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:5px"><div style="width:${pct}%;height:100%;background:${color};border-radius:2px"></div></div>`;
-        html += `<div style="background:var(--navy-3);border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-          <div style="flex:1;min-width:0;">
-            <div style="color:var(--peach);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(name)}</div>
-            <div style="color:var(--bad);font-size:11px;margin-top:2px;font-family:var(--mono);">✗ ${wrong}題 &nbsp;•&nbsp; <span style="color:${color}">${pct}%正確</span></div>
+        const bar = `<div class="weak-bar"><span style="width:${pct}%;background:${color}"></span></div>`;
+        html += `<div class="weak-card">
+          <div class="weak-law-row">
+            <div class="weak-law-main">
+              <div class="weak-law-name">${esc(name)}</div>
+              <div class="weak-law-meta">錯 ${wrong} 題 &nbsp;•&nbsp; <span style="color:${color}">${pct}% 正確</span></div>
             ${bar}
           </div>
-          <button onclick="_drillLawAuto(${JSON.stringify(name)})" style="flex-shrink:0;background:rgba(231,187,167,0.1);border:1px solid rgba(231,187,167,0.3);color:var(--peach);border-radius:12px;padding:5px 12px;font-size:12px;cursor:pointer;white-space:nowrap;">練習</button>
+            <button class="weak-action-soft" onclick="_drillLawAuto(${JSON.stringify(name)})">練習</button>
+          </div>
         </div>`;
       });
-      html += '</div>';
     } else {
       // 免費：只露最弱一條當預告，其餘以溫柔 CTA 收起
       const worst = lawWrongs.reduce((a,b)=>{
@@ -2647,15 +2728,17 @@ function _renderWrongList() {
       const { name, wrong, total } = worst;
       const pct = Math.round((total - wrong) / total * 100);
       const color = pct >= 80 ? '#9FB89F' : pct >= 60 ? 'var(--peach)' : 'var(--bad)';
-      const bar = `<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin-top:5px"><div style="width:${pct}%;height:100%;background:${color};border-radius:2px"></div></div>`;
-      html += `<div style="color:var(--peach);font-size:11px;font-family:var(--mono);letter-spacing:.1em;margin-bottom:8px">最弱的一條</div>`;
-      html += `<div style="background:var(--navy-3);border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-        <div style="flex:1;min-width:0;">
-          <div style="color:var(--peach);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${esc(name)}</div>
-          <div style="color:var(--bad);font-size:11px;margin-top:2px;font-family:var(--mono);">✗ ${wrong}題 &nbsp;•&nbsp; <span style="color:${color}">${pct}%正確</span></div>
+      const bar = `<div class="weak-bar"><span style="width:${pct}%;background:${color}"></span></div>`;
+      html += `<div class="weak-section-title">最弱的一條</div>`;
+      html += `<div class="weak-card">
+        <div class="weak-law-row">
+          <div class="weak-law-main">
+            <div class="weak-law-name">${esc(name)}</div>
+            <div class="weak-law-meta">錯 ${wrong} 題 &nbsp;•&nbsp; <span style="color:${color}">${pct}% 正確</span></div>
           ${bar}
         </div>
-        <button onclick="_drillLawAuto(${JSON.stringify(name)})" style="flex-shrink:0;background:rgba(231,187,167,0.1);border:1px solid rgba(231,187,167,0.3);color:var(--peach);border-radius:12px;padding:5px 12px;font-size:12px;cursor:pointer;white-space:nowrap;">練習</button>
+          <button class="weak-action-soft" onclick="_drillLawAuto(${JSON.stringify(name)})">練習</button>
+        </div>
       </div>`;
       const hidden = lawWrongs.length - 1;
       html += isIOSReaderApp()
@@ -2667,8 +2750,8 @@ function _renderWrongList() {
     }
   }
 
-  html += `<div style="text-align:center;margin-top:18px;">
-    <button onclick="_clearWrongListFromPanel()" style="background:none;border:1px solid rgba(199,123,106,0.3);color:rgba(199,123,106,.6);border-radius:16px;padding:5px 16px;font-size:11px;cursor:pointer;">清除錯題 ID 紀錄</button>
+  html += `<div class="weak-clear-wrap">
+    <button class="weak-action-soft" onclick="_clearWrongListFromPanel()" style="color:rgba(199,123,106,.68);border-color:rgba(199,123,106,.28);background:none">清除錯題 ID 紀錄</button>
   </div>`;
 
   panel.innerHTML = html;

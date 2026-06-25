@@ -247,6 +247,12 @@
   }
   .nav-list a.on .num{color:var(--peach)}
   .nav-list a.on .ct{color:var(--peach-dim)}
+  .nav-list.today-nav a{
+    grid-template-columns:28px 1fr auto;
+    padding-top:9px;
+    padding-bottom:9px;
+  }
+  .nav-list.today-nav a .num{color:rgba(231,187,167,.5)}
 
   .side-foot{
     margin-top:32px;padding:18px 16px;
@@ -364,6 +370,7 @@
     margin-top:-40px;margin-bottom:64px;
     border:1px solid var(--line-2);border-radius:3px;
     background:var(--navy-2);overflow:hidden;
+    scroll-margin-top:90px;
   }
   .recap-head{
     display:flex;align-items:center;justify-content:space-between;
@@ -389,6 +396,13 @@
   .recap-row .rc-pct.hi{color:var(--good)}
   .recap-row .rc-pct.mid{color:var(--peach)}
   .recap-row .rc-pct.lo{color:var(--warn)}
+  .recap-empty{
+    padding:22px;
+    border-top:1px dashed var(--line);
+    color:rgba(245,240,234,.56);
+    font-size:13px;
+    line-height:1.7;
+  }
   .srs-panel{padding:18px 22px;display:grid;grid-template-columns:1.2fr auto;gap:16px;align-items:center}
   .srs-copy{font-size:13px;color:rgba(245,240,234,.62);line-height:1.7}
   .srs-copy b{display:block;color:var(--cream);font-family:var(--serif);font-size:16px;font-weight:500;margin-bottom:2px}
@@ -421,8 +435,31 @@
   .study-block .sig{font-family:var(--mono);font-size:11px;color:var(--peach);white-space:nowrap}
   .study-empty{font-size:13px;color:rgba(245,240,234,.52);padding-top:2px}
   @media (max-width:760px){
+    .srs-panel{
+      grid-template-columns:1fr;
+      align-items:stretch;
+      gap:14px;
+    }
+    .srs-copy{
+      min-width:0;
+      overflow-wrap:break-word;
+    }
+    .srs-controls{
+      justify-content:flex-start;
+      align-items:stretch;
+    }
+    .srs-toggle,.srs-save,.srs-state{min-height:40px;align-items:center}
+    .srs-limit{min-height:40px}
     .study-blocks{grid-template-columns:1fr}
     .study-summary{align-items:flex-start}
+    .review-card{
+      grid-template-columns:1fr;
+      padding:13px 14px;
+      gap:8px;
+    }
+    .review-card .art{font-size:18px;line-height:1.45}
+    .review-card .reasons{justify-content:flex-start}
+    .review-card .meta{align-items:flex-start}
   }
 
   /* sections */
@@ -875,7 +912,7 @@
     padding-top:20px;border-top:1px dashed var(--line-2);
   }
   .res-row{
-    display:grid;grid-template-columns:auto auto 1fr auto;
+    display:grid;grid-template-columns:auto auto minmax(0,1fr) auto auto auto;
     align-items:center;gap:18px;
     padding:14px 14px;border-radius:2px;
     transition:.16s;cursor:pointer;
@@ -895,6 +932,7 @@
   .res-row .ttl{
     color:rgba(245,240,234,.72);font-size:14px;
     border-left:1px solid var(--line-2);padding-left:18px;
+    min-width:0;overflow-wrap:anywhere;word-break:normal;line-height:1.55;
   }
   .star{color:var(--peach);font-size:16px;cursor:pointer;line-height:1}
   .star.off{color:rgba(245,240,234,.22)}
@@ -975,6 +1013,45 @@
   .rchip.value{color:var(--peach);border-color:var(--peach-3)}
   .rchip.overdue{color:var(--warn);border-color:rgba(217,176,132,.5)}
   .rchip.weak{color:#D98A8A;border-color:rgba(217,138,138,.5)}
+  .review-card{
+    background:var(--navy-2);
+    border-top:1px dashed var(--line);
+    padding:14px 18px;
+    transition:.18s;
+    cursor:pointer;
+    position:relative;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:8px 16px;
+    align-items:center;
+  }
+  .review-card:first-child{border-top:none}
+  .review-card::before{
+    content:"";position:absolute;left:0;top:12px;bottom:12px;width:3px;
+    background:transparent;border-radius:0 2px 2px 0;transition:.18s;
+  }
+  .review-card:hover{background:rgba(44,74,92,.72)}
+  .review-card:hover::before{background:var(--warn)}
+  .review-card .law{
+    grid-column:1 / -1;
+    font-family:var(--mono);font-size:10.5px;color:var(--warn);
+    letter-spacing:.16em;text-transform:uppercase;font-weight:600;
+  }
+  .review-card .art{
+    font-family:var(--serif);font-weight:600;font-size:20px;
+    color:var(--cream);line-height:1.35;letter-spacing:0;
+    min-width:0;overflow-wrap:anywhere;word-break:normal;
+  }
+  .review-card .reasons{
+    display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;
+  }
+  .review-card .meta{
+    grid-column:1 / -1;
+    padding-top:8px;border-top:1px dashed var(--line);
+    display:flex;justify-content:space-between;align-items:center;gap:12px;
+    font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.5);
+    letter-spacing:.06em;
+  }
 
   /* empty state */
   .empty{
@@ -991,7 +1068,7 @@
     line-height:1;letter-spacing:-.02em;
   }
   .empty b{color:var(--cream);font-weight:500}
-  .empty.full{grid-column:1/-1}
+  .empty.full,.li-card.full{grid-column:1/-1}
 
   /* === 07 TOOLS — index-card style === */
   .tool-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
@@ -1703,7 +1780,7 @@
     .drawer.open{transform:translate(-50%,-50%) scale(1);opacity:1;pointer-events:auto}
     .laws-head{flex-direction:column;align-items:flex-start;gap:12px}
     .laws-search{width:100%}
-    .res-row{gap:8px;padding:10px 4px}
+    .res-row{grid-template-columns:auto minmax(0,1fr) auto auto auto;gap:8px;padding:10px 4px}
     .res-row .law{display:none}
     .res-row .art{min-width:0}
     .res-row .ttl{border-left:none;padding-left:0;font-size:15px;line-height:1.45;color:#173244}
@@ -1819,6 +1896,7 @@
       </span>
     </a>
     <nav class="top-mid">
+      <a href="#study-cockpit-recap">今日</a>
       <a href="#member">會員</a>
       <a href="#progress">進度</a>
       <a href="#search">查法條</a>
@@ -1856,7 +1934,17 @@
       <button class="cd-restore" id="cdRestore" onclick="showCountdown()">+ 顯示考試倒數</button>
 
       <div class="nav-section">
-        <div class="lab">導 覽</div>
+        <div class="lab">今 日</div>
+        <div class="nav-list today-nav">
+          <a href="#study-cockpit-recap"><span class="num">T1</span>今日任務<span class="ct" id="nav-ct-study"></span></a>
+          <a href="#weak-laws-recap"><span class="num">T2</span>弱點法規<span class="ct" id="nav-ct-weak">0</span></a>
+          <a href="#review-due"><span class="num">T3</span>今日複習<span class="ct" id="nav-ct-due">0</span></a>
+          <a href="#srs-settings"><span class="num">T4</span>複習策略<span class="ct"></span></a>
+        </div>
+      </div>
+
+      <div class="nav-section">
+        <div class="lab">功 能</div>
         <div class="nav-list">
           <a href="#member" class="on"><span class="num">01</span>會員資訊<span class="ct"></span></a>
           <a href="#progress"><span class="num">02</span>學習進度<span class="ct" id="nav-ct-prog"></span></a>
@@ -1936,7 +2024,7 @@
         <div class="recap" id="weak-laws-recap" style="display:none">
           <div class="recap-head">
             <span class="recap-eb">WEAKNESS · 最該補的法規</span>
-            <a class="recap-more" href="quiz.html?open=weakness">重練弱點 →</a>
+            <a class="recap-more" href="quiz.html?open=weakness">看完整弱點 →</a>
           </div>
           <div class="recap-list" id="weak-laws-list"></div>
         </div>
@@ -2061,7 +2149,7 @@
               <span class="idx">02</span>
               <h2>學習進度</h2>
             </div>
-            <div class="r"><a href="#">查看週報 →</a></div>
+            <div class="r"><span style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:rgba(245,240,234,.42)">週報整理中</span></div>
           </div>
 
           <div class="prog-card">
@@ -2199,7 +2287,7 @@
             <div class="r"><span id="fav-count">— 條</span></div>
           </div>
           <div class="card-grid" id="favorites-list">
-            <div class="empty" style="grid-column:span 3">
+            <div class="empty full">
               <span class="ic">☆</span>
               <div>載入中…</div>
             </div>
@@ -2216,7 +2304,7 @@
             <div class="r"><span id="mastered-count">0 條</span></div>
           </div>
           <div class="card-grid" id="mastered-list">
-            <div class="empty full" style="grid-column:span 3">
+            <div class="empty full">
               <span class="ic">✓</span>
               <div>載入中…</div>
             </div>
@@ -2231,12 +2319,12 @@
               <h2>待複習</h2>
             </div>
             <div class="r" id="review-head-r">
-              <a id="review-weakness-entry" href="quiz.html?open=weakness">重練錯題 / 弱點 →</a>
+              <a id="review-weakness-entry" href="quiz.html?open=weakness">查看弱點分析 →</a>
               <span id="review-count">0 條</span>
             </div>
           </div>
           <div class="card-grid" id="review-list">
-            <div class="empty" style="grid-column:span 3">
+            <div class="empty full">
               <span class="ic">⊙</span>
               <div>載入中…</div>
             </div>
@@ -2286,10 +2374,10 @@
               <div class="num">02</div>
               <div>
                 <div class="code">QUIZ</div>
-                <div class="name" style="margin-top:6px">選擇題</div>
+                <div class="name" style="margin-top:6px">一般選擇題</div>
               </div>
-              <p class="desc">四選一，<br/>自動排程錯題重練。</p>
-              <span class="arrow">開始 <span class="glyph">→</span></span>
+              <p class="desc">想練新題從這裡開始；<br/>答錯會累積到弱點分析。</p>
+              <span class="arrow">開始練 <span class="glyph">→</span></span>
             </a>
             <a class="tool" href="fill.html">
               <div class="num">03</div>
@@ -2313,19 +2401,19 @@
               <div class="num">05</div>
               <div>
                 <div class="code">EXAM</div>
-                <div class="name" style="margin-top:6px">考古題</div>
+                <div class="name" style="margin-top:6px">考古題練習</div>
               </div>
-              <p class="desc">歷屆試題四選一，<br/>答完自動進錯題本。</p>
-              <span class="arrow">作答 <span class="glyph">→</span></span>
+              <p class="desc">進同一出題頁；<br/>用考古題紀錄回看結果。</p>
+              <span class="arrow">進入作答 <span class="glyph">→</span></span>
             </a>
             <a class="tool" href="quiz.html?open=wrong" id="tool-wrong">
               <div class="num">06</div>
               <div>
                 <div class="code">WRONG</div>
-                <div class="name" style="margin-top:6px">錯題本</div>
+                <div class="name" style="margin-top:6px">重練錯題</div>
               </div>
-              <p class="desc"><span id="tool-wrong-ct">收錄你答錯的題目</span>，<br/>一鍵重練全部。</p>
-              <span class="arrow">重練 <span class="glyph">→</span></span>
+              <p class="desc"><span id="tool-wrong-ct">先看錯題清單</span>，<br/>再重練全部或單一法規。</p>
+              <span class="arrow">看清單 <span class="glyph">→</span></span>
             </a>
             <a class="tool tool-feature" href="quiz.html?open=weakness">
               <div class="num">07</div>
@@ -2333,8 +2421,8 @@
                 <div class="code">WEAK</div>
                 <div class="name" style="margin-top:6px">弱點分析</div>
               </div>
-              <p class="desc">哪些法規最弱、<br/>錯題自動排程重練。</p>
-              <span class="arrow">查看 <span class="glyph">→</span></span>
+              <p class="desc">看哪部法規最弱；<br/>每列可直接開始練習。</p>
+              <span class="arrow">看結果 <span class="glyph">→</span></span>
             </a>
             <a class="tool" href="notes.html">
               <div class="num">08</div>
@@ -3686,7 +3774,7 @@ function _readArticle(btn, text) {
       if(cnt) cnt.textContent = items.length + ' 條';
       var navFav = document.getElementById('nav-ct-fav'); if(navFav) navFav.textContent = items.length || '';
       if(!items.length){
-        el.innerHTML = '<div class="empty" style="grid-column:span 3"><span class="ic">☆</span>'
+        el.innerHTML = '<div class="empty full"><span class="ic">☆</span>'
           + '<div>還沒有收藏任何條文。<br/>在條文卡片上點 <b>★</b> 即可。</div></div>';
         return;
       }
@@ -3721,7 +3809,7 @@ function _readArticle(btn, text) {
       if(masteredCt) masteredCt.textContent = mastered.length + ' 條';
       if(masteredEl){
         if(!mastered.length){
-          masteredEl.innerHTML = '<div class="empty full" style="grid-column:span 3"><span class="ic">✓</span>'
+          masteredEl.innerHTML = '<div class="empty full"><span class="ic">✓</span>'
             +'<div>還沒有標記已熟記的條文。<br/>開啟條文後點 <b>「已熟記」</b>。</div></div>';
         } else {
           masteredEl.innerHTML = mastered.map(function(m){
@@ -3743,7 +3831,7 @@ function _readArticle(btn, text) {
       if(reviewCt) reviewCt.textContent = reviews.length + ' 條';
       if(reviewEl){
         if(!reviews.length){
-          reviewEl.innerHTML = '<div class="empty" style="grid-column:span 3"><span class="ic">⊙</span>'
+          reviewEl.innerHTML = '<div class="empty full"><span class="ic">⊙</span>'
             +'<div>尚無待複習條文。<br/>開啟條文後點「加入再讀清單」。</div></div>';
         } else {
           reviewEl.innerHTML = reviews.map(function(m){
@@ -3752,7 +3840,7 @@ function _readArticle(btn, text) {
             var artRaw  = (m.article||'').replace(/^§+/,'');
             var artSafe = artRaw.replace(/'/g,'');
             var days    = m.review_days || 7;
-            return '<div class="li-card warn" style="grid-column:span 3" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artSafe+'\')">'+
+            return '<div class="li-card warn full" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artSafe+'\')">'+
               '<div class="law">'+esc(m.law_name||'——')+'</div>'+
               '<div class="art">'+esc(displayArticleNo(artRaw))+'</div>'+
               '<div class="sub">'+esc(fallbackArticleTitle(artRaw, m.title))+'</div>'+
@@ -3980,11 +4068,13 @@ function renderReviewDue(nextItems){
   var box  = document.getElementById('review-due');
   var list = document.getElementById('review-due-list');
   var cnt  = document.getElementById('review-due-count');
+  var navCnt = document.getElementById('nav-ct-due');
   if(!box || !list) return;
   if(!due.length){
-    box.style.display = 'none';
-    if(cnt) cnt.textContent = '';
-    list.innerHTML = '';
+    box.style.display = '';
+    if(cnt) cnt.textContent = '0 條到期';
+    if(navCnt) navCnt.textContent = '0';
+    list.innerHTML = '<div class="recap-empty">目前沒有到期複習。做題或把條文加入再讀清單後，這裡會排今天該重看的內容。</div>';
     return;
   }
   var goalKey = (typeof _examFilter !== 'undefined') ? _examFilter : 'all';
@@ -4007,6 +4097,7 @@ function renderReviewDue(nextItems){
       ? (due.length + ' 條到期 · ' + matchCount + ' 條目標相關')
       : (due.length + ' 條到期');
   }
+  if(navCnt) navCnt.textContent = String(due.length);
   list.innerHTML = rows.map(function(row){
     var m = row.item || {};
     var pid    = _safeClickArg(m.page_id);
@@ -4018,7 +4109,7 @@ function renderReviewDue(nextItems){
     var reasonsHTML = reviewReasonChipsHTML(m);
     var reasonsBlock = reasonsHTML ? '<div class="reasons">'+reasonsHTML+'</div>' : '';
     var goalTag = row.goalMatch ? '<span>目標相關</span>' : '';
-    return '<div class="li-card warn" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artNo+'\')">'+
+    return '<div class="review-card warn" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artNo+'\')">'+
       '<div class="law">'+esc(m.law_name||'——')+'</div>'+
       '<div class="art">'+esc(disp)+'</div>'+
       reasonsBlock+
@@ -4045,6 +4136,8 @@ function renderStudyToday(data){
   };
   var seededCount = subjects.filter(function(s){ return s.implementation_status === 'seeded_moex_mcq'; }).length;
   if(summaryEl) summaryEl.textContent = subjects.length + ' 科 · ' + seededCount + ' 科已啟用';
+  var navStudy = document.getElementById('nav-ct-study');
+  if(navStudy) navStudy.textContent = seededCount ? (seededCount + '/' + subjects.length) : '';
   if(weakEl){
     var bridge = data.weak_law_bridge || {};
     weakEl.textContent = bridge.items && bridge.items.length ? '弱點已接入' : '弱點資料尚未累積';
@@ -5026,8 +5119,8 @@ if (window.notesStore) { notesStore.sync(); }
 _renderRecentViews();
 
 // active nav on scroll
-const navLinks = document.querySelectorAll('.nav-list a');
-const sections = document.querySelectorAll('section.block');
+const navLinks = document.querySelectorAll('.nav-list a[href^="#"]');
+const sections = document.querySelectorAll('section.block, .recap[id]');
 const setActive = id => {
   navLinks.forEach(l => l.classList.toggle('on', l.getAttribute('href') === '#'+id));
 };
@@ -5043,8 +5136,8 @@ sections.forEach(s=>io.observe(s));
 <div id="expire-overlay" style="display:none;position:fixed;inset:0;z-index:9999;
   background:rgba(13,28,40,0.97);
   display:none;align-items:center;justify-content:center;flex-direction:column;
-  font-family:var(--serif);color:var(--cream);text-align:center;padding:2rem;">
-  <div style="max-width:380px;">
+  font-family:var(--serif);color:var(--cream);text-align:center;padding:2rem;overflow-y:auto;">
+  <div style="max-width:420px;width:100%;max-height:calc(100vh - 3rem);overflow-y:auto;">
     <div style="font-size:2.4rem;margin-bottom:1rem;">⏳</div>
     <h2 style="font-size:1.4rem;font-weight:700;margin:0 0 0.6rem;">
       你的方案已到期
@@ -5053,6 +5146,26 @@ sections.forEach(s=>io.observe(s));
       你的備考旅程還沒結束。<br>
       續訂後馬上恢復所有學習進度。
     </p>
+    <div style="text-align:left;background:rgba(231,187,167,0.08);border:1px solid rgba(231,187,167,0.22);
+      border-radius:10px;padding:1rem 1.05rem;margin:0 0 1rem;color:rgba(245,240,234,0.82);font-family:var(--sans);
+      font-size:0.86rem;line-height:1.7;">
+      <b style="display:block;color:var(--peach);font-family:var(--serif);font-size:1rem;margin-bottom:0.35rem;">也可以先延長體驗</b>
+      謝謝你喜歡 SoFa；如果可以，我們更想知道你覺得不好用、卡住、或希望改進的地方，那會是我們繼續前進的動力。<br>
+      覺得好用，也歡迎分享給正在備考的人。
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.55rem;margin-top:0.8rem;">
+        <a href="mailto:hi@sofaengine.org?subject=SoFa%20回饋%20延長10天體驗" style="display:block;text-align:center;border:1px solid rgba(231,187,167,0.48);
+          border-radius:8px;padding:0.6rem 0.5rem;color:var(--peach);text-decoration:none;font-weight:700;">
+          回饋缺點 +10 天
+        </a>
+        <a href="https://lin.ee/zUeMwo4" target="_blank" rel="noopener" style="display:block;text-align:center;border:1px solid rgba(231,187,167,0.48);
+          border-radius:8px;padding:0.6rem 0.5rem;color:var(--peach);text-decoration:none;font-weight:700;">
+          分享標記 +10 天
+        </a>
+      </div>
+      <div style="margin-top:0.55rem;color:rgba(245,240,234,0.56);font-size:0.78rem;">
+        兩個都可以做，不衝突。回饋每個帳號限一次；分享或標記按你提供的帳號數累加，幾個帳號就加幾次。完成後把你的 SoFa 帳號和分享帳號傳給我們，隔天依信任制自動補登體驗天數。
+      </div>
+    </div>
     <a href="/pricing.html" style="display:block;background:var(--peach);color:var(--navy-4);
       border-radius:8px;padding:0.85rem 1.5rem;font-size:1rem;font-weight:700;
       text-decoration:none;margin-bottom:0.75rem;">
@@ -5261,19 +5374,19 @@ ch.on('presence', { event: 'sync' }, () => {
 </style>
 
 <div id="mobile-daily-bar">
+  <a class="mdb-btn" href="#study-cockpit-recap">
+    <span class="mdb-ic">◉</span>
+    <span class="mdb-lbl">今日任務</span>
+    <span class="mdb-check" style="display:none"></span>
+  </a>
   <a class="mdb-btn" id="mdb-quiz" href="quiz.html">
     <span class="mdb-ic">◎</span>
-    <span class="mdb-lbl">今日挑戰</span>
+    <span class="mdb-lbl">選擇題</span>
     <span class="mdb-check">✓</span>
   </a>
-  <a class="mdb-btn" id="mdb-fill" href="fill.html">
-    <span class="mdb-ic">✏</span>
-    <span class="mdb-lbl">今日填空</span>
-    <span class="mdb-check">✓</span>
-  </a>
-  <a class="mdb-btn" href="practice.html">
-    <span class="mdb-ic">⌨</span>
-    <span class="mdb-lbl">打字練習</span>
+  <a class="mdb-btn" href="#review-due">
+    <span class="mdb-ic">↻</span>
+    <span class="mdb-lbl">今日複習</span>
     <span class="mdb-check" style="display:none"></span>
   </a>
   <a class="mdb-btn" href="quiz.html?open=weakness">
@@ -5339,11 +5452,13 @@ ch.on('presence', { event: 'sync' }, () => {
   function renderWeakLaws(items){
     var recap=document.getElementById('weak-laws-recap');
     var list=document.getElementById('weak-laws-list');
+    var navWeak=document.getElementById('nav-ct-weak');
     if(!recap || !list) return;
     var laws = Array.isArray(items) ? items.filter(function(x){ return x && x.law_name; }) : [];
+    if(navWeak) navWeak.textContent = String(laws.length);
     if(!laws.length){
-      recap.style.display='none';
-      list.innerHTML='';
+      recap.style.display='block';
+      list.innerHTML='<div class="recap-empty">目前還沒有足夠錯題累積。先做幾題，這裡就會整理最該補的法規。</div>';
       return;
     }
     list.innerHTML = laws.slice(0,4).map(function(law){
@@ -5414,6 +5529,8 @@ ch.on('presence', { event: 'sync' }, () => {
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){ renderWeakLaws(d && d.items); })
       .catch(function(){ renderWeakLaws([]); });
+  } else {
+    renderWeakLaws([]);
   }
 })();
 </script>

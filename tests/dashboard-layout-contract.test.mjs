@@ -1,0 +1,60 @@
+import { readFileSync } from 'node:fs';
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+
+const html = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
+
+test('today recaps are included in the sidebar navigation and scroll spy', () => {
+  assert.match(html, /<nav class="top-mid">[\s\S]*href="#study-cockpit-recap"[\s\S]*今日/);
+  assert.match(html, /href="#study-cockpit-recap"[\s\S]*今日任務/);
+  assert.match(html, /href="#weak-laws-recap"[\s\S]*弱點法規/);
+  assert.match(html, /href="#review-due"[\s\S]*今日複習/);
+  assert.match(html, /href="#srs-settings"[\s\S]*複習策略/);
+  assert.match(html, /document\.querySelectorAll\('\.nav-list a\[href\^="#"\]'\)/);
+  assert.match(html, /document\.querySelectorAll\('section\.block, \.recap\[id\]'\)/);
+});
+
+test('empty and full-width cards use responsive classes, not inline span columns', () => {
+  assert.doesNotMatch(html, /grid-column:span 3/);
+  assert.match(html, /\.empty\.full[\s\S]*?grid-column:1\/-1/);
+  assert.match(html, /class="empty full"/);
+  assert.match(html, /class="li-card warn full"/);
+});
+
+test('review due uses compact review cards instead of large library cards', () => {
+  const renderStart = html.indexOf('function renderReviewDue(');
+  assert.notEqual(renderStart, -1, 'renderReviewDue should exist');
+  const renderSource = html.slice(renderStart, html.indexOf('function renderStudyToday(', renderStart));
+  assert.match(renderSource, /class="review-card warn"/);
+  assert.doesNotMatch(renderSource, /class="li-card warn"/);
+  assert.doesNotMatch(renderSource, /box\.style\.display = 'none'/);
+  assert.match(renderSource, /目前沒有到期複習/);
+  assert.match(html, /\.review-card\s*\{[\s\S]*?padding:14px 18px/);
+  assert.match(html, /\.review-card \.art\s*\{[\s\S]*?font-size:20px/);
+  assert.match(html, /\.review-card \.art\s*\{[\s\S]*?overflow-wrap:anywhere/);
+});
+
+test('article result rows protect long titles from vertical squeeze', () => {
+  assert.match(html, /\.res-row\s*\{[\s\S]*?grid-template-columns:auto auto minmax\(0,1fr\) auto auto auto/);
+  assert.match(html, /\.res-row \.ttl\s*\{[\s\S]*?min-width:0/);
+  assert.match(html, /\.res-row \.ttl\s*\{[\s\S]*?overflow-wrap:anywhere/);
+});
+
+test('expire overlay explains feedback and sharing extension rules', () => {
+  assert.match(html, /id="expire-overlay"/);
+  assert.match(html, /回饋缺點 \+10 天/);
+  assert.match(html, /分享標記 \+10 天/);
+  assert.match(html, /兩個都可以做，不衝突/);
+  assert.match(html, /回饋每個帳號限一次/);
+  assert.match(html, /幾個帳號就加幾次/);
+  assert.match(html, /你的 SoFa 帳號/);
+  assert.match(html, /隔天依信任制自動補登體驗天數/);
+});
+
+test('mobile daily bar prioritizes the exam-pass loop', () => {
+  assert.match(html, /<div id="mobile-daily-bar">[\s\S]*今日任務/);
+  assert.match(html, /<div id="mobile-daily-bar">[\s\S]*選擇題/);
+  assert.match(html, /<div id="mobile-daily-bar">[\s\S]*今日複習/);
+  assert.match(html, /<div id="mobile-daily-bar">[\s\S]*弱點分析/);
+  assert.doesNotMatch(html, /<div id="mobile-daily-bar">[\s\S]*今日填空/);
+});

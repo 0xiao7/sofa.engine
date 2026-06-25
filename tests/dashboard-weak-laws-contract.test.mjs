@@ -22,6 +22,7 @@ test('weak law rendering avoids fake empty metrics', () => {
   const start = html.indexOf('function renderWeakLaws');
   assert.ok(start >= 0, 'renderWeakLaws function must exist');
   const fn = html.slice(start, start + 1600);
-  assert.match(fn, /style\.display='none'|style\.display = 'none'/);
+  assert.match(fn, /recap\.style\.display='block'/);
+  assert.match(fn, /目前還沒有足夠錯題累積/);
   assert.doesNotMatch(fn, /目前有 0|0 條弱點/);
 });
