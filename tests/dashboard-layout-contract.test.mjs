@@ -77,3 +77,12 @@ test('mobile daily bar prioritizes the exam-pass loop', () => {
   assert.doesNotMatch(html, /<div id="mobile-daily-bar">[\s\S]*今日填空/);
   assert.doesNotMatch(html, /mdb-fill|sofa_fill_daily_/);
 });
+
+test('mobile tool cards keep short usage hints visible', () => {
+  assert.doesNotMatch(html, /\.tool \.desc\{display:none\}/);
+  assert.match(html, /\.tool \.desc\{\s*display:block/);
+  assert.match(html, /想練新題從這裡開始/);
+  assert.match(html, /挖空關鍵字/);
+  assert.match(html, /逐字輸入法條原文/);
+  assert.match(html, /看哪部法規最弱/);
+});
