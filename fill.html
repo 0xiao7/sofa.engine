@@ -366,7 +366,7 @@
           style="background:transparent;border:none;outline:none;font-family:var(--mono);font-size:14px;color:var(--cream);width:64px;cursor:text">
         <datalist id="artDatalist"></datalist>
       </div>
-      <button id="btnNext" class="btn btn-sec" style="padding:8px 16px;font-size:13px">換一條</button>
+      <button id="btnNext" class="btn btn-sec" style="padding:8px 16px;font-size:13px">開始填空</button>
       <button id="btnFillSession" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(231,187,167,0.15);border-color:rgba(231,187,167,0.6)">連刷模式</button>
       <button onclick="openFillStats()" title="個人填空統計" style="background:none;border:1px solid rgba(231,187,167,0.3);color:var(--peach);border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">統計</button>
       <button id="btn-handwrite" onclick="_toggleHandwrite(this)" title="iPad 手寫模式（放大輸入格）" style="background:none;border:1px solid rgba(245,240,234,.25);color:rgba(245,240,234,.6);border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">手寫</button>
@@ -405,7 +405,7 @@
       <div>
         <div class="ar-head">
           <span class="eb">FILL-IN · 關鍵字填空</span>
-          <h2><span class="n" id="artNum">—</span><span id="artTitle">選擇法規後換一條開始</span></h2>
+          <h2><span class="n" id="artNum">—</span><span id="artTitle">選擇法規後點「開始填空」開始</span></h2>
           <div class="row">
             <span class="pill" id="lawName" style="display:none"></span>
             <span id="diff-badge"></span>
@@ -414,7 +414,7 @@
         </div>
 
         <div class="fill-card" id="fillCard" data-label="FILL">
-          <div id="fillText"><span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.35);letter-spacing:.1em">選擇法規後點「換一條」開始</span></div>
+          <div id="fillText"><span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.35);letter-spacing:.1em">選擇法規後點「開始填空」開始</span></div>
           <div id="resultMsg" style="display:none;margin-top:16px;font-family:var(--mono);font-size:13px;letter-spacing:.1em"></div>
           <div id="sourceBox" style="display:none;margin-top:8px;font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.5);letter-spacing:.08em"></div>
           <button id="fillSourceLink" style="display:none;margin-top:10px;background:transparent;border:1px solid var(--peach-dim);color:var(--peach);font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:6px 12px;border-radius:2px;cursor:pointer">查看完整條文 →</button>
@@ -1523,6 +1523,7 @@ document.getElementById('fillSourceLink').addEventListener('click',()=>{
 });
 
 async function loadNew(){
+  document.getElementById('btnNext').textContent = '下一篇';
   fillData=null;
   _lastFillPerfect = false;
   // Wave 107: reset per-article timer on new load
@@ -1955,11 +1956,11 @@ function _drillFillWeakLaw(lawName) {
 
 <div id="fillSessionModal" style="display:none;position:fixed;inset:0;background:rgba(7,13,20,0.8);align-items:center;justify-content:center;z-index:50;" onclick="if(event.target===this)this.style.display='none'">
   <div style="background:var(--navy-2,var(--navy-3));border:1px solid rgba(231,187,167,0.3);border-radius:8px;padding:28px 32px;min-width:240px;text-align:center" onclick="event.stopPropagation()">
-    <div style="font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--peach);margin-bottom:16px">選擇題數</div>
+    <div style="font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--peach);margin-bottom:16px">選擇篇數</div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
-      <button class="btn btn-sec" onclick="startFillSession(10)">10 題</button>
-      <button class="btn btn-sec" onclick="startFillSession(20)">20 題</button>
-      <button class="btn btn-sec" onclick="startFillSession(30)">30 題</button>
+      <button class="btn btn-sec" onclick="startFillSession(10)">10 篇</button>
+      <button class="btn btn-sec" onclick="startFillSession(20)">20 篇</button>
+      <button class="btn btn-sec" onclick="startFillSession(30)">30 篇</button>
     </div>
     <button class="btn btn-ghost" onclick="document.getElementById('fillSessionModal').style.display='none'">取消</button>
   </div>
