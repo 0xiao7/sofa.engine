@@ -4,6 +4,11 @@ import assert from 'node:assert/strict';
 
 const html = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
 
+test('dashboard uses one Chinese font stack across serif and sans tokens', () => {
+  assert.match(html, /--serif:"Noto Serif TC","Songti TC",serif/);
+  assert.match(html, /--sans:var\(--serif\)/);
+});
+
 test('today recaps are included in the sidebar navigation and scroll spy', () => {
   assert.match(html, /<nav class="top-mid">[\s\S]*href="#study-cockpit-recap"[\s\S]*今日/);
   assert.match(html, /href="#study-cockpit-recap"[\s\S]*今日任務/);
