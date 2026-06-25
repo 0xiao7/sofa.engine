@@ -40,3 +40,17 @@ test('wrong-bank review answers write back into the shared answer ledger', () =>
   assert.match(fn, /question:data\.question\|\|''/);
   assert.match(fn, /options:_opts/);
 });
+
+test('quiz timeout auto-fail writes back into the shared answer ledger', () => {
+  const start = quiz.indexOf('function _startCountdown');
+  assert.ok(start > -1, '_startCountdown must exist');
+  const end = quiz.indexOf('function _stopCountdown', start);
+  const fn = quiz.slice(start, end > start ? end : start + 5000);
+
+  assert.match(fn, /\/api\/me\/answer/);
+  assert.match(fn, /is_correct:false/);
+  assert.match(fn, /choice:-1/);
+  assert.match(fn, /typeof\(\(quizData\.options\|\|\[\]\)\[0\]\)!=='object'/);
+  assert.match(fn, /mode:quizData\._past_exam\?'past_exam':'quiz'/);
+  assert.match(fn, /question:quizData\.question\|\|''/);
+});

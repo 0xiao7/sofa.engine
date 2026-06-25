@@ -1678,10 +1678,23 @@ function _startCountdown() {
         if(qb){ qb.style.color='var(--bad)'; setTimeout(()=>qb.style.color='',600); }
         // Track auto-fail for sprint review
         if(_sprintMode && quizData){
-          const _isNewFmt=typeof(quizData.options||[])[0]!=='object';
+          const _isNewFmt=typeof((quizData.options||[])[0])!=='object';
           const _correctIdx=_isNewFmt?(quizData.options||[]).indexOf(quizData.answer):
             (quizData.options||[]).findIndex(o=>!!o.is_correct);
           const _opts=_isNewFmt?(quizData.options||[]):((quizData.options||[]).map(o=>o.snippet||''));
+          const _timeoutPageId=quizData.page_id||quizData.correct_id||null;
+          if(_timeoutPageId&&uid&&uid!=='PREVIEW'&&!isFree){
+            fetch(`${API}/api/me/answer`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({
+              article_id:_timeoutPageId,
+              is_correct:false,
+              mode:quizData._past_exam?'past_exam':'quiz',
+              question:quizData.question||'',
+              options:_opts,
+              correct_idx:_correctIdx,
+              choice:-1,
+              explanation:quizData.explanation||''
+            })}).catch(()=>{});
+          }
           _sprintAnswers.push({chosen:-1, correct:_correctIdx,
             q:{text:quizData.question||'', options:_opts}});
         }
