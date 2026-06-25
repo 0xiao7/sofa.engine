@@ -45,12 +45,37 @@ test('study today makes working tools and personal planning obvious', () => {
   assert.match(active, /href="#review-due"[\s\S]*看今日複習/);
   assert.match(active, /href="quiz\.html\?open=weakness"[\s\S]*看弱點分析/);
   assert.match(active, /onclick="openStudyPlanPanel\(\)"[\s\S]*設定讀書課程/);
+  assert.match(active, /onclick="openStudyRecordPanel\(\)"[\s\S]*補紀錄/);
   assert.match(active, /id="study-plan-panel"/);
   assert.match(active, /適合函授、補習班課程、模考或自己的週任務/);
   assert.match(active, /function saveStudySeries/);
   assert.match(active, /\/api\/me\/study\/series/);
   assert.match(active, /count:\s*count/);
   assert.doesNotMatch(active, /total_sessions:\s*count/);
+});
+
+test('study today exposes a time-first planning box before schedule details', () => {
+  const recapStart = active.indexOf('id="study-cockpit-recap"');
+  assert.ok(recapStart >= 0, 'study recap must exist');
+  const recap = active.slice(recapStart, recapStart + 7600);
+  const timeBox = recap.indexOf('id="study-time-box"');
+  const planPanel = recap.indexOf('id="study-plan-panel"');
+  assert.ok(timeBox > -1, 'time-first box must exist');
+  assert.ok(planPanel > -1, 'private plan panel must exist');
+  assert.ok(timeBox < planPanel, 'time guidance should appear before private schedule controls');
+  assert.match(recap, /id="study-target-hours"[\s\S]*500/);
+  assert.match(recap, /id="study-weekly-hours"[\s\S]*每週可讀/);
+  assert.match(recap, /建議總時數可以改/);
+});
+
+test('study today separates manual records from answer accuracy', () => {
+  assert.match(active, /id="study-record-panel"/);
+  assert.match(active, /function openStudyRecordPanel/);
+  assert.match(active, /補紀錄只會補進度，不會補答題正確率/);
+  assert.match(active, /讀書時數/);
+  assert.match(active, /課程完成/);
+  assert.match(active, /熟悉度/);
+  assert.doesNotMatch(active, /補答對率|補正確率|修正錯題數/);
 });
 
 test('study today supports private pasted schedule imports without law search copy', () => {
@@ -79,7 +104,7 @@ test('study today uses learner-facing subject status wording, not seed jargon', 
 test('study today puts next-step actions before lower-priority subject detail', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
-  const recap = active.slice(recapStart, recapStart + 6200);
+  const recap = active.slice(recapStart, recapStart + 9800);
   const actionIndex = recap.indexOf('class="study-actions"');
   const subjectsIndex = recap.indexOf('id="study-cockpit-subjects"');
   const blocksIndex = recap.indexOf('id="study-cockpit-blocks"');
