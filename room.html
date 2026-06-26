@@ -1493,6 +1493,7 @@ const mToonFlat = (hex) => new THREE.MeshLambertMaterial({ color: hex, flatShadi
 const _isMobile = /iPhone|iPad|Android|Mobi/i.test(navigator.userAgent) || window.innerWidth < 768;
 const SOFA_AIRY_ROOM = true;
 const SOFA_AIRY_THREE_ROOM = true;
+const SOFA_AIRY_PAINTERLY_PRIMARY = true;
 window.goSerialFromRetain = function(){
   try{
     if(window.Capacitor && Capacitor.getPlatform && Capacitor.getPlatform() === 'ios'){
@@ -1503,7 +1504,7 @@ window.goSerialFromRetain = function(){
   window.location.href = 'checkout.html';
 };
 const SOFA_ROOM_SINGLE_SCENE = false;
-const SOFA_AIRY_DRAW_AVATARS = false;
+const SOFA_AIRY_DRAW_AVATARS = true;
 const LOW_POWER_SCENE = _isMobile || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const SCENE_USER_LIMIT = 20;
 const SCENE_OTHER_LIMIT = 19;
@@ -2001,9 +2002,47 @@ function _airyDrawChibi(ctx, x, y, u, i, t, scale = 1) {
   ctx.restore();
 }
 
+function _airyDrawSeatedReader(ctx, x, y, u, i, t, scale = 1, facing = 1) {
+  const bob = Math.sin(t * 1.1 + i * .72) * 1.1;
+  const skin = ['#F4C9A8', '#EFC09D', '#D9A47E', '#F1D1B7'][i % 4];
+  const hair = ['#5C4636', '#3E3A35', '#6B4A3D', '#2F3843'][i % 4];
+  const shirt = ['#7FAEC4', '#91B988', '#D9A1A9', '#B9ACD7', '#DDB16E'][i % 5];
+  ctx.save();
+  ctx.translate(x, y + bob);
+  ctx.scale(scale * facing, scale);
+  ctx.globalAlpha = u && u.isGhost ? .68 : .96;
+  ctx.fillStyle = 'rgba(80,60,36,.10)';
+  ctx.beginPath(); ctx.ellipse(0, 25, 24, 6, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = shirt;
+  _airyRoundRect(ctx, -15, 8, 30, 25, 10); ctx.fill();
+  ctx.fillStyle = skin;
+  ctx.beginPath(); ctx.arc(0, -6, 15, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = hair;
+  ctx.beginPath(); ctx.arc(-2, -10, 16, Math.PI * .86, Math.PI * 2.05); ctx.fill();
+  ctx.fillRect(-15, -13, 30, 8);
+  ctx.strokeStyle = 'rgba(80,54,36,.28)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-13, 19); ctx.lineTo(-28, 30); ctx.moveTo(13, 19); ctx.lineTo(26, 29); ctx.stroke();
+  ctx.fillStyle = '#FFF6DE';
+  _airyRoundRect(ctx, -24, 27, 48, 13, 4); ctx.fill();
+  ctx.strokeStyle = 'rgba(130,95,55,.18)';
+  ctx.lineWidth = 1;
+  ctx.beginPath(); ctx.moveTo(0, 28); ctx.lineTo(0, 38); ctx.stroke();
+  if (u && u.isSelf) {
+    ctx.strokeStyle = 'rgba(111,201,140,.78)';
+    ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.arc(0, -6, 22, 0, Math.PI * 2); ctx.stroke();
+  }
+  ctx.restore();
+}
+
 function _airyDrawDesk(ctx, x, y, w, h, u, i, t) {
   ctx.save();
   _airyDrawRoomShadow(ctx, x + w * .50, y + h + 16, w * .46, h * .20, .08);
+  if (SOFA_AIRY_DRAW_AVATARS && u) {
+    const readerScale = Math.max(.30, Math.min(.72, w / 190));
+    _airyDrawSeatedReader(ctx, x + w * .58, y - h * .42, u, i, t, readerScale, i % 2 ? -1 : 1);
+  }
   const top = ctx.createLinearGradient(x, y, x, y + h);
   top.addColorStop(0, '#E7C38D');
   top.addColorStop(1, '#BF8E57');
@@ -2026,7 +2065,6 @@ function _airyDrawDesk(ctx, x, y, w, h, u, i, t) {
   ctx.fillStyle = '#7FAE8D';
   _airyRoundRect(ctx, x + w * .16, y + h * .24, w * .18, 4, 2); ctx.fill();
   _airyDrawPlant(ctx, x + w - 18, y + 4, 0.40, _flowerStageForMinutes(Math.floor(_studyMsForUser(u || {}) / 60000)));
-  if (SOFA_AIRY_DRAW_AVATARS && u) _airyDrawChibi(ctx, x + w * 0.5, y + h + 6, u, i, t, 0.72);
   ctx.restore();
 }
 
@@ -2098,21 +2136,29 @@ function _airyDrawIslandRoom(canvas, ctx, t) {
     ctx.restore();
   }
 
-  drawFloatingIsland(cx + islandW * .25, cy - islandH * .45, islandW * .42, islandH * .32, .42, true);
-  drawFloatingIsland(cx - islandW * .30, cy - islandH * .30, islandW * .36, islandH * .28, .34, true);
+  drawFloatingIsland(cx + islandW * .26, cy - islandH * .48, islandW * .48, islandH * .34, .48, true);
+  drawFloatingIsland(cx - islandW * .32, cy - islandH * .32, islandW * .40, islandH * .30, .38, true);
+  drawFloatingIsland(cx + islandW * .02, cy - islandH * .62, islandW * .25, islandH * .20, .24, true);
   drawFloatingIsland(cx, cy, islandW, islandH, 1, true);
 
   ctx.save();
   ctx.strokeStyle = 'rgba(255,255,255,.72)';
-  ctx.lineWidth = mobile ? 36 : 54;
+  ctx.lineWidth = mobile ? 42 : 62;
   ctx.lineCap = 'round';
   ctx.beginPath();
   ctx.moveTo(cx - islandW * .33, cy + islandH * .10);
   ctx.bezierCurveTo(cx - islandW * .16, cy - islandH * .02, cx - islandW * .03, cy + islandH * .16, cx + islandW * .12, cy + islandH * .02);
   ctx.bezierCurveTo(cx + islandW * .28, cy - islandH * .12, cx + islandW * .18, cy - islandH * .28, cx + islandW * .34, cy - islandH * .38);
   ctx.stroke();
-  ctx.strokeStyle = 'rgba(185,170,132,.18)';
-  ctx.lineWidth = 1.5;
+  ctx.strokeStyle = 'rgba(185,170,132,.20)';
+  ctx.lineWidth = mobile ? 2 : 2.4;
+  ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,.36)';
+  ctx.lineWidth = mobile ? 10 : 14;
+  ctx.beginPath();
+  ctx.moveTo(cx - islandW * .31, cy + islandH * .08);
+  ctx.bezierCurveTo(cx - islandW * .15, cy - islandH * .05, cx - islandW * .02, cy + islandH * .12, cx + islandW * .13, cy - islandH * .01);
+  ctx.bezierCurveTo(cx + islandW * .30, cy - islandH * .16, cx + islandW * .19, cy - islandH * .28, cx + islandW * .35, cy - islandH * .39);
   ctx.stroke();
   ctx.restore();
 
@@ -2128,10 +2174,17 @@ function _airyDrawIslandRoom(canvas, ctx, t) {
       ];
   desks.forEach((p, i) => _airyDrawDesk(ctx, p[0], p[1], p[2], p[3], sceneUsers[i + 1], i + 1, t));
 
-  for (let i = 0; i < (mobile ? 9 : 18); i++) {
+  for (let i = 0; i < (mobile ? 16 : 34); i++) {
     const px = cx - islandW * .40 + (i * 73 % Math.max(1, islandW * .78));
-    const py = cy - islandH * .17 + ((i * 47) % Math.max(1, islandH * .30));
-    _airyDrawPlant(ctx, px, py, mobile ? .34 : .48, 2 + (i % 3));
+    const py = cy - islandH * .24 + ((i * 47) % Math.max(1, islandH * .42));
+    const edge = Math.abs((px - cx) / Math.max(1, islandW * .46)) + Math.abs((py - cy) / Math.max(1, islandH * .30));
+    if (edge > .42) _airyDrawPlant(ctx, px, py, mobile ? .30 : .42, 2 + (i % 3));
+  }
+  if (!mobile) {
+    _airyDrawShelf(ctx, cx + islandW * .11, cy - islandH * .21, 104, 132, false);
+    _airyDrawPlant(ctx, cx - islandW * .43, cy - islandH * .10, .82, 4);
+    _airyDrawPlant(ctx, cx + islandW * .36, cy - islandH * .14, .72, 4);
+    _airyDrawPlant(ctx, cx + islandW * .03, cy + islandH * .18, .62, 3);
   }
 
   if (!mobile) {
@@ -2213,6 +2266,19 @@ function _airyDrawRoom(canvas, ctx, t) {
     ctx.lineTo(right + usableW * .16, y);
     ctx.stroke();
   }
+  ctx.save();
+  ctx.globalAlpha = mobile ? .13 : .18;
+  ctx.strokeStyle = '#8F6238';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < (mobile ? 18 : 34); i++) {
+    const base = horizon + ((i * 41) % Math.max(1, bottom - horizon));
+    const skew = (i % 5 - 2) * (mobile ? 18 : 30);
+    ctx.beginPath();
+    ctx.moveTo(left + skew, base);
+    ctx.bezierCurveTo(usableW * .30 + skew * .5, base - 18, usableW * .54, base + 14, right + skew * .25, base - 4);
+    ctx.stroke();
+  }
+  ctx.restore();
 
   const leftWall = [
     [left, top],
@@ -2234,24 +2300,24 @@ function _airyDrawRoom(canvas, ctx, t) {
   rightWall.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
   ctx.closePath(); ctx.fill();
 
-  const windowCount = mobile ? 3 : 6;
+  const windowCount = mobile ? 4 : 7;
   for (let i = 0; i < windowCount; i++) {
     const depth = i / Math.max(1, windowCount - 1);
-    const ww = (mobile ? 72 : 122) * (1 - depth * .58);
-    const wh = (mobile ? 118 : 178) * (1 - depth * .54);
-    const wx = left + usableW * (.035 + depth * .19);
-    const wy = top + h * (.075 + depth * .030);
+    const ww = (mobile ? 76 : 122) * (1 - depth * .48);
+    const wh = (mobile ? 118 : 174) * (1 - depth * .45);
+    const wx = left + usableW * (.035 + depth * (mobile ? .17 : .155));
+    const wy = top + h * (.078 + depth * .042);
     _airyDrawSoftWindow(ctx, wx, wy, ww, wh, mobile);
     _airyDrawLightWash(ctx, wx + ww * .42, wy + wh * .12, usableW * (.36 - depth * .11), h * (.54 - depth * .10), mobile ? .09 : .14);
   }
 
-  const shelfCount = mobile ? 3 : 6;
+  const shelfCount = mobile ? 4 : 7;
   for (let i = 0; i < shelfCount; i++) {
     const depth = i / Math.max(1, shelfCount - 1);
-    const sw = (mobile ? 80 : 132) * (1 - depth * .50);
-    const sh = (mobile ? 132 : 200) * (1 - depth * .48);
-    const sx = right - usableW * (.12 + depth * .12) - sw;
-    const sy = top + h * (.11 + depth * .030);
+    const sw = (mobile ? 80 : 132) * (1 - depth * .45);
+    const sh = (mobile ? 132 : 198) * (1 - depth * .42);
+    const sx = right - usableW * (.095 + depth * (mobile ? .095 : .10)) - sw;
+    const sy = top + h * (.11 + depth * .040);
     _airyDrawShelf(ctx, sx, sy, sw, sh, mobile);
   }
 
@@ -2290,14 +2356,14 @@ function _airyDrawRoom(canvas, ctx, t) {
   }
 
   const desks = [];
-  const rows = mobile ? 4 : 7;
+  const rows = mobile ? 5 : 10;
   for (let i = rows - 1; i >= 0; i--) {
     const p = (i + 1) / rows;
-    const y = horizon + Math.pow(p, 1.72) * (h - horizon) * (mobile ? .72 : .64);
-    const dw = (mobile ? 52 : 58) + p * (mobile ? 58 : 104);
-    const dh = (mobile ? 24 : 22) + p * (mobile ? 20 : 32);
-    const leftX = vanishX - usableW * (.08 + p * (mobile ? .31 : .39)) - dw * .5;
-    const rightX = vanishX + usableW * (.04 + p * (mobile ? .19 : .27)) - dw * .5;
+    const y = horizon + Math.pow(p, 1.76) * (h - horizon) * (mobile ? .72 : .70);
+    const dw = (mobile ? 50 : 50) + p * (mobile ? 58 : 96);
+    const dh = (mobile ? 22 : 20) + p * (mobile ? 20 : 30);
+    const leftX = vanishX - usableW * (.06 + p * (mobile ? .30 : .41)) - dw * .5;
+    const rightX = vanishX + usableW * (.035 + p * (mobile ? .20 : .29)) - dw * .5;
     desks.push([leftX, y, dw, dh]);
     desks.push([rightX, y + h * .018, dw, dh]);
   }
@@ -10416,7 +10482,7 @@ function _startRealMode() {
 function startThreeAnimation(canvas) {
   if (SOFA_AIRY_ROOM) {
     try {
-      if (SOFA_AIRY_THREE_ROOM && _canStartAiryThree(canvas)) {
+      if (SOFA_AIRY_THREE_ROOM && !SOFA_AIRY_PAINTERLY_PRIMARY && _canStartAiryThree(canvas)) {
         _startAiryThreeRoom(canvas);
       } else {
         _startAiryRoom(canvas);
