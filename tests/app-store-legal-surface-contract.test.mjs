@@ -14,6 +14,7 @@ test('terms page provides public privacy and account deletion instructions', () 
   assert.match(terms, /購買信箱/);
   assert.match(terms, /序號後 4 碼/);
   assert.match(terms, /答題紀錄、收藏、筆記或會員紀錄/);
+  assert.match(terms, /主旨寫上「SoFa 帳號與資料刪除」/);
   assert.match(terms, /7 個工作天內回覆/);
   assert.match(terms, /依法令或金流、稅務留存/);
   assert.match(terms, /mailto:hi@sofaengine\.org\?subject=SoFa%20帳號與資料刪除/);
