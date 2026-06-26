@@ -38,6 +38,21 @@ test('practice session summary overlays floating practice tools', () => {
   assert.match(active, /\.practice-float-btn\{[\s\S]*?z-index:200/);
 });
 
+test('practice session summary counters are wired to rendered metric ids', () => {
+  const summaryStart = active.indexOf('id="session-summary"');
+  const summaryEnd = active.indexOf('id="practice-share-btn"', summaryStart);
+  const summary = active.slice(summaryStart, summaryEnd);
+  assert.match(summary, /id="ss-complete"/);
+  assert.match(summary, /id="ss-attempt"/);
+
+  const fnStart = active.indexOf('function showSessionSummary');
+  const fnEnd = active.indexOf('function ensureSessionTimer', fnStart);
+  const fn = active.slice(fnStart, fnEnd);
+  assert.match(fn, /getElementById\('ss-complete'\)\.textContent\s*=\s*_articlesCompleted/);
+  assert.match(fn, /getElementById\('ss-attempt'\)\.textContent\s*=\s*_articlesAttempted/);
+  assert.doesNotMatch(active, /ss-completed/);
+});
+
 test('practice mobile share control avoids the top bar and timer corner', () => {
   assert.match(active, /@media \(max-width:760px\)\{[\s\S]*?#practice-share-btn\{top:auto;right:auto;bottom:58px;left:14px\}/);
 });
