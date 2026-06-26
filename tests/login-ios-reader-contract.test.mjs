@@ -34,6 +34,12 @@ test('desktop login keeps the first screen compact and moves long support copy i
   assert.match(html, /購買後 7 天內且序號未啟用/);
 });
 
+test('login points trial users to web quiz before LINE', () => {
+  assert.match(html, /還沒準備購買？先免費做題，看弱點/);
+  assert.match(html, /href="quiz\.html\?free=1"/);
+  assert.doesNotMatch(html, /加入 LINE 索取體驗序號/);
+});
+
 test('short desktop viewports keep the login CTA and footer inside the first screen', () => {
   assert.match(html, /@media \(max-height: 820px\) and \(min-width: 901px\)/);
   assert.match(html, /\.auth-r\s*\{[^}]*padding:\s*24px 44px 24px/);
