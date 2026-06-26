@@ -221,3 +221,16 @@ test('series planning can generate local weekly items before API sync', () => {
   assert.match(active, /i \* 7/);
   assert.match(active, /if\(!uid && !token\)\{[\s\S]*_addLocalStudyItems\(localItems\)/);
 });
+
+test('saved study plans show an immediate readable summary and focus the plan list', () => {
+  assert.match(active, /class="study-plan-count"/);
+  assert.match(active, /接下來 ' \+ items\.length \+ ' 筆私人計畫/);
+  assert.match(active, /下一筆：<b>/);
+  assert.match(active, /function _studyStatusLabel/);
+  assert.match(active, /已完成/);
+  assert.match(active, /待讀/);
+  assert.match(active, /function focusStudyPlanItems/);
+  assert.match(active, /scrollIntoView\(\{ block:'nearest', behavior:'smooth' \}\)/);
+  assert.match(active, /_addLocalStudyItems[\s\S]*focusStudyPlanItems\(\)/);
+  assert.match(active, /saveStudyRecordLocal[\s\S]*focusStudyPlanItems\(\)/);
+});

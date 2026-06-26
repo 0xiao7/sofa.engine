@@ -719,6 +719,16 @@
   }
   .study-import-actions button.primary{background:var(--peach);border-color:var(--peach);color:var(--navy);font-weight:800}
   .study-plan-items{display:grid;gap:8px}
+  .study-plan-count{
+    border:1px solid rgba(231,187,167,.2);
+    background:rgba(231,187,167,.06);
+    border-radius:4px;
+    padding:10px 12px;
+    color:rgba(245,240,234,.62);
+    font-size:12px;
+    line-height:1.6;
+  }
+  .study-plan-count b{color:var(--peach);font-weight:700}
   .study-plan-items h3{
     font-family:var(--mono);
     font-size:10.5px;
@@ -4984,15 +4994,34 @@ function renderStudyPlanItems(plan){
     el.innerHTML = '';
     return;
   }
-  el.innerHTML = '<h3>接下來的私人計畫</h3>' + items.slice(0,8).map(function(item){
+  var next = items[0] || {};
+  var nextText = [next.scheduled_date || '', next.scheduled_time || '', next.title || next.subject || '讀書計畫'].filter(Boolean).join(' · ');
+  var summary = '<div class="study-plan-count">接下來 ' + items.length + ' 筆私人計畫'
+    + (nextText ? '；下一筆：<b>' + esc(nextText) + '</b>' : '')
+    + '</div>';
+  el.innerHTML = summary + '<h3>接下來的私人計畫</h3>' + items.slice(0,8).map(function(item){
     var meta = [item.subject || '', item.scheduled_time || '', item.source_label || ''].filter(Boolean).join(' · ');
     return '<div class="study-plan-item">'
       + '<span class="date">' + esc(item.scheduled_date || '') + '</span>'
       + '<span class="title">' + esc(item.title || item.subject || '讀書計畫') + '</span>'
-      + '<span class="status">' + esc(item.status || 'planned') + '</span>'
+      + '<span class="status">' + esc(_studyStatusLabel(item.status)) + '</span>'
       + '<span class="meta">' + esc(meta) + '</span>'
       + '</div>';
   }).join('');
+}
+
+function _studyStatusLabel(status){
+  var s = String(status || 'planned').trim();
+  if(s === 'done') return '已完成';
+  if(s === 'skipped') return '略過';
+  if(s === 'postponed') return '改期';
+  if(s === 'cancelled') return '取消';
+  return '待讀';
+}
+
+function focusStudyPlanItems(){
+  var el = document.getElementById('study-plan-items');
+  if(el && el.innerHTML) el.scrollIntoView({ block:'nearest', behavior:'smooth' });
 }
 
 function _splitStudyCsvLine(line){
@@ -5051,6 +5080,7 @@ function _addLocalStudyItems(items){
   local.items = _dedupeStudyItems((local.items || []).concat(items));
   _saveStudyLocal(local);
   renderStudyPlanItems(_mergeStudyPlan(null));
+  focusStudyPlanItems();
   showStudySaveNudge();
   return items.length;
 }
@@ -5110,6 +5140,7 @@ function saveStudyRecordLocal(){
   }]);
   _saveStudyLocal(local);
   renderStudyPlanItems(_mergeStudyPlan(null));
+  focusStudyPlanItems();
   tell('已先存在本機；答題正確率不會被補紀錄改動。');
   showStudySaveNudge();
 }
