@@ -1450,7 +1450,7 @@ body.airy-room .scene-mode-toggle{
       <button id="btn-send-trial">寄序號</button>
     </div>
     <div id="trial-msg"></div>
-    <button class="btn-serial" onclick="window.location.href='checkout.html'">輸入序號啟用會員</button>
+    <button class="btn-serial" onclick="goSerialFromRetain()">輸入序號啟用會員</button>
     <div class="retain-links">
       <button id="retain-keep">繼續讀書</button>
       <button id="retain-leave">直接離開</button>
@@ -1493,6 +1493,15 @@ const mToonFlat = (hex) => new THREE.MeshLambertMaterial({ color: hex, flatShadi
 const _isMobile = /iPhone|iPad|Android|Mobi/i.test(navigator.userAgent) || window.innerWidth < 768;
 const SOFA_AIRY_ROOM = true;
 const SOFA_AIRY_THREE_ROOM = true;
+window.goSerialFromRetain = function(){
+  try{
+    if(window.Capacitor && Capacitor.getPlatform && Capacitor.getPlatform() === 'ios'){
+      window.location.href = 'login.html';
+      return;
+    }
+  }catch(e){}
+  window.location.href = 'checkout.html';
+};
 const SOFA_ROOM_SINGLE_SCENE = false;
 const SOFA_AIRY_DRAW_AVATARS = false;
 const LOW_POWER_SCENE = _isMobile || window.matchMedia('(prefers-reduced-motion: reduce)').matches;

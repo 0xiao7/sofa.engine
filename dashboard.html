@@ -2258,6 +2258,8 @@
           <!-- HIDDEN 2026-06-21: 自習室暫時收起，入口先藏不刪 -->
           <!-- <a href="room.html" style="font-family:var(--mono);font-size:11px;color:rgba(231,187,167,.65);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(231,187,167,.95)'" onmouseout="this.style.color='rgba(231,187,167,.65)'">自習室 →</a> -->
           <a href="terms.html" style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.35);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(245,240,234,.7)'" onmouseout="this.style.color='rgba(245,240,234,.35)'">服務聲明 / 退費政策 →</a>
+          <a href="terms.html#privacy" style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.35);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(245,240,234,.7)'" onmouseout="this.style.color='rgba(245,240,234,.35)'">隱私與資料 →</a>
+          <a href="terms.html#data-deletion" style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.35);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(245,240,234,.7)'" onmouseout="this.style.color='rgba(245,240,234,.35)'">資料刪除 →</a>
           <a href="mailto:hi@sofaengine.org" style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.35);letter-spacing:.08em;transition:.18s" onmouseover="this.style.color='rgba(245,240,234,.7)'" onmouseout="this.style.color='rgba(245,240,234,.35)'">hi@sofaengine.org</a>
           <span style="font-family:var(--mono);font-size:10px;color:rgba(245,240,234,.18);letter-spacing:.06em;margin-top:4px">v3.1.0 · 2026.05</span>
         </div>
@@ -2938,6 +2940,18 @@ const API = 'https://sofa-engine-api.onrender.com';
 const QUIZ_WRONG_KEY = 'sofa_wrong_ids';
 function isIOSReaderApp(){try{return !!(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='ios');}catch(e){return false;}}
 if(isIOSReaderApp()) document.documentElement.classList.add('ios-reader-app');
+function applyIOSReaderAppReviewGuards(){
+  if(!document.documentElement.classList.contains('ios-reader-app')) return;
+  document.querySelectorAll('.mc-renewal-cta').forEach(function(cta){
+    cta.removeAttribute('href');
+    cta.setAttribute('aria-disabled', 'true');
+    cta.textContent = '已購買序號會接回進度';
+  });
+}
+applyIOSReaderAppReviewGuards();
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', applyIOSReaderAppReviewGuards);
+}
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
 function displayArticleNo(raw){
   var clean = String(raw || '').replace(/^§+/, '').trim();
