@@ -15,6 +15,14 @@ test('post-answer actions place next question next to view article', () => {
   assert.match(actionRow, /id="btnNext"/);
 });
 
+test('post-answer citation formats article labels without duplicated 第 or 條', () => {
+  assert.match(active, /function formatArticleCitation/);
+  assert.match(active, /formatArticleCitation\(artTitle,\s*lawName\)/);
+  assert.doesNotMatch(active, /第 <strong>'\+\(_artNo\|\|'—'\)\+'<\/strong> 條/);
+  assert.match(active, /title\.match\(\s*\/\^第\\s\*\(\[\\d一二三四五六七八九十百千零兩之-更\\s\]\+\)條\/\s*\)/);
+  assert.match(active, /body\.push\(`第 \$\{core\} 條`\)/);
+});
+
 test('native iOS quiz owns the status bar safe area', () => {
   assert.match(html, /<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" \/>/);
   assert.match(active, /document\.documentElement\.classList\.add\('ios-reader-app'\)/);
@@ -29,8 +37,10 @@ test('quiz usage hint is near the question instead of hidden at the page bottom'
   const between = active.slice(stemStart, optsStart);
 
   assert.match(between, /id="quiz-use-hint"/);
-  assert.match(between, /怎麼作答/);
-  assert.match(between, /點一個答案，答完看法條或下一題/);
+  assert.match(between, /作答提示/);
+  assert.match(between, /選答案後，先看原文，再看解析或下一題/);
+  assert.match(active, /class="quiz-key-hints"/);
+  assert.match(active, /@media \(max-width:760px\)[\s\S]*?\.quiz-key-hints\{display:none\}/);
   assert.match(active, /#kb-hint\{display:none\}/);
 });
 
@@ -91,6 +101,9 @@ test('answer explanation shows article text before analysis sections', () => {
   assert.doesNotMatch(active, /查看該條完整原文/);
   assert.match(active, /條文原文已放在上方/);
   assert.match(active, /style\.display='block'/);
+  assert.match(active, /function showInlineArticleText/);
+  assert.match(active, /條文原文載入中/);
+  assert.match(active, /暫時沒有原文/);
 });
 
 test('session mode advances quickly after each answer without changing normal mode', () => {

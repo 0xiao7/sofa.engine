@@ -114,6 +114,12 @@
     color:var(--peach);
     font-weight:700;
   }
+  .quiz-key-hints{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    flex-wrap:wrap;
+  }
   .quiz-use-hint kbd{
     display:inline-flex;
     align-items:center;
@@ -224,6 +230,8 @@
   .explain .src a{color:var(--peach-3);font-weight:600}
   .explain .src button{background:none;border:none;padding:0;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--peach-3);font-weight:600}
   .art-inline{margin-top:14px;padding:16px 20px;background:rgba(31,56,72,.06);border-radius:3px;max-height:380px;overflow-y:auto;font-family:"Songti TC",var(--serif);font-size:14.5px;line-height:2;color:rgba(31,56,72,.82);white-space:pre-wrap;display:none}
+  .art-inline.is-loading,
+  .art-inline.is-empty{font-family:var(--sans);font-size:13px;line-height:1.8;color:rgba(31,56,72,.58);background:rgba(231,187,167,.16)}
 
   /* section analysis */
   .sec-block{margin-top:16px;padding-top:14px;border-top:1px dashed rgba(31,56,72,.15)}
@@ -312,6 +320,7 @@
     .q-foot .r{flex-direction:column}
     .rail{flex-direction:column}
     .quiz-use-hint{font-size:10.5px;gap:6px}
+    .quiz-key-hints{display:none}
     .quiz-use-hint kbd{min-width:22px;height:22px;padding:0 6px}
     #kb-hint{display:none}              /* 浮動鍵盤提示列會壓到「下一題」，手機收起 */
   }
@@ -346,7 +355,7 @@
   #qCountdown.urgent{color:var(--bad);animation:countdown-pulse .5s ease-in-out infinite alternate;}
   @keyframes countdown-pulse{from{opacity:1}to{opacity:.4}}
 
-  #quiz-citation{display:none;text-align:center;margin-top:0;padding:7px 14px;background:rgba(26,46,61,0.7);border:1px solid rgba(231,187,167,0.3);border-radius:16px;color:var(--peach);font-size:12px;animation:fadeInUp 0.3s ease;}
+  #quiz-citation{display:none;text-align:center;margin-top:0;padding:7px 14px;background:rgba(26,46,61,0.7);border:1px solid rgba(231,187,167,0.3);border-radius:16px;color:var(--peach);font-family:var(--serif);font-size:13px;animation:fadeInUp 0.3s ease;}
   #quiz-citation.show{display:block;}
   #quiz-citation a{color:var(--peach);text-decoration:none;}
   @keyframes fadeInUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
@@ -694,11 +703,11 @@
           <p id="questionBox" style="opacity:.45;font-family:var(--mono);font-size:13px;letter-spacing:.1em;color:rgba(245,240,234,.4)">按「出題」開始作答</p>
         </div>
         <div class="quiz-use-hint" id="quiz-use-hint">
-          <span class="lead">怎麼作答</span>
-          <span>點一個答案，答完看法條或下一題</span>
-          <span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd>選答案</span>
-          <span><kbd>Enter</kbd>下一題</span>
-          <span><kbd>F</kbd>標記</span>
+          <span class="lead">作答提示</span>
+          <span>選答案後，先看原文，再看解析或下一題</span>
+          <span class="quiz-key-hints"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd>選答案</span>
+          <span class="quiz-key-hints"><kbd>Enter</kbd>下一題</span>
+          <span class="quiz-key-hints"><kbd>F</kbd>標記</span>
         </div>
 
         <div class="opts" id="optionsBox"></div>
@@ -839,6 +848,54 @@ function formatLawText(raw){
   t=t.replace(/[ 　]*(?<!第)([一二三四五六七八九十百千零兩]+、)/g,'\n$1');
   t=t.replace(/[ 　]*(（[一二三四五六七八九十百]+）)/g,'\n　$1');
   return t.replace(/^\n+/,'').replace(/\n{2,}/g,'\n').trim();
+}
+function formatArticleCitation(artTitle, lawName){
+  const body=[];
+  const title=String(artTitle||'').replace(/｜.*$/,'').replace(/^§\s*/,'').trim();
+  const articleMatch=title.match(/^第\s*([\d一二三四五六七八九十百千零兩之-更\s]+)條/);
+  if(articleMatch){
+    const core=articleMatch[1].replace(/\s+/g,' ').trim();
+    body.push(`第 ${core} 條`);
+  }else if(title){
+    const rawNo=title.match(/^([\d一二三四五六七八九十百千零兩]+(?:之[\d一二三四五六七八九十百千零兩]+)?)$/);
+    body.push(rawNo ? `第 ${rawNo[1]} 條` : title);
+  }else{
+    body.push('條文');
+  }
+  if(lawName) body.push(lawName);
+  return body.join(' ｜ ');
+}
+function getArticleCitationNo(artTitle){
+  return formatArticleCitation(artTitle, '').replace(/^第\s*/,'').replace(/\s*條$/,'').trim();
+}
+function renderQuizCitation(artTitle, lawName){
+  const cit=document.getElementById('quiz-citation');
+  if(!cit || !(artTitle||lawName)) return;
+  cit.textContent=formatArticleCitation(artTitle, lawName);
+  cit.classList.add('show');
+}
+function showInlineArticleText(raw){
+  const panel=document.getElementById('artInline');
+  if(!panel) return false;
+  const text=formatLawText(raw);
+  panel.classList.remove('is-loading','is-empty');
+  if(!text){
+    panel.textContent='暫時沒有原文；可先按「查看法條」開完整條文。';
+    panel.classList.add('is-empty');
+    panel.style.display='block';
+    return false;
+  }
+  panel.textContent=text;
+  panel.style.display='block';
+  return true;
+}
+function setInlineArticleLoading(){
+  const panel=document.getElementById('artInline');
+  if(!panel) return;
+  panel.classList.remove('is-empty');
+  panel.classList.add('is-loading');
+  panel.textContent='條文原文載入中...';
+  panel.style.display='block';
 }
 function _authH(extra) {
   const h = extra ? {...extra} : {};
@@ -2236,7 +2293,7 @@ async function loadQuiz(){
         }
         _currentLawName = lawName;
         _currentPageId = (typeof pageId!=='undefined'?pageId:'') || '';
-        _currentArtNo = (artTitle||'').replace(/^§\s*/,'').replace(/｜.*$/,'').trim();
+        _currentArtNo = getArticleCitationNo(artTitle);
         _feedbackAnim(btn,isCorrect,_elapsed);
         onAnswerDone(isCorrect);
         updateScore();
@@ -2244,15 +2301,7 @@ async function loadQuiz(){
         if(_autoNextOnCorrect && !_sessionMode && isCorrect){
           setTimeout(()=>{ wrongMode ? loadWrongQuiz() : loadQuiz(); }, 500);
         }
-        // 顯示出處條號
-        (function(){
-          const _cit=document.getElementById('quiz-citation');
-          if(_cit&&(artTitle||lawName)){
-            const _artNo=(artTitle||'').replace(/^§\s*/,'').replace(/｜.*$/,'').trim();
-            _cit.innerHTML='第 <strong>'+(_artNo||'—')+'</strong> 條'+(lawName?' ｜ '+lawName:'');
-            _cit.classList.add('show');
-          }
-        })();
+        renderQuizCitation(artTitle, lawName);
         // 寫入練習紀錄
         if(pageId&&uid&&uid!=='PREVIEW'&&!isFree){
           fetch(`${API}/api/me/history`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({page_id:pageId,law_name:lawName,article:artTitle})}).catch(()=>{});
@@ -2274,10 +2323,11 @@ async function loadQuiz(){
         const eb=document.querySelector('#explainBox .eb');
         if(eb)eb.textContent=isCorrect?'✓ 答對了':'✗ 答錯了，正確答案已標綠';
         if(pageId){
-          document.getElementById('sourceBox').querySelector('span').textContent='條文原文已放在上方';
-          document.getElementById('sourceLink').textContent='收起原文 ↑';
+          document.getElementById('sourceBox').querySelector('span').textContent='條文原文載入中';
+          document.getElementById('sourceLink').textContent='查看法條 →';
         }
-        document.getElementById('artInline').style.display='none';
+        if(pageId) setInlineArticleLoading();
+        else document.getElementById('artInline').style.display='none';
         document.getElementById('explainBox').style.display='block';
         // 載入條文解析 sections
         if(pageId){
@@ -2285,11 +2335,16 @@ async function loadQuiz(){
             try{
               const h=_authH();
               const art=await fetch(`${API}/api/article/${pageId}`,{headers:h}).then(r=>r.json());
-              document.getElementById('artInline').textContent=formatLawText(art.original_text);
-              document.getElementById('artInline').style.display='block';
+              showInlineArticleText(art.original_text);
+              document.getElementById('sourceBox').querySelector('span').textContent='條文原文已放在上方';
+              document.getElementById('sourceLink').textContent='收起原文 ↑';
               buildSections(art.sections||{},art._plan!=='free',
                 document.getElementById('explainBox'),document.getElementById('sourceBox'));
-            }catch(e){}
+            }catch(e){
+              showInlineArticleText('');
+              document.getElementById('sourceBox').querySelector('span').textContent='暫時載入不到原文';
+              document.getElementById('sourceLink').textContent='查看法條 →';
+            }
           })();
         }
       });
@@ -2505,19 +2560,11 @@ async function loadWrongQuiz() {
         cur.correct = isCorrect;
         _currentLawName = lawName;
         _currentPageId = (typeof pageId!=='undefined'?pageId:'') || '';
-        _currentArtNo = (artTitle||'').replace(/^§\s*/,'').replace(/｜.*$/,'').trim();
+        _currentArtNo = getArticleCitationNo(artTitle);
         _feedbackAnim(btn, isCorrect, _elapsed);
         onAnswerDone(isCorrect);
         updateScore();
-        // 顯示出處條號
-        (function(){
-          const _cit=document.getElementById('quiz-citation');
-          if(_cit&&(artTitle||lawName)){
-            const _artNo=(artTitle||'').replace(/^§\s*/,'').replace(/｜.*$/,'').trim();
-            _cit.innerHTML='第 <strong>'+(_artNo||'—')+'</strong> 條'+(lawName?' ｜ '+lawName:'');
-            _cit.classList.add('show');
-          }
-        })();
+        renderQuizCitation(artTitle, lawName);
         if (pageId && uid && uid!=='PREVIEW' && !isFree) {
           fetch(`${API}/api/me/history`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({page_id:pageId,law_name:lawName,article:artTitle})}).catch(()=>{});
           const _ci=isNewFmt?(data.options||[]).indexOf(correctAnswer):(data.options||[]).findIndex(o=>!!o.is_correct);
@@ -2535,21 +2582,27 @@ async function loadWrongQuiz() {
         }
         const eb = document.querySelector('#explainBox .eb');
         if (eb) eb.textContent = isCorrect ? '✓ 答對了' : '✗ 答錯了，正確答案已標綠';
-        document.getElementById('artInline').style.display = 'none';
+        if (pageId) setInlineArticleLoading();
+        else document.getElementById('artInline').style.display = 'none';
         document.getElementById('explainBox').style.display = 'block';
         if (pageId) {
-          document.getElementById('sourceBox').querySelector('span').textContent = '條文原文已放在上方';
-          document.getElementById('sourceLink').textContent = '收起原文 ↑';
+          document.getElementById('sourceBox').querySelector('span').textContent = '條文原文載入中';
+          document.getElementById('sourceLink').textContent = '查看法條 →';
         }
         if (pageId) {
           (async()=>{
             try {
               const art = await fetch(`${API}/api/article/${pageId}`,{headers:_authH()}).then(r=>r.json());
-              document.getElementById('artInline').textContent = formatLawText(art.original_text);
-              document.getElementById('artInline').style.display = 'block';
+              showInlineArticleText(art.original_text);
+              document.getElementById('sourceBox').querySelector('span').textContent = '條文原文已放在上方';
+              document.getElementById('sourceLink').textContent = '收起原文 ↑';
               buildSections(art.sections||{},art._plan!=='free',
                 document.getElementById('explainBox'),document.getElementById('sourceBox'));
-            } catch(e){}
+            } catch(e){
+              showInlineArticleText('');
+              document.getElementById('sourceBox').querySelector('span').textContent = '暫時載入不到原文';
+              document.getElementById('sourceLink').textContent = '查看法條 →';
+            }
           })();
         }
       });
