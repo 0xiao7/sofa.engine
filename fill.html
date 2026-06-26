@@ -113,6 +113,7 @@
 
   .blank{
     display:inline-block;min-width:5.5em;
+    max-width:100%;box-sizing:border-box;
     padding:2px 14px;margin:0 3px;
     border:none;border-bottom:2px solid var(--peach);
     background:rgba(231,187,167,.06);
@@ -136,7 +137,7 @@
     font-family:var(--mono);font-size:13px;letter-spacing:.04em;
   }
   .handwrite-mode .blank{
-    min-height:48px;min-width:160px!important;
+    min-height:48px;min-width:160px!important;max-width:100%;
     font-size:22px;padding:6px 16px;
     vertical-align:middle;border-radius:6px;
   }
@@ -290,6 +291,9 @@
     .fill-actions .r{flex-direction:column}
     .rail{flex-direction:column}
     #kb-hint{display:none}             /* 浮動鍵盤提示列手機收起 */
+  }
+  @media (max-width:760px){
+    html.ios-reader-app .stage{padding-bottom:calc(96px + env(safe-area-inset-bottom, 0px))}
   }
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
@@ -1337,7 +1341,7 @@ function renderFill(){
       if(para[i]==='＿'){
         let b='';while(i<para.length&&para[i]==='＿'){b+=para[i];i++;}
         const lbl=String.fromCharCode(65+blankIdx);
-        ph+=`<input class="blank empty" id="fb_${blankIdx}" data-idx="${blankIdx}" data-ans="${esc((fillData.answers||[])[blankIdx]||'')}" style="min-width:${Math.max(b.length*1.1,2.5)}em" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="　"/><span class="blank-tag">${lbl}</span>`;
+        ph+=`<input class="blank empty" id="fb_${blankIdx}" data-idx="${blankIdx}" data-ans="${esc((fillData.answers||[])[blankIdx]||'')}" style="width:min(${Math.max(b.length*1.1,2.5)}em, 100%)" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="　"/><span class="blank-tag">${lbl}</span>`;
         blankIdx++;
       } else { ph+=esc(para[i]);i++; }
     }
@@ -1350,7 +1354,7 @@ function renderFill(){
       if(text[i]==='＿'){
         let b='';while(i<text.length&&text[i]==='＿'){b+=text[i];i++;}
         const lbl=String.fromCharCode(65+blankIdx);
-        ph+=`<input class="blank empty" id="fb_${blankIdx}" data-idx="${blankIdx}" data-ans="${esc((fillData.answers||[])[blankIdx]||'')}" style="min-width:${Math.max(b.length*1.1,2.5)}em" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="　"/><span class="blank-tag">${lbl}</span>`;
+        ph+=`<input class="blank empty" id="fb_${blankIdx}" data-idx="${blankIdx}" data-ans="${esc((fillData.answers||[])[blankIdx]||'')}" style="width:min(${Math.max(b.length*1.1,2.5)}em, 100%)" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="　"/><span class="blank-tag">${lbl}</span>`;
         blankIdx++;
       } else { ph+=esc(text[i]);i++; }
     }

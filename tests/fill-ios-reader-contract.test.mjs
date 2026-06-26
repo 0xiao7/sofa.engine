@@ -11,3 +11,10 @@ test('native iOS fill owns the status bar safe area', () => {
   assert.match(active, /document\.documentElement\.classList\.add\('ios-reader-app'\)/);
   assert.match(css, /html\.ios-reader-app\s+\.topbar\{[\s\S]*padding-top:calc\(16px \+ env\(safe-area-inset-top, 0px\)\)/);
 });
+
+test('native iOS fill keeps mobile blanks and actions inside the viewport', () => {
+  assert.doesNotMatch(active, /style="min-width:\$\{Math\.max\(b\.length\*1\.1,2\.5\)\}em"/);
+  assert.match(active, /style="width:min\(\$\{Math\.max\(b\.length\*1\.1,2\.5\)\}em, 100%\)"/);
+  assert.match(html, /\.blank\{[^}]*max-width:100%;[^}]*box-sizing:border-box/s);
+  assert.match(html, /html\.ios-reader-app\s+\.stage\{[^}]*padding-bottom:calc\(96px \+ env\(safe-area-inset-bottom, 0px\)\)/s);
+});
