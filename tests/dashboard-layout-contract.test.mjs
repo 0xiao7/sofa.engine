@@ -85,6 +85,12 @@ test('member card surfaces renewal before expiry without hiding payment', () => 
   assert.match(html, /daysLeft <= 10/);
 });
 
+test('entitlement panel refreshes if ledger data arrives after the panel opens', () => {
+  assert.match(html, /function refreshEntitlementPanelIfOpen/);
+  assert.match(html, /backdrop && backdrop\.classList\.contains\('on'\)/);
+  assert.match(html, /refreshEntitlementPanelIfOpen\(\);\s*renderStudyToday/);
+});
+
 test('expiry copy reassures records continue after renewal', () => {
   assert.match(html, /答題紀錄、弱點分析與今日複習不會消失/);
   assert.match(html, /續用後會直接接回你的進度/);

@@ -4407,6 +4407,7 @@ function _readArticle(btn, text) {
     _entitlementState.profile = profile || null;
     _entitlementState.data = entitlementRes && !entitlementRes.error ? entitlementRes : null;
     _entitlementState.error = entitlementRes && entitlementRes.error ? entitlementRes.detail || entitlementRes.error : null;
+    refreshEntitlementPanelIfOpen();
     renderStudyToday(studyTodayRes || null);
 
     // ── 會員卡 ──
@@ -4709,6 +4710,11 @@ function renderEntitlementPanel(){
     var range = from ? (_fmtEntDate(from)+' → '+_fmtEntDate(to)) : (to ? '到期日 '+_fmtEntDate(to) : '');
     return '<div class="entitlement-event"><div class="line"><span class="label">'+_escHtml(_fmtEntDate(ev.date || ev.event_date)+' · '+label)+'</span><span class="delta">'+_escHtml(deltaText)+'</span></div><div class="range">'+_escHtml(range)+'</div></div>';
   }).join('');
+}
+
+function refreshEntitlementPanelIfOpen(){
+  var backdrop = document.getElementById('entitlement-backdrop');
+  if(backdrop && backdrop.classList.contains('on')) renderEntitlementPanel();
 }
 
 function openEntitlementPanel(){
