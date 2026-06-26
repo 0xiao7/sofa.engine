@@ -145,6 +145,9 @@ test('sidebar and mobile quick entry use clear exam-loop labels', () => {
 });
 
 test('study today remains visible for free users or missing study API data', () => {
+  assert.match(active, /let isFree = !uid && localStorage\.getItem\('sofa_free'\) === 'FREE'/);
+  assert.match(active, /if\(!uid && !isFree\)\s*\{[\s\S]*localStorage\.setItem\('sofa_free', 'FREE'\);[\s\S]*isFree = true;[\s\S]*\}/);
+  assert.doesNotMatch(active, /if\(!uid && !isFree\)\s*\{\s*window\.location\.href = 'login\.html'/);
   assert.match(active, /if\(!uid \|\| isFree\)\{[\s\S]*renderStudyToday\(null\);[\s\S]*return;[\s\S]*\}/);
   assert.match(active, /renderStudyToday\(studyTodayRes \|\| null\)/);
   const start = active.indexOf('function renderStudyToday');
@@ -164,4 +167,42 @@ test('study planning saves translate schema-pending responses into a readable pr
   assert.match(active, /saveStudySeries[\s\S]*_fetchStudyJSON\(API \+ '\/api\/me\/study\/series'/);
   assert.match(active, /saveStudyPlanImport[\s\S]*_fetchStudyJSON\(API \+ '\/api\/me\/study\/plan-items\/bulk'/);
   assert.doesNotMatch(active, /schema_pending[\s\S]{0,200}暫時存不進帳號；先不要重複按/);
+});
+
+test('study planning has a local-first fallback when schema is not ready', () => {
+  assert.match(active, /STUDY_LOCAL_KEY/);
+  assert.match(active, /function _studyLocal/);
+  assert.match(active, /function _saveStudyLocal/);
+  assert.match(active, /function _mergeStudyPlan/);
+  assert.match(active, /function _addLocalStudyItems/);
+  assert.match(active, /已先存在本機/);
+  assert.match(active, /var savedLocal = fallback && fallback\.indexOf\('已先存在本機'\) >= 0;/);
+  assert.match(active, /if\(savedLocal\) return fallback;/);
+  assert.match(active, /renderStudyPlanItems\(_mergeStudyPlan/);
+});
+
+test('study time planning is editable and persisted locally', () => {
+  assert.match(active, /id="study-total-hours-input"/);
+  assert.match(active, /id="study-weekly-hours-input"/);
+  assert.match(active, /id="study-today-minutes-input"/);
+  assert.match(active, /function saveStudyTimeSettings/);
+  assert.match(active, /local\.settings =/);
+  assert.match(active, /照這個速度約/);
+});
+
+test('manual study records are enabled without changing answer accuracy', () => {
+  assert.match(active, /id="study-record-date"/);
+  assert.match(active, /id="study-record-minutes"/);
+  assert.match(active, /onclick="saveStudyRecordLocal\(\)"/);
+  assert.match(active, /function saveStudyRecordLocal/);
+  assert.match(active, /status: 'done'/);
+  assert.match(active, /答題正確率不會被補紀錄改動/);
+  assert.doesNotMatch(active, /disabled>儲存準備中/);
+});
+
+test('series planning can generate local weekly items before API sync', () => {
+  assert.match(active, /function _studySeriesItems/);
+  assert.match(active, /_nextWeekdayOnOrAfter/);
+  assert.match(active, /i \* 7/);
+  assert.match(active, /if\(!uid && !token\)\{[\s\S]*_addLocalStudyItems\(localItems\)/);
 });

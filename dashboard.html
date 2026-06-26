@@ -510,6 +510,16 @@
     line-height:1.25;
     color:var(--cream);
   }
+  .study-time-cell .v input{
+    width:72px;
+    max-width:45%;
+    border:1px solid rgba(245,240,234,.14);
+    background:rgba(2,12,18,.45);
+    color:var(--cream);
+    padding:6px 7px;
+    border-radius:4px;
+    font:inherit;
+  }
   .study-time-cell .hint{
     display:block;
     margin-top:3px;
@@ -522,6 +532,27 @@
     background:rgba(255,255,255,.025);
     cursor:not-allowed;
   }
+  .study-time-save{
+    grid-column:1 / -1;
+    display:flex;
+    gap:10px;
+    align-items:center;
+    flex-wrap:wrap;
+    padding-top:10px;
+    border-top:1px dashed rgba(231,187,167,.16);
+  }
+  .study-time-save button{
+    border:1px solid var(--line-2);
+    color:var(--cream);
+    background:rgba(231,187,167,.08);
+    padding:8px 11px;
+    border-radius:4px;
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.08em;
+    cursor:pointer;
+  }
+  .study-time-save span{font-size:12px;color:rgba(245,240,234,.55)}
   .study-plan-panel{
     display:none;
     border:1px solid rgba(231,187,167,.2);
@@ -2328,18 +2359,22 @@
             <div class="study-time-box" id="study-time-box" aria-label="備考時間規劃">
               <div class="study-time-cell" id="study-target-hours">
                 <span class="k">建議總時數</span>
-                <span class="v">500 小時</span>
+                <span class="v"><input id="study-total-hours-input" type="number" min="50" max="2000" step="10" value="500"> 小時</span>
                 <span class="hint">記帳士起始預設；建議總時數可以改。</span>
               </div>
               <div class="study-time-cell" id="study-weekly-hours">
                 <span class="k">每週可讀</span>
-                <span class="v">自己設定</span>
+                <span class="v"><input id="study-weekly-hours-input" type="number" min="1" max="80" step="1" value="12"> 小時</span>
                 <span class="hint">先填你真的有空的時間，系統再幫你補空檔。</span>
               </div>
               <div class="study-time-cell" id="study-time-status">
                 <span class="k">今天方向</span>
-                <span class="v">先刷一題</span>
-                <span class="hint">答題會進弱點；課表和補紀錄只補進度。</span>
+                <span class="v"><input id="study-today-minutes-input" type="number" min="5" max="720" step="5" value="60"> 分鐘</span>
+                <span class="hint" id="study-time-hint">答題會進弱點；課表和補紀錄只補進度。</span>
+              </div>
+              <div class="study-time-save">
+                <button type="button" onclick="saveStudyTimeSettings()">儲存時間設定</button>
+                <span id="study-time-state">先填真的有空的時間。</span>
               </div>
             </div>
             <div class="study-plan-panel" id="study-plan-panel" aria-label="個人讀書課程">
@@ -2417,9 +2452,27 @@
                   <span>標記某法規或主題讀過沒有；不會改成答對。</span>
                 </div>
               </div>
+              <div class="study-plan-grid">
+                <div class="study-plan-field">
+                  <label for="study-record-date">日期</label>
+                  <input id="study-record-date" type="date">
+                </div>
+                <div class="study-plan-field">
+                  <label for="study-record-subject">科目</label>
+                  <input id="study-record-subject" value="記帳相關法規" maxlength="24">
+                </div>
+                <div class="study-plan-field">
+                  <label for="study-record-minutes">分鐘</label>
+                  <input id="study-record-minutes" type="number" min="5" max="720" step="5" value="60">
+                </div>
+                <div class="study-plan-field full">
+                  <label for="study-record-note">內容</label>
+                  <input id="study-record-note" value="補讀書紀錄" maxlength="60">
+                </div>
+              </div>
               <div class="study-plan-row">
-                <button class="study-plan-save" type="button" disabled>儲存準備中</button>
-                <span class="study-plan-state">production schema 套上前，先當作導覽與規格確認。</span>
+                <button class="study-plan-save" type="button" onclick="saveStudyRecordLocal()">儲存補紀錄</button>
+                <span class="study-plan-state" id="study-record-state">先存在本機；正式資料表上線後再同步帳號。</span>
               </div>
             </div>
             <div class="study-plan-items" id="study-plan-items" aria-label="接下來的私人計畫"></div>
@@ -3033,12 +3086,81 @@ function _studySaveMessage(res, fallback){
   var detail = res && res.detail;
   var reason = detail && typeof detail === 'object' ? detail.reason : res && res.reason;
   var status = detail && typeof detail === 'object' ? detail.status : res && res.status;
+  var savedLocal = fallback && fallback.indexOf('已先存在本機') >= 0;
+  if(savedLocal) return fallback;
   if(reason === 'schema_pending' || status === 'unavailable'){
     return '功能準備中：這筆會等資料表上線後才能儲存，先不要重複送出。';
   }
   if(res && res.__http_status === 401) return '先登入或輸入序號後，才能存到你的帳號。';
   if(res && res.__network_error) return '網路暫時不穩，稍後再試。';
   return fallback;
+}
+
+var STUDY_LOCAL_KEY = 'sofa.study.localPlan.v1';
+
+function _studyLocal(){
+  try{
+    var raw = JSON.parse(localStorage.getItem(STUDY_LOCAL_KEY) || '{}');
+    raw.settings = raw.settings || { total_hours:500, weekly_hours:12, today_minutes:60 };
+    raw.items = Array.isArray(raw.items) ? raw.items : [];
+    raw.records = Array.isArray(raw.records) ? raw.records : [];
+    return raw;
+  }catch(e){
+    return { settings:{ total_hours:500, weekly_hours:12, today_minutes:60 }, items:[], records:[] };
+  }
+}
+
+function _saveStudyLocal(data){
+  try{ localStorage.setItem(STUDY_LOCAL_KEY, JSON.stringify(data)); }catch(e){}
+}
+
+function _dedupeStudyItems(items){
+  var seen = {};
+  return (items || []).filter(function(item){
+    var key = [item.scheduled_date || '', item.scheduled_time || '', item.subject || '', item.title || '', item.source_label || ''].join('|');
+    if(seen[key]) return false;
+    seen[key] = true;
+    return true;
+  }).sort(function(a,b){
+    var ad = (a.scheduled_date || '') + ' ' + (a.scheduled_time || '');
+    var bd = (b.scheduled_date || '') + ' ' + (b.scheduled_time || '');
+    return ad.localeCompare(bd);
+  });
+}
+
+function _mergeStudyPlan(remotePlan){
+  var local = _studyLocal();
+  var remoteItems = remotePlan && Array.isArray(remotePlan.items) ? remotePlan.items : [];
+  return { items:_dedupeStudyItems(remoteItems.concat(local.items || [], local.records || [])) };
+}
+
+function renderStudyTimeSettings(){
+  var local = _studyLocal();
+  var s = local.settings || {};
+  var total = document.getElementById('study-total-hours-input');
+  var weekly = document.getElementById('study-weekly-hours-input');
+  var today = document.getElementById('study-today-minutes-input');
+  if(total) total.value = s.total_hours || 500;
+  if(weekly) weekly.value = s.weekly_hours || 12;
+  if(today) today.value = s.today_minutes || 60;
+  var hint = document.getElementById('study-time-hint');
+  if(hint){
+    var weeks = s.weekly_hours ? Math.ceil((s.total_hours || 500) / s.weekly_hours) : 0;
+    hint.textContent = weeks ? ('照這個速度約 ' + weeks + ' 週；今天先留 ' + (s.today_minutes || 60) + ' 分鐘。') : '答題會進弱點；課表和補紀錄只補進度。';
+  }
+}
+
+function saveStudyTimeSettings(){
+  var local = _studyLocal();
+  local.settings = {
+    total_hours: Math.max(50, Math.min(2000, parseInt(_studyVal('study-total-hours-input') || '500', 10) || 500)),
+    weekly_hours: Math.max(1, Math.min(80, parseInt(_studyVal('study-weekly-hours-input') || '12', 10) || 12)),
+    today_minutes: Math.max(5, Math.min(720, parseInt(_studyVal('study-today-minutes-input') || '60', 10) || 60))
+  };
+  _saveStudyLocal(local);
+  renderStudyTimeSettings();
+  var state = document.getElementById('study-time-state');
+  if(state) state.textContent = '已存到這台裝置。';
 }
 
 // ── Drawer 動態開啟 ──────────────────────────────────────
@@ -4027,8 +4149,11 @@ function _readArticle(btn, text) {
   }
 
   const uid = localStorage.getItem('sofa_uid');
-  const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
-  if(!uid && !isFree) { window.location.href = 'login.html'; return; }
+  let isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
+  if(!uid && !isFree) {
+    localStorage.setItem('sofa_free', 'FREE');
+    isFree = true;
+  }
 
   const pill = document.querySelector('.user-pill');
   if(pill && isFree){
@@ -4693,7 +4818,8 @@ function renderStudyToday(data){
     var bridge = data.weak_law_bridge || {};
     weakEl.textContent = bridge.items && bridge.items.length ? '弱點已接入' : '弱點資料尚未累積';
   }
-  renderStudyPlanItems(data.personal_plan || null);
+  renderStudyTimeSettings();
+  renderStudyPlanItems(_mergeStudyPlan(data.personal_plan || null));
   subjectsEl.innerHTML = subjects.map(function(s){
     var seeded = s.implementation_status === 'seeded_moex_mcq';
     var cls = seeded ? 'study-subject seeded' : 'study-subject';
@@ -4733,9 +4859,11 @@ function openStudyPlanPanel(){
 function openStudyRecordPanel(){
   var panel = document.getElementById('study-record-panel');
   var plan = document.getElementById('study-plan-panel');
+  var date = document.getElementById('study-record-date');
   if(!panel) return;
   panel.classList.toggle('on');
   if(plan) plan.classList.remove('on');
+  if(date && !date.value) date.value = _todayInputValue();
 }
 
 function _studyVal(id){
@@ -4812,6 +4940,73 @@ function _normalizeStudyImportItem(raw, idx){
   };
 }
 
+function _addLocalStudyItems(items){
+  if(!items || !items.length) return 0;
+  var local = _studyLocal();
+  local.items = _dedupeStudyItems((local.items || []).concat(items));
+  _saveStudyLocal(local);
+  renderStudyPlanItems(_mergeStudyPlan(null));
+  return items.length;
+}
+
+function _datePlusDays(dateText, days){
+  var d = new Date(dateText + 'T00:00:00');
+  if(isNaN(d.getTime())) d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+
+function _nextWeekdayOnOrAfter(dateText, weekday){
+  var d = new Date(dateText + 'T00:00:00');
+  if(isNaN(d.getTime())) d = new Date();
+  var target = (parseInt(weekday, 10) + 1) % 7;
+  var delta = (target - d.getDay() + 7) % 7;
+  return _datePlusDays(dateText, delta);
+}
+
+function _studySeriesItems(body){
+  var first = _nextWeekdayOnOrAfter(body.start_date, body.weekday);
+  var items = [];
+  for(var i=0;i<body.count;i++){
+    items.push({
+      track_key: body.track_key || 'bookkeeper',
+      subject: body.subject,
+      title: body.title + ' ' + (i + 1),
+      sequence_no: i + 1,
+      scheduled_date: _datePlusDays(first, i * 7),
+      scheduled_time: body.default_time || '',
+      source_label: body.source_label || '自排',
+      status: 'planned',
+      notes: '本機私人計畫'
+    });
+  }
+  return items;
+}
+
+function saveStudyRecordLocal(){
+  var state = document.getElementById('study-record-state');
+  function tell(msg){ if(state) state.textContent = msg; }
+  var date = _studyVal('study-record-date') || _todayInputValue();
+  var subject = _studyVal('study-record-subject') || '讀書紀錄';
+  var minutes = Math.max(5, Math.min(720, parseInt(_studyVal('study-record-minutes') || '60', 10) || 60));
+  var note = _studyVal('study-record-note') || '補讀書紀錄';
+  var local = _studyLocal();
+  local.records = (local.records || []).concat([{
+    track_key: 'bookkeeper',
+    subject: subject,
+    title: note,
+    scheduled_date: date,
+    scheduled_time: '',
+    source_label: '補紀錄 ' + minutes + ' 分鐘',
+    status: 'done',
+    minutes: minutes,
+    notes: '本機補紀錄'
+  }]);
+  _saveStudyLocal(local);
+  renderStudyPlanItems(_mergeStudyPlan(null));
+  tell('已先存在本機；答題正確率不會被補紀錄改動。');
+}
+
 function _parseStudyPlanImport(){
   var ta = document.getElementById('study-plan-import');
   var text = ta ? String(ta.value || '').trim().replace(/^\uFEFF/, '') : '';
@@ -4847,14 +5042,15 @@ async function saveStudyPlanImport(){
   function tell(msg){ if(state) state.textContent = msg; }
   var uid = localStorage.getItem('sofa_uid') || '';
   var token = localStorage.getItem('sofa_token') || '';
-  if(!uid && !token){
-    tell('先登入或輸入序號後，才能把課表存到你的帳號。');
-    return;
-  }
   var items = previewStudyPlanImport();
   if(!items.length) return;
   if(items.length > 120){
     tell('一次最多匯入 120 筆，請先分批。');
+    return;
+  }
+  if(!uid && !token){
+    _addLocalStudyItems(items);
+    tell('已先存在本機 ' + items.length + ' 筆；登入後再同步帳號。');
     return;
   }
   tell('匯入中…');
@@ -4865,14 +5061,17 @@ async function saveStudyPlanImport(){
       body: JSON.stringify({ track_key:'bookkeeper', source_label:'匯入課表', import_source:'pasted_schedule', items:items })
     });
     if(res && res.ok){
+      _addLocalStudyItems(items);
       tell('已匯入 ' + (res.count || items.length) + ' 筆私人計畫。');
       var latest = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
       renderStudyToday(latest || null);
     } else {
-      tell(_studySaveMessage(res, '暫時匯入失敗，請稍後再試。'));
+      _addLocalStudyItems(items);
+      tell(_studySaveMessage(res, '已先存在本機；帳號同步稍後再試。'));
     }
   }catch(e){
-    tell('網路暫時不穩，稍後再匯入。');
+    _addLocalStudyItems(items);
+    tell('網路暫時不穩，已先存在本機。');
   }
 }
 
@@ -4882,10 +5081,6 @@ async function saveStudySeries(){
   function tell(msg){ if(state) state.textContent = msg; }
   var uid = localStorage.getItem('sofa_uid') || '';
   var token = localStorage.getItem('sofa_token') || '';
-  if(!uid && !token){
-    tell('先登入或輸入序號後，才能把課程存到你的帳號。');
-    return;
-  }
   var title = _studyVal('study-plan-title') || '讀書課程';
   var subject = _studyVal('study-plan-subject') || title;
   var count = Math.max(1, Math.min(60, parseInt(_studyVal('study-plan-count') || '1', 10) || 1));
@@ -4903,6 +5098,14 @@ async function saveStudySeries(){
     default_time: defaultTime,
     source_label: sourceLabel
   };
+  var localItems = _studySeriesItems(body);
+  if(!uid && !token){
+    _addLocalStudyItems(localItems);
+    tell('已先存在本機 ' + localItems.length + ' 堂；登入後再同步帳號。');
+    var localPanel = document.getElementById('study-plan-panel');
+    if(localPanel) localPanel.classList.remove('on');
+    return;
+  }
   tell('排入中…');
   if(saveBtn) saveBtn.disabled = true;
   try{
@@ -4912,15 +5115,18 @@ async function saveStudySeries(){
       body: JSON.stringify(body)
     });
     if(res && (res.ok || res.items || res.series_id)){
+      _addLocalStudyItems(Array.isArray(res.items) ? res.items : localItems);
       var made = Array.isArray(res.items) ? res.items.length : count;
       tell('已排入 ' + made + ' 堂；之後可以再單堂改期。');
       var panel = document.getElementById('study-plan-panel');
       if(panel) panel.classList.remove('on');
     } else {
-      tell(_studySaveMessage(res, '暫時存不進帳號；先不要重複按，稍後再試一次。'));
+      _addLocalStudyItems(localItems);
+      tell(_studySaveMessage(res, '已先存在本機；帳號同步稍後再試。'));
     }
   }catch(e){
-    tell('網路暫時不穩，稍後再排入。');
+    _addLocalStudyItems(localItems);
+    tell('網路暫時不穩，已先存在本機。');
   }finally{
     if(saveBtn) saveBtn.disabled = false;
   }
