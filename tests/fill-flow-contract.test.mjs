@@ -40,3 +40,17 @@ test('fill auto advance remains perfect-only so wrong answers stay for correctio
   const keyHandler = active.slice(keyStart, keyEnd);
   assert.match(keyHandler, /if \(_lastFillPerfect\) document\.getElementById\('btnNext'\)\?\.click\(\)/);
 });
+
+test('fill answer sections show loading and fallback instead of blank panel', () => {
+  assert.match(active, /function showFillSectionsLoading/);
+  assert.match(active, /function renderFillSections/);
+  assert.match(active, /條文解析載入中/);
+  assert.match(active, /這條暫時沒有解析/);
+
+  const checkStart = active.indexOf('function checkAnswers');
+  const checkEnd = active.indexOf('function loadNew', checkStart);
+  const checkAnswers = active.slice(checkStart, checkEnd);
+  assert.match(checkAnswers, /showFillSectionsLoading\(panel\)/);
+  assert.match(checkAnswers, /renderFillSections\(panel,\s*art\.sections\|\|\{\},\s*art\._plan!=='free'\)/);
+  assert.match(checkAnswers, /renderFillSections\(panel,\s*\{\},\s*true\)/);
+});

@@ -239,6 +239,7 @@
   .sec-text .sec-h:first-child{margin-top:0}
   .sec-text .sec-i{position:relative;padding-left:18px;margin:3px 0}
   .sec-text .sec-i::before{content:'';position:absolute;left:5px;top:.62em;width:4px;height:4px;border:1.2px solid var(--peach-3);border-radius:50%;box-sizing:border-box}
+  .sec-empty{margin-top:14px;padding:13px 15px;background:rgba(231,187,167,.12);border:1px dashed rgba(213,154,120,.32);border-radius:4px;color:rgba(31,56,72,.62);font-size:13px;line-height:1.8}
   .sec-lock{margin-top:16px;border-top:1px dashed rgba(31,56,72,.15)}
   .sec-lock .sec-label::after{content:" 🔒";font-size:11px;opacity:.65}
   .sec-lock-preview{position:relative;max-height:80px;overflow:hidden;padding:10px 0 0;pointer-events:none;user-select:none;font-size:13.5px;line-height:1.8;color:rgba(31,56,72,.72)}
@@ -360,9 +361,9 @@
     border-radius: 14px; margin-left: 8px;
     transition: border-color 0.2s, color 0.2s;
   }
-  #practice-tts-btn:hover { border-color: #5BAFD6; color: #5BAFD6; }
+  #practice-tts-btn:hover { border-color: var(--peach); color: var(--peach); }
   #practice-tts-btn.speaking {
-    color: #5BAFD6; border-color: #5BAFD6;
+    color: var(--peach); border-color: var(--peach);
     animation: ttsPulse 1s ease-in-out infinite;
   }
   @keyframes ttsPulse { 0%,100%{opacity:0.7} 50%{opacity:1} }
@@ -405,27 +406,57 @@
   /* === Wave 56: Session timer chip + summary overlay === */
   #session-timer{
     position:fixed;top:12px;right:16px;
-    background:rgba(26,46,61,0.85);border:1px solid rgba(91,175,214,0.25);
-    border-radius:20px;padding:5px 12px;font-size:12px;
-    color:#5BAFD6;z-index:50;backdrop-filter:blur(6px);
+    background:rgba(26,46,61,0.85);border:1px solid var(--line-2);
+    border-radius:4px;padding:5px 12px;font-size:12px;
+    color:var(--peach);z-index:50;backdrop-filter:blur(6px);
     font-family:var(--mono);
     cursor:pointer;transition:background 0.2s;
     user-select:none;
   }
-  #session-timer:hover{background:rgba(26,46,61,1);color:#5BAFD6;}
+  #session-timer:hover{background:rgba(26,46,61,1);color:var(--cream);}
   /* 手機：計時膠囊移到右下，避免壓到 topbar 的登出鍵（放在 base 規則後才蓋得過） */
   @media (max-width:760px){#session-timer{top:auto;bottom:14px;right:14px}}
 
   #session-summary{
     display:none;position:fixed;inset:0;
-    background:rgba(4,13,20,0.95);z-index:200;
+    background:rgba(4,13,20,0.95);z-index:300;
     align-items:center;justify-content:center;
   }
   #session-summary.show{display:flex;}
   .ss-card{
-    background:var(--navy-3);border-radius:16px;padding:32px 36px;
-    border:1px solid rgba(91,175,214,0.2);max-width:380px;width:90%;
+    background:var(--navy-2);border-radius:4px;padding:32px 36px;
+    border:1px solid var(--line-2);max-width:380px;width:90%;
     text-align:center;
+  }
+  .ss-eyebrow{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--peach);margin-bottom:14px}
+  .ss-time{font-family:var(--serif);font-size:50px;font-weight:700;line-height:1;color:var(--peach-2)}
+  .ss-time-label{font-size:13px;color:rgba(245,240,234,.6);margin-top:9px}
+  .ss-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:22px 0}
+  .ss-metric{background:var(--navy-3);border:1px solid rgba(245,240,234,.06);border-radius:4px;padding:14px}
+  .ss-metric .v{font-family:var(--serif);font-size:28px;font-weight:700;color:var(--cream)}
+  .ss-metric .k{font-size:12px;color:rgba(245,240,234,.58);margin-top:5px}
+  .ss-primary,.ss-secondary{width:100%;border-radius:4px;padding:10px 28px;font-size:14px;font-weight:600;cursor:pointer}
+  .ss-primary{background:var(--peach);border:1px solid var(--peach);color:var(--navy)}
+  .ss-secondary{margin-top:10px;background:rgba(231,187,167,.08);border:1px solid var(--line-2);color:var(--peach)}
+  .practice-float-btn{
+    position:fixed;z-index:200;
+    background:rgba(26,46,61,.9);border:1px solid var(--line-2);
+    color:var(--peach);border-radius:4px;padding:7px 11px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;
+    cursor:pointer;backdrop-filter:blur(6px);transition:.18s;
+  }
+  .practice-float-btn:hover{background:var(--navy-2);border-color:var(--peach-dim);color:var(--cream)}
+  #practice-share-btn{display:none;top:12px;right:92px}
+  #practice-stats-btn{bottom:14px;left:14px}
+  @media (max-width:760px){
+    #practice-share-btn{top:auto;right:auto;bottom:58px;left:14px}
+    #practice-stats-btn{bottom:14px;left:14px}
+  }
+  .practice-stats-panel{
+    display:none;position:fixed;bottom:50px;left:14px;z-index:201;
+    background:rgba(12,27,38,.96);border:1px solid var(--line-2);
+    border-radius:4px;padding:16px;min-width:240px;max-width:300px;
+    color:var(--cream);font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,0.5);
   }
 </style>
 </head>
@@ -461,7 +492,7 @@
       <div id="practice-status-bar" style="
         margin-top:4px;padding:6px 10px;
         background:rgba(255,255,255,0.04);
-        border-radius:6px;border:1px solid rgba(91,175,214,0.15);
+        border-radius:6px;border:1px solid var(--line-2);
         font-size:11px;color:var(--cream-3);min-height:28px;
         transition:opacity 0.2s;display:none
       "></div>
@@ -583,33 +614,29 @@
   </main>
 
 <!-- Wave 56: session timer chip -->
-<div id="session-timer" onclick="showSessionSummary()" title="點擊查看本次練習統計">⏱ 00:00</div>
+<div id="session-timer" onclick="showSessionSummary()" title="點擊查看本次練習統計">TIME 00:00</div>
 
 <!-- Wave 56: session summary overlay -->
 <div id="session-summary">
   <div class="ss-card">
-    <div style="font-size:14px;color:#5BAFD6;margin-bottom:16px">📊 本次練習統計</div>
-    <div style="font-size:48px;font-weight:700;color:var(--warn);font-family:var(--mono)" id="ss-time"></div>
-    <div style="color:#5BAFD6;font-size:13px;margin-top:4px">練習時長</div>
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:20px 0">
-      <div style="background:var(--navy-2);border-radius:10px;padding:14px">
-        <div style="font-size:28px;font-weight:700;color:#9FB89F" id="ss-complete"></div>
-        <div style="color:#5BAFD6;font-size:12px;margin-top:4px">完成篇數</div>
+    <div class="ss-eyebrow">本次練習統計</div>
+    <div class="ss-time" id="ss-time"></div>
+    <div class="ss-time-label">練習時長</div>
+    <div class="ss-grid">
+      <div class="ss-metric">
+        <div class="v" id="ss-complete"></div>
+        <div class="k">完成篇數</div>
       </div>
-      <div style="background:var(--navy-2);border-radius:10px;padding:14px">
-        <div style="font-size:28px;font-weight:700;color:#5BAFD6" id="ss-attempt"></div>
-        <div style="color:#5BAFD6;font-size:12px;margin-top:4px">已練習篇數</div>
+      <div class="ss-metric">
+        <div class="v" id="ss-attempt"></div>
+        <div class="k">已練習篇數</div>
       </div>
     </div>
-    <button onclick="document.getElementById('session-summary').classList.remove('show')"
-      style="background:var(--warn);border:none;color:#040D14;padding:10px 28px;border-radius:20px;font-size:14px;font-weight:600;cursor:pointer;width:100%">
+    <button class="ss-primary" onclick="document.getElementById('session-summary').classList.remove('show')">
       繼續練習
     </button>
-    <button id="ss-share-btn" onclick="_sharePracticeSession(this)"
-      style="margin-top:10px;background:rgba(91,175,214,0.15);border:1px solid rgba(91,175,214,0.4);
-             color:#5BAFD6;border-radius:20px;padding:8px 28px;font-size:13px;font-weight:500;
-             cursor:pointer;width:100%">
-      📤 分享成績
+    <button class="ss-secondary" id="ss-share-btn" onclick="_sharePracticeSession(this)">
+      分享成績
     </button>
   </div>
 </div>
@@ -617,23 +644,14 @@
 <!-- Wave 139: share button near session timer chip -->
 <button id="practice-share-btn" onclick="_sharePracticeSession(this)"
   title="分享練習成績"
-  style="display:none;position:fixed;top:12px;right:92px;z-index:50;
-         background:rgba(91,175,214,0.2);border:1px solid rgba(91,175,214,0.4);
-         color:#5BAFD6;border-radius:20px;padding:5px 10px;font-size:12px;cursor:pointer;
-         font-family:var(--mono);backdrop-filter:blur(6px);
-         transition:background 0.2s">📤</button>
+  class="practice-float-btn">分享</button>
 
 <!-- Wave 103: persistent stats button -->
 <button id="practice-stats-btn" onclick="openPracticeStats()"
   title="學習統計"
-  style="position:fixed;bottom:14px;left:14px;z-index:200;background:rgba(20,40,60,0.85);
-         border:1px solid rgba(91,175,214,0.4);color:#5BAFD6;border-radius:8px;
-         padding:6px 10px;font-size:14px;cursor:pointer">📊</button>
+  class="practice-float-btn">統計</button>
 
-<div id="practice-stats-panel" style="display:none;position:fixed;bottom:50px;left:14px;
-     z-index:201;background:rgba(10,20,35,0.95);border:1px solid rgba(91,175,214,0.35);
-     border-radius:10px;padding:16px;min-width:240px;max-width:300px;color:#5BAFD6;
-     font-size:13px;box-shadow:0 4px 20px rgba(0,0,0,0.5)">
+<div id="practice-stats-panel" class="practice-stats-panel">
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
     <span style="font-weight:600;font-size:14px">練習統計</span>
     <span onclick="closePracticeStats()" style="cursor:pointer;color:var(--cream-3);font-size:16px">✕</span>
@@ -643,12 +661,12 @@
     <button id="practice-tab-btn-stats" onclick="_switchPracticeStatsTab('stats')"
       style="flex:1;border:none;border-radius:4px;padding:5px 0;font-size:11px;cursor:pointer;
              background:var(--navy-2);color:#fff;font-family:inherit;transition:all 0.15s">
-      📊 統計
+      統計
     </button>
     <button id="practice-tab-btn-drill" onclick="_switchPracticeStatsTab('drill')"
       style="flex:1;border:none;border-radius:4px;padding:5px 0;font-size:11px;cursor:pointer;
              background:transparent;color:var(--cream-3);font-family:inherit;transition:all 0.15s">
-      📉 少練清單
+      少練清單
     </button>
   </div>
   <!-- Stats tab (existing content) -->
@@ -948,7 +966,7 @@ function formatSection(text){
   return out;
 }
 function buildSections(sections,isPaid,wrapEl,beforeEl){
-  wrapEl.querySelectorAll('.sec-block,.sec-lock').forEach(e=>e.remove());
+  wrapEl.querySelectorAll('.sec-block,.sec-lock,.sec-empty').forEach(e=>e.remove());
   _FREE_SECS.forEach(name=>{
     if(!sections[name])return;
     const d=document.createElement('div');d.className='sec-block';
@@ -968,6 +986,18 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
           +'<div class="sec-lock-cta">升級解鎖完整內容 <a href="pricing.html">查看方案 →</a></div>';
       if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
     });
+  }
+}
+function renderPracticeSections(panel,sections,isPaid){
+  if(!panel)return;
+  panel.innerHTML='<div class="sec-hd">條文解析</div>';
+  panel.style.display='block';
+  buildSections(sections||{},isPaid,panel);
+  if(!panel.querySelector('.sec-block,.sec-lock')){
+    const empty=document.createElement('div');
+    empty.className='sec-empty';
+    empty.textContent='這條暫時沒有解析；先看原文，或換一條練習。';
+    panel.appendChild(empty);
   }
 }
 let articleSections={}, articlePlan='free';
@@ -1043,9 +1073,7 @@ function render(){
     _recordPracticeStat(document.getElementById('artMeta').textContent||document.getElementById('lawSelect').value, typeText.length);  // Wave 103
     const sp=document.getElementById('sectionsBox');
     if(sp.style.display==='none'){
-      sp.innerHTML='<div class="sec-hd">條文解析</div>';
-      sp.style.display='block';
-      buildSections(articleSections,articlePlan!=='free',sp);
+      renderPracticeSections(sp,articleSections,articlePlan!=='free');
     }
     showFullArticleBtn();
   }
@@ -1091,7 +1119,7 @@ function ensureSessionTimer(){
       'SESSION · '+String(sm).padStart(2,'0')+':'+(ss<10?'0':'')+ss;
     // update corner chip
     const chip=document.getElementById('session-timer');
-    if(chip) chip.textContent='⏱ '+_fmtSessionTime(elapsed);
+    if(chip) chip.textContent='TIME '+_fmtSessionTime(elapsed);
     // auto-show summary at 15 min (once)
     if(!_autoSummaryShown && elapsed>=15*60*1000){
       _autoSummaryShown=true;
@@ -1354,9 +1382,7 @@ function advanceSentence(){
     _recordPracticeStat(document.getElementById('artMeta').textContent||document.getElementById('lawSelect').value, typeText.length);  // Wave 103
     // 顯示條文解析 sections
     const sp=document.getElementById('sectionsBox');
-    sp.innerHTML='<div class="sec-hd">條文解析</div>';
-    sp.style.display='block';
-    buildSections(articleSections,articlePlan!=='free',sp);
+    renderPracticeSections(sp,articleSections,articlePlan!=='free');
     showFullArticleBtn();
   } else { renderMode2(); ti.focus(); }
 }
@@ -1524,9 +1550,7 @@ function checkMode3(){
   _recordPracticeStat(document.getElementById('artMeta').textContent||document.getElementById('lawSelect').value, typeText.length);  // Wave 103
   const sp=document.getElementById('sectionsBox');
   if(sp.style.display==='none'){
-    sp.innerHTML='<div class="sec-hd">條文解析</div>';
-    sp.style.display='block';
-    buildSections(articleSections,articlePlan!=='free',sp);
+    renderPracticeSections(sp,articleSections,articlePlan!=='free');
   }
   showFullArticleBtn();
 }
@@ -1697,7 +1721,7 @@ function _updatePracticeStatusBar(lawName) {
 
   const count = d.total;
   const kchars = Math.round((d.chars || 0) / 100) / 10; // in k
-  const color = count >= 20 ? 'var(--good)' : count >= 8 ? 'var(--warn)' : '#5BAFD6';
+  const color = count >= 20 ? 'var(--good)' : count >= 8 ? 'var(--warn)' : 'var(--peach)';
   const label = count >= 20 ? '熟練' : count >= 8 ? '練習中' : '起步中';
   const barPct = Math.min(100, Math.round(count / 25 * 100)); // 25 articles = full bar
 
@@ -1721,11 +1745,11 @@ function openPracticeStats() {
   let html = `
     <div style="display:flex;gap:12px;margin-bottom:12px">
       <div style="flex:1;background:rgba(255,255,255,0.06);border-radius:8px;padding:8px;text-align:center">
-        <div style="font-size:20px;font-weight:700;color:#5BAFD6">${s.total||0}</div>
+        <div style="font-size:20px;font-weight:700;color:var(--peach)">${s.total||0}</div>
         <div style="font-size:10px;color:var(--cream-3);margin-top:2px">已練條數</div>
       </div>
       <div style="flex:1;background:rgba(255,255,255,0.06);border-radius:8px;padding:8px;text-align:center">
-        <div style="font-size:20px;font-weight:700;color:#5BAFD6">${Math.round((s.chars||0)/100)/10}k</div>
+        <div style="font-size:20px;font-weight:700;color:var(--peach)">${Math.round((s.chars||0)/100)/10}k</div>
         <div style="font-size:10px;color:var(--cream-3);margin-top:2px">練習字數</div>
       </div>
     </div>`;
@@ -1739,10 +1763,10 @@ function openPracticeStats() {
         <div style="margin-bottom:6px">
           <div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:2px">
             <span style="color:var(--cream-3);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${law}</span>
-            <span style="color:#5BAFD6">${d.total}條</span>
+            <span style="color:var(--peach)">${d.total}條</span>
           </div>
           <div style="background:rgba(255,255,255,0.1);border-radius:3px;height:4px">
-            <div style="background:#5BAFD6;border-radius:3px;height:4px;width:${pct}%"></div>
+            <div style="background:var(--peach);border-radius:3px;height:4px;width:${pct}%"></div>
           </div>
         </div>`;
     }
@@ -1753,12 +1777,12 @@ function openPracticeStats() {
   if (leastLaw) {
     html += `
       <div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.12);padding-top:10px">
-        <div style="font-size:11px;color:var(--cream-3);margin-bottom:6px">📖 練習較少法規</div>
-        <div style="font-size:13px;color:var(--warn);margin-bottom:8px">📋 ${leastLaw}</div>
+        <div style="font-size:11px;color:var(--cream-3);margin-bottom:6px">練習較少法規</div>
+        <div style="font-size:13px;color:var(--warn);margin-bottom:8px">${leastLaw}</div>
         <button onclick="_drillLeastPracticedLaw('${leastLaw.replace(/'/g, "\\'")}')"
-          style="background:#2a4a7f;color:#fff;border:none;border-radius:6px;padding:6px 12px;
+          style="background:var(--peach);color:var(--navy);border:none;border-radius:4px;padding:6px 12px;
                  font-size:12px;cursor:pointer">
-          🎯 練習此法規
+          練習此法規
         </button>
       </div>`;
   }
@@ -1825,7 +1849,7 @@ function _renderPracticeDrillList() {
   // Filter laws with at least 1 article practiced
   const entries = Object.entries(byLaw).filter(([, d]) => d.total >= 1);
   if (entries.length < 2) {
-    body.innerHTML = '<div style="color:var(--cream-3);font-size:12px;text-align:center;padding:16px 0">📊 練習多幾部法規後再來看</div>';
+    body.innerHTML = '<div style="color:var(--cream-3);font-size:12px;text-align:center;padding:16px 0">練習多幾部法規後再來看</div>';
     return;
   }
   // Sort ascending by total (least practiced first)
@@ -1836,11 +1860,11 @@ function _renderPracticeDrillList() {
     html += `
       <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:7px;gap:6px">
         <span style="font-size:11px;color:var(--cream-3);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"
-              title="${law}">${law} ━━ <span style="color:#5BAFD6">${d.total}篇練過</span></span>
+              title="${law}">${law} ━━ <span style="color:var(--peach)">${d.total}篇練過</span></span>
         <button onclick="_drillPracticeLaw('${escaped}')"
-          style="background:#2a4a7f;color:#fff;border:none;border-radius:5px;padding:3px 8px;
+          style="background:rgba(231,187,167,.1);color:var(--peach);border:1px solid var(--line-2);border-radius:4px;padding:3px 8px;
                  font-size:11px;cursor:pointer;white-space:nowrap;flex-shrink:0">
-          🔁 加練
+          加練
         </button>
       </div>`;
   }

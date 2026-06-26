@@ -263,6 +263,7 @@
   .sec-text .sec-h:first-child{margin-top:0}
   .sec-text .sec-i{position:relative;padding-left:18px;margin:3px 0}
   .sec-text .sec-i::before{content:'';position:absolute;left:5px;top:.62em;width:4px;height:4px;border:1.2px solid var(--peach-3);border-radius:50%;box-sizing:border-box}
+  .sec-empty{margin-top:14px;padding:13px 15px;background:rgba(231,187,167,.12);border:1px dashed rgba(213,154,120,.32);border-radius:4px;color:rgba(31,56,72,.62);font-size:13px;line-height:1.8}
   .sec-lock{margin-top:16px;border-top:1px dashed rgba(31,56,72,.15)}
   .sec-lock .sec-label::after{content:"";font-size:11px;opacity:.65}
   .sec-lock-preview{position:relative;max-height:80px;overflow:hidden;padding:10px 0 0;pointer-events:none;user-select:none;font-size:13.5px;line-height:1.8;color:rgba(31,56,72,.72)}
@@ -871,7 +872,7 @@ function formatSection(text){
   return out;
 }
 function buildSections(sections,isPaid,wrapEl,beforeEl){
-  wrapEl.querySelectorAll('.sec-block,.sec-lock').forEach(e=>e.remove());
+  wrapEl.querySelectorAll('.sec-block,.sec-lock,.sec-empty').forEach(e=>e.remove());
   _FREE_SECS.forEach(name=>{
     if(!sections[name])return;
     const d=document.createElement('div');d.className='sec-block';
@@ -891,6 +892,23 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
           +'<div class="sec-lock-cta">升級解鎖完整內容 <a href="pricing.html">查看方案 →</a></div>';
       if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
     });
+  }
+}
+function showFillSectionsLoading(panel){
+  if(!panel)return;
+  panel.innerHTML='<div class="sec-hd">條文解析</div><div class="sec-empty">條文解析載入中...</div>';
+  panel.style.display='block';
+}
+function renderFillSections(panel,sections,isPaid){
+  if(!panel)return;
+  panel.innerHTML='<div class="sec-hd">條文解析</div>';
+  panel.style.display='block';
+  buildSections(sections||{},isPaid,panel);
+  if(!panel.querySelector('.sec-block,.sec-lock')){
+    const empty=document.createElement('div');
+    empty.className='sec-empty';
+    empty.textContent='這條暫時沒有解析；先看原文，或直接換下一條練習。';
+    panel.appendChild(empty);
   }
 }
 
@@ -1501,8 +1519,7 @@ function checkAnswers(){
   // 載入條文解析 sections
   if(fillData.id){
     const panel=document.getElementById('sectionsBox');
-    panel.innerHTML='<div class="sec-hd">條文解析</div>';
-    panel.style.display='block';
+    showFillSectionsLoading(panel);
     const srcBtn=document.getElementById('fillSourceLink');
     const srcPanel=document.getElementById('fillArtInline');
     srcBtn.style.display='inline-block';
@@ -1514,8 +1531,10 @@ function checkAnswers(){
         const h=_authH();
         const art=await fetch(`${API}/api/article/${fillData.id}`,{headers:h}).then(r=>r.json());
         srcPanel.textContent=formatLawText(art.original_text);
-        buildSections(art.sections||{},art._plan!=='free',panel);
-      }catch(e){}
+        renderFillSections(panel, art.sections||{}, art._plan!=='free');
+      }catch(e){
+        renderFillSections(panel, {}, true);
+      }
     })();
   }
   // Wave 40: record per-article stats for session results
