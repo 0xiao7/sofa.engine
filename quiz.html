@@ -247,6 +247,8 @@
   .sec-lock-preview::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(245,240,234,0) 15%,var(--cream) 82%);pointer-events:none}
   .sec-lock-cta{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px;padding:10px 16px;font-size:12.5px;color:rgba(31,56,72,.72);background:rgba(231,187,167,.1);border:1px dashed rgba(213,154,120,.4);border-radius:4px}
   .sec-lock-cta a{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--peach);text-decoration:none;padding:5px 14px;border:1px solid rgba(213,154,120,.4);border-radius:2px;white-space:nowrap}
+  .cpi-note{margin-top:16px;padding:14px 16px;background:rgba(217,176,132,.12);border:1px solid rgba(217,176,132,.38);border-left:3px solid var(--peach);border-radius:4px;color:var(--navy);font-size:14px;line-height:1.75}
+  .cpi-note b{display:block;margin-bottom:4px;color:var(--navy);font-family:var(--sans);font-weight:700}
 
   /* bottom action */
   .q-foot{
@@ -1283,8 +1285,28 @@ function formatSection(text){
   });
   return out;
 }
-function buildSections(sections,isPaid,wrapEl,beforeEl){
-  wrapEl.querySelectorAll('.sec-block,.sec-lock').forEach(e=>e.remove());
+function buildCpiAdjustmentNote(article,sections){
+  const lawName=article?.law_name||_currentLawName||'';
+  const articleText=[article?.title,article?.article_no,article?.original_text,JSON.stringify(sections||{})].join('\n');
+  const artNo=String(article?.article_no||_currentArtNo||article?.title||'');
+  const hasCpiText=/CPI|消費者物價指數|物價指數|公告調整|按.*物價/.test(articleText);
+  const isBasicTax=lawName.includes('所得基本稅額條例') && /(^|第|\D)13(條|$|\D)/.test(artNo);
+  const isEstateGift=lawName.includes('遺產及贈與稅法') && (/12\s*[-之]\s*1|十二條之一|第十二條之一/.test(artNo) || hasCpiText);
+  if(!hasCpiText && !isBasicTax && !isEstateGift) return '';
+  return '這類金額會受 CPI / 財政部公告調整。題目仍可考條文基準或比例；實際申報、考前衝刺請以當年度公告額為準，不要只背解析中的舊基準數字。';
+}
+function appendCpiAdjustmentNote(wrapEl,beforeEl,article,sections){
+  wrapEl.querySelectorAll('.cpi-note').forEach(e=>e.remove());
+  const note=buildCpiAdjustmentNote(article,sections);
+  if(!note)return;
+  const d=document.createElement('div');
+  d.className='cpi-note';
+  d.innerHTML='<b>CPI / 公告額提醒</b>'+esc(note);
+  if(beforeEl)wrapEl.insertBefore(d,beforeEl);else wrapEl.appendChild(d);
+}
+function buildSections(sections,isPaid,wrapEl,beforeEl,article){
+  wrapEl.querySelectorAll('.sec-block,.sec-lock,.cpi-note').forEach(e=>e.remove());
+  appendCpiAdjustmentNote(wrapEl,beforeEl,article,sections);
   _FREE_SECS.forEach(name=>{
     if(!sections[name])return;
     const d=document.createElement('div');d.className='sec-block';
@@ -1293,8 +1315,15 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
     d.append(lb,tx);
     if(beforeEl)wrapEl.insertBefore(d,beforeEl);else wrapEl.appendChild(d);
   });
-  if(!isPaid){
-    _LOCKED_SECS.forEach(({name,label})=>{
+  _LOCKED_SECS.forEach(({name,label})=>{
+    if(isPaid){
+      if(!sections[name])return;
+      const d=document.createElement('div');d.className='sec-block';
+      const lb=document.createElement('div');lb.className='sec-label';lb.textContent=label;
+      const tx=document.createElement('div');tx.className='sec-text';tx.innerHTML=formatSection(sections[name]);
+      d.append(lb,tx);
+      if(beforeEl)wrapEl.insertBefore(d,beforeEl);else wrapEl.appendChild(d);
+    }else{
       const lk=document.createElement('div');lk.className='sec-lock';
       const preview=sections[name]||'';
       lk.innerHTML=isIOSReaderApp()
@@ -1303,8 +1332,8 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
           +'<div class="sec-lock-preview">'+(preview?formatSection(preview):'')+'</div>'
           +'<div class="sec-lock-cta">升級解鎖完整內容 <a href="pricing.html">查看方案 →</a></div>';
       if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
-    });
-  }
+    }
+  });
 }
 
 // ── 錯題本（localStorage 持久化）──────────────────────────────
@@ -2343,7 +2372,7 @@ async function loadQuiz(){
               document.getElementById('sourceBox').querySelector('span').textContent='條文原文已放在上方';
               document.getElementById('sourceLink').textContent='收起原文 ↑';
               buildSections(art.sections||{},art._plan!=='free',
-                document.getElementById('explainBox'),document.getElementById('sourceBox'));
+                document.getElementById('explainBox'),document.getElementById('sourceBox'),art);
             }catch(e){
               showInlineArticleText('');
               document.getElementById('sourceBox').querySelector('span').textContent='暫時載入不到原文';
@@ -2601,7 +2630,7 @@ async function loadWrongQuiz() {
               document.getElementById('sourceBox').querySelector('span').textContent = '條文原文已放在上方';
               document.getElementById('sourceLink').textContent = '收起原文 ↑';
               buildSections(art.sections||{},art._plan!=='free',
-                document.getElementById('explainBox'),document.getElementById('sourceBox'));
+                document.getElementById('explainBox'),document.getElementById('sourceBox'),art);
             } catch(e){
               showInlineArticleText('');
               document.getElementById('sourceBox').querySelector('span').textContent = '暫時載入不到原文';

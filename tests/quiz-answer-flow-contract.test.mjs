@@ -122,6 +122,32 @@ test('answer explanation shows article text before analysis sections', () => {
   assert.match(active, /暫時沒有原文/);
 });
 
+test('paid answer explanation renders advanced analysis sections instead of hiding them', () => {
+  const buildStart = active.indexOf('function buildSections');
+  assert.ok(buildStart > -1, 'buildSections must exist');
+  const buildEnd = active.indexOf('// ── 錯題本', buildStart);
+  const build = active.slice(buildStart, buildEnd);
+
+  assert.match(build, /if\(isPaid\)/);
+  assert.match(build, /_LOCKED_SECS\.forEach/);
+  assert.match(build, /d\.className='sec-block'/);
+  assert.match(active, /修法與聯覺備註/);
+  assert.match(active, /相關法規及注意事項/);
+});
+
+test('CPI-adjusted article answers always show a visible adjustment warning', () => {
+  assert.match(active, /function buildCpiAdjustmentNote/);
+  assert.match(active, /function appendCpiAdjustmentNote/);
+  assert.match(active, /className='cpi-note'/);
+  assert.match(active, /所得基本稅額條例/);
+  assert.match(active, /遺產及贈與稅法/);
+  assert.match(active, /消費者物價指數|CPI/);
+  assert.match(active, /題目仍可考條文基準或比例/);
+
+  const callCount = (active.match(/buildSections\(art\.sections\|\|\{\},art\._plan!=='free',\s*document\.getElementById\('explainBox'\),document\.getElementById\('sourceBox'\),\s*art\)/g) || []).length;
+  assert.equal(callCount, 2, 'normal quiz and wrong-review quiz should both pass article metadata into buildSections');
+});
+
 test('session mode advances quickly after each answer without changing normal mode', () => {
   assert.match(active, /const SESSION_AUTO_NEXT_DELAY_MS = 260/);
   const onAnswerStart = active.indexOf('function onAnswerDone');
