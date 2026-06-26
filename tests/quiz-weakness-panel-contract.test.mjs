@@ -7,7 +7,7 @@ const active = html.replace(/<!--[\s\S]*?-->/g, '');
 
 test('weakness entry opens a clearly titled weakness analysis panel', () => {
   assert.match(active, /id="stats-panel-title"/);
-  assert.match(active, /弱點與錯題/);
+  assert.match(active, /弱點分析/);
   assert.match(active, /function _statsPanelTitle/);
   assert.match(active, /弱點分析/);
   assert.match(active, /_openParam === 'wrong'[\s\S]*_openWeakness\(\)/);
@@ -18,9 +18,23 @@ test('weakness list uses harmonized card classes and explicit next actions', () 
   assert.match(active, /\.weak-panel-guide/);
   assert.match(active, /\.weak-card/);
   assert.match(active, /\.weak-action-primary/);
+  assert.match(active, /\.weak-source-note/);
   assert.match(active, /這裡先看最常錯的法規/);
+  assert.match(active, /下一步先練/);
+  assert.match(active, /練這部/);
   assert.match(active, /看結果/);
   assert.match(active, /開始重練/);
+});
+
+test('weakness analysis names all formal answer sources as merged', () => {
+  assert.match(active, /function _weakSourceLine/);
+  assert.match(active, /每日一題/);
+  assert.match(active, /LINE 作答/);
+  assert.match(active, /網頁選擇題/);
+  assert.match(active, /填空/);
+  assert.match(active, /打字練習/);
+  assert.match(active, /考古題/);
+  assert.match(active, /錯題重練/);
 });
 
 test('empty weakness state tells the learner what to do without self-judging', () => {
@@ -36,6 +50,6 @@ test('weakness panel avoids showing a zero wrong-bank card above law weaknesses'
   assert.ok(fnStart >= 0 && fnEnd > fnStart, '_renderWrongList must exist');
   const fn = active.slice(fnStart, fnEnd);
   const gate = fn.indexOf('if(bank.length)');
-  const card = fn.indexOf('考古題錯題', gate);
+  const card = fn.indexOf('本機錯題清單', gate);
   assert.ok(gate >= 0 && card > gate, 'wrong-bank card should be gated by bank.length');
 });

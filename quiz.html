@@ -494,6 +494,13 @@
   }
   .weak-card + .weak-card{margin-top:8px}
   .weak-card.alert{background:rgba(199,123,106,.06);border-color:rgba(199,123,106,.22)}
+  .weak-summary-card{margin-bottom:12px}
+  .weak-summary-title{color:var(--peach-2);font-family:var(--serif);font-size:20px;line-height:1.25;margin-bottom:5px}
+  .weak-summary-meta{color:rgba(245,240,234,.62);font-size:12px;line-height:1.6}
+  .weak-source-note{
+    color:rgba(245,240,234,.44);font-size:11px;line-height:1.7;
+    margin:-3px 0 13px;padding:0 2px;
+  }
   .weak-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
   .weak-card-k{color:var(--bad);font-size:12px;font-family:var(--mono);letter-spacing:.1em}
   .weak-card-v{color:rgba(245,240,234,.48);font-size:11px;margin-top:2px}
@@ -2712,7 +2719,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <!-- Wave 140: Tab bar -->
     <div id="stats-tab-bar" class="stats-tabs">
       <button id="tab-btn-stats" onclick="_switchStatsTab('stats')">統計</button>
-      <button id="tab-btn-wrong" onclick="_switchStatsTab('wrong')">弱點與錯題</button>
+      <button id="tab-btn-wrong" onclick="_switchStatsTab('wrong')">弱點分析</button>
       <button id="tab-btn-exam" onclick="_switchStatsTab('exam')">考試紀錄</button>
     </div>
     <!-- Tab: 統計 -->
@@ -2819,12 +2826,12 @@ function _renderStatsContent(s, sourceLabel) {
       <div style="color:var(--bad);font-size:12px;margin-bottom:6px;">最需加強</div>
       <div id="weakest-law-name" style="color:var(--bad);font-size:14px;font-weight:bold;">${esc(weakest.law)}</div>
       <div id="weakest-law-pct" style="color:var(--bad);font-size:12px;margin:3px 0 8px;">正確率 ${weakest.pct}%</div>
-      <button onclick="_practiceWeakestLaw()" style="background:var(--navy-2);border:1px solid var(--bad);color:#ff9977;padding:5px 14px;border-radius:12px;font-size:13px;cursor:pointer;">立即練習 →</button>
+      <button onclick="_practiceWeakestLaw()" style="background:var(--navy-2);border:1px solid var(--bad);color:#ff9977;padding:5px 14px;border-radius:12px;font-size:13px;cursor:pointer;">練這部 →</button>
     </div>`;
   }
 
   document.getElementById('stats-content').innerHTML = `
-    <div class="weak-panel-guide"><b>${esc(sourceLabel||'本機暫存')}</b>：每日一題、LINE 作答與網頁練習會在登入後合併到這裡。</div>
+    <div class="weak-panel-guide"><b>${esc(sourceLabel||'本機暫存')}</b>：${esc(_weakSourceLine())}</div>
     <div class="quiz-stat-grid">
       <div class="quiz-stat-card">
         <div class="quiz-stat-value">${pct}%</div>
@@ -2937,11 +2944,34 @@ function _weakEmptyText() {
     + '</div>';
 }
 
+function _weakSourceLine() {
+  return '已合併：每日一題、LINE 作答、網頁選擇題、填空、打字練習、考古題、錯題重練。';
+}
+
+function _weakSourceNote() {
+  return `<div class="weak-source-note">${esc(_weakSourceLine())}</div>`;
+}
+
+function _weakSummaryCard(law, wrong, pct, actionHtml) {
+  return `<div class="weak-card alert weak-summary-card">
+    <div class="weak-card-head" style="align-items:center;margin-bottom:0">
+      <div class="weak-law-main">
+        <div class="weak-card-k">下一步先練</div>
+        <div class="weak-summary-title">${esc(law || '先累積幾題')}</div>
+        <div class="weak-summary-meta">${wrong ? `目前錯 ${wrong} 題` : '還沒有穩定弱點'}${pct != null ? ` ・ ${pct}% 正確` : ''}</div>
+      </div>
+      ${actionHtml || ''}
+    </div>
+  </div>`;
+}
+
 function _renderRemoteWeakLaws(items) {
   const el = document.getElementById('rail-weak-laws');
   const cntEl = document.getElementById('nav-wrong-cnt');
   if (!el) return;
-  const list = Array.isArray(items) ? items.filter(x => (x.wrong_count || 0) > 0) : [];
+  const list = Array.isArray(items)
+    ? items.filter(x => (x.wrong_count || 0) > 0).sort((a,b)=>(b.wrong_count||0)-(a.wrong_count||0))
+    : [];
   if (cntEl) cntEl.textContent = list.length ? list.reduce((s, l) => s + (l.wrong_count || 0), 0) : '';
   if (!list.length) {
     el.innerHTML = _weakEmptyText();
@@ -2960,7 +2990,7 @@ function _renderRemoteWeakLaws(items) {
     return `<div style="margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
         <span style="font-size:11px;color:var(--peach);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${esc(law)}</span>
-        <button onclick="_drillLawAuto(${JSON.stringify(law)})" style="flex-shrink:0;background:rgba(199,123,106,.1);border:1px solid rgba(199,123,106,.3);color:var(--bad);border-radius:8px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:var(--mono)">練習</button>
+        <button onclick="_drillLawAuto(${JSON.stringify(law)})" style="flex-shrink:0;background:rgba(199,123,106,.1);border:1px solid rgba(199,123,106,.3);color:var(--bad);border-radius:8px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:var(--mono)">練這部</button>
       </div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--bad)">✗ ${item.wrong_count || 0}題 &nbsp;<span style="color:rgba(245,240,234,.35)">${pct}%正確</span></div>
       ${bar}${top}
@@ -2971,10 +3001,18 @@ function _renderRemoteWeakLaws(items) {
 function _renderWrongListFromRemote(items) {
   const panel = document.getElementById('quiz-wrong-panel');
   if (!panel) return;
-  const list = Array.isArray(items) ? items.filter(x => (x.wrong_count || 0) > 0) : [];
+  const list = Array.isArray(items)
+    ? items.filter(x => (x.wrong_count || 0) > 0).sort((a,b)=>(b.wrong_count||0)-(a.wrong_count||0))
+    : [];
   if (!list.length) return;
-  let html = '<div class="weak-panel-guide"><b>已合併後端紀錄</b>：每日一題、LINE 作答與網頁練習都會算進弱點。</div>';
-  html += `<div class="weak-section-title">最常錯的法規</div>`;
+  const first = list[0];
+  const firstLaw = first.law_name || '未分類法規';
+  const firstAttempts = first.attempt_count || 0;
+  const firstPct = firstAttempts ? Math.round((first.correct_count || 0) / firstAttempts * 100) : 0;
+  let html = '<div class="weak-panel-guide"><b>看結果</b>：這裡先看最常錯的法規。<br><b>開始重練</b>：按「練這部」，就會回到出題頁。</div>';
+  html += _weakSummaryCard(firstLaw, first.wrong_count || 0, firstPct, `<button class="weak-action-primary" onclick="_drillLawAuto(${JSON.stringify(firstLaw)})">練這部</button>`);
+  html += _weakSourceNote();
+  html += `<div class="weak-section-title">所有弱點法規</div>`;
   list.forEach(item => {
     const law = item.law_name || '未分類法規';
     const attempts = item.attempt_count || 0;
@@ -2995,7 +3033,7 @@ function _renderWrongListFromRemote(items) {
           ${bar}
           ${top ? `<div class="weak-card-v" style="margin-top:6px">${top}</div>` : ''}
         </div>
-        <button class="weak-action-soft" onclick="_drillLawAuto(${JSON.stringify(law)})">練習</button>
+        <button class="weak-action-soft" onclick="_drillLawAuto(${JSON.stringify(law)})">練這部</button>
       </div>
     </div>`;
   });
@@ -3053,7 +3091,7 @@ function _renderRailWeakness() {
     return `<div style="margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
         <span style="font-size:11px;color:var(--peach);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${esc(name)}</span>
-        <button onclick="_drillLawAuto(${JSON.stringify(name)})" style="flex-shrink:0;background:rgba(199,123,106,.1);border:1px solid rgba(199,123,106,.3);color:var(--bad);border-radius:8px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:var(--mono)">練習</button>
+        <button onclick="_drillLawAuto(${JSON.stringify(name)})" style="flex-shrink:0;background:rgba(199,123,106,.1);border:1px solid rgba(199,123,106,.3);color:var(--bad);border-radius:8px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:var(--mono)">練這部</button>
       </div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--bad)">✗ ${wrong}題 &nbsp;<span style="color:rgba(245,240,234,.35)">${pct}%正確</span></div>
       ${bar}
@@ -3122,13 +3160,20 @@ function _renderWrongList() {
 
   if (lawWrongs.length === 0 && bank.length === 0) {
     panel.innerHTML = '<div class="weak-panel-guide"><b>看結果</b>：這裡會自動整理最常錯的法規和錯題。<br><b>開始重練</b>：做幾題後，就會出現重練入口。</div>'
+      + _weakSourceNote()
       + _weakEmptyText();
     _loadRemoteWeakLaws({force:true, target:'panel'});
     return;
   }
 
-  // ── Section 1: 考古題錯題銀行 ──
-  let html = '<div class="weak-panel-guide"><b>看結果</b>：這裡先看最常錯的法規。<br><b>開始重練</b>：按「重練全部」或每列「練習」，就會回到出題頁。</div>';
+  // ── Section 1: 本機錯題清單 ──
+  let html = '<div class="weak-panel-guide"><b>看結果</b>：這裡先看最常錯的法規。<br><b>開始重練</b>：按「重練全部」或每列「練這部」，就會回到出題頁。</div>';
+  const firstWeak = lawWrongs.length ? lawWrongs[0] : null;
+  if(firstWeak) {
+    const pct = Math.round((firstWeak.total - firstWeak.wrong) / firstWeak.total * 100);
+    html += _weakSummaryCard(firstWeak.name, firstWeak.wrong, pct, `<button class="weak-action-primary" onclick="_drillLawAuto(${JSON.stringify(firstWeak.name)})">練這部</button>`);
+  }
+  html += _weakSourceNote();
   if(bank.length) {
     // Group wrong bank by law
     const bankByLaw = {};
@@ -3138,7 +3183,7 @@ function _renderWrongList() {
     html += `<div class="weak-card alert">`;
     html += `<div class="weak-card-head" style="margin-bottom:${bankLaws.length?'10px':'0'}">
       <div>
-        <div class="weak-card-k">考古題錯題</div>
+        <div class="weak-card-k">本機錯題清單</div>
         <div class="weak-card-v">${bank.length} 條待重練</div>
       </div>
       ${bank.length ? `<button class="weak-action-primary" onclick="_drillAllWrong()">重練全部</button>` : '<span style="color:rgba(245,240,234,.3);font-size:12px">（無錯題）</span>'}
@@ -3171,7 +3216,7 @@ function _renderWrongList() {
               <div class="weak-law-meta">錯 ${wrong} 題 &nbsp;•&nbsp; <span style="color:${color}">${pct}% 正確</span></div>
             ${bar}
           </div>
-            <button class="weak-action-soft" onclick="_drillLawAuto(${JSON.stringify(name)})">練習</button>
+            <button class="weak-action-soft" onclick="_drillLawAuto(${JSON.stringify(name)})">練這部</button>
           </div>
         </div>`;
       });
@@ -3193,7 +3238,7 @@ function _renderWrongList() {
             <div class="weak-law-meta">錯 ${wrong} 題 &nbsp;•&nbsp; <span style="color:${color}">${pct}% 正確</span></div>
           ${bar}
         </div>
-          <button class="weak-action-soft" onclick="_drillLawAuto(${JSON.stringify(name)})">練習</button>
+          <button class="weak-action-soft" onclick="_drillLawAuto(${JSON.stringify(name)})">練這部</button>
         </div>
       </div>`;
       const hidden = lawWrongs.length - 1;

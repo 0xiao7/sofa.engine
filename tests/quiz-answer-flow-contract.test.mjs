@@ -70,7 +70,7 @@ test('quiz weakness rail fetches authenticated weak-laws fallback', () => {
 test('stats modal merges server quiz sessions and weak laws before relying on localStorage', () => {
   assert.match(active, /function _loadRemoteQuizStats/);
   assert.match(active, /\/api\/me\/quiz-stats/);
-  assert.match(active, /每日一題、LINE 作答與網頁練習/);
+  assert.match(active, /每日一題、LINE 作答、網頁選擇題、填空、打字練習、考古題、錯題重練/);
   assert.match(active, /todayCorrect:\s*d && d\.today_correct/);
   assert.match(active, /serverMerged:\s*true/);
   assert.match(active, /s\.serverMerged \? '' : _buildQuizCalendar\(s\)/);
