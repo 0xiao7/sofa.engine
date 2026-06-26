@@ -2938,6 +2938,7 @@
 // ── 全域常數 ─────────────────────────────────────────────
 const API = 'https://sofa-engine-api.onrender.com';
 const QUIZ_WRONG_KEY = 'sofa_wrong_ids';
+const REMOTE_WEAK_ARTICLE_KEY = 'sofa_remote_weak_articles_v1';
 function isIOSReaderApp(){try{return !!(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='ios');}catch(e){return false;}}
 if(isIOSReaderApp()) document.documentElement.classList.add('ios-reader-app');
 function applyIOSReaderAppReviewGuards(){
@@ -3193,8 +3194,41 @@ function _getQuizWrongEntry(pageId){
   if(!pageId) return null;
   try{
     var bank = JSON.parse(localStorage.getItem(QUIZ_WRONG_KEY) || '[]');
-    if(!Array.isArray(bank)) return null;
-    return bank.filter(function(item){ return item && item.id === pageId; })[0] || null;
+    if(!Array.isArray(bank)) return _getRemoteWeakArticleEntry(pageId);
+    return bank.filter(function(item){ return item && item.id === pageId; })[0] || _getRemoteWeakArticleEntry(pageId);
+  }catch(e){
+    return _getRemoteWeakArticleEntry(pageId);
+  }
+}
+
+var _remoteWeakArticleHits = {};
+function _rememberRemoteWeakArticles(items){
+  var map = {};
+  if(Array.isArray(items)){
+    items.forEach(function(law){
+      var articles = Array.isArray(law && law.top_articles) ? law.top_articles : [];
+      articles.forEach(function(a){
+        if(!a || !a.page_id) return;
+        map[a.page_id] = {
+          id: a.page_id,
+          law: law.law_name || '',
+          article: a.article || (a.article_no ? ('第 ' + a.article_no + ' 條') : ''),
+          errorCount: a.wrong_count || law.wrong_count || 1,
+          source: 'server_weak_laws'
+        };
+      });
+    });
+  }
+  _remoteWeakArticleHits = map;
+  try{ sessionStorage.setItem(REMOTE_WEAK_ARTICLE_KEY, JSON.stringify(map)); }catch(e){}
+}
+
+function _getRemoteWeakArticleEntry(pageId){
+  if(!pageId) return null;
+  if(_remoteWeakArticleHits && _remoteWeakArticleHits[pageId]) return _remoteWeakArticleHits[pageId];
+  try{
+    var map = JSON.parse(sessionStorage.getItem(REMOTE_WEAK_ARTICLE_KEY) || '{}');
+    return map && map[pageId] ? map[pageId] : null;
   }catch(e){
     return null;
   }
@@ -6185,6 +6219,7 @@ ch.on('presence', { event: 'sync' }, () => {
     var list=document.getElementById('weak-laws-list');
     var navWeak=document.getElementById('nav-ct-weak');
     if(!recap || !list) return;
+    _rememberRemoteWeakArticles(items);
     var laws = Array.isArray(items) ? items.filter(function(x){ return x && x.law_name; }) : [];
     if(navWeak) navWeak.textContent = String(laws.length);
     if(!laws.length){
