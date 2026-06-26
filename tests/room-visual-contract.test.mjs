@@ -80,7 +80,9 @@ test('airy room scenes are procedural instead of pasted generated mockups', () =
   assert.match(html, /function\s+_airyDrawShelf/);
   assert.match(html, /function\s+_airyDrawDesk/);
   assert.match(html, /function\s+_airyDrawCloud/);
+  assert.match(html, /function\s+_airyDrawLibraryPainterlyBackdrop/);
   assert.match(html, /function\s+_airyDrawLibraryStudyBay/);
+  assert.match(html, /function\s+_airyDrawIslandPainterlyDepth/);
   assert.match(html, /function\s+_airyDrawIslandStudyCluster/);
   assert.match(html, /_airyDrawSeatedReader/);
 });
