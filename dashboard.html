@@ -640,6 +640,51 @@
     cursor:pointer;
   }
   .study-plan-state{font-size:12px;color:rgba(245,240,234,.55)}
+  .study-save-nudge{
+    display:none;
+    border:1px solid rgba(231,187,167,.24);
+    background:rgba(231,187,167,.07);
+    padding:12px 14px;
+    border-radius:4px;
+    gap:10px;
+    align-items:center;
+    justify-content:space-between;
+    flex-wrap:wrap;
+  }
+  .study-save-nudge.on{display:flex}
+  .study-save-nudge b{
+    display:block;
+    font-size:14px;
+    color:var(--cream);
+    margin-bottom:2px;
+  }
+  .study-save-nudge span{
+    display:block;
+    font-size:12px;
+    color:rgba(245,240,234,.58);
+    line-height:1.55;
+  }
+  .study-save-nudge .actions{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap;
+  }
+  .study-save-nudge a,.study-save-nudge button{
+    border:1px solid var(--line-2);
+    padding:8px 11px;
+    border-radius:4px;
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:0;
+    color:var(--cream);
+  }
+  .study-save-nudge a{
+    background:var(--peach);
+    border-color:var(--peach);
+    color:var(--navy);
+    font-weight:800;
+  }
   .study-import{
     border-top:1px dashed var(--line);
     padding-top:12px;
@@ -2377,6 +2422,16 @@
                 <span id="study-time-state">先填真的有空的時間。</span>
               </div>
             </div>
+            <div class="study-save-nudge" id="study-save-nudge" aria-live="polite">
+              <div>
+                <b>保留這些進度</b>
+                <span id="study-save-nudge-copy">目前先存在這台裝置；換手機或清瀏覽器資料就可能不見。</span>
+              </div>
+              <div class="actions">
+                <a href="login.html">輸入序號 / 領體驗</a>
+                <button type="button" onclick="dismissStudySaveNudge()">先繼續</button>
+              </div>
+            </div>
             <div class="study-plan-panel" id="study-plan-panel" aria-label="個人讀書課程">
               <div class="study-plan-grid">
                 <div class="study-plan-field full">
@@ -3097,6 +3152,7 @@ function _studySaveMessage(res, fallback){
 }
 
 var STUDY_LOCAL_KEY = 'sofa.study.localPlan.v1';
+var STUDY_SAVE_NUDGE_DISMISS_KEY = 'sofa.study.saveNudgeDismissed.v1';
 
 function _studyLocal(){
   try{
@@ -3112,6 +3168,32 @@ function _studyLocal(){
 
 function _saveStudyLocal(data){
   try{ localStorage.setItem(STUDY_LOCAL_KEY, JSON.stringify(data)); }catch(e){}
+  updateStudySaveNudge();
+}
+
+function _studyHasLocalProgress(local){
+  local = local || _studyLocal();
+  var s = local.settings || {};
+  var changedSettings = (s.total_hours && s.total_hours !== 500) || (s.weekly_hours && s.weekly_hours !== 12) || (s.today_minutes && s.today_minutes !== 60);
+  return changedSettings || (local.items || []).length > 0 || (local.records || []).length > 0;
+}
+
+function updateStudySaveNudge(){
+  var nudge = document.getElementById('study-save-nudge');
+  if(!nudge) return;
+  var signedIn = !!(localStorage.getItem('sofa_uid') || localStorage.getItem('sofa_token'));
+  var dismissed = localStorage.getItem(STUDY_SAVE_NUDGE_DISMISS_KEY) === '1';
+  nudge.classList.toggle('on', !signedIn && !dismissed && _studyHasLocalProgress());
+}
+
+function showStudySaveNudge(){
+  localStorage.removeItem(STUDY_SAVE_NUDGE_DISMISS_KEY);
+  updateStudySaveNudge();
+}
+
+function dismissStudySaveNudge(){
+  localStorage.setItem(STUDY_SAVE_NUDGE_DISMISS_KEY, '1');
+  updateStudySaveNudge();
 }
 
 function _dedupeStudyItems(items){
@@ -3161,6 +3243,7 @@ function saveStudyTimeSettings(){
   renderStudyTimeSettings();
   var state = document.getElementById('study-time-state');
   if(state) state.textContent = '已存到這台裝置。';
+  showStudySaveNudge();
 }
 
 // ── Drawer 動態開啟 ──────────────────────────────────────
@@ -4820,6 +4903,7 @@ function renderStudyToday(data){
   }
   renderStudyTimeSettings();
   renderStudyPlanItems(_mergeStudyPlan(data.personal_plan || null));
+  updateStudySaveNudge();
   subjectsEl.innerHTML = subjects.map(function(s){
     var seeded = s.implementation_status === 'seeded_moex_mcq';
     var cls = seeded ? 'study-subject seeded' : 'study-subject';
@@ -4946,6 +5030,7 @@ function _addLocalStudyItems(items){
   local.items = _dedupeStudyItems((local.items || []).concat(items));
   _saveStudyLocal(local);
   renderStudyPlanItems(_mergeStudyPlan(null));
+  showStudySaveNudge();
   return items.length;
 }
 
@@ -5005,6 +5090,7 @@ function saveStudyRecordLocal(){
   _saveStudyLocal(local);
   renderStudyPlanItems(_mergeStudyPlan(null));
   tell('已先存在本機；答題正確率不會被補紀錄改動。');
+  showStudySaveNudge();
 }
 
 function _parseStudyPlanImport(){

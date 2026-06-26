@@ -171,6 +171,7 @@ test('study planning saves translate schema-pending responses into a readable pr
 
 test('study planning has a local-first fallback when schema is not ready', () => {
   assert.match(active, /STUDY_LOCAL_KEY/);
+  assert.match(active, /STUDY_SAVE_NUDGE_DISMISS_KEY/);
   assert.match(active, /function _studyLocal/);
   assert.match(active, /function _saveStudyLocal/);
   assert.match(active, /function _mergeStudyPlan/);
@@ -179,6 +180,20 @@ test('study planning has a local-first fallback when schema is not ready', () =>
   assert.match(active, /var savedLocal = fallback && fallback\.indexOf\('已先存在本機'\) >= 0;/);
   assert.match(active, /if\(savedLocal\) return fallback;/);
   assert.match(active, /renderStudyPlanItems\(_mergeStudyPlan/);
+});
+
+test('study planning nudges local users to preserve progress after real action', () => {
+  assert.match(active, /id="study-save-nudge"/);
+  assert.match(active, /保留這些進度/);
+  assert.match(active, /輸入序號 \/ 領體驗/);
+  assert.match(active, /function updateStudySaveNudge/);
+  assert.match(active, /function showStudySaveNudge/);
+  assert.match(active, /function dismissStudySaveNudge/);
+  assert.match(active, /!signedIn && !dismissed && _studyHasLocalProgress\(\)/);
+  assert.match(active, /saveStudyTimeSettings[\s\S]*showStudySaveNudge\(\)/);
+  assert.match(active, /saveStudyRecordLocal[\s\S]*showStudySaveNudge\(\)/);
+  assert.match(active, /_addLocalStudyItems[\s\S]*showStudySaveNudge\(\)/);
+  assert.doesNotMatch(active, /beforeunload/);
 });
 
 test('study time planning is editable and persisted locally', () => {
