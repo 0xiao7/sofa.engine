@@ -18,3 +18,8 @@ test('native iOS fill keeps mobile blanks and actions inside the viewport', () =
   assert.match(html, /\.blank\{[^}]*max-width:100%;[^}]*box-sizing:border-box/s);
   assert.match(html, /html\.ios-reader-app\s+\.stage\{[^}]*padding-bottom:calc\(96px \+ env\(safe-area-inset-bottom, 0px\)\)/s);
 });
+
+test('native iOS fill does not auto-focus the first blank on article load', () => {
+  assert.doesNotMatch(active, /if\(box\.querySelector\('input'\)\)box\.querySelector\('input'\)\.focus\(\);/);
+  assert.match(active, /if\(!isIOSReaderApp\(\)&&box\.querySelector\('input'\)\)box\.querySelector\('input'\)\.focus\(\);/);
+});

@@ -1389,7 +1389,7 @@ function renderFill(){
     });
     inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(all[i+1])all[i+1].focus();else checkAnswers();}});
   });
-  if(box.querySelector('input'))box.querySelector('input').focus();
+  if(!isIOSReaderApp()&&box.querySelector('input'))box.querySelector('input').focus();
   hintsLeft=3;
   updateHintUI();
   _currentHintUsed = false;  // Wave 40: reset per-article hint flag
