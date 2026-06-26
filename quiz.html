@@ -849,24 +849,28 @@ function formatLawText(raw){
   t=t.replace(/[ 　]*(（[一二三四五六七八九十百]+）)/g,'\n　$1');
   return t.replace(/^\n+/,'').replace(/\n{2,}/g,'\n').trim();
 }
+function normalizeArticleCore(artTitle){
+  const title=String(artTitle||'').replace(/｜.*$/,'').replace(/^§\s*/,'').replace(/\s+/g,'').trim();
+  const titled=title.match(/^第([0-9０-９\d一二三四五六七八九十百千零兩]+)條(?:之([0-9０-９\d一二三四五六七八九十百千零兩]+))?/);
+  if(titled) return titled[1]+(titled[2]?`之${titled[2]}`:'');
+  const rawNo=title.match(/^([0-9０-９\d一二三四五六七八九十百千零兩]+)(?:之([0-9０-９\d一二三四五六七八九十百千零兩]+))?$/);
+  return rawNo ? rawNo[1]+(rawNo[2]?`之${rawNo[2]}`:'') : '';
+}
+function formatArticleCore(core){
+  const parts=String(core||'').split('之');
+  return `第 ${parts[0]} 條${parts[1]?`之${parts[1]}`:''}`;
+}
 function formatArticleCitation(artTitle, lawName){
   const body=[];
   const title=String(artTitle||'').replace(/｜.*$/,'').replace(/^§\s*/,'').trim();
-  const articleMatch=title.match(/^第\s*([\d一二三四五六七八九十百千零兩之-更\s]+)條/);
-  if(articleMatch){
-    const core=articleMatch[1].replace(/\s+/g,' ').trim();
-    body.push(`第 ${core} 條`);
-  }else if(title){
-    const rawNo=title.match(/^([\d一二三四五六七八九十百千零兩]+(?:之[\d一二三四五六七八九十百千零兩]+)?)$/);
-    body.push(rawNo ? `第 ${rawNo[1]} 條` : title);
-  }else{
-    body.push('條文');
-  }
+  const core=normalizeArticleCore(title);
+  if(core) body.push(formatArticleCore(core));
+  else body.push(title||'條文');
   if(lawName) body.push(lawName);
   return body.join(' ｜ ');
 }
 function getArticleCitationNo(artTitle){
-  return formatArticleCitation(artTitle, '').replace(/^第\s*/,'').replace(/\s*條$/,'').trim();
+  return normalizeArticleCore(artTitle) || String(artTitle||'').replace(/｜.*$/,'').replace(/^§\s*/,'').trim();
 }
 function renderQuizCitation(artTitle, lawName){
   const cit=document.getElementById('quiz-citation');

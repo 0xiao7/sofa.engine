@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import vm from 'node:vm';
 
 const html = readFileSync(new URL('../quiz.html', import.meta.url), 'utf8');
 const active = html.replace(/<!--[\s\S]*?-->/g, '');
@@ -19,8 +20,23 @@ test('post-answer citation formats article labels without duplicated 第 or 條'
   assert.match(active, /function formatArticleCitation/);
   assert.match(active, /formatArticleCitation\(artTitle,\s*lawName\)/);
   assert.doesNotMatch(active, /第 <strong>'\+\(_artNo\|\|'—'\)\+'<\/strong> 條/);
-  assert.match(active, /title\.match\(\s*\/\^第\\s\*\(\[\\d一二三四五六七八九十百千零兩之-更\\s\]\+\)條\/\s*\)/);
-  assert.match(active, /body\.push\(`第 \$\{core\} 條`\)/);
+});
+
+test('article citation helper preserves sub-articles in labels and links', () => {
+  const start = active.indexOf('function normalizeArticleCore');
+  const end = active.indexOf('function renderQuizCitation', start);
+  assert.ok(start >= 0 && end > start, 'citation helpers must be extractable');
+  const helpers = vm.runInNewContext(`${active.slice(start, end)};({formatArticleCitation,getArticleCitationNo})`);
+
+  assert.equal(helpers.formatArticleCitation('第13條', '記帳士法'), '第 13 條 ｜ 記帳士法');
+  assert.equal(helpers.getArticleCitationNo('第13條'), '13');
+  assert.equal(helpers.formatArticleCitation('13', '記帳士法'), '第 13 條 ｜ 記帳士法');
+  assert.equal(helpers.getArticleCitationNo('13'), '13');
+  assert.equal(helpers.formatArticleCitation('第13條之1', '記帳士法'), '第 13 條之1 ｜ 記帳士法');
+  assert.equal(helpers.getArticleCitationNo('第13條之1'), '13之1');
+  assert.equal(helpers.formatArticleCitation('第十三條之一', '記帳士法'), '第 十三 條之一 ｜ 記帳士法');
+  assert.equal(helpers.getArticleCitationNo('第十三條之一'), '十三之一');
+  assert.equal(helpers.formatArticleCitation('§ 第13條之1｜附註', '記帳士法'), '第 13 條之1 ｜ 記帳士法');
 });
 
 test('native iOS quiz owns the status bar safe area', () => {
