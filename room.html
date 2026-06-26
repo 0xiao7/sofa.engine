@@ -1492,6 +1492,7 @@ const mToon = (hex) => new THREE.MeshLambertMaterial({ color: hex });
 const mToonFlat = (hex) => new THREE.MeshLambertMaterial({ color: hex, flatShading: true });
 const _isMobile = /iPhone|iPad|Android|Mobi/i.test(navigator.userAgent) || window.innerWidth < 768;
 const SOFA_AIRY_ROOM = true;
+const SOFA_AIRY_THREE_ROOM = true;
 const SOFA_ROOM_SINGLE_SCENE = false;
 const SOFA_AIRY_DRAW_AVATARS = false;
 const LOW_POWER_SCENE = _isMobile || window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -1725,6 +1726,14 @@ let _airyStart = 0;
 let _airyCanvas = null;
 let _airyCtx = null;
 let _airyWalk = { x: 0, y: 0 };
+let _airyThreeRenderer = null;
+let _airyThreeScene = null;
+let _airyThreeCamera = null;
+let _airyThreeRAF = null;
+let _airyThreeRoot = null;
+let _airyThreeClouds = [];
+let _airyThreePlants = [];
+let _airyThreeMode = '';
 const _ROOM_SCENE_KEY = 'sofa_room_scene_mode';
 let _roomSceneMode = SOFA_ROOM_SINGLE_SCENE ? 'library' : (localStorage.getItem(_ROOM_SCENE_KEY) || 'library');
 
@@ -1737,6 +1746,7 @@ function _setRoomSceneMode(mode) {
   _roomSceneMode = mode === 'island' ? 'island' : 'library';
   localStorage.setItem(_ROOM_SCENE_KEY, _roomSceneMode);
   _renderRoomSceneModeControls();
+  if (_airyThreeRenderer) _rebuildAiryThreeScene();
 }
 
 function _renderRoomSceneModeControls() {
@@ -2305,6 +2315,508 @@ function _airyDrawRoom(canvas, ctx, t) {
   haze.addColorStop(1, 'rgba(255,255,255,.02)');
   ctx.fillStyle = haze;
   ctx.fillRect(0, 0, w, h);
+}
+
+function _canStartAiryThree(canvas) {
+  if (!canvas || canvas.width <= 0 || canvas.height <= 0) return false;
+  if (typeof THREE === 'undefined') return false;
+  try {
+    const probe = document.createElement('canvas');
+    const gl = probe.getContext('webgl2') || probe.getContext('webgl') || probe.getContext('experimental-webgl');
+    return !!gl;
+  } catch (e) {
+    return false;
+  }
+}
+
+function _airyThreeMaterial(color, opts = {}) {
+  return new THREE.MeshLambertMaterial({
+    color,
+    transparent: !!opts.transparent,
+    opacity: opts.opacity == null ? 1 : opts.opacity,
+    depthWrite: opts.depthWrite !== false,
+    side: opts.side || THREE.FrontSide,
+  });
+}
+
+function _airyThreeBasic(color, opts = {}) {
+  return new THREE.MeshBasicMaterial({
+    color,
+    transparent: !!opts.transparent,
+    opacity: opts.opacity == null ? 1 : opts.opacity,
+    depthWrite: opts.depthWrite !== false,
+    side: opts.side || THREE.DoubleSide,
+  });
+}
+
+function _airyThreeTexture(width, height, draw) {
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+  draw(ctx, width, height);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.anisotropy = 2;
+  return tex;
+}
+
+function _airyThreeMappedMaterial(texture, opts = {}) {
+  return new THREE.MeshLambertMaterial({
+    map: texture,
+    color: opts.color || 0xffffff,
+    transparent: !!opts.transparent,
+    opacity: opts.opacity == null ? 1 : opts.opacity,
+    depthWrite: opts.depthWrite !== false,
+    side: opts.side || THREE.DoubleSide,
+  });
+}
+
+function _airyThreeBox(parent, name, x, y, z, sx, sy, sz, color, opts = {}) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(sx, sy, sz), _airyThreeMaterial(color, opts));
+  mesh.position.set(x, y, z);
+  if (opts.ry) mesh.rotation.y = opts.ry;
+  if (opts.rx) mesh.rotation.x = opts.rx;
+  if (opts.rz) mesh.rotation.z = opts.rz;
+  mesh.name = name;
+  parent.add(mesh);
+  return mesh;
+}
+
+function _airyThreePlane(parent, name, x, y, z, w, h, color, opts = {}) {
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), _airyThreeBasic(color, {
+    transparent: opts.transparent !== false,
+    opacity: opts.opacity == null ? .38 : opts.opacity,
+    depthWrite: false,
+    side: THREE.DoubleSide,
+  }));
+  mesh.position.set(x, y, z);
+  mesh.rotation.set(opts.rx || 0, opts.ry || 0, opts.rz || 0);
+  mesh.name = name;
+  parent.add(mesh);
+  return mesh;
+}
+
+function _airyThreeTexturedPlane(parent, name, x, y, z, w, h, texture, opts = {}) {
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(w, h), _airyThreeMappedMaterial(texture, opts));
+  mesh.position.set(x, y, z);
+  mesh.rotation.set(opts.rx || 0, opts.ry || 0, opts.rz || 0);
+  mesh.name = name;
+  parent.add(mesh);
+  return mesh;
+}
+
+function _airyThreeIllustrationTexture(mode) {
+  const mobile = _isMobile || window.innerWidth < 760;
+  const canvas = document.createElement('canvas');
+  canvas.width = mobile ? 900 : 1680;
+  canvas.height = mobile ? 1680 : 1050;
+  const ctx = canvas.getContext('2d');
+  const fakeCanvas = { width: canvas.width, height: canvas.height };
+  ctx.save();
+  if (mode === 'island') {
+    _airyDrawIslandRoom(fakeCanvas, ctx, 0);
+  } else {
+    const previousMode = _roomSceneMode;
+    _roomSceneMode = 'library';
+    _airyDrawRoom(fakeCanvas, ctx, 0);
+    _roomSceneMode = previousMode;
+  }
+  ctx.restore();
+  const haze = ctx.createRadialGradient(canvas.width * .5, canvas.height * .44, 0, canvas.width * .5, canvas.height * .44, Math.max(canvas.width, canvas.height) * .62);
+  haze.addColorStop(0, 'rgba(255,255,255,0)');
+  haze.addColorStop(1, mode === 'island' ? 'rgba(232,247,246,.18)' : 'rgba(255,248,232,.12)');
+  ctx.fillStyle = haze;
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+  const tex = new THREE.CanvasTexture(canvas);
+  tex.anisotropy = 2;
+  return tex;
+}
+
+function _airyThreeCameraBackdrop(parent, name, texture, distance = 23) {
+  if (!_airyThreeCamera || !_airyCanvas) return null;
+  const height = 2 * Math.tan((_airyThreeCamera.fov * Math.PI / 180) / 2) * distance;
+  const width = height * (_airyCanvas.width / Math.max(1, _airyCanvas.height));
+  const material = new THREE.MeshBasicMaterial({
+    map: texture,
+    side: THREE.DoubleSide,
+    depthWrite: false,
+    depthTest: true,
+    fog: false,
+  });
+  const mesh = new THREE.Mesh(new THREE.PlaneGeometry(width, height), material);
+  mesh.name = name;
+  mesh.position.set(0, _isMobile ? 1.95 : 2.25, _airyThreeCamera.position.z - distance);
+  parent.add(mesh);
+  return mesh;
+}
+
+function _airyThreePlant(parent, x, y, z, scale = 1, stage = 2) {
+  const plant = new THREE.Group();
+  plant.name = 'Study flower plant';
+  plant.position.set(x, y, z);
+  plant.scale.setScalar(scale);
+  _airyThreeBox(plant, 'plant pot', 0, .08, 0, .18, .16, .18, 0xD2B28D);
+  const leafGeo = new THREE.SphereGeometry(.12, 10, 8);
+  const leafMat = _airyThreeMaterial(0x8FBE7A);
+  const bloomMat = _airyThreeMaterial(0xF2B6C2);
+  for (let i = 0; i < 5 + stage; i++) {
+    const a = (i / (5 + stage)) * Math.PI * 2;
+    const leaf = new THREE.Mesh(leafGeo, leafMat);
+    leaf.position.set(Math.cos(a) * .12, .24 + (i % 2) * .04, Math.sin(a) * .10);
+    leaf.scale.set(.75, 1.05, .55);
+    plant.add(leaf);
+  }
+  if (stage >= 2) {
+    for (let i = 0; i < Math.min(5, stage + 1); i++) {
+      const a = (i / Math.min(5, stage + 1)) * Math.PI * 2;
+      const bloom = new THREE.Mesh(new THREE.SphereGeometry(.035, 8, 6), bloomMat);
+      bloom.position.set(Math.cos(a) * .16, .37, Math.sin(a) * .12);
+      plant.add(bloom);
+    }
+  }
+  parent.add(plant);
+  _airyThreePlants.push(plant);
+  return plant;
+}
+
+function _airyThreeDesk(parent, x, y, z, scale = 1, ry = 0, user = null, idx = 0) {
+  const desk = new THREE.Group();
+  desk.name = 'Focus desk table with flower';
+  desk.position.set(x, y, z);
+  desk.rotation.y = ry;
+  desk.scale.setScalar(scale);
+  _airyThreeBox(desk, 'desk top', 0, .38, 0, 1.15, .18, .46, 0xD2A06B);
+  _airyThreeBox(desk, 'desk highlight', 0, .49, -.04, .78, .025, .28, 0xFFE9C2);
+  _airyThreeBox(desk, 'open book', -.16, .53, -.06, .33, .035, .20, 0xFFF5D8);
+  _airyThreeBox(desk, 'blue notebook', -.42, .53, .08, .22, .04, .08, 0x7BBACB);
+  _airyThreeBox(desk, 'green notebook', -.39, .535, -.06, .24, .04, .07, 0x8FBF9E);
+  _airyThreeBox(desk, 'left desk leg', -.42, .18, .16, .06, .35, .06, 0xB88B58);
+  _airyThreeBox(desk, 'right desk leg', .42, .18, .16, .06, .35, .06, 0xB88B58);
+  const mins = Math.floor(_studyMsForUser(user || {}) / 60000);
+  _airyThreePlant(desk, .44, .54, -.04, .72, _flowerStageForMinutes(mins));
+  parent.add(desk);
+  return desk;
+}
+
+function _airyThreeBookshelf(parent, x, y, z, scale = 1, ry = 0) {
+  const shelf = new THREE.Group();
+  shelf.name = 'Bookshelf with subject wall books';
+  shelf.position.set(x, y, z);
+  shelf.rotation.y = ry;
+  shelf.scale.setScalar(scale);
+  _airyThreeBox(shelf, 'bookshelf frame', 0, 1.05, 0, .92, 1.92, .24, 0xC49A61);
+  _airyThreeBox(shelf, 'bookshelf back', 0, 1.05, .03, .76, 1.62, .08, 0xE6CDA3);
+  for (let row = 0; row < 4; row++) {
+    _airyThreeBox(shelf, 'bookshelf shelf', 0, .42 + row * .38, -.10, .76, .045, .18, 0xA77A45);
+    for (let i = 0; i < 6; i++) {
+      const colors = [0x8FBF9E, 0xD9AFA5, 0x8EB9C9, 0xDCC27C, 0xB7ACD6];
+      _airyThreeBox(shelf, 'book spine', -.30 + i * .12, .52 + row * .38, -.18, .055, .18 + (i % 3) * .03, .05, colors[(i + row) % colors.length]);
+    }
+  }
+  parent.add(shelf);
+  return shelf;
+}
+
+function _buildAiryLibraryCorridor(root) {
+  const users = _sceneUsers.length ? _sceneUsers : _selectSceneUsers(_currentUsers);
+  const mobile = _isMobile || window.innerWidth < 760;
+  root.name = 'Airy Three Library Corridor';
+  root.scale.setScalar(mobile ? .86 : 1);
+  root.position.set(0, mobile ? -.08 : 0, 0);
+  _airyThreeCamera.fov = mobile ? 70 : 54;
+  _airyThreeCamera.position.set(0, mobile ? 2.95 : 3.38, mobile ? 9.25 : 9.35);
+  _airyThreeCamera.lookAt(0, mobile ? .42 : .78, -7.6);
+  _airyThreeCamera.updateProjectionMatrix();
+  const illustrationTex = _airyThreeIllustrationTexture('library');
+  _airyThreeScene.background = illustrationTex;
+  _airyThreeScene.fog = new THREE.Fog(0xFAF5EA, 18, 44);
+
+  const floorTex = _airyThreeTexture(768, 768, (ctx, w, h) => {
+    const g = ctx.createLinearGradient(0, 0, w, h);
+    g.addColorStop(0, '#f4d9a9');
+    g.addColorStop(.52, '#e4bd7f');
+    g.addColorStop(1, '#f2d39d');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    for (let y = 0; y < h; y += 96) {
+      ctx.strokeStyle = 'rgba(151,103,56,.22)';
+      ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(0, y + 1); ctx.lineTo(w, y + 1); ctx.stroke();
+    }
+    for (let x = 0; x < w; x += 96) {
+      ctx.strokeStyle = 'rgba(255,245,214,.28)';
+      ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 40, h); ctx.stroke();
+    }
+    for (let i = 0; i < 140; i++) {
+      const x = (i * 53) % w;
+      const y = (i * 97) % h;
+      ctx.strokeStyle = 'rgba(125,83,44,.13)';
+      ctx.beginPath(); ctx.moveTo(x, y); ctx.bezierCurveTo(x + 28, y - 10, x + 62, y + 10, x + 92, y - 4); ctx.stroke();
+    }
+  });
+  floorTex.wrapS = floorTex.wrapT = THREE.RepeatWrapping;
+  floorTex.repeat.set(2.8, 7.5);
+  _airyThreeTexturedPlane(root, 'procedural warm wood library floor', 0, 0, -6.4, 12.8, 25.5, floorTex, { rx: -Math.PI / 2, opacity: .58, depthWrite: false, side: THREE.FrontSide });
+
+  const wallTex = _airyThreeTexture(512, 512, (ctx, w, h) => {
+    ctx.fillStyle = '#fff9ec';
+    ctx.fillRect(0, 0, w, h);
+    const g = ctx.createLinearGradient(0, 0, w, 0);
+    g.addColorStop(0, 'rgba(218,200,172,.28)');
+    g.addColorStop(.42, 'rgba(255,255,255,.16)');
+    g.addColorStop(1, 'rgba(214,194,162,.20)');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, w, h);
+    for (let x = 64; x < w; x += 128) {
+      ctx.fillStyle = 'rgba(222,207,180,.30)';
+      ctx.fillRect(x - 7, 0, 14, h);
+    }
+  });
+  wallTex.wrapS = wallTex.wrapT = THREE.RepeatWrapping;
+  wallTex.repeat.set(1, 4);
+  _airyThreeTexturedPlane(root, 'left cream wall panels', -6.05, 2.35, -6.4, 4.7, 25.5, wallTex, { ry: Math.PI / 2, opacity: .34, depthWrite: false });
+  _airyThreeTexturedPlane(root, 'right cream wall panels', 6.05, 2.35, -6.4, 4.7, 25.5, wallTex, { ry: -Math.PI / 2, opacity: .34, depthWrite: false });
+  _airyThreePlane(root, 'soft high ceiling wash', 0, 4.75, -6.4, 12.8, 25.5, 0xFFFDF6, { rx: Math.PI / 2, opacity: .16 });
+
+  const windowTex = _airyThreeTexture(512, 768, (ctx, w, h) => {
+    const sky = ctx.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, '#bfe7f4');
+    sky.addColorStop(.52, '#e9f8f5');
+    sky.addColorStop(1, '#fff3c9');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(143,185,126,.42)';
+    for (let i = 0; i < 8; i++) {
+      ctx.beginPath();
+      ctx.ellipse(40 + i * 70, h * .70 + (i % 2) * 26, 74, 46, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.strokeStyle = 'rgba(218,205,184,.96)';
+    ctx.lineWidth = 18;
+    ctx.strokeRect(9, 9, w - 18, h - 18);
+    ctx.lineWidth = 10;
+    ctx.beginPath(); ctx.moveTo(w * .5, 12); ctx.lineTo(w * .5, h - 12); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(12, h * .52); ctx.lineTo(w - 12, h * .52); ctx.stroke();
+    const gl = ctx.createLinearGradient(0, 0, w, h);
+    gl.addColorStop(0, 'rgba(255,255,255,.46)');
+    gl.addColorStop(.45, 'rgba(255,255,255,.05)');
+    gl.addColorStop(1, 'rgba(255,255,255,.22)');
+    ctx.fillStyle = gl;
+    ctx.fillRect(16, 16, w - 32, h - 32);
+  });
+
+  const shelfTex = _airyThreeTexture(512, 768, (ctx, w, h) => {
+    ctx.fillStyle = '#caa06a';
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = '#e7cfaa';
+    ctx.fillRect(34, 32, w - 68, h - 64);
+    for (let row = 0; row < 5; row++) {
+      const y = 78 + row * 124;
+      ctx.fillStyle = '#a97942';
+      ctx.fillRect(40, y + 78, w - 80, 10);
+      for (let i = 0; i < 11; i++) {
+        const palette = ['#7fb293', '#d7a69a', '#83adbf', '#d6c173', '#a99ccc', '#e8d6a7'];
+        ctx.fillStyle = palette[(i + row) % palette.length];
+        ctx.fillRect(56 + i * 36, y + 10 + (i % 3) * 7, 22, 64 - (i % 4) * 4);
+      }
+    }
+    ctx.fillStyle = 'rgba(255,255,255,.20)';
+    ctx.fillRect(0, 0, w, 24);
+  });
+
+  for (let i = 0; i < 7; i++) {
+    const z = 1.7 - i * 2.35;
+    const s = 1 - i * .055;
+    _airyThreeTexturedPlane(root, 'large left window with garden light', -5.96, 2.48, z, 1.55 * s, 2.35 * s, windowTex, { ry: Math.PI / 2, opacity: .92 });
+    _airyThreePlane(root, 'diagonal window sunlight', -3.9, .03, z + .25, 3.0 * s, 3.6 * s, 0xFFF0B8, { rx: -Math.PI / 2, rz: -.35, opacity: .12 });
+    _airyThreeTexturedPlane(root, 'right bookshelf texture wall', 5.92, 1.72, z - .12, 1.28 * s, 2.25 * s, shelfTex, { ry: -Math.PI / 2, opacity: .96 });
+    _airyThreeBox(root, 'cream corridor column left', -5.82, 2.2, z - 1.15, .18, 4.35, .18, 0xEFE2C9);
+    _airyThreeBox(root, 'cream corridor column right', 5.82, 2.2, z - 1.15, .18, 4.35, .18, 0xEFE2C9);
+    _airyThreeBox(root, 'pendant lamp cord', -.42 + i * .12, 4.24, z + .45, .018, .58, .018, 0xCBB68E);
+    _airyThreeBox(root, 'small warm pendant lamp', -.42 + i * .12, 3.90, z + .45, .34 * s, .10, .34 * s, 0xE7C574);
+  }
+
+  for (let i = 0; i < 10; i++) {
+    const z = 2.6 - i * 1.72;
+    const s = Math.max(.42, 1 - i * .055);
+    _airyThreeDesk(root, -2.65 + i * .12, 0, z, s, .18, users[i], i);
+    _airyThreeDesk(root, 2.52 - i * .10, 0, z - .42, s, -.18, users[i + 10], i + 10);
+  }
+
+  _airyThreeBox(root, 'distant arch left pillar', -1.15, 1.65, -15.8, .18, 3.3, .16, 0xEFE2CC);
+  _airyThreeBox(root, 'distant arch right pillar', 1.15, 1.65, -15.8, .18, 3.3, .16, 0xEFE2CC);
+  _airyThreeBox(root, 'distant arch lintel', 0, 3.24, -15.8, 2.5, .18, .16, 0xEFE2CC);
+  _airyThreeBox(root, 'soft vanishing doorway glow', 0, 1.62, -15.9, 1.7, 2.75, .04, 0xFFF8DC, { transparent: true, opacity: .62 });
+
+  _airyThreePlant(root, -4.72, .03, 2.20, 1.20, 4);
+  _airyThreePlant(root, 4.72, .03, .55, 1.02, 4);
+  _airyThreePlant(root, .35, .03, -2.65, .74, 3);
+  _airyThreePlant(root, -5.05, .03, -5.15, .70, 3);
+}
+
+function _buildAiryIslandScene(root) {
+  const users = _sceneUsers.length ? _sceneUsers : _selectSceneUsers(_currentUsers);
+  const mobile = _isMobile || window.innerWidth < 760;
+  root.name = 'Airy Three Quiet Study Island';
+  root.scale.setScalar(mobile ? .82 : 1);
+  root.position.set(0, mobile ? -.08 : 0, 0);
+  _airyThreeCamera.fov = mobile ? 70 : 55;
+  _airyThreeCamera.position.set(0, mobile ? 5.55 : 5.55, mobile ? 9.25 : 8.55);
+  _airyThreeCamera.lookAt(0, .22, -1.45);
+  _airyThreeCamera.updateProjectionMatrix();
+  const illustrationTex = _airyThreeIllustrationTexture('island');
+  _airyThreeScene.background = illustrationTex;
+  _airyThreeScene.fog = new THREE.Fog(0xF8F5E9, 9, 24);
+
+  const skyTex = _airyThreeTexture(1024, 640, (ctx, w, h) => {
+    const sky = ctx.createLinearGradient(0, 0, 0, h);
+    sky.addColorStop(0, '#ccecf2');
+    sky.addColorStop(.56, '#edf8f0');
+    sky.addColorStop(1, '#fff1d6');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, h);
+    ctx.fillStyle = 'rgba(255,255,255,.74)';
+    for (let i = 0; i < 10; i++) {
+      const x = 70 + i * 110;
+      const y = 90 + (i % 3) * 52;
+      ctx.beginPath();
+      ctx.ellipse(x, y, 100, 36, 0, 0, Math.PI * 2);
+      ctx.ellipse(x + 48, y - 18, 72, 34, 0, 0, Math.PI * 2);
+      ctx.ellipse(x - 48, y + 2, 68, 30, 0, 0, Math.PI * 2);
+      ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(255,255,255,.30)';
+    ctx.fillRect(0, 0, w, h);
+  });
+  _airyThreeTexturedPlane(root, 'soft painted sky and cloud backdrop', 0, 3.15, -10.5, 14.5, 8.5, skyTex, { opacity: .95, transparent: false });
+
+  function island(name, x, y, z, rx, rz, scale, alpha = 1) {
+    const group = new THREE.Group();
+    group.name = name;
+    group.position.set(x, y, z);
+    group.scale.set(scale, scale, scale);
+    const top = new THREE.Mesh(new THREE.CylinderGeometry(rx, rx * .92, .28, 48), _airyThreeMaterial(0xB9D993, { transparent: alpha < 1, opacity: alpha }));
+    top.position.y = .15;
+    group.add(top);
+    const base = new THREE.Mesh(new THREE.ConeGeometry(rx * .92, .86, 48), _airyThreeMaterial(0xC29F70, { transparent: alpha < 1, opacity: alpha }));
+    base.position.y = -.40;
+    base.scale.z = rz / rx;
+    group.add(base);
+    parentAdd(root, group);
+    return group;
+  }
+  function parentAdd(parent, child) { parent.add(child); return child; }
+
+  const main = island('main floating study island', 0, 0, -1.2, 3.9, 2.55, 1, 1);
+  island('distant left study island', -4.65, .95, -5.35, 1.55, .95, .82, .42);
+  island('distant right study island', 3.85, 1.0, -6.35, 1.75, 1.0, .78, .45);
+  island('far tiny study island', .6, 1.35, -8.2, 1.0, .7, .62, .30);
+
+  const path = new THREE.CatmullRomCurve3([
+    new THREE.Vector3(-2.5, .42, .65),
+    new THREE.Vector3(-1.2, .46, -.25),
+    new THREE.Vector3(.35, .48, -.05),
+    new THREE.Vector3(1.25, .52, -1.1),
+    new THREE.Vector3(2.15, .56, -3.0),
+  ]);
+  const tube = new THREE.Mesh(new THREE.TubeGeometry(path, 34, .18, 10, false), _airyThreeMaterial(0xFFFDF2));
+  tube.name = 'curved quiet path';
+  main.add(tube);
+
+  _airyThreeBox(main, 'white study room wall', -1.35, .82, -.70, 1.9, 1.18, .16, 0xFFFDF2);
+  _airyThreeBox(main, 'white study room side wall', -2.23, .82, -.07, .16, 1.18, 1.30, 0xFFF9EC);
+  _airyThreeBox(main, 'open study room glass wall', -1.96, .95, .56, .12, 1.10, .78, 0xDDF3F6, { transparent: true, opacity: .55 });
+  _airyThreeBox(main, 'soft house roof', -1.35, 1.48, -.72, 2.1, .13, 1.42, 0xE2C68F, { rz: .04 });
+  _airyThreeBookshelf(main, -.62, .42, -.76, .58, 0);
+  _airyThreeDesk(main, -1.75, .35, -.20, .66, 0, users[0], 0);
+  _airyThreeDesk(main, -.15, .35, .82, .76, -.12, users[1], 1);
+  _airyThreeDesk(main, 1.88, .35, .62, .82, .08, users[2], 2);
+  _airyThreePlant(main, -2.9, .38, -.35, .82, 4);
+  _airyThreePlant(main, 2.55, .38, -.45, .76, 3);
+  _airyThreePlant(main, 1.15, .38, -1.72, .68, 3);
+  for (let i = 0; i < (LOW_POWER_SCENE ? 8 : 16); i++) {
+    const a = i * 2.399;
+    const r = 1.0 + (i % 5) * .48;
+    _airyThreePlant(main, Math.cos(a) * r, .38, Math.sin(a) * r - .25, .35 + (i % 3) * .05, 2 + (i % 3));
+  }
+  for (let i = 0; i < (LOW_POWER_SCENE ? 4 : 7); i++) {
+    const cloud = _airyThreePlane(root, 'soft cloud plane', -4 + i * 1.55, 3.8 + (i % 2) * .28, -4 - i * .8, 1.25, .34, 0xFFFFFF, { opacity: .58 });
+    cloud.userData.baseX = cloud.position.x;
+    _airyThreeClouds.push(cloud);
+  }
+}
+
+function _clearAiryThreeRoot() {
+  if (!_airyThreeRoot) return;
+  while (_airyThreeRoot.children.length) {
+    const child = _airyThreeRoot.children.pop();
+    child.traverse?.(obj => {
+      if (obj.geometry) obj.geometry.dispose?.();
+      if (obj.material) {
+        if (Array.isArray(obj.material)) obj.material.forEach(m => m.dispose?.());
+        else obj.material.dispose?.();
+      }
+    });
+  }
+}
+
+function _rebuildAiryThreeScene() {
+  if (!_airyThreeScene || !_airyThreeRoot) return;
+  _clearAiryThreeRoot();
+  _airyThreeClouds = [];
+  _airyThreePlants = [];
+  _airyThreeMode = _roomSceneMode === 'island' ? 'island' : 'library';
+  if (_airyThreeMode === 'island') _buildAiryIslandScene(_airyThreeRoot);
+  else _buildAiryLibraryCorridor(_airyThreeRoot);
+}
+
+function _initAiryThreeScene(canvas) {
+  _airyThreeRenderer = new THREE.WebGLRenderer({ canvas, antialias: !_isMobile, alpha: false, powerPreference: 'low-power' });
+  _airyThreeRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, _isMobile ? 1.5 : 2));
+  _airyThreeRenderer.setSize(canvas.width, canvas.height, false);
+  _airyThreeRenderer.shadowMap.enabled = false;
+  _airyThreeScene = new THREE.Scene();
+  _airyThreeCamera = new THREE.PerspectiveCamera(_isMobile ? 56 : 48, canvas.width / canvas.height, .1, 80);
+  _airyThreeRoot = new THREE.Group();
+  _airyThreeRoot.name = 'SoFa airy lightweight Three.js room root';
+  _airyThreeScene.add(_airyThreeRoot);
+  _airyThreeScene.add(new THREE.HemisphereLight(0xFFF7DE, 0xD2C1A4, 1.38));
+  const sun = new THREE.DirectionalLight(0xFFF0BF, 1.02);
+  sun.position.set(-4, 8, 5);
+  _airyThreeScene.add(sun);
+  _rebuildAiryThreeScene();
+}
+
+function _startAiryThreeRoom(canvas) {
+  _airyCanvas = canvas;
+  _airyCtx = null;
+  _airyStart = performance.now();
+  document.body.classList.add('airy-room');
+  _renderRoomSceneModeControls();
+  const loaderEl = document.getElementById('three-loader');
+  if(loaderEl){ loaderEl.style.opacity='0'; setTimeout(()=>{ loaderEl.style.display='none'; },260); }
+  if (_airyRAF) { cancelAnimationFrame(_airyRAF); _airyRAF = null; }
+  if (_airyThreeRAF) cancelAnimationFrame(_airyThreeRAF);
+  _initAiryThreeScene(canvas);
+  function loop(now) {
+    _airyThreeRAF = requestAnimationFrame(loop);
+    if (!_airyThreeRenderer || !_airyThreeScene || !_airyThreeCamera) return;
+    const t = (now - _airyStart) / 1000;
+    const parallaxX = Math.sin(_airyWalk.x * .18) * (_airyThreeMode === 'island' ? .18 : .10);
+    const parallaxZ = Math.cos(_airyWalk.y * .14) * (_airyThreeMode === 'island' ? .10 : .06);
+    _airyThreeRoot.position.x += (parallaxX - _airyThreeRoot.position.x) * .045;
+    _airyThreeRoot.position.z += (parallaxZ - _airyThreeRoot.position.z) * .045;
+    _airyThreeClouds.forEach((cloud, i) => {
+      cloud.position.x = (cloud.userData.baseX || 0) + Math.sin(t * .16 + i) * .18;
+      cloud.lookAt(_airyThreeCamera.position);
+    });
+    _airyThreePlants.forEach((plant, i) => {
+      plant.rotation.y = Math.sin(t * .45 + i) * .035;
+    });
+    _airyThreeRenderer.render(_airyThreeScene, _airyThreeCamera);
+  }
+  loop(performance.now());
 }
 
 function _startAiryRoom(canvas) {
@@ -9894,7 +10406,16 @@ function _startRealMode() {
 
 function startThreeAnimation(canvas) {
   if (SOFA_AIRY_ROOM) {
-    _startAiryRoom(canvas);
+    try {
+      if (SOFA_AIRY_THREE_ROOM && _canStartAiryThree(canvas)) {
+        _startAiryThreeRoom(canvas);
+      } else {
+        _startAiryRoom(canvas);
+      }
+    } catch (e) {
+      console.warn('[SoFa room] Airy Three.js scene failed; using 2D fallback.', e);
+      _startAiryRoom(canvas);
+    }
     return;
   }
   const loaderEl = document.getElementById('three-loader');
@@ -9902,7 +10423,7 @@ function startThreeAnimation(canvas) {
   setTimeout(()=>{
     if(loaderEl){ loaderEl.style.opacity='0'; setTimeout(()=>{ loaderEl.style.display='none'; },800); }
   }, 900);
-  if (!THREE) return;
+  if (typeof THREE === 'undefined') return;
   initThreeScene(canvas);
   if (_threeRAF) cancelAnimationFrame(_threeRAF);
   _previewOrbit = true; _previewAngle = 2.1;
@@ -10626,6 +11147,7 @@ function startThreeAnimation(canvas) {
 function stopThreeAnimation() {
   if (_threeRAF) { cancelAnimationFrame(_threeRAF); _threeRAF = null; }
   if (_airyRAF) { cancelAnimationFrame(_airyRAF); _airyRAF = null; }
+  if (_airyThreeRAF) { cancelAnimationFrame(_airyThreeRAF); _airyThreeRAF = null; }
 }
 
 function resizeThreeCanvas() {
@@ -10638,6 +11160,14 @@ function resizeThreeCanvas() {
   if (SOFA_AIRY_ROOM && _airyCanvas) {
     _airyCanvas.width = canvas.width;
     _airyCanvas.height = canvas.height;
+    if (_airyThreeRenderer) {
+      _airyThreeRenderer.setSize(canvas.width, canvas.height, false);
+      if (_airyThreeCamera) {
+        _airyThreeCamera.aspect = canvas.width / canvas.height;
+        _airyThreeCamera.fov = _isMobile ? 56 : 48;
+        _airyThreeCamera.updateProjectionMatrix();
+      }
+    }
   }
   if (_threeRenderer) {
     _threeRenderer.setSize(canvas.width, canvas.height);
