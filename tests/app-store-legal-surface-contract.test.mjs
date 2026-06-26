@@ -27,6 +27,23 @@ test('terms table of contents and FAQ link to data deletion', () => {
   assert.match(terms, /href="#data-deletion"[\s\S]*帳號與資料刪除/);
 });
 
+test('terms page has a native iOS reader mode that hides external payment and pricing surfaces', () => {
+  assert.match(terms, /function markIOSReaderApp/);
+  assert.match(terms, /document\.documentElement\.classList\.add\('ios-reader-app'\)/);
+  assert.match(terms, /html\.ios-reader-app \[data-ios-reader-hide\]\{display:none!important\}/);
+  assert.match(terms, /class="native-reader-copy"/);
+
+  const paymentStart = terms.indexOf('id="payment"');
+  assert.notEqual(paymentStart, -1, 'payment section should exist for public web');
+  const paymentOpenTag = terms.slice(terms.lastIndexOf('<section', paymentStart), terms.indexOf('>', paymentStart) + 1);
+  assert.match(paymentOpenTag, /data-ios-reader-hide/);
+
+  const refundStart = terms.indexOf('id="refund"');
+  assert.notEqual(refundStart, -1, 'refund section should exist for public web');
+  const refundOpenTag = terms.slice(terms.lastIndexOf('<section', refundStart), terms.indexOf('>', refundStart) + 1);
+  assert.match(refundOpenTag, /data-ios-reader-hide/);
+});
+
 test('login exposes data deletion and privacy links even in native iOS reader mode', () => {
   assert.match(login, /href="terms\.html#privacy"[\s\S]*隱私與資料/);
   assert.match(login, /href="terms\.html#data-deletion"[\s\S]*資料刪除/);

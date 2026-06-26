@@ -30,3 +30,17 @@ test('study room retain modal keeps web checkout but sends native iOS users to l
   assert.match(room, /Capacitor\.getPlatform\(\) === 'ios'[\s\S]*window\.location\.href = 'login\.html'/);
   assert.match(room, /window\.location\.href = 'checkout\.html'/);
 });
+
+test('study room retain modal hides external LINE and trial-email paths in native iOS reader app', () => {
+  assert.match(room, /function applyIOSReaderRoomGuards/);
+  assert.match(room, /document\.documentElement\.classList\.add\('ios-reader-app'\)/);
+  assert.match(room, /data-ios-reader-hide[\s\S]*加入 LINE 官方帳號/);
+  assert.match(room, /data-ios-reader-hide[\s\S]*id="trial-email"/);
+  assert.match(room, /data-ios-reader-hide[\s\S]*id="btn-send-trial"/);
+
+  const retainStart = room.indexOf('<div id="retain-modal">');
+  assert.notEqual(retainStart, -1, 'retain modal should exist');
+  const retainModal = room.slice(retainStart, room.indexOf('<!-- ── 離席偵測 overlay', retainStart));
+  assert.match(room, /html\.ios-reader-app \[data-ios-reader-hide\]\{display:none!important\}/);
+  assert.match(retainModal, /btn-serial/);
+});
