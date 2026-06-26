@@ -1293,7 +1293,13 @@ function buildCpiAdjustmentNote(article,sections){
   const isBasicTax=lawName.includes('所得基本稅額條例') && /(^|第|\D)13(條|$|\D)/.test(artNo);
   const isEstateGift=lawName.includes('遺產及贈與稅法') && (/12\s*[-之]\s*1|十二條之一|第十二條之一/.test(artNo) || hasCpiText);
   if(!hasCpiText && !isBasicTax && !isEstateGift) return '';
-  return '這類金額會受 CPI / 財政部公告調整。題目仍可考條文基準或比例；實際申報、考前衝刺請以當年度公告額為準，不要只背解析中的舊基準數字。';
+  if(isBasicTax){
+    return '這題條文寫六百萬元，但 113 年度起個人基本所得額扣除額已調整為 750 萬元；115 年度沿用 750 萬元。題目仍可考條文基準或比例，考前請以當年度公告額為準。';
+  }
+  if(isEstateGift){
+    return '115 年：遺產稅免稅額 1,333 萬、贈與稅免稅額每年 244 萬；遺產稅級距 5,621 萬 / 1 億 1,242 萬，贈與稅級距 2,811 萬 / 5,621 萬。113 年：免稅額同為 1,333 萬 / 244 萬；級距仍為遺產 5,000 萬 / 1 億、贈與 2,500 萬 / 5,000 萬。題目若考條文基準或舊題，解析要和當年度公告額分開看。';
+  }
+  return '這類金額會受 CPI / 財政部公告調整。115 年度與 113 年度是否相同，要看各稅目公告；題目仍可考條文基準或比例，考前請以當年度公告額為準。';
 }
 function appendCpiAdjustmentNote(wrapEl,beforeEl,article,sections){
   wrapEl.querySelectorAll('.cpi-note').forEach(e=>e.remove());

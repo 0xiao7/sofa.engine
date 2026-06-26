@@ -142,6 +142,14 @@ test('CPI-adjusted article answers always show a visible adjustment warning', ()
   assert.match(active, /所得基本稅額條例/);
   assert.match(active, /遺產及贈與稅法/);
   assert.match(active, /消費者物價指數|CPI/);
+  assert.match(active, /113 年度起個人基本所得額扣除額已調整為 750 萬元/);
+  assert.match(active, /115 年度沿用 750 萬元/);
+  assert.match(active, /115 年：遺產稅免稅額 1,333 萬/);
+  assert.match(active, /贈與稅免稅額每年 244 萬/);
+  assert.match(active, /遺產稅級距 5,621 萬 \/ 1 億 1,242 萬/);
+  assert.match(active, /贈與稅級距 2,811 萬 \/ 5,621 萬/);
+  assert.match(active, /113 年：免稅額同為 1,333 萬 \/ 244 萬/);
+  assert.match(active, /級距仍為遺產 5,000 萬 \/ 1 億、贈與 2,500 萬 \/ 5,000 萬/);
   assert.match(active, /題目仍可考條文基準或比例/);
 
   const callCount = (active.match(/buildSections\(art\.sections\|\|\{\},art\._plan!=='free',\s*document\.getElementById\('explainBox'\),document\.getElementById\('sourceBox'\),\s*art\)/g) || []).length;
