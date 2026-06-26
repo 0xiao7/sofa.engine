@@ -24,6 +24,8 @@ function extractFunction(name) {
 
 test('stats overlay owns the iOS safe area instead of leaving a white strip', () => {
   assert.match(active, /\.stats-panel\{[\s\S]*padding:calc\(24px \+ env\(safe-area-inset-top, 0px\)\)/);
+  assert.match(active, /\.stats-panel\{[\s\S]*background:#040D14/);
+  assert.doesNotMatch(active, /\.stats-panel\{[\s\S]*background:rgba\(4,13,20,0\.97\)/);
   assert.match(extractFunction('openStats'), /document\.documentElement\.classList\.add\('stats-open'\)/);
   assert.match(extractFunction('closeStats'), /document\.documentElement\.classList\.remove\('stats-open'\)/);
 });
