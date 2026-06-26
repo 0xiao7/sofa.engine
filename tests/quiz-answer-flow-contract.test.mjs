@@ -13,7 +13,15 @@ test('post-answer actions place next question next to view article', () => {
   assert.ok(start >= 0 && end > start, 'quiz answer action row must exist before explanation box');
   const actionRow = active.slice(start, end);
   assert.match(actionRow, /id="view-article-btn"/);
+  assert.match(actionRow, /id="view-weakness-btn"/);
+  assert.match(actionRow, />看弱點分析</);
   assert.match(actionRow, /id="btnNext"/);
+});
+
+test('quiz top entry names weakness analysis as a first-level tool', () => {
+  assert.match(active, /id="btn-open-weakness"/);
+  assert.match(active, /title="看弱點分析"/);
+  assert.match(active, />弱點分析 <span id="nav-wrong-cnt"/);
 });
 
 test('post-answer citation formats article labels without duplicated 第 or 條', () => {

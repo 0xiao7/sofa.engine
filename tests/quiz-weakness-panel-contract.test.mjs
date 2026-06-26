@@ -26,6 +26,17 @@ test('weakness list uses harmonized card classes and explicit next actions', () 
   assert.match(active, /開始重練/);
 });
 
+test('session summary gives a direct weakness analysis next step', () => {
+  const start = active.indexOf('id="summaryOverlay"');
+  const end = active.indexOf('id="sprint-results"', start);
+  assert.ok(start >= 0 && end > start, 'session summary overlay must exist');
+  const summary = active.slice(start, end);
+  assert.match(summary, /id="sumOpenWeakness"/);
+  assert.match(summary, /看弱點分析/);
+  assert.match(summary, /_openWeakness\(\)/);
+  assert.match(active, /showSessionSummary[\s\S]*sumOpenWeakness[\s\S]*style\.display/);
+});
+
 test('weakness analysis names all formal answer sources as merged', () => {
   assert.match(active, /function _weakSourceLine/);
   assert.match(active, /每日一題/);

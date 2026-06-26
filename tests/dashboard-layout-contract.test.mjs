@@ -24,6 +24,7 @@ test('mobile native dashboard owns the iOS safe area', () => {
   assert.match(html, /document\.documentElement\.classList\.add\('ios-reader-app'\)/);
   assert.match(html, /html\.ios-reader-app\s+\.topbar\{[\s\S]*padding-top:calc\(16px \+ env\(safe-area-inset-top, 0px\)\)/);
   assert.match(html, /html\.ios-reader-app\s+section\.block,\s*html\.ios-reader-app\s+\.recap\[id\]\{[\s\S]*scroll-margin-top:calc\(132px \+ env\(safe-area-inset-top, 0px\)\)/);
+  assert.match(html, /html\.ios-reader-app\s+body::before\{[\s\S]*position:fixed[\s\S]*height:env\(safe-area-inset-top, 0px\)[\s\S]*background:var\(--navy\)[\s\S]*pointer-events:none/);
   assert.match(html, /#mobile-daily-bar\{[\s\S]*height:calc\(64px \+ env\(safe-area-inset-bottom, 0px\)\)/);
 });
 

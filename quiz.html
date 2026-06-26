@@ -383,6 +383,18 @@
     transition: border-color 0.2s, color 0.2s;
   }
   #view-article-btn:hover { border-color: var(--peach); color: var(--peach); }
+  #view-weakness-btn {
+    display: none;
+    padding: 6px 14px;
+    background: rgba(231,187,167,.08);
+    border: 1px solid rgba(231,187,167,.32);
+    border-radius: 16px;
+    color: var(--peach);
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  #view-weakness-btn:hover { background: rgba(231,187,167,.14); border-color: var(--peach); }
   #quiz-answer-actions #btnNext {
     display: none;
     padding: 7px 16px;
@@ -680,7 +692,7 @@
       <div class="seg" id="qCountdownWrap" style="display:none">倒數 <b id="qCountdown">30</b></div>
       <button class="btn btn-sec" style="padding:6px 12px;font-size:11px;white-space:nowrap" id="btnSetSession">設題數</button>
       <button id="btn-stats" onclick="openStats()" title="整體統計" style="background:none;border:1px solid rgba(231,187,167,0.3);color:var(--peach);border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">統計</button>
-      <button onclick="_openWeakness()" title="弱點分析" style="background:rgba(231,187,167,0.1);border:1px solid rgba(231,187,167,0.35);color:var(--peach);border-radius:8px;padding:5px 12px;font-size:13px;cursor:pointer;white-space:nowrap">弱點 <span id="nav-wrong-cnt" style="font-family:var(--mono)"></span></button>
+      <button id="btn-open-weakness" onclick="_openWeakness()" title="看弱點分析" style="background:rgba(231,187,167,0.1);border:1px solid rgba(231,187,167,0.35);color:var(--peach);border-radius:8px;padding:5px 12px;font-size:13px;cursor:pointer;white-space:nowrap">弱點分析 <span id="nav-wrong-cnt" style="font-family:var(--mono)"></span></button>
     </div>
   </div>
   <div class="pr-chips">
@@ -724,6 +736,7 @@
         <div id="quiz-answer-actions">
           <div id="quiz-citation"></div>
           <button id="view-article-btn" onclick="_openArticleDashboard()">查看法條</button>
+          <button id="view-weakness-btn" onclick="_openWeakness()">看弱點分析</button>
           <button class="btn btn-pri" id="btnNext">下一題 <span class="k">↵</span></button>
         </div>
 
@@ -807,6 +820,7 @@
       <div id="sumWeakLaws"></div>
     </div>
     <div style="display:flex;gap:12px;justify-content:center">
+      <button class="btn btn-pri" id="sumOpenWeakness" onclick="_openWeakness()">看弱點分析</button>
       <button class="btn btn-pri" id="sumRestart">再來一輪</button>
       <button class="btn btn-sec" onclick="window.location.href='dashboard.html'">回儀表板</button>
     </div>
@@ -2020,6 +2034,8 @@ function showSessionSummary() {
   document.getElementById('sumWrong').textContent = wrong;
   document.getElementById('sumTitle').textContent =
     acc >= 80 ? '狀態穩定' : acc >= 60 ? '繼續加強' : '再多練幾次';
+  const weakBtn = document.getElementById('sumOpenWeakness');
+  if (weakBtn) weakBtn.style.display = wrong > 0 ? 'inline-flex' : 'none';
   // 顯示弱點法規（從本 session 錯題中取）
   const bank = loadWrongBank();
   const recent = bank.slice(-_sessionTotal);
@@ -2065,6 +2081,7 @@ function _feedbackAnim(btn, isCorrect, elapsedSec){
   if(isCorrect){ _playCorrect(); } else { _playWrong(); }
   // Wave 68: 顯示「查看法條」按鈕
   document.getElementById('view-article-btn').style.display = 'inline-block';
+  document.getElementById('view-weakness-btn').style.display = 'inline-block';
   document.getElementById('btnNext').style.display = 'inline-flex';
 }
 
@@ -2159,6 +2176,7 @@ async function loadQuiz(){
   document.getElementById('optionsBox').classList.remove('compact');
   (function(){const _cit=document.getElementById('quiz-citation');if(_cit)_cit.classList.remove('show');})();
   document.getElementById('view-article-btn').style.display='none';
+  document.getElementById('view-weakness-btn').style.display='none';
   document.getElementById('btnNext').style.display='none';
   document.getElementById('explainBox').style.display='none';
   document.getElementById('qSrc').innerHTML='—';
@@ -2535,6 +2553,7 @@ async function loadWrongQuiz() {
   document.getElementById('optionsBox').classList.remove('compact');
   (function(){const _cit=document.getElementById('quiz-citation');if(_cit)_cit.classList.remove('show');})();
   document.getElementById('view-article-btn').style.display='none';
+  document.getElementById('view-weakness-btn').style.display='none';
   document.getElementById('btnNext').style.display='none';
   document.getElementById('explainBox').style.display='none';
   document.getElementById('qSrc').innerHTML='—';
