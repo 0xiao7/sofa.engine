@@ -80,6 +80,9 @@ test('airy room scenes are procedural instead of pasted generated mockups', () =
   assert.match(html, /function\s+_airyDrawShelf/);
   assert.match(html, /function\s+_airyDrawDesk/);
   assert.match(html, /function\s+_airyDrawCloud/);
+  assert.match(html, /function\s+_airyDrawLibraryStudyBay/);
+  assert.match(html, /function\s+_airyDrawIslandStudyCluster/);
+  assert.match(html, /_airyDrawSeatedReader/);
 });
 
 test('airy room keeps lightweight Three.js available but uses painterly canvas first', () => {

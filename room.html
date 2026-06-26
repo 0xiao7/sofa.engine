@@ -1054,6 +1054,16 @@ body.airy-room header{
   box-shadow:none!important;
   backdrop-filter:blur(18px);
 }
+@media(min-width:641px){
+  body.airy-room header{
+    top:18px;left:36px;right:292px;
+    border-radius:24px;
+    padding:13px 18px;
+    background:rgba(255,255,255,.72)!important;
+    border:1px solid rgba(170,150,120,.20)!important;
+    box-shadow:0 18px 50px rgba(120,105,78,.12)!important;
+  }
+}
 body.airy-room .logo{color:rgba(62,56,48,.72);text-shadow:none;}
 body.airy-room .online-badge{color:rgba(72,92,80,.64);}
 body.airy-room #room-level-badge,
@@ -1076,13 +1086,15 @@ body.airy-room #three-loader{background:#F8F5EC!important;color:#8A7A60!importan
 body.airy-room #rain-glass,
 body.airy-room #lightning-flash{display:none!important;}
 body.airy-room #lib-scene-wrap::after{
-  background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,.12) 55%,rgba(248,245,236,.20))!important;
+  background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.04) 52%,rgba(248,245,236,.08))!important;
 }
 body.airy-room #sidebar{
   width:236px;
-  background:rgba(255,255,255,.58)!important;
-  border-left:1px solid rgba(170,150,120,.16)!important;
-  box-shadow:-20px 0 60px rgba(120,105,78,.08)!important;
+  top:64px;right:16px;bottom:16px;border-radius:24px;
+  background:rgba(255,255,255,.70)!important;
+  border:1px solid rgba(170,150,120,.18)!important;
+  box-shadow:0 24px 70px rgba(120,105,78,.13)!important;
+  backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);
   color:#3C352D;
 }
 body.airy-room .sidebar-section{color:rgba(86,78,66,.48);}
@@ -1937,7 +1949,7 @@ function _airyDrawSoftWindow(ctx, x, y, w, h, mobile) {
   ctx.restore();
 }
 
-function _airyDrawShelf(ctx, x, y, w, h, mobile) {
+function _airyDrawShelf(ctx, x, y, w, h, mobile, showLabel = false) {
   ctx.save();
   ctx.shadowColor = 'rgba(115,93,58,.16)';
   ctx.shadowBlur = 16;
@@ -1964,7 +1976,7 @@ function _airyDrawShelf(ctx, x, y, w, h, mobile) {
       _airyRoundRect(ctx, bx, by + rowH - 9 - bh, bw, bh, 2.5); ctx.fill();
     }
   }
-  if (!mobile) {
+  if (!mobile && showLabel) {
     _airyText(ctx, '考科牆面', x + w / 2, y + h + 18, 11, 'rgba(80,70,52,.42)', '700');
   }
   ctx.restore();
@@ -2083,6 +2095,122 @@ function _airyDrawDesk(ctx, x, y, w, h, u, i, t) {
   ctx.restore();
 }
 
+function _airyDrawLibraryStudyBay(ctx, x, y, w, h, u, i, t, flip = 1) {
+  ctx.save();
+  const sx = flip < 0 ? -1 : 1;
+  if (sx < 0) {
+    ctx.translate(x + w, 0);
+    ctx.scale(-1, 1);
+    x = 0;
+  }
+
+  _airyDrawRoomShadow(ctx, x + w * .50, y + h * .92, w * .52, h * .12, .10);
+
+  const wall = ctx.createLinearGradient(x, y, x, y + h);
+  wall.addColorStop(0, 'rgba(255,252,243,.94)');
+  wall.addColorStop(1, 'rgba(242,229,204,.78)');
+  ctx.fillStyle = wall;
+  _airyRoundRect(ctx, x + w * .05, y + h * .05, w * .68, h * .54, 18);
+  ctx.fill();
+
+  _airyDrawSoftWindow(ctx, x + w * .08, y + h * .10, w * .25, h * .39, false);
+  _airyDrawShelf(ctx, x + w * .42, y + h * .08, w * .24, h * .50, false);
+
+  ctx.save();
+  ctx.globalAlpha = .72;
+  ctx.fillStyle = 'rgba(255,244,206,.50)';
+  ctx.beginPath();
+  ctx.moveTo(x + w * .25, y + h * .15);
+  ctx.lineTo(x + w * .79, y + h * .79);
+  ctx.lineTo(x + w * .58, y + h * .84);
+  ctx.lineTo(x + w * .13, y + h * .24);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+
+  const deskX = x + w * .18;
+  const deskY = y + h * .60;
+  const deskW = w * .50;
+  const deskH = h * .18;
+  _airyDrawDesk(ctx, deskX, deskY, deskW, deskH, u, i, t);
+
+  ctx.fillStyle = 'rgba(119,88,52,.22)';
+  _airyRoundRect(ctx, deskX + deskW * .68, deskY + deskH * .88, deskW * .16, h * .18, 8);
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(118,95,58,.38)';
+  ctx.lineWidth = Math.max(1.2, w * .006);
+  ctx.beginPath();
+  ctx.moveTo(deskX + deskW * .16, deskY + deskH * .08);
+  ctx.quadraticCurveTo(deskX + deskW * .20, deskY - h * .16, deskX + deskW * .36, deskY - h * .12);
+  ctx.stroke();
+  ctx.fillStyle = '#6F8890';
+  ctx.beginPath();
+  ctx.ellipse(deskX + deskW * .40, deskY - h * .12, w * .04, h * .025, -0.3, 0, Math.PI * 2);
+  ctx.fill();
+  const lampGlow = ctx.createRadialGradient(deskX + deskW * .44, deskY - h * .06, 0, deskX + deskW * .44, deskY - h * .06, w * .20);
+  lampGlow.addColorStop(0, 'rgba(255,236,166,.32)');
+  lampGlow.addColorStop(1, 'rgba(255,236,166,0)');
+  ctx.fillStyle = lampGlow;
+  ctx.fillRect(x, y, w, h);
+
+  _airyDrawPlant(ctx, x + w * .10, y + h * .74, .92, 4);
+  _airyDrawPlant(ctx, x + w * .70, y + h * .54, .54, 3);
+
+  ctx.restore();
+}
+
+function _airyDrawIslandStudyCluster(ctx, cx, cy, islandW, islandH, sceneUsers, t, mobile) {
+  ctx.save();
+  const x = cx - islandW * (mobile ? .42 : .36);
+  const y = cy - islandH * (mobile ? .20 : .28);
+  const w = islandW * (mobile ? .64 : .56);
+  const h = islandH * (mobile ? .38 : .42);
+
+  _airyDrawRoomShadow(ctx, x + w * .46, y + h * .92, w * .58, h * .10, .08);
+
+  const floor = ctx.createLinearGradient(x, y + h * .42, x, y + h);
+  floor.addColorStop(0, 'rgba(236,216,176,.84)');
+  floor.addColorStop(1, 'rgba(209,177,124,.64)');
+  ctx.fillStyle = floor;
+  ctx.beginPath();
+  ctx.moveTo(x + w * .02, y + h * .44);
+  ctx.lineTo(x + w * .88, y + h * .30);
+  ctx.lineTo(x + w * .98, y + h * .76);
+  ctx.lineTo(x + w * .26, y + h);
+  ctx.closePath();
+  ctx.fill();
+
+  ctx.fillStyle = 'rgba(255,253,246,.88)';
+  _airyRoundRect(ctx, x + w * .04, y + h * .07, w * .78, h * .46, mobile ? 12 : 16);
+  ctx.fill();
+
+  ctx.strokeStyle = 'rgba(169,143,104,.22)';
+  ctx.lineWidth = mobile ? 4 : 7;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x + w * .04, y + h * .53);
+  ctx.lineTo(x + w * .04, y + h * .10);
+  ctx.moveTo(x + w * .82, y + h * .50);
+  ctx.lineTo(x + w * .82, y + h * .10);
+  ctx.stroke();
+
+  _airyDrawSoftWindow(ctx, x + w * .09, y + h * .15, w * .20, h * .26, mobile);
+  _airyDrawShelf(ctx, x + w * .42, y + h * .14, w * .20, h * .34, mobile);
+  _airyDrawShelf(ctx, x + w * .64, y + h * .16, w * .14, h * .30, mobile);
+
+  const deskScale = mobile ? .72 : 1;
+  _airyDrawDesk(ctx, x + w * .13, y + h * .59, w * .24 * deskScale, h * .12 * deskScale, sceneUsers[0], 0, t);
+  _airyDrawDesk(ctx, x + w * .46, y + h * .58, w * .25 * deskScale, h * .12 * deskScale, sceneUsers[1], 1, t);
+  if (!mobile) _airyDrawDesk(ctx, x + w * .66, y + h * .70, w * .22, h * .11, sceneUsers[2], 2, t);
+
+  _airyDrawPlant(ctx, x + w * .07, y + h * .60, mobile ? .38 : .55, 3);
+  _airyDrawPlant(ctx, x + w * .77, y + h * .55, mobile ? .38 : .60, 4);
+  _airyDrawPlant(ctx, x + w * .36, y + h * .78, mobile ? .34 : .48, 3);
+
+  ctx.restore();
+}
+
 function _airyDrawIslandRoom(canvas, ctx, t) {
   const w = canvas.width, h = canvas.height;
   const mobile = w < 700;
@@ -2177,6 +2305,8 @@ function _airyDrawIslandRoom(canvas, ctx, t) {
   ctx.stroke();
   ctx.restore();
 
+  _airyDrawIslandStudyCluster(ctx, cx - islandW * .15, cy + islandH * .09, islandW * 1.08, islandH * 1.08, sceneUsers, t, mobile);
+
   const desks = mobile
     ? [
         [cx - islandW * .18, cy - islandH * .08, 74, 30],
@@ -2222,9 +2352,9 @@ function _airyDrawRoom(canvas, ctx, t) {
   ctx.clearRect(0, 0, w, h);
 
   const bg = ctx.createLinearGradient(0, 0, 0, h);
-  bg.addColorStop(0, '#FFFCF5');
-  bg.addColorStop(0.52, '#F6EDDA');
-  bg.addColorStop(1, '#EED9B5');
+  bg.addColorStop(0, '#FFF9EC');
+  bg.addColorStop(0.52, '#F4E7CE');
+  bg.addColorStop(1, '#E8C58F');
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, w, h);
 
@@ -2253,9 +2383,9 @@ function _airyDrawRoom(canvas, ctx, t) {
   ctx.fill();
 
   const floor = ctx.createLinearGradient(0, horizon, 0, h);
-  floor.addColorStop(0, '#F4E4C7');
-  floor.addColorStop(.62, '#E7C998');
-  floor.addColorStop(1, '#DDBA80');
+  floor.addColorStop(0, '#F0D9B2');
+  floor.addColorStop(.62, '#E2BD80');
+  floor.addColorStop(1, '#D2A466');
   ctx.fillStyle = floor;
   ctx.beginPath();
   ctx.moveTo(vanishX - usableW * .46, horizon);
@@ -2315,22 +2445,22 @@ function _airyDrawRoom(canvas, ctx, t) {
   rightWall.forEach((p, i) => i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1]));
   ctx.closePath(); ctx.fill();
 
-  const windowCount = mobile ? 4 : 7;
+  const windowCount = mobile ? 4 : 5;
   for (let i = 0; i < windowCount; i++) {
     const depth = i / Math.max(1, windowCount - 1);
-    const ww = (mobile ? 76 : 122) * (1 - depth * .48);
-    const wh = (mobile ? 118 : 174) * (1 - depth * .45);
+    const ww = (mobile ? 76 : 156) * (1 - depth * .50);
+    const wh = (mobile ? 118 : 216) * (1 - depth * .46);
     const wx = left + usableW * (.035 + depth * (mobile ? .17 : .155));
     const wy = top + h * (.078 + depth * .042);
     _airyDrawSoftWindow(ctx, wx, wy, ww, wh, mobile);
     _airyDrawLightWash(ctx, wx + ww * .42, wy + wh * .12, usableW * (.36 - depth * .11), h * (.54 - depth * .10), mobile ? .09 : .14);
   }
 
-  const shelfCount = mobile ? 4 : 7;
+  const shelfCount = mobile ? 4 : 5;
   for (let i = 0; i < shelfCount; i++) {
     const depth = i / Math.max(1, shelfCount - 1);
-    const sw = (mobile ? 80 : 132) * (1 - depth * .45);
-    const sh = (mobile ? 132 : 198) * (1 - depth * .42);
+    const sw = (mobile ? 80 : 156) * (1 - depth * .44);
+    const sh = (mobile ? 132 : 224) * (1 - depth * .42);
     const sx = right - usableW * (.095 + depth * (mobile ? .095 : .10)) - sw;
     const sy = top + h * (.11 + depth * .040);
     _airyDrawShelf(ctx, sx, sy, sw, sh, mobile);
@@ -2370,6 +2500,21 @@ function _airyDrawRoom(canvas, ctx, t) {
     _airyDrawPendant(ctx, vanishX - usableW * (.28 - p * .34), top + h * (.12 + p * .035), 1 - p * .10);
   }
 
+  if (!mobile) {
+    ctx.save();
+    ctx.strokeStyle = 'rgba(255,255,255,.60)';
+    ctx.lineWidth = 18;
+    ctx.beginPath();
+    ctx.arc(vanishX - usableW * .08, horizon - h * .01, usableW * .095, Math.PI, 0);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(170,145,110,.18)';
+    ctx.lineWidth = 7;
+    ctx.beginPath();
+    ctx.arc(vanishX - usableW * .08, horizon - h * .01, usableW * .081, Math.PI, 0);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   const desks = [];
   const rows = mobile ? 5 : 10;
   for (let i = rows - 1; i >= 0; i--) {
@@ -2383,6 +2528,14 @@ function _airyDrawRoom(canvas, ctx, t) {
     desks.push([rightX, y + h * .018, dw, dh]);
   }
   desks.forEach((d, i) => _airyDrawDesk(ctx, d[0], d[1], d[2], d[3], sceneUsers[i], i, t));
+
+  if (!mobile) {
+    _airyDrawLibraryStudyBay(ctx, left + usableW * .03, horizon + h * .11, usableW * .28, h * .28, sceneUsers[0], 0, t, 1);
+    _airyDrawLibraryStudyBay(ctx, right - usableW * .28, horizon + h * .06, usableW * .25, h * .25, sceneUsers[1], 1, t, -1);
+    _airyDrawChibi(ctx, vanishX - usableW * .04, horizon + h * .37, sceneUsers[0], 0, t, 1.12);
+  } else {
+    _airyDrawChibi(ctx, vanishX - usableW * .02, horizon + h * .30, sceneUsers[0], 0, t, .74);
+  }
 
   _airyDrawPlant(ctx, left + 22, horizon + (mobile ? 36 : 74), mobile ? .92 : 1.24, 4);
   _airyDrawPlant(ctx, right - (mobile ? 48 : 70), horizon + (mobile ? 80 : 100), mobile ? .74 : 1.02, 3);
