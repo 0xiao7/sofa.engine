@@ -27,7 +27,9 @@ test('public growth funnel leads with web practice and saved learning value', ()
   assert.match(source['pricing.html'], /弱點分析/);
   assert.match(source['pricing.html'], /錯題重練/);
   assert.match(source['free.html'], /弱點分析與錯題重練/);
+  assert.match(source['checkout.html'], /3 種練習 \+ 弱點分析/);
   for (const file of ['index.html', 'pricing.html', 'free.html', 'checkout.html']) {
     assert.doesNotMatch(source[file], /lin\.ee|每日 LINE|加入 LINE|LINE Bot 法條推播/, `${file} still promotes LINE as a primary funnel`);
+    assert.doesNotMatch(source[file], /LEARNING LOOP|mode-code">WEAK|4 種練習模式[\s\S]{0,60}弱點分析/, `${file} uses off-brand or inaccurate funnel labels`);
   }
 });
