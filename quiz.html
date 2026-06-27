@@ -3008,6 +3008,24 @@ function _weakSourceNote() {
   return `<div class="weak-source-note">${esc(_weakSourceLine())}</div>`;
 }
 
+function _signedInWeaknessUsesRemoteTruth() {
+  return !!uid && uid !== 'PREVIEW' && !isFree;
+}
+
+function _renderSignedInWeaknessLoading() {
+  const panel = document.getElementById('quiz-wrong-panel');
+  if (!panel) return;
+  panel.innerHTML = '<div class="weak-panel-guide"><b>看結果</b>：正在讀取帳號答題紀錄。<br><b>資料來源</b>：暫不使用本機暫存判斷，避免把舊裝置紀錄誤當成正式弱點。</div>'
+    + '<div class="weak-empty" style="text-align:center;padding:26px 0">弱點資料載入中...</div>';
+}
+
+function _renderSignedInWeaknessLoadIssue() {
+  const panel = document.getElementById('quiz-wrong-panel');
+  if (!panel) return;
+  panel.innerHTML = '<div class="weak-panel-guide"><b>暫時讀不到帳號弱點</b>：這不是代表你沒有答題紀錄。<br><b>下一步</b>：稍後再開一次，或先回到選擇題繼續作答。</div>'
+    + '<div class="weak-empty" style="text-align:center;padding:26px 0"><button class="weak-action-primary" onclick="loadQuiz()">先做下一題</button></div>';
+}
+
 function _weakSummaryCard(law, wrong, pct, actionHtml) {
   return `<div class="weak-card alert weak-summary-card">
     <div class="weak-card-head" style="align-items:center;margin-bottom:0">
@@ -3060,7 +3078,12 @@ function _renderWrongListFromRemote(items) {
   const list = Array.isArray(items)
     ? items.filter(x => (x.wrong_count || 0) > 0).sort((a,b)=>(b.wrong_count||0)-(a.wrong_count||0))
     : [];
-  if (!list.length) return;
+  if (!list.length) {
+    panel.innerHTML = '<div class="weak-panel-guide"><b>看結果</b>：目前沒有足夠的帳號答題紀錄可以判斷弱點。<br><b>開始重練</b>：先做幾題，系統才會把錯題和法規整理進來。</div>'
+      + _weakSourceNote()
+      + _weakEmptyText();
+    return;
+  }
   const first = list[0];
   const firstLaw = first.law_name || '未分類法規';
   const firstAttempts = first.attempt_count || 0;
@@ -3118,6 +3141,7 @@ function _loadRemoteWeakLaws(opts) {
     })
     .catch(() => {
       el.innerHTML = _weakEmptyText();
+      if (opts.target === 'panel') _renderSignedInWeaknessLoadIssue();
     })
     .finally(() => {
       _remoteWeakLawsInFlight = false;
@@ -3207,6 +3231,11 @@ function _switchStatsTab(tab) {
 function _renderWrongList() {
   const panel = document.getElementById('quiz-wrong-panel');
   if (!panel) return;
+  if (_signedInWeaknessUsesRemoteTruth() && !_remoteWeakLawsLoaded) {
+    _renderSignedInWeaknessLoading();
+    _loadRemoteWeakLaws({force:true, target:'panel'});
+    return;
+  }
   const s = _loadStats();
   const byLaw = s.byLaw || {};
   const bank  = loadWrongBank();

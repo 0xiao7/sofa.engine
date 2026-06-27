@@ -48,6 +48,36 @@ test('weakness analysis names all formal answer sources as merged', () => {
   assert.match(active, /錯題重練/);
 });
 
+test('signed-in weakness analysis waits for remote truth before using local fallback', () => {
+  assert.match(active, /function _signedInWeaknessUsesRemoteTruth/);
+  assert.match(active, /function _renderSignedInWeaknessLoading/);
+  assert.match(active, /function _renderSignedInWeaknessLoadIssue/);
+  assert.match(active, /正在讀取帳號答題紀錄/);
+  assert.match(active, /暫不使用本機暫存判斷/);
+  const start = active.indexOf('function _renderWrongList');
+  const end = active.indexOf('function _drillAllWrong', start);
+  assert.ok(start >= 0 && end > start, '_renderWrongList must exist');
+  const fn = active.slice(start, end);
+  assert.match(fn, /if \(_signedInWeaknessUsesRemoteTruth\(\) && !_remoteWeakLawsLoaded\)/);
+  assert.match(fn, /_renderSignedInWeaknessLoading\(\)/);
+  assert.match(fn, /_loadRemoteWeakLaws\(\{force:true, target:'panel'\}\)/);
+  assert.match(fn, /return;/);
+});
+
+test('remote weakness panel has explicit empty and failure states for signed-in users', () => {
+  const remoteStart = active.indexOf('function _renderWrongListFromRemote');
+  assert.ok(remoteStart > -1, '_renderWrongListFromRemote must exist');
+  const remoteFn = active.slice(remoteStart, remoteStart + 1400);
+  assert.match(remoteFn, /if \(!list\.length\)/);
+  assert.match(remoteFn, /panel\.innerHTML =/);
+  assert.match(remoteFn, /目前沒有足夠的帳號答題紀錄/);
+
+  const loadStart = active.indexOf('function _loadRemoteWeakLaws');
+  assert.ok(loadStart > -1, '_loadRemoteWeakLaws must exist');
+  const loadFn = active.slice(loadStart, loadStart + 2200);
+  assert.match(loadFn, /opts\.target === 'panel'[\s\S]*_renderSignedInWeaknessLoadIssue\(\)/);
+});
+
 test('empty weakness state tells the learner what to do without self-judging', () => {
   assert.match(active, /不用自己判斷哪裡弱/);
   assert.match(active, /先做 5 題/);
