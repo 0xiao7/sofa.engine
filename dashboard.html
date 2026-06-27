@@ -1280,7 +1280,8 @@
   }
 
   /* sections */
-  section.block{margin-bottom:80px;scroll-margin-top:90px}
+  section.block{margin-bottom:64px;scroll-margin-top:90px}
+  section.block:last-child{margin-bottom:28px}
   .sec-head{
     display:flex;align-items:flex-end;justify-content:space-between;
     margin-bottom:28px;gap:24px;
@@ -2027,6 +2028,7 @@
     border-radius:4px;
     padding:8px 0;
     position:relative;
+    min-height:0;
   }
   .rec-group{padding:0 28px}
   .rec-date-head{
@@ -2790,6 +2792,10 @@
     --ink-2:rgba(26,43,53,.7);
     --muted:rgba(26,43,53,.45);
     --mauve:#B38BA7;
+    background:linear-gradient(180deg,var(--navy-3) 0,var(--cream-2) 20px,var(--cream-2) 100%);
+    padding:40px 0 48px;
+    margin:0;
+    border-top:1px solid rgba(231,187,167,.16);
   }
 </style>
 <link rel="stylesheet" href="compass-widget.css?v=3">
@@ -2877,12 +2883,13 @@
         <div class="nav-list">
           <a href="#member" data-spy-target="member"><span class="num">01</span>會員資訊<span class="ct"></span></a>
           <a href="#progress" data-spy-target="progress"><span class="num">02</span>學習進度<span class="ct" id="nav-ct-prog"></span></a>
-          <a href="#favorites" data-spy-target="favorites"><span class="num">03</span>我的收藏<span class="ct" id="nav-ct-fav"></span></a>
-          <a href="#memorized" data-spy-target="memorized"><span class="num">04</span>已熟記<span class="ct" id="nav-ct-mem"></span></a>
-          <a href="#review" data-spy-target="review"><span class="num">05</span>待複習<span class="ct" id="nav-ct-rev"></span></a>
-          <a href="#tools" data-spy-target="tools"><span class="num">06</span>備考工具<span class="ct">8</span></a>
-          <a href="#laws" data-spy-target="laws"><span class="num">07</span>法規目錄<span class="ct">567</span></a>
-          <a href="#recent" data-spy-target="recent"><span class="num">08</span>最近查詢<span class="ct">7d</span></a>
+          <a href="#search" data-spy-target="search"><span class="num">03</span>直接查法條<span class="ct"></span></a>
+          <a href="#favorites" data-spy-target="favorites"><span class="num">04</span>我的收藏<span class="ct" id="nav-ct-fav"></span></a>
+          <a href="#memorized" data-spy-target="memorized"><span class="num">05</span>已熟記<span class="ct" id="nav-ct-mem"></span></a>
+          <a href="#review" data-spy-target="review"><span class="num">06</span>待複習<span class="ct" id="nav-ct-rev"></span></a>
+          <a href="#tools" data-spy-target="tools"><span class="num">07</span>備考工具<span class="ct">8</span></a>
+          <a href="#laws" data-spy-target="laws"><span class="num">08</span>法規目錄<span class="ct">567</span></a>
+          <a href="#recent" data-spy-target="recent"><span class="num">09</span>最近查詢<span class="ct">7d</span></a>
         </div>
       </div>
 
@@ -3615,7 +3622,7 @@
   </div>
 
   <!-- ============ COMPASS WIDGET (考運羅盤 — 這張之後往哪) ============ -->
-  <section class="compass-embed" data-screen-label="Compass" style="background:var(--cream-2);padding:48px 0;margin:24px 0 0;">
+  <section class="compass-embed" data-screen-label="Compass">
     <div class="compass-inline-shell" style="max-width:1100px;margin:0 auto;padding:0 40px;">
       <div class="compass-section-eyebrow">考運羅盤</div>
       <h2 class="compass-section-title">這張之後往哪</h2>
@@ -3694,6 +3701,42 @@ function fallbackArticleTitle(raw, title){
   if(t) return t;
   var clean = String(raw || '').replace(/^§+/, '').trim();
   return clean ? ('第 ' + clean + ' 條') : '條文';
+}
+function _normalizeArticleNo(raw){
+  var text = String(raw || '')
+    .replace(/^第\s*/, '')
+    .replace(/\s*條$/, '')
+    .replace(/^§+/, '')
+    .replace(/\s+/g, '')
+    .trim();
+  var ch = '[0-9０-９一二三四五六七八九十百千零兩两]+';
+  var m = text.match(new RegExp('^(' + ch + ')條?之(' + ch + ')$'));
+  if(m) return m[1] + '之' + m[2];
+  m = text.match(new RegExp('^(' + ch + ')(?:之(' + ch + '))?$'));
+  return m ? m[1] + (m[2] ? '之' + m[2] : '') : text;
+}
+function _articleNoFromRecord(a){
+  if(!a) return '';
+  if(a.article_no) return _normalizeArticleNo(a.article_no);
+  if(a.article) return _normalizeArticleNo(a.article);
+  var title = String(a.title || '');
+  var ch = '[0-9０-９一二三四五六七八九十百千零兩两]+';
+  var m = title.match(new RegExp('第\\s*(' + ch + ')\\s*條?\\s*之\\s*(' + ch + ')\\s*條?'));
+  if(m) return _normalizeArticleNo(m[1] + '之' + m[2]);
+  m = title.match(new RegExp('第\\s*(' + ch + '(?:之' + ch + ')*)\\s*條'));
+  if(m) return _normalizeArticleNo(m[1]);
+  m = title.match(/([0-9０-９]+(?:之[0-9０-９]+)*)/);
+  return m ? _normalizeArticleNo(m[1]) : '';
+}
+function _cleanSpeechCueText(text){
+  return String(text || '')
+    .replace(/[\[【（(]\s*(重音|停頓|輕讀|慢讀|快讀|強調)\s*[\]】）)]/g, '，')
+    .replace(/\[(\/?emphasis|break[^\]]*)\]/gi, '，')
+    .replace(/<\s*\/?\s*(em|strong|mark)\s*>/gi, '')
+    .replace(/<\s*break[^>]*>/gi, '，')
+    .replace(/\s+/g, ' ')
+    .replace(/[，。]{2,}/g, '。')
+    .trim();
 }
 // ── Wave 123: 關鍵字高亮工具 ──────────────────────────────
 function _getSearchQuery(){
@@ -4666,17 +4709,20 @@ function _renderDrawer(d){
   var body = document.getElementById('dr-body');
   if(!body || !d) { _renderDrawerFallback(_drLawName, _drArticle); return; }
   _saveRecentView(d);
+  var artNum = _articleNoFromRecord(d) || _drArticle;
+  var artTitle = (d.title||'')
+    .replace(/^第\s*[0-9０-９一二三四五六七八九十百千零兩两]+(?:\s*條?\s*之\s*[0-9０-９一二三四五六七八九十百千零兩两]+)?\s*條?\s*/,'')
+    .replace(/^§\s*[0-9０-９一二三四五六七八九十百千零兩两]+(?:之[0-9０-９一二三四五六七八九十百千零兩两]+)?\s*[|｜]\s*/,'')
+    .trim() || '——';
 
   var bc = document.getElementById('dr-breadcrumb');
   if(bc){
     var parts = [d.law_name || _drLawName];
     if(d.chapter) parts.push(d.chapter);
-    parts.push('第 ' + (d.title||'').match(/(\d+)/)?.[1] + ' 條');
+    parts.push('第 ' + artNum + ' 條');
     bc.textContent = parts.filter(Boolean).join(' / ');
   }
 
-  var artNum = (d.title||'').match(/(\d+)/)?.[1] || _drArticle;
-  var artTitle = (d.title||'').replace(/第\d+條\s*/,'').replace(/^§\s*\d+\s*[|｜]\s*/,'').trim() || '——';
   var imp = d.importance || '';
 
   // 原文段落
@@ -6171,7 +6217,7 @@ function _studyPlaylistSpeechText(item){
     item && item.article_no ? ('第 ' + item.article_no + ' 條') : '',
     item && item.title ? item.title : '',
     item && item.text ? item.text : ''
-  ].filter(Boolean);
+  ].filter(Boolean).map(_cleanSpeechCueText);
   return parts.join('。');
 }
 
@@ -7138,6 +7184,14 @@ function _renderLawsToc(page){
 }
 
 // 頁面載入後抓法規清單，供自動補全 + 目錄渲染
+var _urlLandingHandlersRun = false;
+function _runLandingUrlHandlers(){
+  if(_urlLandingHandlersRun) return;
+  _urlLandingHandlersRun = true;
+  _handleUrlQuery();
+  _handleUrlOpen();
+  _handleUrlLaw();
+}
 (function(){
   fetch(API + '/api/laws')
     .then(function(r){ return r.ok ? r.json() : null; })
@@ -7154,15 +7208,10 @@ function _renderLawsToc(page){
         if(el1) el1.textContent = artLabel + ' · ' + cnt + ' 部';
         var el2 = document.querySelector('.laws-count');
         if(el2) el2.innerHTML = '共 <b>' + cnt + '</b> 部';
-        // Wave 69：法規清單載入後觸發 URL ?q= 自動搜尋
-        _handleUrlQuery();
-        // 私人筆記庫：?open=<page_id> 落地直接開該條 drawer
-        _handleUrlOpen();
-        // tree / 考運羅盤 funnel：?law=<法名> 落地自動搜出該法（導回站內讀，不外連 moj）
-        _handleUrlLaw();
       }
+      _runLandingUrlHandlers();
     })
-    .catch(function(){});
+    .catch(function(){ _runLandingUrlHandlers(); });
 })();
 
 // 細篩選項從當前法規的真實 articles 動態抽取（不再寫死、不再有虛構選項）
@@ -7362,9 +7411,8 @@ function _renderResRows(arts, lawName){
   var _notes = (function(){ try { return JSON.parse(localStorage.getItem('sofa_notes_v1') || '{}'); } catch(e){ return {}; } })();
   var _rq = _getSearchQuery(); // Wave 123: for result-card highlighting
   return arts.map(function(a){
-    var m = (a.title||'').match(/第(\d+)條/);
-    var artNum  = m ? m[1] : ((a.title||'').match(/(\d+)/)||['',''])[1];
-    var artTtl  = (a.title||'').replace(/^第\d+條\s*/,'').trim() || fallbackArticleTitle(artNum, '');
+    var artNum  = _articleNoFromRecord(a);
+    var artTtl  = (a.title||'').replace(/^第\s*[0-9０-９一二三四五六七八九十百千]+(?:之[0-9０-９一二三四五六七八九十百千]+)?\s*條\s*/,'').trim() || fallbackArticleTitle(artNum, '');
     var pid     = (a.id||'').replace(/'/g,'');
     var dispLaw = a.law_name || lawName;
     var snippet = (a.original_text || artTtl || '').slice(0, 60).replace(/'/g, '');
@@ -7409,6 +7457,16 @@ function _updateNoteBadgeFor(articleId) {
 function _srSet(arts, law){
   _srArts = arts; _srLaw = law||''; _srPage = 0;
   _renderSrPage();
+}
+function _openUrlArticleFromResults(arts, lawName, artNo){
+  artNo = _normalizeArticleNo(artNo);
+  if(!window.__pendingSearchOpenArticle || !artNo) return;
+  window.__pendingSearchOpenArticle = false;
+  var target = (arts || []).find(function(a){
+    return _articleNoFromRecord(a) === artNo;
+  });
+  var pid = target && target.id ? String(target.id).replace(/'/g, '') : '';
+  openDrawer(pid, lawName, artNo);
 }
 var _MSG_LOADING = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">查詢中⋯</div>';
 var _MSG_EMPTY   = '<div style="padding:20px;text-align:center;font-family:var(--mono);font-size:11.5px;color:rgba(245,240,234,.4);letter-spacing:.08em">沒有符合條件的條文</div>';
@@ -7533,6 +7591,7 @@ function doSearch(){
       arts = _chipFilter(arts, _curChip);
       if(!arts.length){ resEl.innerHTML = _MSG_EMPTY; return; }
       _srSet(arts, lawName);
+      _openUrlArticleFromResults(arts, lawName, artFilter);
     })
     .catch(function(){ resEl.innerHTML = _MSG_FAIL; });
 }
@@ -7554,7 +7613,10 @@ function _handleUrlQuery(){
   inp.value = decodeURIComponent(q);
   var art = params.get('art');
   var artInp = document.getElementById('search-art');
-  if(art && artInp) artInp.value = decodeURIComponent(art).replace(/^§+/,'');
+  if(art && artInp){
+    artInp.value = _normalizeArticleNo(decodeURIComponent(art));
+    window.__pendingSearchOpenArticle = true;
+  }
   doSearch();
 }
 

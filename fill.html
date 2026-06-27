@@ -1432,6 +1432,30 @@ function answerMatch(val, ans){
   const v=val.trim(), a=ans.trim();
   return v===a || normLegalNum(v)===normLegalNum(a);
 }
+function fillArticleNo(data){
+  const raw = String((data && (data.article_no || data.article || data.title)) || '')
+    .replace(/｜.*$/,'')
+    .replace(/^§\s*/,'')
+    .replace(/\s+/g,'')
+    .trim();
+  const ch = '[0-9０-９一二三四五六七八九十百千零兩两]+';
+  let m = raw.match(new RegExp('^第?(' + ch + ')條?之(' + ch + ')條?'));
+  if(m) return m[1] + '之' + m[2];
+  m = raw.match(new RegExp('^第?(' + ch + ')條?'));
+  return m ? m[1] : raw;
+}
+function fillDashboardArticleHref(data){
+  const law = String((data && data.law_name) || '');
+  const art = fillArticleNo(data);
+  if(data && data.id){
+    return 'dashboard.html?open=' + encodeURIComponent(data.id)
+      + (law ? '&law=' + encodeURIComponent(law) : '')
+      + (art ? '&art=' + encodeURIComponent(art) : '');
+  }
+  return 'dashboard.html?q=' + encodeURIComponent(law)
+    + (art ? '&art=' + encodeURIComponent(art) : '')
+    + '#search';
+}
 
 function checkAnswers(){
   const box=document.getElementById('fillText');
@@ -1487,7 +1511,7 @@ function checkAnswers(){
   updateBlankList();
   if(fillData.id&&fillData.title){
     const src=document.getElementById('sourceBox');
-    src.innerHTML=`出自 <a href="dashboard.html?open=${encodeURIComponent(fillData.id)}&art=${encodeURIComponent(fillData.title)}" style="color:var(--peach)">《${esc(fillData.law_name||'')}》${esc(fillData.title)}</a>`;
+    src.innerHTML=`出自 <a href="${fillDashboardArticleHref(fillData)}" style="color:var(--peach)">《${esc(fillData.law_name||'')}》${esc(fillData.title)}</a>`;
     src.style.display='block';
   }
   // 寫入練習紀錄

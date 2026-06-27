@@ -26,6 +26,19 @@ test('today recaps are included in the sidebar navigation and scroll spy', () =>
   assert.match(html, /aria-current/);
 });
 
+test('sidebar section numbers match the visible dashboard sections', () => {
+  assert.match(html, /href="#search" data-spy-target="search"><span class="num">03<\/span>直接查法條/);
+  assert.match(html, /href="#favorites" data-spy-target="favorites"><span class="num">04<\/span>我的收藏/);
+  assert.match(html, /href="#memorized" data-spy-target="memorized"><span class="num">05<\/span>已熟記/);
+  assert.match(html, /href="#review" data-spy-target="review"><span class="num">06<\/span>待複習/);
+  assert.match(html, /href="#tools" data-spy-target="tools"><span class="num">07<\/span>備考工具/);
+  assert.match(html, /href="#laws" data-spy-target="laws"><span class="num">08<\/span>法規目錄/);
+  assert.match(html, /href="#recent" data-spy-target="recent"><span class="num">09<\/span>最近查詢/);
+  assert.match(html, /<section class="block" id="tools">[\s\S]*<span class="idx">07<\/span>[\s\S]*<h2>備考工具<\/h2>/);
+  assert.match(html, /<section class="block" id="laws">[\s\S]*<span class="idx">08<\/span>[\s\S]*<h2>法規目錄<\/h2>/);
+  assert.match(html, /<section class="block" id="recent">[\s\S]*<span class="idx">09<\/span>[\s\S]*<h2>最近查詢<\/h2>/);
+});
+
 test('desktop sidebar stays present while the main dashboard scrolls', () => {
   assert.match(html, /aside\.side\{[\s\S]*position:fixed;top:71px;bottom:0;left:0;width:280px/);
   assert.match(html, /aside\.side\{[\s\S]*height:calc\(100dvh - 71px\)/);
@@ -35,6 +48,16 @@ test('desktop sidebar stays present while the main dashboard scrolls', () => {
   assert.match(html, /\.shell::before\{[\s\S]*pointer-events:none/);
   assert.match(html, /@media \(max-width:980px\)\{[\s\S]*aside\.side\{[\s\S]*position:fixed/);
   assert.match(html, /@media \(max-width:980px\)\{[\s\S]*\.shell::before\{display:none\}/);
+});
+
+test('recent query section hands off to compass without a large blank wall', () => {
+  assert.match(html, /section\.block\{[\s\S]*margin-bottom:64px/);
+  assert.match(html, /section\.block:last-child\{margin-bottom:28px\}/);
+  assert.match(html, /\.recent-list\{[\s\S]*min-height:0/);
+  assert.match(html, /\.compass-embed\{[\s\S]*background:linear-gradient/);
+  assert.match(html, /\.compass-embed\{[\s\S]*margin:0/);
+  assert.match(html, /<section class="compass-embed" data-screen-label="Compass">/);
+  assert.doesNotMatch(html, /class="compass-embed"[^>]+style=/);
 });
 
 test('dashboard mobile sidebar exposes state and closes after choosing a guide link', () => {
