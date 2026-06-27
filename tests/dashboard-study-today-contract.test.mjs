@@ -168,13 +168,26 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.ok(timeBox > -1, 'time-first box must exist');
   assert.ok(planPanel > -1, 'private plan panel must exist');
   assert.ok(timeBox < planPanel, 'time guidance should appear before private schedule controls');
-  assert.match(recap, /<details class="study-time-wrap" id="study-time-box"/);
+  assert.match(recap, /<div class="study-time-wrap" id="study-time-box"/);
   assert.match(recap, /id="study-time-summary"[\s\S]*500 小時目標/);
-  assert.match(recap, /<summary>[\s\S]*時間規劃[\s\S]*修改/);
+  assert.match(recap, /class="study-time-summary-card"[\s\S]*讀書時間[\s\S]*修改時間/);
   assert.match(recap, /id="study-target-hours"[\s\S]*500/);
   assert.match(recap, /id="study-weekly-hours"[\s\S]*每週可讀/);
   assert.match(recap, /建議總時數可以改/);
   assert.match(active, /summary\.textContent = totalHours \+ ' 小時目標/);
+});
+
+test('study time settings stay collapsed into a readable summary until editing', () => {
+  const recapStart = active.indexOf('id="study-cockpit-recap"');
+  assert.ok(recapStart >= 0, 'study recap must exist');
+  const recap = active.slice(recapStart, recapStart + 8200);
+  assert.match(recap, /class="study-time-summary-card"/);
+  assert.match(recap, /id="study-time-purpose"[\s\S]*用來幫你安排今天先讀多久、本週還要補多少/);
+  assert.match(recap, /id="study-time-edit-panel" hidden/);
+  assert.match(recap, /onclick="toggleStudyTimeEditor\(\)"[\s\S]*修改時間/);
+  assert.match(active, /function toggleStudyTimeEditor/);
+  assert.match(active, /panel\.hidden = !panel\.hidden/);
+  assert.doesNotMatch(recap, /<details class="study-time-wrap"/);
 });
 
 test('study today separates manual records from answer accuracy', () => {
@@ -290,10 +303,13 @@ test('mobile dashboard prioritizes next-step guidance before the full tool grid'
 test('sidebar and mobile quick entry use clear exam-loop labels', () => {
   assert.match(active, /<nav class="top-mid">[\s\S]*href="quiz\.html\?open=weakness"[\s\S]*弱點/);
   assert.match(active, /<nav class="top-mid">[\s\S]*href="#review-due"[\s\S]*複習/);
-  assert.match(active, /<a href="#study-cockpit-recap"><span class="num">T1<\/span>今天先做/);
-  assert.match(active, /<a href="quiz\.html"><span class="num">T2<\/span>選擇題/);
-  assert.match(active, /<a href="#review-due"><span class="num">T3<\/span>今日複習/);
-  assert.match(active, /<a href="quiz\.html\?open=weakness"><span class="num">T4<\/span>弱點分析/);
+  assert.match(active, /<a href="#study-cockpit-recap" data-spy-target="study-cockpit-recap"><span class="num">T1<\/span>今天先做/);
+  assert.match(active, /<a href="#study-weak-brief" data-spy-target="study-weak-brief"><span class="num">T2<\/span>今日弱點/);
+  assert.match(active, /<a href="#review-due" data-spy-target="review-due"><span class="num">T3<\/span>今日複習/);
+  assert.match(active, /<a href="#study-time-box" data-spy-target="study-time-box"><span class="num">T4<\/span>讀書時間/);
+  assert.match(active, /<a href="#study-plan-items" data-spy-target="study-plan-items"><span class="num">T5<\/span>讀書計畫/);
+  assert.match(active, /<a href="quiz\.html"><span class="num">T6<\/span>選擇題/);
+  assert.match(active, /<a href="quiz\.html\?open=weakness"><span class="num">T7<\/span>弱點分析/);
   assert.match(active, /<span class="mdb-lbl">今天先做<\/span>/);
 });
 

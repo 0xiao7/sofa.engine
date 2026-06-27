@@ -200,6 +200,14 @@
     grid-template-columns:280px minmax(0,1fr);
     min-height:calc(100vh - 71px);
   }
+  .shell::before{
+    content:"";
+    position:fixed;top:71px;bottom:0;left:0;width:280px;
+    background:var(--navy-2);
+    border-right:1px solid var(--line);
+    pointer-events:none;
+    z-index:20;
+  }
 
   /* === Sidebar === */
   aside.side{
@@ -209,7 +217,7 @@
     position:fixed;top:71px;bottom:0;left:0;width:280px;
     height:calc(100dvh - 71px);
     overflow-y:auto;
-    z-index:30;
+    z-index:31;
   }
   /* almanac-style countdown */
   .countdown{
@@ -655,46 +663,46 @@
     background:rgba(255,255,255,.025);
     border-radius:4px;
   }
-  .study-time-wrap[open]{background:rgba(255,255,255,.035)}
-  .study-time-wrap summary{
+  .study-time-summary-card{
     min-height:54px;
     display:flex;
     align-items:center;
     justify-content:space-between;
     gap:14px;
     padding:12px 14px;
-    cursor:pointer;
-    list-style:none;
   }
-  .study-time-wrap summary::-webkit-details-marker{display:none}
-  .study-time-wrap summary span{display:grid;gap:3px;min-width:0}
-  .study-time-wrap summary b{
+  .study-time-main{display:grid;gap:3px;min-width:0}
+  .study-time-main b{
     font-family:var(--serif);
     font-size:16px;
     font-weight:600;
     color:var(--cream);
   }
-  .study-time-wrap summary small{
+  .study-time-main small{
     color:rgba(245,240,234,.58);
     font-size:12px;
     line-height:1.55;
   }
-  .study-time-wrap summary em{
+  .study-time-main span{
+    color:rgba(245,240,234,.48);
+    font-size:12px;
+    line-height:1.55;
+  }
+  .study-time-edit-btn{
     flex-shrink:0;
-    font-style:normal;
     border:1px solid rgba(231,187,167,.32);
     color:var(--peach);
     border-radius:4px;
-    padding:6px 10px;
-    font-family:var(--mono);
-    font-size:10.5px;
-    letter-spacing:.08em;
+    padding:8px 11px;
+    background:rgba(231,187,167,.06);
+    font-size:13px;
+    font-weight:700;
   }
-  .study-time-wrap[open] summary{
-    border-bottom:1px dashed rgba(231,187,167,.16);
-  }
+  .study-time-edit-btn:hover{background:rgba(231,187,167,.12)}
+  .study-time-box[hidden]{display:none}
   .study-time-wrap .study-time-box{
     border:0;
+    border-top:1px dashed rgba(231,187,167,.16);
     background:transparent;
   }
   .study-time-cell{
@@ -2226,6 +2234,7 @@
   }
   @media (max-width:980px){
     .shell{grid-template-columns:1fr}
+    .shell::before{display:none}
     aside.side{
       position:fixed;top:65px;left:0;width:280px;height:calc(100vh - 65px);
       bottom:auto;transform:translateX(-100%);transition:transform .3s;z-index:40;
@@ -2347,6 +2356,7 @@
       border-color:#E7BBA7;
     }
     .shell{grid-template-columns:1fr}
+    .shell::before{display:none}
     aside.side{
       position:fixed;top:65px;left:0;width:280px;height:calc(100vh - 65px);
       transform:translateX(-100%);transition:transform .3s;z-index:40;
@@ -2800,27 +2810,29 @@
       <button class="cd-restore" id="cdRestore" onclick="showCountdown()">+ 顯示考試倒數</button>
 
       <div class="nav-section">
-        <div class="lab">今 日</div>
+        <div class="lab">導 覽</div>
         <div class="nav-list today-nav">
-          <a href="#study-cockpit-recap"><span class="num">T1</span>今天先做<span class="ct" id="nav-ct-study"></span></a>
-          <a href="quiz.html"><span class="num">T2</span>選擇題<span class="ct"></span></a>
-          <a href="#review-due"><span class="num">T3</span>今日複習<span class="ct" id="nav-ct-due">0</span></a>
-          <a href="quiz.html?open=weakness"><span class="num">T4</span>弱點分析<span class="ct" id="nav-ct-weak">0</span></a>
+          <a href="#study-cockpit-recap" data-spy-target="study-cockpit-recap"><span class="num">T1</span>今天先做<span class="ct" id="nav-ct-study"></span></a>
+          <a href="#study-weak-brief" data-spy-target="study-weak-brief"><span class="num">T2</span>今日弱點<span class="ct" id="nav-ct-weak">0</span></a>
+          <a href="#review-due" data-spy-target="review-due"><span class="num">T3</span>今日複習<span class="ct" id="nav-ct-due">0</span></a>
+          <a href="#study-time-box" data-spy-target="study-time-box"><span class="num">T4</span>讀書時間<span class="ct"></span></a>
+          <a href="#study-plan-items" data-spy-target="study-plan-items"><span class="num">T5</span>讀書計畫<span class="ct"></span></a>
+          <a href="quiz.html"><span class="num">T6</span>選擇題<span class="ct"></span></a>
+          <a href="quiz.html?open=weakness"><span class="num">T7</span>弱點分析<span class="ct"></span></a>
         </div>
       </div>
 
       <div class="nav-section">
-        <div class="lab">功 能</div>
+        <div class="lab">資 料</div>
         <div class="nav-list">
-          <a href="#member" class="on"><span class="num">01</span>會員資訊<span class="ct"></span></a>
-          <a href="#progress"><span class="num">02</span>學習進度<span class="ct" id="nav-ct-prog"></span></a>
-          <a href="#search"><span class="num">03</span>法條搜尋<span class="ct"></span></a>
-          <a href="#favorites"><span class="num">04</span>我的收藏<span class="ct" id="nav-ct-fav"></span></a>
-          <a href="#memorized"><span class="num">05</span>已熟記<span class="ct" id="nav-ct-mem"></span></a>
-          <a href="#review"><span class="num">06</span>待複習<span class="ct" id="nav-ct-rev"></span></a>
-          <a href="#tools"><span class="num">07</span>備考工具<span class="ct">8</span></a>
-          <a href="#laws"><span class="num">08</span>法規目錄<span class="ct">567</span></a>
-          <a href="#recent"><span class="num">09</span>最近查詢<span class="ct">7d</span></a>
+          <a href="#member" data-spy-target="member"><span class="num">01</span>會員資訊<span class="ct"></span></a>
+          <a href="#progress" data-spy-target="progress"><span class="num">02</span>學習進度<span class="ct" id="nav-ct-prog"></span></a>
+          <a href="#favorites" data-spy-target="favorites"><span class="num">03</span>我的收藏<span class="ct" id="nav-ct-fav"></span></a>
+          <a href="#memorized" data-spy-target="memorized"><span class="num">04</span>已熟記<span class="ct" id="nav-ct-mem"></span></a>
+          <a href="#review" data-spy-target="review"><span class="num">05</span>待複習<span class="ct" id="nav-ct-rev"></span></a>
+          <a href="#tools" data-spy-target="tools"><span class="num">06</span>備考工具<span class="ct">8</span></a>
+          <a href="#laws" data-spy-target="laws"><span class="num">07</span>法規目錄<span class="ct">567</span></a>
+          <a href="#recent" data-spy-target="recent"><span class="num">08</span>最近查詢<span class="ct">7d</span></a>
         </div>
       </div>
 
@@ -2948,15 +2960,16 @@
                 <div class="study-empty">先按預覽建議，系統會避開已排課程，補上本週空檔。</div>
               </div>
             </div>
-            <details class="study-time-wrap" id="study-time-box" aria-label="備考時間規劃">
-              <summary>
-                <span>
-                  <b>時間規劃</b>
+            <div class="study-time-wrap" id="study-time-box" aria-label="備考時間規劃">
+              <div class="study-time-summary-card">
+                <span class="study-time-main">
+                  <b>讀書時間</b>
                   <small id="study-time-summary">500 小時目標，每週 12 小時；今天先留 60 分鐘。</small>
+                  <span id="study-time-purpose">用來幫你安排今天先讀多久、本週還要補多少。</span>
                 </span>
-                <em>修改</em>
-              </summary>
-              <div class="study-time-box">
+                <button class="study-time-edit-btn" type="button" onclick="toggleStudyTimeEditor()">修改時間</button>
+              </div>
+              <div class="study-time-box" id="study-time-edit-panel" hidden>
                 <div class="study-time-cell" id="study-target-hours">
                   <span class="k">建議總時數</span>
                   <span class="v"><input id="study-total-hours-input" type="number" min="50" max="2000" step="10" value="500"> 小時</span>
@@ -2977,7 +2990,7 @@
                   <span id="study-time-state">這裡只設定讀書時間，不會改答題正確率。</span>
                 </div>
               </div>
-            </details>
+            </div>
             <div class="study-save-nudge" id="study-save-nudge" aria-live="polite">
               <div>
                 <b>保留這些進度</b>
@@ -4004,6 +4017,14 @@ function renderStudyTimeSettings(){
   }
 }
 
+function toggleStudyTimeEditor(){
+  var panel = document.getElementById('study-time-edit-panel');
+  var button = document.querySelector('.study-time-edit-btn');
+  if(!panel) return;
+  panel.hidden = !panel.hidden;
+  if(button) button.textContent = panel.hidden ? '修改時間' : '收起';
+}
+
 function saveStudyTimeSettings(){
   var local = _studyLocal();
   local.settings = {
@@ -4015,6 +4036,10 @@ function saveStudyTimeSettings(){
   renderStudyTimeSettings();
   var state = document.getElementById('study-time-state');
   if(state) state.textContent = '已存到這台裝置。';
+  var panel = document.getElementById('study-time-edit-panel');
+  var button = document.querySelector('.study-time-edit-btn');
+  if(panel) panel.hidden = true;
+  if(button) button.textContent = '修改時間';
   showStudySaveNudge();
 }
 
@@ -7384,18 +7409,36 @@ if (window.notesStore) { notesStore.sync(); }
 // Wave 105: render recent views on page load
 _renderRecentViews();
 
-// active nav on scroll
-const navLinks = document.querySelectorAll('.nav-list a[href^="#"]');
-const sections = document.querySelectorAll('section.block, .recap[id]');
-const setActive = id => {
-  navLinks.forEach(l => l.classList.toggle('on', l.getAttribute('href') === '#'+id));
-};
-const io = new IntersectionObserver((entries)=>{
-  entries.forEach(e=>{
-    if(e.isIntersecting) setActive(e.target.id);
+// active sidebar guide while reading the right column
+const navLinks = Array.from(document.querySelectorAll('.nav-list a[data-spy-target]'));
+function setActive(id){
+  navLinks.forEach(function(link){
+    var on = link.dataset.spyTarget === id;
+    link.classList.toggle('on', on);
+    if(on) link.setAttribute('aria-current', 'true');
+    else link.removeAttribute('aria-current');
   });
-},{rootMargin:'-30% 0px -60% 0px'});
-sections.forEach(s=>io.observe(s));
+}
+function updateActiveNavFromScroll(){
+  var headerOffset = window.matchMedia('(max-width: 980px)').matches ? 112 : 104;
+  var candidates = navLinks.map(function(link){
+    var id = link.dataset.spyTarget;
+    var el = id ? document.getElementById(id) : null;
+    if(!el || el.offsetParent === null) return null;
+    var top = el.getBoundingClientRect().top - headerOffset;
+    return { id:id, top:top };
+  }).filter(Boolean);
+  if(!candidates.length) return;
+  var passed = candidates.filter(function(item){ return item.top <= 8; });
+  var best = passed.length
+    ? passed.reduce(function(a,b){ return b.top > a.top ? b : a; })
+    : candidates.reduce(function(a,b){ return Math.abs(b.top) < Math.abs(a.top) ? b : a; });
+  if(best && best.id) setActive(best.id);
+}
+window.addEventListener('scroll', updateActiveNavFromScroll, { passive:true });
+window.addEventListener('resize', updateActiveNavFromScroll);
+window.addEventListener('hashchange', function(){ setTimeout(updateActiveNavFromScroll, 120); });
+updateActiveNavFromScroll();
 </script>
 
 <!-- ── P0-C 到期覆蓋層 ───────────────────────────────────── -->

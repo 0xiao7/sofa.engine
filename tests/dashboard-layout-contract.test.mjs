@@ -13,19 +13,27 @@ test('today recaps are included in the sidebar navigation and scroll spy', () =>
   assert.match(html, /<nav class="top-mid">[\s\S]*href="#study-cockpit-recap"[\s\S]*今天先做/);
   assert.match(html, /<nav class="top-mid">[\s\S]*href="quiz\.html\?open=weakness"[\s\S]*弱點/);
   assert.match(html, /<nav class="top-mid">[\s\S]*href="#review-due"[\s\S]*複習/);
-  assert.match(html, /href="#study-cockpit-recap"[\s\S]*今天先做/);
+  assert.match(html, /data-spy-target="study-cockpit-recap"[\s\S]*今天先做/);
+  assert.match(html, /data-spy-target="study-weak-brief"[\s\S]*今日弱點/);
+  assert.match(html, /data-spy-target="study-time-box"[\s\S]*讀書時間/);
+  assert.match(html, /data-spy-target="study-plan-items"[\s\S]*讀書計畫/);
   assert.match(html, /href="quiz\.html"[\s\S]*選擇題/);
-  assert.match(html, /href="#review-due"[\s\S]*今日複習/);
-  assert.match(html, /href="quiz\.html\?open=weakness"[\s\S]*弱點分析/);
-  assert.match(html, /document\.querySelectorAll\('\.nav-list a\[href\^="#"\]'\)/);
-  assert.match(html, /document\.querySelectorAll\('section\.block, \.recap\[id\]'\)/);
+  assert.match(html, /data-spy-target="review-due"[\s\S]*今日複習/);
+  assert.match(html, /const navLinks = Array\.from\(document\.querySelectorAll\('\.nav-list a\[data-spy-target\]'\)\)/);
+  assert.match(html, /function updateActiveNavFromScroll/);
+  assert.match(html, /setActive\(best\.id\)/);
+  assert.match(html, /aria-current/);
 });
 
 test('desktop sidebar stays present while the main dashboard scrolls', () => {
   assert.match(html, /aside\.side\{[\s\S]*position:fixed;top:71px;bottom:0;left:0;width:280px/);
   assert.match(html, /aside\.side\{[\s\S]*height:calc\(100dvh - 71px\)/);
   assert.match(html, /aside\.side\{[\s\S]*overflow-y:auto/);
+  assert.match(html, /\.shell::before\{[\s\S]*position:fixed;top:71px;bottom:0;left:0;width:280px/);
+  assert.match(html, /\.shell::before\{[\s\S]*background:var\(--navy-2\)/);
+  assert.match(html, /\.shell::before\{[\s\S]*pointer-events:none/);
   assert.match(html, /@media \(max-width:980px\)\{[\s\S]*aside\.side\{[\s\S]*position:fixed/);
+  assert.match(html, /@media \(max-width:980px\)\{[\s\S]*\.shell::before\{display:none\}/);
 });
 
 test('mobile native dashboard owns the iOS safe area', () => {
