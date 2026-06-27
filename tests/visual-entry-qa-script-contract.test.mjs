@@ -26,6 +26,19 @@ test('visual entry QA checks quiz post-answer actions and article deep link', ()
   assert.match(script, /dashboard\\\.html\\\?open=visual-page-id&law=/);
 });
 
+test('visual entry QA clicks a real mocked quiz answer and verifies answer ledger payload', () => {
+  assert.match(script, /quizBehaviorCase/);
+  assert.match(script, /\/api\/quiz/);
+  assert.match(script, /\/api\/article\/visual-page-id/);
+  assert.match(script, /answerPosts/);
+  assert.match(script, /\/api\/me\/answer/);
+  assert.match(script, /#optionsBox \.opt/);
+  assert.match(script, /nth\(1\)\.click\(\)/);
+  assert.match(script, /#explainBox/);
+  assert.match(script, /choice !== 1/);
+  assert.match(script, /is_correct !== false/);
+});
+
 test('visual entry QA checks free retention serial entry on mobile', () => {
   assert.match(script, /freeRetentionCase/);
   assert.match(script, /quiz\.html\?free=1/);
@@ -48,5 +61,6 @@ test('visual entry QA is safe to run without production writes', () => {
   assert.match(script, /page\.route\('https:\/\/sofa-engine-api\.onrender\.com\/\*\*'/);
   assert.match(script, /route\.fulfill/);
   assert.doesNotMatch(script, /route\.continue/);
-  assert.doesNotMatch(script, /POST/);
+  assert.match(script, /request\.method\(\) === 'POST'/);
+  assert.match(script, /request\.postData\(\)/);
 });

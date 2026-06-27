@@ -2,7 +2,6 @@
 const fs = require('fs');
 const http = require('http');
 const path = require('path');
-const { pathToFileURL } = require('url');
 
 const ROOT = path.resolve(__dirname, '..');
 const OUT_DIR = process.env.SOFA_VISUAL_QA_OUT || '/tmp';
@@ -59,6 +58,31 @@ function maybePlaywright() {
 
 function apiPayload(url) {
   const u = new URL(url);
+  if (u.pathname === '/api/quiz') {
+    return {
+      page_id: 'visual-page-id',
+      law_name: '所得稅法',
+      title: '第 88 條 | 扣繳義務',
+      question: '下列何者不是扣繳義務人的作業重點？',
+      options: ['百分之三', '百分之十五', '百分之一', '百分之二十'],
+      answer: '百分之三',
+      explanation: '視覺驗收解析：答題後必須顯示原文、解析與下一步操作。'
+    };
+  }
+  if (u.pathname === '/api/article/visual-page-id') {
+    return {
+      page_id: 'visual-page-id',
+      law_name: '所得稅法',
+      article_no: '88',
+      title: '第 88 條 | 扣繳義務',
+      original_text: '視覺驗收條文原文：扣繳義務人應依規定辦理扣繳。',
+      _plan: 'paid',
+      sections: {
+        short_explanation: '扣繳題型先看原文，再看解析。',
+        exam_tip: '注意百分比與主詞。'
+      }
+    };
+  }
   if (u.pathname === '/api/me/study/today') {
     return {
       display_name: '記帳士',
@@ -109,12 +133,24 @@ function apiPayload(url) {
   return {};
 }
 
-async function installApiMocks(page) {
+async function installApiMocks(page, options = {}) {
   await page.route('https://sofa-engine-api.onrender.com/**', route => {
+    const request = route.request();
+    if (request.url().includes('/api/me/answer') && request.method() === 'POST') {
+      if (options.answerPosts) {
+        try { options.answerPosts.push(JSON.parse(request.postData() || '{}')); }
+        catch (err) { options.answerPosts.push({ parse_error: true }); }
+      }
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json; charset=utf-8',
+        body: JSON.stringify({ ok: true, source: 'visual_entry_qa' })
+      });
+    }
     route.fulfill({
       status: 200,
       contentType: 'application/json; charset=utf-8',
-      body: JSON.stringify(apiPayload(route.request().url()))
+      body: JSON.stringify(apiPayload(request.url()))
     });
   });
   await page.addInitScript(() => {
@@ -216,6 +252,44 @@ async function quizCase(browser, baseUrl) {
   return { name: 'quiz-actions-mobile', screenshot, boxes, targetUrl };
 }
 
+async function quizBehaviorCase(browser, baseUrl) {
+  const answerPosts = [];
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true });
+  await installApiMocks(page, { answerPosts });
+  await page.addInitScript(() => {
+    localStorage.removeItem('sofa_exam_key');
+    localStorage.removeItem('sofa_last_law');
+  });
+  await page.goto(`${baseUrl}/quiz.html`, { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => {
+    loadQuiz();
+  });
+  await page.waitForSelector('#optionsBox .opt', { state: 'visible', timeout: 7000 });
+  const opts = page.locator('#optionsBox .opt');
+  const optionCount = await opts.count();
+  if (optionCount !== 4) throw new Error(`mocked quiz should render 4 options, got ${optionCount}`);
+  await opts.nth(1).click();
+  await page.waitForSelector('#explainBox', { state: 'visible', timeout: 7000 });
+  await page.waitForFunction(() => {
+    const box = document.querySelector('#explainBox');
+    return box && getComputedStyle(box).display !== 'none' && /答錯|正確答案/.test(box.innerText);
+  });
+  const selectedWrong = await opts.nth(1).evaluate(el => el.classList.contains('wrong'));
+  const firstRight = await opts.nth(0).evaluate(el => el.classList.contains('right'));
+  if (!selectedWrong || !firstRight) throw new Error('answer click did not mark selected wrong option and correct option');
+  await assertClickable(page, '#view-article-btn', 'behavior article CTA');
+  await assertClickable(page, '#btnNext', 'behavior next CTA');
+  await page.waitForFunction(() => document.querySelector('#sourceBox')?.innerText.includes('條文原文'), null, { timeout: 7000 });
+  const post = answerPosts[0] || {};
+  if (post.choice !== 1) throw new Error(`answer payload choice !== 1: ${JSON.stringify(post)}`);
+  if (post.is_correct !== false) throw new Error(`answer payload is_correct !== false: ${JSON.stringify(post)}`);
+  if (post.article_id !== 'visual-page-id') throw new Error(`answer payload article_id mismatch: ${JSON.stringify(post)}`);
+  const screenshot = path.join(OUT_DIR, 'sofa-visual-quiz-behavior-mobile.png');
+  await page.screenshot({ path: screenshot, fullPage: false });
+  await page.close();
+  return { name: 'quiz-behavior-mobile', screenshot, answerPost: { choice: post.choice, is_correct: post.is_correct, article_id: post.article_id } };
+}
+
 async function freeRetentionCase(browser, baseUrl) {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true });
   await page.goto(`${baseUrl}/quiz.html?free=1`, { waitUntil: 'domcontentloaded' });
@@ -290,6 +364,7 @@ async function statsCase(browser, baseUrl) {
     results.push(await dashboardCase(browser, baseUrl, 'dashboard-mobile', { width: 390, height: 844 }));
     results.push(await dashboardCase(browser, baseUrl, 'dashboard-desktop', { width: 1440, height: 900 }));
     results.push(await quizCase(browser, baseUrl));
+    results.push(await quizBehaviorCase(browser, baseUrl));
     results.push(await freeRetentionCase(browser, baseUrl));
     results.push(await statsCase(browser, baseUrl));
     console.log(JSON.stringify({ ok: true, root: ROOT, results }, null, 2));
