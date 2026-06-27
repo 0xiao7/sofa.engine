@@ -164,6 +164,10 @@ async function dashboardCase(browser, baseUrl, name, viewport) {
   }
   const boxes = {};
   for (const [selector, label] of checks) boxes[label] = await assertClickable(page, selector, label);
+  const weakState = await page.locator('#study-cockpit-weak-state').innerText();
+  if (!/弱點已接入/.test(weakState)) {
+    throw new Error(`${name}: weak state did not reflect mocked weak-laws data: ${weakState}`);
+  }
   const screenshot = path.join(OUT_DIR, `sofa-visual-${name}.png`);
   await page.screenshot({ path: screenshot, fullPage: false });
   await page.close();

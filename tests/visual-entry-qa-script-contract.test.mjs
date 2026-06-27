@@ -12,6 +12,8 @@ test('visual entry QA covers dashboard first-layer entries across mobile and des
   assert.match(script, /#mobile-daily-bar a\[href="quiz\.html\?open=weakness"\]/);
   assert.match(script, /#mobile-daily-bar a\[href="#review-due"\]/);
   assert.match(script, /aside\.side a\[href="quiz\.html\?open=weakness"\]/);
+  assert.match(script, /#study-cockpit-weak-state/);
+  assert.match(script, /弱點已接入/);
 });
 
 test('visual entry QA checks quiz post-answer actions and article deep link', () => {

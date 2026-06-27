@@ -3342,6 +3342,13 @@ function renderStudyWeakBrief(items){
   }).join('');
 }
 
+function renderStudyWeakState(items){
+  var weakEl = document.getElementById('study-cockpit-weak-state');
+  if(!weakEl) return;
+  var laws = Array.isArray(items) ? items.filter(function(x){ return x && x.law_name; }) : [];
+  weakEl.textContent = laws.length ? '弱點已接入' : '弱點資料尚未累積';
+}
+
 function renderStudyTimeSettings(){
   var local = _studyLocal();
   var s = local.settings || {};
@@ -5029,11 +5036,8 @@ function renderStudyToday(data){
   if(summaryEl) summaryEl.textContent = data.fallback ? '先做 1 題開始累積弱點' : (subjects.length + ' 科 · ' + seededCount + ' 科可練習');
   var navStudy = document.getElementById('nav-ct-study');
   if(navStudy) navStudy.textContent = seededCount ? (seededCount + '/' + subjects.length) : '';
-  if(weakEl){
-    var bridge = data.weak_law_bridge || {};
-    weakEl.textContent = bridge.items && bridge.items.length ? '弱點已接入' : '弱點資料尚未累積';
-  }
   renderStudyWeakBrief((data.weak_law_bridge && data.weak_law_bridge.items) || []);
+  renderStudyWeakState((data.weak_law_bridge && data.weak_law_bridge.items) || []);
   renderStudyTimeSettings();
   renderStudyCloudState(data.personal_plan || null);
   renderStudyPlanItems(_mergeStudyPlan(data.personal_plan || null));
@@ -6669,6 +6673,7 @@ ch.on('presence', { event: 'sync' }, () => {
     _rememberRemoteWeakArticles(items);
     var laws = Array.isArray(items) ? items.filter(function(x){ return x && x.law_name; }) : [];
     renderStudyWeakBrief(laws);
+    renderStudyWeakState(laws);
     if(navWeak) navWeak.textContent = String(laws.length);
     if(!laws.length){
       recap.style.display='block';
