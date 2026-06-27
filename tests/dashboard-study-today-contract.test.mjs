@@ -43,6 +43,21 @@ test('dashboard exposes a seed-backed cockpit recap', () => {
   assert.match(active, /id="study-cockpit-blocks"/);
 });
 
+test('law drawer analysis linkifies sixth-section law references', () => {
+  const source = extractFunction(active, '_linkifyLaw');
+  const sandbox = {};
+  vm.createContext(sandbox);
+  vm.runInContext(`${source}; this.linkify = _linkifyLaw;`, sandbox);
+
+  const linkedSameLaw = sandbox.linkify('同法第13條、本法第15條', '記帳士法');
+  assert.match(linkedSameLaw, /searchAndOpen\('記帳士法','13'\)/);
+  assert.match(linkedSameLaw, /searchAndOpen\('記帳士法','15'\)/);
+
+  const linkedNamedLaw = sandbox.linkify('記帳士法第13條及第15條', '所得稅法');
+  assert.match(linkedNamedLaw, /searchAndOpen\('記帳士法','13'\)/);
+  assert.match(linkedNamedLaw, /searchAndOpen\('記帳士法','15'\)/);
+});
+
 test('dashboard fetches the authenticated study today endpoint', () => {
   assert.match(active, /\/api\/me\/study\/today\?track=bookkeeper/);
 });

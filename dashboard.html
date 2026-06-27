@@ -4264,10 +4264,12 @@ function formatLawText(raw){
   return t.replace(/^\n+/,'').replace(/\n{2,}/g,'\n').trim();
 }
 
-function _linkifyLaw(escapedText){
+function _linkifyLaw(escapedText, currentLawName){
   var lastLaw = null;
-  return escapedText.replace(/(?:《([^》]+)》)?第(\d+)條(?:之(\d+))?/g, function(match, law, art, sub){
+  return escapedText.replace(/(?:《([^》]+)》|([^，。、；：\s《》]{2,48}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第(\d+)條(?:之(\d+))?/g, function(match, bracketLaw, plainLaw, sameLaw, art, sub){
+    var law = bracketLaw || plainLaw || '';
     if(law) lastLaw = law;
+    else if(sameLaw && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
     if(!lastLaw) return match;
     var safelaw = lastLaw.replace(/\\/g,'').replace(/'/g,"\\'");
     var fullArt = art + (sub ? '之' + sub : '');
@@ -4275,7 +4277,7 @@ function _linkifyLaw(escapedText){
   });
 }
 
-function formatSection(text){
+function formatSection(text, currentLawName){
   if(!text) return '';
   var lines = String(text).replace(/\r\n?/g,'\n').split('\n');
   var out = '';
@@ -4291,11 +4293,11 @@ function formatSection(text){
     if(!body) return;
     var esc = body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     esc = esc.replace(/^([^：:]{1,14}[：:])/, '<b>$1</b>');
-    out += '<p class="'+(isSub?'sec-i':'sec-h')+'">'+_linkifyLaw(esc)+'</p>';
+    out += '<p class="'+(isSub?'sec-i':'sec-h')+'">'+_linkifyLaw(esc, currentLawName)+'</p>';
   });
   if(!out){
     var e = String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-    return '<p>'+_linkifyLaw(e)+'</p>';
+    return '<p>'+_linkifyLaw(e, currentLawName)+'</p>';
   }
   return out;
 }
@@ -4513,7 +4515,7 @@ function _renderDrawer(d){
                   : /^（[一二三四五六七八九十百千]+）/.test(l) ? ' class="dr-sub"'
                   : '';
           var escaped = l.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-          return '<p'+cls+'>' + _linkifyLaw(escaped) + '</p>';
+          return '<p'+cls+'>' + _linkifyLaw(escaped, d.law_name || _drLawName) + '</p>';
         }).join('')
       + '</div>';
   }
@@ -4542,7 +4544,7 @@ function _renderDrawer(d){
           + '<div class="acc-locked-body"><div class="acc-locked-cta">進階內容，訂閱者可見</div></div></div>';
       }else{
         var blurContent = text
-          ? '<div class="acc-locked-blur">'+formatSection(text)+'</div>'
+          ? '<div class="acc-locked-blur">'+formatSection(text, d.law_name || _drLawName)+'</div>'
           : '<div class="acc-locked-blur" style="padding:0 22px 0 28px"><div style="height:10px;border-radius:3px;background:rgba(31,56,72,.13);margin-bottom:9px;width:92%"></div><div style="height:10px;border-radius:3px;background:rgba(31,56,72,.13);margin-bottom:9px;width:76%"></div></div>';
         accHtml += '<div class="acc-item locked" data-seg="'+seg+'">'
           + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span><span class="ttl">'+name+'</span></div>'
@@ -4556,7 +4558,7 @@ function _renderDrawer(d){
       accHtml += '<div class="acc-item'+(seg===1?' open':'')+'" data-seg="'+seg+'" onclick="_toggleAccItem(this)">'
         + '<div class="acc-head"><span class="cv">▸</span><span class="num">'+seg+'</span><span class="ttl">'+name+'</span></div>'
         + '<div class="acc-body"><div class="acc-inner">'
-        + formatSection(text)
+        + formatSection(text, d.law_name || _drLawName)
         + '</div></div></div>';
     }
   });
@@ -7247,6 +7249,9 @@ function _handleUrlQuery(){
   var inp = document.getElementById('search-law');
   if(!inp) return;
   inp.value = decodeURIComponent(q);
+  var art = params.get('art');
+  var artInp = document.getElementById('search-art');
+  if(art && artInp) artInp.value = decodeURIComponent(art).replace(/^§+/,'');
   doSearch();
 }
 

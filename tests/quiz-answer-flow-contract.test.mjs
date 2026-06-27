@@ -186,6 +186,22 @@ test('paid answer explanation renders advanced analysis sections instead of hidi
   assert.match(active, /相關法規及注意事項/);
 });
 
+test('quiz analysis linkifies sixth-section law references to dashboard', () => {
+  const start = active.indexOf('function linkifyLawRefs');
+  const end = active.indexOf('function formatSection', start);
+  assert.ok(start >= 0 && end > start, 'law reference helper must be extractable before formatSection');
+  const helpers = vm.runInNewContext(`${active.slice(start, end)};({linkifyLawRefs})`);
+
+  const linkedSameLaw = helpers.linkifyLawRefs('同法第13條、本法第15條', '記帳士法');
+  assert.match(linkedSameLaw, /dashboard\.html\?q=記帳士法&art=13/);
+  assert.match(linkedSameLaw, /dashboard\.html\?q=記帳士法&art=15/);
+
+  const linkedNamedLaw = helpers.linkifyLawRefs('記帳士法第13條及第15條', '所得稅法');
+  assert.match(linkedNamedLaw, /dashboard\.html\?q=記帳士法&art=13/);
+  assert.match(linkedNamedLaw, /dashboard\.html\?q=記帳士法&art=15/);
+  assert.match(active, /formatSection\(sections\[name\],\s*articleLawName\)/);
+});
+
 test('CPI-adjusted article answers always show a visible adjustment warning', () => {
   assert.match(active, /function buildCpiAdjustmentNote/);
   assert.match(active, /function appendCpiAdjustmentNote/);
