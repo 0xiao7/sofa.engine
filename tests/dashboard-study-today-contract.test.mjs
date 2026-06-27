@@ -68,8 +68,22 @@ test('study today makes working tools and personal planning obvious', () => {
   assert.doesNotMatch(active, /total_sessions:\s*count/);
 });
 
+test('study plan and record panels have deep links for native app entry', () => {
+  assert.match(active, /function openStudyPanelFromHash/);
+  assert.match(active, /hash === '#study-plan'[\s\S]*openStudyPlanPanel\(\)/);
+  assert.match(active, /hash === '#study-record'[\s\S]*openStudyRecordPanel\(\)/);
+  assert.match(active, /hashchange', openStudyPanelFromHash/);
+});
+
 test('study today action buttons are sized for mobile app shells', () => {
+  const studyActionButtonRule = active.match(/\.study-action-button\{[\s\S]*?\n  \}/)?.[0] || '';
   assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?min-height:40px/);
+  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?font-family:var\(--mono\)/);
+  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?font-size:11px/);
+  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?line-height:1\.25/);
+  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?box-sizing:border-box/);
+  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?text-decoration:none/);
+  assert.doesNotMatch(studyActionButtonRule, /font:inherit/);
   assert.match(active, /@media \(max-width:760px\)\{[\s\S]*?\.study-action-link,\.study-pending\{[\s\S]*?min-height:44px/);
   assert.match(active, /\.study-weak-brief-link\{[\s\S]*?min-height:36px/);
   assert.match(active, /\.study-weak-brief-head\{[\s\S]*?flex-wrap:wrap/);
