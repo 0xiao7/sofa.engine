@@ -297,3 +297,30 @@ test('saved study plans show an immediate readable summary and focus the plan li
   assert.match(active, /_addLocalStudyItems[\s\S]*focusStudyPlanItems\(\)/);
   assert.match(active, /saveStudyRecordLocal[\s\S]*focusStudyPlanItems\(\)/);
 });
+
+test('local study plan items can be completed postponed or cancelled from the list', () => {
+  assert.match(active, /function _studyItemKey/);
+  assert.match(active, /function updateLocalStudyItemStatus/);
+  assert.match(active, /function completeStudyItem/);
+  assert.match(active, /function postponeStudyItem/);
+  assert.match(active, /function cancelStudyItem/);
+  assert.match(active, /class="study-plan-actions"/);
+  assert.match(active, /完成/);
+  assert.match(active, /改下週/);
+  assert.match(active, /取消/);
+  assert.match(active, /local\.items = \(local\.items \|\| \[\]\)\.map/);
+  assert.match(active, /renderStudyPlanItems\(_mergeStudyPlan\(null\)\)/);
+  assert.doesNotMatch(active, /updateLocalStudyItemStatus[\s\S]{0,500}correct_count/);
+});
+
+test('study today builds concrete local suggestions from time weakness and plan data', () => {
+  assert.match(active, /id="study-suggestions"/);
+  assert.match(active, /function buildStudySuggestions/);
+  assert.match(active, /today_minutes/);
+  assert.match(active, /weak_law_bridge/);
+  assert.match(active, /_mergeStudyPlan\(data\.personal_plan \|\| null\)/);
+  assert.match(active, /renderStudySuggestions\(buildStudySuggestions\(data, mergedPlan\)\)/);
+  assert.match(active, /先做一題弱點/);
+  assert.match(active, /下一堂課/);
+  assert.match(active, /今天預留/);
+});

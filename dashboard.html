@@ -693,6 +693,44 @@
     cursor:pointer;
   }
   .study-time-save span{font-size:12px;color:rgba(245,240,234,.55)}
+  .study-suggestions{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+  }
+  .study-suggestion-card{
+    min-width:0;
+    border:1px solid var(--line-2);
+    background:rgba(255,255,255,.025);
+    border-radius:4px;
+    padding:12px 13px;
+    display:grid;
+    gap:7px;
+    color:rgba(245,240,234,.68);
+  }
+  .study-suggestion-card:hover{
+    border-color:rgba(231,187,167,.45);
+    background:rgba(231,187,167,.055);
+  }
+  .study-suggestion-card .k{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.12em;
+    color:var(--peach);
+  }
+  .study-suggestion-card .t{
+    font-family:var(--serif);
+    font-size:17px;
+    line-height:1.35;
+    color:var(--cream);
+    font-weight:600;
+  }
+  .study-suggestion-card .m{
+    font-size:12px;
+    line-height:1.55;
+    color:rgba(245,240,234,.54);
+    overflow-wrap:anywhere;
+  }
   .study-plan-panel{
     display:none;
     border:1px solid rgba(231,187,167,.2);
@@ -900,6 +938,18 @@
   .study-plan-item .title{font-family:var(--serif);font-size:14px;color:var(--cream);font-weight:600}
   .study-plan-item .meta{font-size:12px;color:rgba(245,240,234,.52);grid-column:2 / -1}
   .study-plan-item .status{font-family:var(--mono);font-size:10px;color:rgba(245,240,234,.48);white-space:nowrap}
+  .study-plan-actions{grid-column:1 / -1;display:flex;gap:7px;flex-wrap:wrap}
+  .study-plan-actions button{
+    min-height:32px;
+    border:1px solid var(--line-2);
+    color:rgba(245,240,234,.72);
+    border-radius:4px;
+    padding:5px 10px;
+    font-size:12px;
+    background:rgba(255,255,255,.025);
+  }
+  .study-plan-actions button.primary{background:rgba(159,184,159,.12);border-color:rgba(159,184,159,.45);color:var(--good)}
+  .study-plan-actions button.warn{border-color:rgba(217,176,132,.38);color:var(--warn)}
   @media (max-width:760px){
     .srs-panel{
       grid-template-columns:1fr;
@@ -924,6 +974,7 @@
     .study-time-box{grid-template-columns:1fr}
     .study-time-cell{border-left:0;border-top:1px solid rgba(231,187,167,.16);padding-left:0;padding-top:9px}
     .study-time-cell:first-child{border-top:0;padding-top:0}
+    .study-suggestions{grid-template-columns:1fr}
     .study-record-kinds{grid-template-columns:1fr}
     .study-plan-grid{grid-template-columns:1fr 1fr}
     .study-plan-field.full{grid-column:1 / -1}
@@ -2644,6 +2695,7 @@
                 <div class="study-weak-empty">答題後，這裡會直接列出最該補的法規。</div>
               </div>
             </div>
+            <div class="study-suggestions" id="study-suggestions" aria-label="今天建議讀什麼"></div>
             <div class="study-time-box" id="study-time-box" aria-label="備考時間規劃">
               <div class="study-time-cell" id="study-target-hours">
                 <span class="k">建議總時數</span>
@@ -3457,6 +3509,31 @@ function _dedupeStudyItems(items){
   });
 }
 
+function _studyItemKey(item){
+  return [item.scheduled_date || '', item.scheduled_time || '', item.subject || '', item.title || '', item.source_label || ''].join('|');
+}
+
+function updateLocalStudyItemStatus(key, status, shiftDays){
+  var local = _studyLocal();
+  local.items = (local.items || []).map(function(item){
+    if(_studyItemKey(item) !== key) return item;
+    var next = Object.assign({}, item, { status: status || item.status || 'planned' });
+    if(shiftDays){
+      next.scheduled_date = _datePlusDays(next.scheduled_date || _todayInputValue(), shiftDays);
+      next.status = 'postponed';
+    }
+    return next;
+  });
+  _saveStudyLocal(local);
+  renderStudyPlanItems(_mergeStudyPlan(null));
+  focusStudyPlanItems();
+  showStudySaveNudge();
+}
+
+function completeStudyItem(key){ updateLocalStudyItemStatus(key, 'done', 0); }
+function postponeStudyItem(key){ updateLocalStudyItemStatus(key, 'postponed', 7); }
+function cancelStudyItem(key){ updateLocalStudyItemStatus(key, 'cancelled', 0); }
+
 function _mergeStudyPlan(remotePlan){
   var local = _studyLocal();
   var remoteItems = remotePlan && Array.isArray(remotePlan.items) ? remotePlan.items : [];
@@ -3557,6 +3634,72 @@ function saveStudyTimeSettings(){
   var state = document.getElementById('study-time-state');
   if(state) state.textContent = '已存到這台裝置。';
   showStudySaveNudge();
+}
+
+function buildStudySuggestions(data, mergedPlan){
+  var local = _studyLocal();
+  var settings = local.settings || {};
+  var todayMinutes = settings.today_minutes || 60;
+  var weakItems = data && data.weak_law_bridge && Array.isArray(data.weak_law_bridge.items)
+    ? data.weak_law_bridge.items
+    : [];
+  if(!weakItems.length) weakItems = _latestWeakLawItems || [];
+  var items = mergedPlan && Array.isArray(mergedPlan.items) ? mergedPlan.items : [];
+  var blocks = data && data.today && Array.isArray(data.today.blocks) ? data.today.blocks : [];
+  var suggestions = [];
+  if(weakItems.length){
+    var law = weakItems[0] || {};
+    suggestions.push({
+      label:'WEAK',
+      title:'先做一題弱點',
+      meta:(law.law_name || '弱點法規') + (law.wrong_count ? ' · 錯 ' + law.wrong_count + ' 次' : ''),
+      href:'quiz.html?open=weakness'
+    });
+  } else {
+    suggestions.push({
+      label:'QUIZ',
+      title:'先做一題選擇題',
+      meta:'答題後才會產生真正的弱點清單。',
+      href:'quiz.html'
+    });
+  }
+  if(items.length){
+    var next = items[0] || {};
+    suggestions.push({
+      label:'PLAN',
+      title:'下一堂課',
+      meta:[next.scheduled_date || '', next.scheduled_time || '', next.title || next.subject || '讀書計畫'].filter(Boolean).join(' · '),
+      href:'#study-plan-items'
+    });
+  } else if(blocks.length){
+    var block = blocks[0] || {};
+    suggestions.push({
+      label:'BLOCK',
+      title:block.display_name || '今天題庫區塊',
+      meta:[block.subject || '', block.question_signal ? ('常考 ' + block.question_signal + ' 題') : ''].filter(Boolean).join(' · '),
+      href:'quiz.html'
+    });
+  }
+  suggestions.push({
+    label:'TIME',
+    title:'今天預留 ' + todayMinutes + ' 分鐘',
+    meta:'時間設定只排進度；答題才會更新正確率和弱點。',
+    href:'#study-time-box'
+  });
+  return suggestions.slice(0,3);
+}
+
+function renderStudySuggestions(suggestions){
+  var el = document.getElementById('study-suggestions');
+  if(!el) return;
+  var list = Array.isArray(suggestions) ? suggestions : [];
+  el.innerHTML = list.map(function(item){
+    return '<a class="study-suggestion-card" href="' + esc(item.href || '#') + '">'
+      + '<span class="k">' + esc(item.label || 'NEXT') + '</span>'
+      + '<span class="t">' + esc(item.title || '今天先做一題') + '</span>'
+      + '<span class="m">' + esc(item.meta || '') + '</span>'
+      + '</a>';
+  }).join('');
 }
 
 // ── Drawer 動態開啟 ──────────────────────────────────────
@@ -5239,7 +5382,9 @@ function renderStudyToday(data){
   renderStudyWeakState(weakItems);
   renderStudyTimeSettings();
   renderStudyCloudState(data.personal_plan || null);
+  var mergedPlan = _mergeStudyPlan(data.personal_plan || null);
   renderStudyPlanItems(_mergeStudyPlan(data.personal_plan || null));
+  renderStudySuggestions(buildStudySuggestions(data, mergedPlan));
   updateStudySaveNudge();
   subjectsEl.innerHTML = subjects.map(function(s){
     var seeded = s.implementation_status === 'seeded_moex_mcq';
@@ -5307,11 +5452,18 @@ function renderStudyPlanItems(plan){
     + '</div>';
   el.innerHTML = summary + '<h3>接下來的私人計畫</h3>' + items.slice(0,8).map(function(item){
     var meta = [item.subject || '', item.scheduled_time || '', item.source_label || ''].filter(Boolean).join(' · ');
+    var key = _studyItemKey(item);
+    var canEdit = !item.id && item.source_label !== '補紀錄 ' + (item.minutes || '') + ' 分鐘';
     return '<div class="study-plan-item">'
       + '<span class="date">' + esc(item.scheduled_date || '') + '</span>'
       + '<span class="title">' + esc(item.title || item.subject || '讀書計畫') + '</span>'
       + '<span class="status">' + esc(_studyStatusLabel(item.status)) + '</span>'
       + '<span class="meta">' + esc(meta) + '</span>'
+      + (canEdit ? '<span class="study-plan-actions">'
+        + '<button class="primary" type="button" onclick="completeStudyItem(' + JSON.stringify(key) + ')">完成</button>'
+        + '<button type="button" onclick="postponeStudyItem(' + JSON.stringify(key) + ')">改下週</button>'
+        + '<button class="warn" type="button" onclick="cancelStudyItem(' + JSON.stringify(key) + ')">取消</button>'
+        + '</span>' : '')
       + '</div>';
   }).join('');
 }
