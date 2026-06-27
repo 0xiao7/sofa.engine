@@ -287,7 +287,7 @@ test('series planning can generate local weekly items before API sync', () => {
 
 test('saved study plans show an immediate readable summary and focus the plan list', () => {
   assert.match(active, /class="study-plan-count"/);
-  assert.match(active, /接下來 ' \+ items\.length \+ ' 筆私人計畫/);
+  assert.match(active, /接下來 ' \+ actionable\.length \+ ' 筆私人計畫/);
   assert.match(active, /下一筆：<b>/);
   assert.match(active, /function _studyStatusLabel/);
   assert.match(active, /已完成/);
@@ -323,4 +323,14 @@ test('study today builds concrete local suggestions from time weakness and plan 
   assert.match(active, /先做一題弱點/);
   assert.match(active, /下一堂課/);
   assert.match(active, /今天預留/);
+});
+
+test('study plan next actions ignore completed cancelled and stale items', () => {
+  assert.match(active, /function _isStudyItemActionable/);
+  assert.match(active, /function _actionableStudyItems/);
+  assert.match(active, /status === 'done' \|\| status === 'cancelled' \|\| status === 'skipped'/);
+  assert.match(active, /scheduled_date < _todayInputValue\(\)/);
+  assert.match(active, /var actionable = _actionableStudyItems\(items\)/);
+  assert.match(active, /var next = actionable\[0\] \|\| \{\}/);
+  assert.match(active, /var items = _actionableStudyItems\(mergedPlan && Array\.isArray\(mergedPlan\.items\) \? mergedPlan\.items : \[\]\)/);
 });

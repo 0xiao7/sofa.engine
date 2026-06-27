@@ -3509,6 +3509,19 @@ function _dedupeStudyItems(items){
   });
 }
 
+function _isStudyItemActionable(item){
+  if(!item) return false;
+  var status = String(item.status || 'planned').trim();
+  if(status === 'done' || status === 'cancelled' || status === 'skipped') return false;
+  var scheduled_date = String(item.scheduled_date || '').slice(0,10);
+  if(scheduled_date && scheduled_date < _todayInputValue()) return false;
+  return true;
+}
+
+function _actionableStudyItems(items){
+  return (items || []).filter(_isStudyItemActionable);
+}
+
 function _studyItemKey(item){
   return [item.scheduled_date || '', item.scheduled_time || '', item.subject || '', item.title || '', item.source_label || ''].join('|');
 }
@@ -3644,7 +3657,7 @@ function buildStudySuggestions(data, mergedPlan){
     ? data.weak_law_bridge.items
     : [];
   if(!weakItems.length) weakItems = _latestWeakLawItems || [];
-  var items = mergedPlan && Array.isArray(mergedPlan.items) ? mergedPlan.items : [];
+  var items = _actionableStudyItems(mergedPlan && Array.isArray(mergedPlan.items) ? mergedPlan.items : []);
   var blocks = data && data.today && Array.isArray(data.today.blocks) ? data.today.blocks : [];
   var suggestions = [];
   if(weakItems.length){
@@ -5445,12 +5458,17 @@ function renderStudyPlanItems(plan){
     el.innerHTML = '';
     return;
   }
-  var next = items[0] || {};
+  var actionable = _actionableStudyItems(items);
+  if(!actionable.length){
+    el.innerHTML = '<div class="study-plan-count">目前沒有待讀的私人計畫；完成或取消的項目不會再被排成下一步。</div>';
+    return;
+  }
+  var next = actionable[0] || {};
   var nextText = [next.scheduled_date || '', next.scheduled_time || '', next.title || next.subject || '讀書計畫'].filter(Boolean).join(' · ');
-  var summary = '<div class="study-plan-count">接下來 ' + items.length + ' 筆私人計畫'
+  var summary = '<div class="study-plan-count">接下來 ' + actionable.length + ' 筆私人計畫'
     + (nextText ? '；下一筆：<b>' + esc(nextText) + '</b>' : '')
     + '</div>';
-  el.innerHTML = summary + '<h3>接下來的私人計畫</h3>' + items.slice(0,8).map(function(item){
+  el.innerHTML = summary + '<h3>接下來的私人計畫</h3>' + actionable.slice(0,8).map(function(item){
     var meta = [item.subject || '', item.scheduled_time || '', item.source_label || ''].filter(Boolean).join(' · ');
     var key = _studyItemKey(item);
     var canEdit = !item.id && item.source_label !== '補紀錄 ' + (item.minutes || '') + ' 分鐘';
