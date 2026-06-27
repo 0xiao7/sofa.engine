@@ -15,7 +15,13 @@ test('post-answer actions place next question next to view article', () => {
   assert.match(actionRow, /id="view-article-btn"/);
   assert.match(actionRow, /id="view-weakness-btn"/);
   assert.match(actionRow, />看弱點分析</);
+  assert.match(actionRow, /id="btnFlag"/);
   assert.match(actionRow, /id="btnNext"/);
+  assert.ok(actionRow.indexOf('id="btnFlag"') < actionRow.indexOf('id="btnNext"'), 'flag action should sit next to next question');
+  const footStart = active.indexOf('class="q-foot"', end);
+  const footEnd = active.indexOf('class="rail"', footStart);
+  assert.ok(footStart >= 0 && footEnd > footStart, 'quiz footer must exist');
+  assert.doesNotMatch(active.slice(footStart, footEnd), /id="btnFlag"/, 'do not leave a second flag button below the fold');
 });
 
 test('quiz top entry names weakness analysis as a first-level tool', () => {

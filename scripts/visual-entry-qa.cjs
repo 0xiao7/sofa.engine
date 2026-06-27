@@ -186,6 +186,7 @@ async function quizCase(browser, baseUrl) {
     document.getElementById('quiz-citation').style.display = 'block';
     document.getElementById('view-article-btn').style.display = 'inline-block';
     document.getElementById('view-weakness-btn').style.display = 'inline-block';
+    document.getElementById('btnFlag').style.display = 'inline-flex';
     document.getElementById('btnNext').style.display = 'inline-flex';
     document.getElementById('questionBox').textContent = '視覺驗收題目';
     document.getElementById('quiz-answer-actions').scrollIntoView({ block: 'center' });

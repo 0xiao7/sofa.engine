@@ -401,6 +401,12 @@
     border-radius: 16px;
     font-size: 13px;
   }
+  #quiz-answer-actions #btnFlag {
+    display: none;
+    padding: 6px 14px;
+    border-radius: 16px;
+    font-size: 13px;
+  }
   .weak-empty {
     font-family: var(--mono);
     font-size: 11px;
@@ -739,6 +745,7 @@
           <div id="quiz-citation"></div>
           <button id="view-article-btn" onclick="_openArticleDashboard()">查看法條</button>
           <button id="view-weakness-btn" onclick="_openWeakness()">看弱點分析</button>
+          <button class="btn btn-ghost" id="btnFlag">⚑ 標記</button>
           <button class="btn btn-pri" id="btnNext">下一題 <span class="k">↵</span></button>
         </div>
 
@@ -759,7 +766,6 @@
             <span><kbd>F</kbd>標記</span>
           </div>
           <div class="r">
-            <button class="btn btn-ghost" id="btnFlag">⚑ 標記</button>
             <button class="btn btn-sec">← 上一題</button>
           </div>
         </div>
@@ -2086,6 +2092,7 @@ function _feedbackAnim(btn, isCorrect, elapsedSec){
   // Wave 68: 顯示「查看法條」按鈕
   document.getElementById('view-article-btn').style.display = 'inline-block';
   document.getElementById('view-weakness-btn').style.display = 'inline-block';
+  document.getElementById('btnFlag').style.display = 'inline-flex';
   document.getElementById('btnNext').style.display = 'inline-flex';
 }
 
@@ -2315,6 +2322,7 @@ async function loadQuiz(){
     document.getElementById('questionBox').textContent=data.question||'出題失敗';
     document.getElementById('questionBox').style.opacity='1';
     document.getElementById('btnFlag').classList.remove('flagged');
+    document.getElementById('btnFlag').style.display='none';
     document.getElementById('btnFlag').textContent='⚑ 標記';
 
     const labels=['A','B','C','D'];
@@ -2591,6 +2599,7 @@ async function loadWrongQuiz() {
     document.getElementById('questionBox').textContent = data.question || '出題失敗';
     document.getElementById('questionBox').style.opacity = '1';
     document.getElementById('btnFlag').classList.remove('flagged');
+    document.getElementById('btnFlag').style.display = 'none';
     document.getElementById('btnFlag').textContent = '⚑ 標記';
 
     const labels = ['A','B','C','D'];
