@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const files = ['index.html', 'dashboard.html', 'login.html', 'checkout.html', 'free.html', 'pricing.html', 'terms.html'];
+const files = ['index.html', 'dashboard.html', 'login.html', 'checkout.html', 'free.html', 'pricing.html', 'terms.html', 'quiz.html'];
 const source = Object.fromEntries(files.map((file) => [
   file,
   readFileSync(new URL(`../${file}`, import.meta.url), 'utf8').replace(/<!--[\s\S]*?-->/g, ''),
@@ -26,6 +26,7 @@ test('public growth funnel leads with web practice and saved learning value', ()
   assert.match(source['pricing.html'], /保留答題紀錄/);
   assert.match(source['pricing.html'], /弱點分析/);
   assert.match(source['pricing.html'], /錯題重練/);
+  assert.match(source['quiz.html'], /輸入序號保留紀錄/);
   assert.match(source['free.html'], /弱點分析與錯題重練/);
   assert.match(source['checkout.html'], /3 種練習 \+ 弱點分析/);
   for (const file of ['index.html', 'pricing.html', 'free.html', 'checkout.html']) {

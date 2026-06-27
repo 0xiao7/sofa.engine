@@ -238,6 +238,14 @@ test('study planning nudges local users to preserve progress after real action',
   assert.doesNotMatch(active, /beforeunload/);
 });
 
+test('free dashboard surfaces serial login before paid upgrade for retention', () => {
+  assert.match(active, /免費版 · 完整會員資訊/);
+  assert.match(active, /login\.html[\s\S]*輸入序號保留進度/);
+  assert.match(active, /免費版不儲存學習紀錄/);
+  assert.match(active, /login\.html[\s\S]*已有序號就登入保存/);
+  assert.match(active, /pricing\.html[\s\S]*查看方案/);
+});
+
 test('study time planning is editable and persisted locally', () => {
   assert.match(active, /id="study-total-hours-input"/);
   assert.match(active, /id="study-weekly-hours-input"/);
