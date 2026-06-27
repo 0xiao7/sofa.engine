@@ -167,6 +167,8 @@ test('mobile dashboard prioritizes next-step guidance before the full tool grid'
 });
 
 test('sidebar and mobile quick entry use clear exam-loop labels', () => {
+  assert.match(active, /<nav class="top-mid">[\s\S]*href="quiz\.html\?open=weakness"[\s\S]*弱點/);
+  assert.match(active, /<nav class="top-mid">[\s\S]*href="#review-due"[\s\S]*複習/);
   assert.match(active, /<a href="#study-cockpit-recap"><span class="num">T1<\/span>今天先做/);
   assert.match(active, /<a href="quiz\.html"><span class="num">T2<\/span>選擇題/);
   assert.match(active, /<a href="#review-due"><span class="num">T3<\/span>今日複習/);

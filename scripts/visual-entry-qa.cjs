@@ -160,6 +160,8 @@ async function dashboardCase(browser, baseUrl, name, viewport) {
     checks.push(['#mobile-daily-bar a[href="quiz.html?open=weakness"]', 'mobile weakness quick entry']);
     checks.push(['#mobile-daily-bar a[href="#review-due"]', 'mobile review quick entry']);
   } else {
+    checks.push(['.top-mid a[href="quiz.html?open=weakness"]', 'desktop top weakness entry']);
+    checks.push(['.top-mid a[href="#review-due"]', 'desktop top review entry']);
     checks.push(['aside.side a[href="quiz.html?open=weakness"]', 'desktop sidebar weakness entry']);
   }
   const boxes = {};

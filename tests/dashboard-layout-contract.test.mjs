@@ -11,6 +11,8 @@ test('dashboard uses one Chinese font stack across serif and sans tokens', () =>
 
 test('today recaps are included in the sidebar navigation and scroll spy', () => {
   assert.match(html, /<nav class="top-mid">[\s\S]*href="#study-cockpit-recap"[\s\S]*今天先做/);
+  assert.match(html, /<nav class="top-mid">[\s\S]*href="quiz\.html\?open=weakness"[\s\S]*弱點/);
+  assert.match(html, /<nav class="top-mid">[\s\S]*href="#review-due"[\s\S]*複習/);
   assert.match(html, /href="#study-cockpit-recap"[\s\S]*今天先做/);
   assert.match(html, /href="quiz\.html"[\s\S]*選擇題/);
   assert.match(html, /href="#review-due"[\s\S]*今日複習/);
