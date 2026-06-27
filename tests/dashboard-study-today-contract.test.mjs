@@ -1,14 +1,61 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import vm from 'node:vm';
 
 const html = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
 const active = html.replace(/<!--[\s\S]*?-->/g, '');
+
+function extractFunction(source, name) {
+  const start = source.indexOf(`function ${name}`);
+  assert.ok(start >= 0, `${name} must exist`);
+  const open = source.indexOf('{', start);
+  let depth = 0;
+  for (let i = open; i < source.length; i += 1) {
+    if (source[i] === '{') depth += 1;
+    if (source[i] === '}') {
+      depth -= 1;
+      if (depth === 0) return source.slice(start, i + 1);
+    }
+  }
+  throw new Error(`Could not extract ${name}`);
+}
+
+function buildRecommendationHarness() {
+  const source = [
+    `function _todayInputValue(){ return '2026-06-27'; }`,
+    `function _datePlusDays(dateText, days){ const d = new Date(dateText + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(0,10); }`,
+    extractFunction(active, '_weekdayDateFromToday'),
+    extractFunction(active, '_studyTimeToMinutes'),
+    extractFunction(active, '_studyItemDurationMinutes'),
+    extractFunction(active, '_studySlotIsFree'),
+    extractFunction(active, '_studyNextAvailableSlot')
+  ].join('\n');
+  const sandbox = {};
+  vm.createContext(sandbox);
+  vm.runInContext(`${source}; this._studyNextAvailableSlot = _studyNextAvailableSlot; this._studySlotIsFree = _studySlotIsFree;`, sandbox);
+  return sandbox;
+}
 
 test('dashboard exposes a seed-backed cockpit recap', () => {
   assert.match(active, /id="study-cockpit-recap"/);
   assert.match(active, /id="study-cockpit-subjects"/);
   assert.match(active, /id="study-cockpit-blocks"/);
+});
+
+test('law drawer analysis linkifies sixth-section law references', () => {
+  const source = extractFunction(active, '_linkifyLaw');
+  const sandbox = {};
+  vm.createContext(sandbox);
+  vm.runInContext(`${source}; this.linkify = _linkifyLaw;`, sandbox);
+
+  const linkedSameLaw = sandbox.linkify('同法第13條、本法第15條', '記帳士法');
+  assert.match(linkedSameLaw, /searchAndOpen\('記帳士法','13'\)/);
+  assert.match(linkedSameLaw, /searchAndOpen\('記帳士法','15'\)/);
+
+  const linkedNamedLaw = sandbox.linkify('記帳士法第13條及第15條', '所得稅法');
+  assert.match(linkedNamedLaw, /searchAndOpen\('記帳士法','13'\)/);
+  assert.match(linkedNamedLaw, /searchAndOpen\('記帳士法','15'\)/);
 });
 
 test('dashboard fetches the authenticated study today endpoint', () => {
@@ -58,8 +105,10 @@ test('study today makes working tools and personal planning obvious', () => {
   assert.match(active, /class="study-action-link primary" href="quiz\.html"[\s\S]*開始選擇題/);
   assert.match(active, /href="#review-due"[\s\S]*看今日複習/);
   assert.match(active, /href="quiz\.html\?open=weakness"[\s\S]*看弱點分析/);
+  assert.match(active, /onclick="openStudyPlaylistPanel\(\)"[\s\S]*播放清單/);
   assert.match(active, /onclick="openStudyPlanPanel\(\)"[\s\S]*設定讀書課程/);
   assert.match(active, /onclick="openStudyRecordPanel\(\)"[\s\S]*補紀錄/);
+  assert.match(active, /id="study-playlist-panel"/);
   assert.match(active, /id="study-plan-panel"/);
   assert.match(active, /適合函授、補習班課程、模考或自己的週任務/);
   assert.match(active, /function saveStudySeries/);
@@ -68,8 +117,43 @@ test('study today makes working tools and personal planning obvious', () => {
   assert.doesNotMatch(active, /total_sessions:\s*count/);
 });
 
+test('desktop dashboard keeps the left library rail persistent', () => {
+  assert.match(active, /\.shell\{[\s\S]*grid-template-columns:280px minmax\(0,1fr\)/);
+  assert.match(active, /aside\.side\{[\s\S]*position:fixed;top:71px;bottom:0;left:0;width:280px/);
+  assert.match(active, /aside\.side\{[\s\S]*height:calc\(100dvh - 71px\)/);
+  assert.match(active, /main\.main\{[\s\S]*grid-column:2/);
+  assert.match(active, /@media \(max-width:980px\)\{[\s\S]*\.shell\{grid-template-columns:1fr\}/);
+  assert.match(active, /@media \(max-width:980px\)\{[\s\S]*aside\.side\{[\s\S]*position:fixed;top:65px;left:0;width:280px/);
+});
+
+test('study plan and record panels have deep links for native app entry', () => {
+  assert.match(active, /function openStudyPanelFromHash/);
+  assert.match(active, /hash === '#study-plan'[\s\S]*openStudyPlanPanel\(\)/);
+  assert.match(active, /hash === '#study-record'[\s\S]*openStudyRecordPanel\(\)/);
+  assert.match(active, /hash === '#study-playlist'[\s\S]*openStudyPlaylistPanel\(\)/);
+  assert.match(active, /hashchange', openStudyPanelFromHash/);
+});
+
+test('study playlist is a generic text fallback and does not ship private schedules', () => {
+  assert.match(active, /function openStudyPlaylistPanel/);
+  assert.match(active, /function loadStudyPlaylist/);
+  assert.match(active, /\/api\/playlist\?track=bookkeeper/);
+  assert.match(active, /content_layer=analysis/);
+  assert.match(active, /star_min=3/);
+  assert.match(active, /重點清單，先聽最常考/);
+  assert.doesNotMatch(active, /記帳士 115記帳士台北N1|115\/03\/02|稅務相關法規\(基礎\)1/);
+});
+
 test('study today action buttons are sized for mobile app shells', () => {
-  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?min-height:40px/);
+  const studyActionButtonRule = active.match(/\.study-action-button\{[\s\S]*?\n  \}/)?.[0] || '';
+  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?min-height:44px/);
+  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?font-family:var\(--serif\)/);
+  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?font-size:15px/);
+  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?letter-spacing:0/);
+  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?line-height:1\.25/);
+  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?box-sizing:border-box/);
+  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?text-decoration:none/);
+  assert.doesNotMatch(studyActionButtonRule, /font:inherit/);
   assert.match(active, /@media \(max-width:760px\)\{[\s\S]*?\.study-action-link,\.study-pending\{[\s\S]*?min-height:44px/);
   assert.match(active, /\.study-weak-brief-link\{[\s\S]*?min-height:36px/);
   assert.match(active, /\.study-weak-brief-head\{[\s\S]*?flex-wrap:wrap/);
@@ -84,9 +168,26 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.ok(timeBox > -1, 'time-first box must exist');
   assert.ok(planPanel > -1, 'private plan panel must exist');
   assert.ok(timeBox < planPanel, 'time guidance should appear before private schedule controls');
+  assert.match(recap, /<div class="study-time-wrap" id="study-time-box"/);
+  assert.match(recap, /id="study-time-summary"[\s\S]*500 小時目標/);
+  assert.match(recap, /class="study-time-summary-card"[\s\S]*讀書時間[\s\S]*修改時間/);
   assert.match(recap, /id="study-target-hours"[\s\S]*500/);
   assert.match(recap, /id="study-weekly-hours"[\s\S]*每週可讀/);
   assert.match(recap, /建議總時數可以改/);
+  assert.match(active, /summary\.textContent = totalHours \+ ' 小時目標/);
+});
+
+test('study time settings stay collapsed into a readable summary until editing', () => {
+  const recapStart = active.indexOf('id="study-cockpit-recap"');
+  assert.ok(recapStart >= 0, 'study recap must exist');
+  const recap = active.slice(recapStart, recapStart + 8200);
+  assert.match(recap, /class="study-time-summary-card"/);
+  assert.match(recap, /id="study-time-purpose"[\s\S]*用來幫你安排今天先讀多久、本週還要補多少/);
+  assert.match(recap, /id="study-time-edit-panel" hidden/);
+  assert.match(recap, /onclick="toggleStudyTimeEditor\(\)"[\s\S]*修改時間/);
+  assert.match(active, /function toggleStudyTimeEditor/);
+  assert.match(active, /panel\.hidden = !panel\.hidden/);
+  assert.doesNotMatch(recap, /<details class="study-time-wrap"/);
 });
 
 test('study today separates manual records from answer accuracy', () => {
@@ -114,7 +215,8 @@ test('study today renders personal plan items returned by the study API', () => 
   assert.match(active, /id="study-cloud-state"/);
   assert.match(active, /id="study-plan-items"/);
   assert.match(active, /renderStudyPlanItems/);
-  assert.match(active, /接下來的私人計畫/);
+  assert.match(active, /待讀清單/);
+  assert.doesNotMatch(active, /<h3>接下來的私人計畫<\/h3>/);
 });
 
 test('study today explains cloud save status in learner words', () => {
@@ -127,15 +229,39 @@ test('study today explains cloud save status in learner words', () => {
 });
 
 test('study today uses learner-facing subject status wording, not seed jargon', () => {
-  assert.match(active, /已可練習/);
+  assert.match(active, /可單刷/);
   assert.match(active, /題庫準備中/);
+  assert.match(active, /科目狀態/);
   assert.doesNotMatch(active, /待 seed/);
+});
+
+test('study today links weak laws and topic blocks into single-practice entry points', () => {
+  const weakFn = extractFunction(active, 'renderStudyWeakBrief');
+  assert.match(weakFn, /quiz\.html\?law=/);
+  assert.match(weakFn, /&drill=1/);
+  assert.doesNotMatch(weakFn, /quiz\.html\?open=weakness&law=/);
+  assert.match(weakFn, /單刷/);
+
+  const renderStart = active.indexOf('function renderStudyToday');
+  const render = active.slice(renderStart, renderStart + 5200);
+  assert.match(render, /<a class="study-block" href="quiz\.html\?law=/);
+  assert.match(render, /可單刷/);
+  assert.match(render, /study-subject-summary/);
+});
+
+test('study plan items show explicit status text for completion tracking', () => {
+  const fn = extractFunction(active, 'renderStudyPlanItems');
+  assert.match(fn, /狀態：/);
+  assert.match(active, /待讀清單/);
+  assert.match(active, /完成後會從下一步移除/);
+  assert.match(active, /已完成/);
+  assert.match(active, /改期/);
 });
 
 test('study today puts next-step actions before lower-priority subject detail', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
-  const recap = active.slice(recapStart, recapStart + 9800);
+  const recap = active.slice(recapStart, recapStart + 12800);
   const actionIndex = recap.indexOf('class="study-actions"');
   const weakIndex = recap.indexOf('id="study-weak-brief"');
   const subjectsIndex = recap.indexOf('id="study-cockpit-subjects"');
@@ -148,6 +274,14 @@ test('study today puts next-step actions before lower-priority subject detail', 
   assert.ok(actionIndex < blocksIndex, 'actions should appear before block details');
   assert.ok(weakIndex < subjectsIndex, 'weakness should appear before subject details');
   assert.ok(weakIndex < blocksIndex, 'weakness should appear before block details');
+});
+
+test('study suggestion cards use learner-facing labels instead of internal codes', () => {
+  assert.match(active, /function _studySuggestionLabel/);
+  assert.match(active, /if\(key === 'WEAK'\) return '弱點'/);
+  assert.match(active, /if\(key === 'TIME'\) return '時間'/);
+  assert.match(active, /_studySuggestionLabel\(item\.label \|\| 'NEXT'\)/);
+  assert.doesNotMatch(active, />PLAN RECOMMEND</);
 });
 
 test('study today appears before settings and member details in the page flow', () => {
@@ -169,10 +303,13 @@ test('mobile dashboard prioritizes next-step guidance before the full tool grid'
 test('sidebar and mobile quick entry use clear exam-loop labels', () => {
   assert.match(active, /<nav class="top-mid">[\s\S]*href="quiz\.html\?open=weakness"[\s\S]*弱點/);
   assert.match(active, /<nav class="top-mid">[\s\S]*href="#review-due"[\s\S]*複習/);
-  assert.match(active, /<a href="#study-cockpit-recap"><span class="num">T1<\/span>今天先做/);
-  assert.match(active, /<a href="quiz\.html"><span class="num">T2<\/span>選擇題/);
-  assert.match(active, /<a href="#review-due"><span class="num">T3<\/span>今日複習/);
-  assert.match(active, /<a href="quiz\.html\?open=weakness"><span class="num">T4<\/span>弱點分析/);
+  assert.match(active, /<a href="#study-cockpit-recap" data-spy-target="study-cockpit-recap"><span class="num">T1<\/span>今天先做/);
+  assert.match(active, /<a href="#study-weak-brief" data-spy-target="study-weak-brief"><span class="num">T2<\/span>今日弱點/);
+  assert.match(active, /<a href="#review-due" data-spy-target="review-due"><span class="num">T3<\/span>今日複習/);
+  assert.match(active, /<a href="#study-time-box" data-spy-target="study-time-box"><span class="num">T4<\/span>讀書時間/);
+  assert.match(active, /<a href="#study-plan-items" data-spy-target="study-plan-items"><span class="num">T5<\/span>讀書計畫/);
+  assert.match(active, /<a href="quiz\.html"><span class="num">T6<\/span>選擇題/);
+  assert.match(active, /<a href="quiz\.html\?open=weakness"><span class="num">T7<\/span>弱點分析/);
   assert.match(active, /<span class="mdb-lbl">今天先做<\/span>/);
 });
 
@@ -287,11 +424,14 @@ test('series planning can generate local weekly items before API sync', () => {
 
 test('saved study plans show an immediate readable summary and focus the plan list', () => {
   assert.match(active, /class="study-plan-count"/);
-  assert.match(active, /接下來 ' \+ actionable\.length \+ ' 筆私人計畫/);
+  assert.match(active, /待讀 ' \+ actionable\.length \+ ' 筆/);
   assert.match(active, /下一筆：<b>/);
   assert.match(active, /function _studyStatusLabel/);
   assert.match(active, /已完成/);
   assert.match(active, /待讀/);
+  assert.match(active, /function _studyStatusClass/);
+  assert.match(active, /status-planned/);
+  assert.match(active, /完成後會從下一步移除/);
   assert.match(active, /function focusStudyPlanItems/);
   assert.match(active, /scrollIntoView\(\{ block:'nearest', behavior:'smooth' \}\)/);
   assert.match(active, /_addLocalStudyItems[\s\S]*focusStudyPlanItems\(\)/);
@@ -300,6 +440,8 @@ test('saved study plans show an immediate readable summary and focus the plan li
 
 test('local study plan items can be completed postponed or cancelled from the list', () => {
   assert.match(active, /function _studyItemKey/);
+  assert.match(active, /function _findStudyPlanItem/);
+  assert.match(active, /async function updateStudyItemStatus/);
   assert.match(active, /function updateLocalStudyItemStatus/);
   assert.match(active, /function completeStudyItem/);
   assert.match(active, /function postponeStudyItem/);
@@ -313,6 +455,26 @@ test('local study plan items can be completed postponed or cancelled from the li
   assert.doesNotMatch(active, /updateLocalStudyItemStatus[\s\S]{0,500}correct_count/);
 });
 
+test('remote study plan actions persist status before falling back locally', () => {
+  assert.match(active, /window\.__studyPlanItemCache = items/);
+  assert.match(active, /if\(item && item\.id && \(token \|\| uid\)\)/);
+  assert.match(active, /\/api\/me\/study\/plan-item\/' \+ encodeURIComponent\(item\.id\) \+ '\/status/);
+  assert.match(active, /body: JSON\.stringify\(\{ status:status \}\)/);
+  assert.match(active, /\/api\/me\/study\/plan-item\/' \+ encodeURIComponent\(item\.id\) \+ '\/reschedule/);
+  assert.match(active, /renderStudyToday\(latest \|\| null\)/);
+  assert.match(active, /updateLocalStudyItemStatus\(key, status, shiftDays\)/);
+});
+
+test('remote study plan action failures keep the item visible with a clear message', () => {
+  assert.match(active, /function setStudyPlanActionMessage/);
+  assert.match(active, /同步失敗，這筆雲端計畫還沒改動/);
+  assert.match(active, /fallbackItems = latest && latest\.personal_plan \? latest\.personal_plan : \{ items: window\.__studyPlanItemCache \|\| \[\] \}/);
+  assert.match(active, /renderStudyPlanItems\(_mergeStudyPlan\(fallbackItems\)\)/);
+  assert.match(active, /class="study-plan-count warn"/);
+  assert.match(active, /throw new Error\('reschedule failed'\)/);
+  assert.match(active, /throw new Error\('status failed'\)/);
+});
+
 test('study today builds concrete local suggestions from time weakness and plan data', () => {
   assert.match(active, /id="study-suggestions"/);
   assert.match(active, /function buildStudySuggestions/);
@@ -323,6 +485,35 @@ test('study today builds concrete local suggestions from time weakness and plan 
   assert.match(active, /先做一題弱點/);
   assert.match(active, /下一堂課/);
   assert.match(active, /今天預留/);
+});
+
+test('study today can recommend a private weekly plan without shipping personal schedules', () => {
+  assert.match(active, /id="study-recommend-panel"/);
+  assert.match(active, /本週建議排法/);
+  assert.match(active, /function buildStudyWeekRecommendation/);
+  assert.match(active, /function _studyFallbackTopicBlocks/);
+  assert.match(active, /function _studySlotIsFree/);
+  assert.match(active, /function _studyNextAvailableSlot/);
+  assert.match(active, /所得稅法核心條文整理/);
+  assert.match(active, /營業稅法稅額與申報節點/);
+  assert.match(active, /商業會計法責任與帳簿/);
+  assert.match(active, /function previewStudyWeekRecommendation/);
+  assert.match(active, /function saveStudyRecommendedWeek/);
+  assert.match(active, /_addLocalStudyItems\(items\)/);
+  assert.match(active, /remainingMinutes/);
+  assert.match(active, /weak_law_bridge/);
+  assert.match(active, /question_signal/);
+  assert.match(active, /source_label:'自排建議'/);
+  assert.doesNotMatch(active, /記帳士 115記帳士台北N1|115\/03\/02|補習班台北N1/);
+});
+
+test('study weekly recommendation avoids already occupied private plan slots', () => {
+  const harness = buildRecommendationHarness();
+  const existing = [{ scheduled_date:'2026-06-27', scheduled_time:'20:00', minutes:60 }];
+  assert.equal(harness._studySlotIsFree('2026-06-27', '20:00', 60, existing), false);
+  const slot = harness._studyNextAvailableSlot(0, 60, existing, []);
+  assert.ok(slot, 'must find another open slot this week');
+  assert.notDeepEqual(slot, { date:'2026-06-27', time:'20:00' });
 });
 
 test('study plan next actions ignore completed cancelled and stale items', () => {

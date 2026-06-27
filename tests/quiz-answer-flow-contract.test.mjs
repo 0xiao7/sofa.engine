@@ -53,6 +53,14 @@ test('article citation helper preserves sub-articles in labels and links', () =>
   assert.equal(helpers.formatArticleCitation('§ 第13條之1｜附註', '記帳士法'), '第 13 條之1 ｜ 記帳士法');
 });
 
+test('drill law deep links do not overwrite the learner default law', () => {
+  assert.match(active, /const _drillParam = _searchParams\.get\('drill'\) === '1'/);
+  assert.match(active, /if\(!_drillParam\) localStorage\.setItem\('sofa_last_law', opt\.value\)/);
+  assert.match(active, /sel\._skipPersistOnce = _drillParam/);
+  assert.match(active, /if\(this\._skipPersistOnce\) this\._skipPersistOnce = false/);
+  assert.match(active, /else if\(!_drillParam\) localStorage\.setItem\('sofa_last_law', this\.value\)/);
+});
+
 test('native iOS quiz owns the status bar safe area', () => {
   assert.match(html, /<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" \/>/);
   assert.match(active, /document\.documentElement\.classList\.add\('ios-reader-app'\)/);
@@ -96,6 +104,19 @@ test('quiz weakness rail fetches authenticated weak-laws fallback', () => {
   assert.match(active, /function _renderRemoteWeakLaws/);
   assert.match(active, /不用自己判斷哪裡弱/);
   assert.match(active, /startSession\(5\)/);
+});
+
+test('quiz accepts law query params from dashboard single-practice links', () => {
+  assert.match(active, /function _lawParamFromUrl/);
+  assert.match(active, /_searchParams\.get\('law'\)/);
+  assert.match(active, /_searchParams\.get\('q'\)/);
+  assert.match(active, /function _applyInitialLawParam/);
+  assert.match(active, /decodeURIComponent/);
+  assert.match(active, /document\.createElement\('option'\)/);
+  assert.match(active, /o\.value = law/);
+  assert.match(active, /sel\.appendChild\(o\)/);
+  assert.match(active, /_applyInitialLawParam\(sel\)/);
+  assert.match(active, /if\(_initialLawApplied\)\{ loadQuiz\(\); return; \}/);
 });
 
 test('stats modal merges server quiz sessions and weak laws before relying on localStorage', () => {
@@ -184,6 +205,22 @@ test('paid answer explanation renders advanced analysis sections instead of hidi
   assert.match(build, /d\.className='sec-block'/);
   assert.match(active, /修法與聯覺備註/);
   assert.match(active, /相關法規及注意事項/);
+});
+
+test('quiz analysis linkifies sixth-section law references to dashboard', () => {
+  const start = active.indexOf('function linkifyLawRefs');
+  const end = active.indexOf('function formatSection', start);
+  assert.ok(start >= 0 && end > start, 'law reference helper must be extractable before formatSection');
+  const helpers = vm.runInNewContext(`${active.slice(start, end)};({linkifyLawRefs})`);
+
+  const linkedSameLaw = helpers.linkifyLawRefs('同法第13條、本法第15條', '記帳士法');
+  assert.match(linkedSameLaw, /dashboard\.html\?q=記帳士法&art=13/);
+  assert.match(linkedSameLaw, /dashboard\.html\?q=記帳士法&art=15/);
+
+  const linkedNamedLaw = helpers.linkifyLawRefs('記帳士法第13條及第15條', '所得稅法');
+  assert.match(linkedNamedLaw, /dashboard\.html\?q=記帳士法&art=13/);
+  assert.match(linkedNamedLaw, /dashboard\.html\?q=記帳士法&art=15/);
+  assert.match(active, /formatSection\(sections\[name\],\s*articleLawName\)/);
 });
 
 test('CPI-adjusted article answers always show a visible adjustment warning', () => {

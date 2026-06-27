@@ -237,6 +237,7 @@
   .sec-block{margin-top:16px;padding-top:14px;border-top:1px dashed rgba(31,56,72,.15)}
   .sec-label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--peach-3);font-weight:600;margin-bottom:6px}
   .sec-text{font-size:13px;line-height:1.85;color:rgba(31,56,72,.78)}
+  .sec-text .crossref{color:var(--peach-3);text-decoration:underline;text-underline-offset:3px}
   .sec-text .sec-h{margin:10px 0 4px;color:var(--navy);font-weight:600}
   .sec-text .sec-h:first-child{margin-top:0}
   .sec-text .sec-i{position:relative;padding-left:18px;margin:3px 0}
@@ -867,8 +868,31 @@ const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'
 const tok = localStorage.getItem('sofa_token') || '';
 const _searchParams = new URLSearchParams(location.search);
 const freeParam = _searchParams.get('free') === '1';
+const _drillParam = _searchParams.get('drill') === '1';
 const _PAST_EXAM_SUBJECTS = ['記帳相關法規概要', '稅務相關法規概要'];
 let _pastExamMode = _searchParams.get('mode') === 'past-exam';
+function _lawParamFromUrl(){
+  const raw = _searchParams.get('law') || _searchParams.get('q') || '';
+  try { return decodeURIComponent(raw).trim(); }
+  catch(e) { return String(raw || '').trim(); }
+}
+function _applyInitialLawParam(sel){
+  const law = _lawParamFromUrl();
+  if(!law || !sel) return false;
+  let opt = Array.from(sel.options).find(o => o.value === law || o.textContent === law);
+  if(!opt){
+    const o = document.createElement('option');
+    o.value = law;
+    o.textContent = law;
+    sel.appendChild(o);
+    opt = o;
+  }
+  sel.value = opt.value;
+  if(!_drillParam) localStorage.setItem('sofa_last_law', opt.value);
+  sel._skipPersistOnce = _drillParam;
+  sel.dispatchEvent(new Event('change'));
+  return true;
+}
 if (freeParam && !uid && !tok) {
   localStorage.setItem('sofa_free', 'FREE');
 }
@@ -1119,7 +1143,8 @@ function _showQzExamBanner() {
     }
     return false;
   }
-  const _restored = _restoreLastLaw();
+  const _initialLawApplied = _applyInitialLawParam(sel);
+  const _restored = _initialLawApplied ? true : _restoreLastLaw();
   // 自動帶入考科第一個範圍：未存過法規時，預設選「全部法規（本考科）」
   const _hasExam = !!localStorage.getItem('sofa_exam_key');
   if(!_restored && _hasExam){
@@ -1132,6 +1157,7 @@ function _showQzExamBanner() {
     loadQuiz();
     return;
   }
+  if(_initialLawApplied){ loadQuiz(); return; }
   // 進頁自動出第一題：只要已選考科（或已有選定法規）就直接出題，不必按「出題」
   if(_restored || _hasExam){ loadQuiz(); }
 })();
@@ -1198,7 +1224,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
 document.getElementById('lawSelect').addEventListener('change', async function(){
   // Wave 73: save selected law to localStorage
-  localStorage.setItem('sofa_last_law', this.value);
+  if(this._skipPersistOnce) this._skipPersistOnce = false;
+  else if(!_drillParam) localStorage.setItem('sofa_last_law', this.value);
   // 手動切換法規時關閉自動出題模式
   if(!this._skipAutoNextReset) _autoNextOnCorrect = false;
   // Reset streak when changing law
@@ -1301,7 +1328,20 @@ const _LOCKED_SECS=[
   {name:'修法與聯覺備註',  label:'修法與聯覺備註'},
   {name:'相關法規及注意事項',label:'相關法規及注意事項'}
 ];
-function formatSection(text){
+function linkifyLawRefs(escapedText,currentLawName){
+  let lastLaw = null;
+  return String(escapedText||'').replace(/(?:《([^》]+)》|([^，。、；：\s《》]{2,48}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第(\d+)條(?:之(\d+))?/g, (match, bracketLaw, plainLaw, sameLaw, art, sub)=>{
+    const law = bracketLaw || plainLaw || '';
+    if(law) lastLaw = law;
+    else if(sameLaw && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
+    if(!lastLaw) return match;
+    const safeLaw = String(lastLaw).replace(/"/g,'&quot;');
+    const fullArt = art + (sub ? '之' + sub : '');
+    const safeArt = fullArt.replace(/"/g,'&quot;');
+    return `<a class="crossref" href="dashboard.html?q=${safeLaw}&art=${safeArt}" target="_blank" rel="noopener">${match}</a>`;
+  });
+}
+function formatSection(text,currentLawName){
   if(!text) return '';
   var lines=String(text).replace(/\r\n?/g,'\n').split('\n'),out='';
   lines.forEach(function(raw){
@@ -1313,7 +1353,7 @@ function formatSection(text){
     body=body.trim();if(!body)return;
     var esc=body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     esc=esc.replace(/^([^：:]{1,14}[：:])/,'<b>$1</b>');
-    out+='<p class="'+(isSub?'sec-i':'sec-h')+'">'+esc+'</p>';
+    out+='<p class="'+(isSub?'sec-i':'sec-h')+'">'+linkifyLawRefs(esc,currentLawName)+'</p>';
   });
   return out;
 }
@@ -1347,11 +1387,12 @@ function appendCpiAdjustmentNote(wrapEl,beforeEl,article,sections){
 function buildSections(sections,isPaid,wrapEl,beforeEl,article){
   wrapEl.querySelectorAll('.sec-block,.sec-lock,.cpi-note').forEach(e=>e.remove());
   appendCpiAdjustmentNote(wrapEl,beforeEl,article,sections);
+  const articleLawName = article?.law_name || _currentLawName || '';
   _FREE_SECS.forEach(name=>{
     if(!sections[name])return;
     const d=document.createElement('div');d.className='sec-block';
     const lb=document.createElement('div');lb.className='sec-label';lb.textContent=name;
-    const tx=document.createElement('div');tx.className='sec-text';tx.innerHTML=formatSection(sections[name]);
+    const tx=document.createElement('div');tx.className='sec-text';tx.innerHTML=formatSection(sections[name], articleLawName);
     d.append(lb,tx);
     if(beforeEl)wrapEl.insertBefore(d,beforeEl);else wrapEl.appendChild(d);
   });
@@ -1360,7 +1401,7 @@ function buildSections(sections,isPaid,wrapEl,beforeEl,article){
       if(!sections[name])return;
       const d=document.createElement('div');d.className='sec-block';
       const lb=document.createElement('div');lb.className='sec-label';lb.textContent=label;
-      const tx=document.createElement('div');tx.className='sec-text';tx.innerHTML=formatSection(sections[name]);
+      const tx=document.createElement('div');tx.className='sec-text';tx.innerHTML=formatSection(sections[name], articleLawName);
       d.append(lb,tx);
       if(beforeEl)wrapEl.insertBefore(d,beforeEl);else wrapEl.appendChild(d);
     }else{
@@ -1369,7 +1410,7 @@ function buildSections(sections,isPaid,wrapEl,beforeEl,article){
       lk.innerHTML=isIOSReaderApp()
         ? '<div class="sec-label">'+label+'</div><div class="sec-lock-cta">進階內容，訂閱者可見</div>'
         : '<div class="sec-label">'+label+'</div>'
-          +'<div class="sec-lock-preview">'+(preview?formatSection(preview):'')+'</div>'
+          +'<div class="sec-lock-preview">'+(preview?formatSection(preview, articleLawName):'')+'</div>'
           +'<div class="sec-lock-cta">升級解鎖完整內容 <a href="pricing.html">查看方案 →</a></div>';
       if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
     }
