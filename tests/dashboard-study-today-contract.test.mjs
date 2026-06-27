@@ -188,6 +188,16 @@ test('study today remains visible for free users or missing study API data', () 
   assert.match(fn, /先從「開始選擇題」做一題/);
 });
 
+test('signed-in auth failures are not rendered as empty weakness data', () => {
+  assert.match(active, /window\._sofaAuthIssue = false/);
+  assert.match(active, /if\(r\.status === 401\) window\._sofaAuthIssue = true/);
+  assert.match(active, /function renderStudyAuthIssue/);
+  assert.match(active, /登入狀態異常/);
+  assert.match(active, /請重新登入/);
+  assert.match(active, /你的序號已驗過，但會員資料暫時讀不到/);
+  assert.match(active, /if\(window\._sofaAuthIssue && !profile\)\{[\s\S]*renderStudyAuthIssue\(\);[\s\S]*return;/);
+});
+
 test('study planning saves translate schema-pending responses into a readable preparing state', () => {
   assert.match(active, /function _fetchStudyJSON/);
   assert.match(active, /__http_status/);

@@ -3167,6 +3167,7 @@ const API = 'https://sofa-engine-api.onrender.com';
 const QUIZ_WRONG_KEY = 'sofa_wrong_ids';
 const REMOTE_WEAK_ARTICLE_KEY = 'sofa_remote_weak_articles_v1';
 var _latestWeakLawItems = [];
+window._sofaAuthIssue = false;
 function isIOSReaderApp(){try{return !!(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='ios');}catch(e){return false;}}
 if(isIOSReaderApp()) document.documentElement.classList.add('ios-reader-app');
 function applyIOSReaderAppReviewGuards(){
@@ -3232,6 +3233,7 @@ async function _fetchJSON(url, opts, tries){
     try{
       var r = await fetch(url, opts);
       if(r.ok) return await r.json();
+      if(r.status === 401) window._sofaAuthIssue = true;
       if(r.status < 500 && r.status !== 429 && r.status !== 503) return null; // 真 4xx 不重試
     }catch(e){ /* 網路/冷啟動錯，往下重試 */ }
     if(i < tries-1) await new Promise(function(res){ setTimeout(res, 600*(i+1)); });
@@ -3372,6 +3374,19 @@ function renderStudyWeakState(items){
   if(!weakEl) return;
   var laws = Array.isArray(items) ? items.filter(function(x){ return x && x.law_name; }) : [];
   weakEl.textContent = laws.length ? '弱點已接入' : '弱點資料尚未累積';
+}
+
+function renderStudyAuthIssue(){
+  var box = document.getElementById('study-cockpit-recap');
+  var summary = document.getElementById('study-cockpit-summary');
+  var weakEl = document.getElementById('study-cockpit-weak-state');
+  var list = document.getElementById('study-weak-brief-list');
+  if(box) box.style.display = '';
+  if(summary) summary.textContent = '登入狀態異常';
+  if(weakEl) weakEl.textContent = '請重新登入';
+  if(list){
+    list.innerHTML = '<div class="study-weak-empty">你的序號已驗過，但會員資料暫時讀不到。請登出後重新輸入序號；如果仍然出現，請附序號後 4 碼聯絡我們。</div>';
+  }
 }
 
 function renderStudyTimeSettings(){
@@ -4567,6 +4582,10 @@ function _readArticle(btn, text) {
     _entitlementState.error = entitlementRes && entitlementRes.error ? entitlementRes.detail || entitlementRes.error : null;
     refreshEntitlementPanelIfOpen();
     renderStudyToday(studyTodayRes || null);
+    if(window._sofaAuthIssue && !profile){
+      renderStudyAuthIssue();
+      return;
+    }
 
     // ── 會員卡 ──
     if(profile){
