@@ -95,9 +95,19 @@ test('study today supports private pasted schedule imports without law search co
 
 test('study today renders personal plan items returned by the study API', () => {
   assert.match(active, /personal_plan/);
+  assert.match(active, /id="study-cloud-state"/);
   assert.match(active, /id="study-plan-items"/);
   assert.match(active, /renderStudyPlanItems/);
   assert.match(active, /接下來的私人計畫/);
+});
+
+test('study today explains cloud save status in learner words', () => {
+  assert.match(active, /function renderStudyCloudState/);
+  assert.match(active, /雲端計畫已接上/);
+  assert.match(active, /雲端同步準備中/);
+  assert.match(active, /先存在這台裝置/);
+  assert.match(active, /personal_plan[\s\S]*status/);
+  assert.doesNotMatch(active, /schema pending|schema_pending[^'"]*$/);
 });
 
 test('study today uses learner-facing subject status wording, not seed jargon', () => {

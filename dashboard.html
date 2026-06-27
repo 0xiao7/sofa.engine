@@ -718,6 +718,16 @@
     letter-spacing:.08em;
   }
   .study-import-actions button.primary{background:var(--peach);border-color:var(--peach);color:var(--navy);font-weight:800}
+  .study-cloud-state{
+    border:1px dashed rgba(245,240,234,.14);
+    background:rgba(2,12,18,.26);
+    border-radius:4px;
+    padding:9px 11px;
+    color:rgba(245,240,234,.58);
+    font-size:12px;
+    line-height:1.65;
+  }
+  .study-cloud-state b{color:var(--peach);font-weight:700}
   .study-plan-items{display:grid;gap:8px}
   .study-plan-count{
     border:1px solid rgba(231,187,167,.2);
@@ -2555,6 +2565,7 @@
                 <span class="study-plan-state" id="study-record-state">先存在本機；正式資料表上線後再同步帳號。</span>
               </div>
             </div>
+            <div class="study-cloud-state" id="study-cloud-state">讀書計畫會先存在這台裝置。</div>
             <div class="study-plan-items" id="study-plan-items" aria-label="接下來的私人計畫"></div>
             <div class="study-subjects" id="study-cockpit-subjects"></div>
             <div class="study-blocks" id="study-cockpit-blocks"></div>
@@ -3239,6 +3250,21 @@ function _mergeStudyPlan(remotePlan){
   var local = _studyLocal();
   var remoteItems = remotePlan && Array.isArray(remotePlan.items) ? remotePlan.items : [];
   return { items:_dedupeStudyItems(remoteItems.concat(local.items || [], local.records || [])) };
+}
+
+function renderStudyCloudState(remotePlan){
+  var el = document.getElementById('study-cloud-state');
+  if(!el) return;
+  var status = remotePlan && remotePlan.status;
+  if(status === 'ready'){
+    el.innerHTML = '<b>雲端計畫已接上</b>：換裝置登入後，也會看到你的私人讀書計畫。';
+    return;
+  }
+  if(status === 'unavailable'){
+    el.innerHTML = '<b>雲端同步準備中</b>：目前先存在這台裝置；資料表上線後再同步到帳號。';
+    return;
+  }
+  el.innerHTML = '<b>先存在這台裝置</b>：排課、補紀錄都能先用；登入後會盡量接到你的帳號。';
 }
 
 function renderStudyTimeSettings(){
@@ -4933,6 +4959,7 @@ function renderStudyToday(data){
     weakEl.textContent = bridge.items && bridge.items.length ? '弱點已接入' : '弱點資料尚未累積';
   }
   renderStudyTimeSettings();
+  renderStudyCloudState(data.personal_plan || null);
   renderStudyPlanItems(_mergeStudyPlan(data.personal_plan || null));
   updateStudySaveNudge();
   subjectsEl.innerHTML = subjects.map(function(s){
