@@ -1,9 +1,41 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import vm from 'node:vm';
 
 const html = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
 const active = html.replace(/<!--[\s\S]*?-->/g, '');
+
+function extractFunction(source, name) {
+  const start = source.indexOf(`function ${name}`);
+  assert.ok(start >= 0, `${name} must exist`);
+  const open = source.indexOf('{', start);
+  let depth = 0;
+  for (let i = open; i < source.length; i += 1) {
+    if (source[i] === '{') depth += 1;
+    if (source[i] === '}') {
+      depth -= 1;
+      if (depth === 0) return source.slice(start, i + 1);
+    }
+  }
+  throw new Error(`Could not extract ${name}`);
+}
+
+function buildRecommendationHarness() {
+  const source = [
+    `function _todayInputValue(){ return '2026-06-27'; }`,
+    `function _datePlusDays(dateText, days){ const d = new Date(dateText + 'T00:00:00Z'); d.setUTCDate(d.getUTCDate() + days); return d.toISOString().slice(0,10); }`,
+    extractFunction(active, '_weekdayDateFromToday'),
+    extractFunction(active, '_studyTimeToMinutes'),
+    extractFunction(active, '_studyItemDurationMinutes'),
+    extractFunction(active, '_studySlotIsFree'),
+    extractFunction(active, '_studyNextAvailableSlot')
+  ].join('\n');
+  const sandbox = {};
+  vm.createContext(sandbox);
+  vm.runInContext(`${source}; this._studyNextAvailableSlot = _studyNextAvailableSlot; this._studySlotIsFree = _studySlotIsFree;`, sandbox);
+  return sandbox;
+}
 
 test('dashboard exposes a seed-backed cockpit recap', () => {
   assert.match(active, /id="study-cockpit-recap"/);
@@ -372,6 +404,35 @@ test('study today builds concrete local suggestions from time weakness and plan 
   assert.match(active, /先做一題弱點/);
   assert.match(active, /下一堂課/);
   assert.match(active, /今天預留/);
+});
+
+test('study today can recommend a private weekly plan without shipping personal schedules', () => {
+  assert.match(active, /id="study-recommend-panel"/);
+  assert.match(active, /本週建議排法/);
+  assert.match(active, /function buildStudyWeekRecommendation/);
+  assert.match(active, /function _studyFallbackTopicBlocks/);
+  assert.match(active, /function _studySlotIsFree/);
+  assert.match(active, /function _studyNextAvailableSlot/);
+  assert.match(active, /所得稅法核心條文整理/);
+  assert.match(active, /營業稅法稅額與申報節點/);
+  assert.match(active, /商業會計法責任與帳簿/);
+  assert.match(active, /function previewStudyWeekRecommendation/);
+  assert.match(active, /function saveStudyRecommendedWeek/);
+  assert.match(active, /_addLocalStudyItems\(items\)/);
+  assert.match(active, /remainingMinutes/);
+  assert.match(active, /weak_law_bridge/);
+  assert.match(active, /question_signal/);
+  assert.match(active, /source_label:'自排建議'/);
+  assert.doesNotMatch(active, /記帳士 115記帳士台北N1|115\/03\/02|補習班台北N1/);
+});
+
+test('study weekly recommendation avoids already occupied private plan slots', () => {
+  const harness = buildRecommendationHarness();
+  const existing = [{ scheduled_date:'2026-06-27', scheduled_time:'20:00', minutes:60 }];
+  assert.equal(harness._studySlotIsFree('2026-06-27', '20:00', 60, existing), false);
+  const slot = harness._studyNextAvailableSlot(0, 60, existing, []);
+  assert.ok(slot, 'must find another open slot this week');
+  assert.notDeepEqual(slot, { date:'2026-06-27', time:'20:00' });
 });
 
 test('study plan next actions ignore completed cancelled and stale items', () => {

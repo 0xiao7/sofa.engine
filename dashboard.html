@@ -808,6 +808,82 @@
     color:rgba(245,240,234,.54);
     overflow-wrap:anywhere;
   }
+  .study-recommend-panel{
+    border:1px solid var(--line-2);
+    background:rgba(255,255,255,.025);
+    border-radius:4px;
+    padding:13px;
+    display:grid;
+    gap:12px;
+  }
+  .study-recommend-head{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+  .study-recommend-copy{display:grid;gap:4px;min-width:0}
+  .study-recommend-copy span{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.14em;
+    color:var(--peach);
+  }
+  .study-recommend-copy b{
+    font-family:var(--serif);
+    font-size:16px;
+    font-weight:500;
+    color:var(--cream);
+  }
+  .study-recommend-copy small{
+    color:rgba(245,240,234,.56);
+    font-size:12px;
+    line-height:1.55;
+  }
+  .study-recommend-actions{display:flex;gap:8px;flex-wrap:wrap}
+  .study-recommend-actions button{
+    min-height:34px;
+    border:1px solid rgba(231,187,167,.38);
+    border-radius:3px;
+    padding:7px 10px;
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.08em;
+    color:var(--peach);
+    background:rgba(231,187,167,.06);
+  }
+  .study-recommend-actions button.primary{
+    color:var(--navy);
+    background:var(--peach);
+    border-color:var(--peach);
+    font-weight:700;
+  }
+  .study-recommend-list{display:grid;gap:7px}
+  .study-recommend-item{
+    display:grid;
+    grid-template-columns:auto minmax(0,1fr) auto;
+    gap:9px;
+    align-items:center;
+    border-top:1px dashed rgba(231,187,167,.16);
+    padding-top:8px;
+    color:rgba(245,240,234,.66);
+    font-size:12.5px;
+  }
+  .study-recommend-item:first-child{border-top:0;padding-top:0}
+  .study-recommend-item .date,.study-recommend-item .mins{
+    font-family:var(--mono);
+    font-size:10.5px;
+    color:var(--peach);
+    white-space:nowrap;
+  }
+  .study-recommend-item b{
+    font-family:var(--serif);
+    font-size:14px;
+    color:var(--cream);
+    font-weight:500;
+    overflow-wrap:anywhere;
+  }
   .study-plan-panel{
     display:none;
     border:1px solid rgba(231,187,167,.2);
@@ -2792,6 +2868,22 @@
               </div>
             </div>
             <div class="study-suggestions" id="study-suggestions" aria-label="今天建議讀什麼"></div>
+            <div class="study-recommend-panel" id="study-recommend-panel" aria-label="本週讀書計畫推薦">
+              <div class="study-recommend-head">
+                <div class="study-recommend-copy">
+                  <span>PLAN RECOMMEND</span>
+                  <b>本週建議排法</b>
+                  <small>依你的可讀時間、私人課表和弱點估一版；存下後只會進你的私人讀書計畫。</small>
+                </div>
+                <div class="study-recommend-actions">
+                  <button type="button" onclick="previewStudyWeekRecommendation()">預覽建議</button>
+                  <button class="primary" type="button" onclick="saveStudyRecommendedWeek()">排入本週</button>
+                </div>
+              </div>
+              <div class="study-recommend-list" id="study-recommend-list">
+                <div class="study-empty">先按預覽建議，系統會避開已排課程，補上本週空檔。</div>
+              </div>
+            </div>
             <div class="study-time-box" id="study-time-box" aria-label="備考時間規劃">
               <div class="study-time-cell" id="study-target-hours">
                 <span class="k">建議總時數</span>
@@ -3909,6 +4001,229 @@ function renderStudySuggestions(suggestions){
       + '<span class="m">' + esc(item.meta || '') + '</span>'
       + '</a>';
   }).join('');
+}
+
+function _weekdayDateFromToday(offset){
+  return _datePlusDays(_todayInputValue(), Math.max(0, offset || 0));
+}
+
+function _studyScheduledMinutesThisWeek(items){
+  var today = _todayInputValue();
+  var end = _datePlusDays(today, 6);
+  return (items || []).reduce(function(sum, item){
+    var d = String(item.scheduled_date || '').slice(0,10);
+    if(!d || d < today || d > end) return sum;
+    var mins = parseInt(item.minutes || '0', 10) || 0;
+    if(!mins){
+      var notes = String(item.notes || '');
+      var m = notes.match(/結束\s+(\d{1,2}:\d{2})/);
+      var start = String(item.scheduled_time || '');
+      var finish = m ? m[1] : '';
+      if(start && finish){
+        var sp = start.split(':').map(Number);
+        var fp = finish.split(':').map(Number);
+        mins = Math.max(0, (fp[0] * 60 + fp[1]) - (sp[0] * 60 + sp[1]));
+      }
+    }
+    return sum + (mins || 60);
+  }, 0);
+}
+
+function _studyTimeToMinutes(timeText){
+  var parts = String(timeText || '').split(':').map(Number);
+  if(parts.length < 2 || !Number.isFinite(parts[0]) || !Number.isFinite(parts[1])) return null;
+  return parts[0] * 60 + parts[1];
+}
+
+function _studyItemDurationMinutes(item){
+  var mins = parseInt(item && item.minutes || '0', 10) || 0;
+  if(mins) return mins;
+  var notes = String(item && item.notes || '');
+  var m = notes.match(/結束\s+(\d{1,2}:\d{2})/);
+  var start = _studyTimeToMinutes(item && item.scheduled_time || '');
+  var finish = m ? _studyTimeToMinutes(m[1]) : null;
+  if(start !== null && finish !== null) return Math.max(0, finish - start) || 60;
+  return 60;
+}
+
+function _studySlotIsFree(dateText, timeText, minutes, existingItems){
+  var start = _studyTimeToMinutes(timeText);
+  if(!dateText || start === null) return false;
+  var end = start + (parseInt(minutes || '0', 10) || 60);
+  return !(existingItems || []).some(function(item){
+    if(String(item.scheduled_date || '').slice(0,10) !== dateText) return false;
+    var otherStart = _studyTimeToMinutes(item.scheduled_time || '20:00');
+    if(otherStart === null) return false;
+    var otherEnd = otherStart + _studyItemDurationMinutes(item);
+    return start < otherEnd && end > otherStart;
+  });
+}
+
+function _studyNextAvailableSlot(index, minutes, existingItems, plannedItems){
+  var timeChoices = ['20:00', '07:30', '12:30', '21:30'];
+  var occupied = (existingItems || []).concat(plannedItems || []);
+  for(var offset = index; offset < 7; offset++){
+    var dateText = _weekdayDateFromToday(offset);
+    for(var i = 0; i < timeChoices.length; i++){
+      if(_studySlotIsFree(dateText, timeChoices[i], minutes, occupied)){
+        return { date:dateText, time:timeChoices[i] };
+      }
+    }
+  }
+  return null;
+}
+
+function _studyFallbackTopicBlocks(){
+  return [
+    {
+      subject:'稅務相關法規',
+      title:'所得稅法核心條文整理',
+      reason:'記帳士高頻稅法區塊',
+      minutes:60
+    },
+    {
+      subject:'稅務相關法規',
+      title:'營業稅法稅額與申報節點',
+      reason:'稅務申報常用基礎',
+      minutes:60
+    },
+    {
+      subject:'記帳相關法規',
+      title:'商業會計法責任與帳簿',
+      reason:'記帳相關法規核心',
+      minutes:45
+    },
+    {
+      subject:'記帳相關法規',
+      title:'記帳士法職責與懲戒',
+      reason:'常考身分與業務範圍',
+      minutes:45
+    },
+    {
+      subject:'會計學概要',
+      title:'會計學概要基本題組',
+      reason:'用短題維持手感',
+      minutes:60
+    },
+    {
+      subject:'租稅申報實務',
+      title:'申報實務流程複習',
+      reason:'法規和實作交會點',
+      minutes:45
+    }
+  ];
+}
+
+function _studyRecommendedTopicPool(data){
+  var weak = data && data.weak_law_bridge && Array.isArray(data.weak_law_bridge.items)
+    ? data.weak_law_bridge.items
+    : [];
+  var pool = weak.slice(0,3).map(function(item){
+    return {
+      subject: item.law_name || '弱點法規',
+      title: '弱點回練：' + (item.law_name || '常錯法規'),
+      reason: item.wrong_count ? ('錯 ' + item.wrong_count + ' 次') : '最近常錯',
+      minutes: 60
+    };
+  });
+  var blocks = data && data.today && Array.isArray(data.today.blocks) ? data.today.blocks : [];
+  blocks.slice().sort(function(a,b){
+    return ((b.weight || 0) - (a.weight || 0)) || ((b.question_signal || 0) - (a.question_signal || 0));
+  }).forEach(function(block){
+    pool.push({
+      subject: block.subject || block.display_name || '備考',
+      title: block.display_name || '核心區塊',
+      reason: block.question_signal ? ('常考 ' + block.question_signal + ' 題') : (block.phase_key || '核心'),
+      minutes: block.recommended_minutes || 45
+    });
+  });
+  if(pool.length < 4){
+    var used = {};
+    pool.forEach(function(item){ used[item.subject + '|' + item.title] = true; });
+    _studyFallbackTopicBlocks().forEach(function(item){
+      var key = item.subject + '|' + item.title;
+      if(!used[key]) pool.push(item);
+    });
+  }
+  return pool;
+}
+
+function buildStudyWeekRecommendation(data, mergedPlan){
+  var local = _studyLocal();
+  var settings = local.settings || {};
+  var weeklyMinutes = Math.max(60, (parseInt(settings.weekly_hours || '12', 10) || 12) * 60);
+  var existing = _actionableStudyItems(mergedPlan && Array.isArray(mergedPlan.items) ? mergedPlan.items : []);
+  var booked = _studyScheduledMinutesThisWeek(existing);
+  var remainingMinutes = Math.max(0, weeklyMinutes - booked);
+  var slotMinutes = Math.max(45, Math.min(90, parseInt(settings.today_minutes || '60', 10) || 60));
+  var pool = _studyRecommendedTopicPool(data);
+  var items = [];
+  var idx = 0;
+  while(remainingMinutes >= 30 && items.length < 7){
+    var topic = pool[idx % pool.length] || pool[0];
+    var mins = Math.min(slotMinutes, remainingMinutes);
+    var slot = _studyNextAvailableSlot(items.length, mins, existing, items);
+    if(!slot) break;
+    items.push({
+      track_key:'bookkeeper',
+      subject: topic.subject,
+      title: topic.title,
+      sequence_no: idx + 1,
+      scheduled_date: slot.date,
+      scheduled_time: slot.time,
+      source_label:'自排建議',
+      status:'planned',
+      room:'',
+      minutes: mins,
+      notes:'系統依本週剩餘 ' + remainingMinutes + ' 分鐘推薦；理由：' + topic.reason
+    });
+    remainingMinutes -= mins;
+    idx += 1;
+  }
+  return {
+    weeklyMinutes: weeklyMinutes,
+    bookedMinutes: booked,
+    remainingMinutes: Math.max(0, weeklyMinutes - booked),
+    items: items
+  };
+}
+
+function renderStudyWeekRecommendation(rec){
+  var el = document.getElementById('study-recommend-list');
+  if(!el) return;
+  var items = rec && Array.isArray(rec.items) ? rec.items : [];
+  if(!items.length){
+    el.innerHTML = '<div class="study-empty">本週已排滿或可讀時間太少；可以先調整每週可讀時數。</div>';
+    return;
+  }
+  el.innerHTML = items.map(function(item){
+    return '<div class="study-recommend-item">'
+      + '<span class="date">' + esc(item.scheduled_date || '') + ' ' + esc(item.scheduled_time || '') + '</span>'
+      + '<b>' + esc(item.title || item.subject || '讀書任務') + '</b>'
+      + '<span class="mins">' + esc(item.minutes || 60) + ' 分</span>'
+      + '</div>';
+  }).join('');
+}
+
+function previewStudyWeekRecommendation(){
+  var data = window.__studyTodayData || null;
+  var merged = _mergeStudyPlan(data && data.personal_plan ? data.personal_plan : null);
+  var rec = buildStudyWeekRecommendation(data, merged);
+  window.__studyWeekRecommendation = rec;
+  renderStudyWeekRecommendation(rec);
+}
+
+function saveStudyRecommendedWeek(){
+  var rec = window.__studyWeekRecommendation;
+  if(!rec || !Array.isArray(rec.items)) {
+    previewStudyWeekRecommendation();
+    rec = window.__studyWeekRecommendation;
+  }
+  var items = rec && Array.isArray(rec.items) ? rec.items : [];
+  if(!items.length) return;
+  _addLocalStudyItems(items);
+  var el = document.getElementById('study-recommend-list');
+  if(el) el.insertAdjacentHTML('afterbegin', '<div class="study-plan-count">已排入本機私人計畫；登入後再接到你的序號。</div>');
 }
 
 // ── Drawer 動態開啟 ──────────────────────────────────────
@@ -5558,6 +5873,7 @@ function renderReviewDue(nextItems){
 }
 
 function renderStudyToday(data){
+  window.__studyTodayData = data || null;
   var box = document.getElementById('study-cockpit-recap');
   var subjectsEl = document.getElementById('study-cockpit-subjects');
   var blocksEl = document.getElementById('study-cockpit-blocks');
