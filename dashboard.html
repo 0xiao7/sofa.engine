@@ -124,6 +124,7 @@
   .menu-btn span::before,.menu-btn span::after{content:"";position:absolute;left:0;width:16px;height:1.5px;background:var(--cream)}
   .menu-btn span::before{top:-5px}
   .menu-btn span::after{top:5px}
+  .menu-btn[aria-expanded="true"]{border-color:var(--peach);background:rgba(231,187,167,.1)}
 
   .free-retention-strip{
     display:none;
@@ -295,6 +296,12 @@
   }
   .nav-section .lab::after{
     content:"";flex:1;height:1px;background:var(--line);
+  }
+  .nav-helper{
+    margin:-8px 4px 10px;
+    font-size:12px;
+    color:rgba(245,240,234,.42);
+    line-height:1.55;
   }
   .nav-list{display:flex;flex-direction:column;gap:1px}
   .nav-list a{
@@ -822,6 +829,32 @@
     line-height:1.65;
     overflow-wrap:anywhere;
   }
+  .study-playlist-actions{
+    display:flex;
+    gap:7px;
+    flex-wrap:wrap;
+    margin-top:2px;
+  }
+  .study-playlist-actions a{
+    min-height:32px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--line-2);
+    border-radius:4px;
+    padding:5px 10px;
+    color:rgba(245,240,234,.72);
+    font-size:12px;
+    line-height:1.2;
+    text-decoration:none;
+    background:rgba(255,255,255,.025);
+  }
+  .study-playlist-actions a.primary{
+    background:rgba(231,187,167,.12);
+    border-color:rgba(231,187,167,.42);
+    color:var(--peach);
+    font-weight:700;
+  }
   .study-time-save{
     grid-column:1 / -1;
     display:flex;
@@ -1143,6 +1176,17 @@
     line-height:1.6;
   }
   .study-plan-count b{color:var(--peach);font-weight:700}
+  .study-plan-count button{
+    min-height:34px;
+    margin-top:8px;
+    border:1px solid rgba(231,187,167,.42);
+    border-radius:4px;
+    padding:6px 10px;
+    background:rgba(231,187,167,.12);
+    color:var(--peach);
+    font-size:12px;
+    font-weight:700;
+  }
   .study-plan-items h3{
     font-family:var(--mono);
     font-size:10.5px;
@@ -2772,7 +2816,7 @@
       <!-- <a id="btn-room" href="room.html"><span class="room-pulse"></span><span id="room-label">自習室</span></a> -->
       <span class="user-pill"><span class="live"></span>——</span>
       <button class="btn-out" onclick="(function(){localStorage.removeItem('sofa_uid');localStorage.removeItem('sofa_free');localStorage.removeItem('sofa_nickname');localStorage.removeItem('sofa_token');window.location.href='login.html';})()">登出</button>
-      <button class="menu-btn" onclick="document.querySelector('aside.side').classList.toggle('open')"><span></span></button>
+      <button class="menu-btn" aria-label="開啟導覽" aria-expanded="false" onclick="toggleDashboardSideNav()"><span></span></button>
     </div>
   </header>
 
@@ -2809,9 +2853,10 @@
       </div>
       <button class="cd-restore" id="cdRestore" onclick="showCountdown()">+ 顯示考試倒數</button>
 
-      <div class="nav-section">
-        <div class="lab">導 覽</div>
-        <div class="nav-list today-nav">
+        <div class="nav-section">
+          <div class="lab">導 覽</div>
+          <div class="nav-helper">右邊滑到哪，左邊會亮哪一段。</div>
+          <div class="nav-list today-nav">
           <a href="#study-cockpit-recap" data-spy-target="study-cockpit-recap"><span class="num">T1</span>今天先做<span class="ct" id="nav-ct-study"></span></a>
           <a href="#study-weak-brief" data-spy-target="study-weak-brief"><span class="num">T2</span>今日弱點<span class="ct" id="nav-ct-weak">0</span></a>
           <a href="#review-due" data-spy-target="review-due"><span class="num">T3</span>今日複習<span class="ct" id="nav-ct-due">0</span></a>
@@ -2967,7 +3012,7 @@
                   <small id="study-time-summary">500 小時目標，每週 12 小時；今天先留 60 分鐘。</small>
                   <span id="study-time-purpose">用來幫你安排今天先讀多久、本週還要補多少。</span>
                 </span>
-                <button class="study-time-edit-btn" type="button" onclick="toggleStudyTimeEditor()">修改時間</button>
+                <button class="study-time-edit-btn" type="button" aria-expanded="false" onclick="toggleStudyTimeEditor()">修改時間</button>
               </div>
               <div class="study-time-box" id="study-time-edit-panel" hidden>
                 <div class="study-time-cell" id="study-target-hours">
@@ -4022,7 +4067,10 @@ function toggleStudyTimeEditor(){
   var button = document.querySelector('.study-time-edit-btn');
   if(!panel) return;
   panel.hidden = !panel.hidden;
-  if(button) button.textContent = panel.hidden ? '修改時間' : '收起';
+  if(button){
+    button.textContent = panel.hidden ? '修改時間' : '收起';
+    button.setAttribute('aria-expanded', panel.hidden ? 'false' : 'true');
+  }
 }
 
 function saveStudyTimeSettings(){
@@ -4039,7 +4087,10 @@ function saveStudyTimeSettings(){
   var panel = document.getElementById('study-time-edit-panel');
   var button = document.querySelector('.study-time-edit-btn');
   if(panel) panel.hidden = true;
-  if(button) button.textContent = '修改時間';
+  if(button){
+    button.textContent = '修改時間';
+    button.setAttribute('aria-expanded', 'false');
+  }
   showStudySaveNudge();
 }
 
@@ -6105,6 +6156,28 @@ if(document.readyState === 'loading') {
 }
 window.addEventListener('hashchange', openStudyPanelFromHash);
 
+function closeDashboardSideNav(){
+  var side = document.querySelector('aside.side');
+  var button = document.querySelector('.menu-btn');
+  if(!side) return;
+  side.classList.remove('open');
+  if(button) button.setAttribute('aria-expanded', 'false');
+}
+
+function toggleDashboardSideNav(){
+  var side = document.querySelector('aside.side');
+  var button = document.querySelector('.menu-btn');
+  if(!side) return;
+  side.classList.toggle('open');
+  if(button) button.setAttribute('aria-expanded', side.classList.contains('open') ? 'true' : 'false');
+}
+
+document.querySelectorAll('aside.side a').forEach(function(link){
+  link.addEventListener('click', function(){
+    if(window.matchMedia('(max-width:980px)').matches) closeDashboardSideNav();
+  });
+});
+
 function _studyVal(id){
   var el = document.getElementById(id);
   return el ? String(el.value || '').trim() : '';
@@ -6126,10 +6199,18 @@ async function loadStudyPlaylist(){
     list.innerHTML = items.map(function(item){
       var text = String(item.text || '').replace(/\s+/g, ' ').trim();
       if(text.length > 110) text = text.slice(0, 110) + '…';
+      var law = String(item.law_name || '');
+      var articleNo = String(item.article_no || '').replace(/^第\s*/, '').replace(/\s*條$/, '');
+      var practiceHref = 'quiz.html?law=' + encodeURIComponent(law) + (articleNo ? '&art=' + encodeURIComponent(articleNo) : '') + '&drill=1';
+      var readerHref = 'dashboard.html?q=' + encodeURIComponent(law) + (articleNo ? '&art=' + encodeURIComponent(articleNo) : '') + '#search';
       return '<div class="study-playlist-item">'
         + '<span class="meta">' + esc(item.importance || '') + ' · ' + esc(item.law_name || '') + ' · 第 ' + esc(item.article_no || '') + ' 條</span>'
         + '<span class="title">' + esc(item.title || '重點條文') + '</span>'
         + '<span class="text">' + esc(text || '這條還沒有重點整理，先看原文。') + '</span>'
+        + '<span class="study-playlist-actions">'
+          + '<a class="primary" href="' + esc(practiceHref) + '">單刷</a>'
+          + '<a href="' + esc(readerHref) + '">看法條</a>'
+        + '</span>'
         + '</div>';
     }).join('');
   }catch(e){
@@ -6143,7 +6224,8 @@ function renderStudyPlanItems(plan){
   var items = plan && Array.isArray(plan.items) ? plan.items : [];
   window.__studyPlanItemCache = items;
   if(!items.length){
-    el.innerHTML = '';
+    el.innerHTML = '<div class="study-plan-count"><b>目前還沒有私人讀書計畫</b><br>可以排函授、補習班課程、模考或自己的週任務。'
+      + '<br><button type="button" onclick="openStudyPlanPanel()">設定讀書課程</button></div>';
     return;
   }
   var actionable = _actionableStudyItems(items);
