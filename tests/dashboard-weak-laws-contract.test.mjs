@@ -16,10 +16,22 @@ test('dashboard renders weak law items at law level with real counts', () => {
   assert.match(html, /renderStudyWeakBrief\(laws\)/);
   assert.match(html, /function renderStudyWeakState/);
   assert.match(html, /renderStudyWeakState\(laws\)/);
+  assert.match(html, /_latestWeakLawItems\s*=\s*laws/);
   assert.match(html, /law_name/);
   assert.match(html, /wrong_count/);
   assert.match(html, /top_articles/);
   assert.match(html, /最該補的法規|弱點法規/);
+});
+
+test('study today does not clear weak-laws that loaded first', () => {
+  assert.match(html, /var _latestWeakLawItems = \[\]/);
+  const start = html.indexOf('function renderStudyToday');
+  assert.ok(start >= 0, 'renderStudyToday must exist');
+  const fn = html.slice(start, start + 2600);
+  assert.match(fn, /var bridgeItems = \(data\.weak_law_bridge && data\.weak_law_bridge\.items\) \|\| \[\]/);
+  assert.match(fn, /var weakItems = bridgeItems\.length \? bridgeItems : _latestWeakLawItems/);
+  assert.match(fn, /renderStudyWeakBrief\(weakItems\)/);
+  assert.match(fn, /renderStudyWeakState\(weakItems\)/);
 });
 
 test('weak law rendering avoids fake empty metrics', () => {

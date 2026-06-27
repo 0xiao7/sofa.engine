@@ -3142,6 +3142,7 @@
 const API = 'https://sofa-engine-api.onrender.com';
 const QUIZ_WRONG_KEY = 'sofa_wrong_ids';
 const REMOTE_WEAK_ARTICLE_KEY = 'sofa_remote_weak_articles_v1';
+var _latestWeakLawItems = [];
 function isIOSReaderApp(){try{return !!(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='ios');}catch(e){return false;}}
 if(isIOSReaderApp()) document.documentElement.classList.add('ios-reader-app');
 function applyIOSReaderAppReviewGuards(){
@@ -5036,8 +5037,10 @@ function renderStudyToday(data){
   if(summaryEl) summaryEl.textContent = data.fallback ? '先做 1 題開始累積弱點' : (subjects.length + ' 科 · ' + seededCount + ' 科可練習');
   var navStudy = document.getElementById('nav-ct-study');
   if(navStudy) navStudy.textContent = seededCount ? (seededCount + '/' + subjects.length) : '';
-  renderStudyWeakBrief((data.weak_law_bridge && data.weak_law_bridge.items) || []);
-  renderStudyWeakState((data.weak_law_bridge && data.weak_law_bridge.items) || []);
+  var bridgeItems = (data.weak_law_bridge && data.weak_law_bridge.items) || [];
+  var weakItems = bridgeItems.length ? bridgeItems : _latestWeakLawItems;
+  renderStudyWeakBrief(weakItems);
+  renderStudyWeakState(weakItems);
   renderStudyTimeSettings();
   renderStudyCloudState(data.personal_plan || null);
   renderStudyPlanItems(_mergeStudyPlan(data.personal_plan || null));
@@ -6672,6 +6675,7 @@ ch.on('presence', { event: 'sync' }, () => {
     if(!recap || !list) return;
     _rememberRemoteWeakArticles(items);
     var laws = Array.isArray(items) ? items.filter(function(x){ return x && x.law_name; }) : [];
+    _latestWeakLawItems = laws;
     renderStudyWeakBrief(laws);
     renderStudyWeakState(laws);
     if(navWeak) navWeak.textContent = String(laws.length);
