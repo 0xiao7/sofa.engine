@@ -68,6 +68,15 @@ test('article drawer shows when the current article is in the wrong-question ban
   assert.match(html, /quiz\.html\?open=wrong/);
 });
 
+test('closed bookmark panel does not sit outside the mobile viewport', () => {
+  const panelRule = html.match(/#bk-panel\s*\{[^}]+\}/)?.[0] || '';
+  assert.match(panelRule, /right:\s*0/);
+  assert.match(panelRule, /max-width:\s*100vw/);
+  assert.match(panelRule, /display:\s*none/);
+  assert.match(html, /#bk-panel\.open\s*\{[\s\S]*?display:\s*flex/);
+  assert.doesNotMatch(panelRule, /right:\s*-\d+px/);
+});
+
 test('expire overlay explains feedback and sharing extension rules', () => {
   assert.match(html, /id="expire-overlay"/);
   assert.match(html, /回饋缺點 \+10 天/);
