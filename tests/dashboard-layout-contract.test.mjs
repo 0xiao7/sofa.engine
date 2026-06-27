@@ -79,6 +79,12 @@ test('closed bookmark panel does not sit outside the mobile viewport', () => {
   assert.doesNotMatch(panelRule, /right:\s*-\d+px/);
 });
 
+test('mobile bookmark toggle is hidden so it cannot cover the study flow', () => {
+  assert.match(html, /#bk-toggle\{[\s\S]*position:\s*fixed/);
+  assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*#bk-toggle\{[\s\S]*display:none/);
+  assert.doesNotMatch(html, /@media \(max-width: 760px\)\{[\s\S]*#bk-toggle\{[\s\S]*bottom:calc\(78px \+ env\(safe-area-inset-bottom, 0px\)\)/);
+});
+
 test('expire overlay explains feedback and sharing extension rules', () => {
   assert.match(html, /id="expire-overlay"/);
   assert.match(html, /回饋缺點 \+10 天/);

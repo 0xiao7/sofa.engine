@@ -74,6 +74,23 @@ test('quiz usage hint is near the question instead of hidden at the page bottom'
   assert.match(active, /#kb-hint\{display:none\}/);
 });
 
+test('question label sits above the stem text instead of overlaying long questions', () => {
+  assert.match(active, /\.q-stem\{[\s\S]*padding:56px 36px 32px/);
+  assert.match(active, /\.q-stem::before\{[\s\S]*left:36px[\s\S]*right:auto/);
+  const labelRule = active.match(/\.q-stem::before\{[^}]+\}/)?.[0] || '';
+  assert.doesNotMatch(labelRule, /right:22px/);
+  assert.match(active, /@media \(max-width:760px\)\{[\s\S]*\.q-stem\{padding:48px 22px 22px\}/);
+  assert.match(active, /@media \(max-width:760px\)\{[\s\S]*\.q-stem::before\{left:22px/);
+});
+
+test('answer options expose button semantics and keyboard activation', () => {
+  assert.match(active, /btn\.setAttribute\('role','button'\)/);
+  assert.match(active, /btn\.setAttribute\('tabindex','0'\)/);
+  assert.match(active, /btn\.addEventListener\('keydown',\(ev\)=>\{[\s\S]*ev\.key==='Enter'\|\|ev\.key===' '/);
+  const occurrences = (active.match(/btn\.setAttribute\('role','button'\)/g) || []).length;
+  assert.ok(occurrences >= 2, 'normal quiz and wrong-review quiz options should both be keyboard-accessible');
+});
+
 test('quiz weakness rail fetches authenticated weak-laws fallback', () => {
   assert.match(active, /\/api\/me\/weak-laws/);
   assert.match(active, /function _renderRemoteWeakLaws/);

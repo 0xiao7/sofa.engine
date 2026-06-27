@@ -87,10 +87,10 @@
 
   .q-stem{
     background:var(--navy-2);border:1px solid var(--line);border-radius:4px;
-    padding:32px 36px;position:relative;
+    padding:56px 36px 32px;position:relative;
   }
   .q-stem::before{
-    content:"QUESTION";position:absolute;top:16px;right:22px;
+    content:"QUESTION";position:absolute;top:18px;left:36px;right:auto;
     font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;color:rgba(245,240,234,.25);
   }
   .q-stem p{font-family:var(--serif);font-size:21px;line-height:1.85;color:var(--cream);letter-spacing:.02em}
@@ -311,7 +311,8 @@
     .q-head{flex-direction:column;align-items:flex-start;gap:14px}
     .q-head .src{text-align:left}
     .q-head .n{font-size:42px}
-    .q-stem{padding:22px 22px}
+    .q-stem{padding:48px 22px 22px}
+    .q-stem::before{left:22px;top:17px}
     .q-stem p{font-size:17px}
     .opt{padding:14px 18px;gap:14px}
     .opts.compact{display:flex;flex-direction:column}
@@ -1483,9 +1484,10 @@ function _buildQuizCalendar(s) {
     days.push({ key, count, isToday, date: d });
   }
 
+  const hasActivity = days.some(d => d.count > 0);
   const maxCount = Math.max(...days.map(d => d.count), 1);
 
-  let html = `<div style="margin-top:12px">
+  let html = `<div class="quiz-calendar" style="margin-top:12px">
     <div style="font-size:10px;color:var(--cream-3);margin-bottom:6px">近 30 日答題</div>
     <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px">`;
 
@@ -1507,6 +1509,7 @@ function _buildQuizCalendar(s) {
     <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--cream-3);margin-top:4px">
       <span>30天前</span><span>今日</span>
     </div>
+    ${hasActivity ? '' : '<div class="quiz-calendar-empty" style="margin-top:8px;color:rgba(245,240,234,.62);font-size:12px;line-height:1.7">尚無近 30 日作答紀錄。答過一題後，這裡會顯示每天的熱度。</div>'}
   </div>`;
 
   return html;
@@ -2333,6 +2336,8 @@ async function loadQuiz(){
     (data.options||[]).forEach((opt,i)=>{
       const btn=document.createElement('div');
       btn.className='opt';
+      btn.setAttribute('role','button');
+      btn.setAttribute('tabindex','0');
       const displayText=isNewFmt?opt:(opt.snippet||'');
       const isOptCorrect=isNewFmt?(opt===correctAnswer):!!opt.is_correct;
       btn.innerHTML=`<div class="key">${labels[i]}</div><div class="body">${esc(displayText)}</div>`;
@@ -2424,6 +2429,12 @@ async function loadQuiz(){
               document.getElementById('sourceLink').textContent='查看法條 →';
             }
           })();
+        }
+      });
+      btn.addEventListener('keydown',(ev)=>{
+        if(ev.key==='Enter'||ev.key===' '){
+          ev.preventDefault();
+          btn.click();
         }
       });
       document.getElementById('optionsBox').appendChild(btn);
@@ -2610,6 +2621,8 @@ async function loadWrongQuiz() {
     (data.options||[]).forEach((opt,i) => {
       const btn = document.createElement('div');
       btn.className = 'opt';
+      btn.setAttribute('role','button');
+      btn.setAttribute('tabindex','0');
       const displayText = isNewFmt ? opt : (opt.snippet||'');
       const isOptCorrect = isNewFmt ? (opt===correctAnswer) : !!opt.is_correct;
       btn.innerHTML = `<div class="key">${labels[i]}</div><div class="body">${esc(displayText)}</div>`;
@@ -2684,6 +2697,12 @@ async function loadWrongQuiz() {
               document.getElementById('sourceLink').textContent = '查看法條 →';
             }
           })();
+        }
+      });
+      btn.addEventListener('keydown',(ev)=>{
+        if(ev.key==='Enter'||ev.key===' '){
+          ev.preventDefault();
+          btn.click();
         }
       });
       document.getElementById('optionsBox').appendChild(btn);

@@ -49,3 +49,11 @@ test('law distribution progress bars use brand tone classes', () => {
   assert.match(fn, /_statsToneClass\(p\)/);
   assert.doesNotMatch(fn, /background:\$\{p>=80\?'#9FB89F'/);
 });
+
+test('empty local quiz calendar says there is no recent record', () => {
+  const fn = extractFunction('_buildQuizCalendar');
+  assert.match(fn, /const hasActivity = days\.some\(d => d\.count > 0\)/);
+  assert.match(fn, /quiz-calendar-empty/);
+  assert.match(fn, /尚無近 30 日作答紀錄/);
+  assert.match(fn, /答過一題後，這裡會顯示每天的熱度/);
+});
