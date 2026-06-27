@@ -216,6 +216,40 @@ async function quizCase(browser, baseUrl) {
   return { name: 'quiz-actions-mobile', screenshot, boxes, targetUrl };
 }
 
+async function freeRetentionCase(browser, baseUrl) {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true });
+  await page.goto(`${baseUrl}/quiz.html?free=1`, { waitUntil: 'domcontentloaded' });
+  const quizText = await page.locator('body').innerText();
+  if (!/輸入序號保留紀錄/.test(quizText)) {
+    throw new Error('free quiz retention CTA text is missing');
+  }
+  const quizBox = await assertClickable(page, 'a[href="login.html"]', 'free quiz serial retention CTA');
+
+  await page.goto(`${baseUrl}/dashboard.html`, { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => {
+    localStorage.clear();
+    localStorage.setItem('sofa_free', 'FREE');
+  });
+  await page.reload({ waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('#free-retention-strip.on', { state: 'visible', timeout: 7000 });
+  const stripText = await page.locator('#free-retention-strip').innerText();
+  if (!/輸入序號保留進度/.test(stripText) || !/免費版可以先試做/.test(stripText)) {
+    throw new Error(`free dashboard retention CTA text is missing: ${stripText}`);
+  }
+  const dashboardBox = await assertClickable(page, '#free-retention-strip a[href="login.html"]', 'free dashboard serial retention CTA');
+  const screenshot = path.join(OUT_DIR, 'sofa-visual-free-retention-mobile.png');
+  await page.screenshot({ path: screenshot, fullPage: false });
+  await page.close();
+  return {
+    name: 'free-retention-mobile',
+    screenshot,
+    boxes: {
+      quizRetention: quizBox,
+      dashboardRetention: dashboardBox
+    }
+  };
+}
+
 async function statsCase(browser, baseUrl) {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true });
   await installApiMocks(page);
@@ -256,6 +290,7 @@ async function statsCase(browser, baseUrl) {
     results.push(await dashboardCase(browser, baseUrl, 'dashboard-mobile', { width: 390, height: 844 }));
     results.push(await dashboardCase(browser, baseUrl, 'dashboard-desktop', { width: 1440, height: 900 }));
     results.push(await quizCase(browser, baseUrl));
+    results.push(await freeRetentionCase(browser, baseUrl));
     results.push(await statsCase(browser, baseUrl));
     console.log(JSON.stringify({ ok: true, root: ROOT, results }, null, 2));
   } finally {

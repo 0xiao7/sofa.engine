@@ -26,6 +26,15 @@ test('visual entry QA checks quiz post-answer actions and article deep link', ()
   assert.match(script, /dashboard\\\.html\\\?open=visual-page-id&law=/);
 });
 
+test('visual entry QA checks free retention serial entry on mobile', () => {
+  assert.match(script, /freeRetentionCase/);
+  assert.match(script, /quiz\.html\?free=1/);
+  assert.match(script, /輸入序號保留紀錄/);
+  assert.match(script, /dashboard\.html/);
+  assert.match(script, /輸入序號保留進度/);
+  assert.match(script, /sofa-visual-free-retention-mobile\.png/);
+});
+
 test('visual entry QA checks stats overlay source wording', () => {
   assert.match(script, /statsCase/);
   assert.match(script, /#stats-panel/);

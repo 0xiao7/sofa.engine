@@ -125,6 +125,75 @@
   .menu-btn span::before{top:-5px}
   .menu-btn span::after{top:5px}
 
+  .free-retention-strip{
+    display:none;
+    background:linear-gradient(90deg,rgba(231,187,167,.16),rgba(31,56,72,.96));
+    border-bottom:1px solid rgba(231,187,167,.28);
+    padding:12px 44px;
+    position:relative;
+    z-index:45;
+  }
+  .free-retention-strip.on{display:block}
+  .free-retention-inner{
+    max-width:1180px;
+    margin:0 auto;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:18px;
+  }
+  .free-retention-copy{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    min-width:0;
+  }
+  .free-retention-kicker{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.2em;
+    color:var(--peach);
+    text-transform:uppercase;
+  }
+  .free-retention-text{
+    font-size:14px;
+    color:rgba(245,240,234,.84);
+    letter-spacing:.02em;
+  }
+  .free-retention-actions{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-shrink:0;
+  }
+  .free-retention-btn{
+    min-height:40px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:8px 16px;
+    border:1px solid rgba(231,187,167,.45);
+    color:var(--peach);
+    background:rgba(20,40,54,.34);
+    font-size:13px;
+    font-weight:600;
+    letter-spacing:.03em;
+    transition:.18s;
+  }
+  .free-retention-btn.primary{
+    background:var(--peach);
+    color:var(--navy);
+    border-color:var(--peach);
+  }
+  .free-retention-btn:hover{
+    background:rgba(231,187,167,.22);
+    color:var(--cream);
+  }
+  .free-retention-btn.primary:hover{
+    background:var(--peach-2);
+    color:var(--navy);
+  }
+
   /* === Layout === */
   .shell{
     display:grid;
@@ -1971,6 +2040,45 @@
     .top-mid{display:none}
     .menu-btn{display:flex;min-width:44px;height:44px;border-color:rgba(23,50,68,.22);background:#fff;border-radius:8px}
     .menu-btn span,.menu-btn span::before,.menu-btn span::after{background:#173244}
+    .free-retention-strip{
+      padding:10px 12px;
+      background:#173244;
+      border-bottom:1px solid rgba(231,187,167,.22);
+      box-shadow:0 1px 0 rgba(245,240,234,.04);
+    }
+    .free-retention-inner{
+      display:grid;
+      grid-template-columns:1fr;
+      gap:10px;
+    }
+    .free-retention-kicker{
+      color:#E7BBA7;
+      letter-spacing:.12em;
+    }
+    .free-retention-text{
+      color:rgba(245,240,234,.8);
+      font-size:13px;
+      line-height:1.55;
+    }
+    .free-retention-actions{
+      gap:8px;
+      width:100%;
+    }
+    .free-retention-btn{
+      min-height:44px;
+      flex:1;
+      border-radius:8px;
+      color:#F5F0EA;
+      border-color:rgba(245,240,234,.2);
+      background:rgba(245,240,234,.04);
+      font-size:13px;
+      white-space:nowrap;
+    }
+    .free-retention-btn.primary{
+      color:#173244;
+      background:#E7BBA7;
+      border-color:#E7BBA7;
+    }
     .shell{grid-template-columns:1fr}
     aside.side{
       position:fixed;top:65px;left:0;width:280px;height:calc(100vh - 65px);
@@ -2387,6 +2495,19 @@
       <button class="menu-btn" onclick="document.querySelector('aside.side').classList.toggle('open')"><span></span></button>
     </div>
   </header>
+
+  <div class="free-retention-strip" id="free-retention-strip" aria-live="polite">
+    <div class="free-retention-inner">
+      <div class="free-retention-copy">
+        <span class="free-retention-kicker">FREE MODE</span>
+        <span class="free-retention-text">免費版可以先試做；要保留答題、弱點和讀書計畫，請輸入序號。</span>
+      </div>
+      <div class="free-retention-actions">
+        <a class="free-retention-btn primary" id="free-retention-login" href="login.html">輸入序號保留進度</a>
+        <a class="free-retention-btn" id="free-retention-pricing" href="pricing.html">查看方案</a>
+      </div>
+    </div>
+  </div>
 
   <div class="shell">
 
@@ -4431,6 +4552,17 @@ function _readArticle(btn, text) {
   const pill = document.querySelector('.user-pill');
   if(pill && isFree){
     pill.innerHTML = '<span class="live"></span>免費版';
+  }
+
+  const freeRetentionStrip = document.getElementById('free-retention-strip');
+  const freeRetentionPricing = document.getElementById('free-retention-pricing');
+  if(isFree){
+    if(freeRetentionStrip){
+      freeRetentionStrip.classList.add('on');
+    }
+    if(isIOSReaderApp()){
+      if(freeRetentionPricing) freeRetentionPricing.style.display = 'none';
+    }
   }
 
   // ── 免費版：遮蓋個人資料 ──────────

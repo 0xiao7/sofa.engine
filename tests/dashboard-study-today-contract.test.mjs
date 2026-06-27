@@ -190,6 +190,19 @@ test('study today remains visible for free users or missing study API data', () 
   assert.match(fn, /先從「開始選擇題」做一題/);
 });
 
+test('free dashboard retention entry is promoted before the main dashboard', () => {
+  assert.match(active, /id="free-retention-strip"/);
+  const stripIndex = active.indexOf('id="free-retention-strip"');
+  const shellIndex = active.indexOf('<div class="shell">');
+  assert.ok(stripIndex > 0, 'free retention strip must exist');
+  assert.ok(shellIndex > stripIndex, 'free retention strip must sit above the main shell');
+  assert.match(active, /免費版可以先試做/);
+  assert.match(active, /輸入序號保留進度/);
+  assert.match(active, /id="free-retention-login" href="login\.html"/);
+  assert.match(active, /if\(isIOSReaderApp\(\)\)\{[\s\S]*freeRetentionPricing[\s\S]*style\.display = 'none'/);
+  assert.match(active, /if\(freeRetentionStrip\)\{[\s\S]*freeRetentionStrip\.classList\.add\('on'\)/);
+});
+
 test('signed-in auth failures are not rendered as empty weakness data', () => {
   assert.match(active, /window\._sofaAuthIssue = false/);
   assert.match(active, /if\(r\.status === 401\) window\._sofaAuthIssue = true/);
