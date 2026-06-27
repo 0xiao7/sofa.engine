@@ -13,6 +13,7 @@ test('dashboard fetches authenticated weak-laws API for exam-pass recovery', () 
 test('dashboard renders weak law items at law level with real counts', () => {
   assert.match(html, /function renderWeakLaws/);
   assert.match(html, /_rememberRemoteWeakArticles\(items\)/);
+  assert.match(html, /renderStudyWeakBrief\(laws\)/);
   assert.match(html, /law_name/);
   assert.match(html, /wrong_count/);
   assert.match(html, /top_articles/);

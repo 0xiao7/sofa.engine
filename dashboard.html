@@ -481,6 +481,56 @@
     font:inherit;
     cursor:pointer;
   }
+  .study-weak-brief{
+    border:1px solid rgba(231,187,167,.16);
+    border-radius:4px;
+    background:rgba(231,187,167,.035);
+    padding:12px 14px;
+    display:grid;
+    gap:10px;
+  }
+  .study-weak-brief-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+  }
+  .study-weak-brief-title{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.16em;
+    color:var(--peach);
+    text-transform:uppercase;
+  }
+  .study-weak-brief-link{
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.08em;
+    color:rgba(245,240,234,.68);
+  }
+  .study-weak-brief-list{display:grid;gap:6px}
+  .study-weak-brief-row{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:10px;
+    align-items:center;
+    color:rgba(245,240,234,.78);
+    font-size:13px;
+  }
+  .study-weak-brief-row b{
+    min-width:0;
+    overflow-wrap:anywhere;
+    color:var(--cream);
+    font-family:var(--serif);
+    font-weight:500;
+  }
+  .study-weak-brief-row span{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--warn);
+    white-space:nowrap;
+  }
+  .study-weak-empty{font-size:13px;color:rgba(245,240,234,.58);line-height:1.7}
   .study-time-box{
     border:1px solid var(--line-2);
     background:rgba(255,255,255,.025);
@@ -2436,6 +2486,15 @@
               <button class="study-action-link study-action-button" type="button" onclick="openStudyPlanPanel()">設定讀書課程</button>
               <button class="study-action-link study-action-button" type="button" onclick="openStudyRecordPanel()">補紀錄</button>
             </div>
+            <div class="study-weak-brief" id="study-weak-brief" aria-label="今日弱點">
+              <div class="study-weak-brief-head">
+                <span class="study-weak-brief-title">今日弱點</span>
+                <a class="study-weak-brief-link" href="quiz.html?open=weakness">完整分析 →</a>
+              </div>
+              <div class="study-weak-brief-list" id="study-weak-brief-list">
+                <div class="study-weak-empty">答題後，這裡會直接列出最該補的法規。</div>
+              </div>
+            </div>
             <div class="study-time-box" id="study-time-box" aria-label="備考時間規劃">
               <div class="study-time-cell" id="study-target-hours">
                 <span class="k">建議總時數</span>
@@ -3265,6 +3324,22 @@ function renderStudyCloudState(remotePlan){
     return;
   }
   el.innerHTML = '<b>先存在這台裝置</b>：排課、補紀錄都能先用；登入後會盡量接到你的帳號。';
+}
+
+function renderStudyWeakBrief(items){
+  var list = document.getElementById('study-weak-brief-list');
+  if(!list) return;
+  var laws = Array.isArray(items) ? items.filter(function(x){ return x && x.law_name; }) : [];
+  if(!laws.length){
+    list.innerHTML = '<div class="study-weak-empty">答題後，這裡會直接列出最該補的法規。先做一題就會開始累積。</div>';
+    return;
+  }
+  list.innerHTML = laws.slice(0,3).map(function(law){
+    return '<a class="study-weak-brief-row" href="quiz.html?open=weakness">'
+      + '<b>'+esc(law.law_name)+'</b>'
+      + '<span>錯 '+esc(law.wrong_count || 0)+' 次</span>'
+      + '</a>';
+  }).join('');
 }
 
 function renderStudyTimeSettings(){
@@ -4958,6 +5033,7 @@ function renderStudyToday(data){
     var bridge = data.weak_law_bridge || {};
     weakEl.textContent = bridge.items && bridge.items.length ? '弱點已接入' : '弱點資料尚未累積';
   }
+  renderStudyWeakBrief((data.weak_law_bridge && data.weak_law_bridge.items) || []);
   renderStudyTimeSettings();
   renderStudyCloudState(data.personal_plan || null);
   renderStudyPlanItems(_mergeStudyPlan(data.personal_plan || null));
@@ -6592,6 +6668,7 @@ ch.on('presence', { event: 'sync' }, () => {
     if(!recap || !list) return;
     _rememberRemoteWeakArticles(items);
     var laws = Array.isArray(items) ? items.filter(function(x){ return x && x.law_name; }) : [];
+    renderStudyWeakBrief(laws);
     if(navWeak) navWeak.textContent = String(laws.length);
     if(!laws.length){
       recap.style.display='block';

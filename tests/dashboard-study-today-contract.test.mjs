@@ -31,6 +31,19 @@ test('study today empty weak bridge avoids fake zero metrics', () => {
   assert.doesNotMatch(fn, /0 條弱點|目前有 0/);
 });
 
+test('study today surfaces weakness before lower dashboard sections', () => {
+  const recapStart = active.indexOf('id="study-cockpit-recap"');
+  assert.ok(recapStart >= 0, 'study recap must exist');
+  const recap = active.slice(recapStart, recapStart + 8600);
+  assert.match(recap, /id="study-weak-brief"/);
+  assert.match(recap, /今日弱點/);
+  assert.match(recap, /完整分析/);
+  assert.match(recap, /id="study-weak-brief-list"/);
+  assert.match(active, /function renderStudyWeakBrief/);
+  assert.match(active, /答題後，這裡會直接列出最該補的法規/);
+  assert.doesNotMatch(active, /目前有 0 條弱點|0 條弱點/);
+});
+
 test('study today uses exam-facing wording instead of internal cockpit jargon', () => {
   assert.match(active, /TODAY · 今天先做/);
   assert.match(active, /不知道從哪裡開始，先做一題/);
@@ -121,13 +134,17 @@ test('study today puts next-step actions before lower-priority subject detail', 
   assert.ok(recapStart >= 0, 'study recap must exist');
   const recap = active.slice(recapStart, recapStart + 9800);
   const actionIndex = recap.indexOf('class="study-actions"');
+  const weakIndex = recap.indexOf('id="study-weak-brief"');
   const subjectsIndex = recap.indexOf('id="study-cockpit-subjects"');
   const blocksIndex = recap.indexOf('id="study-cockpit-blocks"');
   assert.ok(actionIndex > -1, 'next-step actions must exist');
+  assert.ok(weakIndex > -1, 'weakness brief must exist');
   assert.ok(subjectsIndex > -1, 'subject details must exist');
   assert.ok(blocksIndex > -1, 'block details must exist');
   assert.ok(actionIndex < subjectsIndex, 'actions should appear before subject details');
   assert.ok(actionIndex < blocksIndex, 'actions should appear before block details');
+  assert.ok(weakIndex < subjectsIndex, 'weakness should appear before subject details');
+  assert.ok(weakIndex < blocksIndex, 'weakness should appear before block details');
 });
 
 test('study today appears before settings and member details in the page flow', () => {
