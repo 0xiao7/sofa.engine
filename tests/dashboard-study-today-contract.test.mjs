@@ -155,6 +155,21 @@ test('study playlist items are executable with single-practice and article-reade
   assert.match(fn, /看法條/);
 });
 
+test('study playlist can directly play text through the browser speech engine', () => {
+  assert.match(active, /id="study-playlist-playall"/);
+  assert.match(active, /onclick="playStudyPlaylistAll\(this\)"/);
+  assert.match(active, /function playStudyPlaylistItem/);
+  assert.match(active, /function playStudyPlaylistAll/);
+  assert.match(active, /function _speakStudyPlaylistText/);
+  assert.match(active, /SpeechSynthesisUtterance/);
+  assert.match(active, /speechSynthesis\.speak/);
+  assert.match(active, /window\.__studyPlaylistAudioItems/);
+  const fn = extractFunction(active, 'loadStudyPlaylist');
+  assert.match(fn, /onclick="playStudyPlaylistItem\(this, ' \+ idx \+ '\)"/);
+  assert.match(fn, />播放</);
+  assert.match(active, /不支援直接播放/);
+});
+
 test('study today action buttons are sized for mobile app shells', () => {
   const studyActionButtonRule = active.match(/\.study-action-button\{[\s\S]*?\n  \}/)?.[0] || '';
   assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?min-height:44px/);
