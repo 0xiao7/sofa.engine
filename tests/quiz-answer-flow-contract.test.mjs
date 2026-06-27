@@ -53,6 +53,14 @@ test('article citation helper preserves sub-articles in labels and links', () =>
   assert.equal(helpers.formatArticleCitation('§ 第13條之1｜附註', '記帳士法'), '第 13 條之1 ｜ 記帳士法');
 });
 
+test('drill law deep links do not overwrite the learner default law', () => {
+  assert.match(active, /const _drillParam = _searchParams\.get\('drill'\) === '1'/);
+  assert.match(active, /if\(!_drillParam\) localStorage\.setItem\('sofa_last_law', opt\.value\)/);
+  assert.match(active, /sel\._skipPersistOnce = _drillParam/);
+  assert.match(active, /if\(this\._skipPersistOnce\) this\._skipPersistOnce = false/);
+  assert.match(active, /else if\(!_drillParam\) localStorage\.setItem\('sofa_last_law', this\.value\)/);
+});
+
 test('native iOS quiz owns the status bar safe area', () => {
   assert.match(html, /<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" \/>/);
   assert.match(active, /document\.documentElement\.classList\.add\('ios-reader-app'\)/);

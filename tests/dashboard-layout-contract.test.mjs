@@ -21,6 +21,13 @@ test('today recaps are included in the sidebar navigation and scroll spy', () =>
   assert.match(html, /document\.querySelectorAll\('section\.block, \.recap\[id\]'\)/);
 });
 
+test('desktop sidebar stays present while the main dashboard scrolls', () => {
+  assert.match(html, /aside\.side\{[\s\S]*position:fixed;top:71px;bottom:0;left:0;width:280px/);
+  assert.match(html, /aside\.side\{[\s\S]*height:calc\(100dvh - 71px\)/);
+  assert.match(html, /aside\.side\{[\s\S]*overflow-y:auto/);
+  assert.match(html, /@media \(max-width:980px\)\{[\s\S]*aside\.side\{[\s\S]*position:fixed/);
+});
+
 test('mobile native dashboard owns the iOS safe area', () => {
   assert.match(html, /<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" \/>/);
   assert.match(html, /document\.documentElement\.classList\.add\('ios-reader-app'\)/);
@@ -28,6 +35,12 @@ test('mobile native dashboard owns the iOS safe area', () => {
   assert.match(html, /html\.ios-reader-app\s+section\.block,\s*html\.ios-reader-app\s+\.recap\[id\]\{[\s\S]*scroll-margin-top:calc\(132px \+ env\(safe-area-inset-top, 0px\)\)/);
   assert.match(html, /html\.ios-reader-app\s+body::before\{[\s\S]*position:fixed[\s\S]*height:env\(safe-area-inset-top, 0px\)[\s\S]*background:var\(--navy\)[\s\S]*pointer-events:none/);
   assert.match(html, /#mobile-daily-bar\{[\s\S]*height:calc\(64px \+ env\(safe-area-inset-bottom, 0px\)\)/);
+});
+
+test('mobile dashboard keeps one dark brand palette instead of competing light and dark cascades', () => {
+  assert.doesNotMatch(html, /--navy-2:#FFFFFF/);
+  assert.doesNotMatch(html, /background:#EEF3F2/);
+  assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*--navy:#1F3848/);
 });
 
 test('empty and full-width cards use responsive classes, not inline span columns', () => {

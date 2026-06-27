@@ -207,7 +207,7 @@
     border-right:1px solid var(--line);
     padding:36px 30px 48px;
     position:fixed;top:71px;bottom:0;left:0;width:280px;
-    height:auto;
+    height:calc(100dvh - 71px);
     overflow-y:auto;
     z-index:30;
   }
@@ -649,6 +649,53 @@
     display:grid;
     grid-template-columns:repeat(3,minmax(0,1fr));
     gap:10px;
+  }
+  .study-time-wrap{
+    border:1px solid var(--line-2);
+    background:rgba(255,255,255,.025);
+    border-radius:4px;
+  }
+  .study-time-wrap[open]{background:rgba(255,255,255,.035)}
+  .study-time-wrap summary{
+    min-height:54px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:14px;
+    padding:12px 14px;
+    cursor:pointer;
+    list-style:none;
+  }
+  .study-time-wrap summary::-webkit-details-marker{display:none}
+  .study-time-wrap summary span{display:grid;gap:3px;min-width:0}
+  .study-time-wrap summary b{
+    font-family:var(--serif);
+    font-size:16px;
+    font-weight:600;
+    color:var(--cream);
+  }
+  .study-time-wrap summary small{
+    color:rgba(245,240,234,.58);
+    font-size:12px;
+    line-height:1.55;
+  }
+  .study-time-wrap summary em{
+    flex-shrink:0;
+    font-style:normal;
+    border:1px solid rgba(231,187,167,.32);
+    color:var(--peach);
+    border-radius:4px;
+    padding:6px 10px;
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.08em;
+  }
+  .study-time-wrap[open] summary{
+    border-bottom:1px dashed rgba(231,187,167,.16);
+  }
+  .study-time-wrap .study-time-box{
+    border:0;
+    background:transparent;
   }
   .study-time-cell{
     min-width:0;
@@ -2198,30 +2245,6 @@
     .mc-renewal-nudge{align-items:flex-start;flex-direction:column}
   }
   @media (max-width: 760px){
-    :root{
-      --navy:#173244;
-      --navy-2:#FFFFFF;
-      --navy-3:#EEF3F2;
-      --navy-4:#DDE7E5;
-      --plum-1:#F4F7F6;
-      --plum-2:#DCE7E5;
-      --cream:#173244;
-      --cream-2:#F8FAF8;
-      --cream-3:#D9E3E0;
-      --peach:#DCA992;
-      --peach-2:#EBC2AF;
-      --peach-3:#B97660;
-      --peach-dim:rgba(185,118,96,.74);
-      --good:#6F916E;
-      --warn:#A46C42;
-      --line:rgba(23,50,68,.10);
-      --line-2:rgba(23,50,68,.18);
-      --line-3:rgba(23,50,68,.30);
-    }
-    html,body{
-      background:#EEF3F2;
-      color:#173244;
-    }
     body{
       font-size:15px;
       line-height:1.58;
@@ -2230,9 +2253,6 @@
     .topbar{
       padding:calc(10px + env(safe-area-inset-top, 0px)) 12px 10px;
       gap:8px;
-      background:#F8FAF8;
-      border-bottom:1px solid rgba(23,50,68,.12);
-      box-shadow:0 1px 0 rgba(255,255,255,.9);
     }
     html.ios-reader-app .topbar{
       padding-top:calc(16px + env(safe-area-inset-top, 0px));
@@ -2335,7 +2355,7 @@
     main.main{
       grid-column:1;
       padding:14px 12px calc(92px + env(safe-area-inset-bottom, 0px));
-      background:#EEF3F2;
+      background:var(--navy);
       overflow:visible;
     }
     main.main::before{
@@ -2915,7 +2935,7 @@
             <div class="study-recommend-panel" id="study-recommend-panel" aria-label="本週讀書計畫推薦">
               <div class="study-recommend-head">
                 <div class="study-recommend-copy">
-                  <span>PLAN RECOMMEND</span>
+                  <span>本週建議</span>
                   <b>本週建議排法</b>
                   <small>依你的可讀時間、私人課表和弱點估一版；存下後只會進你的私人讀書計畫。</small>
                 </div>
@@ -2928,27 +2948,36 @@
                 <div class="study-empty">先按預覽建議，系統會避開已排課程，補上本週空檔。</div>
               </div>
             </div>
-            <div class="study-time-box" id="study-time-box" aria-label="備考時間規劃">
-              <div class="study-time-cell" id="study-target-hours">
-                <span class="k">建議總時數</span>
-                <span class="v"><input id="study-total-hours-input" type="number" min="50" max="2000" step="10" value="500"> 小時</span>
-                <span class="hint">記帳士起始預設；建議總時數可以改。</span>
+            <details class="study-time-wrap" id="study-time-box" aria-label="備考時間規劃">
+              <summary>
+                <span>
+                  <b>時間規劃</b>
+                  <small id="study-time-summary">500 小時目標，每週 12 小時；今天先留 60 分鐘。</small>
+                </span>
+                <em>修改</em>
+              </summary>
+              <div class="study-time-box">
+                <div class="study-time-cell" id="study-target-hours">
+                  <span class="k">建議總時數</span>
+                  <span class="v"><input id="study-total-hours-input" type="number" min="50" max="2000" step="10" value="500"> 小時</span>
+                  <span class="hint">記帳士起始預設；建議總時數可以改。</span>
+                </div>
+                <div class="study-time-cell" id="study-weekly-hours">
+                  <span class="k">每週可讀</span>
+                  <span class="v"><input id="study-weekly-hours-input" type="number" min="1" max="80" step="1" value="12"> 小時</span>
+                  <span class="hint">先填你真的有空的時間，系統再幫你補空檔。</span>
+                </div>
+                <div class="study-time-cell" id="study-time-status">
+                  <span class="k">今天方向</span>
+                  <span class="v"><input id="study-today-minutes-input" type="number" min="5" max="720" step="5" value="60"> 分鐘</span>
+                  <span class="hint" id="study-time-hint">答題會進弱點；課表和補紀錄只補進度。</span>
+                </div>
+                <div class="study-time-save">
+                  <button type="button" onclick="saveStudyTimeSettings()">儲存時間設定</button>
+                  <span id="study-time-state">這裡只設定讀書時間，不會改答題正確率。</span>
+                </div>
               </div>
-              <div class="study-time-cell" id="study-weekly-hours">
-                <span class="k">每週可讀</span>
-                <span class="v"><input id="study-weekly-hours-input" type="number" min="1" max="80" step="1" value="12"> 小時</span>
-                <span class="hint">先填你真的有空的時間，系統再幫你補空檔。</span>
-              </div>
-              <div class="study-time-cell" id="study-time-status">
-                <span class="k">今天方向</span>
-                <span class="v"><input id="study-today-minutes-input" type="number" min="5" max="720" step="5" value="60"> 分鐘</span>
-                <span class="hint" id="study-time-hint">答題會進弱點；課表和補紀錄只補進度。</span>
-              </div>
-              <div class="study-time-save">
-                <button type="button" onclick="saveStudyTimeSettings()">儲存時間設定</button>
-                <span id="study-time-state">先填真的有空的時間。</span>
-              </div>
-            </div>
+            </details>
             <div class="study-save-nudge" id="study-save-nudge" aria-live="polite">
               <div>
                 <b>保留這些進度</b>
@@ -3909,7 +3938,7 @@ function renderStudyWeakBrief(items){
     return;
   }
   list.innerHTML = laws.slice(0,3).map(function(law){
-    return '<a class="study-weak-brief-row" href="quiz.html?open=weakness&law=' + encodeURIComponent(law.law_name || '') + '">'
+    return '<a class="study-weak-brief-row" href="quiz.html?law=' + encodeURIComponent(law.law_name || '') + '&drill=1">'
       + '<b>'+esc(law.law_name)+'</b>'
       + '<span>錯 '+esc(law.wrong_count || 0)+' 次</span>'
       + '<span class="go">單刷</span>'
@@ -3962,9 +3991,16 @@ function renderStudyTimeSettings(){
   if(weekly) weekly.value = s.weekly_hours || 12;
   if(today) today.value = s.today_minutes || 60;
   var hint = document.getElementById('study-time-hint');
+  var summary = document.getElementById('study-time-summary');
+  var totalHours = s.total_hours || 500;
+  var weeklyHours = s.weekly_hours || 12;
+  var todayMinutes = s.today_minutes || 60;
   if(hint){
-    var weeks = s.weekly_hours ? Math.ceil((s.total_hours || 500) / s.weekly_hours) : 0;
-    hint.textContent = weeks ? ('照這個速度約 ' + weeks + ' 週；今天先留 ' + (s.today_minutes || 60) + ' 分鐘。') : '答題會進弱點；課表和補紀錄只補進度。';
+    var weeks = weeklyHours ? Math.ceil(totalHours / weeklyHours) : 0;
+    hint.textContent = weeks ? ('照這個速度約 ' + weeks + ' 週；今天先留 ' + todayMinutes + ' 分鐘。') : '答題會進弱點；課表和補紀錄只補進度。';
+  }
+  if(summary){
+    summary.textContent = totalHours + ' 小時目標，每週 ' + weeklyHours + ' 小時；今天先留 ' + todayMinutes + ' 分鐘。';
   }
 }
 
@@ -3999,7 +4035,7 @@ function buildStudySuggestions(data, mergedPlan){
       label:'WEAK',
       title:'先做一題弱點',
       meta:(law.law_name || '弱點法規') + (law.wrong_count ? ' · 錯 ' + law.wrong_count + ' 次' : ''),
-      href:'quiz.html?open=weakness'
+      href:'quiz.html?law=' + encodeURIComponent(law.law_name || '') + '&drill=1'
     });
   } else {
     suggestions.push({
@@ -4041,11 +4077,21 @@ function renderStudySuggestions(suggestions){
   var list = Array.isArray(suggestions) ? suggestions : [];
   el.innerHTML = list.map(function(item){
     return '<a class="study-suggestion-card" href="' + esc(item.href || '#') + '">'
-      + '<span class="k">' + esc(item.label || 'NEXT') + '</span>'
+      + '<span class="k">' + esc(_studySuggestionLabel(item.label || 'NEXT')) + '</span>'
       + '<span class="t">' + esc(item.title || '今天先做一題') + '</span>'
       + '<span class="m">' + esc(item.meta || '') + '</span>'
       + '</a>';
   }).join('');
+}
+
+function _studySuggestionLabel(label){
+  var key = String(label || '').toUpperCase();
+  if(key === 'WEAK') return '弱點';
+  if(key === 'QUIZ') return '選擇題';
+  if(key === 'PLAN') return '課程';
+  if(key === 'BLOCK') return '題庫';
+  if(key === 'TIME') return '時間';
+  return '下一步';
 }
 
 function _weekdayDateFromToday(offset){
@@ -6096,7 +6142,7 @@ function renderStudyPlanItems(plan){
     return '<div class="study-plan-item">'
       + '<span class="date">' + esc(item.scheduled_date || '') + '</span>'
       + '<span class="title">' + esc(item.title || item.subject || '讀書計畫') + '</span>'
-      + '<span class="status ' + esc(_studyStatusClass(item.status)) + '">' + esc(_studyStatusLabel(item.status)) + '</span>'
+      + '<span class="status ' + esc(_studyStatusClass(item.status)) + '">狀態：' + esc(_studyStatusLabel(item.status)) + '</span>'
       + '<span class="meta">' + esc(meta) + '</span>'
       + (canEdit ? '<span class="study-plan-actions">'
         + '<button class="primary" type="button" onclick="completeStudyItem(' + JSON.stringify(key) + ')">完成</button>'

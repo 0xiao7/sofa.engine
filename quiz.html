@@ -868,6 +868,7 @@ const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'
 const tok = localStorage.getItem('sofa_token') || '';
 const _searchParams = new URLSearchParams(location.search);
 const freeParam = _searchParams.get('free') === '1';
+const _drillParam = _searchParams.get('drill') === '1';
 const _PAST_EXAM_SUBJECTS = ['記帳相關法規概要', '稅務相關法規概要'];
 let _pastExamMode = _searchParams.get('mode') === 'past-exam';
 function _lawParamFromUrl(){
@@ -887,7 +888,8 @@ function _applyInitialLawParam(sel){
     opt = o;
   }
   sel.value = opt.value;
-  localStorage.setItem('sofa_last_law', opt.value);
+  if(!_drillParam) localStorage.setItem('sofa_last_law', opt.value);
+  sel._skipPersistOnce = _drillParam;
   sel.dispatchEvent(new Event('change'));
   return true;
 }
@@ -1222,7 +1224,8 @@ document.addEventListener('DOMContentLoaded',function(){
 
 document.getElementById('lawSelect').addEventListener('change', async function(){
   // Wave 73: save selected law to localStorage
-  localStorage.setItem('sofa_last_law', this.value);
+  if(this._skipPersistOnce) this._skipPersistOnce = false;
+  else if(!_drillParam) localStorage.setItem('sofa_last_law', this.value);
   // 手動切換法規時關閉自動出題模式
   if(!this._skipAutoNextReset) _autoNextOnCorrect = false;
   // Reset streak when changing law

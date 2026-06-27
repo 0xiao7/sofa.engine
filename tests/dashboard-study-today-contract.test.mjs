@@ -119,7 +119,8 @@ test('study today makes working tools and personal planning obvious', () => {
 
 test('desktop dashboard keeps the left library rail persistent', () => {
   assert.match(active, /\.shell\{[\s\S]*grid-template-columns:280px minmax\(0,1fr\)/);
-  assert.match(active, /aside\.side\{[\s\S]*position:fixed;[\s\S]*top:71px;[\s\S]*bottom:0;[\s\S]*left:0;[\s\S]*width:280px/);
+  assert.match(active, /aside\.side\{[\s\S]*position:fixed;top:71px;bottom:0;left:0;width:280px/);
+  assert.match(active, /aside\.side\{[\s\S]*height:calc\(100dvh - 71px\)/);
   assert.match(active, /main\.main\{[\s\S]*grid-column:2/);
   assert.match(active, /@media \(max-width:980px\)\{[\s\S]*\.shell\{grid-template-columns:1fr\}/);
   assert.match(active, /@media \(max-width:980px\)\{[\s\S]*aside\.side\{[\s\S]*position:fixed;top:65px;left:0;width:280px/);
@@ -167,9 +168,13 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.ok(timeBox > -1, 'time-first box must exist');
   assert.ok(planPanel > -1, 'private plan panel must exist');
   assert.ok(timeBox < planPanel, 'time guidance should appear before private schedule controls');
+  assert.match(recap, /<details class="study-time-wrap" id="study-time-box"/);
+  assert.match(recap, /id="study-time-summary"[\s\S]*500 小時目標/);
+  assert.match(recap, /<summary>[\s\S]*時間規劃[\s\S]*修改/);
   assert.match(recap, /id="study-target-hours"[\s\S]*500/);
   assert.match(recap, /id="study-weekly-hours"[\s\S]*每週可讀/);
   assert.match(recap, /建議總時數可以改/);
+  assert.match(active, /summary\.textContent = totalHours \+ ' 小時目標/);
 });
 
 test('study today separates manual records from answer accuracy', () => {
@@ -219,7 +224,9 @@ test('study today uses learner-facing subject status wording, not seed jargon', 
 
 test('study today links weak laws and topic blocks into single-practice entry points', () => {
   const weakFn = extractFunction(active, 'renderStudyWeakBrief');
-  assert.match(weakFn, /quiz\.html\?open=weakness&law=/);
+  assert.match(weakFn, /quiz\.html\?law=/);
+  assert.match(weakFn, /&drill=1/);
+  assert.doesNotMatch(weakFn, /quiz\.html\?open=weakness&law=/);
   assert.match(weakFn, /單刷/);
 
   const renderStart = active.indexOf('function renderStudyToday');
@@ -227,6 +234,15 @@ test('study today links weak laws and topic blocks into single-practice entry po
   assert.match(render, /<a class="study-block" href="quiz\.html\?law=/);
   assert.match(render, /可單刷/);
   assert.match(render, /study-subject-summary/);
+});
+
+test('study plan items show explicit status text for completion tracking', () => {
+  const fn = extractFunction(active, 'renderStudyPlanItems');
+  assert.match(fn, /狀態：/);
+  assert.match(active, /待讀清單/);
+  assert.match(active, /完成後會從下一步移除/);
+  assert.match(active, /已完成/);
+  assert.match(active, /改期/);
 });
 
 test('study today puts next-step actions before lower-priority subject detail', () => {
@@ -245,6 +261,14 @@ test('study today puts next-step actions before lower-priority subject detail', 
   assert.ok(actionIndex < blocksIndex, 'actions should appear before block details');
   assert.ok(weakIndex < subjectsIndex, 'weakness should appear before subject details');
   assert.ok(weakIndex < blocksIndex, 'weakness should appear before block details');
+});
+
+test('study suggestion cards use learner-facing labels instead of internal codes', () => {
+  assert.match(active, /function _studySuggestionLabel/);
+  assert.match(active, /if\(key === 'WEAK'\) return '弱點'/);
+  assert.match(active, /if\(key === 'TIME'\) return '時間'/);
+  assert.match(active, /_studySuggestionLabel\(item\.label \|\| 'NEXT'\)/);
+  assert.doesNotMatch(active, />PLAN RECOMMEND</);
 });
 
 test('study today appears before settings and member details in the page flow', () => {
