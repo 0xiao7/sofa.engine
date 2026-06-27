@@ -42,3 +42,12 @@ test('weak law rendering avoids fake empty metrics', () => {
   assert.match(fn, /目前還沒有足夠錯題累積/);
   assert.doesNotMatch(fn, /目前有 0|0 條弱點/);
 });
+
+test('weak law API failures are not shown as no accumulated weakness', () => {
+  assert.match(html, /function renderStudyWeakLoadIssue/);
+  assert.match(html, /弱點暫時讀不到/);
+  assert.match(html, /這不是代表你沒有答題紀錄/);
+  assert.match(html, /已累積的答題紀錄不會消失/);
+  assert.match(html, /__load_error/);
+  assert.match(html, /catch\(function\(\)\{ renderStudyWeakLoadIssue\(\); \}\)/);
+});

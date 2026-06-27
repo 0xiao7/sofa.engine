@@ -3389,6 +3389,21 @@ function renderStudyAuthIssue(){
   }
 }
 
+function renderStudyWeakLoadIssue(){
+  var recap = document.getElementById('weak-laws-recap');
+  var list = document.getElementById('weak-laws-list');
+  var weakEl = document.getElementById('study-cockpit-weak-state');
+  var brief = document.getElementById('study-weak-brief-list');
+  if(weakEl) weakEl.textContent = '弱點暫時讀不到';
+  if(brief){
+    brief.innerHTML = '<div class="study-weak-empty">弱點分析暫時載入失敗，請稍後重試；這不是代表你沒有答題紀錄。</div>';
+  }
+  if(recap && list){
+    recap.style.display = 'block';
+    list.innerHTML = '<div class="recap-empty">弱點分析暫時載入失敗，請稍後再開一次；已累積的答題紀錄不會消失。</div>';
+  }
+}
+
 function renderStudyTimeSettings(){
   var local = _studyLocal();
   var s = local.settings || {};
@@ -6792,9 +6807,15 @@ ch.on('presence', { event: 'sync' }, () => {
       })
       .catch(function(){});
     fetch(API + '/api/me/weak-laws', { headers: H })
-      .then(function(r){ return r.ok ? r.json() : null; })
-      .then(function(d){ renderWeakLaws(d && d.items); })
-      .catch(function(){ renderWeakLaws([]); });
+      .then(function(r){
+        if(!r.ok) return { __load_error: true, status: r.status };
+        return r.json();
+      })
+      .then(function(d){
+        if(d && d.__load_error) return renderStudyWeakLoadIssue();
+        renderWeakLaws(d && d.items);
+      })
+      .catch(function(){ renderStudyWeakLoadIssue(); });
   } else {
     renderWeakLaws([]);
   }
