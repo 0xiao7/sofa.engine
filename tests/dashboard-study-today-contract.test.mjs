@@ -144,6 +144,17 @@ test('study playlist is a generic text fallback and does not ship private schedu
   assert.doesNotMatch(active, /記帳士 115記帳士台北N1|115\/03\/02|稅務相關法規\(基礎\)1/);
 });
 
+test('study playlist items are executable with single-practice and article-reader links', () => {
+  const fn = extractFunction(active, 'loadStudyPlaylist');
+  assert.match(fn, /class="study-playlist-actions"/);
+  assert.match(fn, /quiz\.html\?law=/);
+  assert.match(fn, /&drill=1/);
+  assert.match(fn, /dashboard\.html\?q=/);
+  assert.match(fn, /#search/);
+  assert.match(fn, /單刷/);
+  assert.match(fn, /看法條/);
+});
+
 test('study today action buttons are sized for mobile app shells', () => {
   const studyActionButtonRule = active.match(/\.study-action-button\{[\s\S]*?\n  \}/)?.[0] || '';
   assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?min-height:44px/);
@@ -184,9 +195,10 @@ test('study time settings stay collapsed into a readable summary until editing',
   assert.match(recap, /class="study-time-summary-card"/);
   assert.match(recap, /id="study-time-purpose"[\s\S]*用來幫你安排今天先讀多久、本週還要補多少/);
   assert.match(recap, /id="study-time-edit-panel" hidden/);
-  assert.match(recap, /onclick="toggleStudyTimeEditor\(\)"[\s\S]*修改時間/);
+  assert.match(recap, /aria-expanded="false"[\s\S]*onclick="toggleStudyTimeEditor\(\)"[\s\S]*修改時間/);
   assert.match(active, /function toggleStudyTimeEditor/);
   assert.match(active, /panel\.hidden = !panel\.hidden/);
+  assert.match(active, /button\.setAttribute\('aria-expanded', panel\.hidden \? 'false' : 'true'\)/);
   assert.doesNotMatch(recap, /<details class="study-time-wrap"/);
 });
 
@@ -436,6 +448,16 @@ test('saved study plans show an immediate readable summary and focus the plan li
   assert.match(active, /scrollIntoView\(\{ block:'nearest', behavior:'smooth' \}\)/);
   assert.match(active, /_addLocalStudyItems[\s\S]*focusStudyPlanItems\(\)/);
   assert.match(active, /saveStudyRecordLocal[\s\S]*focusStudyPlanItems\(\)/);
+});
+
+test('empty study plans show a visible setup action instead of a blank section', () => {
+  const fn = extractFunction(active, 'renderStudyPlanItems');
+  assert.doesNotMatch(fn, /el\.innerHTML = ''/);
+  assert.match(fn, /目前還沒有私人讀書計畫/);
+  assert.match(fn, /onclick="openStudyPlanPanel\(\)"/);
+  assert.match(fn, /設定讀書課程/);
+  assert.match(active, /\.study-plan-count button\{[\s\S]*min-height:34px/);
+  assert.match(active, /\.study-plan-count button\{[\s\S]*background:rgba\(231,187,167,\.12\)/);
 });
 
 test('local study plan items can be completed postponed or cancelled from the list', () => {

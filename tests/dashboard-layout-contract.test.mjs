@@ -13,6 +13,7 @@ test('today recaps are included in the sidebar navigation and scroll spy', () =>
   assert.match(html, /<nav class="top-mid">[\s\S]*href="#study-cockpit-recap"[\s\S]*今天先做/);
   assert.match(html, /<nav class="top-mid">[\s\S]*href="quiz\.html\?open=weakness"[\s\S]*弱點/);
   assert.match(html, /<nav class="top-mid">[\s\S]*href="#review-due"[\s\S]*複習/);
+  assert.match(html, /<div class="nav-helper">右邊滑到哪，左邊會亮哪一段。<\/div>/);
   assert.match(html, /data-spy-target="study-cockpit-recap"[\s\S]*今天先做/);
   assert.match(html, /data-spy-target="study-weak-brief"[\s\S]*今日弱點/);
   assert.match(html, /data-spy-target="study-time-box"[\s\S]*讀書時間/);
@@ -34,6 +35,15 @@ test('desktop sidebar stays present while the main dashboard scrolls', () => {
   assert.match(html, /\.shell::before\{[\s\S]*pointer-events:none/);
   assert.match(html, /@media \(max-width:980px\)\{[\s\S]*aside\.side\{[\s\S]*position:fixed/);
   assert.match(html, /@media \(max-width:980px\)\{[\s\S]*\.shell::before\{display:none\}/);
+});
+
+test('dashboard mobile sidebar exposes state and closes after choosing a guide link', () => {
+  assert.match(html, /<button class="menu-btn" aria-label="開啟導覽" aria-expanded="false" onclick="toggleDashboardSideNav\(\)"/);
+  assert.match(html, /function toggleDashboardSideNav/);
+  assert.match(html, /button\.setAttribute\('aria-expanded', side\.classList\.contains\('open'\) \? 'true' : 'false'\)/);
+  assert.match(html, /function closeDashboardSideNav/);
+  assert.match(html, /document\.querySelectorAll\('aside\.side a'\)\.forEach/);
+  assert.match(html, /\.menu-btn\[aria-expanded="true"\]/);
 });
 
 test('mobile native dashboard owns the iOS safe area', () => {
