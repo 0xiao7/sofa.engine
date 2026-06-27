@@ -155,15 +155,62 @@ test('study playlist items are executable with single-practice and article-reade
   assert.match(fn, /看法條/);
 });
 
+test('study playlist article-reader links auto-open the target article', () => {
+  assert.match(active, /function _openUrlArticleFromResults/);
+  assert.match(active, /window\.__pendingSearchOpenArticle/);
+  assert.match(active, /openDrawer\(pid, lawName, artNo\)/);
+  assert.match(active, /_normalizeArticleNo/);
+  assert.match(active, /_articleNoFromRecord/);
+  assert.match(active, /params\.get\('art'\)[\s\S]*window\.__pendingSearchOpenArticle = true/);
+  const doSearchFn = extractFunction(active, 'doSearch');
+  assert.match(doSearchFn, /_openUrlArticleFromResults\(arts, lawName, artFilter\)/);
+});
+
+test('dashboard article number helpers preserve sub-articles in result rows and drawers', () => {
+  const helpers = vm.runInNewContext([
+    extractFunction(active, '_normalizeArticleNo'),
+    extractFunction(active, '_articleNoFromRecord'),
+    '({ _articleNoFromRecord })',
+  ].join('\n'));
+
+  assert.equal(helpers._articleNoFromRecord({ title: '第43條之3 CFC' }), '43之3');
+  assert.equal(helpers._articleNoFromRecord({ title: '第43之3條 CFC' }), '43之3');
+  assert.equal(helpers._articleNoFromRecord({ article_no: '第43條之3' }), '43之3');
+
+  const drawerStart = active.indexOf('function _renderDrawer(d)');
+  assert.ok(drawerStart >= 0, '_renderDrawer must exist');
+  const drawerFn = active.slice(drawerStart, drawerStart + 2600);
+  assert.match(drawerFn, /var artNum = _articleNoFromRecord\(d\) \|\| _drArticle/);
+  assert.doesNotMatch(drawerFn, /match\(\s*\/\\\(\\d\+\\\)\//);
+});
+
+test('dashboard URL article deep links run even when the law index is slow or unavailable', () => {
+  assert.match(active, /function _runLandingUrlHandlers/);
+  assert.match(active, /_urlLandingHandlersRun/);
+
+  const lawsStart = active.indexOf('// 頁面載入後抓法規清單');
+  assert.ok(lawsStart >= 0, 'law index bootstrap must exist');
+  const lawsEnd = active.indexOf('// 細篩選項從當前法規', lawsStart);
+  assert.ok(lawsEnd > lawsStart, 'law index bootstrap should be extractable');
+  const lawsBlock = active.slice(lawsStart, lawsEnd);
+
+  assert.match(lawsBlock, /_runLandingUrlHandlers\(\);/);
+  assert.match(lawsBlock, /\.catch\(function\(\)\{\s*_runLandingUrlHandlers\(\);\s*\}\)/);
+  assert.doesNotMatch(lawsBlock, /if\(d && d\.laws\)\{[\s\S]*?_handleUrlQuery\(\);[\s\S]*?\}/);
+});
+
 test('study playlist can directly play text through the browser speech engine', () => {
   assert.match(active, /id="study-playlist-playall"/);
   assert.match(active, /onclick="playStudyPlaylistAll\(this\)"/);
   assert.match(active, /function playStudyPlaylistItem/);
   assert.match(active, /function playStudyPlaylistAll/);
+  assert.match(active, /function _cleanSpeechCueText/);
   assert.match(active, /function _speakStudyPlaylistText/);
   assert.match(active, /SpeechSynthesisUtterance/);
   assert.match(active, /speechSynthesis\.speak/);
   assert.match(active, /window\.__studyPlaylistAudioItems/);
+  assert.match(active, /重音\|停頓/);
+  assert.match(active, /replace\(\s*\/\\s\+\/g,\s*' '\s*\)/);
   const fn = extractFunction(active, 'loadStudyPlaylist');
   assert.match(fn, /onclick="playStudyPlaylistItem\(this, ' \+ idx \+ '\)"/);
   assert.match(fn, />播放</);

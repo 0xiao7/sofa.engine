@@ -928,6 +928,18 @@ function formatArticleCitation(artTitle, lawName){
 function getArticleCitationNo(artTitle){
   return normalizeArticleCore(artTitle) || String(artTitle||'').replace(/｜.*$/,'').replace(/^§\s*/,'').trim();
 }
+function _dashboardArticleHref(pageId, lawName, artNo){
+  const law = String(lawName || '');
+  const art = normalizeArticleCore(artNo) || String(artNo || '').replace(/｜.*$/,'').replace(/^§\s*/,'').trim();
+  if(pageId){
+    return 'dashboard.html?open=' + encodeURIComponent(pageId)
+      + (law ? '&law=' + encodeURIComponent(law) : '')
+      + (art ? '&art=' + encodeURIComponent(art) : '');
+  }
+  return 'dashboard.html?q=' + encodeURIComponent(law)
+    + (art ? '&art=' + encodeURIComponent(art) : '')
+    + '#search';
+}
 function renderQuizCitation(artTitle, lawName){
   const cit=document.getElementById('quiz-citation');
   if(!cit || !(artTitle||lawName)) return;
@@ -2148,16 +2160,7 @@ function _feedbackAnim(btn, isCorrect, elapsedSec){
 // Wave 68: 開啟 dashboard.html 並帶入法規名稱
 function _openArticleDashboard() {
   if (!_currentLawName) return;
-  let url;
-  if (_currentPageId) {
-    // 直接深連到該條文（dashboard 的 ?open= 會開抽屜）
-    url = 'dashboard.html?open=' + encodeURIComponent(_currentPageId)
-        + '&law=' + encodeURIComponent(_currentLawName)
-        + (_currentArtNo ? '&art=' + encodeURIComponent(_currentArtNo) : '');
-  } else {
-    url = 'dashboard.html?q=' + encodeURIComponent(_currentLawName);
-  }
-  window.open(url, '_blank');
+  window.open(_dashboardArticleHref(_currentPageId, _currentLawName, _currentArtNo), '_blank');
 }
 let quizData=null;
 // 本次作答紀錄

@@ -119,6 +119,20 @@ test('quiz accepts law query params from dashboard single-practice links', () =>
   assert.match(active, /if\(_initialLawApplied\)\{ loadQuiz\(\); return; \}/);
 });
 
+test('quiz view-article fallback opens the exact article when only law and article number are known', () => {
+  const start = active.indexOf('function _dashboardArticleHref');
+  assert.ok(start >= 0, '_dashboardArticleHref must exist');
+  const end = active.indexOf('function renderQuizCitation', start);
+  const fn = active.slice(start, end);
+
+  assert.match(fn, /_dashboardArticleHref/);
+  assert.match(fn, /encodeURIComponent\(law\)/);
+  assert.match(fn, /encodeURIComponent\(art\)/);
+  assert.match(fn, /#search/);
+  assert.match(active, /window\.open\(_dashboardArticleHref\(_currentPageId, _currentLawName, _currentArtNo\), '_blank'\)/);
+  assert.doesNotMatch(active, /url = 'dashboard\.html\?q=' \+ encodeURIComponent\(_currentLawName\);\s*\}/);
+});
+
 test('stats modal merges server quiz sessions and weak laws before relying on localStorage', () => {
   assert.match(active, /function _loadRemoteQuizStats/);
   assert.match(active, /\/api\/me\/quiz-stats/);

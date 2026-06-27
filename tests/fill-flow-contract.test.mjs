@@ -1,9 +1,24 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import vm from 'node:vm';
 
 const html = readFileSync(new URL('../fill.html', import.meta.url), 'utf8');
 const active = html.replace(/<!--[\s\S]*?-->/g, '');
+
+function extractFunction(source, name) {
+  const marker = `function ${name}`;
+  const start = source.indexOf(marker);
+  assert.ok(start >= 0, `${name} must exist`);
+  const open = source.indexOf('{', start);
+  let depth = 0;
+  for (let i = open; i < source.length; i += 1) {
+    if (source[i] === '{') depth += 1;
+    if (source[i] === '}') depth -= 1;
+    if (depth === 0) return source.slice(start, i + 1);
+  }
+  assert.fail(`${name} must close`);
+}
 
 test('fill page starts with a clear start action then switches to next article', () => {
   assert.match(active, /id="btnNext"[^>]*>開始填空<\/button>/);
@@ -53,4 +68,33 @@ test('fill answer sections show loading and fallback instead of blank panel', ()
   assert.match(checkAnswers, /showFillSectionsLoading\(panel\)/);
   assert.match(checkAnswers, /renderFillSections\(panel,\s*art\.sections\|\|\{\},\s*art\._plan!=='free'\)/);
   assert.match(checkAnswers, /renderFillSections\(panel,\s*\{\},\s*true\)/);
+});
+
+test('fill source links keep article numbers separate from long titles for dashboard deep links', () => {
+  assert.match(active, /function fillDashboardArticleHref/);
+  assert.match(active, /function fillArticleNo/);
+
+  const checkStart = active.indexOf('function checkAnswers');
+  assert.ok(checkStart >= 0, 'checkAnswers must exist');
+  const checkEnd = active.indexOf('// 寫入練習紀錄', checkStart);
+  assert.ok(checkEnd > checkStart, 'source link should be built before history write');
+  const checkAnswers = active.slice(checkStart, checkEnd);
+
+  assert.match(checkAnswers, /fillDashboardArticleHref\(fillData\)/);
+  assert.doesNotMatch(checkAnswers, /&art=\$\{encodeURIComponent\(fillData\.title\)\}/);
+});
+
+test('fill source link helper preserves sub-article numbers in either title order', () => {
+  const helpers = vm.runInNewContext([
+    extractFunction(active, 'fillArticleNo'),
+    extractFunction(active, 'fillDashboardArticleHref'),
+    '({fillArticleNo, fillDashboardArticleHref})',
+  ].join('\n'));
+
+  assert.equal(helpers.fillArticleNo({ title: '第43條之3 CFC' }), '43之3');
+  assert.equal(helpers.fillArticleNo({ title: '第43之3條 CFC' }), '43之3');
+  assert.match(
+    helpers.fillDashboardArticleHref({ id: 'income-43-3', law_name: '所得稅法', title: '第43條之3 CFC' }),
+    /art=43%E4%B9%8B3$/,
+  );
 });
