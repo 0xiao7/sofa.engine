@@ -37,7 +37,8 @@ test('study today surfaces weakness before lower dashboard sections', () => {
   const recap = active.slice(recapStart, recapStart + 8600);
   assert.match(recap, /id="study-weak-brief"/);
   assert.match(recap, /今日弱點/);
-  assert.match(recap, /完整分析/);
+  assert.match(recap, /錯最多的法規先排前面，不用自己判斷哪裡弱/);
+  assert.match(recap, /補這些弱點/);
   assert.match(recap, /id="study-weak-brief-list"/);
   assert.match(active, /function renderStudyWeakBrief/);
   assert.match(active, /答題後，這裡會直接列出最該補的法規/);
@@ -70,6 +71,8 @@ test('study today makes working tools and personal planning obvious', () => {
 test('study today action buttons are sized for mobile app shells', () => {
   assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?min-height:40px/);
   assert.match(active, /@media \(max-width:760px\)\{[\s\S]*?\.study-action-link,\.study-pending\{[\s\S]*?min-height:44px/);
+  assert.match(active, /\.study-weak-brief-link\{[\s\S]*?min-height:36px/);
+  assert.match(active, /\.study-weak-brief-head\{[\s\S]*?flex-wrap:wrap/);
 });
 
 test('study today exposes a time-first planning box before schedule details', () => {
