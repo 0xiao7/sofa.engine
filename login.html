@@ -858,6 +858,23 @@ function formatSerial(el) {
   errEl.classList.remove('show');
 }
 
+var STUDY_LOCAL_KEY = 'sofa.study.localPlan.v1';
+var STUDY_AFTER_LOGIN_SYNC_KEY = 'sofa.study.afterLoginSync.v1';
+
+function markStudyLocalProgressForLogin(){
+  try{
+    var raw = JSON.parse(localStorage.getItem(STUDY_LOCAL_KEY) || '{}');
+    var s = raw.settings || {};
+    var changedSettings = (s.total_hours && s.total_hours !== 500) || (s.weekly_hours && s.weekly_hours !== 12) || (s.today_minutes && s.today_minutes !== 60);
+    var hasLocalProgress = changedSettings
+      || (Array.isArray(raw.items) && raw.items.length > 0)
+      || (Array.isArray(raw.records) && raw.records.length > 0);
+    if(hasLocalProgress){
+      localStorage.setItem(STUDY_AFTER_LOGIN_SYNC_KEY, new Date().toISOString());
+    }
+  }catch(e){}
+}
+
 function normalizeSerialForVerification(value, opts) {
   const allowPartial = !!(opts && opts.allowPartial);
   let raw = String(value || '').replace(/[^A-Za-z0-9]/g, '').toUpperCase();
@@ -912,7 +929,8 @@ serialEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); })
       return;
     }
     localStorage.setItem('sofa_uid', data.uid);
-    if(data.token) localStorage.setItem('sofa_token', data.token);
+    if (data.token) localStorage.setItem('sofa_token', data.token);
+    markStudyLocalProgressForLogin();
     // 清掉 URL 上的 token 避免被分享 / 留在瀏覽紀錄
     history.replaceState({}, '', location.pathname);
     window.location.href = 'dashboard.html';
@@ -962,6 +980,7 @@ async function doLogin() {
     if (!res.ok) { showErr(data.detail || '序號無效，請確認後再試'); return; }
     localStorage.setItem('sofa_uid', data.uid);
     if (data.token) localStorage.setItem('sofa_token', data.token);
+    markStudyLocalProgressForLogin();
     window.location.href = 'dashboard.html';
   } catch {
     showErr('連線失敗，請稍後再試');

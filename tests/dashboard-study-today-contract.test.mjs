@@ -334,3 +334,17 @@ test('study plan next actions ignore completed cancelled and stale items', () =>
   assert.match(active, /var next = actionable\[0\] \|\| \{\}/);
   assert.match(active, /var items = _actionableStudyItems\(mergedPlan && Array\.isArray\(mergedPlan\.items\) \? mergedPlan\.items : \[\]\)/);
 });
+
+test('study planning reconnects local progress after serial login', () => {
+  assert.match(active, /STUDY_AFTER_LOGIN_SYNC_KEY\s*=\s*'sofa\.study\.afterLoginSync\.v1'/);
+  assert.match(active, /STUDY_AFTER_LOGIN_SYNC_DONE_KEY\s*=\s*'sofa\.study\.afterLoginSyncDone\.v1'/);
+  assert.match(active, /function trySyncLocalStudyAfterLogin/);
+  assert.match(active, /本機讀書計畫已接回這個序號/);
+  assert.match(active, /排課項目會嘗試同步/);
+  assert.match(active, /補紀錄與時間設定仍先留在本機/);
+  assert.match(active, /\/api\/me\/study\/plan-items\/bulk/);
+  assert.match(active, /after_login_local_handoff/);
+  assert.match(active, /_actionableStudyItems\(local\.items \|\| \[\]\)/);
+  assert.match(active, /localStorage\.removeItem\(STUDY_AFTER_LOGIN_SYNC_KEY\)/);
+  assert.match(active, /renderStudyCloudState[\s\S]*trySyncLocalStudyAfterLogin\(\)/);
+});

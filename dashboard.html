@@ -3452,6 +3452,8 @@ function _studySaveMessage(res, fallback){
 
 var STUDY_LOCAL_KEY = 'sofa.study.localPlan.v1';
 var STUDY_SAVE_NUDGE_DISMISS_KEY = 'sofa.study.saveNudgeDismissed.v1';
+var STUDY_AFTER_LOGIN_SYNC_KEY = 'sofa.study.afterLoginSync.v1';
+var STUDY_AFTER_LOGIN_SYNC_DONE_KEY = 'sofa.study.afterLoginSyncDone.v1';
 
 function _studyLocal(){
   try{
@@ -3566,6 +3568,51 @@ function renderStudyCloudState(remotePlan){
     return;
   }
   el.innerHTML = '<b>先存在這台裝置</b>：排課、補紀錄都能先用；登入後會盡量接到你的帳號。';
+}
+
+async function trySyncLocalStudyAfterLogin(){
+  var flagged = localStorage.getItem(STUDY_AFTER_LOGIN_SYNC_KEY);
+  if(!flagged) return;
+  var uid = localStorage.getItem('sofa_uid') || '';
+  var token = localStorage.getItem('sofa_token') || '';
+  if(!uid && !token) return;
+  var local = _studyLocal();
+  if(!_studyHasLocalProgress(local)){
+    localStorage.removeItem(STUDY_AFTER_LOGIN_SYNC_KEY);
+    return;
+  }
+  var state = document.getElementById('study-cloud-state');
+  var plannedItems = _actionableStudyItems(local.items || []);
+  var handoffCopy = '<b>本機讀書計畫已接回這個序號</b>：排課項目會嘗試同步；補紀錄與時間設定仍先留在本機。';
+  if(state) state.innerHTML = handoffCopy;
+  if(!plannedItems.length){
+    localStorage.setItem(STUDY_AFTER_LOGIN_SYNC_DONE_KEY, new Date().toISOString());
+    localStorage.removeItem(STUDY_AFTER_LOGIN_SYNC_KEY);
+    return;
+  }
+  var doneKey = uid || token.slice(-8) || 'signed-in';
+  if(localStorage.getItem(STUDY_AFTER_LOGIN_SYNC_DONE_KEY) === doneKey) return;
+  try{
+    var res = await _fetchStudyJSON(API + '/api/me/study/plan-items/bulk', {
+      method: 'POST',
+      headers: _authH({'Content-Type':'application/json'}),
+      body: JSON.stringify({
+        track_key:'bookkeeper',
+        source_label:'本機接回',
+        import_source:'after_login_local_handoff',
+        items:plannedItems
+      })
+    });
+    if(res && res.ok){
+      if(state) state.innerHTML = '<b>本機讀書計畫已接回這個序號</b>：已同步 ' + esc(res.count || plannedItems.length) + ' 筆排課；補紀錄與時間設定仍先留在本機。';
+      localStorage.setItem(STUDY_AFTER_LOGIN_SYNC_DONE_KEY, doneKey);
+      localStorage.removeItem(STUDY_AFTER_LOGIN_SYNC_KEY);
+    } else {
+      if(state) state.innerHTML = handoffCopy + ' ' + esc(_studySaveMessage(res, '雲端同步稍後再試，本機資料不會消失。'));
+    }
+  }catch(e){
+    if(state) state.innerHTML = handoffCopy + ' 網路暫時不穩，本機資料不會消失。';
+  }
 }
 
 function renderStudyWeakBrief(items){
@@ -4696,6 +4743,7 @@ function _readArticle(btn, text) {
       .then(function(d){
         if(d.uid) localStorage.setItem('sofa_uid', d.uid);
         if(d.token) localStorage.setItem('sofa_token', d.token);
+        if(_studyHasLocalProgress(_studyLocal())) localStorage.setItem(STUDY_AFTER_LOGIN_SYNC_KEY, new Date().toISOString());
         location.reload();
       })
       .catch(function(){ window.location.href = 'login.html'; });
@@ -5395,6 +5443,7 @@ function renderStudyToday(data){
   renderStudyWeakState(weakItems);
   renderStudyTimeSettings();
   renderStudyCloudState(data.personal_plan || null);
+  trySyncLocalStudyAfterLogin();
   var mergedPlan = _mergeStudyPlan(data.personal_plan || null);
   renderStudyPlanItems(_mergeStudyPlan(data.personal_plan || null));
   renderStudySuggestions(buildStudySuggestions(data, mergedPlan));

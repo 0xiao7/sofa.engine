@@ -48,3 +48,12 @@ test('short desktop viewports keep the login CTA and footer inside the first scr
   assert.match(html, /\.serial-card\s*\{[^}]*padding:\s*20px 22px 18px/);
   assert.match(html, /\.auth-hint\s*\{[^}]*margin-top:\s*10px/);
 });
+
+test('serial and magic login mark local study progress for dashboard handoff', () => {
+  assert.match(html, /STUDY_LOCAL_KEY\s*=\s*'sofa\.study\.localPlan\.v1'/);
+  assert.match(html, /STUDY_AFTER_LOGIN_SYNC_KEY\s*=\s*'sofa\.study\.afterLoginSync\.v1'/);
+  assert.match(html, /function markStudyLocalProgressForLogin/);
+  assert.match(html, /localStorage\.setItem\(STUDY_AFTER_LOGIN_SYNC_KEY/);
+  assert.match(html, /localStorage\.setItem\('sofa_uid', data\.uid\);[\s\S]{0,180}markStudyLocalProgressForLogin\(\);[\s\S]{0,80}window\.location\.href = 'dashboard\.html'/);
+  assert.match(html, /if \(data\.token\) localStorage\.setItem\('sofa_token', data\.token\);[\s\S]{0,180}markStudyLocalProgressForLogin\(\);[\s\S]{0,80}window\.location\.href = 'dashboard\.html'/);
+});
