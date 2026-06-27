@@ -870,6 +870,27 @@ const _searchParams = new URLSearchParams(location.search);
 const freeParam = _searchParams.get('free') === '1';
 const _PAST_EXAM_SUBJECTS = ['記帳相關法規概要', '稅務相關法規概要'];
 let _pastExamMode = _searchParams.get('mode') === 'past-exam';
+function _lawParamFromUrl(){
+  const raw = _searchParams.get('law') || _searchParams.get('q') || '';
+  try { return decodeURIComponent(raw).trim(); }
+  catch(e) { return String(raw || '').trim(); }
+}
+function _applyInitialLawParam(sel){
+  const law = _lawParamFromUrl();
+  if(!law || !sel) return false;
+  let opt = Array.from(sel.options).find(o => o.value === law || o.textContent === law);
+  if(!opt){
+    const o = document.createElement('option');
+    o.value = law;
+    o.textContent = law;
+    sel.appendChild(o);
+    opt = o;
+  }
+  sel.value = opt.value;
+  localStorage.setItem('sofa_last_law', opt.value);
+  sel.dispatchEvent(new Event('change'));
+  return true;
+}
 if (freeParam && !uid && !tok) {
   localStorage.setItem('sofa_free', 'FREE');
 }
@@ -1120,7 +1141,8 @@ function _showQzExamBanner() {
     }
     return false;
   }
-  const _restored = _restoreLastLaw();
+  const _initialLawApplied = _applyInitialLawParam(sel);
+  const _restored = _initialLawApplied ? true : _restoreLastLaw();
   // 自動帶入考科第一個範圍：未存過法規時，預設選「全部法規（本考科）」
   const _hasExam = !!localStorage.getItem('sofa_exam_key');
   if(!_restored && _hasExam){
@@ -1133,6 +1155,7 @@ function _showQzExamBanner() {
     loadQuiz();
     return;
   }
+  if(_initialLawApplied){ loadQuiz(); return; }
   // 進頁自動出第一題：只要已選考科（或已有選定法規）就直接出題，不必按「出題」
   if(_restored || _hasExam){ loadQuiz(); }
 })();

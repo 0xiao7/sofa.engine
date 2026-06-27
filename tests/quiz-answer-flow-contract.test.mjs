@@ -98,6 +98,19 @@ test('quiz weakness rail fetches authenticated weak-laws fallback', () => {
   assert.match(active, /startSession\(5\)/);
 });
 
+test('quiz accepts law query params from dashboard single-practice links', () => {
+  assert.match(active, /function _lawParamFromUrl/);
+  assert.match(active, /_searchParams\.get\('law'\)/);
+  assert.match(active, /_searchParams\.get\('q'\)/);
+  assert.match(active, /function _applyInitialLawParam/);
+  assert.match(active, /decodeURIComponent/);
+  assert.match(active, /document\.createElement\('option'\)/);
+  assert.match(active, /o\.value = law/);
+  assert.match(active, /sel\.appendChild\(o\)/);
+  assert.match(active, /_applyInitialLawParam\(sel\)/);
+  assert.match(active, /if\(_initialLawApplied\)\{ loadQuiz\(\); return; \}/);
+});
+
 test('stats modal merges server quiz sessions and weak laws before relying on localStorage', () => {
   assert.match(active, /function _loadRemoteQuizStats/);
   assert.match(active, /\/api\/me\/quiz-stats/);

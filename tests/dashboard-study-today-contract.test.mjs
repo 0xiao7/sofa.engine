@@ -117,6 +117,14 @@ test('study today makes working tools and personal planning obvious', () => {
   assert.doesNotMatch(active, /total_sessions:\s*count/);
 });
 
+test('desktop dashboard keeps the left library rail persistent', () => {
+  assert.match(active, /\.shell\{[\s\S]*grid-template-columns:280px minmax\(0,1fr\)/);
+  assert.match(active, /aside\.side\{[\s\S]*position:fixed;[\s\S]*top:71px;[\s\S]*bottom:0;[\s\S]*left:0;[\s\S]*width:280px/);
+  assert.match(active, /main\.main\{[\s\S]*grid-column:2/);
+  assert.match(active, /@media \(max-width:980px\)\{[\s\S]*\.shell\{grid-template-columns:1fr\}/);
+  assert.match(active, /@media \(max-width:980px\)\{[\s\S]*aside\.side\{[\s\S]*position:fixed;top:65px;left:0;width:280px/);
+});
+
 test('study plan and record panels have deep links for native app entry', () => {
   assert.match(active, /function openStudyPanelFromHash/);
   assert.match(active, /hash === '#study-plan'[\s\S]*openStudyPlanPanel\(\)/);
@@ -137,9 +145,10 @@ test('study playlist is a generic text fallback and does not ship private schedu
 
 test('study today action buttons are sized for mobile app shells', () => {
   const studyActionButtonRule = active.match(/\.study-action-button\{[\s\S]*?\n  \}/)?.[0] || '';
-  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?min-height:40px/);
-  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?font-family:var\(--mono\)/);
-  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?font-size:11px/);
+  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?min-height:44px/);
+  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?font-family:var\(--serif\)/);
+  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?font-size:15px/);
+  assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?letter-spacing:0/);
   assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?line-height:1\.25/);
   assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?box-sizing:border-box/);
   assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?text-decoration:none/);
@@ -188,7 +197,8 @@ test('study today renders personal plan items returned by the study API', () => 
   assert.match(active, /id="study-cloud-state"/);
   assert.match(active, /id="study-plan-items"/);
   assert.match(active, /renderStudyPlanItems/);
-  assert.match(active, /接下來的私人計畫/);
+  assert.match(active, /待讀清單/);
+  assert.doesNotMatch(active, /<h3>接下來的私人計畫<\/h3>/);
 });
 
 test('study today explains cloud save status in learner words', () => {
@@ -201,9 +211,22 @@ test('study today explains cloud save status in learner words', () => {
 });
 
 test('study today uses learner-facing subject status wording, not seed jargon', () => {
-  assert.match(active, /已可練習/);
+  assert.match(active, /可單刷/);
   assert.match(active, /題庫準備中/);
+  assert.match(active, /科目狀態/);
   assert.doesNotMatch(active, /待 seed/);
+});
+
+test('study today links weak laws and topic blocks into single-practice entry points', () => {
+  const weakFn = extractFunction(active, 'renderStudyWeakBrief');
+  assert.match(weakFn, /quiz\.html\?open=weakness&law=/);
+  assert.match(weakFn, /單刷/);
+
+  const renderStart = active.indexOf('function renderStudyToday');
+  const render = active.slice(renderStart, renderStart + 5200);
+  assert.match(render, /<a class="study-block" href="quiz\.html\?law=/);
+  assert.match(render, /可單刷/);
+  assert.match(render, /study-subject-summary/);
 });
 
 test('study today puts next-step actions before lower-priority subject detail', () => {
@@ -361,11 +384,14 @@ test('series planning can generate local weekly items before API sync', () => {
 
 test('saved study plans show an immediate readable summary and focus the plan list', () => {
   assert.match(active, /class="study-plan-count"/);
-  assert.match(active, /接下來 ' \+ actionable\.length \+ ' 筆私人計畫/);
+  assert.match(active, /待讀 ' \+ actionable\.length \+ ' 筆/);
   assert.match(active, /下一筆：<b>/);
   assert.match(active, /function _studyStatusLabel/);
   assert.match(active, /已完成/);
   assert.match(active, /待讀/);
+  assert.match(active, /function _studyStatusClass/);
+  assert.match(active, /status-planned/);
+  assert.match(active, /完成後會從下一步移除/);
   assert.match(active, /function focusStudyPlanItems/);
   assert.match(active, /scrollIntoView\(\{ block:'nearest', behavior:'smooth' \}\)/);
   assert.match(active, /_addLocalStudyItems[\s\S]*focusStudyPlanItems\(\)/);
