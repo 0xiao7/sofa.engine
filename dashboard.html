@@ -675,6 +675,80 @@
     background:rgba(255,255,255,.025);
     cursor:not-allowed;
   }
+  .study-playlist-panel{
+    display:none;
+    border:1px solid var(--line-2);
+    background:rgba(255,255,255,.025);
+    border-radius:4px;
+    padding:13px;
+    gap:12px;
+  }
+  .study-playlist-panel.on{display:grid}
+  .study-playlist-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .study-playlist-title{display:grid;gap:3px}
+  .study-playlist-title span{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.14em;
+    color:var(--peach);
+  }
+  .study-playlist-title b{
+    font-family:var(--serif);
+    font-size:16px;
+    font-weight:500;
+    color:var(--cream);
+  }
+  .study-playlist-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .study-playlist-tools select,.study-playlist-tools button{
+    min-height:36px;
+    border:1px solid var(--line-2);
+    border-radius:3px;
+    background:rgba(2,12,18,.36);
+    color:var(--cream);
+    padding:7px 10px;
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.06em;
+  }
+  .study-playlist-tools button{
+    cursor:pointer;
+    color:var(--navy);
+    background:var(--peach);
+    border-color:var(--peach);
+    font-weight:700;
+  }
+  .study-playlist-list{display:grid;gap:8px}
+  .study-playlist-item{
+    border-top:1px dashed rgba(231,187,167,.16);
+    padding-top:9px;
+    display:grid;
+    gap:5px;
+  }
+  .study-playlist-item:first-child{border-top:0;padding-top:0}
+  .study-playlist-item .meta{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.06em;
+    color:var(--peach);
+  }
+  .study-playlist-item .title{
+    font-family:var(--serif);
+    font-size:15px;
+    color:var(--cream);
+    font-weight:500;
+  }
+  .study-playlist-item .text{
+    color:rgba(245,240,234,.62);
+    font-size:12.5px;
+    line-height:1.65;
+    overflow-wrap:anywhere;
+  }
   .study-time-save{
     grid-column:1 / -1;
     display:flex;
@@ -2683,8 +2757,27 @@
               <a class="study-action-link primary" href="quiz.html">開始選擇題</a>
               <a class="study-action-link" href="#review-due">看今日複習</a>
               <a class="study-action-link" href="quiz.html?open=weakness">看弱點分析</a>
+              <button class="study-action-link study-action-button" type="button" onclick="openStudyPlaylistPanel()">播放清單</button>
               <button class="study-action-link study-action-button" type="button" onclick="openStudyPlanPanel()">設定讀書課程</button>
               <button class="study-action-link study-action-button" type="button" onclick="openStudyRecordPanel()">補紀錄</button>
+            </div>
+            <div class="study-playlist-panel" id="study-playlist-panel" aria-label="通勤重點播放清單">
+              <div class="study-playlist-head">
+                <div class="study-playlist-title">
+                  <span>PLAYLIST</span>
+                  <b>重點清單，先聽最常考</b>
+                </div>
+                <div class="study-playlist-tools">
+                  <select id="study-playlist-subject" aria-label="播放清單科目">
+                    <option value="tax_laws">稅務法規</option>
+                    <option value="bookkeeping_laws">記帳法規</option>
+                  </select>
+                  <button type="button" onclick="loadStudyPlaylist()">更新清單</button>
+                </div>
+              </div>
+              <div class="study-playlist-list" id="study-playlist-list">
+                <div class="study-empty">按更新清單，先產生文字版重點。</div>
+              </div>
             </div>
             <div class="study-weak-brief" id="study-weak-brief" aria-label="今日弱點">
               <div class="study-weak-brief-head">
@@ -5529,11 +5622,13 @@ function _todayInputValue(){
 function openStudyPlanPanel(){
   var panel = document.getElementById('study-plan-panel');
   var record = document.getElementById('study-record-panel');
+  var playlist = document.getElementById('study-playlist-panel');
   var state = document.getElementById('study-plan-state');
   var start = document.getElementById('study-plan-start');
   if(!panel) return;
   panel.classList.toggle('on');
   if(record) record.classList.remove('on');
+  if(playlist) playlist.classList.remove('on');
   if(start && !start.value) start.value = _todayInputValue();
   if(state && panel.classList.contains('on')){
     state.textContent = '填課名、堂數和固定日；排入後每堂仍可單獨調整。';
@@ -5543,17 +5638,31 @@ function openStudyPlanPanel(){
 function openStudyRecordPanel(){
   var panel = document.getElementById('study-record-panel');
   var plan = document.getElementById('study-plan-panel');
+  var playlist = document.getElementById('study-playlist-panel');
   var date = document.getElementById('study-record-date');
   if(!panel) return;
   panel.classList.toggle('on');
   if(plan) plan.classList.remove('on');
+  if(playlist) playlist.classList.remove('on');
   if(date && !date.value) date.value = _todayInputValue();
+}
+
+function openStudyPlaylistPanel(){
+  var panel = document.getElementById('study-playlist-panel');
+  var plan = document.getElementById('study-plan-panel');
+  var record = document.getElementById('study-record-panel');
+  if(!panel) return;
+  panel.classList.toggle('on');
+  if(plan) plan.classList.remove('on');
+  if(record) record.classList.remove('on');
+  if(panel.classList.contains('on')) loadStudyPlaylist();
 }
 
 function openStudyPanelFromHash(){
   var hash = String(location.hash || '');
   if(hash === '#study-plan') openStudyPlanPanel();
   if(hash === '#study-record') openStudyRecordPanel();
+  if(hash === '#study-playlist') openStudyPlaylistPanel();
 }
 
 if(document.readyState === 'loading') {
@@ -5566,6 +5675,33 @@ window.addEventListener('hashchange', openStudyPanelFromHash);
 function _studyVal(id){
   var el = document.getElementById(id);
   return el ? String(el.value || '').trim() : '';
+}
+
+async function loadStudyPlaylist(){
+  var list = document.getElementById('study-playlist-list');
+  var subjectEl = document.getElementById('study-playlist-subject');
+  if(!list) return;
+  var subject = subjectEl ? subjectEl.value : 'tax_laws';
+  list.innerHTML = '<div class="study-empty">讀取重點清單中…</div>';
+  try{
+    var res = await _fetchJSON(API + '/api/playlist?track=bookkeeper&subject=' + encodeURIComponent(subject) + '&content_layer=analysis&star_min=3&limit=8', { headers: _authH({}) }, 1);
+    var items = res && Array.isArray(res.items) ? res.items : [];
+    if(!items.length){
+      list.innerHTML = '<div class="study-empty">目前沒有可播放的重點；先回選擇題累積弱點。</div>';
+      return;
+    }
+    list.innerHTML = items.map(function(item){
+      var text = String(item.text || '').replace(/\s+/g, ' ').trim();
+      if(text.length > 110) text = text.slice(0, 110) + '…';
+      return '<div class="study-playlist-item">'
+        + '<span class="meta">' + esc(item.importance || '') + ' · ' + esc(item.law_name || '') + ' · 第 ' + esc(item.article_no || '') + ' 條</span>'
+        + '<span class="title">' + esc(item.title || '重點條文') + '</span>'
+        + '<span class="text">' + esc(text || '這條還沒有重點整理，先看原文。') + '</span>'
+        + '</div>';
+    }).join('');
+  }catch(e){
+    list.innerHTML = '<div class="study-empty">播放清單暫時讀不到；不影響答題和讀書計畫。</div>';
+  }
 }
 
 function renderStudyPlanItems(plan){

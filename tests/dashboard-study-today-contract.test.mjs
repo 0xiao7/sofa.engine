@@ -58,8 +58,10 @@ test('study today makes working tools and personal planning obvious', () => {
   assert.match(active, /class="study-action-link primary" href="quiz\.html"[\s\S]*開始選擇題/);
   assert.match(active, /href="#review-due"[\s\S]*看今日複習/);
   assert.match(active, /href="quiz\.html\?open=weakness"[\s\S]*看弱點分析/);
+  assert.match(active, /onclick="openStudyPlaylistPanel\(\)"[\s\S]*播放清單/);
   assert.match(active, /onclick="openStudyPlanPanel\(\)"[\s\S]*設定讀書課程/);
   assert.match(active, /onclick="openStudyRecordPanel\(\)"[\s\S]*補紀錄/);
+  assert.match(active, /id="study-playlist-panel"/);
   assert.match(active, /id="study-plan-panel"/);
   assert.match(active, /適合函授、補習班課程、模考或自己的週任務/);
   assert.match(active, /function saveStudySeries/);
@@ -72,7 +74,18 @@ test('study plan and record panels have deep links for native app entry', () => 
   assert.match(active, /function openStudyPanelFromHash/);
   assert.match(active, /hash === '#study-plan'[\s\S]*openStudyPlanPanel\(\)/);
   assert.match(active, /hash === '#study-record'[\s\S]*openStudyRecordPanel\(\)/);
+  assert.match(active, /hash === '#study-playlist'[\s\S]*openStudyPlaylistPanel\(\)/);
   assert.match(active, /hashchange', openStudyPanelFromHash/);
+});
+
+test('study playlist is a generic text fallback and does not ship private schedules', () => {
+  assert.match(active, /function openStudyPlaylistPanel/);
+  assert.match(active, /function loadStudyPlaylist/);
+  assert.match(active, /\/api\/playlist\?track=bookkeeper/);
+  assert.match(active, /content_layer=analysis/);
+  assert.match(active, /star_min=3/);
+  assert.match(active, /重點清單，先聽最常考/);
+  assert.doesNotMatch(active, /記帳士 115記帳士台北N1|115\/03\/02|稅務相關法規\(基礎\)1/);
 });
 
 test('study today action buttons are sized for mobile app shells', () => {
@@ -149,7 +162,7 @@ test('study today uses learner-facing subject status wording, not seed jargon', 
 test('study today puts next-step actions before lower-priority subject detail', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
-  const recap = active.slice(recapStart, recapStart + 9800);
+  const recap = active.slice(recapStart, recapStart + 12800);
   const actionIndex = recap.indexOf('class="study-actions"');
   const weakIndex = recap.indexOf('id="study-weak-brief"');
   const subjectsIndex = recap.indexOf('id="study-cockpit-subjects"');
