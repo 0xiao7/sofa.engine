@@ -3546,6 +3546,10 @@ function updateLocalStudyItemStatus(key, status, shiftDays){
   showStudySaveNudge();
 }
 
+function setStudyPlanActionMessage(message){
+  window.__studyPlanActionMessage = message || '';
+}
+
 function _findStudyPlanItem(key){
   var items = Array.isArray(window.__studyPlanItemCache) ? window.__studyPlanItemCache : [];
   for(var i=0;i<items.length;i++){
@@ -3562,11 +3566,12 @@ async function updateStudyItemStatus(key, status, shiftDays){
     try{
       if(shiftDays){
         var movedDate = _datePlusDays(item.scheduled_date || _todayInputValue(), shiftDays);
-        await _fetchStudyJSON(API + '/api/me/study/plan-item/' + encodeURIComponent(item.id) + '/reschedule', {
+        var moved = await _fetchStudyJSON(API + '/api/me/study/plan-item/' + encodeURIComponent(item.id) + '/reschedule', {
           method: 'POST',
           headers: _authH({'Content-Type':'application/json'}),
           body: JSON.stringify({ scheduled_date:movedDate, scheduled_time:item.scheduled_time || '', scope:'single' })
         });
+        if(!moved || !moved.ok) throw new Error('reschedule failed');
       }
       var res = await _fetchStudyJSON(API + '/api/me/study/plan-item/' + encodeURIComponent(item.id) + '/status', {
         method: 'POST',
@@ -3579,8 +3584,17 @@ async function updateStudyItemStatus(key, status, shiftDays){
         focusStudyPlanItems();
         return;
       }
-    }catch(e){}
+      throw new Error('status failed');
+    }catch(e){
+      setStudyPlanActionMessage('同步失敗，這筆雲端計畫還沒改動；請稍後再試。');
+      var latest = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
+      var fallbackItems = latest && latest.personal_plan ? latest.personal_plan : { items: window.__studyPlanItemCache || [] };
+      renderStudyPlanItems(_mergeStudyPlan(fallbackItems));
+      focusStudyPlanItems();
+      return;
+    }
   }
+  setStudyPlanActionMessage('');
   updateLocalStudyItemStatus(key, status, shiftDays);
 }
 
@@ -5554,10 +5568,13 @@ function renderStudyPlanItems(plan){
   }
   var next = actionable[0] || {};
   var nextText = [next.scheduled_date || '', next.scheduled_time || '', next.title || next.subject || '讀書計畫'].filter(Boolean).join(' · ');
+  var actionMessage = window.__studyPlanActionMessage
+    ? '<div class="study-plan-count warn">' + esc(window.__studyPlanActionMessage) + '</div>'
+    : '';
   var summary = '<div class="study-plan-count">接下來 ' + actionable.length + ' 筆私人計畫'
     + (nextText ? '；下一筆：<b>' + esc(nextText) + '</b>' : '')
     + '</div>';
-  el.innerHTML = summary + '<h3>接下來的私人計畫</h3>' + actionable.slice(0,8).map(function(item){
+  el.innerHTML = actionMessage + summary + '<h3>接下來的私人計畫</h3>' + actionable.slice(0,8).map(function(item){
     var meta = [item.subject || '', item.scheduled_time || '', item.source_label || ''].filter(Boolean).join(' · ');
     var key = _studyItemKey(item);
     var canEdit = item.source_label !== '補紀錄 ' + (item.minutes || '') + ' 分鐘';

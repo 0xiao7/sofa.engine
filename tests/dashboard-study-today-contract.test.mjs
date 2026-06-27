@@ -325,6 +325,16 @@ test('remote study plan actions persist status before falling back locally', () 
   assert.match(active, /updateLocalStudyItemStatus\(key, status, shiftDays\)/);
 });
 
+test('remote study plan action failures keep the item visible with a clear message', () => {
+  assert.match(active, /function setStudyPlanActionMessage/);
+  assert.match(active, /同步失敗，這筆雲端計畫還沒改動/);
+  assert.match(active, /fallbackItems = latest && latest\.personal_plan \? latest\.personal_plan : \{ items: window\.__studyPlanItemCache \|\| \[\] \}/);
+  assert.match(active, /renderStudyPlanItems\(_mergeStudyPlan\(fallbackItems\)\)/);
+  assert.match(active, /class="study-plan-count warn"/);
+  assert.match(active, /throw new Error\('reschedule failed'\)/);
+  assert.match(active, /throw new Error\('status failed'\)/);
+});
+
 test('study today builds concrete local suggestions from time weakness and plan data', () => {
   assert.match(active, /id="study-suggestions"/);
   assert.match(active, /function buildStudySuggestions/);
