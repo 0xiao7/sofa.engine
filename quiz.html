@@ -247,7 +247,7 @@
   .sec-lock-preview::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(245,240,234,0) 15%,var(--cream) 82%);pointer-events:none}
   .sec-lock-cta{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px;padding:10px 16px;font-size:12.5px;color:rgba(31,56,72,.72);background:rgba(231,187,167,.1);border:1px dashed rgba(213,154,120,.4);border-radius:4px}
   .sec-lock-cta a{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--peach);text-decoration:none;padding:5px 14px;border:1px solid rgba(213,154,120,.4);border-radius:2px;white-space:nowrap}
-  .cpi-note{margin-top:16px;padding:14px 16px;background:rgba(217,176,132,.12);border:1px solid rgba(217,176,132,.38);border-left:3px solid var(--peach);border-radius:4px;color:var(--navy);font-size:14px;line-height:1.75}
+  .cpi-note{margin-top:16px;padding:14px 16px;background:rgba(217,176,132,.12);border:1px solid rgba(217,176,132,.38);border-left:3px solid var(--peach);border-radius:4px;color:var(--navy);font-size:14px;line-height:1.75;white-space:pre-line}
   .cpi-note b{display:block;margin-bottom:4px;color:var(--navy);font-family:var(--sans);font-weight:700}
 
   /* bottom action */
@@ -1314,13 +1314,15 @@ function buildCpiAdjustmentNote(article,sections){
   const artNo=String(article?.article_no||_currentArtNo||article?.title||'');
   const hasCpiText=/CPI|消費者物價指數|物價指數|公告調整|按.*物價/.test(articleText);
   const isBasicTax=lawName.includes('所得基本稅額條例') && /(^|第|\D)13(條|$|\D)/.test(artNo);
-  const isEstateGift=lawName.includes('遺產及贈與稅法') && (/12\s*[-之]\s*1|十二條之一|第十二條之一/.test(artNo) || hasCpiText);
+  const estateGiftAmountArticle=/12\s*[-之]\s*1|十二條之一|第十二條之一|(^|第|\D)(13|17|18|19|20|22)(條|$|\D)/.test(artNo);
+  const estateGiftAmountText=/免稅額|扣除額|配偶|直系血親卑親屬|父母|喪葬費|殘障|扶養|課稅級距|贈與稅|遺產稅|萬|元/.test(articleText);
+  const isEstateGift=lawName.includes('遺產及贈與稅法') && (estateGiftAmountArticle || hasCpiText || estateGiftAmountText);
   if(!hasCpiText && !isBasicTax && !isEstateGift) return '';
   if(isBasicTax){
     return '這題條文寫六百萬元，但 113 年度起個人基本所得額扣除額已調整為 750 萬元；115 年度沿用 750 萬元。題目仍可考條文基準或比例，考前請以當年度公告額為準。';
   }
   if(isEstateGift){
-    return '115 年：遺產稅免稅額 1,333 萬、贈與稅免稅額每年 244 萬；遺產稅級距 5,621 萬 / 1 億 1,242 萬，贈與稅級距 2,811 萬 / 5,621 萬。113 年：免稅額同為 1,333 萬 / 244 萬；級距仍為遺產 5,000 萬 / 1 億、贈與 2,500 萬 / 5,000 萬。題目若考條文基準或舊題，解析要和當年度公告額分開看。';
+    return '條文原文、舊題數字和當年度公告額要分開看。\n115 / 114：遺產稅免稅額 1,333 萬；贈與稅免稅額 244 萬 / 年；配偶扣除 553 萬；直系血親卑親屬每人 56 萬；父母、喪葬費各 138 萬。\n115 / 114 級距：遺產稅 5,621 萬 / 1 億 1,242 萬；贈與稅 2,811 萬 / 5,621 萬。\n113 對照：級距仍為遺產 5,000 萬 / 1 億、贈與 2,500 萬 / 5,000 萬。題目仍可考條文基準或比例，考前以財政部公告額為準。';
   }
   return '這類金額會受 CPI / 財政部公告調整。115 年度與 113 年度是否相同，要看各稅目公告；題目仍可考條文基準或比例，考前請以當年度公告額為準。';
 }
