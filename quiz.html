@@ -1389,14 +1389,17 @@ async function _loadRemoteWrongBankForQuiz() {
   try {
     const data = await fetch(`${API}/api/me/weak-laws`, { headers: _authH() }).then(r => r.ok ? r.json() : Promise.reject(new Error('weak-laws ' + r.status)));
     const items = (data && data.items) || [];
-    return items.flatMap(item => (item.top_articles || []).map(a => ({
+    return items.flatMap(item => {
+      const articles = (item.wrong_articles && item.wrong_articles.length) ? item.wrong_articles : (item.top_articles || []);
+      return articles.map(a => ({
       page_id:a.page_id,
       id:a.page_id,
       law:item.law_name || '',
       art:a.article || (a.article_no ? `§${a.article_no}` : ''),
       errorCount:a.wrong_count || item.wrong_count || 1,
-      source:'server_weak_laws',
-    }))).filter(e => e.id);
+      source:a.source || 'server_weak_laws',
+    }));
+    }).filter(e => e.id);
   } catch(e) {
     return [];
   }
@@ -3073,10 +3076,12 @@ function _renderWrongListFromRemote(items) {
     const wrong = item.wrong_count || 0;
     const pct = attempts ? Math.round(correct / attempts * 100) : 0;
     const color = pct >= 80 ? '#9FB89F' : pct >= 60 ? 'var(--peach)' : 'var(--bad)';
-    const top = (item.top_articles || []).slice(0, 2).map(a => {
+    const sourceArticles = (item.wrong_articles && item.wrong_articles.length) ? item.wrong_articles : (item.top_articles || []);
+    const top = sourceArticles.slice(0, 2).map(a => {
       const label = a.article || (a.article_no ? `§${a.article_no}` : '代表條文');
       return esc(label);
     }).filter(Boolean).join('、');
+    const sourceLabel = (item.wrong_articles && item.wrong_articles.length) ? '實際錯題' : '代表條文';
     const bar = `<div class="weak-bar"><span style="width:${pct}%;background:${color}"></span></div>`;
     html += `<div class="weak-card">
       <div class="weak-law-row">
@@ -3084,7 +3089,7 @@ function _renderWrongListFromRemote(items) {
           <div class="weak-law-name">${esc(law)}</div>
           <div class="weak-law-meta">錯 ${wrong} 題 &nbsp;•&nbsp; <span style="color:${color}">${pct}% 正確</span></div>
           ${bar}
-          ${top ? `<div class="weak-card-v" style="margin-top:6px">${top}</div>` : ''}
+          ${top ? `<div class="weak-card-v" style="margin-top:6px">${sourceLabel}：${top}</div>` : ''}
         </div>
         <button class="weak-action-soft" onclick="_drillLawAuto(${JSON.stringify(law)})">練這部</button>
       </div>

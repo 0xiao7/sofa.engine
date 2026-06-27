@@ -112,6 +112,7 @@ test('stats modal merges server quiz sessions and weak laws before relying on lo
 test('wrong review can start from server weak laws when local wrong bank is empty', () => {
   assert.match(active, /async function _loadRemoteWrongBankForQuiz/);
   assert.match(active, /\/api\/me\/weak-laws/);
+  assert.match(active, /wrong_articles/);
   assert.match(active, /top_articles/);
   assert.match(active, /page_id:a\.page_id/);
 
@@ -122,6 +123,25 @@ test('wrong review can start from server weak laws when local wrong bank is empt
   assert.match(wrongFn, /let bank = loadWrongBank\(\)/);
   assert.match(wrongFn, /bank = await _loadRemoteWrongBankForQuiz\(\)/);
   assert.match(wrongFn, /後端弱點也還沒有可重練的題/);
+});
+
+test('remote wrong bank prefers latest wrong quiz-session articles over representative top articles', () => {
+  const start = active.indexOf('async function _loadRemoteWrongBankForQuiz');
+  assert.ok(start > -1, '_loadRemoteWrongBankForQuiz must exist');
+  const fn = active.slice(start, start + 1800);
+  assert.match(fn, /item\.wrong_articles/);
+  assert.match(fn, /item\.top_articles/);
+  assert.match(fn, /const articles = \(item\.wrong_articles && item\.wrong_articles\.length\) \? item\.wrong_articles : \(item\.top_articles \|\| \[\]\)/);
+  assert.match(fn, /source:a\.source \|\| 'server_weak_laws'/);
+});
+
+test('weakness panel shows actual wrong articles when the server provides them', () => {
+  const start = active.indexOf('function _renderWrongListFromRemote');
+  assert.ok(start > -1, '_renderWrongListFromRemote must exist');
+  const fn = active.slice(start, start + 2600);
+  assert.match(fn, /item\.wrong_articles/);
+  assert.match(fn, /item\.top_articles/);
+  assert.match(fn, /實際錯題/);
 });
 
 test('short multiple-choice options can use compact two-column layout on desktop only', () => {

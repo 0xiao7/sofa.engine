@@ -3724,7 +3724,9 @@ function _rememberRemoteWeakArticles(items){
   var map = {};
   if(Array.isArray(items)){
     items.forEach(function(law){
-      var articles = Array.isArray(law && law.top_articles) ? law.top_articles : [];
+      var articles = (law && Array.isArray(law.wrong_articles) && law.wrong_articles.length)
+        ? law.wrong_articles
+        : (Array.isArray(law && law.top_articles) ? law.top_articles : []);
       articles.forEach(function(a){
         if(!a || !a.page_id) return;
         map[a.page_id] = {
@@ -3732,7 +3734,7 @@ function _rememberRemoteWeakArticles(items){
           law: law.law_name || '',
           article: a.article || (a.article_no ? ('第 ' + a.article_no + ' 條') : ''),
           errorCount: a.wrong_count || law.wrong_count || 1,
-          source: 'server_weak_laws'
+          source: a.source || 'server_weak_laws'
         };
       });
     });
@@ -6879,7 +6881,10 @@ ch.on('presence', { event: 'sync' }, () => {
       return;
     }
     list.innerHTML = laws.slice(0,4).map(function(law){
-      var articles = Array.isArray(law.top_articles) ? law.top_articles.slice(0,2) : [];
+      var sourceArticles = (Array.isArray(law.wrong_articles) && law.wrong_articles.length)
+        ? law.wrong_articles
+        : (Array.isArray(law.top_articles) ? law.top_articles : []);
+      var articles = sourceArticles.slice(0,2);
       var articleText = articles.map(function(a){
         return esc(a.article || (a.article_no ? '§'+a.article_no : ''));
       }).filter(Boolean).join('、');
