@@ -3525,7 +3525,8 @@ function _actionableStudyItems(items){
 }
 
 function _studyItemKey(item){
-  return [item.scheduled_date || '', item.scheduled_time || '', item.subject || '', item.title || '', item.source_label || ''].join('|');
+  if(item && item.id) return 'remote:' + item.id;
+  return 'local:' + [item.scheduled_date || '', item.scheduled_time || '', item.subject || '', item.title || '', item.source_label || ''].join('|');
 }
 
 function updateLocalStudyItemStatus(key, status, shiftDays){
@@ -3545,9 +3546,47 @@ function updateLocalStudyItemStatus(key, status, shiftDays){
   showStudySaveNudge();
 }
 
-function completeStudyItem(key){ updateLocalStudyItemStatus(key, 'done', 0); }
-function postponeStudyItem(key){ updateLocalStudyItemStatus(key, 'postponed', 7); }
-function cancelStudyItem(key){ updateLocalStudyItemStatus(key, 'cancelled', 0); }
+function _findStudyPlanItem(key){
+  var items = Array.isArray(window.__studyPlanItemCache) ? window.__studyPlanItemCache : [];
+  for(var i=0;i<items.length;i++){
+    if(_studyItemKey(items[i]) === key) return items[i];
+  }
+  return null;
+}
+
+async function updateStudyItemStatus(key, status, shiftDays){
+  var item = _findStudyPlanItem(key);
+  var token = localStorage.getItem('sofa_token') || '';
+  var uid = localStorage.getItem('sofa_uid') || '';
+  if(item && item.id && (token || uid)){
+    try{
+      if(shiftDays){
+        var movedDate = _datePlusDays(item.scheduled_date || _todayInputValue(), shiftDays);
+        await _fetchStudyJSON(API + '/api/me/study/plan-item/' + encodeURIComponent(item.id) + '/reschedule', {
+          method: 'POST',
+          headers: _authH({'Content-Type':'application/json'}),
+          body: JSON.stringify({ scheduled_date:movedDate, scheduled_time:item.scheduled_time || '', scope:'single' })
+        });
+      }
+      var res = await _fetchStudyJSON(API + '/api/me/study/plan-item/' + encodeURIComponent(item.id) + '/status', {
+        method: 'POST',
+        headers: _authH({'Content-Type':'application/json'}),
+        body: JSON.stringify({ status:status })
+      });
+      if(res && res.ok){
+        var latest = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
+        renderStudyToday(latest || null);
+        focusStudyPlanItems();
+        return;
+      }
+    }catch(e){}
+  }
+  updateLocalStudyItemStatus(key, status, shiftDays);
+}
+
+function completeStudyItem(key){ updateStudyItemStatus(key, 'done', 0); }
+function postponeStudyItem(key){ updateStudyItemStatus(key, 'postponed', 7); }
+function cancelStudyItem(key){ updateStudyItemStatus(key, 'cancelled', 0); }
 
 function _mergeStudyPlan(remotePlan){
   var local = _studyLocal();
@@ -5503,6 +5542,7 @@ function renderStudyPlanItems(plan){
   var el = document.getElementById('study-plan-items');
   if(!el) return;
   var items = plan && Array.isArray(plan.items) ? plan.items : [];
+  window.__studyPlanItemCache = items;
   if(!items.length){
     el.innerHTML = '';
     return;
@@ -5520,7 +5560,7 @@ function renderStudyPlanItems(plan){
   el.innerHTML = summary + '<h3>接下來的私人計畫</h3>' + actionable.slice(0,8).map(function(item){
     var meta = [item.subject || '', item.scheduled_time || '', item.source_label || ''].filter(Boolean).join(' · ');
     var key = _studyItemKey(item);
-    var canEdit = !item.id && item.source_label !== '補紀錄 ' + (item.minutes || '') + ' 分鐘';
+    var canEdit = item.source_label !== '補紀錄 ' + (item.minutes || '') + ' 分鐘';
     return '<div class="study-plan-item">'
       + '<span class="date">' + esc(item.scheduled_date || '') + '</span>'
       + '<span class="title">' + esc(item.title || item.subject || '讀書計畫') + '</span>'

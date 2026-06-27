@@ -300,6 +300,8 @@ test('saved study plans show an immediate readable summary and focus the plan li
 
 test('local study plan items can be completed postponed or cancelled from the list', () => {
   assert.match(active, /function _studyItemKey/);
+  assert.match(active, /function _findStudyPlanItem/);
+  assert.match(active, /async function updateStudyItemStatus/);
   assert.match(active, /function updateLocalStudyItemStatus/);
   assert.match(active, /function completeStudyItem/);
   assert.match(active, /function postponeStudyItem/);
@@ -311,6 +313,16 @@ test('local study plan items can be completed postponed or cancelled from the li
   assert.match(active, /local\.items = \(local\.items \|\| \[\]\)\.map/);
   assert.match(active, /renderStudyPlanItems\(_mergeStudyPlan\(null\)\)/);
   assert.doesNotMatch(active, /updateLocalStudyItemStatus[\s\S]{0,500}correct_count/);
+});
+
+test('remote study plan actions persist status before falling back locally', () => {
+  assert.match(active, /window\.__studyPlanItemCache = items/);
+  assert.match(active, /if\(item && item\.id && \(token \|\| uid\)\)/);
+  assert.match(active, /\/api\/me\/study\/plan-item\/' \+ encodeURIComponent\(item\.id\) \+ '\/status/);
+  assert.match(active, /body: JSON\.stringify\(\{ status:status \}\)/);
+  assert.match(active, /\/api\/me\/study\/plan-item\/' \+ encodeURIComponent\(item\.id\) \+ '\/reschedule/);
+  assert.match(active, /renderStudyToday\(latest \|\| null\)/);
+  assert.match(active, /updateLocalStudyItemStatus\(key, status, shiftDays\)/);
 });
 
 test('study today builds concrete local suggestions from time weakness and plan data', () => {
