@@ -134,9 +134,10 @@ test('study plan and record panels have deep links for native app entry', () => 
   assert.match(active, /hash === '#study-record'[\s\S]*openStudyRecordPanel\(true\)/);
   assert.match(active, /hash === '#study-playlist'[\s\S]*openStudyPlaylistPanel\(true\)/);
   assert.match(active, /retryStudyHashScroll\('member',\s*30,\s*true\)/);
-  assert.match(active, /retryStudyHashScroll\('study-plan-panel'\)/);
-  assert.match(active, /retryStudyHashScroll\('study-record-panel'\)/);
-  assert.match(active, /retryStudyHashScroll\('study-playlist-panel'\)/);
+  assert.match(active, /retryStudyHashScroll\('study-mode-status'\)/);
+  assert.doesNotMatch(active, /retryStudyHashScroll\('study-plan-panel'\)/);
+  assert.doesNotMatch(active, /retryStudyHashScroll\('study-record-panel'\)/);
+  assert.doesNotMatch(active, /retryStudyHashScroll\('study-playlist-panel'\)/);
   assert.match(active, /hashchange', openStudyPanelFromHash/);
   assert.match(active, /keepTrying/);
   assert.match(active, /retryStudyHashScroll\(targetId, attemptsLeft - 1, keepTrying\)/);
