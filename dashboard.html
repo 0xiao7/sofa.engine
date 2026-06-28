@@ -4137,6 +4137,7 @@ function renderStudyWeakBrief(items){
   var laws = Array.isArray(items) ? items.filter(function(x){ return x && x.law_name; }) : [];
   if(!laws.length){
     list.innerHTML = '<div class="study-weak-empty">答題後，這裡會直接列出最該補的法規。先做一題就會開始累積。</div>';
+    scheduleActiveNavRefresh();
     return;
   }
   list.innerHTML = laws.slice(0,3).map(function(law){
@@ -4146,6 +4147,7 @@ function renderStudyWeakBrief(items){
       + '<span class="go">單刷</span>'
       + '</a>';
   }).join('');
+  scheduleActiveNavRefresh();
 }
 
 function renderStudyWeakState(items){
@@ -6152,6 +6154,7 @@ function renderReviewDue(nextItems){
     if(cnt) cnt.textContent = '0 條到期';
     if(navCnt) navCnt.textContent = '0';
     list.innerHTML = '<div class="recap-empty">目前沒有到期複習。做題或把條文加入再讀清單後，這裡會排今天該重看的內容。</div>';
+    scheduleActiveNavRefresh();
     return;
   }
   var goalKey = (typeof _examFilter !== 'undefined') ? _examFilter : 'all';
@@ -6194,6 +6197,7 @@ function renderReviewDue(nextItems){
       '</div>';
   }).join('');
   box.style.display = '';
+  scheduleActiveNavRefresh();
 }
 
 function renderStudyToday(data){
@@ -6251,6 +6255,7 @@ function renderStudyToday(data){
       + '</a>';
   }).join('') : '<div class="study-empty">先從「開始選擇題」做一題；登入或輸入序號後，這裡會接上個人化讀書區塊。</div>';
   box.style.display = '';
+  scheduleActiveNavRefresh();
 }
 
 function _todayInputValue(){
@@ -6524,6 +6529,7 @@ function renderStudyPlanItems(plan){
   if(!items.length){
     el.innerHTML = '<div class="study-plan-count"><b>目前還沒有私人讀書計畫</b><br>可以排函授、補習班課程、模考或自己的週任務。'
       + '<br><button type="button" onclick="openStudyPlanPanel()">設定讀書課程</button></div>';
+    scheduleActiveNavRefresh();
     return;
   }
   var actionable = _actionableStudyItems(items);
@@ -6542,6 +6548,7 @@ function renderStudyPlanItems(plan){
     : '';
   if(!actionable.length){
     el.innerHTML = '<div class="study-plan-count">目前沒有待讀的私人計畫；完成或取消的項目不會再被排成下一步。</div>' + completedHtml;
+    scheduleActiveNavRefresh();
     return;
   }
   var next = actionable[0] || {};
@@ -6569,6 +6576,7 @@ function renderStudyPlanItems(plan){
         + '</span>' : '')
       + '</div>';
   }).join('') + completedHtml;
+  scheduleActiveNavRefresh();
 }
 
 function _studyStatusLabel(status){
@@ -7844,7 +7852,9 @@ _renderRecentViews();
 
 // active sidebar guide while reading the right column
 const navLinks = Array.from(document.querySelectorAll('.nav-list a[data-spy-target]'));
+window.__activeNavCanRefresh = true;
 function setActive(id){
+  if(!navLinks || !navLinks.length) return;
   navLinks.forEach(function(link){
     var on = link.dataset.spyTarget === id;
     link.classList.toggle('on', on);
@@ -7852,7 +7862,14 @@ function setActive(id){
     else link.removeAttribute('aria-current');
   });
 }
+function scheduleActiveNavRefresh(){
+  if(!window.__activeNavCanRefresh) return;
+  if(!navLinks || !navLinks.length) return;
+  clearTimeout(window.__activeNavRefreshTimer);
+  window.__activeNavRefreshTimer = setTimeout(updateActiveNavFromScroll, 80);
+}
 function updateActiveNavFromScroll(){
+  if(!navLinks || !navLinks.length) return;
   var headerOffset = window.matchMedia('(max-width: 980px)').matches ? 112 : 104;
   var candidates = navLinks.map(function(link){
     var id = link.dataset.spyTarget;

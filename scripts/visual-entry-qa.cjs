@@ -206,6 +206,13 @@ async function dashboardCase(browser, baseUrl, name, viewport) {
   if (!/弱點已接入/.test(weakState)) {
     throw new Error(`${name}: weak state did not reflect mocked weak-laws data: ${weakState}`);
   }
+  if (viewport.width > 768) {
+    await page.waitForTimeout(150);
+    const activeSideTarget = await page.locator('aside.side a.on').first().evaluate(el => el.dataset.spyTarget || '');
+    if (activeSideTarget !== 'study-cockpit-recap') {
+      throw new Error(`${name}: first-screen sidebar highlighted ${activeSideTarget || 'nothing'} instead of study-cockpit-recap`);
+    }
+  }
   const screenshot = path.join(OUT_DIR, `sofa-visual-${name}.png`);
   await page.screenshot({ path: screenshot, fullPage: false });
   await page.close();
