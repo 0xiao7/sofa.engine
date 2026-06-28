@@ -3307,11 +3307,11 @@
                 <span class="study-time-main">
                   <b>讀書時間</b>
                   <small id="study-time-summary">500 小時目標，每週 12 小時；今天先留 60 分鐘。</small>
-                  <span id="study-time-purpose">時間設定先存在本機，用來生成本週建議；排入本週與補紀錄會同步到帳號。</span>
+                  <span id="study-time-purpose">先設定時間，按「預覽本週排法」看建議；只有「排入本週計畫」與補紀錄會同步到帳號。</span>
                 </span>
                 <span class="study-time-impact" aria-live="polite">
                   <b id="study-time-impact">約 42 週</b>
-                  <small id="study-time-outcome">還沒排課；先用本週建議或設定課程。</small>
+                  <small id="study-time-outcome">還沒排課；先預覽本週排法或設定課程。</small>
                 </span>
                 <button class="study-time-edit-btn" type="button" aria-expanded="false" onclick="toggleStudyTimeEditor()">修改時間</button>
               </div>
@@ -3333,7 +3333,7 @@
                 </div>
                 <div class="study-time-save">
                   <button type="button" onclick="saveStudyTimeSettings()">儲存時間設定</button>
-                  <span id="study-time-state">時間設定先存在本機；排入本週與補紀錄會同步到帳號。</span>
+                  <span id="study-time-state">時間設定只先存在本機；按「排入本週計畫」才會寫進帳號。</span>
                 </div>
               </div>
             </div>
@@ -3342,11 +3342,11 @@
                 <div class="study-recommend-copy">
                   <span>本週建議</span>
                   <b>本週建議排法</b>
-                  <small>依你的可讀時間、私人課表和弱點估一版；存下後只會進你的私人讀書計畫。</small>
+                  <small>依可讀時間、私人課表和弱點估一版；預覽不會寫入，排入後才進你的私人讀書計畫。</small>
                 </div>
                 <div class="study-recommend-actions">
-                  <button type="button" onclick="previewStudyWeekRecommendation()">預覽建議</button>
-                  <button class="primary" type="button" onclick="saveStudyRecommendedWeek()">排入本週</button>
+                  <button type="button" onclick="previewStudyWeekRecommendation()">預覽本週排法</button>
+                  <button class="primary" type="button" onclick="saveStudyRecommendedWeek()">排入本週計畫</button>
                 </div>
               </div>
               <div class="study-recommend-list" id="study-recommend-list">
@@ -4516,7 +4516,7 @@ function saveStudyTimeSettings(){
   renderStudyTimeSettings();
   renderStudyNextPlan(window.__studyPlanItemCache || []);
   var state = document.getElementById('study-time-state');
-  if(state) state.textContent = '已存到這台裝置；排入本週與補紀錄會同步到帳號。';
+  if(state) state.textContent = '已套用到本週建議；還沒寫進帳號，按「排入本週計畫」才會同步。';
   var panel = document.getElementById('study-time-edit-panel');
   var button = document.querySelector('.study-time-edit-btn');
   if(panel) panel.hidden = true;
@@ -6969,7 +6969,7 @@ function renderStudyTimeOutcome(items){
     el.textContent = '目前沒有待讀；已留下 ' + completed.length + ' 筆完成 / 補紀錄。';
     return;
   }
-  el.textContent = '還沒排課；先用本週建議或設定課程。';
+  el.textContent = '還沒排課；先預覽本週排法或設定課程。';
 }
 
 function renderStudyNextPlan(items){

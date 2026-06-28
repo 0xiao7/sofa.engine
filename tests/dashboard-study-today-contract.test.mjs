@@ -317,15 +317,15 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.match(recap, /<div class="study-time-wrap" id="study-time-box"/);
   assert.match(recap, /id="study-time-summary"[\s\S]*500 小時目標/);
   assert.match(recap, /id="study-time-impact"[\s\S]*約 42 週/);
-  assert.match(recap, /id="study-time-outcome"[\s\S]*還沒排課；先用本週建議或設定課程/);
+  assert.match(recap, /id="study-time-outcome"[\s\S]*還沒排課；先預覽本週排法或設定課程/);
   assert.match(recap, /class="study-time-summary-card"[\s\S]*讀書時間[\s\S]*修改時間/);
   assert.match(recap, /id="study-target-hours"[\s\S]*500/);
   assert.match(recap, /id="study-weekly-hours"[\s\S]*每週可讀/);
   assert.match(recap, /建議總時數可以改/);
   assert.match(active, /summary\.textContent = totalHours \+ ' 小時目標/);
   assert.match(active, /impact\.textContent = weeks \? \('約 ' \+ weeks \+ ' 週'\) : '先填時間'/);
-  assert.match(active, /時間設定先存在本機/);
-  assert.match(active, /排入本週與補紀錄會同步到帳號/);
+  assert.match(active, /時間設定只先存在本機/);
+  assert.match(active, /排入本週計畫/);
   assert.doesNotMatch(active, /\/api\/me\/study\/settings/);
 });
 
@@ -334,7 +334,7 @@ test('study time settings stay collapsed into a readable summary until editing',
   assert.ok(recapStart >= 0, 'study recap must exist');
   const recap = active.slice(recapStart, recapStart + 8200);
   assert.match(recap, /class="study-time-summary-card"/);
-  assert.match(recap, /id="study-time-purpose"[\s\S]*時間設定先存在本機，用來生成本週建議/);
+  assert.match(recap, /id="study-time-purpose"[\s\S]*先設定時間，按「預覽本週排法」看建議/);
   assert.match(recap, /id="study-time-edit-panel" hidden/);
   assert.match(recap, /aria-expanded="false"[\s\S]*onclick="toggleStudyTimeEditor\(\)"[\s\S]*修改時間/);
   assert.match(active, /function toggleStudyTimeEditor/);
@@ -595,6 +595,10 @@ test('study time planning is editable and persisted locally', () => {
   assert.match(active, /local\.settings =/);
   assert.match(active, /照這個速度約/);
   assert.match(active, /function renderStudyTimeOutcome/);
+  assert.match(active, /已套用到本週建議；還沒寫進帳號/);
+  assert.match(active, /預覽不會寫入，排入後才進你的私人讀書計畫/);
+  assert.match(active, /預覽本週排法/);
+  assert.match(active, /排入本週計畫/);
   assert.match(active, /下一筆：/);
   assert.match(active, /完成紀錄/);
 });
@@ -720,6 +724,8 @@ test('study today builds concrete local suggestions from time weakness and plan 
 test('study today can recommend a private weekly plan without shipping personal schedules', () => {
   assert.match(active, /id="study-recommend-panel"/);
   assert.match(active, /本週建議排法/);
+  assert.match(active, /預覽本週排法/);
+  assert.match(active, /排入本週計畫/);
   assert.match(active, /function buildStudyWeekRecommendation/);
   assert.match(active, /function _studyFallbackTopicBlocks/);
   assert.match(active, /function _studySlotIsFree/);
