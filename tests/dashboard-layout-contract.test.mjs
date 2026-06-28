@@ -249,6 +249,19 @@ test('saved and recent law rows fall back to law and article lookup when page id
   assert.match(html, /onkeydown="' \+ keyAction \+ '"/);
 });
 
+test('review due rows use the same article fallback as saved and recent rows', () => {
+  const fn = html.slice(html.indexOf('function renderReviewDue'), html.indexOf('function renderStudyToday'));
+  assert.match(fn, /drawerOpenAttrs\(pid, ln, artNo, '開啟今日複習條文/);
+  assert.doesNotMatch(fn, /onclick="openDrawer\('\\'\+pid/);
+});
+
+test('searchAndOpen uses normalized article numbers instead of a numeric-title regex', () => {
+  const fn = html.slice(html.indexOf('function searchAndOpen'), html.indexOf('var FONT_KEY'));
+  assert.match(fn, /var targetArt = _normalizeArticleNo\(artNum\)/);
+  assert.match(fn, /_articleNoFromRecord\(a\) === targetArt/);
+  assert.doesNotMatch(fn, /title\|\|''\)\.match\(\/第\\\(\\d\+\\\)條/);
+});
+
 test('recent answer recap has an empty state so sidebar T6 has a real target', () => {
   assert.match(html, /function showRecap\(html\)/);
   assert.match(html, /目前還沒有正式答題紀錄/);

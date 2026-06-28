@@ -4988,15 +4988,13 @@ function _initSectionToggle(containerEl){
 /* ──────────────────────────────────────────────────── */
 
 function searchAndOpen(lawName, artNum){
+  var targetArt = _normalizeArticleNo(artNum);
   fetch(API + '/api/articles?law=' + encodeURIComponent(lawName))
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){
       if(!d || !d.articles){ openDrawer('', lawName, artNum); return; }
       var found = d.articles.filter(function(a){
-        var m = (a.title||'').match(/第(\d+)條(?:之(\d+))?/);
-        if(!m) return false;
-        var t = m[1] + (m[2] ? '之' + m[2] : '');
-        return t === artNum;
+        return _articleNoFromRecord(a) === targetArt;
       })[0];
       openDrawer(found ? found.id : '', lawName, artNum);
     })
@@ -6532,7 +6530,7 @@ function renderReviewDue(nextItems){
     var reasonsHTML = reviewReasonChipsHTML(m);
     var reasonsBlock = reasonsHTML ? '<div class="reasons">'+reasonsHTML+'</div>' : '';
     var goalTag = row.goalMatch ? '<span>目標相關</span>' : '';
-    return '<div class="review-card warn" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artNo+'\')">'+
+    return '<div class="review-card warn"' + drawerOpenAttrs(pid, ln, artNo, '開啟今日複習條文 ' + (m.law_name || '') + ' ' + displayArticleNo(artNo)) + '>'+
       '<div class="law">'+esc(m.law_name||'——')+'</div>'+
       '<div class="art">'+esc(disp)+'</div>'+
       reasonsBlock+
