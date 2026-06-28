@@ -1,0 +1,333 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>SoFa Engine — 序號身份查詢</title>
+<style>
+:root{
+  --bg:#132f3d;
+  --panel:#183746;
+  --panel-2:#112936;
+  --line:rgba(232,220,204,.16);
+  --text:#f6f1ea;
+  --muted:rgba(246,241,234,.58);
+  --peach:#e7bba7;
+  --good:#a9cbb4;
+  --warn:#e3c17c;
+  --bad:#d78b78;
+  --serif:"Songti TC","Noto Serif TC","PMingLiU",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"Noto Sans TC",system-ui,sans-serif;
+  --mono:"JetBrains Mono","SFMono-Regular",Consolas,monospace;
+}
+*{box-sizing:border-box}
+body{
+  margin:0;
+  min-height:100dvh;
+  background:
+    linear-gradient(rgba(255,255,255,.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.025) 1px, transparent 1px),
+    radial-gradient(circle at 18% 0%, rgba(231,187,167,.14), transparent 32%),
+    var(--bg);
+  background-size:64px 64px,64px 64px,auto,auto;
+  color:var(--text);
+  font-family:var(--sans);
+}
+main{
+  width:min(1080px,calc(100% - 32px));
+  margin:0 auto;
+  padding:42px 0 72px;
+}
+.top{
+  display:flex;
+  justify-content:space-between;
+  gap:20px;
+  align-items:flex-start;
+  border-bottom:1px solid var(--line);
+  padding-bottom:24px;
+}
+.eyebrow{
+  font-family:var(--mono);
+  letter-spacing:.18em;
+  color:var(--peach);
+  font-size:.78rem;
+  text-transform:uppercase;
+}
+h1{
+  font-family:var(--serif);
+  font-size:clamp(2rem,5vw,4.4rem);
+  line-height:1.05;
+  margin:10px 0 12px;
+  font-weight:700;
+}
+p{color:var(--muted);line-height:1.8;margin:0}
+.badge{
+  border:1px solid rgba(231,187,167,.45);
+  color:var(--peach);
+  padding:9px 12px;
+  border-radius:999px;
+  font-family:var(--mono);
+  font-size:.72rem;
+  letter-spacing:.1em;
+  white-space:nowrap;
+}
+.panel{
+  margin-top:24px;
+  border:1px solid var(--line);
+  background:rgba(17,41,54,.72);
+  border-radius:8px;
+  padding:22px;
+}
+.grid{
+  display:grid;
+  grid-template-columns:1.1fr .9fr;
+  gap:18px;
+}
+label{
+  display:block;
+  color:var(--muted);
+  font-size:.86rem;
+  margin:0 0 7px;
+}
+input,select,button{
+  width:100%;
+  min-height:46px;
+  border-radius:6px;
+  border:1px solid rgba(246,241,234,.18);
+  font:inherit;
+}
+input,select{
+  background:rgba(5,17,25,.46);
+  color:var(--text);
+  padding:0 13px;
+}
+button{
+  cursor:pointer;
+  background:var(--peach);
+  color:#132f3d;
+  font-weight:700;
+  border:none;
+}
+button:disabled{opacity:.55;cursor:progress}
+.form-row{
+  display:grid;
+  grid-template-columns:1fr 180px 180px;
+  gap:14px;
+  align-items:end;
+}
+.hint{
+  margin-top:10px;
+  color:var(--muted);
+  font-size:.9rem;
+}
+.status{
+  margin-top:18px;
+  min-height:24px;
+  color:var(--muted);
+}
+.sections{
+  display:grid;
+  gap:16px;
+  margin-top:18px;
+}
+.result-card{
+  border:1px solid var(--line);
+  background:rgba(24,55,70,.68);
+  border-radius:8px;
+  padding:18px;
+}
+.result-card h2{
+  margin:0 0 12px;
+  color:var(--peach);
+  font-size:.95rem;
+  letter-spacing:.08em;
+}
+.rows{display:grid;gap:10px}
+.row{
+  display:grid;
+  grid-template-columns:150px 1fr auto;
+  gap:12px;
+  align-items:center;
+  padding:12px;
+  background:rgba(7,22,31,.38);
+  border:1px solid rgba(246,241,234,.1);
+  border-radius:6px;
+}
+.mono{font-family:var(--mono);letter-spacing:.05em}
+.muted{color:var(--muted)}
+.pill{
+  display:inline-flex;
+  align-items:center;
+  border:1px solid rgba(246,241,234,.18);
+  border-radius:999px;
+  padding:5px 9px;
+  font-size:.78rem;
+}
+.active{color:var(--good)}
+.pending{color:var(--warn)}
+.inactive{color:var(--bad)}
+.empty{
+  color:var(--muted);
+  border:1px dashed rgba(246,241,234,.16);
+  border-radius:6px;
+  padding:14px;
+}
+@media(max-width:760px){
+  main{width:min(100% - 20px,680px);padding-top:24px}
+  .top{display:block}
+  .badge{display:inline-flex;margin-top:14px}
+  .grid,.form-row,.row{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<main>
+  <section class="top">
+    <div>
+      <div class="eyebrow">Support · Serial Identity</div>
+      <h1>序號身份查詢</h1>
+      <p>只讀查詢 active member、待用序號與發號歷史。不會重發、不會改期限、不會寫入資料庫。</p>
+    </div>
+    <div class="badge">NOINDEX · READ ONLY</div>
+  </section>
+
+  <section class="panel">
+    <div class="form-row">
+      <div>
+        <label for="identifier">購買信箱、完整序號、序號後段或 UID</label>
+        <input id="identifier" autocomplete="off" spellcheck="false" placeholder="hi@example.com / SOFA-XXXX-XXXX / U...">
+      </div>
+      <div>
+        <label for="authMode">管理驗證</label>
+        <select id="authMode">
+          <option value="secret">Admin secret</option>
+          <option value="uid">Admin UID / 序號</option>
+        </select>
+      </div>
+      <div>
+        <label for="authToken">貼上 token</label>
+        <input id="authToken" autocomplete="off" spellcheck="false" placeholder="只保留在本頁記憶體">
+      </div>
+    </div>
+    <div class="grid" style="margin-top:14px;align-items:end">
+      <p class="hint">查詢會送到 <span class="mono">/api/admin/serial-identity</span>。畫面只顯示 API 回傳的遮罩資料與後四碼，請勿把完整序號貼進客服截圖。</p>
+      <button id="runQuery">查詢身份</button>
+    </div>
+    <div class="status" id="status">等待查詢。</div>
+  </section>
+
+  <section class="sections" id="results" aria-live="polite"></section>
+</main>
+
+<script>
+const API_BASE = 'https://sofa-engine-api.onrender.com';
+const $ = (id) => document.getElementById(id);
+
+function esc(value){
+  return String(value ?? '').replace(/[&<>"']/g, (ch) => ({
+    '&':'&amp;',
+    '<':'&lt;',
+    '>':'&gt;',
+    '"':'&quot;',
+    "'":'&#39;',
+  }[ch]));
+}
+
+function inferQuery(value){
+  const raw = value.trim();
+  if (!raw) return null;
+  if (raw.includes('@')) return ['email', raw.toLowerCase()];
+  if (/^SOFA[-A-Z0-9]+$/i.test(raw)) return ['serial', raw.toUpperCase()];
+  if (/^U[a-f0-9]{20,}$/i.test(raw)) return ['uid', raw];
+  return ['serial', raw.toUpperCase()];
+}
+
+function statusClass(item){
+  const status = String(item.identity_status || item.status || '').toLowerCase();
+  if (status.includes('active')) return 'active';
+  if (status.includes('pending')) return 'pending';
+  return 'inactive';
+}
+
+function renderRows(items, emptyCopy){
+  if (!Array.isArray(items) || items.length === 0) {
+    return `<div class="empty">${esc(emptyCopy)}</div>`;
+  }
+  return `<div class="rows">${items.map((item) => {
+    const serial = item.masked_serial || item.serial_hint || '未提供';
+    const suffix = item.serial_suffix ? `後四碼 ${item.serial_suffix}` : '';
+    const label = item.identity_status || item.status || item.plan || '未標狀態';
+    const extra = [
+      item.email_hint,
+      item.uid_hint,
+      item.plan,
+      item.expire,
+      item.created_at,
+    ].filter(Boolean).join(' · ');
+    return `<div class="row">
+      <div class="mono">${esc(serial)}</div>
+      <div><div>${esc(extra || '無更多資料')}</div><div class="muted">${esc(suffix)}</div></div>
+      <span class="pill ${statusClass(item)}">${esc(label)}</span>
+    </div>`;
+  }).join('')}</div>`;
+}
+
+function render(data){
+  const blocks = [
+    ['active_members', 'Active member', '沒有 active member。'],
+    ['pending_serials', 'Pending serials', '沒有待用序號。'],
+    ['inactive_members', 'Inactive members', '沒有 inactive member。'],
+    ['issue_history', 'Issue history', '沒有發號歷史。'],
+  ];
+  $('results').innerHTML = blocks.map(([key, title, emptyCopy]) => `
+    <article class="result-card">
+      <h2>${esc(title)}</h2>
+      ${renderRows(data[key], emptyCopy)}
+    </article>
+  `).join('');
+}
+
+async function run(){
+  const inferred = inferQuery($('identifier').value);
+  if (!inferred) {
+    $('status').textContent = '請先輸入信箱、序號或 UID。';
+    return;
+  }
+  const token = $('authToken').value.trim();
+  if (!token) {
+    $('status').textContent = '請貼上管理驗證 token。';
+    return;
+  }
+  const [key, value] = inferred;
+  const url = new URL('/api/admin/serial-identity', API_BASE);
+  url.searchParams.set(key, value);
+  const headers = {};
+  if ($('authMode').value === 'secret') headers['X-Admin-Secret'] = token;
+  else headers['X-Sofa-UID'] = token;
+  $('runQuery').disabled = true;
+  $('status').textContent = '查詢中。';
+  try {
+    const res = await fetch(url, { headers });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.detail || `查詢失敗 ${res.status}`);
+    render(data);
+    $('status').textContent = data.message || '查詢完成。';
+  } catch (err) {
+    $('results').innerHTML = '';
+    $('status').textContent = err.message || '查詢失敗。';
+  } finally {
+    $('runQuery').disabled = false;
+  }
+}
+
+$('runQuery').addEventListener('click', run);
+$('identifier').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') run();
+});
+$('authToken').addEventListener('keydown', (event) => {
+  if (event.key === 'Enter') run();
+});
+</script>
+</body>
+</html>
