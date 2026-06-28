@@ -182,6 +182,15 @@ test('stats modal merges server quiz sessions and weak laws before relying on lo
   assert.match(active, /_loadRemoteWeakLaws\(\{force:true, target:'panel'\}\)/);
 });
 
+test('stats recent answers show readable answer source labels', () => {
+  assert.match(active, /function _answerSourceLabel/);
+  assert.match(active, /line_quiz[\s\S]*LINE 作答/);
+  assert.match(active, /line_daily[\s\S]*LINE 每日題/);
+  assert.match(active, /line_review[\s\S]*LINE 複習/);
+  assert.match(active, /unknown[\s\S]*未標來源/);
+  assert.match(active, /來源：\$\{esc\(_answerSourceLabel\(e\.source\)\)\}/);
+});
+
 test('wrong review can start from server weak laws when local wrong bank is empty', () => {
   assert.match(active, /async function _loadRemoteWrongBankForQuiz/);
   assert.match(active, /\/api\/me\/weak-laws/);

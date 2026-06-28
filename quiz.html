@@ -3096,13 +3096,31 @@ function _loadRemoteQuizStats() {
     .catch(()=>{});
 }
 
+function _answerSourceLabel(source) {
+  const key = String(source || 'unknown').trim() || 'unknown';
+  const labels = {
+    line_quiz: 'LINE 作答',
+    line_daily: 'LINE 每日題',
+    line_review: 'LINE 複習',
+    line_practice: 'LINE 練習',
+    quiz: '網頁選擇題',
+    fill: '填空練習',
+    practice: '打字練習',
+    past_exam: '考古題',
+    wrong_review: '錯題重練',
+    timeout: '逾時未答',
+    unknown: '未標來源',
+  };
+  return labels[key] || key;
+}
+
 function _renderServerRecentAnswers(recent) {
   const root = document.getElementById('stats-content');
   if (!root) return;
   const html = '<div class="quiz-law-section"><div class="quiz-section-label">最近作答</div>'
     + recent.slice(0,5).map(e => {
       const ok = !!e.is_correct;
-      return `<div class="quiz-law-stat"><div class="quiz-law-row"><span class="quiz-law-name">${esc(e.law||'每日一題')}</span><span class="quiz-law-count" style="color:${ok?'var(--good)':'var(--bad)'}">${ok?'答對':'答錯'}</span></div><div class="quiz-stat-note" style="text-align:left;margin-top:6px">${esc(e.question||'')}</div></div>`;
+      return `<div class="quiz-law-stat"><div class="quiz-law-row"><span class="quiz-law-name">${esc(e.law||'每日一題')}</span><span class="quiz-law-count" style="color:${ok?'var(--good)':'var(--bad)'}">${ok?'答對':'答錯'}</span></div><div class="quiz-stat-note" style="text-align:left;margin-top:6px">來源：${esc(_answerSourceLabel(e.source))} · ${esc(e.question||'')}</div></div>`;
     }).join('') + '</div>';
   root.insertAdjacentHTML('beforeend', html);
 }

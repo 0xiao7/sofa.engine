@@ -488,7 +488,7 @@
   .recap-more:hover{color:var(--peach-2)}
   .recap-list{display:flex;flex-direction:column}
   .recap-row{
-    display:grid;grid-template-columns:auto 1fr auto auto;
+    display:grid;grid-template-columns:auto 1fr auto auto auto;
     align-items:center;gap:18px;
     padding:14px 22px;border-top:1px dashed var(--line);
   }
@@ -499,6 +499,7 @@
   .recap-row .rc-date{font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.4);letter-spacing:.06em;white-space:nowrap}
   .recap-row .rc-law{font-family:var(--serif);font-weight:500;font-size:15px;color:var(--cream)}
   .recap-row .rc-score{font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.6);white-space:nowrap}
+  .recap-row .rc-source{font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.48);letter-spacing:.04em;white-space:nowrap}
   .recap-row .rc-pct{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.04em;white-space:nowrap}
   .recap-row .rc-pct.hi{color:var(--good)}
   .recap-row .rc-pct.mid{color:var(--peach)}
@@ -2785,6 +2786,7 @@
     .recap-row .rc-pct{order:2;justify-self:end}
     .recap-row .rc-law{order:3;grid-column:1/-1}
     .recap-row .rc-score{order:4;grid-column:1/-1;color:rgba(245,240,234,.45)}
+    .recap-row .rc-source{order:5;grid-column:1/-1}
     .entitlement-backdrop{padding:16px}
     .entitlement-summary{grid-template-columns:1fr}
     .entitlement-event .line{display:block}
@@ -8670,6 +8672,23 @@ ch.on('presence', { event: 'sync' }, () => {
     list.innerHTML = html || '<div class="recap-empty">目前還沒有正式答題紀錄。先做一題選擇題，這裡會列出你最近答過的題目。</div>';
     recap.style.display='block';
   }
+  function answerSourceLabel(source){
+    var key = String(source || 'unknown').trim() || 'unknown';
+    var labels = {
+      line_quiz: 'LINE 作答',
+      line_daily: 'LINE 每日題',
+      line_review: 'LINE 複習',
+      line_practice: 'LINE 練習',
+      quiz: '網頁選擇題',
+      fill: '填空練習',
+      practice: '打字練習',
+      past_exam: '考古題',
+      wrong_review: '錯題重練',
+      timeout: '逾時未答',
+      unknown: '未標來源'
+    };
+    return labels[key] || key;
+  }
   function recapArticleClickAttrs(entry){
     entry = entry || {};
     var pid = String(entry.page_id || entry.article_id || '').trim();
@@ -8779,6 +8798,7 @@ ch.on('presence', { event: 'sync' }, () => {
               + '<span class="rc-date">'+esc((e.date||'').slice(5))+'</span>'
               + '<span class="rc-law">'+esc(e.law||'每日一題')+'</span>'
               + '<span class="rc-score">'+esc((e.question||'').slice(0,18))+'</span>'
+              + '<span class="rc-source answer-source">'+esc(answerSourceLabel(e.source))+'</span>'
               + '<span class="rc-pct '+(ok?'hi':'lo')+'">'+(ok?'✓ 答對':'✗ 答錯')+'</span>'
               + '</div>';
           }).join(''));

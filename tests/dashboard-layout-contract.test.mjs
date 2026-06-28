@@ -217,6 +217,15 @@ test('recent answer recap rows can reopen the answered article when metadata exi
   assert.match(html, /onkeydown="recapArticleKeyOpen\(event, this\)"/);
 });
 
+test('server recent answer recap shows readable source labels', () => {
+  assert.match(html, /function answerSourceLabel/);
+  assert.match(html, /line_quiz[\s\S]*LINE 作答/);
+  assert.match(html, /line_daily[\s\S]*LINE 每日題/);
+  assert.match(html, /unknown[\s\S]*未標來源/);
+  assert.match(html, /answer-source/);
+  assert.match(html, /answerSourceLabel\(e\.source\)/);
+});
+
 test('saved and recent law rows are semantic keyboard-operable controls', () => {
   assert.match(html, /function drawerOpenAttrs\(pid, lawName, artNo, label\)/);
   assert.match(html, /role="button" tabindex="0" aria-label="/);
