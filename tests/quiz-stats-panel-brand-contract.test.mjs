@@ -42,6 +42,15 @@ test('stats summary uses harmonized SoFa card classes instead of bright inline m
   assert.doesNotMatch(fn, /#9FB89F/);
 });
 
+test('stats average time uses a readable empty state instead of placeholder seconds', () => {
+  const fn = extractFunction('_renderStatsContent');
+  assert.match(fn, /const avgSec = \(s\.timedQuestions\|\|0\) > 0/);
+  assert.match(fn, /: '尚無'/);
+  assert.match(fn, /\$\{avgSec\}/);
+  assert.doesNotMatch(fn, /\$\{avgSec\}s/);
+  assert.doesNotMatch(fn, /: '--'/);
+});
+
 test('law distribution progress bars use brand tone classes', () => {
   const fn = extractFunction('_renderStatsContent');
   assert.match(fn, /quiz-law-stat/);

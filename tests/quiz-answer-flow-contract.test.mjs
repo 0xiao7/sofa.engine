@@ -24,6 +24,15 @@ test('post-answer actions place next question next to view article', () => {
   assert.doesNotMatch(active.slice(footStart, footEnd), /id="btnFlag"/, 'do not leave a second flag button below the fold');
 });
 
+test('answer toast stays out of the question title area', () => {
+  const rule = active.match(/#ans-toast\{[^}]+\}/)?.[0] || '';
+  assert.match(rule, /right:24px/);
+  assert.match(rule, /left:auto/);
+  assert.match(rule, /transform:none/);
+  assert.doesNotMatch(rule, /left:50%/);
+  assert.match(active, /@media \(max-width:760px\)\{[\s\S]*#ans-toast\{[\s\S]*right:14px/);
+});
+
 test('quiz top entry names weakness analysis as a first-level tool', () => {
   assert.match(active, /id="btn-open-weakness"/);
   assert.match(active, /title="看弱點分析"/);
