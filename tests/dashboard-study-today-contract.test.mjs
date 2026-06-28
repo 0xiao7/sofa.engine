@@ -374,6 +374,15 @@ test('study today explains cloud save status in learner words', () => {
   assert.doesNotMatch(active, /schema pending|schema_pending[^'"]*$/);
 });
 
+test('study cloud state names the connected private schedule source and visible item count', () => {
+  const fn = extractFunction(active, 'renderStudyCloudState');
+  assert.match(fn, /remotePlan\.items/);
+  assert.match(fn, /cloudItems\.length/);
+  assert.match(fn, /source_label/);
+  assert.match(fn, /已接上' \+ cloudItems\.length \+ ' 筆/);
+  assert.match(fn, /來源：/);
+});
+
 test('study today uses learner-facing subject status wording, not seed jargon', () => {
   assert.match(active, /可單刷/);
   assert.match(active, /題庫準備中/);

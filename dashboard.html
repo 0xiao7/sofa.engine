@@ -4220,8 +4220,21 @@ function renderStudyCloudState(remotePlan){
   var el = document.getElementById('study-cloud-state');
   if(!el) return;
   var status = remotePlan && remotePlan.status;
+  var cloudItems = remotePlan && Array.isArray(remotePlan.items) ? remotePlan.items : [];
+  var sourceLabel = '';
+  for(var i=0; i<cloudItems.length; i++){
+    if(cloudItems[i] && cloudItems[i].source_label){
+      sourceLabel = String(cloudItems[i].source_label || '').trim();
+      if(sourceLabel) break;
+    }
+  }
+  var sourceCopy = sourceLabel ? '來源：' + esc(sourceLabel) + '。' : '';
   if(status === 'ready'){
-    el.innerHTML = '<b>雲端計畫已接上</b>：換裝置登入後，也會看到你的私人讀書計畫。';
+    if(cloudItems.length){
+      el.innerHTML = '<b>雲端計畫已接上</b>：已接上' + cloudItems.length + ' 筆接下來的私人課表。' + sourceCopy + '換裝置登入後也會看到。';
+    } else {
+      el.innerHTML = '<b>雲端計畫已接上</b>：換裝置登入後，也會看到你的私人讀書計畫。';
+    }
     return;
   }
   if(status === 'unavailable'){
