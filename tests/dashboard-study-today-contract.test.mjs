@@ -129,16 +129,17 @@ test('desktop dashboard keeps the left library rail persistent', () => {
 test('study plan and record panels have deep links for native app entry', () => {
   assert.match(active, /function openStudyPanelFromHash/);
   assert.match(active, /function retryStudyHashScroll/);
-  assert.match(active, /hash === '#member'[\s\S]*retryStudyHashScroll\('member'\)/);
+  assert.match(active, /hash === '#member'[\s\S]*retryStudyHashScroll\('member',\s*30,\s*true\)/);
   assert.match(active, /hash === '#study-plan'[\s\S]*openStudyPlanPanel\(true\)/);
   assert.match(active, /hash === '#study-record'[\s\S]*openStudyRecordPanel\(true\)/);
   assert.match(active, /hash === '#study-playlist'[\s\S]*openStudyPlaylistPanel\(true\)/);
-  assert.match(active, /retryStudyHashScroll\('member'\)/);
+  assert.match(active, /retryStudyHashScroll\('member',\s*30,\s*true\)/);
   assert.match(active, /retryStudyHashScroll\('study-plan-panel'\)/);
   assert.match(active, /retryStudyHashScroll\('study-record-panel'\)/);
   assert.match(active, /retryStudyHashScroll\('study-playlist-panel'\)/);
   assert.match(active, /hashchange', openStudyPanelFromHash/);
-  assert.match(active, /retryStudyHashScroll\(targetId, attemptsLeft - 1\)/);
+  assert.match(active, /keepTrying/);
+  assert.match(active, /retryStudyHashScroll\(targetId, attemptsLeft - 1, keepTrying\)/);
   assert.match(active, /getComputedStyle\(el\)\.display === 'none'/);
 });
 

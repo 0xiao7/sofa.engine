@@ -6197,23 +6197,26 @@ function openStudyPlaylistPanel(forceOpen){
   if(panel.classList.contains('on')) loadStudyPlaylist();
 }
 
-function retryStudyHashScroll(targetId, attemptsLeft){
+function retryStudyHashScroll(targetId, attemptsLeft, keepTrying){
   attemptsLeft = attemptsLeft == null ? 14 : attemptsLeft;
   var el = document.getElementById(targetId);
   if(!el) return;
   var hidden = getComputedStyle(el).display === 'none' || !el.offsetParent;
   if(hidden && attemptsLeft > 0){
-    setTimeout(function(){ retryStudyHashScroll(targetId, attemptsLeft - 1); }, 180);
+    setTimeout(function(){ retryStudyHashScroll(targetId, attemptsLeft - 1, keepTrying); }, 180);
     return;
   }
   try{ el.scrollIntoView({behavior:'smooth', block:'start'}); }
   catch(_){ el.scrollIntoView(); }
+  if(keepTrying && attemptsLeft > 0){
+    setTimeout(function(){ retryStudyHashScroll(targetId, attemptsLeft - 1, keepTrying); }, 180);
+  }
 }
 
 function openStudyPanelFromHash(){
   var hash = String(location.hash || '');
   if(hash === '#member') {
-    retryStudyHashScroll('member');
+    retryStudyHashScroll('member', 30, true);
   }
   if(hash === '#study-plan') {
     openStudyPlanPanel(true);
