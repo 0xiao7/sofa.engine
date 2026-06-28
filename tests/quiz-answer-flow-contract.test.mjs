@@ -82,6 +82,25 @@ test('quiz usage hint is near the question instead of hidden at the page bottom'
   assert.match(active, /#kb-hint\{display:none\}/);
 });
 
+test('mobile quiz keeps secondary mode controls out of the first screen', () => {
+  assert.match(active, /\.free-quiz-notice a\[href="pricing\.html"\]\{display:none!important\}/);
+  assert.match(active, /#btnWrong,#btn-clear-wrong,#btnDaily,#daily-badge,#quiz-streak,\s*#sprint-count-select,#btnSprint,#btnExam,#btnPastExam,#pastExamSubject\{\s*display:none!important;/);
+  assert.match(active, /#law-status-bar,#artPickWrap\{display:none!important\}/);
+  assert.match(active, /#btnNew\{min-height:42px/);
+  assert.match(active, /class="seg score-seg">正確/);
+  assert.match(active, /class="seg score-seg">錯誤/);
+  assert.match(active, /\.pr-meta \.score-seg\{display:none\}/);
+  assert.match(active, /\.pr-meta\{width:100%;display:flex;flex-wrap:nowrap;overflow-x:auto/);
+  assert.match(active, /#btn-stats,#btn-open-weakness\{min-height:34px;text-align:center;white-space:nowrap;flex:0 0 auto\}/);
+  assert.match(active, /\.pr-chips\{flex-wrap:nowrap;overflow-x:auto/);
+});
+
+test('law deep links bypass the exam picker banner', () => {
+  assert.match(active, /function _shouldShowQzExamBanner\(examKey\)/);
+  assert.match(active, /return !examKey && !_lawParamFromUrl\(\) && !_articleParamFromUrl\(\) && !_drillParam && !_pastExamMode/);
+  assert.match(active, /if\(_shouldShowQzExamBanner\(examKey\)\) _showQzExamBanner\(\)/);
+});
+
 test('question label sits above the stem text instead of overlaying long questions', () => {
   assert.match(active, /\.q-stem\{[\s\S]*padding:56px 36px 32px/);
   assert.match(active, /\.q-stem::before\{[\s\S]*left:36px[\s\S]*right:auto/);

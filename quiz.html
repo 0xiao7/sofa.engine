@@ -327,6 +327,29 @@
     .quiz-key-hints{display:none}
     .quiz-use-hint kbd{min-width:22px;height:22px;padding:0 6px}
     #kb-hint{display:none}              /* 浮動鍵盤提示列會壓到「下一題」，手機收起 */
+    .free-quiz-notice{padding:10px 18px!important;gap:10px!important}
+    .free-quiz-notice span{flex:1 1 100%;line-height:1.6}
+    .free-quiz-notice a{min-height:38px;display:inline-flex;align-items:center;justify-content:center}
+    .free-quiz-notice a[href="pricing.html"]{display:none!important}
+    .pr-bar .l{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;align-items:center}
+    .pr-bar .back{display:none}
+    .pr-bar .title{min-width:0}
+    .pr-bar .title:first-of-type{grid-column:1 / -1}
+    .law-dd,.law-dd-btn{width:100%}
+    .law-dd-btn{justify-content:space-between}
+    #law-status-bar,#artPickWrap{display:none!important}
+    #btnWrong,#btn-clear-wrong,#btnDaily,#daily-badge,#quiz-streak,
+    #sprint-count-select,#btnSprint,#btnExam,#btnPastExam,#pastExamSubject{
+      display:none!important;
+    }
+    #btnNew{min-height:42px;margin:0!important}
+    .pr-meta{width:100%;display:flex;flex-wrap:nowrap;overflow-x:auto;gap:8px;align-items:center;-webkit-overflow-scrolling:touch}
+    .pr-meta .seg{font-size:10.5px;letter-spacing:.04em}
+    .pr-meta .score-seg{display:none}
+    #btnSetSession{display:none!important}
+    #btn-stats,#btn-open-weakness{min-height:34px;text-align:center;white-space:nowrap;flex:0 0 auto}
+    .pr-chips{flex-wrap:nowrap;overflow-x:auto;gap:8px;-webkit-overflow-scrolling:touch}
+    .pr-chips .lock-hint{display:none!important}
   }
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
@@ -697,8 +720,8 @@
     </div>
     <div class="pr-meta">
       <div class="seg">第 <b id="qNum">—</b></div>
-      <div class="seg">正確 <b id="scoreRight" style="color:var(--good)">0</b></div>
-      <div class="seg">錯誤 <b id="scoreWrong" style="color:var(--bad)">0</b></div>
+      <div class="seg score-seg">正確 <b id="scoreRight" style="color:var(--good)">0</b></div>
+      <div class="seg score-seg">錯誤 <b id="scoreWrong" style="color:var(--bad)">0</b></div>
       <div class="seg timer">TIMER <b id="topTimer">0:00</b></div>
       <div class="seg" id="sessionProgressWrap" style="display:none">連刷 <b id="sessionProgress">0 / 0</b></div>
       <div class="seg" id="qCountdownWrap" style="display:none">倒數 <b id="qCountdown">30</b></div>
@@ -1006,6 +1029,7 @@ if (!uid && !isFree) { window.location.href = 'login.html?redirect=quiz.html'; }
 document.getElementById('navUid').textContent = isFree ? '免費版' : (localStorage.getItem('sofa_nickname') || uid);
 if(isFree){
   const bar=document.createElement('div');
+  bar.className='free-quiz-notice';
   bar.style.cssText='background:rgba(231,187,167,.13);border-bottom:1px solid rgba(231,187,167,.3);padding:10px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;';
   bar.innerHTML=isIOSReaderApp()
     ? '<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">免費版 · 進階內容，訂閱者可見</span>'
@@ -1143,6 +1167,9 @@ function _showQzExamBanner() {
   const nav=document.querySelector('.pr-bar')||document.querySelector('.top-bar')||document.body;
   nav.before ? nav.before(bar) : document.body.prepend(bar);
 }
+function _shouldShowQzExamBanner(examKey) {
+  return !examKey && !_lawParamFromUrl() && !_articleParamFromUrl() && !_drillParam && !_pastExamMode;
+}
 
 (async()=>{
   const sel=document.getElementById('lawSelect');
@@ -1157,7 +1184,7 @@ function _showQzExamBanner() {
     _allLoadedQzLaws = d.laws || [];
     const examKey = localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || '';
     if(examKey) localStorage.setItem('sofa_exam_key', examKey);
-    if(!examKey) _showQzExamBanner();
+    if(_shouldShowQzExamBanner(examKey)) _showQzExamBanner();
     // Wave 109: insert 全部法規 as first real option (after special __ options)
     const allOpt=document.createElement('option');allOpt.value='__all__';allOpt.textContent='全部法規';sel.appendChild(allOpt);
     const sep2=document.createElement('option');sep2.disabled=true;sep2.textContent='──────';sel.appendChild(sep2);
