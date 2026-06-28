@@ -3254,7 +3254,7 @@
                 <span class="study-time-main">
                   <b>讀書時間</b>
                   <small id="study-time-summary">500 小時目標，每週 12 小時；今天先留 60 分鐘。</small>
-                  <span id="study-time-purpose">用來幫你安排今天先讀多久、本週還要補多少。</span>
+                  <span id="study-time-purpose">時間設定先存在本機，用來生成本週建議；排入本週與補紀錄會同步到帳號。</span>
                 </span>
                 <span class="study-time-impact" aria-live="polite">
                   <b id="study-time-impact">約 42 週</b>
@@ -3276,11 +3276,11 @@
                 <div class="study-time-cell" id="study-time-status">
                   <span class="k">今天方向</span>
                   <span class="v"><input id="study-today-minutes-input" type="number" min="5" max="720" step="5" value="60"> 分鐘</span>
-                  <span class="hint" id="study-time-hint">答題會進弱點；課表和補紀錄只補進度。</span>
+                  <span class="hint" id="study-time-hint">時間設定只影響建議，不會改答題正確率。</span>
                 </div>
                 <div class="study-time-save">
                   <button type="button" onclick="saveStudyTimeSettings()">儲存時間設定</button>
-                  <span id="study-time-state">這裡只設定讀書時間，不會改答題正確率。</span>
+                  <span id="study-time-state">時間設定先存在本機；排入本週與補紀錄會同步到帳號。</span>
                 </div>
               </div>
             </div>
@@ -4430,7 +4430,7 @@ function renderStudyTimeSettings(){
   var todayMinutes = s.today_minutes || 60;
   var weeks = weeklyHours ? Math.ceil(totalHours / weeklyHours) : 0;
   if(hint){
-    hint.textContent = weeks ? ('照這個速度約 ' + weeks + ' 週；今天先留 ' + todayMinutes + ' 分鐘。') : '答題會進弱點；課表和補紀錄只補進度。';
+    hint.textContent = weeks ? ('照這個速度約 ' + weeks + ' 週；今天先留 ' + todayMinutes + ' 分鐘。時間設定只影響建議。') : '時間設定只影響建議，不會改答題正確率。';
   }
   if(summary){
     summary.textContent = totalHours + ' 小時目標，每週 ' + weeklyHours + ' 小時；今天先留 ' + todayMinutes + ' 分鐘。';
@@ -4463,7 +4463,7 @@ function saveStudyTimeSettings(){
   renderStudyTimeSettings();
   renderStudyNextPlan(window.__studyPlanItemCache || []);
   var state = document.getElementById('study-time-state');
-  if(state) state.textContent = '已存到這台裝置。';
+  if(state) state.textContent = '已存到這台裝置；排入本週與補紀錄會同步到帳號。';
   var panel = document.getElementById('study-time-edit-panel');
   var button = document.querySelector('.study-time-edit-btn');
   if(panel) panel.hidden = true;

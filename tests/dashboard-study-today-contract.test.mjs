@@ -320,6 +320,9 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.match(recap, /建議總時數可以改/);
   assert.match(active, /summary\.textContent = totalHours \+ ' 小時目標/);
   assert.match(active, /impact\.textContent = weeks \? \('約 ' \+ weeks \+ ' 週'\) : '先填時間'/);
+  assert.match(active, /時間設定先存在本機/);
+  assert.match(active, /排入本週與補紀錄會同步到帳號/);
+  assert.doesNotMatch(active, /\/api\/me\/study\/settings/);
 });
 
 test('study time settings stay collapsed into a readable summary until editing', () => {
@@ -327,7 +330,7 @@ test('study time settings stay collapsed into a readable summary until editing',
   assert.ok(recapStart >= 0, 'study recap must exist');
   const recap = active.slice(recapStart, recapStart + 8200);
   assert.match(recap, /class="study-time-summary-card"/);
-  assert.match(recap, /id="study-time-purpose"[\s\S]*用來幫你安排今天先讀多久、本週還要補多少/);
+  assert.match(recap, /id="study-time-purpose"[\s\S]*時間設定先存在本機，用來生成本週建議/);
   assert.match(recap, /id="study-time-edit-panel" hidden/);
   assert.match(recap, /aria-expanded="false"[\s\S]*onclick="toggleStudyTimeEditor\(\)"[\s\S]*修改時間/);
   assert.match(active, /function toggleStudyTimeEditor/);
