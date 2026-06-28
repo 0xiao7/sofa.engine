@@ -526,6 +526,8 @@
   .weak-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
   .weak-card-k{color:var(--bad);font-size:12px;font-family:var(--mono);letter-spacing:.1em}
   .weak-card-v{color:rgba(245,240,234,.48);font-size:11px;margin-top:2px}
+  .weak-article-link{color:rgba(231,187,167,.82);text-decoration:none;border-bottom:1px solid rgba(231,187,167,.28)}
+  .weak-article-link:hover{color:var(--peach);border-bottom-color:var(--peach)}
   .weak-law-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
   .weak-law-main{flex:1;min-width:0}
   .weak-law-name{color:var(--peach);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -3091,6 +3093,16 @@ function _renderSignedInWeaknessLoadIssue() {
     + '<div class="weak-empty" style="text-align:center;padding:26px 0"><button class="weak-action-primary" onclick="loadQuiz()">先做下一題</button></div>';
 }
 
+function _weakArticleLinks(law, articles, limit) {
+  return (articles || []).slice(0, limit || 2).map(a => {
+    const label = a.article || (a.article_no ? `§${a.article_no}` : '代表條文');
+    const art = a.article_no || a.article || label;
+    const href = _dashboardArticleHref(a.page_id || a.id || '', law, art);
+    const count = a.wrong_count ? ` ✗${a.wrong_count}` : '';
+    return `<a class="weak-article-link" href="${href}" target="_blank" rel="noopener">${esc(label)}${esc(count)}</a>`;
+  }).join('、');
+}
+
 function _weakSummaryCard(law, wrong, pct, actionHtml) {
   return `<div class="weak-card alert weak-summary-card">
     <div class="weak-card-head" style="align-items:center;margin-bottom:0">
@@ -3121,10 +3133,7 @@ function _renderRemoteWeakLaws(items) {
     const attempts = item.attempt_count || 0;
     const correct = item.correct_count || 0;
     const pct = attempts ? Math.round(correct / attempts * 100) : 0;
-    const top = (item.top_articles || []).slice(0, 2).map(a => {
-      const label = a.article || (a.article_no ? `§${a.article_no}` : '代表條文');
-      return `<div style="font-size:10px;color:rgba(245,240,234,.42);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(label)} ✗${a.wrong_count || 0}</div>`;
-    }).join('');
+    const top = _weakArticleLinks(law, item.top_articles || [], 2);
     const bar = `<div style="height:3px;background:rgba(255,255,255,.08);border-radius:2px;margin:3px 0 2px"><div style="width:${pct}%;height:100%;background:${pct>=80?'#9FB89F':pct>=50?'var(--peach)':'var(--bad)'};border-radius:2px"></div></div>`;
     return `<div style="margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
@@ -3132,7 +3141,7 @@ function _renderRemoteWeakLaws(items) {
         <button onclick="_drillLawAuto(${JSON.stringify(law)})" style="flex-shrink:0;background:rgba(199,123,106,.1);border:1px solid rgba(199,123,106,.3);color:var(--bad);border-radius:8px;padding:2px 8px;font-size:10px;cursor:pointer;font-family:var(--mono)">練這部</button>
       </div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--bad)">✗ ${item.wrong_count || 0}題 &nbsp;<span style="color:rgba(245,240,234,.35)">${pct}%正確</span></div>
-      ${bar}${top}
+      ${bar}${top ? `<div style="font-size:10px;color:rgba(245,240,234,.42);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${top}</div>` : ''}
     </div>`;
   }).join('');
 }
@@ -3165,10 +3174,7 @@ function _renderWrongListFromRemote(items) {
     const pct = attempts ? Math.round(correct / attempts * 100) : 0;
     const color = pct >= 80 ? '#9FB89F' : pct >= 60 ? 'var(--peach)' : 'var(--bad)';
     const sourceArticles = (item.wrong_articles && item.wrong_articles.length) ? item.wrong_articles : (item.top_articles || []);
-    const top = sourceArticles.slice(0, 2).map(a => {
-      const label = a.article || (a.article_no ? `§${a.article_no}` : '代表條文');
-      return esc(label);
-    }).filter(Boolean).join('、');
+    const top = _weakArticleLinks(law, sourceArticles, 2);
     const sourceLabel = (item.wrong_articles && item.wrong_articles.length) ? '實際錯題' : '代表條文';
     const bar = `<div class="weak-bar"><span style="width:${pct}%;background:${color}"></span></div>`;
     html += `<div class="weak-card">

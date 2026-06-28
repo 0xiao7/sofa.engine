@@ -187,6 +187,17 @@ test('weakness panel shows actual wrong articles when the server provides them',
   assert.match(fn, /item\.wrong_articles/);
   assert.match(fn, /item\.top_articles/);
   assert.match(fn, /實際錯題/);
+  assert.match(fn, /_weakArticleLinks\(law, sourceArticles, 2\)/);
+});
+
+test('weakness article chips link back to the exact dashboard article', () => {
+  const start = active.indexOf('function _weakArticleLinks');
+  assert.ok(start > -1, '_weakArticleLinks must exist');
+  const fn = active.slice(start, start + 900);
+  assert.match(fn, /a\.page_id \|\| a\.id \|\| ''/);
+  assert.match(fn, /_dashboardArticleHref\(a\.page_id \|\| a\.id \|\| '', law, art\)/);
+  assert.match(fn, /class="weak-article-link"/);
+  assert.match(fn, /target="_blank"/);
 });
 
 test('short multiple-choice options can use compact two-column layout on desktop only', () => {

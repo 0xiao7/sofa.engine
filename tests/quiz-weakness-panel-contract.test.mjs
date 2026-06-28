@@ -18,12 +18,21 @@ test('weakness list uses harmonized card classes and explicit next actions', () 
   assert.match(active, /\.weak-panel-guide/);
   assert.match(active, /\.weak-card/);
   assert.match(active, /\.weak-action-primary/);
+  assert.match(active, /\.weak-article-link/);
   assert.match(active, /\.weak-source-note/);
   assert.match(active, /這裡先看最常錯的法規/);
   assert.match(active, /下一步先練/);
   assert.match(active, /練這部/);
   assert.match(active, /看結果/);
   assert.match(active, /開始重練/);
+});
+
+test('weakness wrong article labels are clickable article links', () => {
+  assert.match(active, /function _weakArticleLinks/);
+  assert.match(active, /_dashboardArticleHref/);
+  assert.match(active, /weak-article-link/);
+  assert.match(active, /_weakArticleLinks\(law, item\.top_articles \|\| \[\], 2\)/);
+  assert.match(active, /_weakArticleLinks\(law, sourceArticles, 2\)/);
 });
 
 test('session summary gives a direct weakness analysis next step', () => {
