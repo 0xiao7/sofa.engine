@@ -77,6 +77,11 @@ test('law table of contents separates reading searching and single-practice acti
   assert.match(html, /\.toc-action\{/);
 });
 
+test('dashboard tool count names tools rather than practice modes', () => {
+  assert.match(html, /<div class="r"><span class="eb">8 個工具<\/span><\/div>/);
+  assert.doesNotMatch(html, /8 種模式/);
+});
+
 test('desktop sidebar stays present while the main dashboard scrolls', () => {
   assert.match(html, /aside\.side\{[\s\S]*position:fixed;top:71px;bottom:0;left:0;width:280px/);
   assert.match(html, /aside\.side\{[\s\S]*height:calc\(100dvh - 71px\)/);

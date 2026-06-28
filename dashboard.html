@@ -3265,14 +3265,14 @@
               <span><span class="k">今天讀什麼</span><b>先做一題開始累積弱點</b><span>還沒接到私人課表；有時間時再設定讀書課程。</span></span>
               <a href="quiz.html">開始選擇題</a>
             </div>
-            <div class="study-playlist-panel" id="study-playlist-panel" aria-label="通勤重點播放清單">
+            <div class="study-playlist-panel" id="study-playlist-panel" aria-label="通勤重點朗讀清單">
               <div class="study-playlist-head">
                 <div class="study-playlist-title">
                   <span>PLAYLIST</span>
-                  <b>重點清單，先聽最常考</b>
+                  <b>重點清單，先朗讀最常考</b>
                 </div>
                 <div class="study-playlist-tools">
-                  <select id="study-playlist-subject" aria-label="播放清單科目">
+                  <select id="study-playlist-subject" aria-label="重點清單科目">
                     <option value="tax_laws">稅務法規</option>
                     <option value="bookkeeping_laws">記帳法規</option>
                   </select>
@@ -3784,7 +3784,7 @@
               <span class="idx">07</span>
               <h2>備考工具</h2>
             </div>
-            <div class="r"><span class="eb">8 種模式</span></div>
+            <div class="r"><span class="eb">8 個工具</span></div>
           </div>
 
           <!-- 繼續練習 CTA -->
@@ -6671,7 +6671,7 @@ function openStudyPlaylistPanel(forceOpen){
   if(record) record.classList.remove('on');
   setStudyPanelMode(panel.classList.contains('on') ? 'playlist' : 'closed');
   if(panel.classList.contains('on')) loadStudyPlaylist();
-  if(panel.classList.contains('on') && typeof focusStudyGuideTarget === 'function') focusStudyGuideTarget('study-plan-items');
+  if(panel.classList.contains('on') && typeof focusStudyGuideTarget === 'function') focusStudyGuideTarget('study-cockpit-recap');
 }
 
 function retryStudyHashScroll(targetId, attemptsLeft, keepTrying){
@@ -6783,7 +6783,7 @@ function _speakStudyPlaylistText(button, text, idleLabel, meta){
   utt.onend = _resetStudyPlaylistSpeechButton;
   utt.onerror = _resetStudyPlaylistSpeechButton;
   if(button){
-    button.setAttribute('data-idle-label', idleLabel || button.textContent || '播放');
+    button.setAttribute('data-idle-label', idleLabel || button.textContent || '朗讀');
     button.textContent = '停止';
     button.classList.add('speaking');
     _studyPlaylistSpeechButton = button;

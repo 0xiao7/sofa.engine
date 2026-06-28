@@ -155,7 +155,8 @@ test('expanded study tools update the left guide instead of leaving it on the pr
   assert.match(extractFunction(active, 'toggleStudyTimeEditor'), /focusStudyGuideTarget\('study-time-box'\)/);
   assert.match(extractFunction(active, 'openStudyPlanPanel'), /focusStudyGuideTarget\('study-plan-items'\)/);
   assert.match(extractFunction(active, 'openStudyRecordPanel'), /focusStudyGuideTarget\('study-plan-items'\)/);
-  assert.match(extractFunction(active, 'openStudyPlaylistPanel'), /focusStudyGuideTarget\('study-plan-items'\)/);
+  assert.match(extractFunction(active, 'openStudyPlaylistPanel'), /focusStudyGuideTarget\('study-cockpit-recap'\)/);
+  assert.doesNotMatch(extractFunction(active, 'openStudyPlaylistPanel'), /focusStudyGuideTarget\('study-plan-items'\)/);
 });
 
 test('study playlist is a generic text fallback and does not ship private schedules', () => {
@@ -164,7 +165,10 @@ test('study playlist is a generic text fallback and does not ship private schedu
   assert.match(active, /\/api\/playlist\?track=bookkeeper/);
   assert.match(active, /content_layer=analysis/);
   assert.match(active, /star_min=3/);
-  assert.match(active, /重點清單，先聽最常考/);
+  assert.match(active, /重點清單，先朗讀最常考/);
+  assert.match(active, /aria-label="通勤重點朗讀清單"/);
+  assert.match(active, /aria-label="重點清單科目"/);
+  assert.doesNotMatch(active, /播放清單/);
   assert.doesNotMatch(active, /記帳士 115記帳士台北N1|115\/03\/02|稅務相關法規\(基礎\)1/);
 });
 
