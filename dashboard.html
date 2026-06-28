@@ -4752,6 +4752,14 @@ function renderStudyWeekRecommendation(rec){
   }).join('');
 }
 
+function setStudyRecommendMessage(html){
+  var el = document.getElementById('study-recommend-list');
+  if(!el) return;
+  var old = el.querySelector('[data-study-recommend-message]');
+  if(old) old.remove();
+  el.insertAdjacentHTML('afterbegin', '<div class="study-plan-count" data-study-recommend-message="1">' + html + '</div>');
+}
+
 function previewStudyWeekRecommendation(){
   var data = window.__studyTodayData || null;
   var merged = _mergeStudyPlan(data && data.personal_plan ? data.personal_plan : null);
@@ -4760,7 +4768,7 @@ function previewStudyWeekRecommendation(){
   renderStudyWeekRecommendation(rec);
 }
 
-function saveStudyRecommendedWeek(){
+async function saveStudyRecommendedWeek(){
   var rec = window.__studyWeekRecommendation;
   if(!rec || !Array.isArray(rec.items)) {
     previewStudyWeekRecommendation();
@@ -4768,9 +4776,30 @@ function saveStudyRecommendedWeek(){
   }
   var items = rec && Array.isArray(rec.items) ? rec.items : [];
   if(!items.length) return;
+  var token = localStorage.getItem('sofa_token') || '';
+  var uid = localStorage.getItem('sofa_uid') || '';
+  if(token || uid){
+    setStudyRecommendMessage('正在同步到你的讀書計畫…');
+    try{
+      var res = await _fetchStudyJSON(API + '/api/me/study/plan-items/bulk', {
+        method:'POST',
+        headers:_authH({'Content-Type':'application/json'}),
+        body: JSON.stringify({ items:items, source_label:'自排建議', import_source:'study_week_recommendation' })
+      });
+      if(res && (res.ok || Array.isArray(res.items))){
+        _addLocalStudyItems(Array.isArray(res.items) ? res.items : items);
+        setStudyRecommendMessage('已同步 ' + esc(res.count || items.length) + ' 筆到你的私人讀書計畫。');
+        return;
+      }
+      throw new Error('bulk create failed');
+    }catch(e){
+      _addLocalStudyItems(items);
+      setStudyRecommendMessage('<span class="warn">同步暫時失敗，已先存在本機；登入後可再接回序號。</span>');
+      return;
+    }
+  }
   _addLocalStudyItems(items);
-  var el = document.getElementById('study-recommend-list');
-  if(el) el.insertAdjacentHTML('afterbegin', '<div class="study-plan-count">已排入本機私人計畫；登入後再接到你的序號。</div>');
+  setStudyRecommendMessage('已先存在本機私人計畫；登入後再接到你的序號。');
 }
 
 // ── Drawer 動態開啟 ──────────────────────────────────────

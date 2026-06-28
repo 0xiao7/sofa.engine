@@ -716,6 +716,29 @@ test('study today can recommend a private weekly plan without shipping personal 
   assert.doesNotMatch(active, /記帳士 115記帳士台北N1|115\/03\/02|補習班台北N1/);
 });
 
+test('saving recommended week syncs to the study API before local fallback', () => {
+  const fn = extractFunction(active, 'saveStudyRecommendedWeek');
+  assert.match(fn, /sofa_token/);
+  assert.match(fn, /sofa_uid/);
+  assert.match(fn, /\/api\/me\/study\/plan-items\/bulk/);
+  assert.match(fn, /body: JSON\.stringify\(\{ items:items,[\s\S]*source_label:'自排建議'/);
+  assert.match(fn, /Array\.isArray\(res\.items\) \? res\.items : items/);
+  assert.match(fn, /_addLocalStudyItems\(Array\.isArray\(res\.items\) \? res\.items : items\)/);
+  assert.match(fn, /catch/);
+  assert.match(fn, /已先存在本機/);
+});
+
+test('study recommendation save messages replace instead of stacking stale sync states', () => {
+  assert.match(active, /function setStudyRecommendMessage/);
+  const helper = extractFunction(active, 'setStudyRecommendMessage');
+  assert.match(helper, /data-study-recommend-message/);
+  assert.match(helper, /old\.remove\(\)/);
+  const fn = extractFunction(active, 'saveStudyRecommendedWeek');
+  assert.match(fn, /setStudyRecommendMessage\('正在同步到你的讀書計畫/);
+  assert.match(fn, /setStudyRecommendMessage\('已同步/);
+  assert.doesNotMatch(fn, /insertAdjacentHTML\('afterbegin', '<div class="study-plan-count">正在同步/);
+});
+
 test('study weekly recommendation avoids already occupied private plan slots', () => {
   const harness = buildRecommendationHarness();
   const existing = [{ scheduled_date:'2026-06-27', scheduled_time:'20:00', minutes:60 }];
