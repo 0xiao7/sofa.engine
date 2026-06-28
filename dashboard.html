@@ -2073,8 +2073,8 @@
   }
   .toc-row{
     display:grid;
-    grid-template-columns:minmax(0,1fr) auto auto;
-    align-items:center;gap:18px;
+    grid-template-columns:minmax(0,1fr) auto;
+    align-items:center;gap:16px;
     padding:14px 0;
     border-bottom:1px solid var(--line);
     transition:.18s;
@@ -2082,7 +2082,7 @@
   .toc-row:last-child{border-bottom:none}
   .toc-row:hover{padding-left:8px}
   .toc-main{
-    display:grid;grid-template-columns:40px minmax(0,1fr) 90px 30px;
+    display:grid;grid-template-columns:40px minmax(0,1fr) auto;
     align-items:center;gap:18px;min-width:0;text-decoration:none;color:inherit;
   }
   .toc-row:hover .nm,.toc-main:focus-visible .nm{color:var(--peach)}
@@ -2113,12 +2113,27 @@
   .toc-row .ct{
     font-family:var(--mono);font-size:11.5px;
     color:rgba(245,240,234,.5);text-align:right;letter-spacing:.04em;
+    white-space:nowrap;
   }
   .toc-row .arrow{
-    font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.32);
-    text-align:right;transition:.18s;
+    font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.46);
+    text-align:right;transition:.18s;white-space:nowrap;
   }
   .toc-row:hover .arrow{color:var(--peach);transform:translateX(2px)}
+  .toc-row .meta{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:12px;
+    min-width:120px;
+  }
+  .toc-actions{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px;
+    white-space:nowrap;
+  }
   .toc-action{
     border:1px solid rgba(245,240,234,.18);background:rgba(255,255,255,.02);
     color:rgba(245,240,234,.68);border-radius:3px;
@@ -2735,12 +2750,14 @@
       color:rgba(23,50,68,.55);
     }
     .li-card .star{top:16px;right:18px;color:#B97660}
-    .toc-row{grid-template-columns:1fr auto auto;gap:8px}
+    .toc-row{grid-template-columns:1fr;gap:9px;padding:13px 0}
     .toc-main{grid-template-columns:30px minmax(0,1fr) auto;gap:10px}
+    .toc-row .meta{min-width:0;gap:8px}
     .toc-row .arrow{display:none}
     .toc-row .nm{font-size:14.5px}
     .toc-row .nm .leader{display:none}
     .toc-row .nm .star-mark{font-size:9px;padding:1px 5px}
+    .toc-actions{justify-content:flex-start;padding-left:40px}
     .toc-action{font-size:12px;padding:6px 8px}
     .recent-list{padding:8px 0}
     .rec-group{padding:0 14px}
@@ -7429,10 +7446,10 @@ function _renderLawsToc(page){
           + '<a class="toc-main" href="law-preview.html?law='+encodedName+'" aria-label="閱讀'+nm+'">'
           + '<span class="idx">'+idx+'</span>'
           + '<span class="nm">'+nmHl+star+'<span class="leader"></span></span>'
-          + '<span class="ct">'+ct+'</span>'
-          + '<span class="arrow">閱讀</span></a>'
-          + '<button class="toc-action" type="button" data-law="'+encodedName+'" onclick="searchLaw(decodeURIComponent(this.dataset.law))">查這部</button>'
-          + '<a class="toc-action" href="quiz.html?law='+encodedName+'&drill=1">練這部</a></div>';
+          + '<span class="meta"><span class="ct">'+ct+'</span><span class="arrow">讀整部</span></span></a>'
+          + '<span class="toc-actions" aria-label="'+nm+' 的動作">'
+          + '<button class="toc-action" type="button" data-law="'+encodedName+'" onclick="searchLaw(decodeURIComponent(this.dataset.law))">查條文</button>'
+          + '<a class="toc-action" href="quiz.html?law='+encodedName+'&drill=1">單刷</a></span></div>';
       }).join('');
     }
   }
