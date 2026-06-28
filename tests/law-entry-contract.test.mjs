@@ -25,6 +25,23 @@ test('law preview accepts common article deep-link aliases', () => {
   assert.match(preview, /const firstId = targetId && articlesCache\.find\(a => a\.id === targetId\)/);
 });
 
+test('law preview has a contextual return path instead of dumping readers at home', () => {
+  assert.match(preview, /<a class="back-link" href="dashboard\.html#laws">← 回法規目錄<\/a>/);
+  assert.match(preview, /function isSafeBackUrl/);
+  assert.match(preview, /url\.origin === location\.origin && !url\.pathname\.endsWith\('\/law-preview\.html'\)/);
+  assert.match(preview, /function configureBackLink/);
+  assert.match(preview, /backLink\.href = 'dashboard\.html#laws'/);
+  assert.match(preview, /backLink\.textContent = '← 回上一頁'/);
+  assert.doesNotMatch(preview, /<a class="back-link" href="\/">← 回 SoFa<\/a>/);
+});
+
+test('law preview article list exposes click state to keyboard and screen readers', () => {
+  assert.match(preview, /role="button" tabindex="0" aria-current="\$\{current\}"/);
+  assert.match(preview, /el\.addEventListener\('keydown', ev =>/);
+  assert.match(preview, /ev\.key === 'Enter' \|\| ev\.key === ' '/);
+  assert.match(preview, /el\.setAttribute\('aria-current', active \? 'true' : 'false'\)/);
+});
+
 test('tree read entries use the same law preview reader URL', () => {
   assert.match(tree, /const SOFA_READ_URL = \(lawName\) => `https:\/\/sofaengine\.org\/law-preview\.html\?law=\$\{encodeURIComponent\(lawName\)\}`/);
   assert.match(tree, /window\.open\(SOFA_READ_URL\(lawName\), '_blank', 'noopener'\)/);
