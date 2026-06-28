@@ -240,18 +240,26 @@ test('study playlist can directly play text through the browser speech engine', 
   assert.match(active, /id="study-playlist-playall"/);
   assert.match(active, /onclick="playStudyPlaylistAll\(this\)"/);
   assert.match(active, /朗讀全部/);
+  assert.match(active, /id="study-playlist-status"/);
   assert.match(active, /function playStudyPlaylistItem/);
   assert.match(active, /function playStudyPlaylistAll/);
+  assert.match(active, /function _setStudyPlaylistStatus/);
+  assert.match(active, /function _setStudyPlaylistSpeakingIndex/);
   assert.match(active, /function _cleanSpeechCueText/);
   assert.match(active, /function _speakStudyPlaylistText/);
   assert.match(active, /SpeechSynthesisUtterance/);
   assert.match(active, /speechSynthesis\.speak/);
   assert.match(active, /window\.__studyPlaylistAudioItems/);
+  assert.match(active, /\.study-playlist-item\.is-speaking/);
+  assert.match(active, /正在朗讀：/);
+  assert.match(active, /已停止朗讀/);
+  assert.match(active, /已準備 ' \+ items\.length \+ ' 則文字重點/);
   assert.match(active, /重音\|停頓/);
   assert.match(active, /replace\(\s*\/\\s\+\/g,\s*' '\s*\)/);
   const fn = extractFunction(active, 'loadStudyPlaylist');
   assert.match(fn, /onclick="playStudyPlaylistItem\(this, ' \+ idx \+ '\)"/);
   assert.match(fn, />朗讀</);
+  assert.match(fn, /data-playlist-index/);
   assert.match(active, /不支援朗讀|不支援朗讀，請先看文字清單|這個瀏覽器不支援朗讀/);
 });
 

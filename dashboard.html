@@ -919,11 +919,25 @@
     border-color:var(--line-2);
   }
   .study-playlist-list{display:grid;gap:8px}
+  .study-playlist-status{
+    border:1px solid rgba(231,187,167,.18);
+    background:rgba(231,187,167,.055);
+    color:rgba(245,240,234,.72);
+    border-radius:4px;
+    padding:8px 10px;
+    font-size:12.5px;
+    line-height:1.5;
+  }
   .study-playlist-item{
     border-top:1px dashed rgba(231,187,167,.16);
     padding-top:9px;
     display:grid;
     gap:5px;
+  }
+  .study-playlist-item.is-speaking{
+    border-left:2px solid var(--peach);
+    padding-left:10px;
+    background:rgba(231,187,167,.04);
   }
   .study-playlist-item:first-child{border-top:0;padding-top:0}
   .study-playlist-item .meta{
@@ -3144,6 +3158,7 @@
               <div class="study-playlist-list" id="study-playlist-list">
                 <div class="study-empty">按更新清單，先產生文字版重點。</div>
               </div>
+              <div class="study-playlist-status" id="study-playlist-status">清單產生後，可以逐則朗讀、單刷，或回去看原文。</div>
             </div>
             <div class="study-mode-status is-closed" id="study-mode-status" aria-live="polite">
               <b>目前沒有展開工具</b>
@@ -6500,6 +6515,19 @@ window.addEventListener('hashchange', openStudyPanelFromHash);
 
 window.__studyPlaylistAudioItems = window.__studyPlaylistAudioItems || [];
 var _studyPlaylistSpeechButton = null;
+var _studyPlaylistSpeakingIndex = null;
+
+function _setStudyPlaylistStatus(message){
+  var el = document.getElementById('study-playlist-status');
+  if(el) el.textContent = message || '清單產生後，可以逐則朗讀、單刷，或回去看原文。';
+}
+
+function _setStudyPlaylistSpeakingIndex(idx){
+  _studyPlaylistSpeakingIndex = (typeof idx === 'number') ? idx : null;
+  document.querySelectorAll('.study-playlist-item').forEach(function(el, i){
+    el.classList.toggle('is-speaking', i === _studyPlaylistSpeakingIndex);
+  });
+}
 
 function _studyPlaylistSpeechText(item){
   var parts = [
@@ -6517,20 +6545,24 @@ function _resetStudyPlaylistSpeechButton(){
     _studyPlaylistSpeechButton.classList.remove('speaking');
     _studyPlaylistSpeechButton = null;
   }
+  _setStudyPlaylistSpeakingIndex(null);
 }
 
-function _speakStudyPlaylistText(button, text, idleLabel){
+function _speakStudyPlaylistText(button, text, idleLabel, meta){
   if(!text){
     _dashToast('目前沒有可朗讀的重點');
+    _setStudyPlaylistStatus('目前沒有可朗讀的重點；先看文字清單或回去答題累積弱點。');
     return;
   }
   if(!('speechSynthesis' in window)){
     _dashToast('這個瀏覽器不支援朗讀，請先看文字清單。');
+    _setStudyPlaylistStatus('這個瀏覽器不支援朗讀；文字、單刷和看法條仍可用。');
     return;
   }
   if(_studyPlaylistSpeechButton === button){
     speechSynthesis.cancel();
     _resetStudyPlaylistSpeechButton();
+    _setStudyPlaylistStatus('已停止朗讀。');
     return;
   }
   if(_studyPlaylistSpeechButton){
@@ -6553,12 +6585,16 @@ function _speakStudyPlaylistText(button, text, idleLabel){
     button.classList.add('speaking');
     _studyPlaylistSpeechButton = button;
   }
+  if(meta && typeof meta.index === 'number') _setStudyPlaylistSpeakingIndex(meta.index);
+  else _setStudyPlaylistSpeakingIndex(null);
+  _setStudyPlaylistStatus(meta && meta.label ? ('正在朗讀：' + meta.label) : '正在朗讀全部重點。');
   speechSynthesis.speak(utt);
 }
 
 function playStudyPlaylistItem(button, idx){
   var item = (window.__studyPlaylistAudioItems || [])[idx];
-  _speakStudyPlaylistText(button, item && item.speechText, '朗讀');
+  var label = item && item.law_name ? item.law_name : '第 ' + (idx + 1) + ' 則';
+  _speakStudyPlaylistText(button, item && item.speechText, '朗讀', { index: idx, label: label });
 }
 
 function playStudyPlaylistAll(button){
@@ -6570,7 +6606,7 @@ function playStudyPlaylistAll(button){
   var text = items.map(function(item, idx){
     return '第 ' + (idx + 1) + ' 則。' + item.speechText;
   }).join('。下一則。');
-  _speakStudyPlaylistText(button, text, '朗讀全部');
+  _speakStudyPlaylistText(button, text, '朗讀全部', { label: '全部 ' + items.length + ' 則重點' });
 }
 
 function closeDashboardSideNav(){
@@ -6606,12 +6642,14 @@ async function loadStudyPlaylist(){
   if(!list) return;
   var subject = subjectEl ? subjectEl.value : 'tax_laws';
   list.innerHTML = '<div class="study-empty">讀取重點清單中…</div>';
+  _setStudyPlaylistStatus('正在更新文字重點清單。');
   try{
     var res = await _fetchJSON(API + '/api/playlist?track=bookkeeper&subject=' + encodeURIComponent(subject) + '&content_layer=analysis&star_min=3&limit=8', { headers: _authH({}) }, 1);
     var items = res && Array.isArray(res.items) ? res.items : [];
     if(!items.length){
       window.__studyPlaylistAudioItems = [];
       list.innerHTML = '<div class="study-empty">目前沒有可朗讀的重點；先回選擇題累積弱點。</div>';
+      _setStudyPlaylistStatus('目前沒有可朗讀的重點；先回選擇題累積弱點。');
       return;
     }
     window.__studyPlaylistAudioItems = items.map(function(item){
@@ -6633,7 +6671,7 @@ async function loadStudyPlaylist(){
       var articleNo = String(item.article_no || '').replace(/^第\s*/, '').replace(/\s*條$/, '');
       var practiceHref = 'quiz.html?law=' + encodeURIComponent(law) + (articleNo ? '&art=' + encodeURIComponent(articleNo) : '') + '&drill=1';
       var readerHref = 'dashboard.html?q=' + encodeURIComponent(law) + (articleNo ? '&art=' + encodeURIComponent(articleNo) : '') + '#search';
-      return '<div class="study-playlist-item">'
+      return '<div class="study-playlist-item" data-playlist-index="' + idx + '">'
         + '<span class="meta">' + esc(item.importance || '') + ' · ' + esc(item.law_name || '') + ' · 第 ' + esc(item.article_no || '') + ' 條</span>'
         + '<span class="title">' + esc(item.title || '重點條文') + '</span>'
         + '<span class="text">' + esc(text || '這條還沒有重點整理，先看原文。') + '</span>'
@@ -6644,9 +6682,11 @@ async function loadStudyPlaylist(){
         + '</span>'
         + '</div>';
     }).join('');
+    _setStudyPlaylistStatus('已準備 ' + items.length + ' 則文字重點；可以逐則朗讀、單刷或看法條。');
   }catch(e){
     window.__studyPlaylistAudioItems = [];
     list.innerHTML = '<div class="study-empty">重點清單暫時讀不到；不影響答題和讀書計畫。</div>';
+    _setStudyPlaylistStatus('重點清單暫時讀不到；不影響答題和讀書計畫。');
   }
 }
 
