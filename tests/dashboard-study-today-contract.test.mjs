@@ -605,6 +605,18 @@ test('manual study records are enabled without changing answer accuracy', () => 
   assert.doesNotMatch(active, /disabled>儲存準備中/);
 });
 
+test('manual study records sync to hours API before local fallback', () => {
+  const fn = extractFunction(active, 'saveStudyRecordLocal');
+  assert.match(fn, /await _fetchStudyJSON/);
+  assert.match(fn, /sofa_token/);
+  assert.match(fn, /sofa_uid/);
+  assert.match(fn, /\/api\/me\/study\/hours/);
+  assert.match(fn, /body: JSON\.stringify\(\{ track_key:'bookkeeper', log_date:date, minutes:minutes, note:note/);
+  assert.match(fn, /已同步到你的讀書時數/);
+  assert.match(fn, /已先存在本機/);
+  assert.doesNotMatch(fn, /correct_count|wrong_count|answer_source|quiz_sessions/);
+});
+
 test('mobile study plan and record forms do not squeeze native inputs', () => {
   assert.match(active, /\.study-plan-field\{[\s\S]*min-width:0/);
   assert.match(active, /\.study-action-link,\s*\.study-pending\{[\s\S]*font-size:13px/);
@@ -764,7 +776,7 @@ test('study planning reconnects local progress after serial login', () => {
   assert.match(active, /function trySyncLocalStudyAfterLogin/);
   assert.match(active, /本機讀書計畫已接回這個序號/);
   assert.match(active, /排課項目會嘗試同步/);
-  assert.match(active, /補紀錄與時間設定仍先留在本機/);
+  assert.match(active, /補紀錄會在下次儲存時同步讀書時數/);
   assert.match(active, /\/api\/me\/study\/plan-items\/bulk/);
   assert.match(active, /after_login_local_handoff/);
   assert.match(active, /_actionableStudyItems\(local\.items \|\| \[\]\)/);

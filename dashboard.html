@@ -3405,7 +3405,7 @@
               </div>
               <div class="study-plan-row">
                 <button class="study-plan-save" type="button" onclick="saveStudyRecordLocal()">儲存補紀錄</button>
-                <span class="study-plan-state" id="study-record-state">先存在本機；正式資料表上線後再同步帳號。</span>
+                <span class="study-plan-state" id="study-record-state">登入後會同步讀書時數；離線先存在本機。</span>
               </div>
             </div>
             <div class="study-cloud-state" id="study-cloud-state">讀書計畫會先存在這台裝置。</div>
@@ -4311,7 +4311,7 @@ function renderStudyCloudState(remotePlan){
     el.innerHTML = '<b>雲端同步準備中</b>：目前先存在這台裝置；資料表上線後再同步到帳號。';
     return;
   }
-  el.innerHTML = '<b>先存在這台裝置</b>：排課、補紀錄都能先用；登入後會盡量接到你的帳號。';
+  el.innerHTML = '<b>先存在這台裝置</b>：排課、補紀錄都能先用；登入後會盡量同步到你的帳號。';
 }
 
 async function trySyncLocalStudyAfterLogin(){
@@ -4327,7 +4327,7 @@ async function trySyncLocalStudyAfterLogin(){
   }
   var state = document.getElementById('study-cloud-state');
   var plannedItems = _actionableStudyItems(local.items || []);
-  var handoffCopy = '<b>本機讀書計畫已接回這個序號</b>：排課項目會嘗試同步；補紀錄與時間設定仍先留在本機。';
+  var handoffCopy = '<b>本機讀書計畫已接回這個序號</b>：排課項目會嘗試同步；補紀錄會在下次儲存時同步讀書時數。';
   if(state) state.innerHTML = handoffCopy;
   if(!plannedItems.length){
     localStorage.setItem(STUDY_AFTER_LOGIN_SYNC_DONE_KEY, new Date().toISOString());
@@ -4348,7 +4348,7 @@ async function trySyncLocalStudyAfterLogin(){
       })
     });
     if(res && res.ok){
-      if(state) state.innerHTML = '<b>本機讀書計畫已接回這個序號</b>：已同步 ' + esc(res.count || plannedItems.length) + ' 筆排課；補紀錄與時間設定仍先留在本機。';
+      if(state) state.innerHTML = '<b>本機讀書計畫已接回這個序號</b>：已同步 ' + esc(res.count || plannedItems.length) + ' 筆排課；補紀錄會在下次儲存時同步讀書時數。';
       localStorage.setItem(STUDY_AFTER_LOGIN_SYNC_DONE_KEY, doneKey);
       localStorage.removeItem(STUDY_AFTER_LOGIN_SYNC_KEY);
     } else {
@@ -7061,15 +7061,16 @@ function _studySeriesItems(body){
   return items;
 }
 
-function saveStudyRecordLocal(){
+async function saveStudyRecordLocal(){
   var state = document.getElementById('study-record-state');
   function tell(msg){ if(state) state.textContent = msg; }
   var date = _studyVal('study-record-date') || _todayInputValue();
   var subject = _studyVal('study-record-subject') || '讀書紀錄';
   var minutes = Math.max(5, Math.min(720, parseInt(_studyVal('study-record-minutes') || '60', 10) || 60));
   var note = _studyVal('study-record-note') || '補讀書紀錄';
-  var local = _studyLocal();
-  local.records = (local.records || []).concat([{
+  var token = localStorage.getItem('sofa_token') || '';
+  var uid = localStorage.getItem('sofa_uid') || '';
+  var record = {
     track_key: 'bookkeeper',
     subject: subject,
     title: note,
@@ -7079,15 +7080,45 @@ function saveStudyRecordLocal(){
     status: 'done',
     minutes: minutes,
     notes: '本機補紀錄'
-  }]);
-  _saveStudyLocal(local);
-  renderStudyPlanItems(_mergeStudyPlan(null));
-  focusStudyPlanItems();
-  tell('已先存在本機；答題正確率不會被補紀錄改動。');
-  var panel = document.getElementById('study-record-panel');
-  if(panel) panel.classList.remove('on');
-  setStudyPanelMode('closed');
-  showStudySaveNudge();
+  };
+  function saveLocalRecord(savedRecord){
+    var local = _studyLocal();
+    local.records = (local.records || []).concat([savedRecord]);
+    _saveStudyLocal(local);
+    renderStudyPlanItems(_mergeStudyPlan(null));
+    focusStudyPlanItems();
+    var panel = document.getElementById('study-record-panel');
+    if(panel) panel.classList.remove('on');
+    setStudyPanelMode('closed');
+    showStudySaveNudge();
+  }
+  if(token || uid){
+    tell('同步補紀錄中…');
+    try{
+      var res = await _fetchStudyJSON(API + '/api/me/study/hours', {
+        method:'POST',
+        headers:_authH({'Content-Type':'application/json'}),
+        body: JSON.stringify({ track_key:'bookkeeper', log_date:date, minutes:minutes, note:note })
+      });
+      if(res && res.ok){
+        var hoursLog = res.hours_log || {};
+        record.remote_hours_log_id = hoursLog.id || '';
+        record.notes = '雲端補紀錄';
+        saveLocalRecord(record);
+        tell('已同步到你的讀書時數；答題正確率不會被補紀錄改動。');
+        return;
+      }
+      saveLocalRecord(record);
+      tell(_studySaveMessage(res, '已先存在本機；答題正確率不會被補紀錄改動。'));
+      return;
+    }catch(e){
+      saveLocalRecord(record);
+      tell('已先存在本機；網路暫時不穩，答題正確率不會被補紀錄改動。');
+      return;
+    }
+  }
+  saveLocalRecord(record);
+  tell('已先存在本機；登入後可再接回序號，答題正確率不會被補紀錄改動。');
 }
 
 function _parseStudyPlanImport(){
