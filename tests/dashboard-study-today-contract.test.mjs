@@ -400,6 +400,15 @@ test('study today shows the next private plan near the first action area', () =>
   assert.match(nextFn, /href="#study-plan-items"/);
 });
 
+test('study next plan card can mark the next item complete without hunting the list', () => {
+  const nextFn = extractFunction(active, 'renderStudyNextPlan');
+  assert.match(nextFn, /_studyItemKey\(next\)/);
+  assert.match(nextFn, /data-next-study-key/);
+  assert.match(nextFn, /completeStudyItem\(/);
+  assert.match(nextFn, /完成這堂/);
+  assert.match(nextFn, /aria-label="完成這堂讀書計畫"/);
+});
+
 test('study today uses learner-facing subject status wording, not seed jargon', () => {
   assert.match(active, /可單刷/);
   assert.match(active, /題庫準備中/);

@@ -662,7 +662,15 @@
     color:var(--cream);
     line-height:1.4;
   }
-  .study-next-plan a{
+  .study-next-plan-actions{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .study-next-plan a,
+  .study-next-plan button{
     min-height:36px;
     display:inline-flex;
     align-items:center;
@@ -676,8 +684,16 @@
     font-weight:700;
     white-space:nowrap;
     background:rgba(255,255,255,.02);
+    cursor:pointer;
   }
-  .study-next-plan a:hover{background:rgba(231,187,167,.1)}
+  .study-next-plan button{
+    color:var(--navy);
+    background:var(--peach);
+    border-color:var(--peach);
+  }
+  .study-next-plan a:hover,
+  .study-next-plan button:hover{background:rgba(231,187,167,.1)}
+  .study-next-plan button:hover{background:var(--peach-2)}
   .study-action-link.is-active{
     color:var(--navy);
     background:var(--peach-2);
@@ -1434,7 +1450,8 @@
     .study-action-label{width:100%}
     .study-action-link,.study-pending{flex:1 1 100%;min-width:0;min-height:44px}
     .study-next-plan{grid-template-columns:1fr}
-    .study-next-plan a{width:100%}
+    .study-next-plan-actions{justify-content:stretch}
+    .study-next-plan a,.study-next-plan button{width:100%}
     .study-time-box{grid-template-columns:1fr}
     .study-time-summary-card{align-items:flex-start;flex-wrap:wrap}
     .study-time-impact{width:100%;border-left:0;border-top:1px solid rgba(231,187,167,.16);padding:9px 0 0}
@@ -6882,12 +6899,15 @@ function renderStudyNextPlan(items){
   var minutes = settings.today_minutes || 60;
   if(actionable.length){
     var next = actionable[0] || {};
+    var key = _studyItemKey(next);
     var title = next.title || next.subject || '讀書計畫';
     var when = [next.scheduled_date || '', next.scheduled_time || ''].filter(Boolean).join(' · ');
     var source = next.source_label ? '來源：' + next.source_label + '。' : '';
     el.innerHTML = '<span><span class="k">今天讀什麼</span><b>下一堂：' + esc(title) + '</b><span>'
       + esc([when, source + '今天留 ' + minutes + ' 分鐘；完成後到讀書計畫點完成。'].filter(Boolean).join(' · '))
-      + '</span></span><a href="#study-plan-items">看讀書計畫</a>';
+      + '</span></span><span class="study-next-plan-actions">'
+      + '<button type="button" data-next-study-key="' + esc(key) + '" aria-label="完成這堂讀書計畫" onclick="completeStudyItem(' + JSON.stringify(key) + ')">完成這堂</button>'
+      + '<a href="#study-plan-items">看讀書計畫</a></span>';
     return;
   }
   el.innerHTML = '<span><span class="k">今天讀什麼</span><b>先做一題開始累積弱點</b><span>今天留 ' + minutes
