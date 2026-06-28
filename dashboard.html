@@ -6212,6 +6212,9 @@ function retryStudyHashScroll(targetId, attemptsLeft){
 
 function openStudyPanelFromHash(){
   var hash = String(location.hash || '');
+  if(hash === '#member') {
+    retryStudyHashScroll('member');
+  }
   if(hash === '#study-plan') {
     openStudyPlanPanel(true);
     retryStudyHashScroll('study-plan-panel');
