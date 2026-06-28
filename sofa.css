@@ -85,10 +85,16 @@ input,textarea{font-family:inherit;color:inherit}
 /* 自製法規下拉：原生 <select> 展開高亮會吃 macOS 系統強調色（粉紅），CSS 管不到，改自畫選單 */
 .law-dd{position:relative;display:inline-flex;align-items:center}
 .law-dd-btn{
-  display:inline-flex;align-items:center;gap:8px;padding:0;
+  min-height:44px;
+  display:inline-flex;align-items:center;gap:8px;padding:0 14px;
   font-family:var(--serif);font-weight:600;font-size:17px;color:var(--cream);
-  background:transparent;border:none;cursor:pointer;
+  background:rgba(31,56,72,.35);
+  border:1px solid var(--line-2);
+  border-radius:4px;
+  cursor:pointer;
+  transition:.18s;
 }
+.law-dd-btn:hover{border-color:var(--peach-dim);background:rgba(231,187,167,.08)}
 .law-dd-btn .cv{font-family:var(--mono);font-size:11px;color:var(--peach);transition:transform .2s}
 .law-dd.open .law-dd-btn .cv{transform:rotate(180deg)}
 .law-dd-pop{
@@ -99,7 +105,9 @@ input,textarea{font-family:inherit;color:inherit}
 }
 .law-dd.open .law-dd-pop{display:block}
 .law-dd-item{
+  min-height:40px;
   padding:8px 12px;border-radius:5px;cursor:pointer;white-space:nowrap;transition:.12s;
+  display:flex;align-items:center;
   font-family:var(--sans);font-size:14px;color:rgba(245,240,234,.85);letter-spacing:.02em;
 }
 .law-dd-item:hover{background:rgba(231,187,167,.12);color:var(--cream)}
