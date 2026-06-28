@@ -474,7 +474,7 @@
     align-items:center;gap:18px;
     padding:14px 22px;border-top:1px dashed var(--line);
   }
-  .recap-row.is-link{cursor:pointer;transition:background .16s,border-color .16s}
+  .recap-row.is-link{cursor:pointer;transition:background .16s,border-color .16s;text-decoration:none;color:inherit}
   .recap-row.is-link:hover{background:rgba(231,187,167,.06)}
   .recap-row.is-link:focus-visible{outline:2px solid var(--peach);outline-offset:-2px}
   .recap-row:first-child{border-top:none}
@@ -8103,11 +8103,12 @@ ch.on('presence', { event: 'sync' }, () => {
       var articleText = articles.map(function(a){
         return esc(a.article || (a.article_no ? '§'+a.article_no : ''));
       }).filter(Boolean).join('、');
-      return '<div class="recap-row weak-law-row">'
+      var drillHref = 'quiz.html?law=' + encodeURIComponent(law.law_name || '') + '&drill=1';
+      return '<a class="recap-row weak-law-row is-link" href="'+drillHref+'" aria-label="單刷 '+esc(law.law_name || '弱點法規')+'">'
         + '<span class="rc-law">'+esc(law.law_name)+'</span>'
         + '<span class="rc-score">'+(articleText || '先從這部法規重練')+'</span>'
-        + '<span class="rc-pct lo">錯 '+esc(law.wrong_count||0)+' 次</span>'
-        + '</div>';
+        + '<span class="rc-pct lo">錯 '+esc(law.wrong_count||0)+' 次 · 單刷</span>'
+        + '</a>';
     }).join('');
     recap.style.display='block';
   }

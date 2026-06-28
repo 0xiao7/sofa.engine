@@ -23,6 +23,16 @@ test('dashboard renders weak law items at law level with real counts', () => {
   assert.match(html, /最該補的法規|弱點法規/);
 });
 
+test('weak law recap rows are direct single-practice links', () => {
+  const start = html.indexOf('function renderWeakLaws');
+  assert.ok(start >= 0, 'renderWeakLaws function must exist');
+  const fn = html.slice(start, start + 2400);
+  assert.match(fn, /var drillHref = 'quiz\.html\?law=' \+ encodeURIComponent\(law\.law_name \|\| ''\) \+ '&drill=1'/);
+  assert.match(fn, /<a class="recap-row weak-law-row is-link" href="'\+drillHref\+'"/);
+  assert.match(fn, /aria-label="單刷/);
+  assert.match(fn, /錯 '\+esc\(law\.wrong_count\|\|0\)\+' 次 · 單刷/);
+});
+
 test('study today does not clear weak-laws that loaded first', () => {
   assert.match(html, /var _latestWeakLawItems = \[\]/);
   const start = html.indexOf('function renderStudyToday');
