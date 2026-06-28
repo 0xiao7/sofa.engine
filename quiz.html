@@ -876,6 +876,11 @@ function _lawParamFromUrl(){
   try { return decodeURIComponent(raw).trim(); }
   catch(e) { return String(raw || '').trim(); }
 }
+function _articleParamFromUrl(){
+  const raw = _searchParams.get('art') || _searchParams.get('article') || '';
+  try { return decodeURIComponent(raw).trim(); }
+  catch(e) { return String(raw || '').trim(); }
+}
 function _applyInitialLawParam(sel){
   const law = _lawParamFromUrl();
   if(!law || !sel) return false;
@@ -927,6 +932,24 @@ function formatArticleCitation(artTitle, lawName){
 }
 function getArticleCitationNo(artTitle){
   return normalizeArticleCore(artTitle) || String(artTitle||'').replace(/｜.*$/,'').replace(/^§\s*/,'').trim();
+}
+async function _ensureArticleCache(law){
+  if(!law || String(law).startsWith('__')) return [];
+  if(!_artCache[law]){
+    try{
+      const r = await fetch(`${API}/api/articles?law=${encodeURIComponent(law)}`).then(r=>r.json());
+      _artCache[law] = r.articles || [];
+    }catch(e){
+      _artCache[law] = [];
+    }
+  }
+  return _artCache[law] || [];
+}
+async function _findArticleByUrlParam(law){
+  const target = normalizeArticleCore(_articleParamFromUrl());
+  if(!target) return null;
+  const arts = await _ensureArticleCache(law);
+  return arts.find(a => normalizeArticleCore(a.title) === target || normalizeArticleCore(a.article_no) === target) || null;
 }
 function _dashboardArticleHref(pageId, lawName, artNo){
   const law = String(lawName || '');
@@ -1077,6 +1100,8 @@ const _EXAM_LAWS = {
 };
 const _EXAM_NAMES = {bookkeeper:'記帳士',landadmin:'地政士',realestate:'不動產經紀人','tax-admin':'財稅行政','tax-law':'財稅法務','elem-admin':'初等一般行政','post-acc':'中華郵政會計'};
 let _allLoadedQzLaws = [];
+let _artCache = {};
+let _allLawNames = []; // Wave 109: populated when law dropdown is filled
 
 function _filterLawsForExam(laws, key) {
   const set = _EXAM_LAWS[key] ? new Set(_EXAM_LAWS[key]) : null;
@@ -1174,9 +1199,6 @@ function _showQzExamBanner() {
   if(_restored || _hasExam){ loadQuiz(); }
 })();
 
-let _artCache = {};
-let _allLawNames = []; // Wave 109: populated when law dropdown is filled
-
 // ── 練習區 chip 細篩（期限 / 罰則）─────────────────────────
 var _PR_DEADLINE_OPTS=[{l:'全部',v:''},{l:'1日',v:'一日'},{l:'2日',v:'二日'},{l:'3日',v:'三日'},{l:'5日',v:'五日'},{l:'7日',v:'七日'},{l:'10日',v:'十日'},{l:'14日',v:'十四日'},{l:'20日',v:'二十日'},{l:'30日',v:'三十日'},{l:'60日',v:'六十日'},{l:'1個月',v:'一個月'},{l:'2個月',v:'二個月'},{l:'3個月',v:'三個月'},{l:'6個月',v:'六個月'},{l:'1年',v:'一年'},{l:'2年',v:'二年'},{l:'3年',v:'三年'},{l:'5年',v:'五年'},{l:'10年',v:'十年'}];
 var _PR_PENALTY_OPTS=[{l:'全部',v:''},{l:'3千元',v:'三千元'},{l:'5千元',v:'五千元'},{l:'1萬元',v:'一萬元'},{l:'3萬元',v:'三萬元'},{l:'5萬元',v:'五萬元'},{l:'10萬元',v:'十萬元'},{l:'15萬元',v:'十五萬元'},{l:'30萬元',v:'三十萬元'},{l:'50萬元',v:'五十萬元'},{l:'100萬元',v:'一百萬元'},{l:'200萬元',v:'二百萬元'},{l:'300萬元',v:'三百萬元'},{l:'500萬元',v:'五百萬元'}];
@@ -1266,13 +1288,9 @@ document.getElementById('lawSelect').addEventListener('change', async function()
   const realLaw = law && !law.startsWith('__');
   wrap.style.display = realLaw ? '' : 'none';
   if (!realLaw) return;
-  if (!_artCache[law]) {
-    try {
-      const r = await fetch(`${API}/api/articles?law=${encodeURIComponent(law)}`).then(r=>r.json());
-      _artCache[law] = r.articles || [];
-    } catch { _artCache[law] = []; }
-  }
-  _artCache[law].forEach(a => {
+  const arts = await _ensureArticleCache(law);
+  _articleParamFromUrl() && (inp.value = normalizeArticleCore(_articleParamFromUrl()) || _articleParamFromUrl());
+  arts.forEach(a => {
     const m = (a.title||'').match(/第(\d+(?:之\d+)?)條/);
     if (!m) return;
     const opt = document.createElement('option');
@@ -2295,9 +2313,12 @@ async function loadQuiz(){
     }
     if(!_pastExamMode){
       const artNum = (document.getElementById('artNumInput')||{}).value?.trim();
+      const urlArticle = await _findArticleByUrlParam(law);
       let url;
       if(pickedPageId){
         url=`${API}/api/quiz?page_id=${encodeURIComponent(pickedPageId)}`;
+      } else if(urlArticle && _drillParam){
+        url=`${API}/api/quiz?page_id=${encodeURIComponent(urlArticle.id)}`;
       } else if(artNum && law && _artCache[law]){
         const match=_artCache[law].find(a=>{const m=(a.title||'').match(/第(\d+(?:之\d+)?)條/);return m&&m[1]===artNum;});
         url = match ? `${API}/api/quiz?page_id=${encodeURIComponent(match.id)}` : (law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`);

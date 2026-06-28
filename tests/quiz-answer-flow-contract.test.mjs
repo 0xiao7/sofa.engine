@@ -119,6 +119,16 @@ test('quiz accepts law query params from dashboard single-practice links', () =>
   assert.match(active, /if\(_initialLawApplied\)\{ loadQuiz\(\); return; \}/);
 });
 
+test('quiz drill links can target one article number from dashboard playlists', () => {
+  assert.match(active, /function _articleParamFromUrl/);
+  assert.match(active, /_searchParams\.get\('art'\)/);
+  assert.match(active, /function _findArticleByUrlParam/);
+  assert.match(active, /normalizeArticleCore\(a\.title\) === target/);
+  assert.match(active, /const urlArticle = await _findArticleByUrlParam\(law\)/);
+  assert.match(active, /urlArticle && _drillParam/);
+  assert.match(active, /page_id=\$\{encodeURIComponent\(urlArticle\.id\)\}/);
+});
+
 test('quiz view-article fallback opens the exact article when only law and article number are known', () => {
   const start = active.indexOf('function _dashboardArticleHref');
   assert.ok(start >= 0, '_dashboardArticleHref must exist');
