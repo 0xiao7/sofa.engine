@@ -136,6 +136,7 @@ test('study plan and record panels have deep links for native app entry', () => 
   assert.match(active, /retryStudyHashScroll\('member',\s*30,\s*true\)/);
   assert.match(active, /retryStudyHashScroll\('study-mode-status',\s*18,\s*true\)/);
   assert.match(active, /\.study-mode-status\{[\s\S]*scroll-margin-top:calc\(84px \+ env\(safe-area-inset-top, 0px\)\)/);
+  assert.match(active, /\.study-mode-status\.is-closed\{display:none\}/);
   assert.doesNotMatch(active, /retryStudyHashScroll\('study-plan-panel'\)/);
   assert.doesNotMatch(active, /retryStudyHashScroll\('study-record-panel'\)/);
   assert.doesNotMatch(active, /retryStudyHashScroll\('study-playlist-panel'\)/);
@@ -239,7 +240,7 @@ test('study playlist can directly play text through the browser speech engine', 
 });
 
 test('study tool panels expose one active mode and explain where saved work goes', () => {
-  assert.match(active, /id="study-mode-status" aria-live="polite"/);
+  assert.match(active, /class="study-mode-status is-closed" id="study-mode-status" aria-live="polite"/);
   assert.match(active, /目前沒有展開工具/);
   assert.match(active, /data-study-panel-trigger="playlist" aria-expanded="false"/);
   assert.match(active, /data-study-panel-trigger="plan" aria-expanded="false"/);
@@ -247,6 +248,7 @@ test('study tool panels expose one active mode and explain where saved work goes
   assert.match(active, /function setStudyPanelMode/);
   assert.match(active, /btn\.classList\.toggle\('is-active', on\)/);
   assert.match(active, /btn\.setAttribute\('aria-expanded', on \? 'true' : 'false'\)/);
+  assert.match(active, /status\.classList\.toggle\('is-closed', active === 'closed'\)/);
   assert.match(active, /正在看重點清單/);
   assert.match(active, /正在設定讀書課程/);
   assert.match(active, /正在補讀書紀錄/);

@@ -794,6 +794,7 @@
     line-height:1.6;
     scroll-margin-top:calc(84px + env(safe-area-inset-top, 0px));
   }
+  .study-mode-status.is-closed{display:none}
   .study-mode-status b{
     color:var(--peach);
     font-family:var(--serif);
@@ -3062,7 +3063,7 @@
                 <div class="study-empty">按更新清單，先產生文字版重點。</div>
               </div>
             </div>
-            <div class="study-mode-status" id="study-mode-status" aria-live="polite">
+            <div class="study-mode-status is-closed" id="study-mode-status" aria-live="polite">
               <b>目前沒有展開工具</b>
               <span>選「重點清單」「設定讀書課程」或「補紀錄」；儲存後結果會回到下方待讀清單。</span>
             </div>
@@ -6278,6 +6279,7 @@ function setStudyPanelMode(mode){
     btn.setAttribute('aria-expanded', on ? 'true' : 'false');
   });
   if(status){
+    status.classList.toggle('is-closed', active === 'closed');
     status.innerHTML = '<b>' + esc(copy[active][0]) + '</b><span>' + esc(copy[active][1]) + '</span>';
   }
 }
