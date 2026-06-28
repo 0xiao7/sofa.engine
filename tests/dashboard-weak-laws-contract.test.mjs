@@ -23,14 +23,20 @@ test('dashboard renders weak law items at law level with real counts', () => {
   assert.match(html, /最該補的法規|弱點法規/);
 });
 
-test('weak law recap rows are direct single-practice links', () => {
+test('weak law recap is a summary and does not duplicate the today weak list', () => {
   const start = html.indexOf('function renderWeakLaws');
   assert.ok(start >= 0, 'renderWeakLaws function must exist');
   const fn = html.slice(start, start + 2400);
-  assert.match(fn, /var drillHref = 'quiz\.html\?law=' \+ encodeURIComponent\(law\.law_name \|\| ''\) \+ '&drill=1'/);
-  assert.match(fn, /<a class="recap-row weak-law-row is-link" href="'\+drillHref\+'"/);
-  assert.match(fn, /aria-label="單刷/);
-  assert.match(fn, /錯 '\+esc\(law\.wrong_count\|\|0\)\+' 次 · 單刷/);
+  assert.match(html, /\.weak-law-summary\{/);
+  assert.match(html, /\.weak-law-summary-actions a\.primary/);
+  assert.match(fn, /var topLaw = laws\[0\] \|\| \{\}/);
+  assert.match(fn, /var totalWrong = laws\.reduce/);
+  assert.match(fn, /var drillHref = 'quiz\.html\?law=' \+ encodeURIComponent\(topLaw\.law_name \|\| ''\) \+ '&drill=1'/);
+  assert.match(fn, /class="weak-law-summary"/);
+  assert.match(fn, /先補最弱/);
+  assert.match(fn, /quiz\.html\?open=weakness/);
+  assert.doesNotMatch(fn, /laws\.slice\(0,4\)\.map/);
+  assert.doesNotMatch(fn, /class="recap-row weak-law-row is-link"/);
 });
 
 test('study today does not clear weak-laws that loaded first', () => {

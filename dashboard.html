@@ -485,6 +485,48 @@
   .recap-row .rc-pct.hi{color:var(--good)}
   .recap-row .rc-pct.mid{color:var(--peach)}
   .recap-row .rc-pct.lo{color:var(--warn)}
+  .weak-law-summary{
+    padding:18px 22px;
+    display:grid;
+    gap:14px;
+    border-top:1px dashed var(--line);
+  }
+  .weak-law-summary-copy{
+    display:grid;
+    gap:5px;
+    color:rgba(245,240,234,.72);
+    line-height:1.7;
+  }
+  .weak-law-summary-copy b{
+    color:var(--cream);
+    font-family:var(--serif);
+    font-size:18px;
+    font-weight:500;
+  }
+  .weak-law-summary-copy span{
+    font-family:var(--mono);
+    font-size:12px;
+    color:rgba(245,240,234,.5);
+    letter-spacing:.05em;
+  }
+  .weak-law-summary-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .weak-law-summary-actions a{
+    min-height:38px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:8px 14px;
+    border:1px solid var(--line-2);
+    color:var(--cream);
+    background:rgba(245,240,234,.035);
+    font-size:13px;
+    font-weight:600;
+  }
+  .weak-law-summary-actions a.primary{
+    color:var(--navy);
+    border-color:var(--peach);
+    background:var(--peach);
+  }
   .recap-empty{
     padding:22px;
     border-top:1px dashed var(--line);
@@ -8308,21 +8350,21 @@ ch.on('presence', { event: 'sync' }, () => {
       list.innerHTML='<div class="recap-empty">目前還沒有足夠錯題累積。先做幾題，這裡就會整理最該補的法規。</div>';
       return;
     }
-    list.innerHTML = laws.slice(0,4).map(function(law){
-      var sourceArticles = (Array.isArray(law.wrong_articles) && law.wrong_articles.length)
-        ? law.wrong_articles
-        : (Array.isArray(law.top_articles) ? law.top_articles : []);
-      var articles = sourceArticles.slice(0,2);
-      var articleText = articles.map(function(a){
-        return esc(a.article || (a.article_no ? '§'+a.article_no : ''));
-      }).filter(Boolean).join('、');
-      var drillHref = 'quiz.html?law=' + encodeURIComponent(law.law_name || '') + '&drill=1';
-      return '<a class="recap-row weak-law-row is-link" href="'+drillHref+'" aria-label="單刷 '+esc(law.law_name || '弱點法規')+'">'
-        + '<span class="rc-law">'+esc(law.law_name)+'</span>'
-        + '<span class="rc-score">'+(articleText || '先從這部法規重練')+'</span>'
-        + '<span class="rc-pct lo">錯 '+esc(law.wrong_count||0)+' 次 · 單刷</span>'
-        + '</a>';
-    }).join('');
+    var topLaw = laws[0] || {};
+    var totalWrong = laws.reduce(function(sum, law){ return sum + (Number(law.wrong_count) || 0); }, 0);
+    var lawNames = laws.slice(0,3).map(function(law){ return law.law_name; }).filter(Boolean).join('、');
+    var drillHref = 'quiz.html?law=' + encodeURIComponent(topLaw.law_name || '') + '&drill=1';
+    list.innerHTML = '<div class="weak-law-summary">'
+      + '<div class="weak-law-summary-copy">'
+      + '<b>先補 ' + esc(topLaw.law_name || '最常錯的法規') + '</b>'
+      + '<span>目前 ' + esc(String(laws.length)) + ' 部法規有弱點，累計錯 ' + esc(String(totalWrong)) + ' 次。</span>'
+      + '<span>' + esc(lawNames || '完整弱點會整理在弱點分析。') + '</span>'
+      + '</div>'
+      + '<div class="weak-law-summary-actions">'
+      + '<a class="primary" href="' + drillHref + '">先補最弱</a>'
+      + '<a href="quiz.html?open=weakness">看完整弱點</a>'
+      + '</div>'
+      + '</div>';
     recap.style.display='block';
   }
 
