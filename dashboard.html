@@ -573,6 +573,12 @@
     border-color:var(--peach);
     font-weight:700;
   }
+  .study-action-link.is-active{
+    color:var(--navy);
+    background:var(--peach-2);
+    border-color:var(--peach-2);
+    box-shadow:0 0 0 1px rgba(231,187,167,.18) inset;
+  }
   .study-action-link:hover{
     color:var(--navy);
     background:var(--peach);
@@ -758,6 +764,26 @@
     background:rgba(255,255,255,.025);
     cursor:not-allowed;
   }
+  .study-mode-status{
+    border:1px solid rgba(231,187,167,.18);
+    border-radius:4px;
+    background:rgba(231,187,167,.045);
+    padding:10px 12px;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+    color:rgba(245,240,234,.58);
+    font-size:12.5px;
+    line-height:1.6;
+  }
+  .study-mode-status b{
+    color:var(--peach);
+    font-family:var(--serif);
+    font-size:14px;
+    font-weight:600;
+  }
+  .study-mode-status span{overflow-wrap:anywhere}
   .study-playlist-panel{
     display:none;
     border:1px solid var(--line-2);
@@ -2990,9 +3016,9 @@
               <a class="study-action-link primary" href="quiz.html">開始選擇題</a>
               <a class="study-action-link" href="#review-due">看今日複習</a>
               <a class="study-action-link" href="quiz.html?open=weakness">看弱點分析</a>
-              <button class="study-action-link study-action-button" type="button" onclick="openStudyPlaylistPanel()">播放清單</button>
-              <button class="study-action-link study-action-button" type="button" onclick="openStudyPlanPanel()">設定讀書課程</button>
-              <button class="study-action-link study-action-button" type="button" onclick="openStudyRecordPanel()">補紀錄</button>
+              <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="playlist" aria-expanded="false" onclick="openStudyPlaylistPanel()">重點清單</button>
+              <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="plan" aria-expanded="false" onclick="openStudyPlanPanel()">設定讀書課程</button>
+              <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="record" aria-expanded="false" onclick="openStudyRecordPanel()">補紀錄</button>
             </div>
             <div class="study-playlist-panel" id="study-playlist-panel" aria-label="通勤重點播放清單">
               <div class="study-playlist-head">
@@ -3005,13 +3031,17 @@
                     <option value="tax_laws">稅務法規</option>
                     <option value="bookkeeping_laws">記帳法規</option>
                   </select>
-                  <button class="secondary" id="study-playlist-playall" type="button" onclick="playStudyPlaylistAll(this)">播放全部</button>
+                  <button class="secondary" id="study-playlist-playall" type="button" onclick="playStudyPlaylistAll(this)">朗讀全部</button>
                   <button type="button" onclick="loadStudyPlaylist()">更新清單</button>
                 </div>
               </div>
               <div class="study-playlist-list" id="study-playlist-list">
                 <div class="study-empty">按更新清單，先產生文字版重點。</div>
               </div>
+            </div>
+            <div class="study-mode-status" id="study-mode-status" aria-live="polite">
+              <b>目前沒有展開工具</b>
+              <span>選「重點清單」「設定讀書課程」或「補紀錄」；儲存後結果會回到下方待讀清單。</span>
             </div>
             <div class="study-weak-brief" id="study-weak-brief" aria-label="今日弱點">
               <div class="study-weak-brief-head">
@@ -3914,6 +3944,13 @@ function _isStudyItemActionable(item){
 
 function _actionableStudyItems(items){
   return (items || []).filter(_isStudyItemActionable);
+}
+
+function _completedStudyItems(items){
+  return (items || []).filter(function(item){
+    var status = String(item && item.status || '').trim();
+    return status === 'done' || status === 'cancelled' || status === 'skipped';
+  });
 }
 
 function _studyItemKey(item){
@@ -6187,6 +6224,25 @@ function _todayInputValue(){
   return now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
 }
 
+function setStudyPanelMode(mode){
+  var status = document.getElementById('study-mode-status');
+  var copy = {
+    playlist: ['正在看重點清單', '這裡是文字重點朗讀；「單刷」會去練題，「看法條」會回到條文。'],
+    plan: ['正在設定讀書課程', '排入後會收起表單，新的待讀項目會出現在下方「讀書計畫」。'],
+    record: ['正在補讀書紀錄', '補紀錄只補時間與進度，不會改答題正確率；存完也會回到下方清單。'],
+    closed: ['目前沒有展開工具', '選「重點清單」「設定讀書課程」或「補紀錄」；儲存後結果會回到下方待讀清單。']
+  };
+  var active = copy[mode] ? mode : 'closed';
+  document.querySelectorAll('[data-study-panel-trigger]').forEach(function(btn){
+    var on = btn.getAttribute('data-study-panel-trigger') === active;
+    btn.classList.toggle('is-active', on);
+    btn.setAttribute('aria-expanded', on ? 'true' : 'false');
+  });
+  if(status){
+    status.innerHTML = '<b>' + esc(copy[active][0]) + '</b><span>' + esc(copy[active][1]) + '</span>';
+  }
+}
+
 function openStudyPlanPanel(forceOpen){
   var panel = document.getElementById('study-plan-panel');
   var record = document.getElementById('study-record-panel');
@@ -6199,6 +6255,7 @@ function openStudyPlanPanel(forceOpen){
   if(record) record.classList.remove('on');
   if(playlist) playlist.classList.remove('on');
   if(start && !start.value) start.value = _todayInputValue();
+  setStudyPanelMode(panel.classList.contains('on') ? 'plan' : 'closed');
   if(state && panel.classList.contains('on')){
     state.textContent = '填課名、堂數和固定日；排入後每堂仍可單獨調整。';
   }
@@ -6215,6 +6272,7 @@ function openStudyRecordPanel(forceOpen){
   if(plan) plan.classList.remove('on');
   if(playlist) playlist.classList.remove('on');
   if(date && !date.value) date.value = _todayInputValue();
+  setStudyPanelMode(panel.classList.contains('on') ? 'record' : 'closed');
 }
 
 function openStudyPlaylistPanel(forceOpen){
@@ -6226,6 +6284,7 @@ function openStudyPlaylistPanel(forceOpen){
   else panel.classList.toggle('on');
   if(plan) plan.classList.remove('on');
   if(record) record.classList.remove('on');
+  setStudyPanelMode(panel.classList.contains('on') ? 'playlist' : 'closed');
   if(panel.classList.contains('on')) loadStudyPlaylist();
 }
 
@@ -6286,7 +6345,7 @@ function _studyPlaylistSpeechText(item){
 
 function _resetStudyPlaylistSpeechButton(){
   if(_studyPlaylistSpeechButton){
-    _studyPlaylistSpeechButton.textContent = _studyPlaylistSpeechButton.getAttribute('data-idle-label') || '播放';
+    _studyPlaylistSpeechButton.textContent = _studyPlaylistSpeechButton.getAttribute('data-idle-label') || '朗讀';
     _studyPlaylistSpeechButton.classList.remove('speaking');
     _studyPlaylistSpeechButton = null;
   }
@@ -6294,11 +6353,11 @@ function _resetStudyPlaylistSpeechButton(){
 
 function _speakStudyPlaylistText(button, text, idleLabel){
   if(!text){
-    _dashToast('目前沒有可播放的重點');
+    _dashToast('目前沒有可朗讀的重點');
     return;
   }
   if(!('speechSynthesis' in window)){
-    _dashToast('不支援直接播放，請先看文字清單。');
+    _dashToast('這個瀏覽器不支援朗讀，請先看文字清單。');
     return;
   }
   if(_studyPlaylistSpeechButton === button){
@@ -6331,19 +6390,19 @@ function _speakStudyPlaylistText(button, text, idleLabel){
 
 function playStudyPlaylistItem(button, idx){
   var item = (window.__studyPlaylistAudioItems || [])[idx];
-  _speakStudyPlaylistText(button, item && item.speechText, '播放');
+  _speakStudyPlaylistText(button, item && item.speechText, '朗讀');
 }
 
 function playStudyPlaylistAll(button){
   var items = window.__studyPlaylistAudioItems || [];
   if(!items.length){
-    _dashToast('目前沒有可播放的重點，先按更新清單。');
+    _dashToast('目前沒有可朗讀的重點，先按更新清單。');
     return;
   }
   var text = items.map(function(item, idx){
     return '第 ' + (idx + 1) + ' 則。' + item.speechText;
   }).join('。下一則。');
-  _speakStudyPlaylistText(button, text, '播放全部');
+  _speakStudyPlaylistText(button, text, '朗讀全部');
 }
 
 function closeDashboardSideNav(){
@@ -6384,7 +6443,7 @@ async function loadStudyPlaylist(){
     var items = res && Array.isArray(res.items) ? res.items : [];
     if(!items.length){
       window.__studyPlaylistAudioItems = [];
-      list.innerHTML = '<div class="study-empty">目前沒有可播放的重點；先回選擇題累積弱點。</div>';
+      list.innerHTML = '<div class="study-empty">目前沒有可朗讀的重點；先回選擇題累積弱點。</div>';
       return;
     }
     window.__studyPlaylistAudioItems = items.map(function(item){
@@ -6411,7 +6470,7 @@ async function loadStudyPlaylist(){
         + '<span class="title">' + esc(item.title || '重點條文') + '</span>'
         + '<span class="text">' + esc(text || '這條還沒有重點整理，先看原文。') + '</span>'
         + '<span class="study-playlist-actions">'
-          + '<button type="button" onclick="playStudyPlaylistItem(this, ' + idx + ')">播放</button>'
+          + '<button type="button" onclick="playStudyPlaylistItem(this, ' + idx + ')">朗讀</button>'
           + '<a class="primary" href="' + esc(practiceHref) + '">單刷</a>'
           + '<a href="' + esc(readerHref) + '">看法條</a>'
         + '</span>'
@@ -6419,7 +6478,7 @@ async function loadStudyPlaylist(){
     }).join('');
   }catch(e){
     window.__studyPlaylistAudioItems = [];
-    list.innerHTML = '<div class="study-empty">播放清單暫時讀不到；不影響答題和讀書計畫。</div>';
+    list.innerHTML = '<div class="study-empty">重點清單暫時讀不到；不影響答題和讀書計畫。</div>';
   }
 }
 
@@ -6434,8 +6493,21 @@ function renderStudyPlanItems(plan){
     return;
   }
   var actionable = _actionableStudyItems(items);
+  var completed = _completedStudyItems(items).slice(0,5);
+  var completedHtml = completed.length
+    ? '<div class="study-plan-count done"><b>最近完成 / 補紀錄</b>：' + completed.length + ' 筆已留下狀態。</div>'
+      + completed.map(function(item){
+        var meta = [item.subject || '', item.scheduled_time || '', item.source_label || ''].filter(Boolean).join(' · ');
+        return '<div class="study-plan-item study-plan-item-done">'
+          + '<span class="date">' + esc(item.scheduled_date || '') + '</span>'
+          + '<span class="title">' + esc(item.title || item.subject || '讀書紀錄') + '</span>'
+          + '<span class="status ' + esc(_studyStatusClass(item.status)) + '">狀態：' + esc(_studyStatusLabel(item.status)) + '</span>'
+          + '<span class="meta">' + esc(meta) + '</span>'
+          + '</div>';
+      }).join('')
+    : '';
   if(!actionable.length){
-    el.innerHTML = '<div class="study-plan-count">目前沒有待讀的私人計畫；完成或取消的項目不會再被排成下一步。</div>';
+    el.innerHTML = '<div class="study-plan-count">目前沒有待讀的私人計畫；完成或取消的項目不會再被排成下一步。</div>' + completedHtml;
     return;
   }
   var next = actionable[0] || {};
@@ -6462,7 +6534,7 @@ function renderStudyPlanItems(plan){
         + '<button class="warn" type="button" onclick="cancelStudyItem(' + JSON.stringify(key) + ')">取消</button>'
         + '</span>' : '')
       + '</div>';
-  }).join('');
+  }).join('') + completedHtml;
 }
 
 function _studyStatusLabel(status){
@@ -6606,6 +6678,9 @@ function saveStudyRecordLocal(){
   renderStudyPlanItems(_mergeStudyPlan(null));
   focusStudyPlanItems();
   tell('已先存在本機；答題正確率不會被補紀錄改動。');
+  var panel = document.getElementById('study-record-panel');
+  if(panel) panel.classList.remove('on');
+  setStudyPanelMode('closed');
   showStudySaveNudge();
 }
 
@@ -6653,6 +6728,9 @@ async function saveStudyPlanImport(){
   if(!uid && !token){
     _addLocalStudyItems(items);
     tell('已先存在本機 ' + items.length + ' 筆；登入後再同步帳號。');
+    var localPanel = document.getElementById('study-plan-panel');
+    if(localPanel) localPanel.classList.remove('on');
+    setStudyPanelMode('closed');
     return;
   }
   tell('匯入中…');
@@ -6665,6 +6743,9 @@ async function saveStudyPlanImport(){
     if(res && res.ok){
       _addLocalStudyItems(items);
       tell('已匯入 ' + (res.count || items.length) + ' 筆私人計畫。');
+      var remotePanel = document.getElementById('study-plan-panel');
+      if(remotePanel) remotePanel.classList.remove('on');
+      setStudyPanelMode('closed');
       var latest = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
       renderStudyToday(latest || null);
     } else {
@@ -6706,6 +6787,7 @@ async function saveStudySeries(){
     tell('已先存在本機 ' + localItems.length + ' 堂；登入後再同步帳號。');
     var localPanel = document.getElementById('study-plan-panel');
     if(localPanel) localPanel.classList.remove('on');
+    setStudyPanelMode('closed');
     return;
   }
   tell('排入中…');
@@ -6722,6 +6804,7 @@ async function saveStudySeries(){
       tell('已排入 ' + made + ' 堂；之後可以再單堂改期。');
       var panel = document.getElementById('study-plan-panel');
       if(panel) panel.classList.remove('on');
+      setStudyPanelMode('closed');
     } else {
       _addLocalStudyItems(localItems);
       tell(_studySaveMessage(res, '已先存在本機；帳號同步稍後再試。'));

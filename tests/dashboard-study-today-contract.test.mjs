@@ -105,7 +105,7 @@ test('study today makes working tools and personal planning obvious', () => {
   assert.match(active, /class="study-action-link primary" href="quiz\.html"[\s\S]*開始選擇題/);
   assert.match(active, /href="#review-due"[\s\S]*看今日複習/);
   assert.match(active, /href="quiz\.html\?open=weakness"[\s\S]*看弱點分析/);
-  assert.match(active, /onclick="openStudyPlaylistPanel\(\)"[\s\S]*播放清單/);
+  assert.match(active, /onclick="openStudyPlaylistPanel\(\)"[\s\S]*重點清單/);
   assert.match(active, /onclick="openStudyPlanPanel\(\)"[\s\S]*設定讀書課程/);
   assert.match(active, /onclick="openStudyRecordPanel\(\)"[\s\S]*補紀錄/);
   assert.match(active, /id="study-playlist-panel"/);
@@ -220,6 +220,7 @@ test('dashboard URL article deep links run even when the law index is slow or un
 test('study playlist can directly play text through the browser speech engine', () => {
   assert.match(active, /id="study-playlist-playall"/);
   assert.match(active, /onclick="playStudyPlaylistAll\(this\)"/);
+  assert.match(active, /朗讀全部/);
   assert.match(active, /function playStudyPlaylistItem/);
   assert.match(active, /function playStudyPlaylistAll/);
   assert.match(active, /function _cleanSpeechCueText/);
@@ -231,8 +232,23 @@ test('study playlist can directly play text through the browser speech engine', 
   assert.match(active, /replace\(\s*\/\\s\+\/g,\s*' '\s*\)/);
   const fn = extractFunction(active, 'loadStudyPlaylist');
   assert.match(fn, /onclick="playStudyPlaylistItem\(this, ' \+ idx \+ '\)"/);
-  assert.match(fn, />播放</);
-  assert.match(active, /不支援直接播放/);
+  assert.match(fn, />朗讀</);
+  assert.match(active, /不支援朗讀|不支援朗讀，請先看文字清單|這個瀏覽器不支援朗讀/);
+});
+
+test('study tool panels expose one active mode and explain where saved work goes', () => {
+  assert.match(active, /id="study-mode-status" aria-live="polite"/);
+  assert.match(active, /目前沒有展開工具/);
+  assert.match(active, /data-study-panel-trigger="playlist" aria-expanded="false"/);
+  assert.match(active, /data-study-panel-trigger="plan" aria-expanded="false"/);
+  assert.match(active, /data-study-panel-trigger="record" aria-expanded="false"/);
+  assert.match(active, /function setStudyPanelMode/);
+  assert.match(active, /btn\.classList\.toggle\('is-active', on\)/);
+  assert.match(active, /btn\.setAttribute\('aria-expanded', on \? 'true' : 'false'\)/);
+  assert.match(active, /正在看重點清單/);
+  assert.match(active, /正在設定讀書課程/);
+  assert.match(active, /正在補讀書紀錄/);
+  assert.match(active, /結果會回到下方待讀清單/);
 });
 
 test('study today action buttons are sized for mobile app shells', () => {
@@ -507,6 +523,10 @@ test('manual study records are enabled without changing answer accuracy', () => 
   assert.match(active, /function saveStudyRecordLocal/);
   assert.match(active, /status: 'done'/);
   assert.match(active, /答題正確率不會被補紀錄改動/);
+  assert.match(active, /function _completedStudyItems/);
+  assert.match(active, /最近完成 \/ 補紀錄/);
+  assert.match(active, /study-plan-item-done/);
+  assert.match(active, /狀態：/);
   assert.doesNotMatch(active, /disabled>儲存準備中/);
 });
 
