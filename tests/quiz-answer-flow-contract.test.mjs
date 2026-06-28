@@ -249,12 +249,12 @@ test('quiz analysis linkifies sixth-section law references to dashboard', () => 
   const helpers = vm.runInNewContext(`${active.slice(start, end)};({linkifyLawRefs})`);
 
   const linkedSameLaw = helpers.linkifyLawRefs('同法第13條、本法第15條', '記帳士法');
-  assert.match(linkedSameLaw, /dashboard\.html\?q=記帳士法&art=13/);
-  assert.match(linkedSameLaw, /dashboard\.html\?q=記帳士法&art=15/);
+  assert.match(linkedSameLaw, /dashboard\.html\?q=記帳士法&art=13#search/);
+  assert.match(linkedSameLaw, /dashboard\.html\?q=記帳士法&art=15#search/);
 
   const linkedNamedLaw = helpers.linkifyLawRefs('記帳士法第13條及第15條', '所得稅法');
-  assert.match(linkedNamedLaw, /dashboard\.html\?q=記帳士法&art=13/);
-  assert.match(linkedNamedLaw, /dashboard\.html\?q=記帳士法&art=15/);
+  assert.match(linkedNamedLaw, /dashboard\.html\?q=記帳士法&art=13#search/);
+  assert.match(linkedNamedLaw, /dashboard\.html\?q=記帳士法&art=15#search/);
   assert.match(active, /formatSection\(sections\[name\],\s*articleLawName\)/);
 });
 

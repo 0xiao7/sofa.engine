@@ -185,6 +185,15 @@ test('recent answer recap rows can reopen the answered article when metadata exi
   assert.match(html, /onkeydown="recapArticleKeyOpen\(event, this\)"/);
 });
 
+test('dashboard article open URLs land in the law search section, not a hidden drawer', () => {
+  const start = html.indexOf('function _handleUrlOpen');
+  assert.ok(start >= 0, '_handleUrlOpen must exist');
+  const fn = html.slice(start, start + 700);
+  assert.match(fn, /openDrawer\(decodeURIComponent\(pid\)/);
+  assert.match(fn, /document\.getElementById\('search'\)/);
+  assert.match(fn, /scrollIntoView\(\{behavior:'smooth', block:'start'\}\)/);
+});
+
 test('expire overlay explains feedback and sharing extension rules', () => {
   assert.match(html, /id="expire-overlay"/);
   assert.match(html, /回饋缺點 \+10 天/);

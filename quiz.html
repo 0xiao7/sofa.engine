@@ -959,7 +959,8 @@ function _dashboardArticleHref(pageId, lawName, artNo){
   if(pageId){
     return 'dashboard.html?open=' + encodeURIComponent(pageId)
       + (law ? '&law=' + encodeURIComponent(law) : '')
-      + (art ? '&art=' + encodeURIComponent(art) : '');
+      + (art ? '&art=' + encodeURIComponent(art) : '')
+      + '#search';
   }
   return 'dashboard.html?q=' + encodeURIComponent(law)
     + (art ? '&art=' + encodeURIComponent(art) : '')
@@ -1370,7 +1371,7 @@ function linkifyLawRefs(escapedText,currentLawName){
     const safeLaw = String(lastLaw).replace(/"/g,'&quot;');
     const fullArt = art + (sub ? '之' + sub : '');
     const safeArt = fullArt.replace(/"/g,'&quot;');
-    return `<a class="crossref" href="dashboard.html?q=${safeLaw}&art=${safeArt}" target="_blank" rel="noopener">${match}</a>`;
+    return `<a class="crossref" href="dashboard.html?q=${safeLaw}&art=${safeArt}#search" target="_blank" rel="noopener">${match}</a>`;
   });
 }
 function formatSection(text,currentLawName){

@@ -21,5 +21,6 @@ test('notes page sends both law and article to dashboard instead of only opening
   assert.match(active, /dashboard\.html\?open=/);
   assert.match(active, /&law=/);
   assert.match(active, /&art=/);
+  assert.match(active, /\+ '#search'/);
   assert.match(active, /encodeURIComponent\(num\)/);
 });

@@ -7777,6 +7777,8 @@ function _handleUrlOpen(){
   var pid = params.get('open');
   if(!pid) return;
   openDrawer(decodeURIComponent(pid), decodeURIComponent(params.get('law')||''), decodeURIComponent(params.get('art')||''));
+  var sec = document.getElementById('search');
+  if(sec) setTimeout(function(){ sec.scrollIntoView({behavior:'smooth', block:'start'}); }, 80);
 }
 
 // tree / 考運羅盤 funnel：?law=<法名> 落地→自動把該法搜出來，讓考生在站內讀

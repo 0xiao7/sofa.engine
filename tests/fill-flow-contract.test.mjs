@@ -95,6 +95,6 @@ test('fill source link helper preserves sub-article numbers in either title orde
   assert.equal(helpers.fillArticleNo({ title: '第43之3條 CFC' }), '43之3');
   assert.match(
     helpers.fillDashboardArticleHref({ id: 'income-43-3', law_name: '所得稅法', title: '第43條之3 CFC' }),
-    /art=43%E4%B9%8B3$/,
+    /art=43%E4%B9%8B3#search$/,
   );
 });
