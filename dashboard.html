@@ -762,6 +762,27 @@
     font-size:12px;
     line-height:1.55;
   }
+  .study-time-impact{
+    flex-shrink:0;
+    min-width:150px;
+    display:grid;
+    gap:2px;
+    padding:8px 12px;
+    border-left:1px solid rgba(231,187,167,.18);
+    color:rgba(245,240,234,.56);
+    font-size:12px;
+    line-height:1.45;
+  }
+  .study-time-impact b{
+    font-family:var(--serif);
+    font-size:15px;
+    color:var(--peach);
+    font-weight:600;
+  }
+  .study-time-impact small{
+    color:rgba(245,240,234,.48);
+    font-size:11.5px;
+  }
   .study-time-edit-btn{
     flex-shrink:0;
     border:1px solid rgba(231,187,167,.32);
@@ -1352,6 +1373,8 @@
     .study-action-label{width:100%}
     .study-action-link,.study-pending{flex:1 1 100%;min-width:0;min-height:44px}
     .study-time-box{grid-template-columns:1fr}
+    .study-time-summary-card{align-items:flex-start;flex-wrap:wrap}
+    .study-time-impact{width:100%;border-left:0;border-top:1px solid rgba(231,187,167,.16);padding:9px 0 0}
     .study-time-cell{border-left:0;border-top:1px solid rgba(231,187,167,.16);padding-left:0;padding-top:9px}
     .study-time-cell:first-child{border-top:0;padding-top:0}
     .study-suggestions{grid-template-columns:1fr}
@@ -3146,6 +3169,10 @@
                   <small id="study-time-summary">500 小時目標，每週 12 小時；今天先留 60 分鐘。</small>
                   <span id="study-time-purpose">用來幫你安排今天先讀多久、本週還要補多少。</span>
                 </span>
+                <span class="study-time-impact" aria-live="polite">
+                  <b id="study-time-impact">約 42 週</b>
+                  <small id="study-time-outcome">還沒排課；先用本週建議或設定課程。</small>
+                </span>
                 <button class="study-time-edit-btn" type="button" aria-expanded="false" onclick="toggleStudyTimeEditor()">修改時間</button>
               </div>
               <div class="study-time-box" id="study-time-edit-panel" hidden>
@@ -4289,15 +4316,19 @@ function renderStudyTimeSettings(){
   if(today) today.value = s.today_minutes || 60;
   var hint = document.getElementById('study-time-hint');
   var summary = document.getElementById('study-time-summary');
+  var impact = document.getElementById('study-time-impact');
   var totalHours = s.total_hours || 500;
   var weeklyHours = s.weekly_hours || 12;
   var todayMinutes = s.today_minutes || 60;
+  var weeks = weeklyHours ? Math.ceil(totalHours / weeklyHours) : 0;
   if(hint){
-    var weeks = weeklyHours ? Math.ceil(totalHours / weeklyHours) : 0;
     hint.textContent = weeks ? ('照這個速度約 ' + weeks + ' 週；今天先留 ' + todayMinutes + ' 分鐘。') : '答題會進弱點；課表和補紀錄只補進度。';
   }
   if(summary){
     summary.textContent = totalHours + ' 小時目標，每週 ' + weeklyHours + ' 小時；今天先留 ' + todayMinutes + ' 分鐘。';
+  }
+  if(impact){
+    impact.textContent = weeks ? ('約 ' + weeks + ' 週') : '先填時間';
   }
 }
 
@@ -6624,6 +6655,7 @@ function renderStudyPlanItems(plan){
   if(!el) return;
   var items = plan && Array.isArray(plan.items) ? plan.items : [];
   window.__studyPlanItemCache = items;
+  renderStudyTimeOutcome(items);
   if(!items.length){
     el.innerHTML = '<div class="study-plan-count"><b>目前還沒有私人讀書計畫</b><br>可以排函授、補習班課程、模考或自己的週任務。'
       + '<br>要新增時，回上方「整理」點設定讀書課程。</div>';
@@ -6675,6 +6707,25 @@ function renderStudyPlanItems(plan){
       + '</div>';
   }).join('') + completedHtml;
   scheduleActiveNavRefresh();
+}
+
+function renderStudyTimeOutcome(items){
+  var el = document.getElementById('study-time-outcome');
+  if(!el) return;
+  var list = Array.isArray(items) ? items : (window.__studyPlanItemCache || []);
+  var actionable = _actionableStudyItems(list);
+  var completed = _completedStudyItems(list);
+  if(actionable.length){
+    var next = actionable[0] || {};
+    var nextText = [next.scheduled_date || '', next.scheduled_time || '', next.title || next.subject || '讀書計畫'].filter(Boolean).join(' · ');
+    el.textContent = '下一筆：' + nextText + '；完成紀錄 ' + completed.length + ' 筆。';
+    return;
+  }
+  if(completed.length){
+    el.textContent = '目前沒有待讀；已留下 ' + completed.length + ' 筆完成 / 補紀錄。';
+    return;
+  }
+  el.textContent = '還沒排課；先用本週建議或設定課程。';
 }
 
 function _studyStatusLabel(status){

@@ -304,11 +304,14 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.ok(timeBox < planPanel, 'time guidance should appear before private schedule controls');
   assert.match(recap, /<div class="study-time-wrap" id="study-time-box"/);
   assert.match(recap, /id="study-time-summary"[\s\S]*500 小時目標/);
+  assert.match(recap, /id="study-time-impact"[\s\S]*約 42 週/);
+  assert.match(recap, /id="study-time-outcome"[\s\S]*還沒排課；先用本週建議或設定課程/);
   assert.match(recap, /class="study-time-summary-card"[\s\S]*讀書時間[\s\S]*修改時間/);
   assert.match(recap, /id="study-target-hours"[\s\S]*500/);
   assert.match(recap, /id="study-weekly-hours"[\s\S]*每週可讀/);
   assert.match(recap, /建議總時數可以改/);
   assert.match(active, /summary\.textContent = totalHours \+ ' 小時目標/);
+  assert.match(active, /impact\.textContent = weeks \? \('約 ' \+ weeks \+ ' 週'\) : '先填時間'/);
 });
 
 test('study time settings stay collapsed into a readable summary until editing', () => {
@@ -541,6 +544,9 @@ test('study time planning is editable and persisted locally', () => {
   assert.match(active, /function saveStudyTimeSettings/);
   assert.match(active, /local\.settings =/);
   assert.match(active, /照這個速度約/);
+  assert.match(active, /function renderStudyTimeOutcome/);
+  assert.match(active, /下一筆：/);
+  assert.match(active, /完成紀錄/);
 });
 
 test('manual study records are enabled without changing answer accuracy', () => {
