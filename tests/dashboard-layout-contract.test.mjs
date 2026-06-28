@@ -199,6 +199,14 @@ test('saved and recent law rows are semantic keyboard-operable controls', () => 
   assert.match(html, /class="rec-row"'\s*\+ drawerOpenAttrs\(pid, ln, artSafe, '開啟最近查詢/);
 });
 
+test('saved and recent law rows fall back to law and article lookup when page id is missing', () => {
+  assert.match(html, /function chooseArticleOpenAction\(pid, lawName, artNo\)/);
+  assert.match(html, /if\(safePid\) return "openDrawer\('/);
+  assert.match(html, /if\(safeLaw && safeArt\) return "searchAndOpen\('/);
+  assert.match(html, /drawerOpenAttrs\(pid, lawName, artNo, label\)[\s\S]*chooseArticleOpenAction\(safePid, safeLaw, safeArt\)/);
+  assert.match(html, /onkeydown="' \+ keyAction \+ '"/);
+});
+
 test('recent answer recap has an empty state so sidebar T6 has a real target', () => {
   assert.match(html, /function showRecap\(html\)/);
   assert.match(html, /目前還沒有正式答題紀錄/);

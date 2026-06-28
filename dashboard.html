@@ -3881,11 +3881,19 @@ function fallbackArticleTitle(raw, title){
   var clean = String(raw || '').replace(/^§+/, '').trim();
   return clean ? ('第 ' + clean + ' 條') : '條文';
 }
+function chooseArticleOpenAction(pid, lawName, artNo){
+  var safePid = String(pid || '').replace(/'/g, '');
+  var safeLaw = String(lawName || '').replace(/'/g, '');
+  var safeArt = _normalizeArticleNo(artNo || '').replace(/'/g, '');
+  if(safePid) return "openDrawer('" + safePid + "','" + safeLaw + "','" + safeArt + "')";
+  if(safeLaw && safeArt) return "searchAndOpen('" + safeLaw + "','" + safeArt + "')";
+  return "openDrawer('','" + safeLaw + "','" + safeArt + "')";
+}
 function drawerOpenAttrs(pid, lawName, artNo, label){
   var safePid = String(pid || '').replace(/'/g, '');
   var safeLaw = String(lawName || '').replace(/'/g, '');
-  var safeArt = String(artNo || '').replace(/'/g, '');
-  var action = "openDrawer('" + safePid + "','" + safeLaw + "','" + safeArt + "')";
+  var safeArt = _normalizeArticleNo(artNo || '').replace(/'/g, '');
+  var action = chooseArticleOpenAction(safePid, safeLaw, safeArt);
   var keyAction = "if(event.key==='Enter'||event.key===' '){event.preventDefault();" + action + ";}";
   return ' role="button" tabindex="0" aria-label="' + esc(label || '開啟條文') + '" onclick="' + action + '" onkeydown="' + keyAction + '"';
 }
