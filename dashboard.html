@@ -7686,6 +7686,12 @@ function _handleUrlLaw(){
   var inp = document.getElementById('search-law');
   if(!inp) return;
   inp.value = decodeURIComponent(law);
+  var art = params.get('art') || params.get('article');
+  var artInp = document.getElementById('search-art');
+  if(art && artInp){
+    artInp.value = _normalizeArticleNo(decodeURIComponent(art));
+    window.__pendingSearchOpenArticle = true;
+  }
   doSearch();
   var sec = document.getElementById('search');
   if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});

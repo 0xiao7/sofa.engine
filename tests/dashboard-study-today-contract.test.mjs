@@ -175,6 +175,15 @@ test('study playlist article-reader links auto-open the target article', () => {
   assert.match(doSearchFn, /_openUrlArticleFromResults\(arts, lawName, artFilter\)/);
 });
 
+test('dashboard law plus article deep links auto-open the target article', () => {
+  const fn = extractFunction(active, '_handleUrlLaw');
+  assert.match(fn, /params\.get\('law'\)/);
+  assert.match(fn, /params\.get\('art'\) \|\| params\.get\('article'\)/);
+  assert.match(fn, /artInp\.value = _normalizeArticleNo\(decodeURIComponent\(art\)\)/);
+  assert.match(fn, /window\.__pendingSearchOpenArticle = true/);
+  assert.match(fn, /doSearch\(\)/);
+});
+
 test('dashboard article number helpers preserve sub-articles in result rows and drawers', () => {
   const helpers = vm.runInNewContext([
     extractFunction(active, '_normalizeArticleNo'),
