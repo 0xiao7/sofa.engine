@@ -855,6 +855,17 @@ const _LOCKED_SECS=[
   {name:'修法與聯覺備註',  label:'修法與聯覺備註'},
   {name:'相關法規及注意事項',label:'相關法規及注意事項'}
 ];
+function cleanVisibleSpeechCueText(text){
+  return String(text || '')
+    .replace(/[\[【（(]\s*(重音|強調|輕讀|慢讀|快讀)\s*[\]】）)]/g, '')
+    .replace(/[\[【（(]\s*停頓\s*[\]】）)]/g, '，')
+    .replace(/\[(\/?emphasis)\]/gi, '')
+    .replace(/\[break[^\]]*\]/gi, '，')
+    .replace(/<\s*\/?\s*(em|strong|mark)\s*>/gi, '')
+    .replace(/<\s*break[^>]*>/gi, '，')
+    .replace(/[，,]\s*[，,]+/g, '，')
+    .trim();
+}
 function formatSection(text){
   if(!text) return '';
   var lines=String(text).replace(/\r\n?/g,'\n').split('\n'),out='';
@@ -864,7 +875,7 @@ function formatSection(text){
     var bm=body.match(/^([•◦‣·▪])\s*/);
     if(bm){isSub=(bm[1]==='◦');body=body.slice(bm[0].length);}
     else if(lead.length>=2||/　/.test(lead)){isSub=true;}
-    body=body.trim();if(!body)return;
+    body=cleanVisibleSpeechCueText(body.trim());if(!body)return;
     var esc=body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     esc=esc.replace(/^([^：:]{1,14}[：:])/,'<b>$1</b>');
     out+='<p class="'+(isSub?'sec-i':'sec-h')+'">'+esc+'</p>';
