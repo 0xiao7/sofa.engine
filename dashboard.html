@@ -6155,14 +6155,15 @@ function _todayInputValue(){
   return now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
 }
 
-function openStudyPlanPanel(){
+function openStudyPlanPanel(forceOpen){
   var panel = document.getElementById('study-plan-panel');
   var record = document.getElementById('study-record-panel');
   var playlist = document.getElementById('study-playlist-panel');
   var state = document.getElementById('study-plan-state');
   var start = document.getElementById('study-plan-start');
   if(!panel) return;
-  panel.classList.toggle('on');
+  if(forceOpen === true) panel.classList.add('on');
+  else panel.classList.toggle('on');
   if(record) record.classList.remove('on');
   if(playlist) playlist.classList.remove('on');
   if(start && !start.value) start.value = _todayInputValue();
@@ -6171,34 +6172,58 @@ function openStudyPlanPanel(){
   }
 }
 
-function openStudyRecordPanel(){
+function openStudyRecordPanel(forceOpen){
   var panel = document.getElementById('study-record-panel');
   var plan = document.getElementById('study-plan-panel');
   var playlist = document.getElementById('study-playlist-panel');
   var date = document.getElementById('study-record-date');
   if(!panel) return;
-  panel.classList.toggle('on');
+  if(forceOpen === true) panel.classList.add('on');
+  else panel.classList.toggle('on');
   if(plan) plan.classList.remove('on');
   if(playlist) playlist.classList.remove('on');
   if(date && !date.value) date.value = _todayInputValue();
 }
 
-function openStudyPlaylistPanel(){
+function openStudyPlaylistPanel(forceOpen){
   var panel = document.getElementById('study-playlist-panel');
   var plan = document.getElementById('study-plan-panel');
   var record = document.getElementById('study-record-panel');
   if(!panel) return;
-  panel.classList.toggle('on');
+  if(forceOpen === true) panel.classList.add('on');
+  else panel.classList.toggle('on');
   if(plan) plan.classList.remove('on');
   if(record) record.classList.remove('on');
   if(panel.classList.contains('on')) loadStudyPlaylist();
 }
 
+function retryStudyHashScroll(targetId, attemptsLeft){
+  attemptsLeft = attemptsLeft == null ? 14 : attemptsLeft;
+  var el = document.getElementById(targetId);
+  if(!el) return;
+  var hidden = getComputedStyle(el).display === 'none' || !el.offsetParent;
+  if(hidden && attemptsLeft > 0){
+    setTimeout(function(){ retryStudyHashScroll(targetId, attemptsLeft - 1); }, 180);
+    return;
+  }
+  try{ el.scrollIntoView({behavior:'smooth', block:'start'}); }
+  catch(_){ el.scrollIntoView(); }
+}
+
 function openStudyPanelFromHash(){
   var hash = String(location.hash || '');
-  if(hash === '#study-plan') openStudyPlanPanel();
-  if(hash === '#study-record') openStudyRecordPanel();
-  if(hash === '#study-playlist') openStudyPlaylistPanel();
+  if(hash === '#study-plan') {
+    openStudyPlanPanel(true);
+    retryStudyHashScroll('study-plan-panel');
+  }
+  if(hash === '#study-record') {
+    openStudyRecordPanel(true);
+    retryStudyHashScroll('study-record-panel');
+  }
+  if(hash === '#study-playlist') {
+    openStudyPlaylistPanel(true);
+    retryStudyHashScroll('study-playlist-panel');
+  }
 }
 
 if(document.readyState === 'loading') {
