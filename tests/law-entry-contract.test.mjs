@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 
 const practice = readFileSync(new URL('../practice.html', import.meta.url), 'utf8');
 const preview = readFileSync(new URL('../law-preview.html', import.meta.url), 'utf8');
+const tree = readFileSync(new URL('../tree.html', import.meta.url), 'utf8');
 
 test('practice full article action deep-links to the dashboard article drawer', () => {
   assert.match(practice, /id="prSourceLink"[\s\S]*href="dashboard\.html#search"/);
@@ -22,4 +23,13 @@ test('law preview accepts common article deep-link aliases', () => {
   assert.match(preview, /function normalizeArticleNo/);
   assert.match(preview, /normalizeArticleNo\(a\.title\) === normalizedTargetArticle/);
   assert.match(preview, /const firstId = targetId && articlesCache\.find\(a => a\.id === targetId\)/);
+});
+
+test('tree read entries use the same law preview reader URL', () => {
+  assert.match(tree, /const SOFA_READ_URL = \(lawName\) => `https:\/\/sofaengine\.org\/law-preview\.html\?law=\$\{encodeURIComponent\(lawName\)\}`/);
+  assert.match(tree, /window\.open\(SOFA_READ_URL\(lawName\), '_blank', 'noopener'\)/);
+  assert.match(tree, /前往閱讀 →/);
+  assert.match(tree, /const readHref = SOFA_READ_URL\(lawName\)/);
+  assert.match(tree, /href="' \+ readHref \+ '"/);
+  assert.doesNotMatch(tree, /\?intent=read&law=/);
 });

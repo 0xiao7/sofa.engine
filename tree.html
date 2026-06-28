@@ -2076,8 +2076,9 @@ const SOFA_READ_URL = (lawName) => `https://sofaengine.org/law-preview.html?law=
     const iconEl = toast.querySelector('.planner-toast-icon');
     if (isOnline) {
       // SoFa 已上線:鼓勵點進去讀
+      const readHref = SOFA_READ_URL(lawName);
       if (titleEl) titleEl.textContent = `「${lawName}」`;
-      if (subEl) subEl.innerHTML = '✓ 已在 SoFa 陪你讀 · <a href="https://sofaengine.org/?intent=read&law=' + encodeURIComponent(lawName) + '" target="_blank" rel="noopener" style="color:var(--sofa-peach);text-decoration:underline;font-weight:600;">前往閱讀 →</a>';
+      if (subEl) subEl.innerHTML = '✓ 已在 SoFa 陪你讀 · <a href="' + readHref + '" target="_blank" rel="noopener" style="color:var(--sofa-peach);text-decoration:underline;font-weight:600;">前往閱讀 →</a>';
       if (iconEl) iconEl.textContent = '✓';
     } else {
       // 未上線:預告
