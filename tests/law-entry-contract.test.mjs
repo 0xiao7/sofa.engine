@@ -42,6 +42,12 @@ test('law preview article list exposes click state to keyboard and screen reader
   assert.match(preview, /el\.setAttribute\('aria-current', active \? 'true' : 'false'\)/);
 });
 
+test('law preview CTA keeps readers in the web practice funnel', () => {
+  assert.match(preview, /讀完這部，就做 5 題看弱點/);
+  assert.match(preview, /href="quiz\.html\?free=1"/);
+  assert.doesNotMatch(preview, /lin\.ee\/zUeMwo4/);
+});
+
 test('tree read entries use the same law preview reader URL', () => {
   assert.match(tree, /const SOFA_READ_URL = \(lawName\) => `https:\/\/sofaengine\.org\/law-preview\.html\?law=\$\{encodeURIComponent\(lawName\)\}`/);
   assert.match(tree, /window\.open\(SOFA_READ_URL\(lawName\), '_blank', 'noopener'\)/);
