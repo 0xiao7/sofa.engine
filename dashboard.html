@@ -1308,7 +1308,7 @@
     .study-actions{align-items:stretch}
     .study-action-group{align-items:stretch}
     .study-action-label{width:100%}
-    .study-action-link,.study-pending{flex:1 1 calc(50% - 8px);min-width:128px;min-height:44px}
+    .study-action-link,.study-pending{flex:1 1 100%;min-width:0;min-height:44px}
     .study-time-box{grid-template-columns:1fr}
     .study-time-cell{border-left:0;border-top:1px solid rgba(231,187,167,.16);padding-left:0;padding-top:9px}
     .study-time-cell:first-child{border-top:0;padding-top:0}
@@ -2234,7 +2234,7 @@
   .drawer-tabs{display:flex;gap:8px;margin-bottom:14px}
   .drawer-tab{padding:5px 14px;border-radius:14px;border:1px solid rgba(31,56,72,.2);background:none;color:rgba(31,56,72,.6);font-size:13px;cursor:pointer;transition:all 0.2s}
   .drawer-tab.active{background:rgba(231,187,167,.10);border-color:var(--peach-dim);color:var(--peach-2)}
-  #drawer-original{display:none;line-height:1.9;font-size:15px;color:rgba(31,56,72,.88);white-space:pre-wrap;padding:4px 0}
+  #drawer-original{display:none;line-height:1.9;font-size:15px;color:rgba(31,56,72,.88);white-space:pre-wrap;padding:4px 0;font-family:"Songti TC","Noto Serif TC",serif}
   #drawer-analysis{display:block}
   .dr-acc{margin-top:24px;border-top:1px solid var(--cream-3)}
   .acc-item{border-bottom:1px solid var(--cream-3)}
@@ -3080,22 +3080,6 @@
               </div>
             </div>
             <div class="study-suggestions" id="study-suggestions" aria-label="今天建議讀什麼"></div>
-            <div class="study-recommend-panel" id="study-recommend-panel" aria-label="本週讀書計畫推薦">
-              <div class="study-recommend-head">
-                <div class="study-recommend-copy">
-                  <span>本週建議</span>
-                  <b>本週建議排法</b>
-                  <small>依你的可讀時間、私人課表和弱點估一版；存下後只會進你的私人讀書計畫。</small>
-                </div>
-                <div class="study-recommend-actions">
-                  <button type="button" onclick="previewStudyWeekRecommendation()">預覽建議</button>
-                  <button class="primary" type="button" onclick="saveStudyRecommendedWeek()">排入本週</button>
-                </div>
-              </div>
-              <div class="study-recommend-list" id="study-recommend-list">
-                <div class="study-empty">先按預覽建議，系統會避開已排課程，補上本週空檔。</div>
-              </div>
-            </div>
             <div class="study-time-wrap" id="study-time-box" aria-label="備考時間規劃">
               <div class="study-time-summary-card">
                 <span class="study-time-main">
@@ -3125,6 +3109,22 @@
                   <button type="button" onclick="saveStudyTimeSettings()">儲存時間設定</button>
                   <span id="study-time-state">這裡只設定讀書時間，不會改答題正確率。</span>
                 </div>
+              </div>
+            </div>
+            <div class="study-recommend-panel" id="study-recommend-panel" aria-label="本週讀書計畫推薦">
+              <div class="study-recommend-head">
+                <div class="study-recommend-copy">
+                  <span>本週建議</span>
+                  <b>本週建議排法</b>
+                  <small>依你的可讀時間、私人課表和弱點估一版；存下後只會進你的私人讀書計畫。</small>
+                </div>
+                <div class="study-recommend-actions">
+                  <button type="button" onclick="previewStudyWeekRecommendation()">預覽建議</button>
+                  <button class="primary" type="button" onclick="saveStudyRecommendedWeek()">排入本週</button>
+                </div>
+              </div>
+              <div class="study-recommend-list" id="study-recommend-list">
+                <div class="study-empty">先按預覽建議，系統會避開已排課程，補上本週空檔。</div>
               </div>
             </div>
             <div class="study-save-nudge" id="study-save-nudge" aria-live="polite">
@@ -3781,6 +3781,31 @@ function fallbackArticleTitle(raw, title){
   return clean ? ('第 ' + clean + ' 條') : '條文';
 }
 function _normalizeArticleNo(raw){
+  function partToArabic(part){
+    var s = String(part || '').replace(/[０-９]/g, function(ch){ return String(ch.charCodeAt(0) - 0xFF10); });
+    if(/^\d+$/.test(s)) return s;
+    var map = {零:0,〇:0,一:1,二:2,兩:2,两:2,三:3,四:4,五:5,六:6,七:7,八:8,九:9};
+    if(!/[十百千]/.test(s)){
+      var direct = s.split('').map(function(ch){ return map[ch]; });
+      return direct.every(function(n){ return typeof n === 'number'; }) ? String(Number(direct.join(''))) : s;
+    }
+    var total = 0;
+    var current = 0;
+    var valid = true;
+    s.split('').forEach(function(ch){
+      if(typeof map[ch] === 'number'){
+        current = map[ch];
+      }else if(ch === '千' || ch === '百' || ch === '十'){
+        var unit = ch === '千' ? 1000 : (ch === '百' ? 100 : 10);
+        total += (current || 1) * unit;
+        current = 0;
+      }else{
+        valid = false;
+      }
+    });
+    if(!valid) return s;
+    return String(total + current);
+  }
   var text = String(raw || '')
     .replace(/^第\s*/, '')
     .replace(/\s*條$/, '')
@@ -3789,9 +3814,9 @@ function _normalizeArticleNo(raw){
     .trim();
   var ch = '[0-9０-９一二三四五六七八九十百千零兩两]+';
   var m = text.match(new RegExp('^(' + ch + ')條?之(' + ch + ')$'));
-  if(m) return m[1] + '之' + m[2];
+  if(m) return partToArabic(m[1]) + '之' + partToArabic(m[2]);
   m = text.match(new RegExp('^(' + ch + ')(?:之(' + ch + '))?$'));
-  return m ? m[1] + (m[2] ? '之' + m[2] : '') : text;
+  return m ? partToArabic(m[1]) + (m[2] ? '之' + partToArabic(m[2]) : '') : text;
 }
 function _articleNoFromRecord(a){
   if(!a) return '';
@@ -6530,7 +6555,7 @@ function renderStudyPlanItems(plan){
   window.__studyPlanItemCache = items;
   if(!items.length){
     el.innerHTML = '<div class="study-plan-count"><b>目前還沒有私人讀書計畫</b><br>可以排函授、補習班課程、模考或自己的週任務。'
-      + '<br><button type="button" onclick="openStudyPlanPanel()">設定讀書課程</button></div>';
+      + '<br>要新增時，回上方「整理」點設定讀書課程。</div>';
     scheduleActiveNavRefresh();
     return;
   }
@@ -6543,7 +6568,7 @@ function renderStudyPlanItems(plan){
         return '<div class="study-plan-item study-plan-item-done">'
           + '<span class="date">' + esc(item.scheduled_date || '') + '</span>'
           + '<span class="title">' + esc(item.title || item.subject || '讀書紀錄') + '</span>'
-          + '<span class="status ' + esc(_studyStatusClass(item.status)) + '">狀態：' + esc(_studyStatusLabel(item.status)) + '</span>'
+          + '<span class="status ' + esc(_studyStatusClass(item.status)) + '">' + esc(_studyStatusLabel(item.status)) + '</span>'
           + '<span class="meta">' + esc(meta) + '</span>'
           + '</div>';
       }).join('')
@@ -6558,9 +6583,9 @@ function renderStudyPlanItems(plan){
   var actionMessage = window.__studyPlanActionMessage
     ? '<div class="study-plan-count warn">' + esc(window.__studyPlanActionMessage) + '</div>'
     : '';
-  var summary = '<div class="study-plan-count"><b>待讀清單</b>：待讀 ' + actionable.length + ' 筆'
+  var summary = '<div class="study-plan-count"><b>接下來</b>：' + actionable.length + ' 筆'
     + (nextText ? '；下一筆：<b>' + esc(nextText) + '</b>' : '')
-    + '<br>完成後會從下一步移除，改下週或取消也會保留狀態。'
+    + '<br>完成、改期或取消都會保留紀錄。'
     + '</div>';
   el.innerHTML = actionMessage + summary + actionable.slice(0,8).map(function(item){
     var meta = [item.subject || '', item.scheduled_time || '', item.source_label || ''].filter(Boolean).join(' · ');
@@ -6569,7 +6594,7 @@ function renderStudyPlanItems(plan){
     return '<div class="study-plan-item">'
       + '<span class="date">' + esc(item.scheduled_date || '') + '</span>'
       + '<span class="title">' + esc(item.title || item.subject || '讀書計畫') + '</span>'
-      + '<span class="status ' + esc(_studyStatusClass(item.status)) + '">狀態：' + esc(_studyStatusLabel(item.status)) + '</span>'
+      + '<span class="status ' + esc(_studyStatusClass(item.status)) + '">' + esc(_studyStatusLabel(item.status)) + '</span>'
       + '<span class="meta">' + esc(meta) + '</span>'
       + (canEdit ? '<span class="study-plan-actions">'
         + '<button class="primary" type="button" onclick="completeStudyItem(' + JSON.stringify(key) + ')">完成</button>'
@@ -7717,7 +7742,7 @@ function _reSearch(q) {
 function doSearch(){
   var lawName = (document.getElementById('search-law')||{}).value||'';
   lawName = lawName.trim();
-  var artFilter = ((document.getElementById('search-art')||{}).value||'').trim().replace(/^§+/,'');
+  var artFilter = _normalizeArticleNo(((document.getElementById('search-art')||{}).value||'').trim().replace(/^§+/,''));
   var resEl = document.getElementById('search-results');
   if(!resEl) return;
 
@@ -7779,8 +7804,7 @@ function doSearch(){
       var arts = d.articles;
       if(artFilter){
         arts = arts.filter(function(a){
-          var num = ((a.title||'').match(/(\d+)/)||['',''])[1];
-          return num === artFilter || (a.title||'').indexOf(artFilter) !== -1;
+          return _articleNoFromRecord(a) === artFilter || (a.title||'').indexOf(artFilter) !== -1;
         });
       }
       arts = _chipFilter(arts, _curChip);
@@ -7806,7 +7830,7 @@ function _handleUrlQuery(){
   var inp = document.getElementById('search-law');
   if(!inp) return;
   inp.value = decodeURIComponent(q);
-  var art = params.get('art');
+  var art = params.get('art') || params.get('article');
   var artInp = document.getElementById('search-art');
   if(art && artInp){
     artInp.value = _normalizeArticleNo(decodeURIComponent(art));

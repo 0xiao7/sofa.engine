@@ -173,8 +173,10 @@ test('study playlist article-reader links auto-open the target article', () => {
   assert.match(active, /openDrawer\(pid, lawName, artNo\)/);
   assert.match(active, /_normalizeArticleNo/);
   assert.match(active, /_articleNoFromRecord/);
-  assert.match(active, /params\.get\('art'\)[\s\S]*window\.__pendingSearchOpenArticle = true/);
+  assert.match(active, /params\.get\('art'\) \|\| params\.get\('article'\)[\s\S]*window\.__pendingSearchOpenArticle = true/);
   const doSearchFn = extractFunction(active, 'doSearch');
+  assert.match(doSearchFn, /var artFilter = _normalizeArticleNo/);
+  assert.match(doSearchFn, /_articleNoFromRecord\(a\) === artFilter/);
   assert.match(doSearchFn, /_openUrlArticleFromResults\(arts, lawName, artFilter\)/);
 });
 
@@ -197,6 +199,8 @@ test('dashboard article number helpers preserve sub-articles in result rows and 
   assert.equal(helpers._articleNoFromRecord({ title: '第43條之3 CFC' }), '43之3');
   assert.equal(helpers._articleNoFromRecord({ title: '第43之3條 CFC' }), '43之3');
   assert.equal(helpers._articleNoFromRecord({ article_no: '第43條之3' }), '43之3');
+  assert.equal(helpers._articleNoFromRecord({ title: '第十三條之一' }), '13之1');
+  assert.equal(helpers._articleNoFromRecord({ article_no: '第４３條之３' }), '43之3');
 
   const drawerStart = active.indexOf('function _renderDrawer(d)');
   assert.ok(drawerStart >= 0, '_renderDrawer must exist');
@@ -279,9 +283,12 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.ok(recapStart >= 0, 'study recap must exist');
   const recap = active.slice(recapStart, recapStart + 7600);
   const timeBox = recap.indexOf('id="study-time-box"');
+  const recommendPanel = recap.indexOf('id="study-recommend-panel"');
   const planPanel = recap.indexOf('id="study-plan-panel"');
   assert.ok(timeBox > -1, 'time-first box must exist');
+  assert.ok(recommendPanel > -1, 'recommendation panel must exist');
   assert.ok(planPanel > -1, 'private plan panel must exist');
+  assert.ok(timeBox < recommendPanel, 'time settings should explain the recommendation before the recommendation appears');
   assert.ok(timeBox < planPanel, 'time guidance should appear before private schedule controls');
   assert.match(recap, /<div class="study-time-wrap" id="study-time-box"/);
   assert.match(recap, /id="study-time-summary"[\s\S]*500 小時目標/);
@@ -367,9 +374,9 @@ test('study today links weak laws and topic blocks into single-practice entry po
 
 test('study plan items show explicit status text for completion tracking', () => {
   const fn = extractFunction(active, 'renderStudyPlanItems');
-  assert.match(fn, /狀態：/);
-  assert.match(active, /待讀清單/);
-  assert.match(active, /完成後會從下一步移除/);
+  assert.doesNotMatch(fn, /狀態：/);
+  assert.match(active, /接下來/);
+  assert.match(active, /完成、改期或取消都會保留紀錄/);
   assert.match(active, /已完成/);
   assert.match(active, /改期/);
 });
@@ -534,13 +541,13 @@ test('manual study records are enabled without changing answer accuracy', () => 
   assert.match(active, /function _completedStudyItems/);
   assert.match(active, /最近完成 \/ 補紀錄/);
   assert.match(active, /study-plan-item-done/);
-  assert.match(active, /狀態：/);
   assert.doesNotMatch(active, /disabled>儲存準備中/);
 });
 
 test('mobile study plan and record forms do not squeeze native inputs', () => {
   assert.match(active, /\.study-plan-field\{[\s\S]*min-width:0/);
   assert.match(active, /\.study-action-link,\s*\.study-pending\{[\s\S]*font-size:13px/);
+  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-action-link,\s*\.study-pending\{[\s\S]*flex:1 1 100%;min-width:0;min-height:44px/);
   assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-plan-grid\{grid-template-columns:1fr\}/);
   assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-plan-field input,\s*\.study-plan-field select\{[\s\S]*min-height:44px/);
   assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-plan-row\{align-items:stretch\}/);
@@ -556,28 +563,27 @@ test('series planning can generate local weekly items before API sync', () => {
 
 test('saved study plans show an immediate readable summary and focus the plan list', () => {
   assert.match(active, /class="study-plan-count"/);
-  assert.match(active, /待讀 ' \+ actionable\.length \+ ' 筆/);
+  assert.match(active, /接下來<\/b>：' \+ actionable\.length \+ ' 筆/);
   assert.match(active, /下一筆：<b>/);
   assert.match(active, /function _studyStatusLabel/);
   assert.match(active, /已完成/);
   assert.match(active, /待讀/);
   assert.match(active, /function _studyStatusClass/);
   assert.match(active, /status-planned/);
-  assert.match(active, /完成後會從下一步移除/);
+  assert.match(active, /完成、改期或取消都會保留紀錄/);
   assert.match(active, /function focusStudyPlanItems/);
   assert.match(active, /scrollIntoView\(\{ block:'nearest', behavior:'smooth' \}\)/);
   assert.match(active, /_addLocalStudyItems[\s\S]*focusStudyPlanItems\(\)/);
   assert.match(active, /saveStudyRecordLocal[\s\S]*focusStudyPlanItems\(\)/);
 });
 
-test('empty study plans show a visible setup action instead of a blank section', () => {
+test('empty study plans point back to the single setup entry instead of duplicating buttons', () => {
   const fn = extractFunction(active, 'renderStudyPlanItems');
   assert.doesNotMatch(fn, /el\.innerHTML = ''/);
   assert.match(fn, /目前還沒有私人讀書計畫/);
-  assert.match(fn, /onclick="openStudyPlanPanel\(\)"/);
+  assert.doesNotMatch(fn, /onclick="openStudyPlanPanel\(\)"/);
   assert.match(fn, /設定讀書課程/);
-  assert.match(active, /\.study-plan-count button\{[\s\S]*min-height:34px/);
-  assert.match(active, /\.study-plan-count button\{[\s\S]*background:rgba\(231,187,167,\.12\)/);
+  assert.match(fn, /回上方「整理」點設定讀書課程/);
 });
 
 test('local study plan items can be completed postponed or cancelled from the list', () => {

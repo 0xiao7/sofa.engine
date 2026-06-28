@@ -7,6 +7,8 @@ const html = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8')
 test('dashboard uses one Chinese font stack across serif and sans tokens', () => {
   assert.match(html, /--serif:"Noto Serif TC","Songti TC",serif/);
   assert.match(html, /--sans:var\(--serif\)/);
+  assert.match(html, /\.dr-text\{[\s\S]*font-family:"Songti TC","Noto Serif TC",serif/);
+  assert.match(html, /#drawer-original\{[\s\S]*font-family:"Songti TC","Noto Serif TC",serif/);
 });
 
 test('today recaps are included in the sidebar navigation and scroll spy', () => {
