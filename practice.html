@@ -246,6 +246,8 @@
   .sec-lock-preview::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(245,240,234,0) 15%,var(--cream) 82%);pointer-events:none}
   .sec-lock-cta{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px;padding:10px 16px;font-size:12.5px;color:rgba(31,56,72,.72);background:rgba(231,187,167,.1);border:1px dashed rgba(213,154,120,.4);border-radius:4px}
   .sec-lock-cta a{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--peach);text-decoration:none;padding:5px 14px;border:1px solid rgba(213,154,120,.4);border-radius:2px;white-space:nowrap}
+  .cpi-note{margin-top:16px;padding:14px 16px;background:rgba(217,176,132,.12);border:1px solid rgba(217,176,132,.38);border-left:3px solid var(--peach);border-radius:4px;color:var(--navy);font-size:14px;line-height:1.75;white-space:pre-line}
+  .cpi-note b{display:block;margin-bottom:4px;color:var(--navy);font-family:var(--sans);font-weight:700}
 
   /* === RWD === */
   @media (max-width:1100px){
@@ -976,8 +978,36 @@ function formatSection(text){
   });
   return out;
 }
-function buildSections(sections,isPaid,wrapEl,beforeEl){
-  wrapEl.querySelectorAll('.sec-block,.sec-lock,.sec-empty').forEach(e=>e.remove());
+function buildCpiAdjustmentNote(article,sections){
+  const lawName=article?.law_name||_prLawName||(document.getElementById('lawSelect')||{}).value||'';
+  const articleText=[article?.title,article?.article_no,article?.original_text,JSON.stringify(sections||{})].join('\n');
+  const artNo=String(article?.article_no||_prArticleNo||article?.title||'');
+  const hasCpiText=/CPI|消費者物價指數|物價指數|公告調整|按.*物價/.test(articleText);
+  const isBasicTax=lawName.includes('所得基本稅額條例') && /(^|第|\D)13(條|$|\D)/.test(artNo);
+  const estateGiftAmountArticle=/12\s*[-之]\s*1|十二條之一|第十二條之一|(^|第|\D)(13|17|18|19|20|22)(條|$|\D)/.test(artNo);
+  const estateGiftAmountText=/免稅額|扣除額|配偶|直系血親卑親屬|父母|喪葬費|殘障|扶養|課稅級距|贈與稅|遺產稅|萬|元/.test(articleText);
+  const isEstateGift=lawName.includes('遺產及贈與稅法') && (estateGiftAmountArticle || hasCpiText || estateGiftAmountText);
+  if(!hasCpiText && !isBasicTax && !isEstateGift) return '';
+  if(isBasicTax){
+    return '這題條文寫六百萬元，但 113 年度起個人基本所得額扣除額已調整為 750 萬元；115 年度沿用 750 萬元。題目仍可考條文基準或比例，考前請以當年度公告額為準。';
+  }
+  if(isEstateGift){
+    return '條文原文、舊題數字和當年度公告額要分開看。\n115 / 114 現行：遺產稅免稅額 1,333 萬；不計入遺產總額的日常器具 100 萬、職業工具 56 萬；配偶扣除 553 萬；直系血親卑親屬每人 56 萬；父母、喪葬費各 138 萬；重度以上身心障礙 693 萬；扶養兄弟姊妹、祖父母每人 56 萬；贈與稅免稅額 244 萬 / 年。\n舊題常見差異：職業工具條文舊基準 40 萬，113 年度起已公告為 56 萬；級距 113 年仍為遺產 5,000 萬 / 1 億、贈與稅 2,500 萬 / 5,000 萬，114 / 115 已為遺產 5,621 萬 / 1 億 1,242 萬、贈與稅 2,811 萬 / 5,621 萬。\n題目仍可考條文基準或比例，作答時以考試年度與財政部公告額為準。';
+  }
+  return '這類金額會受 CPI / 財政部公告調整。115 年度與 113 年度是否相同，要看各稅目公告；題目仍可考條文基準或比例，考前請以當年度公告額為準。';
+}
+function appendCpiAdjustmentNote(wrapEl,beforeEl,article,sections){
+  wrapEl.querySelectorAll('.cpi-note').forEach(e=>e.remove());
+  const note=buildCpiAdjustmentNote(article,sections);
+  if(!note)return;
+  const d=document.createElement('div');
+  d.className='cpi-note';
+  d.innerHTML='<b>CPI / 公告額提醒</b>'+esc(note);
+  if(beforeEl)wrapEl.insertBefore(d,beforeEl);else wrapEl.appendChild(d);
+}
+function buildSections(sections,isPaid,wrapEl,beforeEl,article){
+  wrapEl.querySelectorAll('.sec-block,.sec-lock,.sec-empty,.cpi-note').forEach(e=>e.remove());
+  appendCpiAdjustmentNote(wrapEl,beforeEl,article,sections);
   _FREE_SECS.forEach(name=>{
     if(!sections[name])return;
     const d=document.createElement('div');d.className='sec-block';
@@ -999,11 +1029,11 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
     });
   }
 }
-function renderPracticeSections(panel,sections,isPaid){
+function renderPracticeSections(panel,sections,isPaid,article){
   if(!panel)return;
   panel.innerHTML='<div class="sec-hd">條文解析</div>';
   panel.style.display='block';
-  buildSections(sections||{},isPaid,panel);
+  buildSections(sections||{},isPaid,panel,null,article);
   if(!panel.querySelector('.sec-block,.sec-lock')){
     const empty=document.createElement('div');
     empty.className='sec-empty';
@@ -1011,7 +1041,7 @@ function renderPracticeSections(panel,sections,isPaid){
     panel.appendChild(empty);
   }
 }
-let articleSections={}, articlePlan='free';
+let articleSections={}, articlePlan='free', articleRecord=null;
 
 
 // ── 跨裝置答題紀錄（默寫完成後寫進 Supabase user_stats）─────────────
@@ -1099,7 +1129,7 @@ function render(){
     _recordPracticeStat(document.getElementById('artMeta').textContent||document.getElementById('lawSelect').value, typeText.length);  // Wave 103
     const sp=document.getElementById('sectionsBox');
     if(sp.style.display==='none'){
-      renderPracticeSections(sp,articleSections,articlePlan!=='free');
+      renderPracticeSections(sp,articleSections,articlePlan!=='free',articleRecord);
     }
     showFullArticleBtn();
   }
@@ -1207,7 +1237,7 @@ async function loadNew(){
   const sp=document.getElementById('sectionsBox');sp.innerHTML='';sp.style.display='none';
   const _srcBtn=document.getElementById('prSourceLink');if(_srcBtn)_srcBtn.style.display='none';
   const _srcP=document.getElementById('prArtInline');if(_srcP){_srcP.style.display='none';_srcP.textContent='';}
-  articleSections={};articlePlan='free';_prLawName='';_prArticleNo='';
+  articleSections={};articlePlan='free';articleRecord=null;_prLawName='';_prArticleNo='';
   ['wpm','acc','time'].forEach(id=>document.getElementById(id).textContent=id==='time'?'00:00':'—');
   ['stat-prog','stat-wpm','stat-acc'].forEach(id=>document.getElementById(id).textContent='—');
   document.getElementById('stat-err').textContent='0';
@@ -1287,18 +1317,18 @@ async function loadNew(){
         lawMeta=_qLaw||'';
       }
     }
-    articleSections=d.sections||{}; articlePlan=d._plan||'free';
+    articleSections=d.sections||{}; articlePlan=d._plan||'free'; articleRecord=d;
     _prArtId=d.id||''; _m2Typed='';  // 記住條文 id、清 mode2 累積緩衝
     _articlesAttempted++;  // Wave 56 — count each article load
     typeText=(d.original_text||'').replace(/(?<=[一-鿿]) +(?=[一-鿿])/g,'');
     const m=(d.title||'').match(/第(\d+(?:之\d+)?)條/);
     const artNum=m?m[1]:'—';
+    const metaEl=document.getElementById('artMeta');
+    const prLawLabel=lawMeta||d.law_name||'';
     _prLawName=prLawLabel||'';
     _prArticleNo=artNum!=='—'?artNum:'';
     document.getElementById('artNum').textContent=artNum;
     document.getElementById('artTitle').textContent=(d.title||'').replace(/第[\d之]+條/,'').trim()||d.title||'—';
-    const metaEl=document.getElementById('artMeta');
-    const prLawLabel=lawMeta||d.law_name||'';
     if(prLawLabel){metaEl.textContent=prLawLabel;metaEl.style.display='';}
     else{metaEl.style.display='none';}
     _prQuestionText=`打字練習｜${prLawLabel} ${d.title||''}`.replace(/\s+/g,' ').trim();
@@ -1410,7 +1440,7 @@ function advanceSentence(){
     _recordPracticeStat(document.getElementById('artMeta').textContent||document.getElementById('lawSelect').value, typeText.length);  // Wave 103
     // 顯示條文解析 sections
     const sp=document.getElementById('sectionsBox');
-    renderPracticeSections(sp,articleSections,articlePlan!=='free');
+    renderPracticeSections(sp,articleSections,articlePlan!=='free',articleRecord);
     showFullArticleBtn();
   } else { renderMode2(); ti.focus(); }
 }
@@ -1569,7 +1599,7 @@ function checkMode3(){
   _recordPracticeStat(document.getElementById('artMeta').textContent||document.getElementById('lawSelect').value, typeText.length);  // Wave 103
   const sp=document.getElementById('sectionsBox');
   if(sp.style.display==='none'){
-    renderPracticeSections(sp,articleSections,articlePlan!=='free');
+    renderPracticeSections(sp,articleSections,articlePlan!=='free',articleRecord);
   }
   showFullArticleBtn();
 }

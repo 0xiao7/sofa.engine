@@ -24,7 +24,7 @@ test('practice session summary uses SoFa brand classes instead of bright inline 
 test('practice sections render empty fallback instead of a blank analysis card', () => {
   assert.match(active, /function renderPracticeSections/);
   assert.match(active, /這條暫時沒有解析/);
-  assert.match(active, /renderPracticeSections\(sp,\s*articleSections,\s*articlePlan!=='free'\)/);
+  assert.match(active, /renderPracticeSections\(sp,\s*articleSections,\s*articlePlan!=='free',\s*articleRecord\)/);
   assert.doesNotMatch(active, /sp\.innerHTML='<div class="sec-hd">條文解析<\/div>';\s*sp\.style\.display='block';\s*buildSections\(articleSections,articlePlan!=='free',sp\)/);
 });
 

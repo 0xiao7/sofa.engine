@@ -66,7 +66,7 @@ test('fill answer sections show loading and fallback instead of blank panel', ()
   const checkEnd = active.indexOf('function loadNew', checkStart);
   const checkAnswers = active.slice(checkStart, checkEnd);
   assert.match(checkAnswers, /showFillSectionsLoading\(panel\)/);
-  assert.match(checkAnswers, /renderFillSections\(panel,\s*art\.sections\|\|\{\},\s*art\._plan!=='free'\)/);
+  assert.match(checkAnswers, /renderFillSections\(panel,\s*art\.sections\|\|\{\},\s*art\._plan!=='free',\s*art\)/);
   assert.match(checkAnswers, /renderFillSections\(panel,\s*\{\},\s*true\)/);
 });
 
