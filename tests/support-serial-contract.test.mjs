@@ -17,6 +17,13 @@ test('support serial page is a noindex read-only admin surface', () => {
   assert.match(html, /issue_history/);
 });
 
+test('support serial page uses the same Songti-first brand font stack', () => {
+  const html = page();
+  assert.match(html, /--serif:"Songti TC","Noto Serif TC","PMingLiU",serif/);
+  assert.match(html, /--sans:"Songti TC","Noto Serif TC","PMingLiU",serif/);
+  assert.match(html, /font-family:var\(--sans\)/);
+});
+
 test('support serial page calls the guarded admin identity endpoint without storing secrets', () => {
   const html = page();
   assert.match(html, /\/api\/admin\/serial-identity/);
