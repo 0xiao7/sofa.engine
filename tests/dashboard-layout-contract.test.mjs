@@ -3,12 +3,25 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 const html = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
+const sharedCss = readFileSync(new URL('../sofa.css', import.meta.url), 'utf8');
+const loginHtml = readFileSync(new URL('../login.html', import.meta.url), 'utf8');
+const lawPreviewHtml = readFileSync(new URL('../law-preview.html', import.meta.url), 'utf8');
 
 test('dashboard uses one Chinese font stack across serif and sans tokens', () => {
-  assert.match(html, /--serif:"Noto Serif TC","Songti TC",serif/);
+  assert.match(html, /--serif:"Songti TC","Noto Serif TC","PMingLiU",serif/);
   assert.match(html, /--sans:var\(--serif\)/);
-  assert.match(html, /\.dr-text\{[\s\S]*font-family:"Songti TC","Noto Serif TC",serif/);
-  assert.match(html, /#drawer-original\{[\s\S]*font-family:"Songti TC","Noto Serif TC",serif/);
+  assert.match(html, /\.dr-text\{[\s\S]*font-family:var\(--serif\)/);
+  assert.match(html, /#drawer-original\{[\s\S]*font-family:var\(--serif\)/);
+});
+
+test('core web pages prefer the Songti brand stack for Chinese UI text', () => {
+  assert.match(sharedCss, /--serif:"Songti TC","Noto Serif TC","PMingLiU",serif/);
+  assert.match(sharedCss, /--sans:var\(--serif\)/);
+  assert.match(loginHtml, /--serif:\s*'Songti TC', 'Noto Serif TC', 'PMingLiU', serif/);
+  assert.match(loginHtml, /--sans:\s*var\(--serif\)/);
+  assert.match(lawPreviewHtml, /--serif:"Songti TC","Noto Serif TC","PMingLiU",serif/);
+  assert.match(lawPreviewHtml, /--sans:var\(--serif\)/);
+  assert.match(lawPreviewHtml, /\.original-text\{[\s\S]*font-family:var\(--serif\)/);
 });
 
 test('today recaps are included in the sidebar navigation and scroll spy', () => {
