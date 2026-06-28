@@ -8256,6 +8256,7 @@ function _handleUrlQuery(){
     window.__pendingSearchOpenArticle = true;
   }
   doSearch();
+  if(q && art) searchAndOpen(decodeURIComponent(q), art);
 }
 
 // 私人筆記庫：?open=<page_id> 從筆記庫點卡片落地，直接開該條 drawer（自動展開筆記）
@@ -8284,6 +8285,7 @@ function _handleUrlLaw(){
     window.__pendingSearchOpenArticle = true;
   }
   doSearch();
+  if(law && art) searchAndOpen(decodeURIComponent(law), art);
   var sec = document.getElementById('search');
   if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
 }

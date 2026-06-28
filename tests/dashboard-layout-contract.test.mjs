@@ -262,6 +262,13 @@ test('searchAndOpen uses normalized article numbers instead of a numeric-title r
   assert.doesNotMatch(fn, /title\|\|''\)\.match\(\/第\\\(\\d\+\\\)條/);
 });
 
+test('law article URL handlers open the target article through the canonical fallback', () => {
+  const queryFn = html.slice(html.indexOf('function _handleUrlQuery'), html.indexOf('// 私人筆記庫'));
+  const lawFn = html.slice(html.indexOf('function _handleUrlLaw'), html.indexOf('function _applyUrlHandlers'));
+  assert.match(queryFn, /if\(q && art\) searchAndOpen\(decodeURIComponent\(q\), art\)/);
+  assert.match(lawFn, /if\(law && art\) searchAndOpen\(decodeURIComponent\(law\), art\)/);
+});
+
 test('recent answer recap has an empty state so sidebar T6 has a real target', () => {
   assert.match(html, /function showRecap\(html\)/);
   assert.match(html, /目前還沒有正式答題紀錄/);
