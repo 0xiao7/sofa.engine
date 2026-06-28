@@ -623,7 +623,9 @@ test('manual study records sync to hours API before local fallback', () => {
 test('mobile study plan and record forms do not squeeze native inputs', () => {
   assert.match(active, /\.study-plan-field\{[\s\S]*min-width:0/);
   assert.match(active, /\.study-action-link,\s*\.study-pending\{[\s\S]*font-size:13px/);
-  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-action-link,\s*\.study-pending\{[\s\S]*flex:1 1 100%;min-width:0;min-height:44px/);
+  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-action-group\{[\s\S]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-action-link,\s*\.study-pending\{[\s\S]*width:100%;[\s\S]*min-height:44px/);
+  assert.match(active, /@media\s*\(max-height:720px\)\{[\s\S]*\.study-next-plan\{display:none\}/);
   assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-plan-grid\{grid-template-columns:1fr\}/);
   assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-plan-field input,\s*\.study-plan-field select\{[\s\S]*min-height:44px/);
   assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-plan-row\{align-items:stretch\}/);

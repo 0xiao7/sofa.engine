@@ -116,6 +116,14 @@ test('mobile native dashboard owns the iOS safe area', () => {
   assert.match(html, /#mobile-daily-bar\{[\s\S]*height:calc\(64px \+ env\(safe-area-inset-bottom, 0px\)\)/);
 });
 
+test('mobile dashboard first actions stay compact above the fixed quick bar', () => {
+  assert.match(html, /@media \(max-width:760px\)\{[\s\S]*\.study-action-group\{[\s\S]*display:grid/);
+  assert.match(html, /@media \(max-width:760px\)\{[\s\S]*\.study-action-group\{[\s\S]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(html, /@media \(max-width:760px\)\{[\s\S]*\.study-next-plan\{[\s\S]*grid-template-columns:minmax\(0,1fr\) auto/);
+  assert.match(html, /@media \(max-width:760px\)\{[\s\S]*\.study-next-plan > span > span:not\(\.k\)\{display:none\}/);
+  assert.match(html, /@media \(max-height:720px\)\{[\s\S]*\.study-next-plan\{display:none\}/);
+});
+
 test('mobile dashboard keeps one dark brand palette instead of competing light and dark cascades', () => {
   assert.doesNotMatch(html, /--navy-2:#FFFFFF/);
   assert.doesNotMatch(html, /background:#EEF3F2/);

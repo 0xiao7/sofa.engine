@@ -185,6 +185,41 @@ async function assertClickable(page, selector, label) {
   return box;
 }
 
+async function assertTapTarget(page, selector, label) {
+  const box = await assertClickable(page, selector, label);
+  if (box.width < 44 || box.height < 44) {
+    throw new Error(`${label}: touch target is below 44px (${JSON.stringify(box)})`);
+  }
+  return box;
+}
+
+async function assertNotCoveredBy(page, selector, coverSelector, label) {
+  const loc = page.locator(selector).first();
+  const cover = page.locator(coverSelector).first();
+  await loc.waitFor({ state: 'visible', timeout: 7000 });
+  await cover.waitFor({ state: 'visible', timeout: 7000 });
+  const result = await page.evaluate(({ selector, coverSelector }) => {
+    const el = document.querySelector(selector);
+    const cover = document.querySelector(coverSelector);
+    if (!el || !cover) return { ok: false, reason: 'missing element' };
+    const a = el.getBoundingClientRect();
+    const b = cover.getBoundingClientRect();
+    const intersects = a.right > b.left && a.left < b.right && a.bottom > b.top && a.top < b.bottom;
+    const centerX = a.left + a.width / 2;
+    const centerY = a.top + a.height / 2;
+    const centerCovered = centerX >= b.left && centerX <= b.right && centerY >= b.top && centerY <= b.bottom;
+    return {
+      ok: !intersects && !centerCovered,
+      intersects,
+      centerCovered,
+      element: { top: a.top, bottom: a.bottom, left: a.left, right: a.right, width: a.width, height: a.height },
+      cover: { top: b.top, bottom: b.bottom, left: b.left, right: b.right, width: b.width, height: b.height }
+    };
+  }, { selector, coverSelector });
+  if (!result.ok) throw new Error(`${label}: covered by ${coverSelector} (${JSON.stringify(result)})`);
+  return result;
+}
+
 async function dashboardCase(browser, baseUrl, name, viewport) {
   const page = await browser.newPage({ viewport, deviceScaleFactor: viewport.width <= 480 ? 2 : 1, isMobile: viewport.width <= 480 });
   await installApiMocks(page);
@@ -201,7 +236,12 @@ async function dashboardCase(browser, baseUrl, name, viewport) {
     checks.push(['aside.side a[href="quiz.html?open=weakness"]', 'desktop sidebar weakness entry']);
   }
   const boxes = {};
+  boxes.brand = await assertTapTarget(page, '.topbar .brand', `${name} brand`);
   for (const [selector, label] of checks) boxes[label] = await assertClickable(page, selector, label);
+  if (viewport.width <= 768) {
+    await assertNotCoveredBy(page, '#study-next-plan', '#mobile-daily-bar', `${name} next study card`);
+    await assertNotCoveredBy(page, '#study-cockpit-recap a[href="quiz.html?open=weakness"]', '#mobile-daily-bar', `${name} weakness CTA`);
+  }
   const weakState = await page.locator('#study-cockpit-weak-state').innerText();
   if (!/弱點已接入/.test(weakState)) {
     throw new Error(`${name}: weak state did not reflect mocked weak-laws data: ${weakState}`);

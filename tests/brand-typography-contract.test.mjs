@@ -14,6 +14,8 @@ test('shared controls keep Chinese-facing UI on the Songti-first stack', () => {
   assert.match(sharedCss, /:where\(a,button,select,input,textarea,\[role="button"\][\s\S]*font-family:var\(--sans\)!important/);
   assert.match(sharedCss, /:where\(a,button,select,input,textarea,\[role="button"\][\s\S]*letter-spacing:0!important/);
   assert.match(sharedCss, /\.brand\{[\s\S]*letter-spacing:\.04em!important/);
+  assert.match(sharedCss, /\.brand\{[\s\S]*min-height:44px/);
+  assert.match(sharedCss, /\.brand\{[\s\S]*min-width:44px/);
 });
 
 test('shared mono usage is reserved for keyboard and machine-like labels', () => {
@@ -30,12 +32,18 @@ test('login has the same Chinese-control typography guard as shared pages', () =
   assert.match(loginHtml, /:where\(a,button,select,textarea\)\{[\s\S]*font-family:var\(--sans\)!important/);
   assert.match(loginHtml, /:where\(\.auth-brand,\.mobile-brand \.b\)\{[\s\S]*font-family:var\(--sans\)!important/);
   assert.match(loginHtml, /:where\(kbd,code,pre,\.mono,\.auth-hero \.eb[\s\S]*\.serial-wrap input[\s\S]*font-family:var\(--mono\)!important/);
+  assert.match(loginHtml, /\.auth-brand \{[\s\S]*min-height:44px/);
+  assert.match(loginHtml, /\.auth-brand \{[\s\S]*min-width:44px/);
+  assert.match(loginHtml, /\.mobile-brand \.b \{[\s\S]*min-height:44px/);
+  assert.match(loginHtml, /\.mobile-brand \.b \{[\s\S]*min-width:44px/);
 });
 
 test('standalone dashboard keeps Chinese navigation and actions off mono', () => {
   assert.match(dashboardHtml, /Chinese-facing controls stay on the Songti-first brand stack/);
   assert.match(dashboardHtml, /:where\(a,button,select,input,textarea,\[role="button"\][\s\S]*font-family:var\(--sans\)!important/);
   assert.match(dashboardHtml, /:where\(kbd,code,pre,\.mono,\.num,\.idx,\.ct[\s\S]*font-family:var\(--mono\)!important/);
+  assert.match(dashboardHtml, /\.brand\{[\s\S]*min-height:44px/);
+  assert.match(dashboardHtml, /\.brand\{[\s\S]*min-width:44px/);
 });
 
 test('quiz question text is forced back to the Songti article-reading stack', () => {
