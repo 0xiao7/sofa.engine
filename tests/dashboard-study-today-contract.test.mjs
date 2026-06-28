@@ -498,6 +498,15 @@ test('manual study records are enabled without changing answer accuracy', () => 
   assert.doesNotMatch(active, /disabled>儲存準備中/);
 });
 
+test('mobile study plan and record forms do not squeeze native inputs', () => {
+  assert.match(active, /\.study-plan-field\{[\s\S]*min-width:0/);
+  assert.match(active, /\.study-action-link,\s*\.study-pending\{[\s\S]*font-size:13px/);
+  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-plan-grid\{grid-template-columns:1fr\}/);
+  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-plan-field input,\s*\.study-plan-field select\{[\s\S]*min-height:44px/);
+  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-plan-row\{align-items:stretch\}/);
+  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-plan-save\{[\s\S]*width:100%/);
+});
+
 test('series planning can generate local weekly items before API sync', () => {
   assert.match(active, /function _studySeriesItems/);
   assert.match(active, /_nextWeekdayOnOrAfter/);
