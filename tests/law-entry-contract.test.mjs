@@ -42,6 +42,21 @@ test('law preview article list exposes click state to keyboard and screen reader
   assert.match(preview, /el\.setAttribute\('aria-current', active \? 'true' : 'false'\)/);
 });
 
+test('law preview keeps the active article visible in the side list', () => {
+  assert.match(preview, /function scrollActiveListItem\(id, block='nearest'\)/);
+  assert.match(preview, /listBody\.querySelector\(`\.list-item\[data-id="\$\{CSS\.escape\(id\)\}"\]`\)/);
+  assert.match(preview, /active\.scrollIntoView\(\{block, inline:'nearest'\}\)/);
+  assert.match(preview, /renderList[\s\S]*scrollActiveListItem\(activeId, 'center'\)/);
+  assert.match(preview, /loadArticle[\s\S]*scrollActiveListItem\(id, 'nearest'\)/);
+});
+
+test('law preview opens the reading area instead of returning to the page header', () => {
+  assert.match(preview, /function scrollReaderIntoView/);
+  assert.match(preview, /main\.scrollIntoView\(\{block:'start', inline:'nearest', behavior:'smooth'\}\)/);
+  assert.match(preview, /renderDetail[\s\S]*scrollReaderIntoView\(\)/);
+  assert.doesNotMatch(preview, /window\.scrollTo\(\{top: 0, behavior: 'smooth'\}\)/);
+});
+
 test('law preview CTA keeps readers in the web practice funnel', () => {
   assert.match(preview, /讀完這部，就做 5 題看弱點/);
   assert.match(preview, /href="quiz\.html\?free=1"/);

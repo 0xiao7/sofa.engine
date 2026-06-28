@@ -464,6 +464,13 @@ function renderList(articles, activeId){
       }
     });
   });
+  scrollActiveListItem(activeId, 'center');
+}
+
+function scrollActiveListItem(id, block='nearest'){
+  if(!id) return;
+  const active = listBody.querySelector(`.list-item[data-id="${CSS.escape(id)}"]`);
+  if(active) active.scrollIntoView({block, inline:'nearest'});
 }
 
 function renderDetail(d){
@@ -487,7 +494,12 @@ function renderDetail(d){
     ${sectionHtml}
   `;
   detail.scrollTo?.(0, 0);
-  window.scrollTo({top: 0, behavior: 'smooth'});
+  scrollReaderIntoView();
+}
+
+function scrollReaderIntoView(){
+  const main = document.querySelector('.main');
+  if(main) main.scrollIntoView({block:'start', inline:'nearest', behavior:'smooth'});
 }
 
 function escapeHtml(s){
@@ -519,6 +531,7 @@ async function loadArticle(id, pushUrl){
       el.classList.toggle('active', active);
       el.setAttribute('aria-current', active ? 'true' : 'false');
     });
+    scrollActiveListItem(id, 'nearest');
     if(pushUrl){
       const u = new URL(location.href);
       u.searchParams.set('id', id);
