@@ -10,8 +10,18 @@ test('weakness entry opens a clearly titled weakness analysis panel', () => {
   assert.match(active, /弱點分析/);
   assert.match(active, /function _statsPanelTitle/);
   assert.match(active, /弱點分析/);
-  assert.match(active, /_openParam === 'wrong'[\s\S]*_openWeakness\(\)/);
+  assert.match(active, /_openParam === 'weakness'[\s\S]*_openWeakness\('weakness'\)/);
+  assert.match(active, /_openParam === 'wrong'[\s\S]*_openWeakness\('wrong'\)/);
   assert.doesNotMatch(active, /_openParam === 'wrong'[\s\S]*btnWrong[\s\S]*click\(\)/);
+});
+
+test('wrong-book entry labels the shared panel as a wrong-question list', () => {
+  assert.match(active, /let _statsPanelMode = 'weakness'/);
+  assert.match(active, /function _setStatsPanelMode/);
+  assert.match(active, /_statsPanelMode === 'wrong'/);
+  assert.match(active, /錯題清單/);
+  assert.match(active, /看錯題/);
+  assert.match(active, /目前沒有錯題可重練/);
 });
 
 test('weakness list uses harmonized card classes and explicit next actions', () => {

@@ -2796,8 +2796,8 @@ async function loadWrongQuiz() {
 document.addEventListener('DOMContentLoaded', () => {
   try { localStorage.setItem('sofa_last_tool', 'quiz'); } catch(e) {}
   const _openParam = new URLSearchParams(location.search).get('open');
-  if(_openParam === 'weakness') { setTimeout(()=>{ _openWeakness(); }, 400); }
-  if(_openParam === 'wrong') { setTimeout(()=>{ _openWeakness(); }, 450); }
+  if(_openParam === 'weakness') { setTimeout(()=>{ _openWeakness('weakness'); }, 400); }
+  if(_openParam === 'wrong') { setTimeout(()=>{ _openWeakness('wrong'); }, 450); }
   refreshWrongCount();
   _updateDailyBtn();
   _renderQuizStreak(); // Wave 124: 每日連刷天數
@@ -3042,7 +3042,23 @@ function closeStats() {
   if(panel) panel.style.display = 'none';
 }
 
-function _openWeakness() {
+let _statsPanelMode = 'weakness';
+
+function _setStatsPanelMode(mode) {
+  _statsPanelMode = mode === 'wrong' ? 'wrong' : 'weakness';
+  const btnWrong = document.getElementById('tab-btn-wrong');
+  if (btnWrong) btnWrong.textContent = _statsPanelMode === 'wrong' ? '錯題清單' : '弱點分析';
+}
+
+function _wrongPanelGuide() {
+  if (_statsPanelMode === 'wrong') {
+    return '<div class="weak-panel-guide"><b>看錯題</b>：這裡列出曾答錯的法規與條文。<br><b>開始重練</b>：按「重練全部」或每列「練這部」，就會回到出題頁。</div>';
+  }
+  return '<div class="weak-panel-guide"><b>看結果</b>：這裡先看最常錯的法規。<br><b>開始重練</b>：按「練這部」，就會回到出題頁。</div>';
+}
+
+function _openWeakness(mode) {
+  _setStatsPanelMode(mode || 'weakness');
   openStats();
   _switchStatsTab('wrong');
 }
@@ -3060,6 +3076,13 @@ let _remoteWeakLawsLoaded = false;
 let _remoteWeakLawsInFlight = false;
 
 function _weakEmptyText() {
+  if (_statsPanelMode === 'wrong') {
+    return '<div class="weak-empty" style="text-align:center;padding:26px 0">'
+      + '<b style="display:block;color:var(--peach);font-family:var(--sans);font-size:14px;margin-bottom:8px">目前沒有錯題可重練</b>'
+      + '<span style="display:block;color:rgba(245,240,234,.55);font-size:13px;line-height:1.7;margin:0 auto 14px;max-width:280px">先做幾題，答錯的題目會自動進來，不用自己整理。</span>'
+      + '<button class="weak-action-primary" onclick="startSession(5)">先做 5 題</button>'
+      + '</div>';
+  }
   return '<div class="weak-empty" style="text-align:center;padding:26px 0">'
     + '<b style="display:block;color:var(--peach);font-family:var(--sans);font-size:14px;margin-bottom:8px">不用自己判斷哪裡弱</b>'
     + '<span style="display:block;color:rgba(245,240,234,.55);font-size:13px;line-height:1.7;margin:0 auto 14px;max-width:280px">先答幾題，系統會用你的答題紀錄整理最常錯的法規。</span>'
@@ -3082,14 +3105,16 @@ function _signedInWeaknessUsesRemoteTruth() {
 function _renderSignedInWeaknessLoading() {
   const panel = document.getElementById('quiz-wrong-panel');
   if (!panel) return;
-  panel.innerHTML = '<div class="weak-panel-guide"><b>看結果</b>：正在讀取帳號答題紀錄。<br><b>資料來源</b>：暫不使用本機暫存判斷，避免把舊裝置紀錄誤當成正式弱點。</div>'
+  const lead = _statsPanelMode === 'wrong' ? '看錯題' : '看結果';
+  panel.innerHTML = `<div class="weak-panel-guide"><b>${lead}</b>：正在讀取帳號答題紀錄。<br><b>資料來源</b>：暫不使用本機暫存判斷，避免把舊裝置紀錄誤當成正式弱點。</div>`
     + '<div class="weak-empty" style="text-align:center;padding:26px 0">弱點資料載入中...</div>';
 }
 
 function _renderSignedInWeaknessLoadIssue() {
   const panel = document.getElementById('quiz-wrong-panel');
   if (!panel) return;
-  panel.innerHTML = '<div class="weak-panel-guide"><b>暫時讀不到帳號弱點</b>：這不是代表你沒有答題紀錄。<br><b>下一步</b>：稍後再開一次，或先回到選擇題繼續作答。</div>'
+  const noun = _statsPanelMode === 'wrong' ? '錯題清單' : '帳號弱點';
+  panel.innerHTML = `<div class="weak-panel-guide"><b>暫時讀不到${noun}</b>：這不是代表你沒有答題紀錄。<br><b>下一步</b>：稍後再開一次，或先回到選擇題繼續作答。</div>`
     + '<div class="weak-empty" style="text-align:center;padding:26px 0"><button class="weak-action-primary" onclick="loadQuiz()">先做下一題</button></div>';
 }
 
@@ -3153,7 +3178,9 @@ function _renderWrongListFromRemote(items) {
     ? items.filter(x => (x.wrong_count || 0) > 0).sort((a,b)=>(b.wrong_count||0)-(a.wrong_count||0))
     : [];
   if (!list.length) {
-    panel.innerHTML = '<div class="weak-panel-guide"><b>看結果</b>：目前沒有足夠的帳號答題紀錄可以判斷弱點。<br><b>開始重練</b>：先做幾題，系統才會把錯題和法規整理進來。</div>'
+    panel.innerHTML = (_statsPanelMode === 'wrong'
+      ? '<div class="weak-panel-guide"><b>看錯題</b>：目前沒有可重練的帳號錯題。<br><b>開始累積</b>：先做幾題，答錯的題目會自動整理進來。</div>'
+      : '<div class="weak-panel-guide"><b>看結果</b>：目前沒有足夠的帳號答題紀錄可以判斷弱點。<br><b>開始重練</b>：先做幾題，系統才會把錯題和法規整理進來。</div>')
       + _weakSourceNote()
       + _weakEmptyText();
     return;
@@ -3162,7 +3189,7 @@ function _renderWrongListFromRemote(items) {
   const firstLaw = first.law_name || '未分類法規';
   const firstAttempts = first.attempt_count || 0;
   const firstPct = firstAttempts ? Math.round((first.correct_count || 0) / firstAttempts * 100) : 0;
-  let html = '<div class="weak-panel-guide"><b>看結果</b>：這裡先看最常錯的法規。<br><b>開始重練</b>：按「練這部」，就會回到出題頁。</div>';
+  let html = _wrongPanelGuide();
   html += _weakSummaryCard(firstLaw, first.wrong_count || 0, firstPct, `<button class="weak-action-primary" onclick="_drillLawAuto(${JSON.stringify(firstLaw)})">練這部</button>`);
   html += _weakSourceNote();
   html += `<div class="weak-section-title">所有弱點法規</div>`;
@@ -3264,7 +3291,11 @@ function _switchStatsTab(tab) {
   const subEl = document.getElementById('stats-panel-sub');
 
   function _statsPanelTitle(nextTab) {
-    if(nextTab === 'wrong') return ['弱點分析', '不用自己判斷哪裡弱；系統會用答題紀錄整理最常錯的法規。'];
+    if(nextTab === 'wrong') {
+      return _statsPanelMode === 'wrong'
+        ? ['錯題清單', '先看你錯過哪些法規；需要時再回原文或重練。']
+        : ['弱點分析', '不用自己判斷哪裡弱；系統會用答題紀錄整理最常錯的法規。'];
+    }
     if(nextTab === 'exam') return ['考試紀錄', '回看整套練習與模擬考結果。'];
     return ['我的答題統計', '看結果、找弱點，再決定下一輪要練哪裡。'];
   }
@@ -3317,7 +3348,9 @@ function _renderWrongList() {
     .sort((a, b) => b.wrong - a.wrong);
 
   if (lawWrongs.length === 0 && bank.length === 0) {
-    panel.innerHTML = '<div class="weak-panel-guide"><b>看結果</b>：這裡會自動整理最常錯的法規和錯題。<br><b>開始重練</b>：做幾題後，就會出現重練入口。</div>'
+    panel.innerHTML = (_statsPanelMode === 'wrong'
+      ? '<div class="weak-panel-guide"><b>看錯題</b>：目前沒有錯題可重練。<br><b>開始累積</b>：做幾題後，答錯的題目會出現在這裡。</div>'
+      : '<div class="weak-panel-guide"><b>看結果</b>：這裡會自動整理最常錯的法規和錯題。<br><b>開始重練</b>：做幾題後，就會出現重練入口。</div>')
       + _weakSourceNote()
       + _weakEmptyText();
     _loadRemoteWeakLaws({force:true, target:'panel'});
@@ -3325,7 +3358,7 @@ function _renderWrongList() {
   }
 
   // ── Section 1: 本機錯題清單 ──
-  let html = '<div class="weak-panel-guide"><b>看結果</b>：這裡先看最常錯的法規。<br><b>開始重練</b>：按「重練全部」或每列「練這部」，就會回到出題頁。</div>';
+  let html = _wrongPanelGuide();
   const firstWeak = lawWrongs.length ? lawWrongs[0] : null;
   if(firstWeak) {
     const pct = Math.round((firstWeak.total - firstWeak.wrong) / firstWeak.total * 100);
