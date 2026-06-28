@@ -96,6 +96,10 @@ test('airy room uses lightweight Three.js first with painterly canvas as fallbac
   assert.match(html, /function\s+_rebuildAiryThreeScene/);
   assert.match(html, /function\s+_buildAiryLibraryCorridor/);
   assert.match(html, /function\s+_buildAiryIslandScene/);
+  assert.match(html, /_airyThreePainterlyLibraryTexture/);
+  assert.match(html, /_airyThreePainterlyIslandTexture/);
+  assert.match(html, /painterly minimal library walk stage/);
+  assert.match(html, /painterly quiet study island stage/);
   assert.match(html, /SOFA_AIRY_THREE_ROOM\s*&&\s*!SOFA_AIRY_PAINTERLY_PRIMARY\s*&&\s*_canStartAiryThree\(canvas\)/);
   assert.match(html, /else\s*\{\s*_startAiryRoom\(canvas\)/);
   assert.match(html, /typeof\s+THREE\s*===\s*['"]undefined['"]/);
