@@ -187,6 +187,16 @@ test('recent answer recap rows can reopen the answered article when metadata exi
   assert.match(html, /onkeydown="recapArticleKeyOpen\(event, this\)"/);
 });
 
+test('saved and recent law rows are semantic keyboard-operable controls', () => {
+  assert.match(html, /function drawerOpenAttrs\(pid, lawName, artNo, label\)/);
+  assert.match(html, /role="button" tabindex="0" aria-label="/);
+  assert.match(html, /event\.key==='Enter'\|\|event\.key===' '/);
+  assert.match(html, /class="li-card"'\s*\+ drawerOpenAttrs\(pid, ln, artSafe, '開啟收藏條文/);
+  assert.match(html, /class="li-card"'\s*\+ drawerOpenAttrs\(pid, ln, artSafe, '開啟已熟記條文/);
+  assert.match(html, /class="li-card warn full"'\s*\+ drawerOpenAttrs\(pid, ln, artSafe, '開啟待複習條文/);
+  assert.match(html, /class="rec-row"'\s*\+ drawerOpenAttrs\(pid, ln, artSafe, '開啟最近查詢/);
+});
+
 test('recent answer recap has an empty state so sidebar T6 has a real target', () => {
   assert.match(html, /function showRecap\(html\)/);
   assert.match(html, /目前還沒有正式答題紀錄/);

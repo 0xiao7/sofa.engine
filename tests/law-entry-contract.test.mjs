@@ -3,11 +3,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 const practice = readFileSync(new URL('../practice.html', import.meta.url), 'utf8');
+const quiz = readFileSync(new URL('../quiz.html', import.meta.url), 'utf8');
+const fill = readFileSync(new URL('../fill.html', import.meta.url), 'utf8');
 const preview = readFileSync(new URL('../law-preview.html', import.meta.url), 'utf8');
 const tree = readFileSync(new URL('../tree.html', import.meta.url), 'utf8');
 
 test('practice full article action deep-links to the dashboard article drawer', () => {
   assert.match(practice, /id="prSourceLink"[\s\S]*href="dashboard\.html#search"/);
+  assert.match(practice, /id="prSourceLink"[\s\S]*開完整法條 →/);
   assert.match(practice, /function _practiceArticleHref/);
   assert.match(practice, /u\.searchParams\.set\('open', _prArtId\)/);
   assert.match(practice, /searchParams\.set\('law', law\)/);
@@ -15,6 +18,16 @@ test('practice full article action deep-links to the dashboard article drawer', 
   assert.match(practice, /searchParams\.set\('q', law\)/);
   assert.match(practice, /btn\.href = _practiceArticleHref\(\)/);
   assert.doesNotMatch(practice, /btn\.addEventListener\('click',\(\)=>\{[\s\S]*prArtInline/);
+});
+
+test('inline original text toggles are named differently from full article links', () => {
+  assert.match(quiz, /id="sourceLink">展開原文 ↓<\/button>/);
+  assert.match(quiz, /btn\.textContent=open\?'收起原文 ↑':'展開原文 ↓'/);
+  assert.doesNotMatch(quiz, /sourceLink[\s\S]{0,80}查看完整條文/);
+  assert.match(fill, /id="fillSourceLink"[\s\S]*>展開原文 ↓<\/button>/);
+  assert.match(fill, /btn\.textContent=open\?'收起原文 ↑':'展開原文 ↓'/);
+  assert.doesNotMatch(fill, /fillSourceLink[\s\S]{0,120}查看完整條文/);
+  assert.match(practice, /btn\.textContent='開完整法條 →'/);
 });
 
 test('law preview accepts common article deep-link aliases', () => {

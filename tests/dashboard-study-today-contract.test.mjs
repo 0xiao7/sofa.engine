@@ -146,6 +146,18 @@ test('study plan and record panels have deep links for native app entry', () => 
   assert.match(active, /getComputedStyle\(el\)\.display === 'none'/);
 });
 
+test('expanded study tools update the left guide instead of leaving it on the previous section', () => {
+  const focus = extractFunction(active, 'focusStudyGuideTarget');
+  assert.match(focus, /window\.__activeNavPinnedUntil = Date\.now\(\) \+ 900/);
+  assert.match(focus, /setActive\(id\)/);
+  assert.match(focus, /scrollIntoView\(\{ block:'start', behavior:'smooth' \}\)/);
+  assert.match(extractFunction(active, 'updateActiveNavFromScroll'), /Date\.now\(\) < window\.__activeNavPinnedUntil/);
+  assert.match(extractFunction(active, 'toggleStudyTimeEditor'), /focusStudyGuideTarget\('study-time-box'\)/);
+  assert.match(extractFunction(active, 'openStudyPlanPanel'), /focusStudyGuideTarget\('study-plan-items'\)/);
+  assert.match(extractFunction(active, 'openStudyRecordPanel'), /focusStudyGuideTarget\('study-plan-items'\)/);
+  assert.match(extractFunction(active, 'openStudyPlaylistPanel'), /focusStudyGuideTarget\('study-plan-items'\)/);
+});
+
 test('study playlist is a generic text fallback and does not ship private schedules', () => {
   assert.match(active, /function openStudyPlaylistPanel/);
   assert.match(active, /function loadStudyPlaylist/);

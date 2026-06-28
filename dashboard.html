@@ -3780,6 +3780,14 @@ function fallbackArticleTitle(raw, title){
   var clean = String(raw || '').replace(/^§+/, '').trim();
   return clean ? ('第 ' + clean + ' 條') : '條文';
 }
+function drawerOpenAttrs(pid, lawName, artNo, label){
+  var safePid = String(pid || '').replace(/'/g, '');
+  var safeLaw = String(lawName || '').replace(/'/g, '');
+  var safeArt = String(artNo || '').replace(/'/g, '');
+  var action = "openDrawer('" + safePid + "','" + safeLaw + "','" + safeArt + "')";
+  var keyAction = "if(event.key==='Enter'||event.key===' '){event.preventDefault();" + action + ";}";
+  return ' role="button" tabindex="0" aria-label="' + esc(label || '開啟條文') + '" onclick="' + action + '" onkeydown="' + keyAction + '"';
+}
 function _normalizeArticleNo(raw){
   function partToArabic(part){
     var s = String(part || '').replace(/[０-９]/g, function(ch){ return String(ch.charCodeAt(0) - 0xFF10); });
@@ -4243,6 +4251,7 @@ function toggleStudyTimeEditor(){
     button.textContent = panel.hidden ? '修改時間' : '收起';
     button.setAttribute('aria-expanded', panel.hidden ? 'false' : 'true');
   }
+  if(!panel.hidden && typeof focusStudyGuideTarget === 'function') focusStudyGuideTarget('study-time-box');
 }
 
 function saveStudyTimeSettings(){
@@ -5884,7 +5893,7 @@ function _readArticle(btn, text) {
         var ln       = (b.law_name||'').replace(/'/g,'');
         var artRaw   = (b.article||'').replace(/^§+/,'');  // 去除重複 §
         var artSafe  = artRaw.replace(/'/g,'');
-        return '<div class="li-card" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artSafe+'\')">'+
+        return '<div class="li-card"' + drawerOpenAttrs(pid, ln, artSafe, '開啟收藏條文 ' + (b.law_name || '') + ' ' + displayArticleNo(artRaw)) + '>'+
           '<span class="star">★</span>'+
           '<div class="law">'+esc(b.law_name||'——')+'</div>'+
           '<div class="art">'+esc(displayArticleNo(artRaw))+'</div>'+
@@ -5917,7 +5926,7 @@ function _readArticle(btn, text) {
             var ln      = (m.law_name||'').replace(/'/g,'');
             var artRaw  = (m.article||'').replace(/^§+/,'');
             var artSafe = artRaw.replace(/'/g,'');
-            return '<div class="li-card" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artSafe+'\')">'+
+            return '<div class="li-card"' + drawerOpenAttrs(pid, ln, artSafe, '開啟已熟記條文 ' + (m.law_name || '') + ' ' + displayArticleNo(artRaw)) + '>'+
               '<div class="law">'+esc(m.law_name||'——')+'</div>'+
               '<div class="art">'+esc(displayArticleNo(artRaw))+'</div>'+
               '<div class="sub">'+esc(fallbackArticleTitle(artRaw, m.title))+'</div>'+
@@ -5940,7 +5949,7 @@ function _readArticle(btn, text) {
             var artRaw  = (m.article||'').replace(/^§+/,'');
             var artSafe = artRaw.replace(/'/g,'');
             var days    = m.review_days || 7;
-            return '<div class="li-card warn full" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artSafe+'\')">'+
+            return '<div class="li-card warn full"' + drawerOpenAttrs(pid, ln, artSafe, '開啟待複習條文 ' + (m.law_name || '') + ' ' + displayArticleNo(artRaw)) + '>'+
               '<div class="law">'+esc(m.law_name||'——')+'</div>'+
               '<div class="art">'+esc(displayArticleNo(artRaw))+'</div>'+
               '<div class="sub">'+esc(fallbackArticleTitle(artRaw, m.title))+'</div>'+
@@ -5989,7 +5998,7 @@ function _readArticle(btn, text) {
           var artRaw   = (h.article||'').replace(/^§+/,'');
           var artSafe  = artRaw.replace(/'/g,'');
           var title    = fallbackArticleTitle(artRaw, h.title);
-          html += '<div class="rec-row" onclick="openDrawer(\''+pid+'\',\''+ln+'\',\''+artSafe+'\')">'+
+          html += '<div class="rec-row"' + drawerOpenAttrs(pid, ln, artSafe, '開啟最近查詢 ' + (h.law_name || '') + ' ' + displayArticleNo(artRaw)) + '>'+
             '<span class="law">'+esc(h.law_name||'——')+'</span>'+
             '<span class="art">'+esc(displayArticleNo(artRaw))+'</span>'+
             '<span class="ttl">'+esc(title)+'</span>'+
@@ -6325,6 +6334,7 @@ function openStudyPlanPanel(forceOpen){
   if(state && panel.classList.contains('on')){
     state.textContent = '填課名、堂數和固定日；排入後每堂仍可單獨調整。';
   }
+  if(panel.classList.contains('on') && typeof focusStudyGuideTarget === 'function') focusStudyGuideTarget('study-plan-items');
 }
 
 function openStudyRecordPanel(forceOpen){
@@ -6339,6 +6349,7 @@ function openStudyRecordPanel(forceOpen){
   if(playlist) playlist.classList.remove('on');
   if(date && !date.value) date.value = _todayInputValue();
   setStudyPanelMode(panel.classList.contains('on') ? 'record' : 'closed');
+  if(panel.classList.contains('on') && typeof focusStudyGuideTarget === 'function') focusStudyGuideTarget('study-plan-items');
 }
 
 function openStudyPlaylistPanel(forceOpen){
@@ -6352,6 +6363,7 @@ function openStudyPlaylistPanel(forceOpen){
   if(record) record.classList.remove('on');
   setStudyPanelMode(panel.classList.contains('on') ? 'playlist' : 'closed');
   if(panel.classList.contains('on')) loadStudyPlaylist();
+  if(panel.classList.contains('on') && typeof focusStudyGuideTarget === 'function') focusStudyGuideTarget('study-plan-items');
 }
 
 function retryStudyHashScroll(targetId, attemptsLeft, keepTrying){
@@ -7888,6 +7900,17 @@ function setActive(id){
     else link.removeAttribute('aria-current');
   });
 }
+function focusStudyGuideTarget(id){
+  window.__activeNavPinnedUntil = Date.now() + 900;
+  setActive(id);
+  var el = document.getElementById(id);
+  if(el && typeof el.scrollIntoView === 'function'){
+    setTimeout(function(){
+      el.scrollIntoView({ block:'start', behavior:'smooth' });
+      setTimeout(function(){ setActive(id); }, 120);
+    }, 30);
+  }
+}
 function scheduleActiveNavRefresh(){
   if(!window.__activeNavCanRefresh) return;
   if(!navLinks || !navLinks.length) return;
@@ -7896,6 +7919,7 @@ function scheduleActiveNavRefresh(){
 }
 function updateActiveNavFromScroll(){
   if(!navLinks || !navLinks.length) return;
+  if(window.__activeNavPinnedUntil && Date.now() < window.__activeNavPinnedUntil) return;
   var headerOffset = window.matchMedia('(max-width: 980px)').matches ? 112 : 104;
   var candidates = navLinks.map(function(link){
     var id = link.dataset.spyTarget;
