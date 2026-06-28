@@ -291,15 +291,20 @@ test('CPI-adjusted article answers always show a visible adjustment warning', ()
   assert.match(active, /\(13\|17\|18\|19\|20\|22\)/);
   assert.match(active, /estateGiftAmountText/);
   assert.match(active, /條文原文、舊題數字和當年度公告額要分開看/);
-  assert.match(active, /115 \/ 114：遺產稅免稅額 1,333 萬/);
+  assert.match(active, /115 \/ 114 現行：遺產稅免稅額 1,333 萬/);
+  assert.match(active, /日常器具 100 萬、職業工具 56 萬/);
   assert.match(active, /贈與稅免稅額 244 萬 \/ 年/);
-  assert.match(active, /115 \/ 114 級距：遺產稅 5,621 萬 \/ 1 億 1,242 萬/);
+  assert.match(active, /職業工具條文舊基準 40 萬/);
+  assert.match(active, /113 年度起已公告為 56 萬/);
+  assert.match(active, /重度以上身心障礙 693 萬/);
+  assert.match(active, /扶養兄弟姊妹、祖父母每人 56 萬/);
+  assert.match(active, /114 \/ 115 已為遺產 5,621 萬 \/ 1 億 1,242 萬/);
   assert.match(active, /贈與稅 2,811 萬 \/ 5,621 萬/);
   assert.match(active, /配偶扣除 553 萬/);
   assert.match(active, /直系血親卑親屬每人 56 萬/);
   assert.match(active, /父母、喪葬費各 138 萬/);
-  assert.match(active, /113 對照：級距仍為遺產 5,000 萬 \/ 1 億、贈與 2,500 萬 \/ 5,000 萬/);
-  assert.match(active, /考前以財政部公告額為準/);
+  assert.match(active, /級距 113 年仍為遺產 5,000 萬 \/ 1 億、贈與稅 2,500 萬 \/ 5,000 萬/);
+  assert.match(active, /作答時以考試年度與財政部公告額為準/);
   assert.match(active, /題目仍可考條文基準或比例/);
 
   const callCount = (active.match(/buildSections\(art\.sections\|\|\{\},art\._plan!=='free',\s*document\.getElementById\('explainBox'\),document\.getElementById\('sourceBox'\),\s*art\)/g) || []).length;
