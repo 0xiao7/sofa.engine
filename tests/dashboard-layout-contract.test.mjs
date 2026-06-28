@@ -185,6 +185,14 @@ test('recent answer recap rows can reopen the answered article when metadata exi
   assert.match(html, /onkeydown="recapArticleKeyOpen\(event, this\)"/);
 });
 
+test('recent answer recap has an empty state so sidebar T6 has a real target', () => {
+  assert.match(html, /function showRecap\(html\)/);
+  assert.match(html, /目前還沒有正式答題紀錄/);
+  assert.match(html, /先做一題選擇題/);
+  assert.match(html, /showRecap\(''\)/);
+  assert.match(html, /recap\.style\.display='block'/);
+});
+
 test('dashboard article open URLs land in the law search section, not a hidden drawer', () => {
   const start = html.indexOf('function _handleUrlOpen');
   assert.ok(start >= 0, '_handleUrlOpen must exist');

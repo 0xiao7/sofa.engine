@@ -8158,7 +8158,9 @@ ch.on('presence', { event: 'sync' }, () => {
   function showRecap(html){
     var recap=document.getElementById('quiz-recap');
     var list=document.getElementById('recap-list');
-    if(recap && list && html){ list.innerHTML=html; recap.style.display='block'; }
+    if(!recap || !list) return;
+    list.innerHTML = html || '<div class="recap-empty">目前還沒有正式答題紀錄。先做一題選擇題，這裡會列出你最近答過的題目。</div>';
+    recap.style.display='block';
   }
   function recapArticleClickAttrs(entry){
     entry = entry || {};
@@ -8246,6 +8248,8 @@ ch.on('presence', { event: 'sync' }, () => {
         + '<span class="rc-pct '+cls+'">'+pct+'%</span>'
         + '</div>';
     }).join(''));
+  } else {
+    showRecap('');
   }
 
   // ② 已登入 → 用後端 quiz_sessions（每日一題＋考古題答題）跨裝置真相覆寫。
