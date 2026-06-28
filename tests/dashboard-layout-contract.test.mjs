@@ -146,6 +146,29 @@ test('mobile bookmark toggle is hidden so it cannot cover the study flow', () =>
   assert.doesNotMatch(html, /@media \(max-width: 760px\)\{[\s\S]*#bk-toggle\{[\s\S]*bottom:calc\(78px \+ env\(safe-area-inset-bottom, 0px\)\)/);
 });
 
+test('local bookmark panel can reopen saved articles even when the row is not rendered', () => {
+  assert.match(html, /function jumpToBookmark\(id\)/);
+  assert.match(html, /var bk = _bookmarks\[id\]/);
+  assert.match(html, /openDrawer\(id, bk\.lawName \|\| '', bk\.articleNo \|\| ''\)/);
+  assert.match(html, /searchAndOpen\(bk\.lawName, bk\.articleNo\)/);
+  assert.doesNotMatch(html, /加入待復習/);
+  assert.doesNotMatch(html, /點 ★ 加入待復習/);
+});
+
+test('recent answer recap rows can reopen the answered article when metadata exists', () => {
+  assert.match(html, /function recapArticleClickAttrs\(entry\)/);
+  assert.match(html, /entry\.page_id \|\| entry\.article_id/);
+  assert.match(html, /entry\.law \|\| entry\.law_name/);
+  assert.match(html, /entry\.article \|\| entry\.article_no \|\| entry\.title/);
+  assert.match(html, /openDrawer\(pid, law, art\)/);
+  assert.match(html, /searchAndOpen\(law, art\)/);
+  assert.match(html, /window\.recapArticleOpen = recapArticleOpen/);
+  assert.match(html, /window\.recapArticleKeyOpen = recapArticleKeyOpen/);
+  assert.match(html, /class="recap-row is-link"/);
+  assert.match(html, /role="button"/);
+  assert.match(html, /onkeydown="recapArticleKeyOpen\(event, this\)"/);
+});
+
 test('expire overlay explains feedback and sharing extension rules', () => {
   assert.match(html, /id="expire-overlay"/);
   assert.match(html, /回饋缺點 \+10 天/);

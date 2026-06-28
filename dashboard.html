@@ -474,6 +474,9 @@
     align-items:center;gap:18px;
     padding:14px 22px;border-top:1px dashed var(--line);
   }
+  .recap-row.is-link{cursor:pointer;transition:background .16s,border-color .16s}
+  .recap-row.is-link:hover{background:rgba(231,187,167,.06)}
+  .recap-row.is-link:focus-visible{outline:2px solid var(--peach);outline-offset:-2px}
   .recap-row:first-child{border-top:none}
   .recap-row .rc-date{font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.4);letter-spacing:.06em;white-space:nowrap}
   .recap-row .rc-law{font-family:var(--serif);font-weight:500;font-size:15px;color:var(--cream)}
@@ -5036,7 +5039,7 @@ function _refreshBkButtons() {
   document.querySelectorAll('.bk-btn').forEach(function(btn) {
     var id = btn.dataset.id;
     btn.classList.toggle('active', !!_bookmarks[id]);
-    btn.title = _bookmarks[id] ? '移除書籤' : '加入待復習';
+    btn.title = _bookmarks[id] ? '移除書籤' : '加入待複習';
   });
   var countEl = document.getElementById('bk-count');
   if (countEl) countEl.textContent = Object.keys(_bookmarks).length;
@@ -5049,7 +5052,7 @@ function _renderBkPanel() {
   var countEl = document.getElementById('bk-count');
   if (countEl) countEl.textContent = keys.length;
   if (keys.length === 0) {
-    list.innerHTML = '<div style="color:rgba(245,240,234,.5);text-align:center;padding:32px;font-size:13px">還沒有書籤<br>點 ★ 加入待復習</div>';
+    list.innerHTML = '<div style="color:rgba(245,240,234,.5);text-align:center;padding:32px;font-size:13px">還沒有書籤<br>點 ★ 加入待複習</div>';
     return;
   }
   list.innerHTML = keys.map(function(id) {
@@ -5072,6 +5075,14 @@ function jumpToBookmark(id) {
       var row = el.closest('.res-row');
       if (row) row.style.outline = '';
     }, 1500);
+    return;
+  }
+  var bk = _bookmarks[id];
+  if (!bk) return;
+  if (id) {
+    openDrawer(id, bk.lawName || '', bk.articleNo || '');
+  } else if (bk.lawName && bk.articleNo) {
+    searchAndOpen(bk.lawName, bk.articleNo);
   }
 }
 
@@ -7456,7 +7467,7 @@ function _renderResRows(arts, lawName){
     var snippet = (a.original_text || artTtl || '').slice(0, 60).replace(/'/g, '');
     var lnEsc   = (dispLaw||'').replace(/'/g,'');
     var isActive = _bookmarks[pid] ? ' active' : '';
-    var bkTitle = _bookmarks[pid] ? '移除書籤' : '加入待復習';
+    var bkTitle = _bookmarks[pid] ? '移除書籤' : '加入待複習';
     var fullTextEsc = (a.original_text || artTtl || '').replace(/\\/g,'\\\\').replace(/'/g,"\\'").replace(/\n/g,'\\n');
     var noteBadge = _notes[pid] ? '<span class="note-badge" style="font-size:10px;color:var(--peach);margin-left:6px;opacity:0.85" title="有筆記">📝</span>' : '';
     var ttlHtml = _rq.length >= 2 ? _highlightText(artTtl, _rq) : esc(artTtl);
@@ -7895,7 +7906,7 @@ function switchToFree(){
 <button id="bk-toggle" onclick="toggleBkPanel()">★ <span id="bk-count">0</span></button>
 <div id="bk-panel">
   <div id="bk-panel-header">
-    <span style="color:var(--cream);font-size:15px;font-weight:600">★ 待復習</span>
+    <span style="color:var(--cream);font-size:15px;font-weight:600">★ 待複習</span>
     <div style="display:flex;align-items:center;gap:8px">
       <button id="bk-export-btn" onclick="_exportBookmarks()" title="下載書籤清單">📥 匯出</button>
       <button onclick="_exportNotes()" title="匯出全部筆記"
@@ -8039,6 +8050,35 @@ ch.on('presence', { event: 'sync' }, () => {
     var list=document.getElementById('recap-list');
     if(recap && list && html){ list.innerHTML=html; recap.style.display='block'; }
   }
+  function recapArticleClickAttrs(entry){
+    entry = entry || {};
+    var pid = String(entry.page_id || entry.article_id || '').trim();
+    var law = String(entry.law || entry.law_name || '').trim();
+    var rawArt = entry.article || entry.article_no || entry.title || '';
+    var art = _normalizeArticleNo(rawArt) || String(rawArt || '').replace(/^§+/,'').trim();
+    if(!pid && !(law && art)) return 'class="recap-row"';
+    return 'class="recap-row is-link" role="button" tabindex="0"'
+      + ' data-page-id="'+esc(pid)+'"'
+      + ' data-law="'+esc(law)+'"'
+      + ' data-art="'+esc(art)+'"'
+      + ' onclick="recapArticleOpen(this)"'
+      + ' onkeydown="recapArticleKeyOpen(event, this)"';
+  }
+  function recapArticleOpen(el){
+    if(!el) return;
+    var pid = el.dataset.pageId || '';
+    var law = el.dataset.law || '';
+    var art = el.dataset.art || '';
+    if(pid) openDrawer(pid, law, art);
+    else if(law && art) searchAndOpen(law, art);
+  }
+  function recapArticleKeyOpen(event, el){
+    if(!event || (event.key !== 'Enter' && event.key !== ' ')) return;
+    event.preventDefault();
+    recapArticleOpen(el);
+  }
+  window.recapArticleOpen = recapArticleOpen;
+  window.recapArticleKeyOpen = recapArticleKeyOpen;
   function renderWeakLaws(items){
     var recap=document.getElementById('weak-laws-recap');
     var list=document.getElementById('weak-laws-list');
@@ -8112,7 +8152,7 @@ ch.on('presence', { event: 'sync' }, () => {
         if(Array.isArray(d.recent) && d.recent.length){
           showRecap(d.recent.slice(0,5).map(function(e){
             var ok = !!e.is_correct;
-            return '<div class="recap-row">'
+            return '<div '+recapArticleClickAttrs(e)+'>'
               + '<span class="rc-date">'+esc((e.date||'').slice(5))+'</span>'
               + '<span class="rc-law">'+esc(e.law||'每日一題')+'</span>'
               + '<span class="rc-score">'+esc((e.question||'').slice(0,18))+'</span>'
