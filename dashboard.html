@@ -2877,8 +2877,11 @@
           <a href="#review-due" data-spy-target="review-due"><span class="num">T3</span>今日複習<span class="ct" id="nav-ct-due">0</span></a>
           <a href="#study-time-box" data-spy-target="study-time-box"><span class="num">T4</span>讀書時間<span class="ct"></span></a>
           <a href="#study-plan-items" data-spy-target="study-plan-items"><span class="num">T5</span>讀書計畫<span class="ct"></span></a>
-          <a href="quiz.html"><span class="num">T6</span>選擇題<span class="ct"></span></a>
-          <a href="quiz.html?open=weakness"><span class="num">T7</span>弱點分析<span class="ct"></span></a>
+          <a href="#quiz-recap" data-spy-target="quiz-recap"><span class="num">T6</span>最近作答<span class="ct"></span></a>
+          <a href="#weak-laws-recap" data-spy-target="weak-laws-recap"><span class="num">T7</span>弱點法規<span class="ct"></span></a>
+          <a href="#srs-settings" data-spy-target="srs-settings"><span class="num">T8</span>複習策略<span class="ct"></span></a>
+          <a href="quiz.html"><span class="num">練</span>選擇題<span class="ct"></span></a>
+          <a href="quiz.html?open=weakness"><span class="num">補</span>弱點分析<span class="ct"></span></a>
         </div>
       </div>
 
@@ -7704,6 +7707,11 @@ function updateActiveNavFromScroll(){
     return { id:id, top:top };
   }).filter(Boolean);
   if(!candidates.length) return;
+  var nearBottom = window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 12;
+  if(nearBottom && candidates.length){
+    setActive(candidates[candidates.length - 1].id);
+    return;
+  }
   var passed = candidates.filter(function(item){ return item.top <= 8; });
   var best = passed.length
     ? passed.reduce(function(a,b){ return b.top > a.top ? b : a; })

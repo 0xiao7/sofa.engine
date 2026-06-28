@@ -18,10 +18,15 @@ test('today recaps are included in the sidebar navigation and scroll spy', () =>
   assert.match(html, /data-spy-target="study-weak-brief"[\s\S]*今日弱點/);
   assert.match(html, /data-spy-target="study-time-box"[\s\S]*讀書時間/);
   assert.match(html, /data-spy-target="study-plan-items"[\s\S]*讀書計畫/);
+  assert.match(html, /data-spy-target="quiz-recap"[\s\S]*最近作答/);
+  assert.match(html, /data-spy-target="weak-laws-recap"[\s\S]*弱點法規/);
+  assert.match(html, /data-spy-target="srs-settings"[\s\S]*複習策略/);
   assert.match(html, /href="quiz\.html"[\s\S]*選擇題/);
   assert.match(html, /data-spy-target="review-due"[\s\S]*今日複習/);
   assert.match(html, /const navLinks = Array\.from\(document\.querySelectorAll\('\.nav-list a\[data-spy-target\]'\)\)/);
   assert.match(html, /function updateActiveNavFromScroll/);
+  assert.match(html, /var nearBottom = window\.innerHeight \+ window\.scrollY >= document\.documentElement\.scrollHeight - 12/);
+  assert.match(html, /if\(nearBottom && candidates\.length\)\{[\s\S]*setActive\(candidates\[candidates\.length - 1\]\.id\)/);
   assert.match(html, /setActive\(best\.id\)/);
   assert.match(html, /aria-current/);
 });
