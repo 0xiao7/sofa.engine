@@ -253,6 +253,10 @@ test('study tool panels expose one active mode and explain where saved work goes
 
 test('study today action buttons are sized for mobile app shells', () => {
   const studyActionButtonRule = active.match(/\.study-action-button\{[\s\S]*?\n  \}/)?.[0] || '';
+  assert.match(active, /class="study-action-group primary"[\s\S]*<span class="study-action-label">先做<\/span>[\s\S]*開始選擇題[\s\S]*看今日複習[\s\S]*看弱點分析/);
+  assert.match(active, /class="study-action-group secondary"[\s\S]*<span class="study-action-label">整理<\/span>[\s\S]*重點清單[\s\S]*設定讀書課程[\s\S]*補紀錄/);
+  assert.match(active, /\.study-actions\{[\s\S]*display:grid/);
+  assert.match(active, /\.study-action-group\.secondary \.study-action-link\{[\s\S]*background:rgba\(255,255,255,\.025\)/);
   assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?min-height:44px/);
   assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?font-family:var\(--serif\)/);
   assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?font-size:15px/);

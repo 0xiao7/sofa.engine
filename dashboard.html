@@ -535,6 +535,10 @@
   .study-actions{
     border-bottom:1px dashed var(--line);
     padding-bottom:14px;
+    display:grid;
+    gap:10px;
+  }
+  .study-action-group{
     display:flex;
     align-items:center;
     gap:9px;
@@ -546,6 +550,18 @@
     letter-spacing:.12em;
     color:rgba(245,240,234,.48);
     margin-right:2px;
+  }
+  .study-action-group.secondary .study-action-label{color:rgba(245,240,234,.38)}
+  .study-action-group.secondary .study-action-link{
+    background:rgba(255,255,255,.025);
+    border-color:rgba(245,240,234,.16);
+    color:rgba(245,240,234,.72);
+  }
+  .study-action-group.secondary .study-action-link.is-active,
+  .study-action-group.secondary .study-action-link:hover{
+    color:var(--navy);
+    background:var(--peach);
+    border-color:var(--peach);
   }
   .study-action-link,.study-pending{
     min-height:44px;
@@ -1288,6 +1304,7 @@
     .study-blocks{grid-template-columns:1fr}
     .study-summary{align-items:flex-start}
     .study-actions{align-items:stretch}
+    .study-action-group{align-items:stretch}
     .study-action-label{width:100%}
     .study-action-link,.study-pending{flex:1 1 calc(50% - 8px);min-width:128px;min-height:44px}
     .study-time-box{grid-template-columns:1fr}
@@ -3012,13 +3029,18 @@
               <div class="study-weak-state" id="study-cockpit-weak-state"></div>
             </div>
             <div class="study-actions" aria-label="今日讀書工具">
-              <span class="study-action-label">下一步</span>
-              <a class="study-action-link primary" href="quiz.html">開始選擇題</a>
-              <a class="study-action-link" href="#review-due">看今日複習</a>
-              <a class="study-action-link" href="quiz.html?open=weakness">看弱點分析</a>
-              <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="playlist" aria-expanded="false" onclick="openStudyPlaylistPanel()">重點清單</button>
-              <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="plan" aria-expanded="false" onclick="openStudyPlanPanel()">設定讀書課程</button>
-              <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="record" aria-expanded="false" onclick="openStudyRecordPanel()">補紀錄</button>
+              <div class="study-action-group primary">
+                <span class="study-action-label">先做</span>
+                <a class="study-action-link primary" href="quiz.html">開始選擇題</a>
+                <a class="study-action-link" href="#review-due">看今日複習</a>
+                <a class="study-action-link" href="quiz.html?open=weakness">看弱點分析</a>
+              </div>
+              <div class="study-action-group secondary">
+                <span class="study-action-label">整理</span>
+                <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="playlist" aria-expanded="false" onclick="openStudyPlaylistPanel()">重點清單</button>
+                <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="plan" aria-expanded="false" onclick="openStudyPlanPanel()">設定讀書課程</button>
+                <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="record" aria-expanded="false" onclick="openStudyRecordPanel()">補紀錄</button>
+              </div>
             </div>
             <div class="study-playlist-panel" id="study-playlist-panel" aria-label="通勤重點播放清單">
               <div class="study-playlist-head">
