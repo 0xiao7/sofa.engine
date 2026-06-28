@@ -12142,10 +12142,15 @@ document.getElementById('btn-send-trial')?.addEventListener('click', async ()=>{
     const d = await r.json();
     if (r.ok && d.ok) {
       msg.style.color = 'var(--good)';
-      const reuseCopy = d.message || '這個信箱已經有 SoFa 帳號，請沿用既有序號登入。';
-      const statusCopy = d.reuse ? reuseCopy : `有效至 ${d.expire}，信箱同步收到`;
-      msg.innerHTML = `✓ ${d.reuse ? '沿用既有序號' : '你的序號'}：<strong style="letter-spacing:.08em;font-size:.9rem">${d.serial}</strong><br><span style="font-size:.7rem;opacity:.6">${statusCopy}</span>`;
-      btn.textContent = d.reuse ? '沿用既有序號' : '已寄出';
+      const issuedNewSerial = d.issued_new_serial === true;
+      const existingIdentity = d.serial_scope === 'existing_identity'
+        || d.identity_status === 'active_member'
+        || d.next_action === 'login_existing_serial'
+        || (d.reuse && !issuedNewSerial);
+      const identityCopy = d.message || '這個信箱已經有 SoFa 會員身份，請沿用同一組序號登入。';
+      const statusCopy = existingIdentity ? identityCopy : `有效至 ${d.expire}，信箱同步收到`;
+      msg.innerHTML = `✓ ${existingIdentity ? '沿用既有序號' : '你的序號'}：<strong style="letter-spacing:.08em;font-size:.9rem">${d.serial}</strong><br><span style="font-size:.7rem;opacity:.6">${statusCopy}</span>`;
+      btn.textContent = existingIdentity ? '沿用既有序號' : '已寄出';
       emailEl.value = '';
     } else {
       throw new Error(d.detail || '寄送失敗');

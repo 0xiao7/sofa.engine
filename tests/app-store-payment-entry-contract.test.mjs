@@ -46,8 +46,11 @@ test('study room retain modal hides external LINE and trial-email paths in nativ
 });
 
 test('study room trial email reuse explains existing identity instead of implying another free serial', () => {
-  assert.match(room, /const reuseCopy = d\.message \|\| '這個信箱已經有 SoFa 帳號，請沿用既有序號登入。'/);
-  assert.match(room, /d\.reuse \? '沿用既有序號' : '你的序號'/);
-  assert.match(room, /btn\.textContent = d\.reuse \? '沿用既有序號' : '已寄出'/);
+  assert.match(room, /const issuedNewSerial = d\.issued_new_serial === true;/);
+  assert.match(room, /const existingIdentity = d\.serial_scope === 'existing_identity'/);
+  assert.match(room, /d\.identity_status === 'active_member'/);
+  assert.match(room, /d\.next_action === 'login_existing_serial'/);
+  assert.match(room, /existingIdentity \? '沿用既有序號' : '你的序號'/);
+  assert.match(room, /btn\.textContent = existingIdentity \? '沿用既有序號' : '已寄出'/);
   assert.doesNotMatch(room, /已有序號/);
 });
