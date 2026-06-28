@@ -631,6 +631,53 @@
     border-color:var(--peach);
     font-weight:700;
   }
+  .study-next-plan{
+    display:grid;
+    grid-template-columns:1fr auto;
+    gap:8px 14px;
+    align-items:center;
+    border:1px solid rgba(231,187,167,.18);
+    border-radius:4px;
+    background:rgba(231,187,167,.045);
+    padding:11px 13px;
+  }
+  .study-next-plan span{
+    display:block;
+    color:rgba(245,240,234,.56);
+    font-size:12px;
+    line-height:1.55;
+  }
+  .study-next-plan .k{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.12em;
+    color:var(--peach);
+    margin-bottom:2px;
+  }
+  .study-next-plan b{
+    display:block;
+    font-family:var(--serif);
+    font-size:16px;
+    font-weight:600;
+    color:var(--cream);
+    line-height:1.4;
+  }
+  .study-next-plan a{
+    min-height:36px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid rgba(231,187,167,.34);
+    border-radius:4px;
+    padding:7px 12px;
+    color:var(--peach);
+    text-decoration:none;
+    font-size:12px;
+    font-weight:700;
+    white-space:nowrap;
+    background:rgba(255,255,255,.02);
+  }
+  .study-next-plan a:hover{background:rgba(231,187,167,.1)}
   .study-action-link.is-active{
     color:var(--navy);
     background:var(--peach-2);
@@ -1386,6 +1433,8 @@
     .study-action-group{align-items:stretch}
     .study-action-label{width:100%}
     .study-action-link,.study-pending{flex:1 1 100%;min-width:0;min-height:44px}
+    .study-next-plan{grid-template-columns:1fr}
+    .study-next-plan a{width:100%}
     .study-time-box{grid-template-columns:1fr}
     .study-time-summary-card{align-items:flex-start;flex-wrap:wrap}
     .study-time-impact{width:100%;border-left:0;border-top:1px solid rgba(231,187,167,.16);padding:9px 0 0}
@@ -3142,6 +3191,10 @@
                 <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="record" aria-expanded="false" onclick="openStudyRecordPanel()">補紀錄</button>
               </div>
             </div>
+            <div class="study-next-plan" id="study-next-plan" aria-live="polite">
+              <span><span class="k">今天讀什麼</span><b>先做一題開始累積弱點</b><span>還沒接到私人課表；有時間時再設定讀書課程。</span></span>
+              <a href="quiz.html">開始選擇題</a>
+            </div>
             <div class="study-playlist-panel" id="study-playlist-panel" aria-label="通勤重點播放清單">
               <div class="study-playlist-head">
                 <div class="study-playlist-title">
@@ -4391,6 +4444,7 @@ function saveStudyTimeSettings(){
   };
   _saveStudyLocal(local);
   renderStudyTimeSettings();
+  renderStudyNextPlan(window.__studyPlanItemCache || []);
   var state = document.getElementById('study-time-state');
   if(state) state.textContent = '已存到這台裝置。';
   var panel = document.getElementById('study-time-edit-panel');
@@ -6746,6 +6800,7 @@ function renderStudyPlanItems(plan){
   var items = plan && Array.isArray(plan.items) ? plan.items : [];
   window.__studyPlanItemCache = items;
   renderStudyTimeOutcome(items);
+  renderStudyNextPlan(items);
   if(!items.length){
     el.innerHTML = '<div class="study-plan-count"><b>目前還沒有私人讀書計畫</b><br>可以排函授、補習班課程、模考或自己的週任務。'
       + '<br>要新增時，回上方「整理」點設定讀書課程。</div>';
@@ -6816,6 +6871,27 @@ function renderStudyTimeOutcome(items){
     return;
   }
   el.textContent = '還沒排課；先用本週建議或設定課程。';
+}
+
+function renderStudyNextPlan(items){
+  var el = document.getElementById('study-next-plan');
+  if(!el) return;
+  var list = Array.isArray(items) ? items : (window.__studyPlanItemCache || []);
+  var actionable = _actionableStudyItems(list);
+  var settings = (_studyLocal().settings || {});
+  var minutes = settings.today_minutes || 60;
+  if(actionable.length){
+    var next = actionable[0] || {};
+    var title = next.title || next.subject || '讀書計畫';
+    var when = [next.scheduled_date || '', next.scheduled_time || ''].filter(Boolean).join(' · ');
+    var source = next.source_label ? '來源：' + next.source_label + '。' : '';
+    el.innerHTML = '<span><span class="k">今天讀什麼</span><b>下一堂：' + esc(title) + '</b><span>'
+      + esc([when, source + '今天留 ' + minutes + ' 分鐘；完成後到讀書計畫點完成。'].filter(Boolean).join(' · '))
+      + '</span></span><a href="#study-plan-items">看讀書計畫</a>';
+    return;
+  }
+  el.innerHTML = '<span><span class="k">今天讀什麼</span><b>先做一題開始累積弱點</b><span>今天留 ' + minutes
+    + ' 分鐘；還沒接到私人課表，可以先答題或設定讀書課程。</span></span><a href="quiz.html">開始選擇題</a>';
 }
 
 function _studyStatusLabel(status){

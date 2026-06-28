@@ -383,6 +383,23 @@ test('study cloud state names the connected private schedule source and visible 
   assert.match(fn, /來源：/);
 });
 
+test('study today shows the next private plan near the first action area', () => {
+  const recapStart = active.indexOf('id="study-cockpit-recap"');
+  assert.ok(recapStart >= 0, 'study recap must exist');
+  const recap = active.slice(recapStart, recapStart + 8000);
+  assert.match(recap, /id="study-next-plan"/);
+  assert.match(recap, /今天讀什麼/);
+  assert.match(active, /function renderStudyNextPlan/);
+  assert.match(extractFunction(active, 'renderStudyPlanItems'), /renderStudyNextPlan\(items\)/);
+  assert.match(extractFunction(active, 'saveStudyTimeSettings'), /renderStudyNextPlan\(window\.__studyPlanItemCache \|\| \[\]\)/);
+  const nextFn = extractFunction(active, 'renderStudyNextPlan');
+  assert.match(nextFn, /_actionableStudyItems/);
+  assert.match(nextFn, /下一堂/);
+  assert.match(nextFn, /今天留/);
+  assert.match(nextFn, /完成後到讀書計畫點完成/);
+  assert.match(nextFn, /href="#study-plan-items"/);
+});
+
 test('study today uses learner-facing subject status wording, not seed jargon', () => {
   assert.match(active, /可單刷/);
   assert.match(active, /題庫準備中/);
@@ -416,7 +433,7 @@ test('study plan items show explicit status text for completion tracking', () =>
 test('study today puts next-step actions before lower-priority subject detail', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
-  const recap = active.slice(recapStart, recapStart + 12800);
+  const recap = active.slice(recapStart, recapStart + 15000);
   const actionIndex = recap.indexOf('class="study-actions"');
   const weakIndex = recap.indexOf('id="study-weak-brief"');
   const subjectsIndex = recap.indexOf('id="study-cockpit-subjects"');
