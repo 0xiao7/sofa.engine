@@ -55,4 +55,5 @@ test('practice session summary counters are wired to rendered metric ids', () =>
 
 test('practice mobile share control avoids the top bar and timer corner', () => {
   assert.match(active, /@media \(max-width:760px\)\{[\s\S]*?#practice-share-btn\{top:auto;right:auto;bottom:58px;left:14px\}/);
+  assert.match(active, /@media \(max-width:760px\)\{[\s\S]*?#session-timer,#practice-stats-btn\{display:none\}/);
 });
