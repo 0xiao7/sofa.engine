@@ -2783,6 +2783,7 @@ function _airyThreeTexture(width, height, draw) {
   draw(ctx, width, height);
   const tex = new THREE.CanvasTexture(canvas);
   tex.anisotropy = 2;
+  if (THREE.SRGBColorSpace) tex.colorSpace = THREE.SRGBColorSpace;
   return tex;
 }
 
@@ -2944,24 +2945,52 @@ function _airyPainterlyDesk(ctx, x, y, s = 1, facing = 'left') {
   ctx.save();
   ctx.translate(x, y);
   ctx.scale(s, s);
-  ctx.fillStyle = 'rgba(96,70,45,.18)';
+  ctx.fillStyle = 'rgba(96,70,45,.22)';
   ctx.beginPath();
   ctx.ellipse(0, 45, 84, 13, 0, 0, Math.PI * 2);
   ctx.fill();
-  ctx.fillStyle = '#D6AF7D';
+  const wood = ctx.createLinearGradient(-76, -12, 76, 30);
+  wood.addColorStop(0, '#E0BC88');
+  wood.addColorStop(.55, '#D1A06C');
+  wood.addColorStop(1, '#B98352');
+  ctx.fillStyle = wood;
   _airyRoundRectPath(ctx, -76, -12, 152, 42, 8);
   ctx.fill();
-  ctx.fillStyle = 'rgba(255,241,210,.34)';
+  ctx.fillStyle = 'rgba(255,245,216,.42)';
   ctx.fillRect(-66, -4, 132, 10);
+  ctx.strokeStyle = 'rgba(122,82,44,.16)';
+  ctx.lineWidth = 2;
+  for (let i = 0; i < 4; i++) {
+    ctx.beginPath();
+    ctx.moveTo(-62 + i * 34, 10);
+    ctx.lineTo(-38 + i * 34, 6);
+    ctx.stroke();
+  }
   ctx.fillStyle = '#A98255';
   ctx.fillRect(-57, 26, 10, 42);
   ctx.fillRect(47, 26, 10, 42);
-  ctx.fillStyle = '#F8EACB';
+  ctx.fillStyle = '#FFF0CE';
   ctx.fillRect(-20, -2, 44, 20);
-  ctx.fillStyle = '#78AFC0';
+  ctx.fillStyle = '#6EAFC1';
   ctx.fillRect(-52, -1, 32, 10);
   _airyPainterlyPlant(ctx, 56, -22, .46);
   _airyPainterlyReader(ctx, facing === 'left' ? -36 : 36, 20, .55, facing);
+  ctx.restore();
+}
+
+function _airyPainterlyFlowerBed(ctx, x, y, s = 1, count = 9) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.scale(s, s);
+  ctx.fillStyle = 'rgba(85,112,72,.15)';
+  ctx.beginPath();
+  ctx.ellipse(0, 12, 70, 22, 0, 0, Math.PI * 2);
+  ctx.fill();
+  for (let i = 0; i < count; i++) {
+    const px = -54 + (i * 29) % 112;
+    const py = -2 + ((i * 17) % 28);
+    _airyPainterlyPlant(ctx, px, py, .22 + (i % 3) * .035);
+  }
   ctx.restore();
 }
 
@@ -2982,8 +3011,8 @@ function _airyThreePainterlyLibraryTexture(mobile = false) {
     const rightWall = w * .92;
     const floor = ctx.createLinearGradient(0, horizon, 0, bottom);
     floor.addColorStop(0, '#F8E6C0');
-    floor.addColorStop(.55, '#EBC892');
-    floor.addColorStop(1, '#DDB173');
+    floor.addColorStop(.55, '#E7BE82');
+    floor.addColorStop(1, '#D5A66A');
     ctx.fillStyle = floor;
     ctx.beginPath();
     ctx.moveTo(leftWall, bottom);
@@ -2994,12 +3023,22 @@ function _airyThreePainterlyLibraryTexture(mobile = false) {
     ctx.fill();
     ctx.strokeStyle = 'rgba(151,105,58,.16)';
     ctx.lineWidth = 2;
-    for (let i = 0; i < 22; i++) {
+    for (let i = 0; i < 28; i++) {
       const t = i / 21;
       const x = leftWall + (rightWall - leftWall) * t;
       ctx.beginPath();
       ctx.moveTo(x, bottom);
       ctx.lineTo(vanishX + (t - .5) * w * .08, horizon);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = 'rgba(110,75,42,.11)';
+    ctx.lineWidth = 1;
+    for (let i = 0; i < 90; i++) {
+      const x = w * (.08 + ((i * 37) % 840) / 1000);
+      const y = horizon + ((i * 61) % 550) / 550 * (bottom - horizon);
+      ctx.beginPath();
+      ctx.moveTo(x, y);
+      ctx.bezierCurveTo(x + w * .018, y - h * .010, x + w * .045, y + h * .008, x + w * .075, y - h * .004);
       ctx.stroke();
     }
     for (let i = 0; i < 13; i++) {
@@ -3086,7 +3125,7 @@ function _airyThreePainterlyLibraryTexture(mobile = false) {
       const sh = h * (.30 - t * .020);
       drawWindow(w * (.05 + t * .060), y, sw, sh, .80 - t * .05);
       drawShelf(w * (.80 - t * .044), y + h * .035, sw * .88, sh * .92, .86 - t * .04);
-      ctx.fillStyle = `rgba(238,224,199,${.74 - t * .08})`;
+      ctx.fillStyle = `rgba(238,224,199,${.86 - t * .08})`;
       ctx.fillRect(w * (.21 + t * .045), y - h * .06, Math.max(7, w * (.035 - t * .004)), sh * 1.28);
       ctx.fillRect(w * (.74 - t * .038), y - h * .06, Math.max(7, w * (.033 - t * .004)), sh * 1.28);
     }
@@ -3116,6 +3155,7 @@ function _airyThreePainterlyLibraryTexture(mobile = false) {
     _airyPainterlyPlant(ctx, w * .12, h * .76, 1.1);
     _airyPainterlyPlant(ctx, w * .88, h * .69, .86);
     _airyPainterlyPlant(ctx, w * .53, h * .60, .58);
+    _airyPainterlyFlowerBed(ctx, w * .12, h * .82, .78, 8);
     _airyPainterlyReader(ctx, w * .50, h * .84, 1.36, 'left');
 
     ctx.fillStyle = 'rgba(255,250,238,.72)';
@@ -3156,25 +3196,40 @@ function _airyThreePainterlyIslandTexture(mobile = false) {
     const drawIsland = (cx, cy, sx, sy, alpha = 1, details = true) => {
       ctx.save();
       ctx.globalAlpha = alpha;
-      ctx.fillStyle = 'rgba(108,89,62,.18)';
+      ctx.fillStyle = 'rgba(108,89,62,.20)';
       ctx.beginPath();
       ctx.ellipse(cx, cy + sy * .48, sx * .82, sy * .13, 0, 0, Math.PI * 2);
       ctx.fill();
       const cliff = ctx.createLinearGradient(0, cy, 0, cy + sy * .56);
-      cliff.addColorStop(0, '#D2B284');
-      cliff.addColorStop(1, '#A77C4C');
+      cliff.addColorStop(0, '#DCC29A');
+      cliff.addColorStop(.55, '#C49C6A');
+      cliff.addColorStop(1, '#9E7245');
       ctx.fillStyle = cliff;
       ctx.beginPath();
       ctx.moveTo(cx - sx * .62, cy + sy * .05);
       ctx.bezierCurveTo(cx - sx * .24, cy + sy * .42, cx + sx * .18, cy + sy * .54, cx + sx * .58, cy + sy * .08);
       ctx.quadraticCurveTo(cx, cy + sy * .24, cx - sx * .62, cy + sy * .05);
       ctx.fill();
+      ctx.strokeStyle = 'rgba(117,86,52,.14)';
+      ctx.lineWidth = Math.max(1, sx * .006);
+      for (let i = 0; i < 8; i++) {
+        const px = cx - sx * .42 + i * sx * .12;
+        ctx.beginPath();
+        ctx.moveTo(px, cy + sy * .13);
+        ctx.bezierCurveTo(px + sx * .025, cy + sy * .22, px - sx * .018, cy + sy * .32, px + sx * .050, cy + sy * .42);
+        ctx.stroke();
+      }
       const grass = ctx.createLinearGradient(0, cy - sy * .25, 0, cy + sy * .17);
-      grass.addColorStop(0, '#D7E8B3');
-      grass.addColorStop(1, '#A9C981');
+      grass.addColorStop(0, '#E0EDBE');
+      grass.addColorStop(.48, '#BEDD91');
+      grass.addColorStop(1, '#93BB68');
       ctx.fillStyle = grass;
       ctx.beginPath();
       ctx.ellipse(cx, cy, sx * .68, sy * .25, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillStyle = 'rgba(255,255,255,.20)';
+      ctx.beginPath();
+      ctx.ellipse(cx - sx * .16, cy - sy * .08, sx * .26, sy * .08, -.10, 0, Math.PI * 2);
       ctx.fill();
       if (details) {
         ctx.strokeStyle = 'rgba(255,253,241,.82)';
@@ -3195,9 +3250,17 @@ function _airyThreePainterlyIslandTexture(mobile = false) {
       ctx.save();
       ctx.translate(x, y);
       ctx.scale(s, s);
+      ctx.fillStyle = 'rgba(86,67,45,.16)';
+      ctx.beginPath();
+      ctx.ellipse(-8, 82, 146, 22, 0, 0, Math.PI * 2);
+      ctx.fill();
       ctx.fillStyle = '#D8BC88';
       ctx.fillRect(-126, 58, 230, 22);
-      ctx.fillStyle = '#FFF8EA';
+      const wall = ctx.createLinearGradient(-126, -60, 106, 66);
+      wall.addColorStop(0, '#FFFDF3');
+      wall.addColorStop(.62, '#FFF4DE');
+      wall.addColorStop(1, '#EADCC4');
+      ctx.fillStyle = wall;
       ctx.fillRect(-126, -60, 232, 126);
       ctx.fillStyle = '#FFFDF5';
       ctx.fillRect(-126, -60, 16, 126);
@@ -3205,6 +3268,10 @@ function _airyThreePainterlyIslandTexture(mobile = false) {
       ctx.fillRect(84, -48, 20, 98);
       ctx.fillStyle = '#DDBF83';
       ctx.fillRect(-142, -74, 260, 22);
+      ctx.fillStyle = 'rgba(255,220,142,.30)';
+      ctx.beginPath();
+      ctx.ellipse(-30, 4, 130, 74, 0, 0, Math.PI * 2);
+      ctx.fill();
       drawShelf(ctx, -54, -38, 92, 84);
       _airyPainterlyDesk(ctx, -62, 28, .52, 'left');
       _airyPainterlyPlant(ctx, 72, 28, .48);
@@ -3241,6 +3308,8 @@ function _airyThreePainterlyIslandTexture(mobile = false) {
     _airyPainterlyDesk(ctx, w * .70, h * .58, .78, 'left');
     _airyPainterlyPlant(ctx, w * .13, h * .70, 1.12);
     _airyPainterlyPlant(ctx, w * .84, h * .66, .98);
+    _airyPainterlyFlowerBed(ctx, w * .26, h * .67, .82, 12);
+    _airyPainterlyFlowerBed(ctx, w * .66, h * .68, .72, 10);
     for (let i = 0; i < 18; i++) {
       const a = i * 2.399;
       const r = w * (.06 + (i % 5) * .025);
