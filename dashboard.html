@@ -1986,15 +1986,20 @@
   }
   .toc-row{
     display:grid;
-    grid-template-columns:40px 1fr 90px 30px;
+    grid-template-columns:minmax(0,1fr) auto auto;
     align-items:center;gap:18px;
     padding:14px 0;
     border-bottom:1px solid var(--line);
-    cursor:pointer;transition:.18s;
+    transition:.18s;
   }
   .toc-row:last-child{border-bottom:none}
   .toc-row:hover{padding-left:8px}
-  .toc-row:hover .nm{color:var(--peach)}
+  .toc-main{
+    display:grid;grid-template-columns:40px minmax(0,1fr) 90px 30px;
+    align-items:center;gap:18px;min-width:0;text-decoration:none;color:inherit;
+  }
+  .toc-row:hover .nm,.toc-main:focus-visible .nm{color:var(--peach)}
+  .toc-main:focus-visible,.toc-action:focus-visible{outline:1px solid var(--peach);outline-offset:3px}
   .toc-row .idx{
     font-family:var(--mono);font-size:11px;
     color:rgba(245,240,234,.38);letter-spacing:.08em;
@@ -2027,6 +2032,13 @@
     text-align:right;transition:.18s;
   }
   .toc-row:hover .arrow{color:var(--peach);transform:translateX(2px)}
+  .toc-action{
+    border:1px solid rgba(245,240,234,.18);background:rgba(255,255,255,.02);
+    color:rgba(245,240,234,.68);border-radius:3px;
+    padding:7px 10px;font-family:var(--serif);font-size:13px;
+    text-decoration:none;white-space:nowrap;cursor:pointer;
+  }
+  .toc-action:hover{border-color:var(--peach-dim);color:var(--peach);background:rgba(231,187,167,.06)}
 
   /* === 09 RECENT — timeline === */
   .recent-list{
@@ -2636,11 +2648,13 @@
       color:rgba(23,50,68,.55);
     }
     .li-card .star{top:16px;right:18px;color:#B97660}
-    .toc-row{grid-template-columns:30px 1fr auto;gap:10px}
+    .toc-row{grid-template-columns:1fr auto auto;gap:8px}
+    .toc-main{grid-template-columns:30px minmax(0,1fr) auto;gap:10px}
     .toc-row .arrow{display:none}
     .toc-row .nm{font-size:14.5px}
     .toc-row .nm .leader{display:none}
     .toc-row .nm .star-mark{font-size:9px;padding:1px 5px}
+    .toc-action{font-size:12px;padding:6px 8px}
     .recent-list{padding:8px 0}
     .rec-group{padding:0 14px}
     .rec-date-head{padding:12px 2px 8px;font-size:10px;color:rgba(23,50,68,.48)}
@@ -7198,16 +7212,21 @@ function _renderLawsToc(page){
       tocEl.innerHTML = '<div style="padding:24px;text-align:center;opacity:.4;font-size:.85rem;font-family:var(--sans)">找不到符合的法規</div>';
     } else {
       tocEl.innerHTML = slice.map(function(l, i){
-        var nm  = esc(l.name||'');
+        var rawName = l.name || '';
+        var nm  = esc(rawName);
         var nmHl = _hlMatch(nm, esc(filter));
         var ct  = l.article_count ? l.article_count + ' 條' : '— 條';
         var star = l.starred ? '<span class="star-mark">★ 高頻</span>' : '';
         var idx = String(start + i + 1).padStart(2,'0');
-        return '<div class="toc-row" onclick="searchLaw(\''+nm+'\')">'
+        var encodedName = encodeURIComponent(rawName);
+        return '<div class="toc-row">'
+          + '<a class="toc-main" href="law-preview.html?law='+encodedName+'" aria-label="閱讀'+nm+'">'
           + '<span class="idx">'+idx+'</span>'
           + '<span class="nm">'+nmHl+star+'<span class="leader"></span></span>'
           + '<span class="ct">'+ct+'</span>'
-          + '<span class="arrow">→</span></div>';
+          + '<span class="arrow">閱讀</span></a>'
+          + '<button class="toc-action" type="button" data-law="'+encodedName+'" onclick="searchLaw(decodeURIComponent(this.dataset.law))">查這部</button>'
+          + '<a class="toc-action" href="quiz.html?law='+encodedName+'&drill=1">練這部</a></div>';
       }).join('');
     }
   }

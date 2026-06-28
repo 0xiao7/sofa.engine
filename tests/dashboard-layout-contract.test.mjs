@@ -44,6 +44,22 @@ test('sidebar section numbers match the visible dashboard sections', () => {
   assert.match(html, /<section class="block" id="recent">[\s\S]*<span class="idx">09<\/span>[\s\S]*<h2>最近查詢<\/h2>/);
 });
 
+test('law table of contents separates reading searching and single-practice actions', () => {
+  const start = html.indexOf('function _renderLawsToc');
+  const end = html.indexOf('function searchLaw', start);
+  assert.notEqual(start, -1, '_renderLawsToc should exist');
+  assert.notEqual(end, -1, 'searchLaw should follow law TOC rendering');
+  const tocSource = html.slice(start, end);
+  assert.match(tocSource, /var encodedName = encodeURIComponent\(rawName\)/);
+  assert.match(tocSource, /class="toc-main" href="law-preview\.html\?law='\+encodedName\+'"/);
+  assert.match(tocSource, /<span class="arrow">閱讀<\/span><\/a>/);
+  assert.match(tocSource, /onclick="searchLaw\(decodeURIComponent\(this\.dataset\.law\)\)">查這部<\/button>/);
+  assert.match(tocSource, /href="quiz\.html\?law='\+encodedName\+'\&drill=1">練這部<\/a>/);
+  assert.doesNotMatch(html, /class="toc-row" onclick="searchLaw/);
+  assert.match(html, /\.toc-main\{/);
+  assert.match(html, /\.toc-action\{/);
+});
+
 test('desktop sidebar stays present while the main dashboard scrolls', () => {
   assert.match(html, /aside\.side\{[\s\S]*position:fixed;top:71px;bottom:0;left:0;width:280px/);
   assert.match(html, /aside\.side\{[\s\S]*height:calc\(100dvh - 71px\)/);
