@@ -29,8 +29,11 @@ test('native iOS login reserves the status-bar safe area without affecting norma
 test('desktop login keeps the first screen compact and moves long support copy into details', () => {
   assert.match(html, /\.auth-hero\s*\{[^}]*margin-top:\s*0[^}]*padding-bottom:\s*0/);
   assert.match(html, /\.auth-form\s*\{[^}]*flex:\s*0 1 auto/);
+  assert.match(html, /\.auth-r \.top\s*\{[\s\S]*?z-index:\s*3/);
+  assert.match(html, /\.auth-form\s*\{[\s\S]*?z-index:\s*2/);
   assert.match(html, /class="auth-support-details"/);
   assert.match(html, /<summary>序號、退費與客服說明<\/summary>/);
+  assert.match(html, /\.auth-support-details:not\(\[open\]\) \.support-copy\s*\{[\s\S]*?display:none/);
   assert.match(html, /購買後 7 天內且序號未啟用/);
 });
 

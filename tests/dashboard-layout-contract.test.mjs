@@ -172,6 +172,13 @@ test('article drawer shows when the current article is in the wrong-question ban
   assert.match(html, /quiz\.html\?open=wrong/);
 });
 
+test('closed article drawer is hidden from mobile hit testing until opened', () => {
+  const drawerRule = html.match(/\.drawer\s*\{[\s\S]*?\n  \}/)?.[0] || '';
+  assert.match(drawerRule, /pointer-events:none/);
+  assert.match(drawerRule, /visibility:hidden/);
+  assert.match(html, /\.drawer\.open\{[^}]*pointer-events:auto[^}]*visibility:visible/);
+});
+
 test('closed bookmark panel does not sit outside the mobile viewport', () => {
   const panelRule = html.match(/#bk-panel\s*\{[^}]+\}/)?.[0] || '';
   assert.match(panelRule, /right:\s*0/);
