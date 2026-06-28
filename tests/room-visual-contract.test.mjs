@@ -87,9 +87,9 @@ test('airy room scenes are procedural instead of pasted generated mockups', () =
   assert.match(html, /_airyDrawSeatedReader/);
 });
 
-test('airy room keeps lightweight Three.js available but uses painterly canvas first', () => {
+test('airy room uses lightweight Three.js first with painterly canvas as fallback', () => {
   assert.match(html, /SOFA_AIRY_THREE_ROOM\s*=\s*true/);
-  assert.match(html, /SOFA_AIRY_PAINTERLY_PRIMARY\s*=\s*true/);
+  assert.match(html, /SOFA_AIRY_PAINTERLY_PRIMARY\s*=\s*false/);
   assert.match(html, /function\s+_canStartAiryThree/);
   assert.match(html, /function\s+_startAiryThreeRoom/);
   assert.match(html, /function\s+_initAiryThreeScene/);
@@ -99,5 +99,6 @@ test('airy room keeps lightweight Three.js available but uses painterly canvas f
   assert.match(html, /SOFA_AIRY_THREE_ROOM\s*&&\s*!SOFA_AIRY_PAINTERLY_PRIMARY\s*&&\s*_canStartAiryThree\(canvas\)/);
   assert.match(html, /else\s*\{\s*_startAiryRoom\(canvas\)/);
   assert.match(html, /typeof\s+THREE\s*===\s*['"]undefined['"]/);
+  assert.doesNotMatch(html, /_airyThreeScene\.background\s*=\s*illustrationTex/);
   assert.doesNotMatch(html, /if\s*\(!THREE\)/);
 });
