@@ -1217,6 +1217,12 @@
     gap:12px;
   }
   .study-record-panel.on{display:grid}
+  .study-plan-panel,
+  .study-record-panel,
+  .study-playlist-panel{
+    scroll-margin-top:calc(96px + env(safe-area-inset-top, 0px));
+    scroll-margin-bottom:calc(104px + env(safe-area-inset-bottom, 0px));
+  }
   .study-record-copy{
     font-size:13px;
     color:rgba(245,240,234,.62);
@@ -6649,7 +6655,7 @@ function openStudyPlanPanel(forceOpen){
   if(state && panel.classList.contains('on')){
     state.textContent = '填課名、堂數和固定日；排入後每堂仍可單獨調整。';
   }
-  if(panel.classList.contains('on') && typeof focusStudyGuideTarget === 'function') focusStudyGuideTarget('study-plan-items');
+  if(panel.classList.contains('on') && typeof focusStudyPanelTarget === 'function') focusStudyPanelTarget('study-plan-panel', 'study-plan-items');
 }
 
 function openStudyRecordPanel(forceOpen){
@@ -6664,7 +6670,7 @@ function openStudyRecordPanel(forceOpen){
   if(playlist) playlist.classList.remove('on');
   if(date && !date.value) date.value = _todayInputValue();
   setStudyPanelMode(panel.classList.contains('on') ? 'record' : 'closed');
-  if(panel.classList.contains('on') && typeof focusStudyGuideTarget === 'function') focusStudyGuideTarget('study-plan-items');
+  if(panel.classList.contains('on') && typeof focusStudyPanelTarget === 'function') focusStudyPanelTarget('study-record-panel', 'study-plan-items');
 }
 
 function openStudyPlaylistPanel(forceOpen){
@@ -6678,7 +6684,7 @@ function openStudyPlaylistPanel(forceOpen){
   if(record) record.classList.remove('on');
   setStudyPanelMode(panel.classList.contains('on') ? 'playlist' : 'closed');
   if(panel.classList.contains('on')) loadStudyPlaylist();
-  if(panel.classList.contains('on') && typeof focusStudyGuideTarget === 'function') focusStudyGuideTarget('study-cockpit-recap');
+  if(panel.classList.contains('on') && typeof focusStudyPanelTarget === 'function') focusStudyPanelTarget('study-playlist-panel', 'study-cockpit-recap');
 }
 
 function retryStudyHashScroll(targetId, attemptsLeft, keepTrying){
@@ -6704,15 +6710,15 @@ function openStudyPanelFromHash(){
   }
   if(hash === '#study-plan') {
     openStudyPlanPanel(true);
-    retryStudyHashScroll('study-mode-status', 18, true);
+    retryStudyHashScroll('study-plan-panel', 18, true);
   }
   if(hash === '#study-record') {
     openStudyRecordPanel(true);
-    retryStudyHashScroll('study-mode-status', 18, true);
+    retryStudyHashScroll('study-record-panel', 18, true);
   }
   if(hash === '#study-playlist') {
     openStudyPlaylistPanel(true);
-    retryStudyHashScroll('study-mode-status', 18, true);
+    retryStudyHashScroll('study-playlist-panel', 18, true);
   }
 }
 
@@ -8358,6 +8364,17 @@ function focusStudyGuideTarget(id){
     setTimeout(function(){
       el.scrollIntoView({ block:'start', behavior:'smooth' });
       setTimeout(function(){ setActive(id); }, 120);
+    }, 30);
+  }
+}
+function focusStudyPanelTarget(panelId, navId){
+  window.__activeNavPinnedUntil = Date.now() + 1200;
+  setActive(navId || panelId);
+  var el = document.getElementById(panelId);
+  if(el && typeof el.scrollIntoView === 'function'){
+    setTimeout(function(){
+      el.scrollIntoView({ block:'start', behavior:'smooth' });
+      setTimeout(function(){ setActive(navId || panelId); }, 120);
     }, 30);
   }
 }
