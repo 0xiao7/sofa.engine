@@ -291,6 +291,42 @@ async function dashboardCase(browser, baseUrl, name, viewport) {
   return { name, screenshot, boxes };
 }
 
+async function dashboardSidebarScrollCase(browser, baseUrl) {
+  const page = await browser.newPage({ viewport: { width: 1440, height: 950 } });
+  await installApiMocks(page);
+  await page.goto(`${baseUrl}/dashboard.html`, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('#study-cockpit-recap', { state: 'visible', timeout: 7000 });
+  const targets = [
+    'study-cockpit-recap',
+    'study-time-box',
+    'study-plan-items',
+    'quiz-recap',
+    'weak-laws-recap',
+    'review-due'
+  ];
+  const checks = [];
+  for (const id of targets) {
+    await page.evaluate(targetId => {
+      document.getElementById(targetId)?.scrollIntoView({ block: 'start' });
+    }, id);
+    await page.waitForTimeout(220);
+    const active = await page.locator('.nav-list a.on').evaluateAll(nodes => nodes.map(node => node.dataset.spyTarget || ''));
+    const sideBox = await page.locator('aside.side').boundingBox();
+    const activeBox = active.includes(id)
+      ? await page.locator(`.nav-list a.on[data-spy-target="${id}"]`).boundingBox()
+      : null;
+    const visible = !!(activeBox && sideBox && activeBox.y >= sideBox.y && activeBox.y + activeBox.height <= sideBox.y + sideBox.height + 1);
+    checks.push({ id, active, visible });
+    if (!active.includes(id) || !visible) {
+      throw new Error(`dashboard sidebar did not follow ${id}: ${JSON.stringify({ active, visible, activeBox, sideBox })}`);
+    }
+  }
+  const screenshot = path.join(OUT_DIR, 'sofa-visual-dashboard-sidebar-scroll.png');
+  await page.screenshot({ path: screenshot, fullPage: false });
+  await page.close();
+  return { name: 'dashboard-sidebar-scroll', screenshot, checks };
+}
+
 async function quizCase(browser, baseUrl) {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true });
   await page.goto(`${baseUrl}/quiz.html?free=1`, { waitUntil: 'domcontentloaded' });
@@ -524,6 +560,7 @@ async function studyToolDeepLinkCase(browser, baseUrl) {
     const results = [];
     results.push(await dashboardCase(browser, baseUrl, 'dashboard-mobile', { width: 390, height: 667 }));
     results.push(await dashboardCase(browser, baseUrl, 'dashboard-desktop', { width: 1440, height: 900 }));
+    results.push(await dashboardSidebarScrollCase(browser, baseUrl));
     results.push(await quizCase(browser, baseUrl));
     results.push(await lawPreviewCase(browser, baseUrl));
     results.push(await quizBehaviorCase(browser, baseUrl));

@@ -17,6 +17,21 @@ test('visual entry QA covers dashboard first-layer entries across mobile and des
   assert.match(script, /弱點已接入/);
 });
 
+test('visual entry QA scrolls dashboard sections and verifies sidebar active visibility', () => {
+  assert.match(script, /dashboardSidebarScrollCase/);
+  assert.match(script, /study-cockpit-recap/);
+  assert.match(script, /study-time-box/);
+  assert.match(script, /study-plan-items/);
+  assert.match(script, /quiz-recap/);
+  assert.match(script, /weak-laws-recap/);
+  assert.match(script, /review-due/);
+  assert.match(script, /scrollIntoView\(\{ block: 'start' \}\)/);
+  assert.match(script, /\.nav-list a\.on/);
+  assert.match(script, /data-spy-target="\$\{id\}"/);
+  assert.match(script, /dashboard sidebar did not follow/);
+  assert.match(script, /sofa-visual-dashboard-sidebar-scroll\.png/);
+});
+
 test('visual entry QA checks quiz post-answer actions and article deep link', () => {
   assert.match(script, /quizCase/);
   assert.match(script, /#view-article-btn/);
