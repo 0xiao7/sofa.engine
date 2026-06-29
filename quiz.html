@@ -480,17 +480,27 @@
   .stats-panel{
     display:none;position:fixed;inset:0;z-index:200;overflow-y:auto;height:100dvh;overscroll-behavior:contain;
     padding:calc(24px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px));
-    background:#040D14;
+    background:
+      radial-gradient(900px 480px at 50% -10%, rgba(231,187,167,.10), transparent 62%),
+      radial-gradient(720px 420px at 100% 10%, rgba(26,46,61,.75), transparent 68%),
+      var(--navy);
   }
   html.stats-open, html.stats-open body{
-    background:#040D14;
+    background:var(--navy);
     height:100%;
     overflow:hidden;
   }
   html.stats-open body{
     overflow:hidden;
   }
-  .stats-panel-shell{max-width:620px;margin:0 auto}
+  .stats-panel-shell{
+    max-width:720px;margin:0 auto;
+    background:rgba(26,46,61,.74);
+    border:1px solid rgba(245,240,234,.10);
+    border-radius:8px;
+    padding:18px;
+    box-shadow:0 28px 80px rgba(7,18,27,.28);
+  }
   .stats-panel-head{
     display:flex;align-items:flex-start;justify-content:space-between;gap:18px;
     margin-bottom:16px;
@@ -504,12 +514,12 @@
   }
   .stats-tabs{display:flex;gap:6px;margin-bottom:16px}
   .stats-tabs button{
-    flex:1;min-height:44px;padding:9px 0;border-radius:20px;border:none;
-    background:rgba(255,255,255,0.06);color:rgba(245,240,234,0.45);
+    flex:1;min-height:44px;padding:9px 0;border-radius:8px;border:1px solid rgba(245,240,234,.10);
+    background:rgba(10,22,32,.26);color:rgba(245,240,234,0.50);
     font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:400;
-    transition:background .2s,color .2s;
+    transition:background .2s,color .2s,border-color .2s;
   }
-  .stats-tabs button.on{background:var(--navy-2);color:var(--cream);font-weight:600}
+  .stats-tabs button.on{background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:700}
   .quiz-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
   .quiz-stat-grid.compact{margin-bottom:0}
   .quiz-stat-card{
@@ -561,10 +571,11 @@
   .quiz-law-bar-fill.is-low{background:rgba(199,123,106,.72)}
   .quiz-law-bar-fill.is-empty{background:rgba(245,240,234,.18)}
   .weak-panel-guide{
-    margin-bottom:14px;padding:13px 15px;
-    background:rgba(231,187,167,.07);
-    border:1px solid rgba(231,187,167,.18);
-    border-radius:10px;color:rgba(245,240,234,.68);
+    margin-bottom:14px;padding:14px 16px;
+    background:rgba(245,240,234,.045);
+    border:1px solid rgba(231,187,167,.24);
+    border-left:3px solid var(--peach);
+    border-radius:8px;color:rgba(245,240,234,.70);
     font-size:13px;line-height:1.7;
   }
   .weak-panel-guide b{color:var(--peach-2);font-weight:600}
@@ -573,9 +584,9 @@
     letter-spacing:.12em;margin:14px 0 8px;text-transform:uppercase;
   }
   .weak-card{
-    background:var(--navy-3);
+    background:rgba(21,43,57,.72);
     border:1px solid rgba(245,240,234,.08);
-    border-radius:10px;padding:12px 14px;
+    border-radius:8px;padding:12px 14px;
   }
   .weak-card + .weak-card{margin-top:8px}
   .weak-card.alert{background:rgba(199,123,106,.06);border-color:rgba(199,123,106,.22)}
@@ -3281,9 +3292,9 @@ function _setStatsPanelMode(mode) {
 
 function _wrongPanelGuide() {
   if (_statsPanelMode === 'wrong') {
-    return '<div class="weak-panel-guide"><b>看錯題</b>：這裡列出曾答錯的法規與條文。<br><b>開始重練</b>：按「重練全部」或每列「練這部」，就會回到出題頁。</div>';
+    return '<div class="weak-panel-guide"><b>看錯題</b>：先看最常錯的法規與條文。<br><b>下一步</b>：點「練這部」單刷；需要確認時，點條文膠囊看完整條文。<br><b>資料來源</b>：已併入所有正式作答入口。</div>';
   }
-  return '<div class="weak-panel-guide"><b>看結果</b>：這裡先看最常錯的法規。<br><b>開始重練</b>：按「練這部」，就會回到出題頁。</div>';
+  return '<div class="weak-panel-guide"><b>看結果</b>：先看最常錯的法規。<br><b>下一步</b>：點「練這部」單刷；遇到不確定的條文，直接看完整條文。<br><b>資料來源</b>：已併入所有正式作答入口。</div>';
 }
 
 function _openWeakness(mode) {
@@ -3597,7 +3608,7 @@ function _renderWrongList() {
   if (lawWrongs.length === 0 && bank.length === 0) {
     panel.innerHTML = (_statsPanelMode === 'wrong'
       ? '<div class="weak-panel-guide"><b>看錯題</b>：目前沒有錯題可重練。<br><b>開始累積</b>：做幾題後，答錯的題目會出現在這裡。</div>'
-      : '<div class="weak-panel-guide"><b>看結果</b>：這裡會自動整理最常錯的法規和錯題。<br><b>開始重練</b>：做幾題後，就會出現重練入口。</div>')
+      : '<div class="weak-panel-guide"><b>看結果</b>：先看最常錯的法規；做幾題後，就會出現重練入口。<br><b>下一步</b>：點「練這部」單刷，或點條文看完整條文。</div>')
       + _weakSourceNote()
       + _weakEmptyText();
     _loadRemoteWeakLaws({force:true, target:'panel'});

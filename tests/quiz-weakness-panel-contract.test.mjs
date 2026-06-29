@@ -32,11 +32,33 @@ test('weakness list uses harmonized card classes and explicit next actions', () 
   assert.match(active, /\.weak-article-link\{[\s\S]*min-height:44px/);
   assert.match(active, /\.weak-action-primary,\.weak-action-soft\{[\s\S]*min-height:44px/);
   assert.match(active, /\.weak-source-note/);
-  assert.match(active, /這裡先看最常錯的法規/);
+  assert.match(active, /先看最常錯的法規/);
   assert.match(active, /下一步先練/);
   assert.match(active, /練這部/);
   assert.match(active, /看結果/);
   assert.match(active, /開始重練/);
+});
+
+test('weakness overlay uses the SoFa panel system instead of a separate black modal style', () => {
+  const cssStart = active.indexOf('.stats-panel{');
+  const cssEnd = active.indexOf('.weak-panel-guide{', cssStart);
+  assert.ok(cssStart >= 0 && cssEnd > cssStart, 'stats/weakness panel css must be present');
+  const css = active.slice(cssStart, cssEnd);
+  assert.match(css, /background:[^;]*radial-gradient/);
+  assert.match(css, /var\(--navy\)/);
+  assert.match(css, /\.stats-panel-shell\{[\s\S]*background:rgba\(26,46,61/);
+  assert.match(css, /\.stats-tabs button\{[\s\S]*border:1px solid rgba\(245,240,234/);
+  assert.match(css, /\.stats-tabs button\.on\{[\s\S]*background:var\(--peach\)/);
+  assert.doesNotMatch(css, /background:#040D14/);
+  assert.doesNotMatch(css, /rgba\(0,0,0/);
+});
+
+test('weakness panel names what to look at and where to act in one visible strip', () => {
+  assert.match(active, /先看最常錯/);
+  assert.match(active, /點「練這部」單刷/);
+  assert.match(active, /看完整條文/);
+  assert.match(active, /下一步先練/);
+  assert.match(active, /資料來源/);
 });
 
 test('weakness wrong article labels are clickable article links', () => {
