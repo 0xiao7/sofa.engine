@@ -201,23 +201,19 @@ test('study playlist items are executable with single-practice and article-reade
   assert.match(fn, /class="study-playlist-actions"/);
   assert.match(fn, /quiz\.html\?law=/);
   assert.match(fn, /&drill=1/);
-  assert.match(fn, /dashboard\.html\?q=/);
-  assert.match(fn, /#search/);
+  assert.match(fn, /law-preview\.html\?law=/);
+  assert.match(fn, /item\.page_id \|\| item\.id/);
   assert.match(fn, /單刷/);
   assert.match(fn, /看法條/);
 });
 
-test('study playlist article-reader links auto-open the target article', () => {
-  assert.match(active, /function _openUrlArticleFromResults/);
-  assert.match(active, /window\.__pendingSearchOpenArticle/);
-  assert.match(active, /openDrawer\(pid, lawName, artNo\)/);
-  assert.match(active, /_normalizeArticleNo/);
-  assert.match(active, /_articleNoFromRecord/);
-  assert.match(active, /params\.get\('art'\) \|\| params\.get\('article'\)[\s\S]*window\.__pendingSearchOpenArticle = true/);
-  const doSearchFn = extractFunction(active, 'doSearch');
-  assert.match(doSearchFn, /var artFilter = _normalizeArticleNo/);
-  assert.match(doSearchFn, /_articleNoFromRecord\(a\) === artFilter/);
-  assert.match(doSearchFn, /_openUrlArticleFromResults\(arts, lawName, artFilter\)/);
+test('study playlist article-reader links use law preview instead of dashboard search', () => {
+  const fn = extractFunction(active, 'loadStudyPlaylist');
+  assert.match(fn, /var readerHref = 'law-preview\.html\?law='/);
+  assert.match(fn, /\+ \(itemId \? '&id=' \+ encodeURIComponent\(itemId\) : ''\)/);
+  assert.match(fn, /\+ \(articleNo \? '&art=' \+ encodeURIComponent\(articleNo\) : ''\)/);
+  assert.doesNotMatch(fn, /dashboard\.html\?q=/);
+  assert.doesNotMatch(fn, /#search/);
 });
 
 test('dashboard law plus article deep links auto-open the target article', () => {
@@ -477,8 +473,10 @@ test('study plan items expose learning actions only when item metadata supports 
   assert.match(helper, /target_url/);
   assert.match(helper, /https\?:/);
   assert.match(helper, /quiz\.html\?law=/);
-  assert.match(helper, /dashboard\.html\?q=/);
-  assert.match(helper, /dashboard\.html\?open=/);
+  assert.match(helper, /law-preview\.html\?law=/);
+  assert.match(helper, /law-preview\.html\?id=/);
+  assert.doesNotMatch(helper, /dashboard\.html\?q=/);
+  assert.doesNotMatch(helper, /dashboard\.html\?open=/);
   assert.match(helper, /開啟資源/);
   assert.match(helper, /單刷/);
   assert.match(helper, /看法條/);

@@ -6909,8 +6909,11 @@ async function loadStudyPlaylist(){
       if(text.length > 110) text = text.slice(0, 110) + '…';
       var law = String(item.law_name || '');
       var articleNo = String(item.article_no || '').replace(/^第\s*/, '').replace(/\s*條$/, '');
+      var itemId = String(item.page_id || item.id || '').trim();
       var practiceHref = 'quiz.html?law=' + encodeURIComponent(law) + (articleNo ? '&art=' + encodeURIComponent(articleNo) : '') + '&drill=1';
-      var readerHref = 'dashboard.html?q=' + encodeURIComponent(law) + (articleNo ? '&art=' + encodeURIComponent(articleNo) : '') + '#search';
+      var readerHref = 'law-preview.html?law=' + encodeURIComponent(law)
+        + (itemId ? '&id=' + encodeURIComponent(itemId) : '')
+        + (articleNo ? '&art=' + encodeURIComponent(articleNo) : '');
       return '<div class="study-playlist-item" data-playlist-index="' + idx + '">'
         + '<span class="meta">' + esc(item.importance || '') + ' · ' + esc(item.law_name || '') + ' · 第 ' + esc(item.article_no || '') + ' 條</span>'
         + '<span class="title">' + esc(item.title || '重點條文') + '</span>'
@@ -6941,13 +6944,13 @@ function studyPlanItemActionLinks(item, compact){
   var links = [];
   if(law && articleNo){
     var quizHref = 'quiz.html?law=' + encodeURIComponent(law) + '&art=' + encodeURIComponent(articleNo) + '&drill=1';
-    var readerHref = pageId
-      ? 'dashboard.html?open=' + encodeURIComponent(pageId) + '&law=' + encodeURIComponent(law) + '&art=' + encodeURIComponent(articleNo) + '#search'
-      : 'dashboard.html?q=' + encodeURIComponent(law) + '&art=' + encodeURIComponent(articleNo) + '#search';
+    var readerHref = 'law-preview.html?law=' + encodeURIComponent(law)
+      + (pageId ? '&id=' + encodeURIComponent(pageId) : '')
+      + '&art=' + encodeURIComponent(articleNo);
     links.push('<a class="primary" href="' + esc(quizHref) + '">' + (compact ? '單刷' : '單刷') + '</a>');
     links.push('<a href="' + esc(readerHref) + '">看法條</a>');
   }else if(pageId){
-    links.push('<a href="dashboard.html?open=' + esc(encodeURIComponent(pageId)) + '#search">看法條</a>');
+    links.push('<a href="law-preview.html?id=' + esc(encodeURIComponent(pageId)) + '">看法條</a>');
   }
   if(safeUrl){
     links.push('<a class="resource" href="' + esc(safeUrl) + '" target="_blank" rel="noopener">開啟資源</a>');

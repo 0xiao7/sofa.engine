@@ -169,21 +169,13 @@ test('quiz drill links can target one article number from dashboard playlists', 
 });
 
 test('quiz view-article fallback opens the exact article when only law and article number are known', () => {
-  const start = active.indexOf('function _dashboardArticleHref');
-  assert.ok(start >= 0, '_dashboardArticleHref must exist');
-  const end = active.indexOf('function _articleReaderHref', start);
-  const fn = active.slice(start, end);
-
-  assert.match(fn, /_dashboardArticleHref/);
-  assert.match(fn, /encodeURIComponent\(law\)/);
-  assert.match(fn, /encodeURIComponent\(art\)/);
-  assert.match(fn, /#search/);
   const readerStart = active.indexOf('function _articleReaderHref');
   assert.ok(readerStart >= 0, '_articleReaderHref must exist');
   const readerEnd = active.indexOf('function renderQuizCitation', readerStart);
   const readerFn = active.slice(readerStart, readerEnd);
   assert.match(readerFn, /law-preview\.html\?law=/);
   assert.match(readerFn, /encodeURIComponent\(law\)/);
+  assert.match(readerFn, /encodeURIComponent\(id\)/);
   assert.match(readerFn, /encodeURIComponent\(art\)/);
   assert.match(active, /onclick="_openArticleReader\(\)">查看法條/);
   assert.match(active, /window\.open\(_articleReaderHref\(_currentLawName, _currentArtNo\), '_blank'\)/);
@@ -246,14 +238,14 @@ test('weakness panel shows actual wrong articles when the server provides them',
   assert.match(fn, /_weakArticleLinks\(law, sourceArticles, 2\)/);
 });
 
-test('weakness article chips link back to the exact dashboard article', () => {
+test('weakness article chips open the exact article reader', () => {
   const start = active.indexOf('function _weakArticleLinks');
   assert.ok(start > -1, '_weakArticleLinks must exist');
   const fn = active.slice(start, start + 1200);
   assert.match(fn, /const pageId = a\.page_id \|\| a\.id \|\| ''/);
   assert.match(fn, /const art = a\.article_no \|\| a\.article \|\| ''/);
   assert.match(fn, /if\(!pageId && !art\) return `<span class="weak-article-link is-muted">/);
-  assert.match(fn, /_dashboardArticleHref\(pageId, law, art \|\| label\)/);
+  assert.match(fn, /_articleReaderHref\(law, art \|\| label, pageId\)/);
   assert.match(fn, /class="weak-article-link"/);
   assert.match(fn, /target="_blank"/);
 });
@@ -300,19 +292,19 @@ test('paid answer explanation renders advanced analysis sections instead of hidi
   assert.match(active, /相關法規及注意事項/);
 });
 
-test('quiz analysis linkifies sixth-section law references to dashboard', () => {
+test('quiz analysis linkifies sixth-section law references to the article reader', () => {
   const start = active.indexOf('function linkifyLawRefs');
   const end = active.indexOf('function formatSection', start);
   assert.ok(start >= 0 && end > start, 'law reference helper must be extractable before formatSection');
   const helpers = vm.runInNewContext(`${active.slice(start, end)};({linkifyLawRefs})`);
 
   const linkedSameLaw = helpers.linkifyLawRefs('同法第13條、本法第15條', '記帳士法');
-  assert.match(linkedSameLaw, /dashboard\.html\?q=記帳士法&art=13#search/);
-  assert.match(linkedSameLaw, /dashboard\.html\?q=記帳士法&art=15#search/);
+  assert.match(linkedSameLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=13/);
+  assert.match(linkedSameLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=15/);
 
   const linkedNamedLaw = helpers.linkifyLawRefs('記帳士法第13條及第15條', '所得稅法');
-  assert.match(linkedNamedLaw, /dashboard\.html\?q=記帳士法&art=13#search/);
-  assert.match(linkedNamedLaw, /dashboard\.html\?q=記帳士法&art=15#search/);
+  assert.match(linkedNamedLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=13/);
+  assert.match(linkedNamedLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=15/);
   assert.match(active, /formatSection\(sections\[name\],\s*articleLawName\)/);
 });
 

@@ -1026,23 +1026,12 @@ async function _findArticleByUrlParam(law){
     return candidates.some(v => normalizeArticleCore(v) === target);
   }) || null;
 }
-function _dashboardArticleHref(pageId, lawName, artNo){
+function _articleReaderHref(lawName, artNo, pageId){
   const law = String(lawName || '');
   const art = normalizeArticleCore(artNo) || String(artNo || '').replace(/｜.*$/,'').replace(/^§\s*/,'').trim();
-  if(pageId){
-    return 'dashboard.html?open=' + encodeURIComponent(pageId)
-      + (law ? '&law=' + encodeURIComponent(law) : '')
-      + (art ? '&art=' + encodeURIComponent(art) : '')
-      + '#search';
-  }
-  return 'dashboard.html?q=' + encodeURIComponent(law)
-    + (art ? '&art=' + encodeURIComponent(art) : '')
-    + '#search';
-}
-function _articleReaderHref(lawName, artNo){
-  const law = String(lawName || '');
-  const art = normalizeArticleCore(artNo) || String(artNo || '').replace(/｜.*$/,'').replace(/^§\s*/,'').trim();
+  const id = String(pageId || '').trim();
   return 'law-preview.html?law=' + encodeURIComponent(law)
+    + (id ? '&id=' + encodeURIComponent(id) : '')
     + (art ? '&art=' + encodeURIComponent(art) : '');
 }
 function renderQuizCitation(artTitle, lawName){
@@ -1451,10 +1440,10 @@ function linkifyLawRefs(escapedText,currentLawName){
     if(law) lastLaw = law;
     else if(sameLaw && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
     if(!lastLaw) return match;
-    const safeLaw = String(lastLaw).replace(/"/g,'&quot;');
+    const safeLaw = encodeURIComponent(String(lastLaw));
     const fullArt = art + (sub ? '之' + sub : '');
-    const safeArt = fullArt.replace(/"/g,'&quot;');
-    return `<a class="crossref" href="dashboard.html?q=${safeLaw}&art=${safeArt}#search" target="_blank" rel="noopener">${match}</a>`;
+    const safeArt = encodeURIComponent(fullArt);
+    return `<a class="crossref" href="law-preview.html?law=${safeLaw}&art=${safeArt}" target="_blank" rel="noopener">${match}</a>`;
   });
 }
 function cleanVisibleSpeechCueText(text){
@@ -3238,7 +3227,7 @@ function _weakArticleLinks(law, articles, limit) {
     const art = a.article_no || a.article || '';
     const count = a.wrong_count ? ` ✗${a.wrong_count}` : '';
     if(!pageId && !art) return `<span class="weak-article-link is-muted">${esc(label)}${esc(count)}</span>`;
-    const href = _dashboardArticleHref(pageId, law, art || label);
+    const href = _articleReaderHref(law, art || label, pageId);
     return `<a class="weak-article-link" href="${href}" target="_blank" rel="noopener">${esc(label)}${esc(count)}</a>`;
   }).join('、');
 }
