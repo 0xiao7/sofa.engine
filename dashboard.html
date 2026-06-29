@@ -7073,7 +7073,7 @@ function openStudyRecordPanel(forceOpen){
   if(playlist) playlist.classList.remove('on');
   if(date && !date.value) date.value = _todayInputValue();
   setStudyPanelMode(panel.classList.contains('on') ? 'record' : 'closed');
-  if(panel.classList.contains('on') && typeof focusStudyPanelTarget === 'function') focusStudyPanelTarget('study-record-date', 'study-plan-items');
+  if(panel.classList.contains('on') && typeof focusStudyPanelTarget === 'function') focusStudyPanelTarget('study-record-panel', 'study-plan-items');
 }
 
 function openStudyPlaylistPanel(forceOpen){
@@ -7099,7 +7099,7 @@ function retryStudyHashScroll(targetId, attemptsLeft, keepTrying){
     setTimeout(function(){ retryStudyHashScroll(targetId, attemptsLeft - 1, keepTrying); }, 180);
     return;
   }
-  try{ el.scrollIntoView({behavior:'smooth', block:'start'}); }
+  try{ el.scrollIntoView({behavior:'auto', block:'start'}); }
   catch(_){ el.scrollIntoView(); }
   if(keepTrying && attemptsLeft > 0){
     setTimeout(function(){ retryStudyHashScroll(targetId, attemptsLeft - 1, keepTrying); }, 180);
@@ -7117,7 +7117,7 @@ function openStudyPanelFromHash(){
   }
   if(hash === '#study-record') {
     openStudyRecordPanel(true);
-    retryStudyHashScroll('study-record-date', 18, true);
+    retryStudyHashScroll('study-record-panel', 18, true);
   }
   if(hash === '#study-playlist') {
     openStudyPlaylistPanel(true);
