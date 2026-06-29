@@ -247,6 +247,7 @@ async function dashboardCase(browser, baseUrl, name, viewport) {
   if (viewport.width <= 768) {
     await assertNotCoveredBy(page, '#study-next-plan', '#mobile-daily-bar', `${name} next study card`);
     await assertNotCoveredBy(page, '#study-cockpit-recap a[href="quiz.html?open=weakness"]', '#mobile-daily-bar', `${name} weakness CTA`);
+    await assertNotCoveredBy(page, '#study-weak-brief .study-weak-brief-row, #study-weak-brief .study-weak-empty', '#mobile-daily-bar', `${name} first weakness row`);
   }
   const weakState = await page.locator('#study-cockpit-weak-state').innerText();
   if (!/弱點已接入/.test(weakState)) {
@@ -414,7 +415,7 @@ async function statsCase(browser, baseUrl) {
   const browser = await chromium.launch({ headless: true, executablePath: chrome });
   try {
     const results = [];
-    results.push(await dashboardCase(browser, baseUrl, 'dashboard-mobile', { width: 390, height: 844 }));
+    results.push(await dashboardCase(browser, baseUrl, 'dashboard-mobile', { width: 390, height: 667 }));
     results.push(await dashboardCase(browser, baseUrl, 'dashboard-desktop', { width: 1440, height: 900 }));
     results.push(await quizCase(browser, baseUrl));
     results.push(await quizBehaviorCase(browser, baseUrl));

@@ -50,12 +50,14 @@ test('law drawer analysis linkifies sixth-section law references', () => {
   vm.runInContext(`${source}; this.linkify = _linkifyLaw;`, sandbox);
 
   const linkedSameLaw = sandbox.linkify('同法第13條、本法第15條', '記帳士法');
-  assert.match(linkedSameLaw, /searchAndOpen\('記帳士法','13'\)/);
-  assert.match(linkedSameLaw, /searchAndOpen\('記帳士法','15'\)/);
+  assert.match(linkedSameLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=13"/);
+  assert.match(linkedSameLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=15"/);
+  assert.doesNotMatch(linkedSameLaw, /searchAndOpen/);
 
   const linkedNamedLaw = sandbox.linkify('記帳士法第13條及第15條', '所得稅法');
-  assert.match(linkedNamedLaw, /searchAndOpen\('記帳士法','13'\)/);
-  assert.match(linkedNamedLaw, /searchAndOpen\('記帳士法','15'\)/);
+  assert.match(linkedNamedLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=13"/);
+  assert.match(linkedNamedLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=15"/);
+  assert.doesNotMatch(linkedNamedLaw, /searchAndOpen/);
 });
 
 test('dashboard fetches the authenticated study today endpoint', () => {
@@ -107,6 +109,8 @@ test('small mobile screens compact the weak brief above the fixed quick bar', ()
   assert.match(active, /@media\(max-width:760px\) and \(max-height:720px\)\{[\s\S]*\.study-weak-brief\{/);
   assert.match(active, /@media\(max-width:760px\) and \(max-height:720px\)\{[\s\S]*\.study-weak-brief-kicker\{\s*display:none/);
   assert.match(active, /@media\(max-width:760px\) and \(max-height:720px\)\{[\s\S]*\.study-weak-brief-row\{[\s\S]*padding:5px 8px/);
+  assert.match(active, /@media\s*\(max-height:720px\)\{[\s\S]*\.study-actions\{[\s\S]*gap:8px/);
+  assert.match(active, /@media\s*\(max-height:720px\)\{[\s\S]*\.study-action-label\{[\s\S]*display:none/);
 });
 
 test('study today uses exam-facing wording instead of internal cockpit jargon', () => {

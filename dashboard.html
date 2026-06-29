@@ -1544,6 +1544,8 @@
       padding:7px 10px;
     }
     @media (max-height:720px){
+      .study-actions{gap:8px}
+      .study-action-label{display:none}
       .study-next-plan{min-height:44px;padding:8px 10px}
       .study-next-plan-actions{gap:6px}
       .study-next-plan a,.study-next-plan button{min-height:34px;padding:6px 9px}
@@ -4966,9 +4968,9 @@ function _linkifyLaw(escapedText, currentLawName){
     if(law) lastLaw = law;
     else if(sameLaw && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
     if(!lastLaw) return match;
-    var safelaw = lastLaw.replace(/\\/g,'').replace(/'/g,"\\'");
     var fullArt = art + (sub ? '之' + sub : '');
-    return '<a class="crossref" onclick="event.stopPropagation();searchAndOpen(\''+safelaw+'\',\''+fullArt+'\')" style="color:var(--peach-3);text-decoration:underline;cursor:pointer">'+match+'</a>';
+    var href = 'law-preview.html?law=' + encodeURIComponent(lastLaw.replace(/\\/g,'')) + '&amp;art=' + encodeURIComponent(fullArt);
+    return '<a class="crossref" href="'+href+'" onclick="event.stopPropagation()" style="color:var(--peach-3);text-decoration:underline;cursor:pointer">'+match+'</a>';
   });
 }
 
