@@ -55,7 +55,7 @@ test('CPI adjusted amount warnings are shared by all visible article analysis su
   assert.match(files.fill, /renderFillSections\(panel,\s*art\.sections\|\|\{\},\s*art\._plan!=='free',\s*art\)/);
   assert.match(files.practice, /renderPracticeSections\(sp,\s*articleSections,\s*articlePlan!=='free',\s*articleRecord\)/);
   assert.match(files.dashboard, /var cpiHtml = buildCpiAdjustmentNote\(d,\s*d\.sections \|\| \{\}\)/);
-  assert.match(files.dashboard, /'<div id="drawer-analysis">' \+ cpiHtml \+ origHtml \+ accHtml \+ '<\/div>'/);
+  assert.match(files.dashboard, /'<div id="drawer-analysis">' \+ origHtml \+ cpiHtml \+ accHtml \+ '<\/div>'/);
   assert.match(files.preview, /const cpiHtml = buildCpiAdjustmentNote\(d,\s*sections\)/);
   assert.match(files.preview, /\$\{cpiHtml\}/);
 });

@@ -241,9 +241,11 @@ test('weakness panel shows actual wrong articles when the server provides them',
 test('weakness article chips link back to the exact dashboard article', () => {
   const start = active.indexOf('function _weakArticleLinks');
   assert.ok(start > -1, '_weakArticleLinks must exist');
-  const fn = active.slice(start, start + 900);
-  assert.match(fn, /a\.page_id \|\| a\.id \|\| ''/);
-  assert.match(fn, /_dashboardArticleHref\(a\.page_id \|\| a\.id \|\| '', law, art\)/);
+  const fn = active.slice(start, start + 1200);
+  assert.match(fn, /const pageId = a\.page_id \|\| a\.id \|\| ''/);
+  assert.match(fn, /const art = a\.article_no \|\| a\.article \|\| ''/);
+  assert.match(fn, /if\(!pageId && !art\) return `<span class="weak-article-link is-muted">/);
+  assert.match(fn, /_dashboardArticleHref\(pageId, law, art \|\| label\)/);
   assert.match(fn, /class="weak-article-link"/);
   assert.match(fn, /target="_blank"/);
 });

@@ -3228,9 +3228,11 @@ function _renderSignedInWeaknessLoadIssue() {
 function _weakArticleLinks(law, articles, limit) {
   return (articles || []).slice(0, limit || 2).map(a => {
     const label = a.article || (a.article_no ? `§${a.article_no}` : '代表條文');
-    const art = a.article_no || a.article || label;
-    const href = _dashboardArticleHref(a.page_id || a.id || '', law, art);
+    const pageId = a.page_id || a.id || '';
+    const art = a.article_no || a.article || '';
     const count = a.wrong_count ? ` ✗${a.wrong_count}` : '';
+    if(!pageId && !art) return `<span class="weak-article-link is-muted">${esc(label)}${esc(count)}</span>`;
+    const href = _dashboardArticleHref(pageId, law, art || label);
     return `<a class="weak-article-link" href="${href}" target="_blank" rel="noopener">${esc(label)}${esc(count)}</a>`;
   }).join('、');
 }
