@@ -352,3 +352,13 @@ test('session mode advances quickly after each answer without changing normal mo
   assert.match(onAnswer, /setTimeout\(\(\) => \{ wrongMode \? loadWrongQuiz\(\) : loadQuiz\(\); \}, SESSION_AUTO_NEXT_DELAY_MS\)/);
   assert.doesNotMatch(onAnswer, /1200/);
 });
+
+test('weakness drill buttons keep law names in data attributes', () => {
+  assert.match(active, /function _weakLawActionButton/);
+  assert.match(active, /function _wrongLawChip/);
+  assert.match(active, /data-law="\$\{esc\(lawName \|\| ''\)\}"/);
+  assert.match(active, /_drillLawAuto\(this\.dataset\.law\)/);
+  assert.match(active, /_drillWrongLaw\(this\.dataset\.law\)/);
+  assert.doesNotMatch(active, /onclick="_drillLawAuto\(\$\{JSON\.stringify/);
+  assert.doesNotMatch(active, /onclick="_drillWrongLaw\(\$\{JSON\.stringify/);
+});

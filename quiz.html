@@ -3237,6 +3237,14 @@ function _weakArticleLinks(law, articles, limit) {
   }).join('、');
 }
 
+function _weakLawActionButton(lawName, className) {
+  return `<button class="${esc(className || 'weak-action-soft')}" type="button" data-law="${esc(lawName || '')}" onclick="_drillLawAuto(this.dataset.law)">練這部</button>`;
+}
+
+function _wrongLawChip(lawName, count) {
+  return `<button class="weak-chip" type="button" data-law="${esc(lawName || '')}" onclick="_drillWrongLaw(this.dataset.law)">${esc(lawName || '(未知)')} ×${esc(count)}</button>`;
+}
+
 function _weakSummaryCard(law, wrong, pct, actionHtml) {
   return `<div class="weak-card alert weak-summary-card">
     <div class="weak-card-head" style="align-items:center;margin-bottom:0">
@@ -3272,7 +3280,7 @@ function _renderRemoteWeakLaws(items) {
     return `<div style="margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
         <span style="font-size:11px;color:var(--peach);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${esc(law)}</span>
-        <button class="weak-action-soft" onclick="_drillLawAuto(${JSON.stringify(law)})">練這部</button>
+        ${_weakLawActionButton(law)}
       </div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--bad)">✗ ${item.wrong_count || 0}題 &nbsp;<span style="color:rgba(245,240,234,.35)">${pct}%正確</span></div>
       ${bar}${top ? `<div style="font-size:10px;color:rgba(245,240,234,.42);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${top}</div>` : ''}
@@ -3299,7 +3307,7 @@ function _renderWrongListFromRemote(items) {
   const firstAttempts = first.attempt_count || 0;
   const firstPct = firstAttempts ? Math.round((first.correct_count || 0) / firstAttempts * 100) : 0;
   let html = _wrongPanelGuide();
-  html += _weakSummaryCard(firstLaw, first.wrong_count || 0, firstPct, `<button class="weak-action-primary" onclick="_drillLawAuto(${JSON.stringify(firstLaw)})">練這部</button>`);
+  html += _weakSummaryCard(firstLaw, first.wrong_count || 0, firstPct, _weakLawActionButton(firstLaw, 'weak-action-primary'));
   html += _weakSourceNote();
   html += `<div class="weak-section-title">所有弱點法規</div>`;
   list.forEach(item => {
@@ -3321,7 +3329,7 @@ function _renderWrongListFromRemote(items) {
           ${bar}
           ${top ? `<div class="weak-card-v" style="margin-top:6px">${sourceLabel}：${top}</div>` : ''}
         </div>
-        <button class="weak-action-soft" onclick="_drillLawAuto(${JSON.stringify(law)})">練這部</button>
+        ${_weakLawActionButton(law)}
       </div>
     </div>`;
   });
@@ -3380,7 +3388,7 @@ function _renderRailWeakness() {
     return `<div style="margin-bottom:8px">
       <div style="display:flex;align-items:center;justify-content:space-between;gap:4px">
         <span style="font-size:11px;color:var(--peach);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1">${esc(name)}</span>
-        <button class="weak-action-soft" onclick="_drillLawAuto(${JSON.stringify(name)})">練這部</button>
+        ${_weakLawActionButton(name)}
       </div>
       <div style="font-family:var(--mono);font-size:10px;color:var(--bad)">✗ ${wrong}題 &nbsp;<span style="color:rgba(245,240,234,.35)">${pct}%正確</span></div>
       ${bar}
@@ -3471,7 +3479,7 @@ function _renderWrongList() {
   const firstWeak = lawWrongs.length ? lawWrongs[0] : null;
   if(firstWeak) {
     const pct = Math.round((firstWeak.total - firstWeak.wrong) / firstWeak.total * 100);
-    html += _weakSummaryCard(firstWeak.name, firstWeak.wrong, pct, `<button class="weak-action-primary" onclick="_drillLawAuto(${JSON.stringify(firstWeak.name)})">練這部</button>`);
+    html += _weakSummaryCard(firstWeak.name, firstWeak.wrong, pct, _weakLawActionButton(firstWeak.name, 'weak-action-primary'));
   }
   html += _weakSourceNote();
   if(bank.length) {
@@ -3491,7 +3499,7 @@ function _renderWrongList() {
     if(bankLaws.length) {
       html += '<div class="weak-chip-row">';
       bankLaws.forEach(([law, cnt]) => {
-        html += `<button class="weak-chip" onclick="_drillWrongLaw(${JSON.stringify(law||'')})">${esc(law||'(未知)')} ×${cnt}</button>`;
+        html += _wrongLawChip(law, cnt);
       });
       html += '</div>';
     }
@@ -3516,7 +3524,7 @@ function _renderWrongList() {
               <div class="weak-law-meta">錯 ${wrong} 題 &nbsp;•&nbsp; <span style="color:${color}">${pct}% 正確</span></div>
             ${bar}
           </div>
-            <button class="weak-action-soft" onclick="_drillLawAuto(${JSON.stringify(name)})">練這部</button>
+            ${_weakLawActionButton(name)}
           </div>
         </div>`;
       });
@@ -3538,7 +3546,7 @@ function _renderWrongList() {
             <div class="weak-law-meta">錯 ${wrong} 題 &nbsp;•&nbsp; <span style="color:${color}">${pct}% 正確</span></div>
           ${bar}
         </div>
-          <button class="weak-action-soft" onclick="_drillLawAuto(${JSON.stringify(name)})">練這部</button>
+          ${_weakLawActionButton(name)}
         </div>
       </div>`;
       const hidden = lawWrongs.length - 1;
