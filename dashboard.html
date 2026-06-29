@@ -6968,6 +6968,77 @@ function _studyVal(id){
   return el ? String(el.value || '').trim() : '';
 }
 
+function buildStudyPlaylistFallbackItems(data, subject){
+  data = data || {};
+  var items = [];
+  var seen = new Set();
+  function pushItem(raw){
+    raw = raw || {};
+    var law = String(raw.law_name || raw.law || raw.lawName || '').trim();
+    var title = String(raw.title || raw.display_name || raw.name || law || '今日重點').trim();
+    if(!law && !title) return;
+    var articleNo = _normalizeArticleNo(raw.article_no || raw.article || raw.art || raw.articleNo || '');
+    var key = [law, articleNo, title].join('|');
+    if(seen.has(key)) return;
+    seen.add(key);
+    items.push({
+      law_name: law,
+      article_no: articleNo,
+      page_id: String(raw.page_id || raw.article_id || raw.articleId || raw.id || '').trim(),
+      title: title,
+      text: String(raw.text || raw.summary || raw.reason || '').replace(/\s+/g, ' ').trim(),
+      importance: String(raw.importance || raw.badge || '').trim()
+    });
+  }
+
+  var weakItems = data.weak_law_bridge && Array.isArray(data.weak_law_bridge.items)
+    ? data.weak_law_bridge.items
+    : [];
+  if(!weakItems.length && Array.isArray(window._latestWeakLawItems)) weakItems = window._latestWeakLawItems;
+  weakItems.forEach(function(law){
+    if(!law) return;
+    var lawName = String(law.law_name || law.law || law.name || '').trim();
+    if(!lawName) return;
+    var wrongCount = Number(law.wrong_count || law.wrong || law.miss_count || 0) || 0;
+    pushItem({
+      law_name: lawName,
+      article_no: law.article_no || law.article || '',
+      page_id: law.page_id || law.article_id || '',
+      title: law.title || ('弱點回練：' + lawName),
+      text: lawName + '最近答錯 ' + wrongCount + ' 次。先聽重點，再單刷一題確認。',
+      importance: '弱點'
+    });
+  });
+
+  var blocks = data.today && Array.isArray(data.today.blocks) ? data.today.blocks : [];
+  blocks.forEach(function(block){
+    if(!block) return;
+    var lawNames = Array.isArray(block.law_names) ? block.law_names : [];
+    var lawName = String(block.law_name || block.law || lawNames[0] || '').trim();
+    var title = String(block.display_name || block.title || block.name || lawName || '').trim();
+    if(!title) return;
+    var signal = String(block.question_signal || block.signal || '').trim();
+    var count = Number(block.question_count || block.count || 0) || 0;
+    var text = title + '是題庫常考區塊'
+      + (count ? '，常考 ' + count + ' 題' : '')
+      + (signal ? '；重點是' + signal : '')
+      + '。先聽一輪，再進單刷。';
+    pushItem({
+      law_name: lawName || title,
+      title: title,
+      text: text,
+      importance: '常考'
+    });
+  });
+
+  if(subject && subject !== 'all'){
+    items = items.filter(function(item){
+      return item.law_name || item.title;
+    });
+  }
+  return items.slice(0, 8);
+}
+
 async function loadStudyPlaylist(){
   var list = document.getElementById('study-playlist-list');
   var subjectEl = document.getElementById('study-playlist-subject');
@@ -6978,10 +7049,11 @@ async function loadStudyPlaylist(){
   try{
     var res = await _fetchJSON(API + '/api/playlist?track=bookkeeper&subject=' + encodeURIComponent(subject) + '&content_layer=analysis&star_min=3&limit=8', { headers: _authH({}) }, 1);
     var items = res && Array.isArray(res.items) ? res.items : [];
+    if(!items.length) items = buildStudyPlaylistFallbackItems(window.__studyTodayData || {}, subject);
     if(!items.length){
       window.__studyPlaylistAudioItems = [];
-      list.innerHTML = '<div class="study-empty">目前沒有可朗讀的重點；先回選擇題累積弱點。</div>';
-      _setStudyPlaylistStatus('目前沒有可朗讀的重點；先回選擇題累積弱點。');
+      list.innerHTML = '<div class="study-empty">今天還沒有弱點或題庫重點可朗讀；先做一題，系統會接上。</div>';
+      _setStudyPlaylistStatus('今天還沒有弱點或題庫重點可朗讀；先做一題，系統會接上。');
       return;
     }
     window.__studyPlaylistAudioItems = items.map(function(item){
@@ -7008,8 +7080,10 @@ async function loadStudyPlaylist(){
       var readerHref = 'law-preview.html?law=' + encodeURIComponent(law)
         + (itemId ? '&id=' + encodeURIComponent(itemId) : '')
         + (articleNo ? '&art=' + encodeURIComponent(articleNo) : '');
+      var meta = [item.importance || '', item.law_name || ''].filter(Boolean).join(' · ');
+      if(displayArticleNo || item.article_no) meta += (meta ? ' · ' : '') + '第 ' + (displayArticleNo || item.article_no) + ' 條';
       return '<div class="study-playlist-item" data-playlist-index="' + idx + '">'
-        + '<span class="meta">' + esc(item.importance || '') + ' · ' + esc(item.law_name || '') + ' · 第 ' + esc(displayArticleNo || item.article_no || '') + ' 條</span>'
+        + '<span class="meta">' + esc(meta || '今日重點') + '</span>'
         + '<span class="title">' + esc(displayTitle || '重點條文') + '</span>'
         + '<span class="text">' + esc(text || '這條還沒有重點整理，先看原文。') + '</span>'
         + '<span class="study-playlist-actions">'

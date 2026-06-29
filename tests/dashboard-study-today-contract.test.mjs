@@ -219,6 +219,23 @@ test('study playlist article-reader links use law preview instead of dashboard s
   assert.doesNotMatch(fn, /#search/);
 });
 
+test('study playlist falls back to today weakness and topic blocks when playlist API is empty', () => {
+  assert.match(active, /function buildStudyPlaylistFallbackItems/);
+  const fallback = extractFunction(active, 'buildStudyPlaylistFallbackItems');
+  assert.match(fallback, /weak_law_bridge/);
+  assert.match(fallback, /_latestWeakLawItems/);
+  assert.match(fallback, /today\.blocks/);
+  assert.match(fallback, /wrongCount/);
+  assert.match(fallback, /答錯/);
+  assert.match(fallback, /常考/);
+  assert.match(fallback, /slice\(0,\s*8\)/);
+
+  const load = extractFunction(active, 'loadStudyPlaylist');
+  assert.match(load, /buildStudyPlaylistFallbackItems\(window\.__studyTodayData \|\| \{\},\s*subject\)/);
+  assert.match(load, /今天還沒有弱點或題庫重點可朗讀/);
+  assert.doesNotMatch(load, /先回選擇題累積弱點/);
+});
+
 test('dashboard law plus article deep links auto-open the target article', () => {
   const fn = extractFunction(active, '_handleUrlLaw');
   assert.match(fn, /params\.get\('law'\)/);
