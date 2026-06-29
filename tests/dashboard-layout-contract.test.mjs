@@ -333,6 +333,14 @@ test('mobile daily bar prioritizes the exam-pass loop', () => {
   assert.doesNotMatch(html, /mdb-fill|sofa_fill_daily_/);
 });
 
+test('desktop top exam-loop entries keep app-sized hit targets', () => {
+  assert.match(html, /\.top-mid a\{\s*[\s\S]*min-width:44px/);
+  assert.match(html, /\.top-mid a\{\s*[\s\S]*min-height:44px/);
+  assert.match(html, /\.top-mid a\{\s*[\s\S]*display:inline-flex/);
+  assert.match(html, /\.top-mid a\{\s*[\s\S]*align-items:center/);
+  assert.match(html, /\.top-mid a\{\s*[\s\S]*justify-content:center/);
+});
+
 test('mobile tool cards keep short usage hints visible', () => {
   assert.doesNotMatch(html, /\.tool \.desc\{display:none\}/);
   assert.match(html, /\.tool \.desc\{\s*display:block/);

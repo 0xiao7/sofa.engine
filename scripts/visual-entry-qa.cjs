@@ -238,7 +238,12 @@ async function dashboardCase(browser, baseUrl, name, viewport) {
   }
   const boxes = {};
   boxes.brand = await assertTapTarget(page, '.topbar .brand', `${name} brand`);
-  for (const [selector, label] of checks) boxes[label] = await assertClickable(page, selector, label);
+  for (const [selector, label] of checks) {
+    const needsTouchTarget = viewport.width <= 768 || label.startsWith('desktop top');
+    boxes[label] = needsTouchTarget
+      ? await assertTapTarget(page, selector, label)
+      : await assertClickable(page, selector, label);
+  }
   if (viewport.width <= 768) {
     await assertNotCoveredBy(page, '#study-next-plan', '#mobile-daily-bar', `${name} next study card`);
     await assertNotCoveredBy(page, '#study-cockpit-recap a[href="quiz.html?open=weakness"]', '#mobile-daily-bar', `${name} weakness CTA`);
@@ -278,10 +283,10 @@ async function quizCase(browser, baseUrl) {
     document.getElementById('quiz-answer-actions').scrollIntoView({ block: 'center' });
   });
   const boxes = {
-    article: await assertClickable(page, '#view-article-btn', 'post-answer article CTA'),
-    weakness: await assertClickable(page, '#view-weakness-btn', 'post-answer weakness CTA'),
-    next: await assertClickable(page, '#btnNext', 'post-answer next CTA'),
-    flag: await assertClickable(page, '#btnFlag', 'post-answer flag CTA')
+    article: await assertTapTarget(page, '#view-article-btn', 'post-answer article CTA'),
+    weakness: await assertTapTarget(page, '#view-weakness-btn', 'post-answer weakness CTA'),
+    next: await assertTapTarget(page, '#btnNext', 'post-answer next CTA'),
+    flag: await assertTapTarget(page, '#btnFlag', 'post-answer flag CTA')
   };
   const targetUrl = await page.evaluate(() => {
     const oldOpen = window.open;

@@ -24,6 +24,15 @@ test('post-answer actions place next question next to view article', () => {
   assert.doesNotMatch(active.slice(footStart, footEnd), /id="btnFlag"/, 'do not leave a second flag button below the fold');
 });
 
+test('post-answer action buttons keep mobile tap targets', () => {
+  assert.match(active, /#view-article-btn\s*\{[\s\S]*min-height:\s*44px/);
+  assert.match(active, /#view-weakness-btn\s*\{[\s\S]*min-height:\s*44px/);
+  assert.match(active, /#quiz-answer-actions #btnNext\s*\{[\s\S]*min-height:\s*44px/);
+  assert.match(active, /#quiz-answer-actions #btnFlag\s*\{[\s\S]*min-height:\s*44px/);
+  assert.match(active, /document\.getElementById\('view-article-btn'\)\.style\.display = 'inline-flex'/);
+  assert.match(active, /document\.getElementById\('view-weakness-btn'\)\.style\.display = 'inline-flex'/);
+});
+
 test('answer toast stays out of the question title area', () => {
   const rule = active.match(/#ans-toast\{[^}]+\}/)?.[0] || '';
   assert.match(rule, /right:24px/);
