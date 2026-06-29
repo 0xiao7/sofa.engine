@@ -4907,6 +4907,20 @@ var _drPageId = '';
 var _drLawName = '';
 var _drArticle = '';
 
+function focusArticleReaderLanding(){
+  setTimeout(function(){
+    var drawer = document.querySelector('.drawer.open') || document.querySelector('.drawer');
+    var body = document.getElementById('dr-body');
+    var target = document.getElementById('drawer-original') || body || drawer;
+    if(drawer && drawer.scrollIntoView) drawer.scrollIntoView({behavior:'smooth', block:'start'});
+    if(body && body.scrollTo) body.scrollTo({top:0, behavior:'smooth'});
+    if(target){
+      if(!target.hasAttribute('tabindex')) target.setAttribute('tabindex','-1');
+      try{ target.focus({preventScroll:true}); }catch(e){}
+    }
+  }, 120);
+}
+
 function openDrawer(pageId, lawName, article){
   // 統一去除可能的 § 前綴，避免 §§ 重複顯示
   var artClean = (article||'').replace(/^§+/, '');
@@ -5039,13 +5053,14 @@ function searchAndOpen(lawName, artNum){
   fetch(API + '/api/articles?law=' + encodeURIComponent(lawName))
     .then(function(r){ return r.ok ? r.json() : null; })
     .then(function(d){
-      if(!d || !d.articles){ openDrawer('', lawName, artNum); return; }
+      if(!d || !d.articles){ openDrawer('', lawName, artNum); focusArticleReaderLanding(); return; }
       var found = d.articles.filter(function(a){
         return _articleNoFromRecord(a) === targetArt;
       })[0];
       openDrawer(found ? found.id : '', lawName, artNum);
+      focusArticleReaderLanding();
     })
-    .catch(function(){ openDrawer('', lawName, artNum); });
+    .catch(function(){ openDrawer('', lawName, artNum); focusArticleReaderLanding(); });
 }
 
 var FONT_KEY = 'sofa_read_fontsize';
@@ -8418,8 +8433,7 @@ function _handleUrlOpen(){
   var pid = params.get('open');
   if(!pid) return;
   openDrawer(decodeURIComponent(pid), decodeURIComponent(params.get('law')||''), decodeURIComponent(params.get('art')||''));
-  var sec = document.getElementById('search');
-  if(sec) setTimeout(function(){ sec.scrollIntoView({behavior:'smooth', block:'start'}); }, 80);
+  focusArticleReaderLanding();
 }
 
 // tree / 考運羅盤 funnel：?law=<法名> 落地→自動把該法搜出來，讓考生在站內讀

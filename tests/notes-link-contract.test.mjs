@@ -6,7 +6,7 @@ import vm from 'node:vm';
 const html = readFileSync(new URL('../notes.html', import.meta.url), 'utf8');
 const active = html.replace(/<!--[\s\S]*?-->/g, '');
 
-test('notes article links preserve sub-article numbers for dashboard deep links', () => {
+test('notes article links preserve sub-article numbers for article-reader links', () => {
   const start = active.indexOf('function artNum');
   const end = active.indexOf('function render', start);
   assert.ok(start >= 0 && end > start, 'notes helpers should be extractable');
@@ -17,10 +17,11 @@ test('notes article links preserve sub-article numbers for dashboard deep links'
   assert.equal(helpers.artNum('43之3'), '43之3');
 });
 
-test('notes page sends both law and article to dashboard instead of only opening a generic search', () => {
-  assert.match(active, /dashboard\.html\?open=/);
-  assert.match(active, /&law=/);
+test('notes page sends saved notes to the exact article reader instead of dashboard search', () => {
+  assert.match(active, /law-preview\.html\?law=/);
+  assert.match(active, /&id=/);
   assert.match(active, /&art=/);
-  assert.match(active, /\+ '#search'/);
+  assert.doesNotMatch(active, /dashboard\.html\?open=/);
+  assert.doesNotMatch(active, /\+ '#search'/);
   assert.match(active, /encodeURIComponent\(num\)/);
 });

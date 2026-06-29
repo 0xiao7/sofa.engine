@@ -184,7 +184,7 @@
     try{ return new Date(iso).toLocaleDateString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'}); }
     catch(e){ return ''; }
   }
-  // 「第 13 條」/「13之1」/「第十三條之一」→ 取數字段給 dashboard ?art=
+  // 「第 13 條」/「13之1」/「第十三條之一」→ 取數字段給條文閱讀器 ?art=
   function artNum(s){
     var raw = (s||'').replace(/\s+/g,'').trim();
     var ch = '[0-9０-９一二三四五六七八九十百千零兩两]+';
@@ -194,6 +194,12 @@
     return m ? m[1] : '';
   }
   function artLabel(s){ s=(s||'').trim(); if(!s) return ''; return /條/.test(s)?s:('§'+s); }
+  function articleReaderHref(note, num){
+    var href = 'law-preview.html?law=' + encodeURIComponent(note.lawName || '');
+    if(note.articleId) href += '&id=' + encodeURIComponent(note.articleId);
+    if(num) href += '&art=' + encodeURIComponent(num);
+    return href;
+  }
 
   function render(){
     var notes = window.notesStore ? notesStore.all() : [];
@@ -217,10 +223,7 @@
     btn.style.display = '';
     grid.innerHTML = notes.map(function(n){
       var num = artNum(n.articleNo);
-      var href = 'dashboard.html?open=' + encodeURIComponent(n.articleId)
-        + (n.lawName ? '&law=' + encodeURIComponent(n.lawName) : '')
-        + (num ? '&art=' + encodeURIComponent(num) : '')
-        + '#search';
+      var href = articleReaderHref(n, num);
       return '<a class="nc" href="' + href + '">'
         + '<div class="meta">'
         +   '<span class="law">' + esc(n.lawName || '——') + '</span>'
