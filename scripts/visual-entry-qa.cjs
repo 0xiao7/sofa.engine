@@ -83,6 +83,31 @@ function apiPayload(url) {
       }
     };
   }
+  if (u.pathname === '/api/articles' && u.searchParams.get('law') === '記帳士法') {
+    return {
+      law_name: '記帳士法',
+      count: 2,
+      articles: [
+        { id: 'law-preview-13', law_name: '記帳士法', article_no: '13', title: '§ 13｜登錄事項', importance: '★★' },
+        { id: 'law-preview-13-1', law_name: '記帳士法', article_no: '13之1', title: '§ 13之1｜視覺驗收副條', importance: '★★★' }
+      ]
+    };
+  }
+  if (u.pathname === '/api/article/law-preview-13-1') {
+    return {
+      page_id: 'law-preview-13-1',
+      id: 'law-preview-13-1',
+      law_name: '記帳士法',
+      article_no: '13之1',
+      title: '第 13 條之 1｜視覺驗收副條',
+      original_text: '視覺驗收條文原文：讀法條深連結必須直接落到第十三條之一，並保留可讀的原文區塊。',
+      importance: '★★★',
+      _plan: 'paid',
+      sections: {
+        exam_tip: '從題目點看法條時，必須直接看到該條，不要只回到搜尋或法規首頁。'
+      }
+    };
+  }
   if (u.pathname === '/api/me/study/today') {
     return {
       display_name: '記帳士',
@@ -306,6 +331,32 @@ async function quizCase(browser, baseUrl) {
   return { name: 'quiz-actions-mobile', screenshot, boxes, targetUrl };
 }
 
+async function lawPreviewCase(browser, baseUrl) {
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true });
+  await installApiMocks(page);
+  await page.goto(`${baseUrl}/law-preview.html?law=${encodeURIComponent('記帳士法')}&art=13%E4%B9%8B1`, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('#detailTitle', { state: 'visible', timeout: 9000 });
+  await page.waitForFunction(() => /第\s*13\s*條之\s*1|第十三條之一|13之1/.test(document.querySelector('#detailTitle')?.innerText || ''), { timeout: 9000 });
+  const title = await page.locator('#detailTitle').innerText();
+  const original = await page.locator('#originalText').innerText();
+  if (!/13\s*條之\s*1|13之1/.test(title)) {
+    throw new Error(`law preview did not land on the requested sub-article: ${title}`);
+  }
+  if (!/第十三條之一|深連結/.test(original)) {
+    throw new Error(`law preview original text did not render the requested article: ${original}`);
+  }
+  const boxes = {
+    title: await assertClickable(page, '#detailTitle', 'law preview requested article title'),
+    original: await assertClickable(page, '#originalText', 'law preview original text'),
+    cta: await assertTapTarget(page, '.cta-btn', 'law preview bottom CTA')
+  };
+  await assertNotCoveredBy(page, '#originalText', '.cta-bar', 'law preview original text');
+  const screenshot = path.join(OUT_DIR, 'sofa-visual-law-preview-mobile.png');
+  await page.screenshot({ path: screenshot, fullPage: false });
+  await page.close();
+  return { name: 'law-preview-mobile', screenshot, boxes, title };
+}
+
 async function quizBehaviorCase(browser, baseUrl) {
   const answerPosts = [];
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true });
@@ -474,6 +525,7 @@ async function studyToolDeepLinkCase(browser, baseUrl) {
     results.push(await dashboardCase(browser, baseUrl, 'dashboard-mobile', { width: 390, height: 667 }));
     results.push(await dashboardCase(browser, baseUrl, 'dashboard-desktop', { width: 1440, height: 900 }));
     results.push(await quizCase(browser, baseUrl));
+    results.push(await lawPreviewCase(browser, baseUrl));
     results.push(await quizBehaviorCase(browser, baseUrl));
     results.push(await freeRetentionCase(browser, baseUrl));
     results.push(await statsCase(browser, baseUrl));

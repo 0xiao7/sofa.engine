@@ -28,6 +28,17 @@ test('visual entry QA checks quiz post-answer actions and article deep link', ()
   assert.match(script, /\[\?&\]art=88/);
 });
 
+test('visual entry QA opens the law reader deep link and checks native-safe controls', () => {
+  assert.match(script, /lawPreviewCase/);
+  assert.match(script, /law-preview\.html\?law=/);
+  assert.match(script, /art=13%E4%B9%8B1/);
+  assert.match(script, /#detailTitle/);
+  assert.match(script, /#originalText/);
+  assert.match(script, /\.cta-btn/);
+  assert.match(script, /assertNotCoveredBy\(page, '#originalText', '\.cta-bar'/);
+  assert.match(script, /sofa-visual-law-preview-mobile\.png/);
+});
+
 test('visual entry QA clicks a real mocked quiz answer and verifies answer ledger payload', () => {
   assert.match(script, /quizBehaviorCase/);
   assert.match(script, /\/api\/quiz/);

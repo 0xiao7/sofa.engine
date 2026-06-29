@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#142836">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -39,7 +39,7 @@ body{
   font-family:var(--sans);color:var(--cream);
   font-size:15px;line-height:1.75;
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
-  padding-bottom:80px; /* leave room for sticky CTA */
+  padding-bottom:calc(96px + env(safe-area-inset-bottom, 0px)); /* leave room for sticky CTA */
 }
 a{color:inherit;text-decoration:none}
 
@@ -48,7 +48,10 @@ a{color:inherit;text-decoration:none}
   position:sticky;top:0;z-index:10;
   background:rgba(20,40,54,.92);backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line-2);
-  padding:14px 28px;
+  padding-top:calc(14px + env(safe-area-inset-top, 0px));
+  padding-right:28px;
+  padding-bottom:14px;
+  padding-left:28px;
   display:flex;align-items:center;gap:16px;
 }
 .back-link{
@@ -256,7 +259,10 @@ a{color:inherit;text-decoration:none}
   background:linear-gradient(180deg,rgba(20,40,54,.4),rgba(13,28,40,.96));
   backdrop-filter:blur(12px);
   border-top:1px solid var(--line-2);
-  padding:18px 28px;
+  padding-top:18px;
+  padding-right:28px;
+  padding-bottom:calc(18px + env(safe-area-inset-bottom, 0px));
+  padding-left:28px;
   display:flex;align-items:center;justify-content:center;gap:14px;
   z-index:20;
 }
@@ -285,7 +291,12 @@ a{color:inherit;text-decoration:none}
 
 /* ── 手機 ──────────────────────────────── */
 @media (max-width:768px){
-  .topbar{padding:12px 18px}
+  .topbar{
+    padding-top:calc(12px + env(safe-area-inset-top, 0px));
+    padding-right:18px;
+    padding-bottom:12px;
+    padding-left:18px;
+  }
   .law-header{padding:28px 18px 20px}
   .law-header h1{font-size:26px}
   .context-bar{gap:14px 24px;padding-top:14px;margin-top:14px}
@@ -303,7 +314,14 @@ a{color:inherit;text-decoration:none}
   .detail h2{font-size:22px}
   .original-block{padding:18px 20px}
   .original-text{font-size:15.5px}
-  .cta-bar{padding:14px 18px;flex-direction:column;gap:10px}
+  .cta-bar{
+    padding-top:14px;
+    padding-right:18px;
+    padding-bottom:calc(14px + env(safe-area-inset-bottom, 0px));
+    padding-left:18px;
+    flex-direction:column;
+    gap:10px;
+  }
   .cta-text{font-size:14px;text-align:center}
 }
 </style>
@@ -546,11 +564,11 @@ function renderDetail(d){
   `).join('');
   detail.innerHTML = `
     ${chapter}
-    <h2>${escapeHtml(d.title || '')}</h2>
+    <h2 id="detailTitle">${escapeHtml(d.title || '')}</h2>
     <div class="detail-meta"><span class="stars">${stars}</span></div>
     <div class="original-block">
       <div class="original-label">條文原文</div>
-      <div class="original-text">${escapeHtml(d.original_text || '')}</div>
+      <div class="original-text" id="originalText">${escapeHtml(d.original_text || '')}</div>
     </div>
     ${cpiHtml}
     ${sectionHtml}

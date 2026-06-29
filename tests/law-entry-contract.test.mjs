@@ -73,6 +73,15 @@ test('law preview accepts common article deep-link aliases', () => {
   assert.match(preview, /const firstId = targetId && articlesCache\.find\(a => a\.id === targetId\)/);
 });
 
+test('law preview is native-safe inside the iOS shell', () => {
+  assert.match(preview, /<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">/);
+  assert.match(preview, /body\{[\s\S]*padding-bottom:calc\(96px \+ env\(safe-area-inset-bottom, 0px\)\)/);
+  assert.match(preview, /\.topbar\{[\s\S]*padding-top:calc\(14px \+ env\(safe-area-inset-top, 0px\)\)/);
+  assert.match(preview, /\.cta-bar\{[\s\S]*padding-bottom:calc\(18px \+ env\(safe-area-inset-bottom, 0px\)\)/);
+  assert.match(preview, /@media \(max-width:768px\)\{[\s\S]*\.topbar\{[\s\S]*padding-top:calc\(12px \+ env\(safe-area-inset-top, 0px\)\)/);
+  assert.match(preview, /@media \(max-width:768px\)\{[\s\S]*\.cta-bar\{[\s\S]*padding-bottom:calc\(14px \+ env\(safe-area-inset-bottom, 0px\)\)/);
+});
+
 test('law preview normalizes sub-articles before matching deep links', () => {
   const source = [
     extractFunction(preview, 'normalizeArticleNo'),
