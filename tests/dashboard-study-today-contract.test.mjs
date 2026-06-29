@@ -383,14 +383,21 @@ test('study today exposes a time-first planning box before schedule details', ()
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
   const recap = active.slice(recapStart, recapStart + 9000);
+  const flowSteps = recap.indexOf('id="study-flow-steps"');
   const timeBox = recap.indexOf('id="study-time-box"');
   const recommendPanel = recap.indexOf('id="study-recommend-panel"');
   const planPanel = recap.indexOf('id="study-plan-panel"');
+  assert.ok(flowSteps > -1, 'study planning flow steps must exist');
   assert.ok(timeBox > -1, 'time-first box must exist');
   assert.ok(recommendPanel > -1, 'recommendation panel must exist');
   assert.ok(planPanel > -1, 'private plan panel must exist');
+  assert.ok(flowSteps < timeBox, 'flow steps should explain the workflow before controls');
   assert.ok(timeBox < recommendPanel, 'time settings should explain the recommendation before the recommendation appears');
   assert.ok(timeBox < planPanel, 'time guidance should appear before private schedule controls');
+  assert.match(recap, /<div class="study-flow-steps" id="study-flow-steps" aria-label="讀書計畫三步驟"/);
+  assert.match(recap, /<b>1\. 設時間<\/b>[\s\S]*決定總時數、每週可讀和今天要留多久/);
+  assert.match(recap, /<b>2\. 預覽本週<\/b>[\s\S]*系統把弱點和私人課表排進空檔，不會自動寫入/);
+  assert.match(recap, /<b>3\. 排入計畫<\/b>[\s\S]*按「排入本週計畫」後才同步帳號/);
   assert.match(recap, /<div class="study-time-wrap" id="study-time-box"/);
   assert.match(recap, /id="study-time-summary"[\s\S]*500 小時目標/);
   assert.match(recap, /id="study-time-impact"[\s\S]*約 42 週/);
@@ -403,6 +410,9 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.match(active, /impact\.textContent = weeks \? \('約 ' \+ weeks \+ ' 週'\) : '先填時間'/);
   assert.match(active, /時間設定只先存在本機/);
   assert.match(active, /排入本週計畫/);
+  assert.match(active, /\.study-flow-steps\{[\s\S]*display:grid/);
+  assert.match(active, /\.study-flow-step b\{[\s\S]*font-family:var\(--serif\)/);
+  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-flow-steps\{grid-template-columns:1fr\}/);
   assert.doesNotMatch(active, /\/api\/me\/study\/settings/);
 });
 
