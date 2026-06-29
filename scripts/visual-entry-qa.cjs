@@ -253,6 +253,23 @@ async function assertNotCoveredBy(page, selector, coverSelector, label) {
   return result;
 }
 
+async function assertWithinContainer(page, childSelector, containerSelector, label) {
+  const result = await page.evaluate(({ childSelector, containerSelector }) => {
+    const child = document.querySelector(childSelector);
+    const container = document.querySelector(containerSelector);
+    if (!child || !container) return { ok: false, reason: 'missing element' };
+    const childBox = child.getBoundingClientRect();
+    const containerBox = container.getBoundingClientRect();
+    return {
+      ok: childBox.left >= containerBox.left - 1 && childBox.right <= containerBox.right + 1,
+      child: { left: childBox.left, right: childBox.right, width: childBox.width },
+      container: { left: containerBox.left, right: containerBox.right, width: containerBox.width }
+    };
+  }, { childSelector, containerSelector });
+  if (!result.ok) throw new Error(`${label}: overflows container (${JSON.stringify(result)})`);
+  return result;
+}
+
 async function dashboardCase(browser, baseUrl, name, viewport) {
   const page = await browser.newPage({ viewport, deviceScaleFactor: viewport.width <= 480 ? 2 : 1, isMobile: viewport.width <= 480 });
   await installApiMocks(page);
@@ -551,9 +568,16 @@ async function studyToolDeepLinkCase(browser, baseUrl) {
     }
     const actionBox = await assertTapTarget(page, item.action, item.label);
     await assertNotCoveredBy(page, item.action, '#mobile-daily-bar', `${item.name} first action`);
+    let containment = null;
+    if (item.name === 'study-tool-record') {
+      containment = {};
+      for (const selector of ['#study-record-date', '#study-record-subject', '#study-record-minutes', '#study-record-note']) {
+        containment[selector] = await assertWithinContainer(page, selector, '#study-record-panel', `${item.name} ${selector}`);
+      }
+    }
     const screenshot = path.join(OUT_DIR, `sofa-visual-study-tool-${item.name}.png`);
     await page.screenshot({ path: screenshot, fullPage: false });
-    results.push({ name: item.name, screenshot, actionBox });
+    results.push({ name: item.name, screenshot, actionBox, containment });
     await page.close();
   }
   return { name: 'study-tool-deep-links-mobile', results };
