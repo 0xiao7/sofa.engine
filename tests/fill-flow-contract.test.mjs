@@ -70,8 +70,8 @@ test('fill answer sections show loading and fallback instead of blank panel', ()
   assert.match(checkAnswers, /renderFillSections\(panel,\s*\{\},\s*true\)/);
 });
 
-test('fill source links keep article numbers separate from long titles for dashboard deep links', () => {
-  assert.match(active, /function fillDashboardArticleHref/);
+test('fill source links keep article numbers separate from long titles for reader deep links', () => {
+  assert.match(active, /function fillArticleReaderHref/);
   assert.match(active, /function fillArticleNo/);
 
   const checkStart = active.indexOf('function checkAnswers');
@@ -80,21 +80,21 @@ test('fill source links keep article numbers separate from long titles for dashb
   assert.ok(checkEnd > checkStart, 'source link should be built before history write');
   const checkAnswers = active.slice(checkStart, checkEnd);
 
-  assert.match(checkAnswers, /fillDashboardArticleHref\(fillData\)/);
+  assert.match(checkAnswers, /fillArticleReaderHref\(fillData\)/);
   assert.doesNotMatch(checkAnswers, /&art=\$\{encodeURIComponent\(fillData\.title\)\}/);
 });
 
 test('fill source link helper preserves sub-article numbers in either title order', () => {
   const helpers = vm.runInNewContext([
     extractFunction(active, 'fillArticleNo'),
-    extractFunction(active, 'fillDashboardArticleHref'),
-    '({fillArticleNo, fillDashboardArticleHref})',
+    extractFunction(active, 'fillArticleReaderHref'),
+    '({fillArticleNo, fillArticleReaderHref})',
   ].join('\n'));
 
   assert.equal(helpers.fillArticleNo({ title: '第43條之3 CFC' }), '43之3');
   assert.equal(helpers.fillArticleNo({ title: '第43之3條 CFC' }), '43之3');
   assert.match(
-    helpers.fillDashboardArticleHref({ id: 'income-43-3', law_name: '所得稅法', title: '第43條之3 CFC' }),
-    /art=43%E4%B9%8B3#search$/,
+    helpers.fillArticleReaderHref({ id: 'income-43-3', law_name: '所得稅法', title: '第43條之3 CFC' }),
+    /^law-preview\.html\?law=%E6%89%80%E5%BE%97%E7%A8%85%E6%B3%95&id=income-43-3&art=43%E4%B9%8B3$/,
   );
 });

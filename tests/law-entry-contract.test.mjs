@@ -8,14 +8,14 @@ const fill = readFileSync(new URL('../fill.html', import.meta.url), 'utf8');
 const preview = readFileSync(new URL('../law-preview.html', import.meta.url), 'utf8');
 const tree = readFileSync(new URL('../tree.html', import.meta.url), 'utf8');
 
-test('practice full article action deep-links to the dashboard article drawer', () => {
-  assert.match(practice, /id="prSourceLink"[\s\S]*href="dashboard\.html#search"/);
+test('practice full article action deep-links to the article reader', () => {
+  assert.match(practice, /id="prSourceLink"[\s\S]*href="law-preview\.html"/);
   assert.match(practice, /id="prSourceLink"[\s\S]*開完整法條 →/);
   assert.match(practice, /function _practiceArticleHref/);
-  assert.match(practice, /u\.searchParams\.set\('open', _prArtId\)/);
+  assert.match(practice, /new URL\('law-preview\.html', location\.href\)/);
+  assert.match(practice, /u\.searchParams\.set\('id', _prArtId\)/);
   assert.match(practice, /searchParams\.set\('law', law\)/);
   assert.match(practice, /searchParams\.set\('art', art\)/);
-  assert.match(practice, /searchParams\.set\('q', law\)/);
   assert.match(practice, /btn\.href = _practiceArticleHref\(\)/);
   assert.doesNotMatch(practice, /btn\.addEventListener\('click',\(\)=>\{[\s\S]*prArtInline/);
 });

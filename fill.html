@@ -1509,18 +1509,14 @@ function fillArticleNo(data){
   m = raw.match(new RegExp('^第?(' + ch + ')條?'));
   return m ? m[1] : raw;
 }
-function fillDashboardArticleHref(data){
+function fillArticleReaderHref(data){
   const law = String((data && data.law_name) || '');
   const art = fillArticleNo(data);
+  let href = 'law-preview.html?law=' + encodeURIComponent(law);
   if(data && data.id){
-    return 'dashboard.html?open=' + encodeURIComponent(data.id)
-      + (law ? '&law=' + encodeURIComponent(law) : '')
-      + (art ? '&art=' + encodeURIComponent(art) : '')
-      + '#search';
+    href += '&id=' + encodeURIComponent(data.id);
   }
-  return 'dashboard.html?q=' + encodeURIComponent(law)
-    + (art ? '&art=' + encodeURIComponent(art) : '')
-    + '#search';
+  return href + (art ? '&art=' + encodeURIComponent(art) : '');
 }
 
 function checkAnswers(){
@@ -1577,7 +1573,7 @@ function checkAnswers(){
   updateBlankList();
   if(fillData.id&&fillData.title){
     const src=document.getElementById('sourceBox');
-    src.innerHTML=`出自 <a href="${fillDashboardArticleHref(fillData)}" style="color:var(--peach)">《${esc(fillData.law_name||'')}》${esc(fillData.title)}</a>`;
+    src.innerHTML=`出自 <a href="${fillArticleReaderHref(fillData)}" style="color:var(--peach)">《${esc(fillData.law_name||'')}》${esc(fillData.title)}</a>`;
     src.style.display='block';
   }
   // 寫入練習紀錄

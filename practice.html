@@ -596,7 +596,7 @@
         </button>
       </div>
 
-      <a id="prSourceLink" href="dashboard.html#search" style="display:none;margin-top:14px;background:transparent;border:1px solid var(--peach-dim);color:var(--peach);font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:6px 12px;border-radius:2px;cursor:pointer">開完整法條 →</a>
+      <a id="prSourceLink" href="law-preview.html" style="display:none;margin-top:14px;background:transparent;border:1px solid var(--peach-dim);color:var(--peach);font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:6px 12px;border-radius:2px;cursor:pointer">開完整法條 →</a>
       <div id="prArtInline" style="display:none;margin-top:12px;padding:14px 16px;background:rgba(245,240,234,.04);border-left:2px solid var(--peach);font-size:14.5px;line-height:1.95;color:var(--cream);white-space:pre-wrap"></div>
 
       <div id="sectionsBox" class="sec-panel" style="display:none"></div>
@@ -1053,15 +1053,13 @@ let _prArticleNo='';
 function _practiceArticleHref(){
   const law=(_prLawName||'').trim();
   const art=(_prArticleNo||'').trim();
-  const u=new URL('dashboard.html', location.href);
+  const u=new URL('law-preview.html', location.href);
   if(_prArtId){
-    u.searchParams.set('open', _prArtId);
+    u.searchParams.set('id', _prArtId);
   }
   if(law) u.searchParams.set('law', law);
   if(art) u.searchParams.set('art', art);
-  if(!_prArtId && law) u.searchParams.set('q', law);
-  u.hash = 'search';
-  return u.pathname.split('/').pop() + u.search + u.hash;
+  return u.pathname.split('/').pop() + u.search;
 }
 // 得分點：金額/期間/百分比/數量（與 mode3 挖空同一套規則）；抓不到回 []
 function _prKeyTokens(text){
