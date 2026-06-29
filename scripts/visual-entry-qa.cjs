@@ -179,6 +179,8 @@ async function installApiMocks(page, options = {}) {
     });
   });
   await page.addInitScript(() => {
+    localStorage.removeItem('sofa.study.localPlan.v1');
+    localStorage.removeItem('sofa.study.saveNudgeDismissed.v1');
     localStorage.setItem('sofa_uid', 'VISUAL_QA');
     localStorage.setItem('sofa_token', 'VISUAL_QA_TOKEN');
     localStorage.setItem('sofa_nickname', '視覺驗收');
@@ -545,6 +547,48 @@ async function studyToolDeepLinkCase(browser, baseUrl) {
   return { name: 'study-tool-deep-links-mobile', results };
 }
 
+async function studyPlanFlowCase(browser, baseUrl) {
+  const page = await browser.newPage({ viewport: { width: 390, height: 667 }, deviceScaleFactor: 2, isMobile: true });
+  await installApiMocks(page);
+  await page.goto(`${baseUrl}/dashboard.html#study-plan`, { waitUntil: 'domcontentloaded' });
+  await page.waitForSelector('#study-plan-panel.on', { state: 'visible', timeout: 9000 });
+  await page.fill('#study-plan-title', '視覺驗收課程');
+  await page.fill('#study-plan-subject', '租稅申報實務');
+  await page.fill('#study-plan-count', '2');
+  await page.fill('#study-plan-start', '2026-07-01');
+  await page.click('#study-plan-panel .study-plan-save');
+  await page.waitForFunction(() => /已先排入本機|已排入/.test(document.querySelector('#study-plan-items')?.innerText || ''), null, { timeout: 9000 });
+  let overview = await page.locator('#study-overview-status').innerText();
+  let nav = await page.locator('#nav-ct-plan').innerText();
+  if (!/待讀 2 \/ 完成 0/.test(overview) || !/待2 完0/.test(nav)) {
+    throw new Error(`study plan save did not update visible counts: ${JSON.stringify({ overview, nav })}`);
+  }
+  const nextStudyButton = '.study-next-plan [data-next-study-key]';
+  await page.locator(nextStudyButton).first().scrollIntoViewIfNeeded();
+  await assertTapTarget(page, nextStudyButton, 'next study completion');
+  await page.click(nextStudyButton);
+  await page.waitForFunction(() => /待讀 1 \/ 完成 1/.test(document.querySelector('#study-overview-status')?.innerText || ''), null, { timeout: 9000 });
+  overview = await page.locator('#study-overview-status').innerText();
+  nav = await page.locator('#nav-ct-plan').innerText();
+  if (!/待讀 1 \/ 完成 1/.test(overview) || !/待1 完1/.test(nav)) {
+    throw new Error(`study plan completion did not update visible counts: ${JSON.stringify({ overview, nav })}`);
+  }
+  await page.evaluate(() => location.hash = '#study-record');
+  await page.waitForSelector('#study-record-panel.on', { state: 'visible', timeout: 9000 });
+  await page.fill('#study-record-note', '視覺驗收補紀錄');
+  await page.click('#study-record-panel .study-plan-save');
+  await page.waitForFunction(() => /待讀 1 \/ 完成 2/.test(document.querySelector('#study-overview-status')?.innerText || ''), null, { timeout: 9000 });
+  const message = await page.locator('#study-plan-items .study-plan-count').first().innerText();
+  if (!/補紀錄|已先保存|已同步/.test(message)) {
+    throw new Error(`study record save result is not visible outside the closed panel: ${message}`);
+  }
+  await assertNotCoveredBy(page, '#study-overview-status', '#mobile-daily-bar', 'study overview status');
+  const screenshot = path.join(OUT_DIR, 'sofa-visual-study-plan-flow-mobile.png');
+  await page.screenshot({ path: screenshot, fullPage: false });
+  await page.close();
+  return { name: 'study-plan-flow-mobile', screenshot, overview, nav, message };
+}
+
 (async () => {
   const { chromium } = maybePlaywright();
   const chrome = findChrome();
@@ -567,6 +611,7 @@ async function studyToolDeepLinkCase(browser, baseUrl) {
     results.push(await freeRetentionCase(browser, baseUrl));
     results.push(await statsCase(browser, baseUrl));
     results.push(await studyToolDeepLinkCase(browser, baseUrl));
+    results.push(await studyPlanFlowCase(browser, baseUrl));
     console.log(JSON.stringify({ ok: true, root: ROOT, results }, null, 2));
   } finally {
     await browser.close();

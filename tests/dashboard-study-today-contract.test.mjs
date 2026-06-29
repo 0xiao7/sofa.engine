@@ -271,7 +271,7 @@ test('study playlist is a generic text fallback and does not ship private schedu
   assert.match(active, /\/api\/playlist\?track=bookkeeper/);
   assert.match(active, /content_layer=analysis/);
   assert.match(active, /star_min=3/);
-  assert.match(active, /重點朗讀，先聽最常考/);
+  assert.match(active, /重點清單，能朗讀也能單刷/);
   assert.match(active, /aria-label="通勤重點朗讀清單"/);
   assert.match(active, /aria-label="重點清單科目"/);
   assert.doesNotMatch(active, /播放清單/);
@@ -315,8 +315,15 @@ test('study playlist falls back to today weakness and topic blocks when playlist
 
   const load = extractFunction(active, 'loadStudyPlaylist');
   assert.match(load, /buildStudyPlaylistFallbackItems\(window\.__studyTodayData \|\| \{\},\s*subject\)/);
-  assert.match(load, /今天還沒有弱點或題庫重點可朗讀/);
+  assert.match(load, /重點清單目前還空/);
   assert.doesNotMatch(load, /先回選擇題累積弱點/);
+});
+
+test('empty study playlist explains the list and offers a direct first-question action', () => {
+  const fn = extractFunction(active, 'loadStudyPlaylist');
+  assert.match(fn, /重點清單目前還空/);
+  assert.match(fn, /href="quiz\.html"[\s\S]*先做一題/);
+  assert.match(active, /\.study-empty-action\{[\s\S]*min-height:36px/);
 });
 
 test('open study playlist refreshes when weak laws arrive after the panel opened', () => {
@@ -326,6 +333,7 @@ test('open study playlist refreshes when weak laws arrive after the panel opened
   assert.match(refresh, /classList\.contains\('on'\)/);
   assert.match(refresh, /__studyPlaylistAudioItems/);
   assert.match(refresh, /今天還沒有弱點或題庫重點可朗讀/);
+  assert.match(refresh, /重點清單目前還空/);
   assert.match(refresh, /loadStudyPlaylist\(\)/);
 
   const render = extractFunction(active, 'renderWeakLaws');
@@ -571,6 +579,26 @@ test('study today supports private pasted schedule imports without law search co
   assert.doesNotMatch(active, /搜尋法條|自動查法條|對應法條/);
 });
 
+test('study plan pasted natural example is actually parseable', () => {
+  assert.match(active, /function _parseNaturalStudyPlanItems/);
+  const source = [
+    extractFunction(active, '_studyImportStatus'),
+    extractFunction(active, '_normalizeStudyImportItem'),
+    extractFunction(active, '_parseNaturalStudyPlanItems')
+  ].join('\n');
+  const sandbox = {};
+  vm.createContext(sandbox);
+  vm.runInContext(`${source}; this.parseNatural = _parseNaturalStudyPlanItems;`, sandbox);
+  const items = sandbox.parseNatural('7/3 19:00 會計學第 4 堂；7/5 10:00 租稅申報實務複習');
+  assert.equal(items.length, 2);
+  assert.match(items[0].scheduled_date, /^\d{4}-07-03$/);
+  assert.equal(items[0].scheduled_time, '19:00');
+  assert.equal(items[0].source_label, '貼上課表');
+  assert.match(items[0].title, /會計學第 4 堂/);
+  assert.match(items[1].title, /租稅申報實務複習/);
+  assert.match(extractFunction(active, '_parseStudyPlanImport'), /_parseNaturalStudyPlanItems\(text\)/);
+});
+
 test('study planning has one visible map that explains where each result lands', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
@@ -592,6 +620,14 @@ test('study planning has one visible map that explains where each result lands',
   assert.match(active, /下方就是同一份清單/);
   assert.match(active, /\.study-plan-map\{[\s\S]*display:grid/);
   assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-plan-map\{grid-template-columns:1fr\}/);
+});
+
+test('study plan updates the left guide with waiting and completed counts', () => {
+  assert.match(active, /id="nav-ct-plan"/);
+  assert.match(active, /function renderStudyPlanNavCount/);
+  const fn = extractFunction(active, 'renderStudyPlanNavCount');
+  assert.match(fn, /待' \+ waiting \+ ' 完' \+ done/);
+  assert.match(extractFunction(active, 'renderStudyPlanItems'), /renderStudyPlanNavCount\(actionable, completedAll\)/);
 });
 
 test('study today renders personal plan items returned by the study API', () => {
@@ -643,7 +679,8 @@ test('study next plan card can mark the next item complete without hunting the l
   const nextFn = extractFunction(active, 'renderStudyNextPlan');
   assert.match(nextFn, /_studyItemKey\(next\)/);
   assert.match(nextFn, /data-next-study-key/);
-  assert.match(nextFn, /completeStudyItem\(/);
+  assert.match(nextFn, /data-study-action-kind="done"/);
+  assert.match(active, /if\(kind === 'done'\) completeStudyItem\(key\)/);
   assert.match(nextFn, /完成這堂/);
   assert.match(nextFn, /aria-label="完成這堂讀書計畫"/);
 });
@@ -935,6 +972,13 @@ test('local study plan items can be completed postponed or cancelled from the li
   assert.match(active, /完成/);
   assert.match(active, /改下週/);
   assert.match(active, /取消/);
+  assert.match(active, /data-study-action-kind="done"/);
+  assert.match(active, /data-study-action-kind="postpone"/);
+  assert.match(active, /data-study-action-kind="cancel"/);
+  assert.match(active, /document\.addEventListener\('click', function\(event\)/);
+  assert.doesNotMatch(active, /onclick="completeStudyItem/);
+  assert.doesNotMatch(active, /onclick="postponeStudyItem/);
+  assert.doesNotMatch(active, /onclick="cancelStudyItem/);
   assert.match(active, /local\.items = \(local\.items \|\| \[\]\)\.map/);
   assert.match(active, /renderStudyPlanItems\(_mergeStudyPlan\(null\)\)/);
   assert.doesNotMatch(active, /updateLocalStudyItemStatus[\s\S]{0,500}correct_count/);
@@ -951,13 +995,14 @@ test('remote study plan actions persist status before falling back locally', () 
 });
 
 test('remote study plan action failures keep the item visible with a clear message', () => {
+  const fn = extractFunction(active, 'updateStudyItemStatus');
   assert.match(active, /function setStudyPlanActionMessage/);
   assert.match(active, /同步失敗，這筆雲端計畫還沒改動/);
-  assert.match(active, /fallbackItems = latest && latest\.personal_plan \? latest\.personal_plan : \{ items: window\.__studyPlanItemCache \|\| \[\] \}/);
-  assert.match(active, /renderStudyPlanItems\(_mergeStudyPlan\(fallbackItems\)\)/);
-  assert.match(active, /class="study-plan-count warn"/);
-  assert.match(active, /throw new Error\('reschedule failed'\)/);
-  assert.match(active, /throw new Error\('status failed'\)/);
+  assert.match(fn, /fallbackItems = latestFallback && latestFallback\.personal_plan \? latestFallback\.personal_plan : \{ items: window\.__studyPlanItemCache \|\| \[\] \}/);
+  assert.match(fn, /renderStudyPlanItems\(_mergeStudyPlan\(fallbackItems\)\)/);
+  assert.match(active, /window\.__studyPlanActionMessage\.indexOf\('失敗'\) >= 0 \? 'warn' : 'done'/);
+  assert.match(fn, /throw new Error\('reschedule failed'\)/);
+  assert.match(fn, /throw new Error\('status failed'\)/);
 });
 
 test('study today builds concrete local suggestions from time weakness and plan data', () => {
@@ -1034,6 +1079,18 @@ test('study plan next actions ignore completed cancelled and stale items', () =>
   assert.match(active, /var actionable = _actionableStudyItems\(items\)/);
   assert.match(active, /var next = actionable\[0\] \|\| \{\}/);
   assert.match(active, /var items = _actionableStudyItems\(mergedPlan && Array\.isArray\(mergedPlan\.items\) \? mergedPlan\.items : \[\]\)/);
+});
+
+test('study plan actions show pending state and saved results outside closed panels', () => {
+  assert.match(active, /function setStudyItemPending/);
+  assert.match(active, /data-study-action-key/);
+  assert.match(active, /data-next-study-key/);
+  assert.match(extractFunction(active, 'updateStudyItemStatus'), /setStudyItemPending\(key, true, pendingLabel\)/);
+  assert.match(extractFunction(active, 'updateStudyItemStatus'), /finally[\s\S]*setStudyItemPending\(key, false\)/);
+  assert.match(extractFunction(active, 'saveStudySeries'), /setStudyPlanActionMessage\('已排入/);
+  assert.match(extractFunction(active, 'saveStudyRecordLocal'), /setStudyPlanActionMessage\(message \|\| '補紀錄已保存/);
+  assert.match(extractFunction(active, 'saveStudyPlanImport'), /setStudyPlanActionMessage\('已匯入/);
+  assert.match(extractFunction(active, 'renderStudyPlanItems'), /window\.__studyPlanActionMessage[\s\S]*study-plan-count/);
 });
 
 test('study planning reconnects local progress after serial login', () => {

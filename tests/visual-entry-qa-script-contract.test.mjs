@@ -99,6 +99,18 @@ test('visual entry QA checks study tool deep links in the mobile app shell', () 
   assert.match(script, /sofa-visual-study-tool-/);
 });
 
+test('visual entry QA exercises study plan save complete and record flow', () => {
+  assert.match(script, /studyPlanFlowCase/);
+  assert.match(script, /#study-plan-panel \.study-plan-save/);
+  assert.match(script, /data-next-study-key/);
+  assert.match(script, /#study-record-panel \.study-plan-save/);
+  assert.ok(script.includes('待讀 2 \\/ 完成 0'));
+  assert.ok(script.includes('待讀 1 \\/ 完成 1'));
+  assert.ok(script.includes('待讀 1 \\/ 完成 2'));
+  assert.match(script, /#nav-ct-plan/);
+  assert.match(script, /sofa-visual-study-plan-flow-mobile\.png/);
+});
+
 test('visual entry QA is safe to run without production writes', () => {
   assert.match(script, /page\.route\('https:\/\/sofa-engine-api\.onrender\.com\/\*\*'/);
   assert.match(script, /route\.fulfill/);

@@ -599,6 +599,12 @@
   .study-block .sub{font-size:12px;color:rgba(245,240,234,.5);grid-column:1 / -1}
   .study-block .sig{font-family:var(--mono);font-size:11px;color:var(--peach);white-space:nowrap}
   .study-empty{font-size:13px;color:rgba(245,240,234,.52);padding-top:2px}
+  .study-empty-action{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-height:36px;margin-top:10px;padding:6px 12px;border:1px solid rgba(231,187,167,.36);
+    color:var(--peach);text-decoration:none;background:rgba(231,187,167,.08)
+  }
+  .study-empty-action:hover{background:rgba(231,187,167,.14)}
   .study-actions{
     border-bottom:1px dashed var(--line);
     padding-bottom:14px;
@@ -1644,7 +1650,7 @@
       .study-action-label{display:none}
       .study-next-plan{min-height:44px;padding:8px 10px}
       .study-next-plan-actions{gap:6px}
-      .study-next-plan a,.study-next-plan button{min-height:34px;padding:6px 9px}
+      .study-next-plan a,.study-next-plan button{min-height:44px;padding:7px 10px}
     }
     .study-time-box{grid-template-columns:1fr}
     .study-time-summary-card{align-items:flex-start;flex-wrap:wrap}
@@ -3317,7 +3323,7 @@
           <a href="#study-cockpit-recap" data-spy-target="study-cockpit-recap"><span class="num">T1</span>今天先做<span class="ct" id="nav-ct-study"></span></a>
           <a href="#study-weak-brief" data-spy-target="study-weak-brief"><span class="num">T2</span>今日弱點<span class="ct" id="nav-ct-weak">0</span></a>
           <a href="#study-time-box" data-spy-target="study-time-box"><span class="num">T3</span>讀書時間<span class="ct"></span></a>
-          <a href="#study-plan-items" data-spy-target="study-plan-items"><span class="num">T4</span>讀書計畫<span class="ct"></span></a>
+          <a href="#study-plan-items" data-spy-target="study-plan-items"><span class="num">T4</span>讀書計畫<span class="ct" id="nav-ct-plan"></span></a>
           <a href="#quiz-recap" data-spy-target="quiz-recap"><span class="num">T5</span>最近作答<span class="ct"></span></a>
           <a href="#weak-laws-recap" data-spy-target="weak-laws-recap"><span class="num">T6</span>弱點法規<span class="ct"></span></a>
           <a href="#review-due" data-spy-target="review-due"><span class="num">T7</span>今日複習<span class="ct" id="nav-ct-due">0</span></a>
@@ -3444,7 +3450,7 @@
               <div class="study-playlist-head">
                 <div class="study-playlist-title">
                   <span>FOCUS</span>
-                  <b>重點朗讀，先聽最常考</b>
+                  <b>重點清單，能朗讀也能單刷</b>
                 </div>
                 <div class="study-playlist-tools">
                   <select id="study-playlist-subject" aria-label="重點清單科目">
@@ -4502,6 +4508,22 @@ function setStudyPlanActionMessage(message){
   window.__studyPlanActionMessage = message || '';
 }
 
+function _cssAttrEscape(value){
+  value = String(value || '');
+  if(window.CSS && typeof window.CSS.escape === 'function') return window.CSS.escape(value);
+  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
+function setStudyItemPending(key, pending, label){
+  var selector = '[data-study-action-key="' + _cssAttrEscape(key) + '"],[data-next-study-key="' + _cssAttrEscape(key) + '"]';
+  document.querySelectorAll(selector).forEach(function(btn){
+    if(!btn.dataset.idleLabel) btn.dataset.idleLabel = btn.textContent || '';
+    btn.disabled = !!pending;
+    if(pending) btn.textContent = label || '處理中…';
+    else btn.textContent = btn.dataset.idleLabel || btn.textContent || '完成';
+  });
+}
+
 function _findStudyPlanItem(key){
   var items = Array.isArray(window.__studyPlanItemCache) ? window.__studyPlanItemCache : [];
   for(var i=0;i<items.length;i++){
@@ -4514,45 +4536,63 @@ async function updateStudyItemStatus(key, status, shiftDays){
   var item = _findStudyPlanItem(key);
   var token = localStorage.getItem('sofa_token') || '';
   var uid = localStorage.getItem('sofa_uid') || '';
-  if(item && item.id && (token || uid)){
-    try{
-      if(shiftDays){
-        var movedDate = _datePlusDays(item.scheduled_date || _todayInputValue(), shiftDays);
-        var moved = await _fetchStudyJSON(API + '/api/me/study/plan-item/' + encodeURIComponent(item.id) + '/reschedule', {
+  var pendingLabel = status === 'done' ? '完成中…' : (shiftDays ? '改期中…' : '更新中…');
+  setStudyItemPending(key, true, pendingLabel);
+  try{
+    if(item && item.id && (token || uid)){
+      try{
+        if(shiftDays){
+          var movedDate = _datePlusDays(item.scheduled_date || _todayInputValue(), shiftDays);
+          var moved = await _fetchStudyJSON(API + '/api/me/study/plan-item/' + encodeURIComponent(item.id) + '/reschedule', {
+            method: 'POST',
+            headers: _authH({'Content-Type':'application/json'}),
+            body: JSON.stringify({ scheduled_date:movedDate, scheduled_time:item.scheduled_time || '', scope:'single' })
+          });
+          if(!moved || !moved.ok) throw new Error('reschedule failed');
+        }
+        var res = await _fetchStudyJSON(API + '/api/me/study/plan-item/' + encodeURIComponent(item.id) + '/status', {
           method: 'POST',
           headers: _authH({'Content-Type':'application/json'}),
-          body: JSON.stringify({ scheduled_date:movedDate, scheduled_time:item.scheduled_time || '', scope:'single' })
+          body: JSON.stringify({ status:status })
         });
-        if(!moved || !moved.ok) throw new Error('reschedule failed');
-      }
-      var res = await _fetchStudyJSON(API + '/api/me/study/plan-item/' + encodeURIComponent(item.id) + '/status', {
-        method: 'POST',
-        headers: _authH({'Content-Type':'application/json'}),
-        body: JSON.stringify({ status:status })
-      });
-      if(res && res.ok){
-        var latest = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
-        renderStudyToday(latest || null);
+        if(res && res.ok){
+          var latest = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
+          renderStudyToday(latest || null);
+          focusStudyPlanItems();
+          return;
+        }
+        throw new Error('status failed');
+      }catch(e){
+        setStudyPlanActionMessage('同步失敗，這筆雲端計畫還沒改動；請稍後再試。');
+        var latestFallback = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
+        var fallbackItems = latestFallback && latestFallback.personal_plan ? latestFallback.personal_plan : { items: window.__studyPlanItemCache || [] };
+        renderStudyPlanItems(_mergeStudyPlan(fallbackItems));
         focusStudyPlanItems();
         return;
       }
-      throw new Error('status failed');
-    }catch(e){
-      setStudyPlanActionMessage('同步失敗，這筆雲端計畫還沒改動；請稍後再試。');
-      var latest = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
-      var fallbackItems = latest && latest.personal_plan ? latest.personal_plan : { items: window.__studyPlanItemCache || [] };
-      renderStudyPlanItems(_mergeStudyPlan(fallbackItems));
-      focusStudyPlanItems();
-      return;
     }
+    setStudyPlanActionMessage('');
+    updateLocalStudyItemStatus(key, status, shiftDays);
+  } finally {
+    setStudyItemPending(key, false);
   }
-  setStudyPlanActionMessage('');
-  updateLocalStudyItemStatus(key, status, shiftDays);
 }
 
 function completeStudyItem(key){ updateStudyItemStatus(key, 'done', 0); }
 function postponeStudyItem(key){ updateStudyItemStatus(key, 'postponed', 7); }
 function cancelStudyItem(key){ updateStudyItemStatus(key, 'cancelled', 0); }
+
+document.addEventListener('click', function(event){
+  var btn = event.target && event.target.closest ? event.target.closest('[data-study-action-kind]') : null;
+  if(!btn) return;
+  var key = btn.getAttribute('data-study-action-key') || btn.getAttribute('data-next-study-key') || '';
+  if(!key) return;
+  event.preventDefault();
+  var kind = btn.getAttribute('data-study-action-kind');
+  if(kind === 'done') completeStudyItem(key);
+  else if(kind === 'postpone') postponeStudyItem(key);
+  else if(kind === 'cancel') cancelStudyItem(key);
+});
 
 function _mergeStudyPlan(remotePlan){
   var local = _studyLocal();
@@ -4597,6 +4637,14 @@ function renderStudyPlanningOverview(items){
   if(statusNote){
     statusNote.textContent = '按「完成這堂」才算完成；補紀錄不會改答題正確率。';
   }
+}
+
+function renderStudyPlanNavCount(actionable, completed){
+  var el = document.getElementById('nav-ct-plan');
+  if(!el) return;
+  var waiting = actionable && actionable.length ? actionable.length : 0;
+  var done = completed && completed.length ? completed.length : 0;
+  el.textContent = waiting || done ? ('待' + waiting + ' 完' + done) : '';
 }
 
 function renderStudyCloudState(remotePlan){
@@ -7314,6 +7362,7 @@ function refreshOpenStudyPlaylistFromWeakCache(){
   var currentText = list.textContent || '';
   var looksEmpty = !audioItems.length
     || currentText.indexOf('今天還沒有弱點或題庫重點可朗讀') >= 0
+    || currentText.indexOf('重點清單目前還空') >= 0
     || currentText.indexOf('目前沒有可朗讀') >= 0;
   if(!looksEmpty) return;
   loadStudyPlaylist();
@@ -7332,8 +7381,8 @@ async function loadStudyPlaylist(){
     if(!items.length) items = buildStudyPlaylistFallbackItems(window.__studyTodayData || {}, subject);
     if(!items.length){
       window.__studyPlaylistAudioItems = [];
-      list.innerHTML = '<div class="study-empty">今天還沒有弱點或題庫重點可朗讀；先做一題，系統會接上。</div>';
-      _setStudyPlaylistStatus('今天還沒有弱點或題庫重點可朗讀；先做一題，系統會接上。');
+      list.innerHTML = '<div class="study-empty">重點清單目前還空；先做一題，答題紀錄會變成可朗讀、可單刷的重點。<br><a class="study-empty-action" href="quiz.html">先做一題</a></div>';
+      _setStudyPlaylistStatus('重點清單目前還空；先做一題，系統會接上可朗讀的重點。');
       return;
     }
     window.__studyPlaylistAudioItems = items.map(function(item){
@@ -7415,14 +7464,19 @@ function renderStudyPlanItems(plan){
   renderStudyTimeOutcome(items);
   renderStudyNextPlan(items);
   renderStudyPlanMap(items);
+  var actionable = _actionableStudyItems(items);
+  var completedAll = _completedStudyItems(items);
+  renderStudyPlanNavCount(actionable, completedAll);
+  var actionMessage = window.__studyPlanActionMessage
+    ? '<div class="study-plan-count ' + (window.__studyPlanActionMessage.indexOf('失敗') >= 0 ? 'warn' : 'done') + '">' + esc(window.__studyPlanActionMessage) + '</div>'
+    : '';
   if(!items.length){
-    el.innerHTML = '<div class="study-plan-count"><b>目前還沒有私人讀書計畫</b><br>可以排函授、補習班課程、模考或自己的週任務。'
+    el.innerHTML = actionMessage + '<div class="study-plan-count"><b>目前還沒有私人讀書計畫</b><br>可以排函授、補習班課程、模考或自己的週任務。'
       + '<br>要新增時，回上方「整理」點設定讀書課程。</div>';
     scheduleActiveNavRefresh();
     return;
   }
-  var actionable = _actionableStudyItems(items);
-  var completed = _completedStudyItems(items).slice(0,5);
+  var completed = completedAll.slice(0,5);
   var completedHtml = completed.length
     ? '<div class="study-plan-count done"><b>最近完成 / 補紀錄</b>：' + completed.length + ' 筆已留下狀態。</div>'
       + completed.map(function(item){
@@ -7436,15 +7490,12 @@ function renderStudyPlanItems(plan){
       }).join('')
     : '';
   if(!actionable.length){
-    el.innerHTML = '<div class="study-plan-count">目前沒有待讀的私人計畫；完成或取消的項目不會再被排成下一步。</div>' + completedHtml;
+    el.innerHTML = actionMessage + '<div class="study-plan-count">目前沒有待讀的私人計畫；完成或取消的項目不會再被排成下一步。</div>' + completedHtml;
     scheduleActiveNavRefresh();
     return;
   }
   var next = actionable[0] || {};
   var nextText = [next.scheduled_date || '', next.scheduled_time || '', next.title || next.subject || '讀書計畫'].filter(Boolean).join(' · ');
-  var actionMessage = window.__studyPlanActionMessage
-    ? '<div class="study-plan-count warn">' + esc(window.__studyPlanActionMessage) + '</div>'
-    : '';
   var summary = '<div class="study-plan-count"><b>接下來</b>：' + actionable.length + ' 筆'
     + (nextText ? '；下一筆：<b>' + esc(nextText) + '</b>' : '')
     + '<br>完成、改期或取消都會保留紀錄。'
@@ -7455,9 +7506,9 @@ function renderStudyPlanItems(plan){
     var canEdit = item.source_label !== '補紀錄 ' + (item.minutes || '') + ' 分鐘';
     var learningActions = studyPlanItemActionLinks(item);
     var editActions = canEdit
-      ? '<button class="primary" type="button" onclick="completeStudyItem(' + JSON.stringify(key) + ')">完成</button>'
-        + '<button type="button" onclick="postponeStudyItem(' + JSON.stringify(key) + ')">改下週</button>'
-        + '<button class="warn" type="button" onclick="cancelStudyItem(' + JSON.stringify(key) + ')">取消</button>'
+      ? '<button class="primary" type="button" data-study-action-kind="done" data-study-action-key="' + esc(key) + '">完成</button>'
+        + '<button type="button" data-study-action-kind="postpone" data-study-action-key="' + esc(key) + '">改下週</button>'
+        + '<button class="warn" type="button" data-study-action-kind="cancel" data-study-action-key="' + esc(key) + '">取消</button>'
       : '';
     var actionHtml = learningActions || editActions
       ? '<span class="study-plan-actions">' + learningActions + editActions + '</span>'
@@ -7510,7 +7561,7 @@ function renderStudyNextPlan(items){
       + esc([when, source + '今天留 ' + minutes + ' 分鐘；讀完直接按「完成這堂」。'].filter(Boolean).join(' · '))
       + '</span></span><span class="study-next-plan-actions">'
       + learningActions
-      + '<button type="button" data-next-study-key="' + esc(key) + '" aria-label="完成這堂讀書計畫" onclick="completeStudyItem(' + JSON.stringify(key) + ')">完成這堂</button>'
+      + '<button type="button" data-study-action-kind="done" data-next-study-key="' + esc(key) + '" data-study-action-key="' + esc(key) + '" aria-label="完成這堂讀書計畫">完成這堂</button>'
       + '<a href="#study-plan-items">看讀書計畫</a></span>';
     return;
   }
@@ -7566,6 +7617,28 @@ function _studyImportStatus(raw){
   if(s === 'past') return 'done';
   if(s === 'future') return 'planned';
   return ['planned','done','skipped','postponed','cancelled'].indexOf(s) >= 0 ? s : 'planned';
+}
+
+function _parseNaturalStudyPlanItems(text){
+  var year = new Date().getFullYear();
+  return String(text || '').split(/[；;\n]+/).map(function(part, idx){
+    var line = part.trim();
+    if(!line) return null;
+    var m = line.match(/(?:^|\s)(\d{1,2})[\/.-](\d{1,2})(?:\s+(\d{1,2}:\d{2}))?\s+(.+)$/);
+    if(!m) return null;
+    var month = String(m[1]).padStart(2, '0');
+    var day = String(m[2]).padStart(2, '0');
+    var title = String(m[4] || '').trim();
+    var subject = title.replace(/第\s*\d+\s*堂.*/, '').replace(/\d+\s*$/, '').trim() || title;
+    return _normalizeStudyImportItem({
+      scheduled_date: year + '-' + month + '-' + day,
+      scheduled_time: m[3] || '',
+      subject: subject,
+      title: title,
+      source_label: '貼上課表',
+      notes: '由課表文字匯入'
+    }, idx);
+  }).filter(Boolean);
 }
 
 function _normalizeStudyImportItem(raw, idx){
@@ -7656,7 +7729,8 @@ async function saveStudyRecordLocal(){
     minutes: minutes,
     notes: '本機補紀錄'
   };
-  function saveLocalRecord(savedRecord){
+  function saveLocalRecord(savedRecord, message){
+    setStudyPlanActionMessage(message || '補紀錄已保存；下方最近完成會留下狀態。');
     var local = _studyLocal();
     local.records = (local.records || []).concat([savedRecord]);
     _saveStudyLocal(local);
@@ -7679,20 +7753,20 @@ async function saveStudyRecordLocal(){
         var hoursLog = res.hours_log || {};
         record.remote_hours_log_id = hoursLog.id || '';
         record.notes = '雲端補紀錄';
-        saveLocalRecord(record);
+        saveLocalRecord(record, '已同步補紀錄到讀書時數；下方最近完成會留下狀態。');
         tell('已同步到你的讀書時數；答題正確率不會被補紀錄改動。');
         return;
       }
-      saveLocalRecord(record);
+      saveLocalRecord(record, '已先保存補紀錄；帳號同步稍後再試。');
       tell(_studySaveMessage(res, '已先存在本機；答題正確率不會被補紀錄改動。'));
       return;
     }catch(e){
-      saveLocalRecord(record);
+      saveLocalRecord(record, '已先保存補紀錄在本機；網路穩定後再同步。');
       tell('已先存在本機；網路暫時不穩，答題正確率不會被補紀錄改動。');
       return;
     }
   }
-  saveLocalRecord(record);
+  saveLocalRecord(record, '已先保存補紀錄在本機；輸入序號後可接回帳號。');
   tell('已先存在本機；登入後可再接回序號，答題正確率不會被補紀錄改動。');
 }
 
@@ -7705,6 +7779,8 @@ function _parseStudyPlanImport(){
     var rows = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.items) ? parsed.items : []);
     return rows.map(_normalizeStudyImportItem).filter(Boolean);
   }catch(e){}
+  var naturalItems = _parseNaturalStudyPlanItems(text);
+  if(naturalItems.length) return naturalItems;
   var lines = text.split(/\r?\n/).map(function(line){ return line.trim(); }).filter(Boolean);
   if(!lines.length) return [];
   var first = _splitStudyCsvLine(lines[0]).map(function(x){ return x.replace(/^\uFEFF/, '').trim(); });
@@ -7738,6 +7814,7 @@ async function saveStudyPlanImport(){
     return;
   }
   if(!uid && !token){
+    setStudyPlanActionMessage('已匯入本機 ' + items.length + ' 筆私人計畫；下方待讀清單可以逐筆完成。');
     _addLocalStudyItems(items);
     tell('已先存在本機 ' + items.length + ' 筆；登入後再同步帳號。');
     var localPanel = document.getElementById('study-plan-panel');
@@ -7753,6 +7830,7 @@ async function saveStudyPlanImport(){
       body: JSON.stringify({ track_key:'bookkeeper', source_label:'匯入課表', import_source:'pasted_schedule', items:items })
     });
     if(res && res.ok){
+      setStudyPlanActionMessage('已匯入 ' + (res.count || items.length) + ' 筆私人計畫；下方待讀清單可以逐筆完成。');
       _addLocalStudyItems(items);
       tell('已匯入 ' + (res.count || items.length) + ' 筆私人計畫。');
       var remotePanel = document.getElementById('study-plan-panel');
@@ -7761,10 +7839,12 @@ async function saveStudyPlanImport(){
       var latest = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
       renderStudyToday(latest || null);
     } else {
+      setStudyPlanActionMessage('已先匯入本機；帳號同步稍後再試。');
       _addLocalStudyItems(items);
       tell(_studySaveMessage(res, '已先存在本機；帳號同步稍後再試。'));
     }
   }catch(e){
+    setStudyPlanActionMessage('已先匯入本機；網路穩定後再同步。');
     _addLocalStudyItems(items);
     tell('網路暫時不穩，已先存在本機。');
   }
@@ -7795,6 +7875,7 @@ async function saveStudySeries(){
   };
   var localItems = _studySeriesItems(body);
   if(!uid && !token){
+    setStudyPlanActionMessage('已排入本機 ' + localItems.length + ' 堂；下方待讀清單可以逐堂完成。');
     _addLocalStudyItems(localItems);
     tell('已先存在本機 ' + localItems.length + ' 堂；登入後再同步帳號。');
     var localPanel = document.getElementById('study-plan-panel');
@@ -7811,17 +7892,21 @@ async function saveStudySeries(){
       body: JSON.stringify(body)
     });
     if(res && (res.ok || res.items || res.series_id)){
-      _addLocalStudyItems(Array.isArray(res.items) ? res.items : localItems);
+      var savedItems = Array.isArray(res.items) ? res.items : localItems;
       var made = Array.isArray(res.items) ? res.items.length : count;
+      setStudyPlanActionMessage('已排入 ' + made + ' 堂；下方待讀清單可以逐堂完成。');
+      _addLocalStudyItems(savedItems);
       tell('已排入 ' + made + ' 堂；之後可以再單堂改期。');
       var panel = document.getElementById('study-plan-panel');
       if(panel) panel.classList.remove('on');
       setStudyPanelMode('closed');
     } else {
+      setStudyPlanActionMessage('已先排入本機；帳號同步稍後再試。');
       _addLocalStudyItems(localItems);
       tell(_studySaveMessage(res, '已先存在本機；帳號同步稍後再試。'));
     }
   }catch(e){
+    setStudyPlanActionMessage('已先排入本機；網路穩定後再同步。');
     _addLocalStudyItems(localItems);
     tell('網路暫時不穩，已先存在本機。');
   }finally{
