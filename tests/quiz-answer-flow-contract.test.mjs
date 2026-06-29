@@ -31,6 +31,32 @@ test('post-answer action buttons keep mobile tap targets', () => {
   assert.match(active, /#quiz-answer-actions #btnFlag\s*\{[\s\S]*min-height:\s*44px/);
   assert.match(active, /document\.getElementById\('view-article-btn'\)\.style\.display = 'inline-flex'/);
   assert.match(active, /document\.getElementById\('view-weakness-btn'\)\.style\.display = 'inline-flex'/);
+  assert.match(active, /function showQuizAnswerActions\(\)/);
+  assert.match(active, /actions\.classList\.add\('show'\)/);
+  assert.match(active, /scrollIntoView\(\{block:'center', behavior:'auto'\}\)/);
+});
+
+test('mobile post-answer actions stay inside the iOS viewport', () => {
+  const mediaStart = active.indexOf('@media (max-width:760px)');
+  assert.ok(mediaStart >= 0, 'mobile media query must exist');
+  const media = active.slice(mediaStart, mediaStart + 5200);
+  assert.match(media, /\.stage\{[\s\S]*overflow-x:hidden/);
+  assert.match(media, /\.inner\{[\s\S]*max-width:100%/);
+  assert.match(media, /#quiz-answer-actions\{[\s\S]*display:grid/);
+  assert.match(media, /#quiz-answer-actions\.show\{[\s\S]*display:grid/);
+  assert.match(media, /#quiz-answer-actions button\{[\s\S]*width:100%/);
+  assert.match(media, /#quiz-answer-actions button\{[\s\S]*min-width:0/);
+  assert.match(media, /#quiz-answer-actions #quiz-citation\{[\s\S]*grid-column:1 \/ -1/);
+});
+
+test('mobile quiz set map grid cannot overflow its rail card', () => {
+  assert.match(active, /\.qgrid\{display:grid;grid-template-columns:repeat\(5,1fr\);gap:6px\}/);
+  const mediaStart = active.indexOf('@media (max-width:760px)');
+  assert.ok(mediaStart >= 0, 'mobile media query must exist');
+  const media = active.slice(mediaStart, mediaStart + 5600);
+  assert.match(media, /\.rail-card\{[\s\S]*min-width:0/);
+  assert.match(media, /\.qgrid\{[\s\S]*grid-template-columns:repeat\(4,minmax\(0,1fr\)\)/);
+  assert.match(media, /\.qcell\{[\s\S]*min-width:0/);
 });
 
 test('answer toast stays out of the question title area', () => {
@@ -94,7 +120,8 @@ test('quiz usage hint is near the question instead of hidden at the page bottom'
 
   assert.match(between, /id="quiz-use-hint"/);
   assert.match(between, /作答提示/);
-  assert.match(between, /選答案後，先看原文，再看解析或下一題/);
+  assert.match(between, /選完先看原文；再看解析或下一題/);
+  assert.doesNotMatch(between, /選答案後，先看原文，再看解析或下一題/);
   assert.match(active, /class="quiz-key-hints"/);
   assert.match(active, /@media \(max-width:760px\)[\s\S]*?\.quiz-key-hints\{display:none\}/);
   assert.match(active, /#kb-hint\{display:none\}/);
@@ -123,7 +150,7 @@ test('law deep links bypass the exam picker banner', () => {
 
 test('app start links go straight to the question area without the exam picker gate', () => {
   assert.match(active, /const _startQuizParam = _searchParams\.get\('start'\) === '1'/);
-  assert.match(active, /html\.ios-reader-app \.stage\{padding-top:calc\(64px \+ env\(safe-area-inset-top, 0px\)\)\}/);
+  assert.match(active, /html\.ios-reader-app \.stage\{padding-top:calc\(34px \+ env\(safe-area-inset-top, 0px\)\)\}/);
   assert.match(active, /function _focusQuizQuestionStart/);
   assert.match(active, /document\.querySelector\('\.stage'\)/);
   assert.match(active, /scrollIntoView\(\{block:'start', behavior:'auto'\}\)/);
@@ -198,8 +225,13 @@ test('quiz view-article fallback opens the exact article when only law and artic
   assert.match(readerFn, /encodeURIComponent\(law\)/);
   assert.match(readerFn, /encodeURIComponent\(id\)/);
   assert.match(readerFn, /encodeURIComponent\(art\)/);
+  assert.match(readerFn, /from=quiz/);
   assert.match(active, /onclick="_openArticleReader\(\)">查看法條/);
-  assert.match(active, /window\.open\(_articleReaderHref\(_currentLawName, _currentArtNo, _currentPageId\), '_blank'\)/);
+  const openStart = active.indexOf('function _openArticleReader');
+  const openEnd = active.indexOf('let quizData', openStart);
+  const openFn = active.slice(openStart, openEnd);
+  assert.match(openFn, /window\.location\.href = _articleReaderHref\(_currentLawName, _currentArtNo, _currentPageId\)/);
+  assert.doesNotMatch(openFn, /window\.open/);
   assert.doesNotMatch(active, /url = 'dashboard\.html\?q=' \+ encodeURIComponent\(_currentLawName\);\s*\}/);
 });
 
@@ -315,6 +347,9 @@ test('answer explanation shows article text before analysis sections', () => {
   assert.match(active, /function showInlineArticleText/);
   assert.match(active, /條文原文載入中/);
   assert.match(active, /暫時沒有原文/);
+  assert.match(active, /\.art-inline\{[\s\S]*max-height:none/);
+  assert.match(active, /\.art-inline\{[\s\S]*font-size:clamp\(1rem, 3vw, 1\.08rem\)/);
+  assert.doesNotMatch(active, /\.art-inline\{[\s\S]*max-height:380px/);
 });
 
 test('paid answer explanation renders advanced analysis sections instead of hiding them', () => {
@@ -330,6 +365,26 @@ test('paid answer explanation renders advanced analysis sections instead of hidi
   assert.match(active, /相關法規及注意事項/);
 });
 
+test('signed-in learners are not treated as free while entitlement is uncertain', () => {
+  assert.match(active, /window\.__sofaPaid = !isFree/);
+  assert.match(active, /if\(!d\)\{ _setPaid\(true\); return; \}/);
+  assert.match(active, /_setPaid\(true\); \/\/ 未知 plan 字串/);
+  assert.match(active, /catch\(\(\) => \{ if\(timer\) clearTimeout\(timer\); _setPaid\(true\); \}/);
+  assert.match(active, /function articleSectionsArePaid\(article\)/);
+  assert.match(active, /if\(window\.__sofaPaid !== false && !isFree\) return true/);
+  assert.match(active, /buildSections\(art\.sections\|\|\{\},articleSectionsArePaid\(art\)/);
+});
+
+test('local quiz picks avoid recently shown articles before calling the API', () => {
+  assert.match(active, /const RECENT_QUIZ_ARTICLES_KEY = 'sofa_recent_quiz_articles_v1'/);
+  assert.match(active, /function rememberRecentQuizArticle/);
+  assert.match(active, /function pickNonRecentArticle/);
+  assert.match(active, /pickNonRecentArticle\(_wrongArts\)/);
+  assert.match(active, /pickNonRecentArticle\(_hiArts\)/);
+  assert.match(active, /pickNonRecentArticle\(_pool\)/);
+  assert.match(active, /rememberRecentQuizArticle\(pageId\)/);
+});
+
 test('quiz analysis linkifies sixth-section law references to the article reader', () => {
   const start = active.indexOf('function linkifyLawRefs');
   const end = active.indexOf('function formatSection', start);
@@ -343,6 +398,13 @@ test('quiz analysis linkifies sixth-section law references to the article reader
   const linkedNamedLaw = helpers.linkifyLawRefs('記帳士法第13條及第15條', '所得稅法');
   assert.match(linkedNamedLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=13/);
   assert.match(linkedNamedLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=15/);
+  const linkedPrefixedLaw = helpers.linkifyLawRefs('搭配公司法第29條經理人任免規定', '商業會計法');
+  assert.match(linkedPrefixedLaw, />公司法第29條</);
+  assert.doesNotMatch(linkedPrefixedLaw, />搭配公司法第29條</);
+  assert.doesNotMatch(linkedNamedLaw, /target="_blank"/);
+  assert.match(active, /function openCrossRefArticleInline/);
+  assert.match(active, /closest\('a\.crossref'\)/);
+  assert.match(active, /回本題原文/);
   assert.match(active, /formatSection\(sections\[name\],\s*articleLawName\)/);
 });
 
@@ -376,7 +438,7 @@ test('CPI-adjusted article answers always show a visible adjustment warning', ()
   assert.match(active, /作答時以考試年度與財政部公告額為準/);
   assert.match(active, /題目仍可考條文基準或比例/);
 
-  const callCount = (active.match(/buildSections\(art\.sections\|\|\{\},art\._plan!=='free',\s*document\.getElementById\('explainBox'\),document\.getElementById\('sourceBox'\),\s*art\)/g) || []).length;
+  const callCount = (active.match(/buildSections\(art\.sections\|\|\{\},articleSectionsArePaid\(art\),\s*document\.getElementById\('explainBox'\),document\.getElementById\('sourceBox'\),\s*art\)/g) || []).length;
   assert.equal(callCount, 2, 'normal quiz and wrong-review quiz should both pass article metadata into buildSections');
 });
 

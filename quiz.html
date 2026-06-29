@@ -53,7 +53,7 @@
   }
 
   .stage{padding:40px 64px 96px;background:var(--navy-3);position:relative;min-height:calc(100vh - 70px - 60px - 2px)}
-  html.ios-reader-app .stage{padding-top:calc(64px + env(safe-area-inset-top, 0px))}
+  html.ios-reader-app .stage{padding-top:calc(34px + env(safe-area-inset-top, 0px))}
   .stage::before{
     content:"";position:absolute;inset:0;
     background-image:
@@ -228,7 +228,7 @@
   .explain h3{
     font-family:var(--serif);font-weight:600;font-size:20px;margin-top:8px;color:var(--navy);
   }
-  .explain p{margin-top:12px;font-size:14.5px;line-height:1.85;color:rgba(31,56,72,.78)}
+  .explain p{margin-top:12px;font-size:clamp(.95rem, 2.7vw, 1rem);line-height:1.85;color:rgba(31,56,72,.78)}
   .explain p b{color:var(--navy);font-weight:600}
   .explain .kw{background:rgba(231,187,167,.45);padding:1px 5px;border-radius:2px;color:var(--navy);font-weight:600}
   .explain .src{
@@ -238,14 +238,14 @@
   }
   .explain .src a{color:var(--peach-3);font-weight:600}
   .explain .src button{background:none;border:none;padding:0;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--peach-3);font-weight:600}
-  .art-inline{margin-top:14px;padding:16px 20px;background:rgba(31,56,72,.06);border-radius:3px;max-height:380px;overflow-y:auto;font-family:"Songti TC",var(--serif);font-size:14.5px;line-height:2;color:rgba(31,56,72,.82);white-space:pre-wrap;display:none}
+  .art-inline{margin-top:14px;padding:16px 20px;background:rgba(31,56,72,.06);border-radius:3px;max-height:none;overflow:visible;font-family:"Songti TC",var(--serif);font-size:clamp(1rem, 3vw, 1.08rem);line-height:2;color:rgba(31,56,72,.82);white-space:pre-wrap;display:none}
   .art-inline.is-loading,
   .art-inline.is-empty{font-family:var(--sans);font-size:13px;line-height:1.8;color:rgba(31,56,72,.58);background:rgba(231,187,167,.16)}
 
   /* section analysis */
   .sec-block{margin-top:16px;padding-top:14px;border-top:1px dashed rgba(31,56,72,.15)}
   .sec-label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--peach-3);font-weight:600;margin-bottom:6px}
-  .sec-text{font-size:13px;line-height:1.85;color:rgba(31,56,72,.78)}
+  .sec-text{font-size:clamp(.94rem, 2.6vw, 1rem);line-height:1.85;color:rgba(31,56,72,.78)}
   .sec-text .crossref{color:var(--peach-3);text-decoration:underline;text-underline-offset:3px}
   .sec-text .sec-h{margin:10px 0 4px;color:var(--navy);font-weight:600}
   .sec-text .sec-h:first-child{margin-top:0}
@@ -339,7 +339,8 @@
   @media (max-width:760px){
     .pr-bar{padding:12px 18px}
     .pr-meta{gap:14px;font-size:11px}
-    .stage{padding:24px 18px 60px}
+    .stage{padding:18px 14px 56px;overflow-x:hidden}
+    .inner{max-width:100%;overflow-x:hidden}
     .q-head{flex-direction:column;align-items:flex-start;gap:14px}
     .q-head .src{text-align:left}
     .q-head .n{font-size:42px}
@@ -355,6 +356,9 @@
     .q-foot .l{display:none}            /* 鍵盤快捷提示在觸控手機無意義，收起 */
     .q-foot .r{flex-direction:column}
     .rail{flex-direction:column}
+    .rail-card{min-width:0;width:100%;box-sizing:border-box;padding:18px 16px}
+    .qgrid{grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+    .qcell{min-width:0}
     .quiz-use-hint{font-size:10.5px;gap:6px}
     .quiz-key-hints{display:none}
     .quiz-use-hint kbd{min-width:22px;height:22px;padding:0 6px}
@@ -382,6 +386,19 @@
     #btn-stats,#btn-open-weakness{min-height:44px;text-align:center;white-space:nowrap;flex:0 0 auto}
     .pr-chips{flex-wrap:nowrap;overflow-x:auto;gap:8px;-webkit-overflow-scrolling:touch}
     .pr-chips .lock-hint{display:none!important}
+    #quiz-answer-actions{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      width:100%;
+      max-width:100%;
+      gap:8px;
+      margin:16px 0 14px;
+      justify-items:stretch;
+    }
+    #quiz-answer-actions.show{display:grid}
+    #quiz-answer-actions #quiz-citation{grid-column:1 / -1;max-width:100%;min-width:0}
+    #quiz-answer-actions button{width:100%;min-width:0;padding:10px 9px;font-size:13px}
+    #quiz-answer-actions #btnNext,#quiz-answer-actions #btnFlag{min-width:0}
   }
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
@@ -834,7 +851,7 @@
         </div>
         <div class="quiz-use-hint" id="quiz-use-hint">
           <span class="lead">作答提示</span>
-          <span>選答案後，先看原文，再看解析或下一題</span>
+          <span>選完先看原文；再看解析或下一題</span>
           <span class="quiz-key-hints"><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd><kbd>4</kbd>選答案</span>
           <span class="quiz-key-hints"><kbd>Enter</kbd>下一題</span>
           <span class="quiz-key-hints"><kbd>F</kbd>標記</span>
@@ -1064,7 +1081,8 @@ function _articleReaderHref(lawName, artNo, pageId){
   const id = String(pageId || '').trim();
   return 'law-preview.html?law=' + encodeURIComponent(law)
     + (id ? '&id=' + encodeURIComponent(id) : '')
-    + (art ? '&art=' + encodeURIComponent(art) : '');
+    + (art ? '&art=' + encodeURIComponent(art) : '')
+    + '&from=quiz';
 }
 function renderQuizCitation(artTitle, lawName){
   const cit=document.getElementById('quiz-citation');
@@ -1072,9 +1090,10 @@ function renderQuizCitation(artTitle, lawName){
   cit.textContent=formatArticleCitation(artTitle, lawName);
   cit.classList.add('show');
 }
-function showInlineArticleText(raw){
+function showInlineArticleText(raw, opts){
   const panel=document.getElementById('artInline');
   if(!panel) return false;
+  opts = opts || {};
   const text=formatLawText(raw);
   panel.classList.remove('is-loading','is-empty');
   if(!text){
@@ -1082,6 +1101,10 @@ function showInlineArticleText(raw){
     panel.classList.add('is-empty');
     panel.style.display='block';
     return false;
+  }
+  if(opts.rememberOriginal !== false){
+    _currentInlineArticleText = raw || '';
+    _crossRefInlineOpen = false;
   }
   panel.textContent=text;
   panel.style.display='block';
@@ -1094,6 +1117,39 @@ function setInlineArticleLoading(){
   panel.classList.add('is-loading');
   panel.textContent='條文原文載入中...';
   panel.style.display='block';
+}
+async function openCrossRefArticleInline(anchor){
+  const a = anchor && anchor.closest ? anchor.closest('a.crossref') : anchor;
+  if(!a) return false;
+  const law = decodeURIComponent(a.dataset.law || '').trim();
+  const art = decodeURIComponent(a.dataset.art || '').trim();
+  if(!law || !art) return false;
+  const source = document.getElementById('sourceBox');
+  const sourceText = source ? source.querySelector('span') : null;
+  const sourceLink = document.getElementById('sourceLink');
+  if(sourceText) sourceText.textContent = '正在打開 ' + law + '第' + art + '條';
+  if(sourceLink) sourceLink.textContent = '回本題原文 ↑';
+  setInlineArticleLoading();
+  try{
+    const arts = await _ensureArticleCache(law);
+    const target = normalizeArticleCore(art);
+    const found = (arts || []).find(item => [item.title, item.article_no, item.article, item.no].some(v => normalizeArticleCore(v) === target));
+    if(!found || !found.id) throw new Error('missing article id');
+    const article = await fetch(`${API}/api/article/${encodeURIComponent(found.id)}`, { headers:_authH() }).then(r => r.json());
+    showInlineArticleText(article.original_text || '', { rememberOriginal:false });
+    _crossRefInlineOpen = true;
+    if(sourceText) sourceText.textContent = '已打開 ' + law + '第' + art + '條';
+    if(sourceLink) sourceLink.textContent = '回本題原文 ↑';
+    const inline = document.getElementById('artInline');
+    if(inline) inline.scrollIntoView({ block:'nearest', behavior:'smooth' });
+    return true;
+  }catch(e){
+    showInlineArticleText(_currentInlineArticleText || '', { rememberOriginal:false });
+    _crossRefInlineOpen = false;
+    if(sourceText) sourceText.textContent = '暫時打不開 ' + law + '第' + art + '條；已回本題原文';
+    if(sourceLink) sourceLink.textContent = '收起原文 ↑';
+    return false;
+  }
 }
 function _authH(extra) {
   const h = extra ? {...extra} : {};
@@ -1422,6 +1478,32 @@ document.getElementById('btnSprint')?.addEventListener('click', () => {
 const _today = new Date().toISOString().slice(0,10);
 const _dailyKey = 'sofa_daily_' + _today;
 let _isDailyMode = false;
+const RECENT_QUIZ_ARTICLES_KEY = 'sofa_recent_quiz_articles_v1';
+
+function recentQuizArticleIds(){
+  try{
+    return JSON.parse(localStorage.getItem(RECENT_QUIZ_ARTICLES_KEY) || '[]').filter(Boolean);
+  }catch(e){
+    return [];
+  }
+}
+
+function rememberRecentQuizArticle(pageId){
+  if(!pageId) return;
+  var ids = recentQuizArticleIds().filter(function(id){ return id !== pageId; });
+  ids.unshift(pageId);
+  if(ids.length > 30) ids.length = 30;
+  try{ localStorage.setItem(RECENT_QUIZ_ARTICLES_KEY, JSON.stringify(ids)); }catch(e){}
+}
+
+function pickNonRecentArticle(items){
+  var pool = (items || []).filter(Boolean);
+  if(!pool.length) return null;
+  var recent = new Set(recentQuizArticleIds());
+  var fresh = pool.filter(function(item){ return item && item.id && !recent.has(item.id); });
+  var source = fresh.length ? fresh : pool;
+  return source[Math.floor(Math.random() * source.length)] || null;
+}
 
 function _getDailyResult() {
   try { return JSON.parse(localStorage.getItem(_dailyKey) || 'null'); } catch { return null; }
@@ -1468,7 +1550,7 @@ const _LOCKED_SECS=[
 ];
 function linkifyLawRefs(escapedText,currentLawName){
   let lastLaw = null;
-  return String(escapedText||'').replace(/(?:《([^》]+)》|([^，。、；：\s《》]{2,48}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第(\d+)條(?:之(\d+))?/g, (match, bracketLaw, plainLaw, sameLaw, art, sub)=>{
+  return String(escapedText||'').replace(/(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\s《》]{2,48}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第(\d+)條(?:之(\d+))?/g, (match, bracketLaw, plainLaw, sameLaw, art, sub)=>{
     const law = bracketLaw || plainLaw || '';
     if(law) lastLaw = law;
     else if(sameLaw && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
@@ -1476,7 +1558,10 @@ function linkifyLawRefs(escapedText,currentLawName){
     const safeLaw = encodeURIComponent(String(lastLaw));
     const fullArt = art + (sub ? '之' + sub : '');
     const safeArt = encodeURIComponent(fullArt);
-    return `<a class="crossref" href="law-preview.html?law=${safeLaw}&art=${safeArt}" target="_blank" rel="noopener">${match}</a>`;
+    const prefixMatch = match.match(/^(搭配|參照|依|按|見|與)(.+)$/);
+    const prefix = prefixMatch ? prefixMatch[1] : '';
+    const label = prefixMatch ? prefixMatch[2] : match;
+    return `${prefix}<a class="crossref" href="law-preview.html?law=${safeLaw}&art=${safeArt}" data-law="${safeLaw}" data-art="${safeArt}">${label}</a>`;
   });
 }
 function cleanVisibleSpeechCueText(text){
@@ -1532,6 +1617,10 @@ function appendCpiAdjustmentNote(wrapEl,beforeEl,article,sections){
   d.className='cpi-note';
   d.innerHTML='<b>CPI / 公告額提醒</b>'+esc(note);
   if(beforeEl)wrapEl.insertBefore(d,beforeEl);else wrapEl.appendChild(d);
+}
+function articleSectionsArePaid(article){
+  if(window.__sofaPaid !== false && !isFree) return true;
+  return !!(article && article._plan !== 'free');
 }
 function buildSections(sections,isPaid,wrapEl,beforeEl,article){
   wrapEl.querySelectorAll('.sec-block,.sec-lock,.cpi-note').forEach(e=>e.remove());
@@ -2346,6 +2435,8 @@ function showSessionSummary() {
 }
 
 let answered=false,right=0,wrong=0,total=0,flagged=0;
+let _currentInlineArticleText = '';
+let _crossRefInlineOpen = false;
 
 // ── Wave 106: 每題計時 ────────────────────────────────────────────
 let _qStartTime = 0;
@@ -2367,16 +2458,24 @@ function _feedbackAnim(btn, isCorrect, elapsedSec){
   // 音效
   if(isCorrect){ _playCorrect(); } else { _playWrong(); }
   // Wave 68: 顯示「查看法條」按鈕
+  showQuizAnswerActions();
+}
+function showQuizAnswerActions(){
+  const actions = document.getElementById('quiz-answer-actions');
+  if(actions) actions.classList.add('show');
   document.getElementById('view-article-btn').style.display = 'inline-flex';
   document.getElementById('view-weakness-btn').style.display = 'inline-flex';
   document.getElementById('btnFlag').style.display = 'inline-flex';
   document.getElementById('btnNext').style.display = 'inline-flex';
+  if(window.matchMedia && window.matchMedia('(max-width:760px)').matches && actions){
+    requestAnimationFrame(()=>actions.scrollIntoView({block:'center', behavior:'auto'}));
+  }
 }
 
 // Wave 68: 開啟法條閱讀器並直接帶到該條
 function _openArticleReader() {
   if (!_currentLawName) return;
-  window.open(_articleReaderHref(_currentLawName, _currentArtNo, _currentPageId), '_blank');
+  window.location.href = _articleReaderHref(_currentLawName, _currentArtNo, _currentPageId);
 }
 let quizData=null;
 // 本次作答紀錄
@@ -2454,8 +2553,10 @@ async function loadQuiz(){
   document.getElementById('optionsBox').innerHTML='';
   document.getElementById('optionsBox').classList.remove('compact');
   (function(){const _cit=document.getElementById('quiz-citation');if(_cit)_cit.classList.remove('show');})();
+  (function(){const _actions=document.getElementById('quiz-answer-actions');if(_actions)_actions.classList.remove('show');})();
   document.getElementById('view-article-btn').style.display='none';
   document.getElementById('view-weakness-btn').style.display='none';
+  document.getElementById('btnFlag').style.display='none';
   document.getElementById('btnNext').style.display='none';
   document.getElementById('explainBox').style.display='none';
   document.getElementById('qSrc').innerHTML='—';
@@ -2505,7 +2606,7 @@ async function loadQuiz(){
         document.getElementById('questionBox').style.opacity='1';
         return;
       }
-      const pick=items[Math.floor(Math.random()*items.length)];
+      const pick=pickNonRecentArticle(items) || items[Math.floor(Math.random()*items.length)];
       pickedPageId=pick.page_id;
       law='';
     }
@@ -2527,7 +2628,7 @@ async function loadQuiz(){
           document.getElementById('questionBox').style.opacity='1';
           return;
         }
-        const pick=filtered[Math.floor(Math.random()*filtered.length)];
+        const pick=pickNonRecentArticle(filtered) || filtered[Math.floor(Math.random()*filtered.length)];
         url=`${API}/api/quiz?page_id=${encodeURIComponent(pick.id)}`;
       } else if(law && _artCache[law] && _artCache[law].length) {
         // Smart weighting: wrong answers first, then high-importance, else random
@@ -2539,11 +2640,11 @@ async function loadQuiz(){
         const _rnd = Math.random();
         let _pick;
         if(_wrongArts.length && _rnd < 0.55){
-          _pick = _wrongArts[Math.floor(Math.random()*_wrongArts.length)];
+          _pick = pickNonRecentArticle(_wrongArts) || _wrongArts[Math.floor(Math.random()*_wrongArts.length)];
         } else if(_hiArts.length && _rnd < 0.85){
-          _pick = _hiArts[Math.floor(Math.random()*_hiArts.length)];
+          _pick = pickNonRecentArticle(_hiArts) || _hiArts[Math.floor(Math.random()*_hiArts.length)];
         } else {
-          _pick = _pool[Math.floor(Math.random()*_pool.length)];
+          _pick = pickNonRecentArticle(_pool) || _pool[Math.floor(Math.random()*_pool.length)];
         }
         url = `${API}/api/quiz?page_id=${encodeURIComponent(_pick.id)}`;
       } else {
@@ -2585,6 +2686,7 @@ async function loadQuiz(){
     const isNewFmt = typeof (data.options||[])[0] !== 'object';
     const correctAnswer = isNewFmt ? data.answer : null;
     const pageId = data.page_id || data.correct_id || null;
+    rememberRecentQuizArticle(pageId);
 
     const lawName=data.law_name||(law&&law!=='__starred__'?document.getElementById('lawSelect').selectedOptions[0]?.text:'');
     const artTitle=data.title||data.correct_title||'';
@@ -2704,7 +2806,7 @@ async function loadQuiz(){
               showInlineArticleText(art.original_text);
               document.getElementById('sourceBox').querySelector('span').textContent='條文原文已放在上方';
               document.getElementById('sourceLink').textContent='收起原文 ↑';
-              buildSections(art.sections||{},art._plan!=='free',
+              buildSections(art.sections||{},articleSectionsArePaid(art),
                 document.getElementById('explainBox'),document.getElementById('sourceBox'),art);
             }catch(e){
               showInlineArticleText('');
@@ -2760,9 +2862,24 @@ function doFlag(){
 document.getElementById('sourceLink').addEventListener('click',()=>{
   const panel=document.getElementById('artInline');
   const btn=document.getElementById('sourceLink');
+  const source=document.getElementById('sourceBox');
+  const sourceText=source ? source.querySelector('span') : null;
+  if(_crossRefInlineOpen){
+    showInlineArticleText(_currentInlineArticleText || '', { rememberOriginal:false });
+    _crossRefInlineOpen=false;
+    if(sourceText) sourceText.textContent='條文原文已放在上方';
+    btn.textContent='收起原文 ↑';
+    return;
+  }
   const open=panel.style.display==='none'||!panel.style.display;
   panel.style.display=open?'block':'none';
   btn.textContent=open?'收起原文 ↑':'展開原文 ↓';
+});
+document.addEventListener('click', function(ev){
+  const a = ev.target && ev.target.closest ? ev.target.closest('a.crossref') : null;
+  if(!a) return;
+  ev.preventDefault();
+  openCrossRefArticleInline(a);
 });
 document.getElementById('btnFlag').addEventListener('click',doFlag);
 document.getElementById('btnNew').addEventListener('click',()=>{
@@ -2860,8 +2977,10 @@ async function loadWrongQuiz() {
   document.getElementById('optionsBox').innerHTML='';
   document.getElementById('optionsBox').classList.remove('compact');
   (function(){const _cit=document.getElementById('quiz-citation');if(_cit)_cit.classList.remove('show');})();
+  (function(){const _actions=document.getElementById('quiz-answer-actions');if(_actions)_actions.classList.remove('show');})();
   document.getElementById('view-article-btn').style.display='none';
   document.getElementById('view-weakness-btn').style.display='none';
+  document.getElementById('btnFlag').style.display='none';
   document.getElementById('btnNext').style.display='none';
   document.getElementById('explainBox').style.display='none';
   document.getElementById('qSrc').innerHTML='—';
@@ -2988,7 +3107,7 @@ async function loadWrongQuiz() {
               showInlineArticleText(art.original_text);
               document.getElementById('sourceBox').querySelector('span').textContent = '條文原文已放在上方';
               document.getElementById('sourceLink').textContent = '收起原文 ↑';
-              buildSections(art.sections||{},art._plan!=='free',
+              buildSections(art.sections||{},articleSectionsArePaid(art),
                 document.getElementById('explainBox'),document.getElementById('sourceBox'),art);
             } catch(e){
               showInlineArticleText('');

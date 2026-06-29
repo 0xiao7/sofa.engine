@@ -122,6 +122,10 @@ test('law drawer analysis linkifies sixth-section law references', () => {
   assert.match(linkedNamedLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=13"/);
   assert.match(linkedNamedLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=15"/);
   assert.doesNotMatch(linkedNamedLaw, /searchAndOpen/);
+
+  const linkedPrefixedLaw = sandbox.linkify('搭配公司法第29條經理人任免規定', '商業會計法');
+  assert.match(linkedPrefixedLaw, />公司法第29條</);
+  assert.doesNotMatch(linkedPrefixedLaw, />搭配公司法第29條</);
 });
 
 test('dashboard fetches the authenticated study today endpoint', () => {
@@ -502,22 +506,24 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.ok(timeBox < recommendPanel, 'time settings should explain the recommendation before the recommendation appears');
   assert.ok(timeBox < planPanel, 'time guidance should appear before private schedule controls');
   assert.match(recap, /<div class="study-flow-steps" id="study-flow-steps" aria-label="讀書計畫三步驟"/);
-  assert.match(recap, /<b>1\. 設時間<\/b>[\s\S]*決定總時數、每週可讀和今天要留多久/);
-  assert.match(recap, /<b>2\. 預覽本週<\/b>[\s\S]*系統把弱點和私人課表排進空檔，不會自動寫入/);
-  assert.match(recap, /<b>3\. 排入計畫<\/b>[\s\S]*按「排入本週計畫」後才同步帳號/);
+  assert.match(recap, /<b>1\. 時間<\/b>[\s\S]*設定目標、每週可讀和今天多久/);
+  assert.match(recap, /<b>2\. 推薦<\/b>[\s\S]*先看建議，不會自動寫入/);
+  assert.match(recap, /<b>3\. 私人計畫<\/b>[\s\S]*按排入後只存到你的帳號/);
   assert.match(recap, /<div class="study-planning-overview" id="study-planning-overview" aria-label="讀書計畫總覽"/);
   assert.match(recap, /id="study-overview-next"[\s\S]*先做一題或設定課程/);
   assert.match(recap, /id="study-overview-save"[\s\S]*只在這台裝置/);
+  assert.match(recap, /id="study-overview-hours"[\s\S]*累積 0 小時/);
   assert.match(recap, /id="study-overview-status"[\s\S]*待讀 0 \/ 完成 0/);
   assert.match(recap, /<div class="study-time-wrap" id="study-time-box"/);
-  assert.match(recap, /id="study-time-summary"[\s\S]*500 小時目標/);
+  assert.match(recap, /id="study-time-summary"[\s\S]*已累積 0 小時；500 小時目標/);
   assert.match(recap, /id="study-time-impact"[\s\S]*約 42 週/);
   assert.match(recap, /id="study-time-outcome"[\s\S]*還沒排課；先預覽本週排法或設定課程/);
   assert.match(recap, /class="study-time-summary-card"[\s\S]*讀書時間[\s\S]*修改時間/);
   assert.match(recap, /id="study-target-hours"[\s\S]*500/);
   assert.match(recap, /id="study-weekly-hours"[\s\S]*每週可讀/);
   assert.match(recap, /建議總時數可以改/);
-  assert.match(active, /summary\.textContent = totalHours \+ ' 小時目標/);
+  assert.match(active, /function _studyAccumulatedMinutes/);
+  assert.match(active, /summary\.textContent = '已累積 ' \+ _formatStudyHours\(doneMinutes\)/);
   assert.match(active, /impact\.textContent = weeks \? \('約 ' \+ weeks \+ ' 週'\) : '先填時間'/);
   assert.match(active, /時間設定只先存在本機/);
   assert.match(active, /排入本週計畫/);
@@ -525,7 +531,7 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.match(active, /\.study-planning-overview\{[\s\S]*display:grid/);
   assert.match(active, /function renderStudyPlanningOverview/);
   assert.match(active, /\.study-flow-step b\{[\s\S]*font-family:var\(--serif\)/);
-  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-flow-steps\{grid-template-columns:1fr\}/);
+  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-flow-steps\{display:none\}/);
   assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-planning-overview\{grid-template-columns:1fr\}/);
   assert.doesNotMatch(active, /\/api\/me\/study\/settings/);
 });

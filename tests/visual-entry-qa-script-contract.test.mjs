@@ -38,9 +38,10 @@ test('visual entry QA checks quiz post-answer actions and article deep link', ()
   assert.match(script, /#view-weakness-btn/);
   assert.match(script, /#btnNext/);
   assert.match(script, /#btnFlag/);
-  assert.match(script, /_openArticleReader\(\)/);
+  assert.match(script, /_articleReaderHref\(_currentLawName, _currentArtNo, _currentPageId\)/);
   assert.match(script, /law-preview\\\.html\\\?law=/);
   assert.match(script, /\[\?&\]art=88/);
+  assert.match(script, /from=quiz/);
 });
 
 test('visual entry QA opens the law reader deep link and checks native-safe controls', () => {

@@ -134,6 +134,10 @@ test('law preview analysis links cross-referenced law articles to the reader', (
   assert.match(linkedNamedLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=13"/);
   assert.match(linkedNamedLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=15"/);
   assert.doesNotMatch(linkedNamedLaw, /dashboard\.html\?q|searchAndOpen/);
+
+  const linkedPrefixedLaw = sandbox.linkify('搭配公司法第29條經理人任免規定', '商業會計法');
+  assert.match(linkedPrefixedLaw, />公司法第29條</);
+  assert.doesNotMatch(linkedPrefixedLaw, />搭配公司法第29條</);
 });
 
 test('law preview has a contextual return path instead of dumping readers at home', () => {
@@ -143,6 +147,10 @@ test('law preview has a contextual return path instead of dumping readers at hom
   assert.match(preview, /function configureBackLink/);
   assert.match(preview, /backLink\.href = 'dashboard\.html#laws'/);
   assert.match(preview, /backLink\.textContent = '← 回上一頁'/);
+  assert.match(preview, /const returnFrom = params\.get\('from'\) \|\| ''/);
+  assert.match(preview, /returnFrom === 'quiz'/);
+  assert.match(preview, /backLink\.textContent = '← 回到題目'/);
+  assert.match(preview, /history\.back\(\)/);
   assert.doesNotMatch(preview, /<a class="back-link" href="\/">← 回 SoFa<\/a>/);
 });
 
