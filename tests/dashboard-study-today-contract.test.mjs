@@ -92,6 +92,23 @@ test('study today surfaces weakness before lower dashboard sections', () => {
   assert.doesNotMatch(active, /目前有 0 條弱點|0 條弱點/);
 });
 
+test('today weak brief appears before the next plan card on mobile first screen', () => {
+  const recapStart = active.indexOf('id="study-cockpit-recap"');
+  assert.ok(recapStart >= 0, 'study recap must exist');
+  const recap = active.slice(recapStart, recapStart + 5200);
+  const weakIndex = recap.indexOf('id="study-weak-brief"');
+  const nextPlanIndex = recap.indexOf('id="study-next-plan"');
+  assert.ok(weakIndex > -1, 'weak brief must exist inside today recap');
+  assert.ok(nextPlanIndex > -1, 'next plan card must exist inside today recap');
+  assert.ok(weakIndex < nextPlanIndex, 'weak brief should appear before the next plan card');
+});
+
+test('small mobile screens compact the weak brief above the fixed quick bar', () => {
+  assert.match(active, /@media\(max-width:760px\) and \(max-height:720px\)\{[\s\S]*\.study-weak-brief\{/);
+  assert.match(active, /@media\(max-width:760px\) and \(max-height:720px\)\{[\s\S]*\.study-weak-brief-kicker\{\s*display:none/);
+  assert.match(active, /@media\(max-width:760px\) and \(max-height:720px\)\{[\s\S]*\.study-weak-brief-row\{[\s\S]*padding:5px 8px/);
+});
+
 test('study today uses exam-facing wording instead of internal cockpit jargon', () => {
   assert.match(active, /TODAY · 今天先做/);
   assert.match(active, /不知道從哪裡開始，先做一題/);
