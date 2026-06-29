@@ -8908,9 +8908,31 @@ function updateActiveNavFromScroll(){
     : candidates.reduce(function(a,b){ return Math.abs(b.top) < Math.abs(a.top) ? b : a; });
   if(best && best.id) setActive(best.id);
 }
+function refreshActiveNavFromVisibleSections(){
+  if(window.__activeNavPinnedUntil && Date.now() < window.__activeNavPinnedUntil) return false;
+  updateActiveNavFromScroll();
+  return true;
+}
+function setupActiveNavObserver(){
+  if(!navLinks || !navLinks.length) return;
+  if(typeof IntersectionObserver !== 'function') return;
+  window.__activeNavObserver = new IntersectionObserver(function(){
+    if(!refreshActiveNavFromVisibleSections()) scheduleActiveNavRefresh();
+  }, {
+    root:null,
+    rootMargin:'-8% 0px -72% 0px',
+    threshold:[0,0.01,0.25,0.5,0.75]
+  });
+  navLinks.forEach(function(link){
+    var id = link.dataset.spyTarget;
+    var el = id ? document.getElementById(id) : null;
+    if(el) window.__activeNavObserver.observe(el);
+  });
+}
 window.addEventListener('scroll', updateActiveNavFromScroll, { passive:true });
 window.addEventListener('resize', updateActiveNavFromScroll);
 window.addEventListener('hashchange', function(){ setTimeout(updateActiveNavFromScroll, 120); });
+setupActiveNavObserver();
 updateActiveNavFromScroll();
 </script>
 

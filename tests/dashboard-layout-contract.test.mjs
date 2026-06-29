@@ -70,6 +70,20 @@ test('today recaps are included in the sidebar navigation and scroll spy', () =>
   assert.match(html, /activeLink\.scrollIntoView\(\{block:'nearest', inline:'nearest'\}\)/);
 });
 
+test('desktop sidebar uses an observer-backed section spy for long scrolling', () => {
+  assert.match(html, /function setupActiveNavObserver/);
+  assert.match(html, /function refreshActiveNavFromVisibleSections/);
+  assert.match(html, /typeof IntersectionObserver !== 'function'/);
+  assert.match(html, /new IntersectionObserver\(function\(\)/);
+  assert.match(html, /scheduleActiveNavRefresh\(\)/);
+  assert.match(html, /if\(!refreshActiveNavFromVisibleSections\(\)\) scheduleActiveNavRefresh\(\)/);
+  assert.match(html, /rootMargin:'-8% 0px -72% 0px'/);
+  assert.match(html, /threshold:\[0,0\.01,0\.25,0\.5,0\.75\]/);
+  assert.match(html, /window\.__activeNavObserver\.observe\(el\)/);
+  assert.match(html, /function refreshActiveNavFromVisibleSections\(\)\{[\s\S]*updateActiveNavFromScroll\(\);[\s\S]*return true/);
+  assert.match(html, /setupActiveNavObserver\(\);\s*updateActiveNavFromScroll\(\);/);
+});
+
 test('today sidebar order follows the actual dashboard reading order', () => {
   const navOrder = [
     'study-cockpit-recap',
