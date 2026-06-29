@@ -228,6 +228,13 @@ a{color:inherit;text-decoration:none}
   font-size:14.5px;line-height:1.85;color:var(--cream-2);
   white-space:pre-wrap;
 }
+.crossref{
+  color:var(--peach);
+  text-decoration:underline;
+  text-decoration-thickness:1px;
+  text-underline-offset:3px;
+}
+.crossref:hover{color:var(--peach-2)}
 .cpi-note{
   margin:0 0 28px;padding:16px 18px;
   background:rgba(217,176,132,.10);border:1px solid rgba(217,176,132,.35);
@@ -497,7 +504,7 @@ function renderDetail(d){
   const sectionHtml = Object.entries(sections).map(([label, body]) => `
     <div class="section">
       <div class="section-label">${label}</div>
-      <div class="section-body">${escapeHtml(cleanVisibleSpeechCueText(body || ''))}</div>
+      <div class="section-body">${linkifyLawRefs(escapeHtml(cleanVisibleSpeechCueText(body || '')), d.law_name || lawName)}</div>
     </div>
   `).join('');
   detail.innerHTML = `
@@ -524,6 +531,18 @@ function escapeHtml(s){
   return String(s).replace(/[&<>"']/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   })[c]);
+}
+function linkifyLawRefs(escapedText,currentLawName){
+  let lastLaw = null;
+  return String(escapedText || '').replace(/(?:《([^》]+)》|([^，。、；：\s《》]{2,48}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第(\d+)條(?:之(\d+))?/g, (match, bracketLaw, plainLaw, sameLaw, art, sub) => {
+    const law = bracketLaw || plainLaw || '';
+    if(law) lastLaw = law;
+    else if(sameLaw && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
+    if(!lastLaw) return match;
+    const fullArt = art + (sub ? '之' + sub : '');
+    const href = 'law-preview.html?law=' + encodeURIComponent(lastLaw.replace(/\\/g, '')) + '&amp;art=' + encodeURIComponent(fullArt);
+    return '<a class="crossref" href="' + href + '">' + match + '</a>';
+  });
 }
 function buildCpiAdjustmentNote(article,sections){
   const lawName = article?.law_name || currentLawName || '';

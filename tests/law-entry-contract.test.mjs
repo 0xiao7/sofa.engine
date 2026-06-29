@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import vm from 'node:vm';
 
 const practice = readFileSync(new URL('../practice.html', import.meta.url), 'utf8');
 const quiz = readFileSync(new URL('../quiz.html', import.meta.url), 'utf8');
@@ -70,6 +71,41 @@ test('law preview accepts common article deep-link aliases', () => {
   assert.match(preview, /function normalizeArticleNo/);
   assert.match(preview, /normalizeArticleNo\(a\.title\) === normalizedTargetArticle/);
   assert.match(preview, /const firstId = targetId && articlesCache\.find\(a => a\.id === targetId\)/);
+});
+
+function extractFunction(source, name) {
+  const start = source.indexOf(`function ${name}`);
+  assert.ok(start >= 0, `${name} must exist`);
+  const open = source.indexOf('{', start);
+  let depth = 0;
+  for (let i = open; i < source.length; i += 1) {
+    if (source[i] === '{') depth += 1;
+    if (source[i] === '}') {
+      depth -= 1;
+      if (depth === 0) return source.slice(start, i + 1);
+    }
+  }
+  throw new Error(`Could not extract ${name}`);
+}
+
+test('law preview analysis links cross-referenced law articles to the reader', () => {
+  const source = [
+    extractFunction(preview, 'escapeHtml'),
+    extractFunction(preview, 'linkifyLawRefs')
+  ].join('\n');
+  const sandbox = { encodeURIComponent };
+  vm.createContext(sandbox);
+  vm.runInContext(`${source}; this.linkify = linkifyLawRefs;`, sandbox);
+
+  const linkedSameLaw = sandbox.linkify('同法第13條、本法第15條', '記帳士法');
+  assert.match(linkedSameLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=13"/);
+  assert.match(linkedSameLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=15"/);
+  assert.doesNotMatch(linkedSameLaw, /dashboard\.html\?q|searchAndOpen/);
+
+  const linkedNamedLaw = sandbox.linkify('記帳士法第13條及第15條', '所得稅法');
+  assert.match(linkedNamedLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=13"/);
+  assert.match(linkedNamedLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=15"/);
+  assert.doesNotMatch(linkedNamedLaw, /dashboard\.html\?q|searchAndOpen/);
 });
 
 test('law preview has a contextual return path instead of dumping readers at home', () => {
