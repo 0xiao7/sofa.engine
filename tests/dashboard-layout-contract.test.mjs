@@ -7,6 +7,13 @@ const sharedCss = readFileSync(new URL('../sofa.css', import.meta.url), 'utf8');
 const loginHtml = readFileSync(new URL('../login.html', import.meta.url), 'utf8');
 const lawPreviewHtml = readFileSync(new URL('../law-preview.html', import.meta.url), 'utf8');
 
+function cssRule(source, selector) {
+  const pattern = new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\{([^}]*)\\}');
+  const match = source.match(pattern);
+  assert.ok(match, `${selector} rule should exist`);
+  return match[1];
+}
+
 test('dashboard uses one Chinese font stack across serif and sans tokens', () => {
   assert.match(html, /--serif:"Songti TC","Noto Serif TC","PMingLiU",serif/);
   assert.match(html, /--sans:var\(--serif\)/);
@@ -86,6 +93,7 @@ test('desktop sidebar stays present while the main dashboard scrolls', () => {
   assert.match(html, /aside\.side\{[\s\S]*position:fixed;top:71px;bottom:0;left:0;width:280px/);
   assert.match(html, /aside\.side\{[\s\S]*height:calc\(100dvh - 71px\)/);
   assert.match(html, /aside\.side\{[\s\S]*overflow-y:auto/);
+  assert.match(cssRule(html, '.nav-list a'), /min-height:44px/);
   assert.match(html, /\.shell::before\{[\s\S]*position:fixed;top:71px;bottom:0;left:0;width:280px/);
   assert.match(html, /\.shell::before\{[\s\S]*background:var\(--navy-2\)/);
   assert.match(html, /\.shell::before\{[\s\S]*pointer-events:none/);
