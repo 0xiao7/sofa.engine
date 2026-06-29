@@ -122,7 +122,7 @@ test('study today makes working tools and personal planning obvious', () => {
   assert.match(active, /class="study-action-link primary" href="quiz\.html"[\s\S]*開始選擇題/);
   assert.match(active, /href="#review-due"[\s\S]*看今日複習/);
   assert.match(active, /href="quiz\.html\?open=weakness"[\s\S]*看弱點分析/);
-  assert.match(active, /onclick="openStudyPlaylistPanel\(\)"[\s\S]*重點清單/);
+  assert.match(active, /onclick="openStudyPlaylistPanel\(\)"[\s\S]*重點朗讀/);
   assert.match(active, /onclick="openStudyPlanPanel\(\)"[\s\S]*設定讀書課程/);
   assert.match(active, /onclick="openStudyRecordPanel\(\)"[\s\S]*補紀錄/);
   assert.match(active, /id="study-playlist-panel"/);
@@ -179,7 +179,7 @@ test('expanded study tools update the left guide instead of leaving it on the pr
   assert.match(extractFunction(active, 'toggleStudyTimeEditor'), /focusStudyGuideTarget\('study-time-box'\)/);
   assert.match(extractFunction(active, 'openStudyPlanPanel'), /focusStudyPanelTarget\('study-plan-panel',\s*'study-plan-items'\)/);
   assert.match(extractFunction(active, 'openStudyRecordPanel'), /focusStudyPanelTarget\('study-record-panel',\s*'study-plan-items'\)/);
-  assert.match(extractFunction(active, 'openStudyPlaylistPanel'), /focusStudyPanelTarget\('study-playlist-panel',\s*'study-cockpit-recap'\)/);
+  assert.match(extractFunction(active, 'openStudyPlaylistPanel'), /focusStudyPanelTarget\('study-playlist-playall',\s*'study-cockpit-recap'\)/);
   assert.doesNotMatch(extractFunction(active, 'openStudyPlaylistPanel'), /focusStudyGuideTarget\('study-plan-items'\)/);
 });
 
@@ -189,7 +189,7 @@ test('study playlist is a generic text fallback and does not ship private schedu
   assert.match(active, /\/api\/playlist\?track=bookkeeper/);
   assert.match(active, /content_layer=analysis/);
   assert.match(active, /star_min=3/);
-  assert.match(active, /重點清單，先朗讀最常考/);
+  assert.match(active, /重點朗讀，先聽最常考/);
   assert.match(active, /aria-label="通勤重點朗讀清單"/);
   assert.match(active, /aria-label="重點清單科目"/);
   assert.doesNotMatch(active, /播放清單/);
@@ -265,8 +265,10 @@ test('dashboard URL article deep links run even when the law index is slow or un
 
 test('study playlist can directly play text through the browser speech engine', () => {
   assert.match(active, /id="study-playlist-playall"/);
+  assert.match(active, /class="primary" id="study-playlist-playall"/);
   assert.match(active, /onclick="playStudyPlaylistAll\(this\)"/);
   assert.match(active, /朗讀全部/);
+  assert.match(extractFunction(active, 'openStudyPlaylistPanel'), /focusStudyPanelTarget\('study-playlist-playall',\s*'study-cockpit-recap'\)/);
   assert.match(active, /id="study-playlist-status"/);
   assert.match(active, /function playStudyPlaylistItem/);
   assert.match(active, /function playStudyPlaylistAll/);
@@ -300,7 +302,7 @@ test('study tool panels expose one active mode and explain where saved work goes
   assert.match(active, /btn\.classList\.toggle\('is-active', on\)/);
   assert.match(active, /btn\.setAttribute\('aria-expanded', on \? 'true' : 'false'\)/);
   assert.match(active, /status\.classList\.toggle\('is-closed', active === 'closed'\)/);
-  assert.match(active, /正在看重點清單/);
+  assert.match(active, /正在看重點朗讀/);
   assert.match(active, /正在設定讀書課程/);
   assert.match(active, /正在補讀書紀錄/);
   assert.match(active, /結果會回到下方待讀清單/);
@@ -328,7 +330,7 @@ test('study today action buttons are sized for mobile app shells', () => {
 test('study today exposes a time-first planning box before schedule details', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
-  const recap = active.slice(recapStart, recapStart + 7600);
+  const recap = active.slice(recapStart, recapStart + 9000);
   const timeBox = recap.indexOf('id="study-time-box"');
   const recommendPanel = recap.indexOf('id="study-recommend-panel"');
   const planPanel = recap.indexOf('id="study-plan-panel"');

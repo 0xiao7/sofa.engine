@@ -3303,7 +3303,7 @@
               </div>
               <div class="study-action-group secondary">
                 <span class="study-action-label">整理</span>
-                <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="playlist" aria-expanded="false" onclick="openStudyPlaylistPanel()">重點清單</button>
+                <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="playlist" aria-expanded="false" onclick="openStudyPlaylistPanel()">重點朗讀</button>
                 <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="plan" aria-expanded="false" onclick="openStudyPlanPanel()">設定讀書課程</button>
                 <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="record" aria-expanded="false" onclick="openStudyRecordPanel()">補紀錄</button>
               </div>
@@ -3328,15 +3328,15 @@
               <div class="study-playlist-head">
                 <div class="study-playlist-title">
                   <span>FOCUS</span>
-                  <b>重點清單，先朗讀最常考</b>
+                  <b>重點朗讀，先聽最常考</b>
                 </div>
                 <div class="study-playlist-tools">
                   <select id="study-playlist-subject" aria-label="重點清單科目">
                     <option value="tax_laws">稅務法規</option>
                     <option value="bookkeeping_laws">記帳法規</option>
                   </select>
-                  <button class="secondary" id="study-playlist-playall" type="button" onclick="playStudyPlaylistAll(this)">朗讀全部</button>
-                  <button type="button" onclick="loadStudyPlaylist()">更新清單</button>
+                  <button class="primary" id="study-playlist-playall" type="button" onclick="playStudyPlaylistAll(this)">朗讀全部</button>
+                  <button class="secondary" type="button" onclick="loadStudyPlaylist()">更新清單</button>
                 </div>
               </div>
               <div class="study-playlist-list" id="study-playlist-list">
@@ -6723,7 +6723,7 @@ function _todayInputValue(){
 function setStudyPanelMode(mode){
   var status = document.getElementById('study-mode-status');
   var copy = {
-    playlist: ['正在看重點清單', '這裡是文字重點朗讀；「單刷」會去練題，「看法條」會回到條文。'],
+    playlist: ['正在看重點朗讀', '先按「朗讀全部」聽一輪；「單刷」會去練題，「看法條」會回到條文。'],
     plan: ['正在設定讀書課程', '排入後會收起表單，新的待讀項目會出現在下方「讀書計畫」。'],
     record: ['正在補讀書紀錄', '補紀錄只補時間與進度，不會改答題正確率；存完也會回到下方清單。'],
     closed: ['目前沒有展開工具', '選「重點清單」「設定讀書課程」或「補紀錄」；儲存後結果會回到下方待讀清單。']
@@ -6785,7 +6785,7 @@ function openStudyPlaylistPanel(forceOpen){
   if(record) record.classList.remove('on');
   setStudyPanelMode(panel.classList.contains('on') ? 'playlist' : 'closed');
   if(panel.classList.contains('on')) loadStudyPlaylist();
-  if(panel.classList.contains('on') && typeof focusStudyPanelTarget === 'function') focusStudyPanelTarget('study-playlist-panel', 'study-cockpit-recap');
+  if(panel.classList.contains('on') && typeof focusStudyPanelTarget === 'function') focusStudyPanelTarget('study-playlist-playall', 'study-cockpit-recap');
 }
 
 function retryStudyHashScroll(targetId, attemptsLeft, keepTrying){
