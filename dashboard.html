@@ -3319,7 +3319,7 @@
             <div class="study-playlist-panel" id="study-playlist-panel" aria-label="通勤重點朗讀清單">
               <div class="study-playlist-head">
                 <div class="study-playlist-title">
-                  <span>PLAYLIST</span>
+                  <span>FOCUS</span>
                   <b>重點清單，先朗讀最常考</b>
                 </div>
                 <div class="study-playlist-tools">
@@ -6909,14 +6909,16 @@ async function loadStudyPlaylist(){
       if(text.length > 110) text = text.slice(0, 110) + '…';
       var law = String(item.law_name || '');
       var articleNo = String(item.article_no || '').replace(/^第\s*/, '').replace(/\s*條$/, '');
+      var displayArticleNo = articleNo.replace(/^0+(?=\d)/, '');
+      var displayTitle = String(item.title || '重點條文').replace(/§\s*0+(?=\d)/g, '§ ');
       var itemId = String(item.page_id || item.id || '').trim();
       var practiceHref = 'quiz.html?law=' + encodeURIComponent(law) + (articleNo ? '&art=' + encodeURIComponent(articleNo) : '') + '&drill=1';
       var readerHref = 'law-preview.html?law=' + encodeURIComponent(law)
         + (itemId ? '&id=' + encodeURIComponent(itemId) : '')
         + (articleNo ? '&art=' + encodeURIComponent(articleNo) : '');
       return '<div class="study-playlist-item" data-playlist-index="' + idx + '">'
-        + '<span class="meta">' + esc(item.importance || '') + ' · ' + esc(item.law_name || '') + ' · 第 ' + esc(item.article_no || '') + ' 條</span>'
-        + '<span class="title">' + esc(item.title || '重點條文') + '</span>'
+        + '<span class="meta">' + esc(item.importance || '') + ' · ' + esc(item.law_name || '') + ' · 第 ' + esc(displayArticleNo || item.article_no || '') + ' 條</span>'
+        + '<span class="title">' + esc(displayTitle || '重點條文') + '</span>'
         + '<span class="text">' + esc(text || '這條還沒有重點整理，先看原文。') + '</span>'
         + '<span class="study-playlist-actions">'
           + '<button type="button" onclick="playStudyPlaylistItem(this, ' + idx + ')">朗讀</button>'

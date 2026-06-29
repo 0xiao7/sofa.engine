@@ -193,6 +193,7 @@ test('study playlist is a generic text fallback and does not ship private schedu
   assert.match(active, /aria-label="通勤重點朗讀清單"/);
   assert.match(active, /aria-label="重點清單科目"/);
   assert.doesNotMatch(active, /播放清單/);
+  assert.doesNotMatch(active, />PLAYLIST</);
   assert.doesNotMatch(active, /記帳士 115記帳士台北N1|115\/03\/02|稅務相關法規\(基礎\)1/);
 });
 
@@ -203,6 +204,8 @@ test('study playlist items are executable with single-practice and article-reade
   assert.match(fn, /&drill=1/);
   assert.match(fn, /law-preview\.html\?law=/);
   assert.match(fn, /item\.page_id \|\| item\.id/);
+  assert.match(fn, /displayArticleNo = articleNo\.replace\(/);
+  assert.match(fn, /displayTitle = String\(item\.title/);
   assert.match(fn, /單刷/);
   assert.match(fn, /看法條/);
 });
