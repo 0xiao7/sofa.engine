@@ -1625,8 +1625,10 @@ async function _loadRemoteWrongBankForQuiz() {
   try {
     const wrongData = await fetch(`${API}/api/me/wrong-articles`, { headers: _authH() }).then(r => r.ok ? r.json() : Promise.reject(new Error('wrong-articles ' + r.status)));
     const wrongItems = (wrongData && wrongData.items) || [];
-    if (wrongItems.length) return wrongItems.map(a => _wrongArticleToWeakEntry(a)).filter(e => e.id);
-
+    const mappedWrongItems = wrongItems.map(a => _wrongArticleToWeakEntry(a)).filter(e => e.id);
+    if (mappedWrongItems.length) return mappedWrongItems;
+  } catch(e) {}
+  try {
     const data = await fetch(`${API}/api/me/weak-laws`, { headers: _authH() }).then(r => r.ok ? r.json() : Promise.reject(new Error('weak-laws ' + r.status)));
     const items = (data && data.items) || [];
     return items.flatMap(item => {
@@ -2812,8 +2814,8 @@ setTimeout(() => {
 
 // ── 錯題模式出題 ──────────────────────────────────────────────
 async function loadWrongQuiz() {
-  let bank = loadWrongBank();
-  if (!bank.length) bank = await _loadRemoteWrongBankForQuiz();
+  let bank = await _loadRemoteWrongBankForQuiz();
+  if (!bank.length) bank = loadWrongBank();
   if (!bank.length) {
     alert('錯題本是空的，後端弱點也還沒有可重練的題。先做幾題再來吧。');
     return;

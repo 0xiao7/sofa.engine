@@ -214,8 +214,8 @@ test('wrong review can start from server wrong articles before weak-law fallback
   assert.ok(wrongStart > -1, 'loadWrongQuiz must exist');
   const wrongEnd = active.indexOf('// ── DOMContentLoaded', wrongStart);
   const wrongFn = active.slice(wrongStart, wrongEnd > wrongStart ? wrongEnd : wrongStart + 7000);
-  assert.match(wrongFn, /let bank = loadWrongBank\(\)/);
-  assert.match(wrongFn, /bank = await _loadRemoteWrongBankForQuiz\(\)/);
+  assert.match(wrongFn, /let bank = await _loadRemoteWrongBankForQuiz\(\)/);
+  assert.match(wrongFn, /if \(!bank\.length\) bank = loadWrongBank\(\)/);
   assert.match(wrongFn, /後端弱點也還沒有可重練的題/);
 });
 
@@ -224,7 +224,8 @@ test('remote wrong bank prefers latest wrong quiz-session articles over represen
   assert.ok(start > -1, '_loadRemoteWrongBankForQuiz must exist');
   const fn = active.slice(start, start + 2400);
   assert.match(fn, /\/api\/me\/wrong-articles/);
-  assert.match(fn, /wrongItems\.length/);
+  assert.match(fn, /const mappedWrongItems = wrongItems\.map\(a => _wrongArticleToWeakEntry\(a\)\)\.filter\(e => e\.id\)/);
+  assert.match(fn, /if \(mappedWrongItems\.length\) return mappedWrongItems/);
   assert.match(fn, /_wrongArticleToWeakEntry/);
   assert.match(fn, /item\.wrong_articles/);
   assert.match(fn, /item\.top_articles/);
