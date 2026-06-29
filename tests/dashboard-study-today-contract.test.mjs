@@ -224,6 +224,7 @@ test('study playlist falls back to today weakness and topic blocks when playlist
   const fallback = extractFunction(active, 'buildStudyPlaylistFallbackItems');
   assert.match(fallback, /weak_law_bridge/);
   assert.match(fallback, /_latestWeakLawItems/);
+  assert.doesNotMatch(fallback, /window\._latestWeakLawItems/);
   assert.match(fallback, /today\.blocks/);
   assert.match(fallback, /wrongCount/);
   assert.match(fallback, /答錯/);
