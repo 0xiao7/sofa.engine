@@ -350,7 +350,7 @@ async function freeRetentionCase(browser, baseUrl) {
   if (!/輸入序號保留紀錄/.test(quizText)) {
     throw new Error('free quiz retention CTA text is missing');
   }
-  const quizBox = await assertClickable(page, 'a[href="login.html"]', 'free quiz serial retention CTA');
+  const quizBox = await assertTapTarget(page, 'a[href="login.html"]', 'free quiz serial retention CTA');
 
   await page.goto(`${baseUrl}/dashboard.html`, { waitUntil: 'domcontentloaded' });
   await page.evaluate(() => {
@@ -363,7 +363,7 @@ async function freeRetentionCase(browser, baseUrl) {
   if (!/輸入序號保留進度/.test(stripText) || !/免費版可以先試做/.test(stripText)) {
     throw new Error(`free dashboard retention CTA text is missing: ${stripText}`);
   }
-  const dashboardBox = await assertClickable(page, '#free-retention-strip a[href="login.html"]', 'free dashboard serial retention CTA');
+  const dashboardBox = await assertTapTarget(page, '#free-retention-strip a[href="login.html"]', 'free dashboard serial retention CTA');
   const screenshot = path.join(OUT_DIR, 'sofa-visual-free-retention-mobile.png');
   await page.screenshot({ path: screenshot, fullPage: false });
   await page.close();
@@ -388,8 +388,8 @@ async function statsCase(browser, baseUrl) {
     openStats();
   });
   const boxes = {
-    close: await assertClickable(page, '.stats-close', 'stats close button'),
-    weaknessTab: await assertClickable(page, '#tab-btn-wrong', 'stats weakness tab')
+    close: await assertTapTarget(page, '.stats-close', 'stats close button'),
+    weaknessTab: await assertTapTarget(page, '#tab-btn-wrong', 'stats weakness tab')
   };
   const sourceText = await page.locator('.weak-panel-guide').first().innerText();
   if (!/每日一題/.test(sourceText) || !/LINE 作答/.test(sourceText) || !/考古題/.test(sourceText)) {

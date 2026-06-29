@@ -33,6 +33,13 @@ test('stats overlay owns the iOS safe area instead of leaving a white strip', ()
   assert.match(extractFunction('closeStats'), /document\.documentElement\.classList\.remove\('stats-open'\)/);
 });
 
+test('stats overlay controls keep app-sized tap targets', () => {
+  assert.match(active, /\.stats-close\{[\s\S]*width:44px/);
+  assert.match(active, /\.stats-close\{[\s\S]*height:44px/);
+  assert.match(active, /\.stats-close\{[\s\S]*display:inline-flex/);
+  assert.match(active, /\.stats-tabs button\{[\s\S]*min-height:44px/);
+});
+
 test('stats summary uses harmonized SoFa card classes instead of bright inline metric colors', () => {
   const fn = extractFunction('_renderStatsContent');
   assert.match(fn, /quiz-stat-grid/);
