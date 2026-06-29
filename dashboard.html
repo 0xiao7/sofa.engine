@@ -1435,16 +1435,23 @@
   .study-plan-item .status-postponed{color:var(--warn);border-color:rgba(217,176,132,.38)}
   .study-plan-item .status-skipped,.study-plan-item .status-cancelled{color:rgba(245,240,234,.46)}
   .study-plan-actions{grid-column:1 / -1;display:flex;gap:7px;flex-wrap:wrap}
+  .study-plan-actions a,
   .study-plan-actions button{
     min-height:32px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
     border:1px solid var(--line-2);
     color:rgba(245,240,234,.72);
     border-radius:4px;
     padding:5px 10px;
     font-size:12px;
     background:rgba(255,255,255,.025);
+    text-decoration:none;
   }
+  .study-plan-actions a.primary,
   .study-plan-actions button.primary{background:rgba(159,184,159,.12);border-color:rgba(159,184,159,.45);color:var(--good)}
+  .study-plan-actions a.resource{border-color:rgba(231,187,167,.34);color:var(--peach)}
   .study-plan-actions button.warn{border-color:rgba(217,176,132,.38);color:var(--warn)}
   @media (max-width:760px){
     .srs-panel{
@@ -1501,7 +1508,9 @@
       padding:7px 10px;
     }
     @media (max-height:720px){
-      .study-next-plan{display:none}
+      .study-next-plan{min-height:44px;padding:8px 10px}
+      .study-next-plan-actions{gap:6px}
+      .study-next-plan a,.study-next-plan button{min-height:34px;padding:6px 9px}
     }
     .study-time-box{grid-template-columns:1fr}
     .study-time-summary-card{align-items:flex-start;flex-wrap:wrap}
@@ -2688,9 +2697,9 @@
     .shell::before{display:none}
     aside.side{
       position:fixed;top:65px;left:0;width:280px;height:calc(100vh - 65px);
-      transform:translateX(-100%);transition:transform .3s;z-index:40;
+      transform:translateX(-100%);transition:transform .3s;z-index:40;pointer-events:none;
     }
-    aside.side.open{transform:translateX(0)}
+    aside.side.open{transform:translateX(0);pointer-events:auto}
     main.main{
       grid-column:1;
       padding:14px 12px calc(92px + env(safe-area-inset-bottom, 0px));
@@ -6891,6 +6900,31 @@ async function loadStudyPlaylist(){
   }
 }
 
+function studyPlanItemActionLinks(item, compact){
+  item = item || {};
+  var rawUrl = String(item.target_url || item.resource_url || item.url || '').trim();
+  var safeUrl = /^https?:\/\//i.test(rawUrl) ? rawUrl : '';
+  var law = String(item.law_name || item.law || item.lawName || '').trim();
+  var rawArticle = item.article_no || item.article || item.art || item.articleNo || '';
+  var articleNo = _normalizeArticleNo(rawArticle);
+  var pageId = String(item.page_id || item.article_id || item.articleId || '').trim();
+  var links = [];
+  if(law && articleNo){
+    var quizHref = 'quiz.html?law=' + encodeURIComponent(law) + '&art=' + encodeURIComponent(articleNo) + '&drill=1';
+    var readerHref = pageId
+      ? 'dashboard.html?open=' + encodeURIComponent(pageId) + '&law=' + encodeURIComponent(law) + '&art=' + encodeURIComponent(articleNo) + '#search'
+      : 'dashboard.html?q=' + encodeURIComponent(law) + '&art=' + encodeURIComponent(articleNo) + '#search';
+    links.push('<a class="primary" href="' + esc(quizHref) + '">' + (compact ? '單刷' : '單刷') + '</a>');
+    links.push('<a href="' + esc(readerHref) + '">看法條</a>');
+  }else if(pageId){
+    links.push('<a href="dashboard.html?open=' + esc(encodeURIComponent(pageId)) + '#search">看法條</a>');
+  }
+  if(safeUrl){
+    links.push('<a class="resource" href="' + esc(safeUrl) + '" target="_blank" rel="noopener">開啟資源</a>');
+  }
+  return links.join('');
+}
+
 function renderStudyPlanItems(plan){
   var el = document.getElementById('study-plan-items');
   if(!el) return;
@@ -6936,16 +6970,21 @@ function renderStudyPlanItems(plan){
     var meta = [item.subject || '', item.scheduled_time || '', item.source_label || ''].filter(Boolean).join(' · ');
     var key = _studyItemKey(item);
     var canEdit = item.source_label !== '補紀錄 ' + (item.minutes || '') + ' 分鐘';
+    var learningActions = studyPlanItemActionLinks(item);
+    var editActions = canEdit
+      ? '<button class="primary" type="button" onclick="completeStudyItem(' + JSON.stringify(key) + ')">完成</button>'
+        + '<button type="button" onclick="postponeStudyItem(' + JSON.stringify(key) + ')">改下週</button>'
+        + '<button class="warn" type="button" onclick="cancelStudyItem(' + JSON.stringify(key) + ')">取消</button>'
+      : '';
+    var actionHtml = learningActions || editActions
+      ? '<span class="study-plan-actions">' + learningActions + editActions + '</span>'
+      : '';
     return '<div class="study-plan-item">'
       + '<span class="date">' + esc(item.scheduled_date || '') + '</span>'
       + '<span class="title">' + esc(item.title || item.subject || '讀書計畫') + '</span>'
       + '<span class="status ' + esc(_studyStatusClass(item.status)) + '">' + esc(_studyStatusLabel(item.status)) + '</span>'
       + '<span class="meta">' + esc(meta) + '</span>'
-      + (canEdit ? '<span class="study-plan-actions">'
-        + '<button class="primary" type="button" onclick="completeStudyItem(' + JSON.stringify(key) + ')">完成</button>'
-        + '<button type="button" onclick="postponeStudyItem(' + JSON.stringify(key) + ')">改下週</button>'
-        + '<button class="warn" type="button" onclick="cancelStudyItem(' + JSON.stringify(key) + ')">取消</button>'
-        + '</span>' : '')
+      + actionHtml
       + '</div>';
   }).join('') + completedHtml;
   scheduleActiveNavRefresh();
@@ -6983,9 +7022,11 @@ function renderStudyNextPlan(items){
     var title = next.title || next.subject || '讀書計畫';
     var when = [next.scheduled_date || '', next.scheduled_time || ''].filter(Boolean).join(' · ');
     var source = next.source_label ? '來源：' + next.source_label + '。' : '';
+    var learningActions = studyPlanItemActionLinks(next, true);
     el.innerHTML = '<span><span class="k">今天讀什麼</span><b>下一堂：' + esc(title) + '</b><span>'
       + esc([when, source + '今天留 ' + minutes + ' 分鐘；完成後到讀書計畫點完成。'].filter(Boolean).join(' · '))
       + '</span></span><span class="study-next-plan-actions">'
+      + learningActions
       + '<button type="button" data-next-study-key="' + esc(key) + '" aria-label="完成這堂讀書計畫" onclick="completeStudyItem(' + JSON.stringify(key) + ')">完成這堂</button>'
       + '<a href="#study-plan-items">看讀書計畫</a></span>';
     return;

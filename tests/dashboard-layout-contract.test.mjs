@@ -110,6 +110,11 @@ test('dashboard mobile sidebar exposes state and closes after choosing a guide l
   assert.match(html, /function closeDashboardSideNav/);
   assert.match(html, /document\.querySelectorAll\('aside\.side a'\)\.forEach/);
   assert.match(html, /\.menu-btn\[aria-expanded="true"\]/);
+  const mobileStart = html.indexOf('@media (max-width:980px)');
+  const mobileEnd = html.indexOf('@media (max-width:760px)', mobileStart);
+  const mobileCss = html.slice(mobileStart, mobileEnd);
+  assert.match(mobileCss, /aside\.side\{[\s\S]*pointer-events:none/);
+  assert.match(mobileCss, /aside\.side\.open\{[\s\S]*pointer-events:auto/);
 });
 
 test('mobile native dashboard owns the iOS safe area', () => {
@@ -126,7 +131,8 @@ test('mobile dashboard first actions stay compact above the fixed quick bar', ()
   assert.match(html, /@media \(max-width:760px\)\{[\s\S]*\.study-action-group\{[\s\S]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
   assert.match(html, /@media \(max-width:760px\)\{[\s\S]*\.study-next-plan\{[\s\S]*grid-template-columns:minmax\(0,1fr\) auto/);
   assert.match(html, /@media \(max-width:760px\)\{[\s\S]*\.study-next-plan > span > span:not\(\.k\)\{display:none\}/);
-  assert.match(html, /@media \(max-height:720px\)\{[\s\S]*\.study-next-plan\{display:none\}/);
+  assert.doesNotMatch(html, /@media \(max-height:720px\)\{[\s\S]*\.study-next-plan\{display:none\}/);
+  assert.match(html, /@media \(max-height:720px\)\{[\s\S]*\.study-next-plan\{[\s\S]*min-height:44px/);
 });
 
 test('mobile dashboard keeps one dark brand palette instead of competing light and dark cascades', () => {

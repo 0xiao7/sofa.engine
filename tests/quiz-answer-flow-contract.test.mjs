@@ -119,6 +119,15 @@ test('question label sits above the stem text instead of overlaying long questio
   assert.match(active, /@media \(max-width:760px\)\{[\s\S]*\.q-stem::before\{left:22px/);
 });
 
+test('quiz placeholder stem does not force mono 13px over the article text stack', () => {
+  const questionBox = active.match(/<p id="questionBox"[^>]*>/)?.[0] || '';
+  assert.doesNotMatch(questionBox, /font-family:var\(--mono\)/);
+  assert.doesNotMatch(questionBox, /font-size:13px/);
+  assert.match(questionBox, /class="question-placeholder"/);
+  assert.match(active, /\.question-placeholder\{[\s\S]*font-family:var\(--serif\)/);
+  assert.match(active, /\.question-placeholder\{[\s\S]*font-size:clamp\(17px, 2\.3vw, 21px\)/);
+});
+
 test('answer options expose button semantics and keyboard activation', () => {
   assert.match(active, /btn\.setAttribute\('role','button'\)/);
   assert.match(active, /btn\.setAttribute\('tabindex','0'\)/);

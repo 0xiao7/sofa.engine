@@ -446,6 +446,22 @@ test('study plan items show explicit status text for completion tracking', () =>
   assert.match(active, /改期/);
 });
 
+test('study plan items expose learning actions only when item metadata supports them', () => {
+  assert.match(active, /function studyPlanItemActionLinks/);
+  const helper = extractFunction(active, 'studyPlanItemActionLinks');
+  assert.match(helper, /target_url/);
+  assert.match(helper, /https\?:/);
+  assert.match(helper, /quiz\.html\?law=/);
+  assert.match(helper, /dashboard\.html\?q=/);
+  assert.match(helper, /dashboard\.html\?open=/);
+  assert.match(helper, /開啟資源/);
+  assert.match(helper, /單刷/);
+  assert.match(helper, /看法條/);
+  assert.match(extractFunction(active, 'renderStudyPlanItems'), /studyPlanItemActionLinks\(item\)/);
+  assert.match(extractFunction(active, 'renderStudyNextPlan'), /studyPlanItemActionLinks\(next, true\)/);
+  assert.doesNotMatch(helper, /搜尋法條/);
+});
+
 test('study today puts next-step actions before lower-priority subject detail', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
@@ -633,7 +649,8 @@ test('mobile study plan and record forms do not squeeze native inputs', () => {
   assert.match(active, /\.study-action-link,\s*\.study-pending\{[\s\S]*font-size:13px/);
   assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-action-group\{[\s\S]*grid-template-columns:repeat\(3,minmax\(0,1fr\)\)/);
   assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-action-link,\s*\.study-pending\{[\s\S]*width:100%;[\s\S]*min-height:44px/);
-  assert.match(active, /@media\s*\(max-height:720px\)\{[\s\S]*\.study-next-plan\{display:none\}/);
+  assert.doesNotMatch(active, /@media\s*\(max-height:720px\)\{[\s\S]*\.study-next-plan\{display:none\}/);
+  assert.match(active, /@media\s*\(max-height:720px\)\{[\s\S]*\.study-next-plan\{[\s\S]*min-height:44px/);
   assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-plan-grid\{grid-template-columns:1fr\}/);
   assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-plan-field input,\s*\.study-plan-field select\{[\s\S]*min-height:44px/);
   assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-plan-row\{align-items:stretch\}/);
