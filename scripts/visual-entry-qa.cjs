@@ -286,12 +286,12 @@ async function quizCase(browser, baseUrl) {
     const oldOpen = window.open;
     let opened = '';
     window.open = url => { opened = String(url); };
-    _openArticleDashboard();
+    _openArticleReader();
     window.open = oldOpen;
     return opened;
   });
-  if (!/dashboard\.html\?open=visual-page-id&law=/.test(targetUrl)) {
-    throw new Error(`article CTA deep link is not carrying open/law/art params: ${targetUrl}`);
+  if (!/law-preview\.html\?law=/.test(targetUrl) || !/[?&]art=88/.test(targetUrl)) {
+    throw new Error(`article CTA deep link is not carrying reader law/art params: ${targetUrl}`);
   }
   const screenshot = path.join(OUT_DIR, 'sofa-visual-quiz-actions-mobile.png');
   await page.screenshot({ path: screenshot, fullPage: false });

@@ -817,7 +817,7 @@
         <div id="streak-badge"></div>
         <div id="quiz-answer-actions">
           <div id="quiz-citation"></div>
-          <button id="view-article-btn" onclick="_openArticleDashboard()">查看法條</button>
+          <button id="view-article-btn" onclick="_openArticleReader()">查看法條</button>
           <button id="view-weakness-btn" onclick="_openWeakness()">看弱點分析</button>
           <button class="btn btn-ghost" id="btnFlag">⚑ 標記</button>
           <button class="btn btn-pri" id="btnNext">下一題 <span class="k">↵</span></button>
@@ -1038,6 +1038,12 @@ function _dashboardArticleHref(pageId, lawName, artNo){
   return 'dashboard.html?q=' + encodeURIComponent(law)
     + (art ? '&art=' + encodeURIComponent(art) : '')
     + '#search';
+}
+function _articleReaderHref(lawName, artNo){
+  const law = String(lawName || '');
+  const art = normalizeArticleCore(artNo) || String(artNo || '').replace(/｜.*$/,'').replace(/^§\s*/,'').trim();
+  return 'law-preview.html?law=' + encodeURIComponent(law)
+    + (art ? '&art=' + encodeURIComponent(art) : '');
 }
 function renderQuizCitation(artTitle, lawName){
   const cit=document.getElementById('quiz-citation');
@@ -2266,10 +2272,10 @@ function _feedbackAnim(btn, isCorrect, elapsedSec){
   document.getElementById('btnNext').style.display = 'inline-flex';
 }
 
-// Wave 68: 開啟 dashboard.html 並帶入法規名稱
-function _openArticleDashboard() {
+// Wave 68: 開啟法條閱讀器並直接帶到該條
+function _openArticleReader() {
   if (!_currentLawName) return;
-  window.open(_dashboardArticleHref(_currentPageId, _currentLawName, _currentArtNo), '_blank');
+  window.open(_articleReaderHref(_currentLawName, _currentArtNo), '_blank');
 }
 let quizData=null;
 // 本次作答紀錄

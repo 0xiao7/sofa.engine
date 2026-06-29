@@ -22,8 +22,9 @@ test('visual entry QA checks quiz post-answer actions and article deep link', ()
   assert.match(script, /#view-weakness-btn/);
   assert.match(script, /#btnNext/);
   assert.match(script, /#btnFlag/);
-  assert.match(script, /_openArticleDashboard\(\)/);
-  assert.match(script, /dashboard\\\.html\\\?open=visual-page-id&law=/);
+  assert.match(script, /_openArticleReader\(\)/);
+  assert.match(script, /law-preview\\\.html\\\?law=/);
+  assert.match(script, /\[\?&\]art=88/);
 });
 
 test('visual entry QA clicks a real mocked quiz answer and verifies answer ledger payload', () => {

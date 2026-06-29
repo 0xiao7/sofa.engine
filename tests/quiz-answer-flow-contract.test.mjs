@@ -171,14 +171,22 @@ test('quiz drill links can target one article number from dashboard playlists', 
 test('quiz view-article fallback opens the exact article when only law and article number are known', () => {
   const start = active.indexOf('function _dashboardArticleHref');
   assert.ok(start >= 0, '_dashboardArticleHref must exist');
-  const end = active.indexOf('function renderQuizCitation', start);
+  const end = active.indexOf('function _articleReaderHref', start);
   const fn = active.slice(start, end);
 
   assert.match(fn, /_dashboardArticleHref/);
   assert.match(fn, /encodeURIComponent\(law\)/);
   assert.match(fn, /encodeURIComponent\(art\)/);
   assert.match(fn, /#search/);
-  assert.match(active, /window\.open\(_dashboardArticleHref\(_currentPageId, _currentLawName, _currentArtNo\), '_blank'\)/);
+  const readerStart = active.indexOf('function _articleReaderHref');
+  assert.ok(readerStart >= 0, '_articleReaderHref must exist');
+  const readerEnd = active.indexOf('function renderQuizCitation', readerStart);
+  const readerFn = active.slice(readerStart, readerEnd);
+  assert.match(readerFn, /law-preview\.html\?law=/);
+  assert.match(readerFn, /encodeURIComponent\(law\)/);
+  assert.match(readerFn, /encodeURIComponent\(art\)/);
+  assert.match(active, /onclick="_openArticleReader\(\)">查看法條/);
+  assert.match(active, /window\.open\(_articleReaderHref\(_currentLawName, _currentArtNo\), '_blank'\)/);
   assert.doesNotMatch(active, /url = 'dashboard\.html\?q=' \+ encodeURIComponent\(_currentLawName\);\s*\}/);
 });
 
