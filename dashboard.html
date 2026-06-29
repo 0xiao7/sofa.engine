@@ -3518,11 +3518,11 @@
               <div class="study-time-summary-card">
                 <span class="study-time-main">
                   <b>讀書時間</b>
-                  <small id="study-time-summary">已累積 0 小時；500 小時目標，每週 12 小時；今天 60 分鐘。</small>
+                  <small id="study-time-summary">今天已讀 0 分鐘；本週已讀 0 小時；目標 500 小時，今天預留 60 分鐘。</small>
                   <span id="study-time-purpose">先設定時間，按「預覽本週排法」看建議；排入後才存進你的私人計畫。</span>
                 </span>
                 <span class="study-time-impact" aria-live="polite">
-                  <b id="study-time-impact">約 42 週</b>
+                  <b id="study-time-impact">剩約 42 週</b>
                   <small id="study-time-outcome">還沒排課；先預覽本週排法或設定課程。</small>
                 </span>
                 <button class="study-time-edit-btn" type="button" aria-expanded="false" onclick="toggleStudyTimeEditor()">修改時間</button>
@@ -4509,6 +4509,22 @@ function _formatStudyHours(minutes){
   return (hours >= 10 || Number.isInteger(hours) ? String(Math.round(hours)) : hours.toFixed(1).replace(/\.0$/, '')) + ' 小時';
 }
 
+function _studyTimeLedger(summary, items){
+  var data = summary || window.__studyTimeSummary || null;
+  var localMinutes = _studyAccumulatedMinutes(items || window.__studyPlanItemCache || []);
+  var today = data && data.today_logged_minutes != null ? parseInt(data.today_logged_minutes, 10) : 0;
+  var week = data && data.week_logged_minutes != null ? parseInt(data.week_logged_minutes, 10) : 0;
+  var total = data && data.total_logged_minutes != null ? parseInt(data.total_logged_minutes, 10) : 0;
+  return {
+    source: data && data.source ? data.source : 'local',
+    status: data && data.status ? data.status : 'local',
+    today: isFinite(today) && today > 0 ? today : 0,
+    week: isFinite(week) && week > 0 ? week : 0,
+    total: isFinite(total) && total > 0 ? total : 0,
+    accumulated: Math.max(localMinutes, isFinite(total) && total > 0 ? total : 0, isFinite(week) && week > 0 ? week : 0)
+  };
+}
+
 function _studyItemKey(item){
   if(item && item.id) return 'remote:' + item.id;
   return 'local:' + [item.scheduled_date || '', item.scheduled_time || '', item.subject || '', item.title || '', item.source_label || ''].join('|');
@@ -4627,10 +4643,11 @@ function _mergeStudyPlan(remotePlan){
   return { items:_dedupeStudyItems(remoteItems.concat(local.items || [], local.records || [])) };
 }
 
-function renderStudyPlanningOverview(items){
+function renderStudyPlanningOverview(items, timeSummary){
   var list = Array.isArray(items) ? items : (window.__studyPlanItemCache || []);
   var actionable = _actionableStudyItems(list);
   var completed = _completedStudyItems(list);
+  var ledger = _studyTimeLedger(timeSummary, list);
   var next = actionable[0] || null;
   var nextEl = document.getElementById('study-overview-next');
   var nextNote = document.getElementById('study-overview-next-note');
@@ -4663,10 +4680,10 @@ function renderStudyPlanningOverview(items){
     statusEl.textContent = '待讀 ' + actionable.length + ' / 完成 ' + completed.length;
   }
   if(hoursEl){
-    hoursEl.textContent = '累積 ' + _formatStudyHours(_studyAccumulatedMinutes(list));
+    hoursEl.textContent = '累積 ' + _formatStudyHours(ledger.accumulated);
   }
   if(statusNote){
-    statusNote.textContent = '按「完成這堂」才算完成；補紀錄不會改答題正確率。';
+    statusNote.textContent = '今天已讀 ' + ledger.today + ' 分鐘 / 本週已讀 ' + _formatStudyHours(ledger.week) + '；補紀錄不會改答題正確率。';
   }
 }
 
@@ -4679,7 +4696,7 @@ function renderStudyPlanNavCount(actionable, completed){
 }
 
 function renderStudyCloudState(remotePlan){
-  renderStudyPlanningOverview(window.__studyPlanItemCache || []);
+  renderStudyPlanningOverview(window.__studyPlanItemCache || [], window.__studyTimeSummary || null);
   var el = document.getElementById('study-cloud-state');
   if(!el) return;
   var status = remotePlan && remotePlan.status;
@@ -4849,16 +4866,17 @@ function renderStudyTimeSettings(){
   var totalHours = s.total_hours || 500;
   var weeklyHours = s.weekly_hours || 12;
   var todayMinutes = s.today_minutes || 60;
-  var doneMinutes = _studyAccumulatedMinutes(window.__studyPlanItemCache || []);
-  var weeks = weeklyHours ? Math.ceil(totalHours / weeklyHours) : 0;
+  var ledger = _studyTimeLedger(window.__studyTimeSummary || null, window.__studyPlanItemCache || []);
+  var remainingHours = Math.max(0, totalHours - (ledger.accumulated / 60));
+  var weeks = weeklyHours ? Math.ceil(remainingHours / weeklyHours) : 0;
   if(hint){
     hint.textContent = weeks ? ('照這個速度約 ' + weeks + ' 週；今天先留 ' + todayMinutes + ' 分鐘。時間設定只影響建議。') : '時間設定只影響建議，不會改答題正確率。';
   }
   if(summary){
-    summary.textContent = '已累積 ' + _formatStudyHours(doneMinutes) + '；' + totalHours + ' 小時目標，每週 ' + weeklyHours + ' 小時；今天 ' + todayMinutes + ' 分鐘。';
+    summary.textContent = '今天已讀 ' + ledger.today + ' 分鐘；本週已讀 ' + _formatStudyHours(ledger.week) + '；目標 ' + totalHours + ' 小時，今天預留 ' + todayMinutes + ' 分鐘。';
   }
   if(impact){
-    impact.textContent = weeks ? ('約 ' + weeks + ' 週') : '先填時間';
+    impact.textContent = weeks ? ('剩約 ' + weeks + ' 週') : '先填時間';
   }
   renderStudyPlanMap(window.__studyPlanItemCache || []);
 }
@@ -7005,6 +7023,7 @@ function renderReviewDue(nextItems){
 
 function renderStudyToday(data){
   window.__studyTodayData = data || null;
+  window.__studyTimeSummary = data && data.study_time ? data.study_time : null;
   var box = document.getElementById('study-cockpit-recap');
   var subjectsEl = document.getElementById('study-cockpit-subjects');
   var blocksEl = document.getElementById('study-cockpit-blocks');
@@ -7021,6 +7040,7 @@ function renderStudyToday(data){
     weak_law_bridge: { items: [] },
     fallback: true
   };
+  window.__studyTimeSummary = data && data.study_time ? data.study_time : window.__studyTimeSummary;
   var rules = data.scope_rules || {};
   var subjectMode = rules.law_to_subject_mapping === 'many_to_many' ? '法規可跨考科' : '考科模式';
   var subjects = Array.isArray(data.subjects) ? data.subjects : [];
@@ -7495,7 +7515,7 @@ function renderStudyPlanItems(plan){
   if(!el) return;
   var items = plan && Array.isArray(plan.items) ? plan.items : [];
   window.__studyPlanItemCache = items;
-  renderStudyPlanningOverview(items);
+  renderStudyPlanningOverview(items, window.__studyTimeSummary || null);
   renderStudyTimeOutcome(items);
   renderStudyNextPlan(items);
   renderStudyPlanMap(items);

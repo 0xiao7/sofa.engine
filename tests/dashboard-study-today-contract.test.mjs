@@ -518,16 +518,16 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.match(recap, /id="study-overview-hours"[\s\S]*累積 0 小時/);
   assert.match(recap, /id="study-overview-status"[\s\S]*待讀 0 \/ 完成 0/);
   assert.match(recap, /<div class="study-time-wrap" id="study-time-box"/);
-  assert.match(recap, /id="study-time-summary"[\s\S]*已累積 0 小時；500 小時目標/);
-  assert.match(recap, /id="study-time-impact"[\s\S]*約 42 週/);
+  assert.match(recap, /id="study-time-summary"[\s\S]*今天已讀 0 分鐘；本週已讀 0 小時；目標 500 小時/);
+  assert.match(recap, /id="study-time-impact"[\s\S]*剩約 42 週/);
   assert.match(recap, /id="study-time-outcome"[\s\S]*還沒排課；先預覽本週排法或設定課程/);
   assert.match(recap, /class="study-time-summary-card"[\s\S]*讀書時間[\s\S]*修改時間/);
   assert.match(recap, /id="study-target-hours"[\s\S]*500/);
   assert.match(recap, /id="study-weekly-hours"[\s\S]*每週可讀/);
   assert.match(recap, /建議總時數可以改/);
   assert.match(active, /function _studyAccumulatedMinutes/);
-  assert.match(active, /summary\.textContent = '已累積 ' \+ _formatStudyHours\(doneMinutes\)/);
-  assert.match(active, /impact\.textContent = weeks \? \('約 ' \+ weeks \+ ' 週'\) : '先填時間'/);
+  assert.match(active, /summary\.textContent = '今天已讀 ' \+ ledger\.today/);
+  assert.match(active, /impact\.textContent = weeks \? \('剩約 ' \+ weeks \+ ' 週'\) : '先填時間'/);
   assert.match(active, /時間設定只先存在本機/);
   assert.match(active, /排入本週計畫/);
   assert.match(active, /\.study-flow-steps\{[\s\S]*display:grid/);
@@ -548,10 +548,11 @@ test('study planning overview explains next item save scope and completion statu
   assert.match(fn, /localStorage\.getItem\('sofa_uid'\)/);
   assert.match(fn, /已接序號，會同步到帳號/);
   assert.match(fn, /只在這台裝置/);
-  assert.match(fn, /按「完成這堂」才算完成/);
+  assert.match(fn, /今天已讀/);
+  assert.match(fn, /本週已讀/);
   assert.match(fn, /補紀錄不會改答題正確率/);
-  assert.match(extractFunction(active, 'renderStudyPlanItems'), /renderStudyPlanningOverview\(items\)/);
-  assert.match(extractFunction(active, 'renderStudyCloudState'), /renderStudyPlanningOverview\(window\.__studyPlanItemCache \|\| \[\]\)/);
+  assert.match(extractFunction(active, 'renderStudyPlanItems'), /renderStudyPlanningOverview\(items, window\.__studyTimeSummary \|\| null\)/);
+  assert.match(extractFunction(active, 'renderStudyCloudState'), /renderStudyPlanningOverview\(window\.__studyPlanItemCache \|\| \[\], window\.__studyTimeSummary \|\| null\)/);
 });
 
 test('study time settings stay collapsed into a readable summary until editing', () => {
@@ -901,6 +902,17 @@ test('study time planning is editable and persisted locally', () => {
   assert.match(active, /排入本週計畫/);
   assert.match(active, /下一筆：/);
   assert.match(active, /完成紀錄/);
+});
+
+test('study time overview renders cloud accumulated hours from today API', () => {
+  assert.match(active, /study_time/);
+  assert.match(active, /window\.__studyTimeSummary/);
+  assert.match(active, /today_logged_minutes/);
+  assert.match(active, /week_logged_minutes/);
+  assert.match(active, /total_logged_minutes/);
+  assert.match(active, /今天已讀/);
+  assert.match(active, /本週已讀/);
+  assert.match(active, /renderStudyPlanningOverview\(items, window\.__studyTimeSummary/);
 });
 
 test('manual study records are enabled without changing answer accuracy', () => {
