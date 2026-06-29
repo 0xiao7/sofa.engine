@@ -374,15 +374,8 @@ async function quizCase(browser, baseUrl) {
     next: await assertTapTarget(page, '#btnNext', 'post-answer next CTA'),
     flag: await assertTapTarget(page, '#btnFlag', 'post-answer flag CTA')
   };
-  const targetUrl = await page.evaluate(() => {
-    const oldOpen = window.open;
-    let opened = '';
-    window.open = url => { opened = String(url); };
-    _openArticleReader();
-    window.open = oldOpen;
-    return opened;
-  });
-  if (!/law-preview\.html\?law=/.test(targetUrl) || !/[?&]art=88/.test(targetUrl)) {
+  const targetUrl = await page.evaluate(() => _articleReaderHref(_currentLawName, _currentArtNo, _currentPageId));
+  if (!/law-preview\.html\?law=/.test(targetUrl) || !/[?&]art=88/.test(targetUrl) || !/[?&]from=quiz/.test(targetUrl)) {
     throw new Error(`article CTA deep link is not carrying reader law/art params: ${targetUrl}`);
   }
   const screenshot = path.join(OUT_DIR, 'sofa-visual-quiz-actions-mobile.png');

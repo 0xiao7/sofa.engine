@@ -1669,7 +1669,7 @@
     .study-time-impact{width:100%;border-left:0;border-top:1px solid rgba(231,187,167,.16);padding:9px 0 0}
     .study-time-cell{border-left:0;border-top:1px solid rgba(231,187,167,.16);padding-left:0;padding-top:9px}
     .study-time-cell:first-child{border-top:0;padding-top:0}
-    .study-flow-steps{grid-template-columns:1fr}
+    .study-flow-steps{display:none}
     .study-planning-overview{grid-template-columns:1fr}
     .study-suggestions{grid-template-columns:1fr}
     .study-record-kinds{grid-template-columns:1fr}
@@ -2902,18 +2902,18 @@
       padding:12px;
       gap:7px;
       border-radius:10px;
-      background:#FFFFFF;
-      border-color:rgba(23,50,68,.12);
-      box-shadow:0 8px 22px rgba(23,50,68,.06);
+      background:rgba(39,75,96,.72);
+      border-color:rgba(245,240,234,.14);
+      box-shadow:0 8px 22px rgba(2,16,24,.12);
     }
-    .tool .num{font-family:var(--mono);font-size:13px;line-height:1;color:#9A6D5B}
-    .tool .code{font-size:9px;letter-spacing:.10em;color:rgba(23,50,68,.48)}
-    .tool .name{font-family:var(--sans);font-size:16px;font-weight:700;line-height:1.25;color:#173244}
+    .tool .num{font-family:var(--mono);font-size:13px;line-height:1;color:var(--peach)}
+    .tool .code{font-size:9px;letter-spacing:.10em;color:rgba(245,240,234,.52)}
+    .tool .name{font-family:var(--sans);font-size:16px;font-weight:700;line-height:1.25;color:#F5F0EA}
     .tool .desc{
       display:block;
       font-size:11px;
       line-height:1.35;
-      color:rgba(23,50,68,.58);
+      color:rgba(245,240,234,.68);
     }
     .tool .arrow{display:none}
     .greet{
@@ -3485,16 +3485,16 @@
             <div class="study-suggestions" id="study-suggestions" aria-label="今天建議讀什麼"></div>
             <div class="study-flow-steps" id="study-flow-steps" aria-label="讀書計畫三步驟">
               <span class="study-flow-step">
-                <b>1. 設時間</b>
-                <span>決定總時數、每週可讀和今天要留多久。</span>
+                <b>1. 時間</b>
+                <span>設定目標、每週可讀和今天多久。</span>
               </span>
               <span class="study-flow-step">
-                <b>2. 預覽本週</b>
-                <span>系統把弱點和私人課表排進空檔，不會自動寫入。</span>
+                <b>2. 推薦</b>
+                <span>先看建議，不會自動寫入。</span>
               </span>
               <span class="study-flow-step">
-                <b>3. 排入計畫</b>
-                <span>按「排入本週計畫」後才同步帳號；之後讀完按完成。</span>
+                <b>3. 私人計畫</b>
+                <span>按排入後只存到你的帳號。</span>
               </span>
             </div>
             <div class="study-planning-overview" id="study-planning-overview" aria-label="讀書計畫總覽">
@@ -3509,17 +3509,17 @@
                 <small id="study-overview-save-note">登入或輸入序號後，才會盡量同步到你的帳號。</small>
               </span>
               <span class="study-overview-card">
-                <span>完成判斷</span>
-                <b id="study-overview-status">待讀 0 / 完成 0</b>
-                <small id="study-overview-status-note">按「完成這堂」才算完成；補紀錄不會改答題正確率。</small>
+                <span>累積時間</span>
+                <b id="study-overview-hours">累積 0 小時</b>
+                <small><span id="study-overview-status">待讀 0 / 完成 0</span><br><span id="study-overview-status-note">完成課程與補紀錄會加總；答題正確率另算。</span></small>
               </span>
             </div>
             <div class="study-time-wrap" id="study-time-box" aria-label="備考時間規劃">
               <div class="study-time-summary-card">
                 <span class="study-time-main">
                   <b>讀書時間</b>
-                  <small id="study-time-summary">500 小時目標，每週 12 小時；今天先留 60 分鐘。</small>
-                  <span id="study-time-purpose">先設定時間，按「預覽本週排法」看建議；只有「排入本週計畫」與補紀錄會同步到帳號。</span>
+                  <small id="study-time-summary">已累積 0 小時；500 小時目標，每週 12 小時；今天 60 分鐘。</small>
+                  <span id="study-time-purpose">先設定時間，按「預覽本週排法」看建議；排入後才存進你的私人計畫。</span>
                 </span>
                 <span class="study-time-impact" aria-live="polite">
                   <b id="study-time-impact">約 42 週</b>
@@ -3545,16 +3545,16 @@
                 </div>
                 <div class="study-time-save">
                   <button type="button" onclick="saveStudyTimeSettings()">儲存時間設定</button>
-                  <span id="study-time-state">時間設定只先存在本機；按「排入本週計畫」才會寫進帳號。</span>
+                  <span id="study-time-state">時間設定只先存在本機；預覽不會寫入，排入後才進你的私人讀書計畫。</span>
                 </div>
               </div>
             </div>
             <div class="study-recommend-panel" id="study-recommend-panel" aria-label="本週讀書計畫推薦">
               <div class="study-recommend-head">
                 <div class="study-recommend-copy">
-                  <span>本週建議</span>
-                  <b>本週建議排法</b>
-                  <small>依可讀時間、私人課表和弱點估一版；預覽不會寫入，排入後才進你的私人讀書計畫。</small>
+                  <span>本週建議排法</span>
+                  <b>先預覽，再決定要不要排入</b>
+                  <small>這裡只是建議；按「排入本週計畫」後，才會出現在下方私人計畫。</small>
                 </div>
                 <div class="study-recommend-actions">
                   <button type="button" onclick="previewStudyWeekRecommendation()">預覽本週排法</button>
@@ -4485,6 +4485,26 @@ function _completedStudyItems(items){
   });
 }
 
+function _studyItemMinutes(item){
+  if(!item) return 0;
+  var raw = item.minutes || item.duration_minutes || item.planned_minutes || item.estimated_minutes || 0;
+  var mins = parseInt(raw, 10);
+  return isFinite(mins) && mins > 0 ? mins : 0;
+}
+
+function _studyAccumulatedMinutes(items){
+  return _completedStudyItems(items || []).reduce(function(sum, item){
+    return sum + _studyItemMinutes(item);
+  }, 0);
+}
+
+function _formatStudyHours(minutes){
+  var mins = Math.max(0, parseInt(minutes || 0, 10) || 0);
+  if(!mins) return '0 小時';
+  var hours = mins / 60;
+  return (hours >= 10 || Number.isInteger(hours) ? String(Math.round(hours)) : hours.toFixed(1).replace(/\.0$/, '')) + ' 小時';
+}
+
 function _studyItemKey(item){
   if(item && item.id) return 'remote:' + item.id;
   return 'local:' + [item.scheduled_date || '', item.scheduled_time || '', item.subject || '', item.title || '', item.source_label || ''].join('|');
@@ -4612,6 +4632,7 @@ function renderStudyPlanningOverview(items){
   var nextNote = document.getElementById('study-overview-next-note');
   var saveEl = document.getElementById('study-overview-save');
   var saveNote = document.getElementById('study-overview-save-note');
+  var hoursEl = document.getElementById('study-overview-hours');
   var statusEl = document.getElementById('study-overview-status');
   var statusNote = document.getElementById('study-overview-status-note');
   var token = localStorage.getItem('sofa_token') || '';
@@ -4636,6 +4657,9 @@ function renderStudyPlanningOverview(items){
   }
   if(statusEl){
     statusEl.textContent = '待讀 ' + actionable.length + ' / 完成 ' + completed.length;
+  }
+  if(hoursEl){
+    hoursEl.textContent = '累積 ' + _formatStudyHours(_studyAccumulatedMinutes(list));
   }
   if(statusNote){
     statusNote.textContent = '按「完成這堂」才算完成；補紀錄不會改答題正確率。';
@@ -4821,12 +4845,13 @@ function renderStudyTimeSettings(){
   var totalHours = s.total_hours || 500;
   var weeklyHours = s.weekly_hours || 12;
   var todayMinutes = s.today_minutes || 60;
+  var doneMinutes = _studyAccumulatedMinutes(window.__studyPlanItemCache || []);
   var weeks = weeklyHours ? Math.ceil(totalHours / weeklyHours) : 0;
   if(hint){
     hint.textContent = weeks ? ('照這個速度約 ' + weeks + ' 週；今天先留 ' + todayMinutes + ' 分鐘。時間設定只影響建議。') : '時間設定只影響建議，不會改答題正確率。';
   }
   if(summary){
-    summary.textContent = totalHours + ' 小時目標，每週 ' + weeklyHours + ' 小時；今天先留 ' + todayMinutes + ' 分鐘。';
+    summary.textContent = '已累積 ' + _formatStudyHours(doneMinutes) + '；' + totalHours + ' 小時目標，每週 ' + weeklyHours + ' 小時；今天 ' + todayMinutes + ' 分鐘。';
   }
   if(impact){
     impact.textContent = weeks ? ('約 ' + weeks + ' 週') : '先填時間';
@@ -5251,14 +5276,17 @@ function formatLawText(raw){
 
 function _linkifyLaw(escapedText, currentLawName){
   var lastLaw = null;
-  return escapedText.replace(/(?:《([^》]+)》|([^，。、；：\s《》]{2,48}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第(\d+)條(?:之(\d+))?/g, function(match, bracketLaw, plainLaw, sameLaw, art, sub){
+  return escapedText.replace(/(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\s《》]{2,48}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第(\d+)條(?:之(\d+))?/g, function(match, bracketLaw, plainLaw, sameLaw, art, sub){
     var law = bracketLaw || plainLaw || '';
     if(law) lastLaw = law;
     else if(sameLaw && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
     if(!lastLaw) return match;
     var fullArt = art + (sub ? '之' + sub : '');
     var href = 'law-preview.html?law=' + encodeURIComponent(lastLaw.replace(/\\/g,'')) + '&amp;art=' + encodeURIComponent(fullArt);
-    return '<a class="crossref" href="'+href+'" onclick="event.stopPropagation()" style="color:var(--peach-3);text-decoration:underline;cursor:pointer">'+match+'</a>';
+    var prefixMatch = match.match(/^(搭配|參照|依|按|見|與)(.+)$/);
+    var prefix = prefixMatch ? prefixMatch[1] : '';
+    var label = prefixMatch ? prefixMatch[2] : match;
+    return prefix + '<a class="crossref" href="'+href+'" onclick="event.stopPropagation()" style="color:var(--peach-3);text-decoration:underline;cursor:pointer">'+label+'</a>';
   });
 }
 

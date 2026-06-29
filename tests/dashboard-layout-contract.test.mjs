@@ -457,6 +457,7 @@ test('desktop top exam-loop entries keep app-sized hit targets', () => {
 test('mobile tool cards keep short usage hints visible', () => {
   assert.doesNotMatch(html, /\.tool \.desc\{display:none\}/);
   assert.match(html, /\.tool \.desc\{\s*display:block/);
+  assert.match(html, /\.tool \.desc\{\s*[\s\S]*color:rgba\(245,240,234,\.68\)/);
   assert.match(html, /想練新題從這裡開始/);
   assert.match(html, /挖空關鍵字/);
   assert.match(html, /逐字輸入法條原文/);

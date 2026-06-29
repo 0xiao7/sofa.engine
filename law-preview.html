@@ -432,6 +432,7 @@ const params = new URLSearchParams(location.search);
 const lawName = params.get('law') || '記帳士法';
 const targetId = params.get('id') || params.get('articleId');
 const targetArticleNo = params.get('art') || params.get('article');
+const returnFrom = params.get('from') || '';
 const backLink = document.querySelector('.back-link');
 
 const listBody = document.getElementById('listBody');
@@ -458,7 +459,16 @@ function configureBackLink(){
   if(!backLink) return;
   backLink.href = 'dashboard.html#laws';
   backLink.textContent = '← 回法規目錄';
-  if(isSafeBackUrl(document.referrer)){
+  if(returnFrom === 'quiz' || /\/quiz\.html(?:$|[?#])/.test(document.referrer || '')){
+    backLink.href = 'quiz.html';
+    backLink.textContent = '← 回到題目';
+    backLink.addEventListener('click', ev => {
+      if(history.length > 1){
+        ev.preventDefault();
+        history.back();
+      }
+    }, { once:false });
+  }else if(isSafeBackUrl(document.referrer)){
     backLink.href = document.referrer;
     backLink.textContent = '← 回上一頁';
   }
@@ -675,14 +685,17 @@ function escapeHtml(s){
 }
 function linkifyLawRefs(escapedText,currentLawName){
   let lastLaw = null;
-  return String(escapedText || '').replace(/(?:《([^》]+)》|([^，。、；：\s《》]{2,48}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第(\d+)條(?:之(\d+))?/g, (match, bracketLaw, plainLaw, sameLaw, art, sub) => {
+  return String(escapedText || '').replace(/(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\s《》]{2,48}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第(\d+)條(?:之(\d+))?/g, (match, bracketLaw, plainLaw, sameLaw, art, sub) => {
     const law = bracketLaw || plainLaw || '';
     if(law) lastLaw = law;
     else if(sameLaw && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
     if(!lastLaw) return match;
     const fullArt = art + (sub ? '之' + sub : '');
     const href = 'law-preview.html?law=' + encodeURIComponent(lastLaw.replace(/\\/g, '')) + '&amp;art=' + encodeURIComponent(fullArt);
-    return '<a class="crossref" href="' + href + '">' + match + '</a>';
+    const prefixMatch = match.match(/^(搭配|參照|依|按|見|與)(.+)$/);
+    const prefix = prefixMatch ? prefixMatch[1] : '';
+    const label = prefixMatch ? prefixMatch[2] : match;
+    return prefix + '<a class="crossref" href="' + href + '">' + label + '</a>';
   });
 }
 function buildCpiAdjustmentNote(article,sections){
