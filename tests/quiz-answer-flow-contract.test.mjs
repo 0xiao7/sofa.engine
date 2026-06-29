@@ -123,6 +123,7 @@ test('law deep links bypass the exam picker banner', () => {
 
 test('app start links go straight to the question area without the exam picker gate', () => {
   assert.match(active, /const _startQuizParam = _searchParams\.get\('start'\) === '1'/);
+  assert.match(active, /html\.ios-reader-app \.stage\{padding-top:calc\(64px \+ env\(safe-area-inset-top, 0px\)\)\}/);
   assert.match(active, /function _focusQuizQuestionStart/);
   assert.match(active, /document\.querySelector\('\.stage'\)/);
   assert.match(active, /scrollIntoView\(\{block:'start', behavior:'auto'\}\)/);

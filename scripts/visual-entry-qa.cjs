@@ -104,7 +104,12 @@ function apiPayload(url) {
       importance: '★★★',
       _plan: 'paid',
       sections: {
-        exam_tip: '從題目點看法條時，必須直接看到該條，不要只回到搜尋或法規首頁。'
+        '章節標題與戰略權重': '視覺驗收第一段：確認讀者知道這條的重要性。',
+        '規範意旨與條文解析': '視覺驗收第二段：先看條文原文，再看解析。',
+        '執業要點與考情提示': '視覺驗收第三段：從題目點看法條時，必須直接看到該條，不要只回到搜尋或法規首頁。',
+        '核心摘要與記憶策略': '視覺驗收第四段：前四段是免費試讀的主體。',
+        '修法與聯覺備註': '視覺驗收第五段：修法、舊題數字、考點變動會在完整會員版中展開。',
+        '相關法規及注意事項': '視覺驗收第六段：同法第13條、同法第15條等關聯條文會在完整會員版中串起來。'
       }
     };
   }
@@ -389,6 +394,13 @@ async function lawPreviewCase(browser, baseUrl) {
     cta: await assertTapTarget(page, '.cta-btn', 'law preview bottom CTA')
   };
   await assertNotCoveredBy(page, '#originalText', '.cta-bar', 'law preview original text');
+  await page.locator('.section.locked[data-seg="5"]').scrollIntoViewIfNeeded();
+  const lockedText = await page.locator('.section.locked[data-seg="5"]').innerText();
+  if (!/第 5 段|付費解鎖|查看方案/.test(lockedText)) {
+    throw new Error(`law preview paid teaser is missing section 5 value cue: ${lockedText}`);
+  }
+  boxes.lockedSection = await assertClickable(page, '.section.locked[data-seg="5"] .section-locked-preview', 'law preview locked paid section');
+  boxes.pricing = await assertTapTarget(page, '.section.locked[data-seg="5"] a[href="pricing.html"]', 'law preview pricing CTA');
   const screenshot = path.join(OUT_DIR, 'sofa-visual-law-preview-mobile.png');
   await page.screenshot({ path: screenshot, fullPage: false });
   await page.close();

@@ -231,6 +231,58 @@ a{color:inherit;text-decoration:none}
   font-size:14.5px;line-height:1.85;color:var(--cream-2);
   white-space:pre-wrap;
 }
+.section.locked{
+  border:1px solid rgba(231,187,167,.24);
+  border-radius:6px;
+  padding:18px 20px 16px;
+  background:rgba(13,28,40,.38);
+}
+.section.locked .section-label::after{
+  content:" · 付費解鎖";
+  margin-left:8px;
+  font-size:12px;
+  color:var(--peach-dim);
+}
+.section-locked-preview{
+  position:relative;
+  max-height:96px;
+  overflow:hidden;
+  color:rgba(245,240,234,.58);
+  font-size:14.5px;
+  line-height:1.85;
+  white-space:pre-wrap;
+}
+.section-locked-preview::after{
+  content:"";
+  position:absolute;
+  left:0;right:0;bottom:0;height:58px;
+  background:linear-gradient(180deg,rgba(13,28,40,0),rgba(13,28,40,.96));
+  pointer-events:none;
+}
+.section-lock-cta{
+  margin-top:14px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  border-top:1px dashed rgba(231,187,167,.28);
+  padding-top:12px;
+  color:var(--peach-dim);
+  font-size:13px;
+}
+.section-lock-cta a{
+  min-height:44px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--peach);
+  border:1px solid rgba(231,187,167,.45);
+  border-radius:4px;
+  padding:8px 12px;
+  font-size:12px;
+  white-space:nowrap;
+}
+.section-lock-cta a:hover{background:rgba(231,187,167,.12)}
 .crossref{
   color:var(--peach);
   text-decoration:underline;
@@ -370,8 +422,8 @@ a{color:inherit;text-decoration:none}
 <div class="copyright">© SoFa Engine · 引用須註明來源 · 想你考上</div>
 
 <div class="cta-bar">
-  <span class="cta-text">讀完這部，就做 5 題看弱點</span>
-  <a class="cta-btn" href="quiz.html?free=1">開始選擇題 →</a>
+  <span class="cta-text">讀完前四段，就做 5 題看弱點</span>
+  <a class="cta-btn" href="quiz.html?free=1&amp;start=1">開始選擇題 →</a>
 </div>
 
 <script>
@@ -556,12 +608,7 @@ function renderDetail(d){
   const chapter = d.chapter ? `<div class="detail-chapter">${d.chapter}</div>` : '';
   const sections = d.sections || {};
   const cpiHtml = buildCpiAdjustmentNote(d, sections);
-  const sectionHtml = Object.entries(sections).map(([label, body]) => `
-    <div class="section">
-      <div class="section-label">${label}</div>
-      <div class="section-body">${linkifyLawRefs(escapeHtml(cleanVisibleSpeechCueText(body || '')), d.law_name || lawName)}</div>
-    </div>
-  `).join('');
+  const sectionHtml = renderPreviewSections(sections, d.law_name || lawName);
   detail.innerHTML = `
     ${chapter}
     <h2 id="detailTitle">${escapeHtml(d.title || '')}</h2>
@@ -575,6 +622,45 @@ function renderDetail(d){
   `;
   detail.scrollTo?.(0, 0);
   scrollReaderIntoView();
+}
+const PREVIEW_SECTION_NAMES = [
+  '章節標題與戰略權重',
+  '規範意旨與條文解析',
+  '執業要點與考情提示',
+  '核心摘要與記憶策略',
+  '修法與聯覺備註',
+  '相關法規及注意事項'
+];
+const PREVIEW_LOCK_LEADS = {
+  5: '這裡會整理最新修法、考點變動和容易被舊題數字誤導的地方。',
+  6: '這裡會串起相關條文、函釋和常見混淆點，讓你知道讀這條時還要一起看哪裡。'
+};
+function renderPreviewSections(sections,currentLawName){
+  return PREVIEW_SECTION_NAMES.map((label, idx) => {
+    const seg = idx + 1;
+    const body = sections[label] || '';
+    if(!body && seg <= 4) return '';
+    const visibleText = cleanVisibleSpeechCueText(body || PREVIEW_LOCK_LEADS[seg] || '');
+    const html = linkifyLawRefs(escapeHtml(visibleText), currentLawName);
+    if(seg >= 5){
+      return `
+        <div class="section locked" data-seg="${seg}">
+          <div class="section-label">第 ${seg} 段｜${label}</div>
+          <div class="section-locked-preview">${html}</div>
+          <div class="section-lock-cta">
+            <span>第 ${seg} 段留給完整會員閱讀</span>
+            <a href="pricing.html">查看方案 →</a>
+          </div>
+        </div>
+      `;
+    }
+    return `
+      <div class="section" data-seg="${seg}">
+        <div class="section-label">第 ${seg} 段｜${label}</div>
+        <div class="section-body">${html}</div>
+      </div>
+    `;
+  }).join('');
 }
 
 function scrollReaderIntoView(){

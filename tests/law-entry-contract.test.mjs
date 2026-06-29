@@ -169,9 +169,24 @@ test('law preview opens the reading area instead of returning to the page header
 });
 
 test('law preview CTA keeps readers in the web practice funnel', () => {
-  assert.match(preview, /讀完這部，就做 5 題看弱點/);
-  assert.match(preview, /href="quiz\.html\?free=1"/);
+  assert.match(preview, /讀完前四段，就做 5 題看弱點/);
+  assert.match(preview, /href="quiz\.html\?free=1&amp;start=1"/);
   assert.doesNotMatch(preview, /lin\.ee\/zUeMwo4/);
+});
+
+test('law preview teases paid fifth and sixth sections instead of hiding the value', () => {
+  assert.match(preview, /const PREVIEW_SECTION_NAMES = \[/);
+  assert.match(preview, /'修法與聯覺備註'/);
+  assert.match(preview, /'相關法規及注意事項'/);
+  assert.match(preview, /const PREVIEW_LOCK_LEADS = \{/);
+  assert.match(preview, /function renderPreviewSections\(sections,currentLawName\)/);
+  assert.match(preview, /if\(seg >= 5\)/);
+  assert.match(preview, /class="section locked"/);
+  assert.match(preview, /class="section-locked-preview"/);
+  assert.match(preview, /第 \$\{seg\} 段留給完整會員閱讀/);
+  assert.match(preview, /href="pricing\.html">查看方案 →/);
+  assert.match(preview, /\.section\.locked/);
+  assert.match(preview, /\.section-locked-preview::after/);
 });
 
 test('tree read entries use the same law preview reader URL', () => {

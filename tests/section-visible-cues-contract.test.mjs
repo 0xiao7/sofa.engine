@@ -33,7 +33,8 @@ test('visible section renderers strip speech cue markup from analysis text', () 
   assert.match(files.fill, /body=cleanVisibleSpeechCueText\(body\.trim\(\)\)/);
   assert.match(files.practice, /body=cleanVisibleSpeechCueText\(body\.trim\(\)\)/);
   assert.match(files.dashboard, /body = _cleanVisibleSpeechCueText\(body\.trim\(\)\)/);
-  assert.match(files.preview, /escapeHtml\(cleanVisibleSpeechCueText\(body \|\| ''\)\)/);
+  assert.match(files.preview, /const visibleText = cleanVisibleSpeechCueText\(body \|\| PREVIEW_LOCK_LEADS\[seg\] \|\| ''\)/);
+  assert.match(files.preview, /linkifyLawRefs\(escapeHtml\(visibleText\), currentLawName\)/);
 });
 
 test('visible cue cleaner keeps reading punctuation but removes cue labels', () => {

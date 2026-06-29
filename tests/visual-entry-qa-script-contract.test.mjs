@@ -51,6 +51,10 @@ test('visual entry QA opens the law reader deep link and checks native-safe cont
   assert.match(script, /#originalText/);
   assert.match(script, /\.cta-btn/);
   assert.match(script, /assertNotCoveredBy\(page, '#originalText', '\.cta-bar'/);
+  assert.match(script, /\.section\.locked\[data-seg="5"\]/);
+  assert.match(script, /law preview paid teaser is missing section 5 value cue/);
+  assert.match(script, /\.section\.locked\[data-seg="5"\] \.section-locked-preview/);
+  assert.match(script, /\.section\.locked\[data-seg="5"\] a\[href="pricing\.html"\]/);
   assert.match(script, /sofa-visual-law-preview-mobile\.png/);
 });
 
