@@ -169,6 +169,20 @@ test('study plan and record panels have deep links for native app entry', () => 
   assert.match(active, /getComputedStyle\(el\)\.display === 'none'/);
 });
 
+test('study plan and record deep-link panels start with readable headings before fields', () => {
+  const planStart = active.indexOf('id="study-plan-panel"');
+  const recordStart = active.indexOf('id="study-record-panel"');
+  assert.ok(planStart > -1, 'study plan panel exists');
+  assert.ok(recordStart > -1, 'study record panel exists');
+  const planPanel = active.slice(planStart, planStart + 900);
+  const recordPanel = active.slice(recordStart, recordStart + 1400);
+  assert.match(planPanel, /class="study-panel-head"[\s\S]*設定讀書課程/);
+  assert.match(planPanel, /class="study-panel-head"[\s\S]*函授、補習班、模考或自己的週任務/);
+  assert.ok(planPanel.indexOf('設定讀書課程') < planPanel.indexOf('id="study-plan-title"'));
+  assert.match(recordPanel, /class="study-panel-head study-record-copy"[\s\S]*補紀錄只會補進度，不會補答題正確率/);
+  assert.ok(recordPanel.indexOf('補紀錄只會補進度') < recordPanel.indexOf('id="study-record-date"'));
+});
+
 test('expanded study tools update the left guide instead of leaving it on the previous section', () => {
   const focus = extractFunction(active, 'focusStudyGuideTarget');
   const panelFocus = extractFunction(active, 'focusStudyPanelTarget');
