@@ -8538,22 +8538,42 @@ function searchLaw(name){
   doSearch();
 }
 
+function _safeDecodeUrlParam(value){
+  try{
+    return decodeURIComponent(value || '');
+  }catch(e){
+    return value || '';
+  }
+}
+function _articleReaderUrl(lawName, artNo){
+  var law = _safeDecodeUrlParam(lawName);
+  var art = _normalizeArticleNo(_safeDecodeUrlParam(artNo));
+  var url = 'law-preview.html?law=' + encodeURIComponent(law);
+  if(art) url += '&art=' + encodeURIComponent(art);
+  return url;
+}
+function _redirectArticleUrlToReader(lawName, artNo){
+  if(!lawName || !artNo) return false;
+  window.location.replace(_articleReaderUrl(lawName, artNo));
+  return true;
+}
+
 // Wave 69 — URL ?q= 自動搜尋（quiz.html「查看法條」一鍵直達）
 function _handleUrlQuery(){
   var params = new URLSearchParams(window.location.search);
   var q = params.get('q');
   if(!q) return;
+  var art = params.get('art') || params.get('article');
+  if(q && art) return _redirectArticleUrlToReader(q, art);
   var inp = document.getElementById('search-law');
   if(!inp) return;
-  inp.value = decodeURIComponent(q);
-  var art = params.get('art') || params.get('article');
+  inp.value = _safeDecodeUrlParam(q);
   var artInp = document.getElementById('search-art');
   if(art && artInp){
-    artInp.value = _normalizeArticleNo(decodeURIComponent(art));
+    artInp.value = _normalizeArticleNo(_safeDecodeUrlParam(art));
     window.__pendingSearchOpenArticle = true;
   }
   doSearch();
-  if(q && art) searchAndOpen(decodeURIComponent(q), art);
 }
 
 // 私人筆記庫：?open=<page_id> 從筆記庫點卡片落地，直接開該條 drawer（自動展開筆記）
@@ -8571,17 +8591,17 @@ function _handleUrlLaw(){
   var params = new URLSearchParams(window.location.search);
   var law = params.get('law');
   if(!law || params.get('open') || params.get('q')) return;
+  var art = params.get('art') || params.get('article');
+  if(law && art) return _redirectArticleUrlToReader(law, art);
   var inp = document.getElementById('search-law');
   if(!inp) return;
-  inp.value = decodeURIComponent(law);
-  var art = params.get('art') || params.get('article');
+  inp.value = _safeDecodeUrlParam(law);
   var artInp = document.getElementById('search-art');
   if(art && artInp){
-    artInp.value = _normalizeArticleNo(decodeURIComponent(art));
+    artInp.value = _normalizeArticleNo(_safeDecodeUrlParam(art));
     window.__pendingSearchOpenArticle = true;
   }
   doSearch();
-  if(law && art) searchAndOpen(decodeURIComponent(law), art);
   var sec = document.getElementById('search');
   if(sec) sec.scrollIntoView({behavior:'smooth', block:'start'});
 }

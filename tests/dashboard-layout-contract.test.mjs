@@ -7,6 +7,21 @@ const sharedCss = readFileSync(new URL('../sofa.css', import.meta.url), 'utf8');
 const loginHtml = readFileSync(new URL('../login.html', import.meta.url), 'utf8');
 const lawPreviewHtml = readFileSync(new URL('../law-preview.html', import.meta.url), 'utf8');
 
+function extractFunction(source, name) {
+  const start = source.indexOf(`function ${name}`);
+  assert.ok(start >= 0, `${name} must exist`);
+  const open = source.indexOf('{', start);
+  let depth = 0;
+  for (let i = open; i < source.length; i += 1) {
+    if (source[i] === '{') depth += 1;
+    if (source[i] === '}') {
+      depth -= 1;
+      if (depth === 0) return source.slice(start, i + 1);
+    }
+  }
+  throw new Error(`Could not extract ${name}`);
+}
+
 function cssRule(source, selector) {
   const pattern = new RegExp(selector.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\{([^}]*)\\}');
   const match = source.match(pattern);
@@ -313,10 +328,12 @@ test('searchAndOpen uses normalized article numbers instead of a numeric-title r
 });
 
 test('law article URL handlers open the target article through the canonical fallback', () => {
-  const queryFn = html.slice(html.indexOf('function _handleUrlQuery'), html.indexOf('// 私人筆記庫'));
-  const lawFn = html.slice(html.indexOf('function _handleUrlLaw'), html.indexOf('function _applyUrlHandlers'));
-  assert.match(queryFn, /if\(q && art\) searchAndOpen\(decodeURIComponent\(q\), art\)/);
-  assert.match(lawFn, /if\(law && art\) searchAndOpen\(decodeURIComponent\(law\), art\)/);
+  const queryFn = extractFunction(html, '_handleUrlQuery');
+  const lawFn = extractFunction(html, '_handleUrlLaw');
+  assert.match(queryFn, /if\(q && art\) return _redirectArticleUrlToReader\(q, art\)/);
+  assert.match(lawFn, /if\(law && art\) return _redirectArticleUrlToReader\(law, art\)/);
+  assert.doesNotMatch(queryFn, /if\(q && art\) searchAndOpen/);
+  assert.doesNotMatch(lawFn, /if\(law && art\) searchAndOpen/);
 });
 
 test('recent answer recap has an empty state so sidebar T6 has a real target', () => {
