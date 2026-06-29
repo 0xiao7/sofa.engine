@@ -1547,9 +1547,86 @@ function loadWrongBank() {
   try { return JSON.parse(localStorage.getItem(WRONG_KEY) || '[]'); }
   catch { return []; }
 }
+
+function _wrongArticleToWeakEntry(a) {
+  a = a || {};
+  return {
+    page_id:a.page_id || a.id || '',
+    id:a.page_id || a.id || '',
+    law:a.law || a.law_name || '',
+    art:a.article || (a.article_no ? `§${a.article_no}` : ''),
+    errorCount:a.wrong_count || 1,
+    source:a.answer_source || a.source || 'wrong_articles',
+    latest_answered_at:a.latest_answered_at || '',
+  };
+}
+
+function _wrongArticleToWeakArticle(a) {
+  a = a || {};
+  return {
+    page_id:a.page_id || a.id || '',
+    article_no:a.article_no || '',
+    article:a.article || (a.article_no ? `§${a.article_no}` : ''),
+    wrong_count:a.wrong_count || 1,
+    attempt_count:a.attempt_count || 1,
+    correct_count:a.correct_count || 0,
+    answer_source:a.answer_source || a.source || 'wrong_articles',
+    source:a.answer_source || a.source || 'wrong_articles',
+    question:a.question || '',
+    latest_answered_at:a.latest_answered_at || '',
+  };
+}
+
+function _wrongArticlesToWeakLawItems(wrongItems) {
+  const groups = {};
+  (Array.isArray(wrongItems) ? wrongItems : []).forEach(a => {
+    if (!a) return;
+    const law = a.law || a.law_name || '未分類法規';
+    if (!groups[law]) {
+      groups[law] = { law_name:law, wrong_count:0, attempt_count:0, correct_count:0, wrong_articles:[], top_articles:[] };
+    }
+    const g = groups[law];
+    const article = _wrongArticleToWeakArticle(a);
+    g.wrong_count += Math.max(1, Number(a.wrong_count || 1));
+    g.attempt_count += Math.max(1, Number(a.attempt_count || 1));
+    g.correct_count += Math.max(0, Number(a.correct_count || 0));
+    g.wrong_articles.push(article);
+  });
+  return Object.values(groups).map(item => {
+    item.top_articles = item.wrong_articles;
+    item.accuracy = item.attempt_count ? Math.round((item.correct_count || 0) / item.attempt_count * 100) : 0;
+    return item;
+  }).sort((a, b) => (b.wrong_count || 0) - (a.wrong_count || 0));
+}
+
+function _mergeWrongArticlesIntoWeakLaws(weakItems, wrongItems) {
+  const wrongLaws = _wrongArticlesToWeakLawItems(wrongItems);
+  const byLaw = {};
+  (Array.isArray(weakItems) ? weakItems : []).forEach(item => {
+    if (!item || !item.law_name) return;
+    byLaw[item.law_name] = Object.assign({}, item);
+  });
+  wrongLaws.forEach(item => {
+    if (!item || !item.law_name) return;
+    const existing = byLaw[item.law_name] || {};
+    byLaw[item.law_name] = Object.assign({}, existing, item, {
+      wrong_count: Math.max(Number(existing.wrong_count || 0), Number(item.wrong_count || 0)),
+      attempt_count: Math.max(Number(existing.attempt_count || 0), Number(item.attempt_count || 0)),
+      correct_count: Math.max(Number(existing.correct_count || 0), Number(item.correct_count || 0)),
+      wrong_articles:item.wrong_articles,
+      top_articles:item.top_articles,
+    });
+  });
+  return Object.values(byLaw).sort((a, b) => (Number(b.wrong_count || 0) - Number(a.wrong_count || 0)));
+}
+
 async function _loadRemoteWrongBankForQuiz() {
   if (!uid || uid === 'PREVIEW' || isFree) return [];
   try {
+    const wrongData = await fetch(`${API}/api/me/wrong-articles`, { headers: _authH() }).then(r => r.ok ? r.json() : Promise.reject(new Error('wrong-articles ' + r.status)));
+    const wrongItems = (wrongData && wrongData.items) || [];
+    if (wrongItems.length) return wrongItems.map(a => _wrongArticleToWeakEntry(a)).filter(e => e.id);
+
     const data = await fetch(`${API}/api/me/weak-laws`, { headers: _authH() }).then(r => r.ok ? r.json() : Promise.reject(new Error('weak-laws ' + r.status)));
     const items = (data && data.items) || [];
     return items.flatMap(item => {
@@ -3382,11 +3459,17 @@ function _loadRemoteWeakLaws(opts) {
   }
   _remoteWeakLawsInFlight = true;
   el.innerHTML = '<div class="weak-empty">弱點資料載入中...</div>';
-  fetch(`${API}/api/me/weak-laws`, { headers: _authH() })
-    .then(r => r.ok ? r.json() : Promise.reject(new Error('weak-laws ' + r.status)))
-    .then(data => {
+  const weakReq = fetch(`${API}/api/me/weak-laws`, { headers: _authH() })
+    .then(r => r.ok ? r.json() : { __load_error:true, status:r.status });
+  const wrongReq = fetch(`${API}/api/me/wrong-articles`, { headers: _authH() })
+    .then(r => r.ok ? r.json() : { items:[] })
+    .catch(() => ({ items:[] }));
+  Promise.all([weakReq, wrongReq])
+    .then(([data, wrongData]) => {
       _remoteWeakLawsLoaded = true;
-      const items = (data && data.items) || [];
+      const wrongItems = (wrongData && wrongData.items) || [];
+      if (data && data.__load_error && !wrongItems.length) throw new Error('weak-laws ' + data.status);
+      const items = _mergeWrongArticlesIntoWeakLaws((data && data.items) || [], wrongItems);
       _renderRemoteWeakLaws(items);
       if (opts.target === 'panel') _renderWrongListFromRemote(items);
     })

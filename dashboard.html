@@ -5089,6 +5089,73 @@ function _getQuizWrongEntry(pageId){
 }
 
 var _remoteWeakArticleHits = {};
+function wrongArticleToWeakArticle(a){
+  a = a || {};
+  return {
+    page_id: a.page_id || a.id || '',
+    article_no: a.article_no || '',
+    article: a.article || (a.article_no ? ('§' + a.article_no) : ''),
+    wrong_count: Number(a.wrong_count || 1) || 1,
+    attempt_count: Number(a.attempt_count || 1) || 1,
+    correct_count: Number(a.correct_count || 0) || 0,
+    answer_source: a.answer_source || a.source || 'wrong_articles',
+    source: a.answer_source || a.source || 'wrong_articles',
+    question: a.question || '',
+    latest_answered_at: a.latest_answered_at || ''
+  };
+}
+function wrongArticlesToWeakLawItems(items){
+  var groups = {};
+  (Array.isArray(items) ? items : []).forEach(function(a){
+    if(!a) return;
+    var lawName = a.law || a.law_name || '未分類法規';
+    if(!groups[lawName]){
+      groups[lawName] = {
+        law_name: lawName,
+        wrong_count: 0,
+        attempt_count: 0,
+        correct_count: 0,
+        answer_source: a.answer_source || a.source || 'wrong_articles',
+        latest_answered_at: a.latest_answered_at || '',
+        wrong_articles: [],
+        top_articles: []
+      };
+    }
+    var group = groups[lawName];
+    group.wrong_count += Math.max(1, Number(a.wrong_count || 1));
+    group.attempt_count += Math.max(1, Number(a.attempt_count || 1));
+    group.correct_count += Math.max(0, Number(a.correct_count || 0));
+    group.answer_source = group.answer_source || a.answer_source || a.source || 'wrong_articles';
+    if((a.latest_answered_at || '') > (group.latest_answered_at || '')) group.latest_answered_at = a.latest_answered_at || '';
+    group.wrong_articles.push(wrongArticleToWeakArticle(a));
+  });
+  return Object.keys(groups).map(function(k){
+    var item = groups[k];
+    item.top_articles = item.wrong_articles;
+    item.accuracy = item.attempt_count ? Math.round((item.correct_count || 0) / item.attempt_count * 100) : 0;
+    return item;
+  }).sort(function(a,b){ return (Number(b.wrong_count || 0) - Number(a.wrong_count || 0)); });
+}
+function mergeWrongArticlesIntoWeakLaws(weakItems, wrongItems){
+  var map = {};
+  (Array.isArray(weakItems) ? weakItems : []).forEach(function(item){
+    if(!item || !item.law_name) return;
+    map[item.law_name] = Object.assign({}, item);
+  });
+  wrongArticlesToWeakLawItems(wrongItems).forEach(function(item){
+    if(!item || !item.law_name) return;
+    var existing = map[item.law_name] || {};
+    map[item.law_name] = Object.assign({}, existing, item, {
+      wrong_count: Math.max(Number(existing.wrong_count || 0), Number(item.wrong_count || 0)),
+      attempt_count: Math.max(Number(existing.attempt_count || 0), Number(item.attempt_count || 0)),
+      correct_count: Math.max(Number(existing.correct_count || 0), Number(item.correct_count || 0)),
+      wrong_articles: item.wrong_articles,
+      top_articles: item.top_articles
+    });
+  });
+  return Object.keys(map).map(function(k){ return map[k]; })
+    .sort(function(a,b){ return (Number(b.wrong_count || 0) - Number(a.wrong_count || 0)); });
+}
 function _rememberRemoteWeakArticles(items){
   var map = {};
   if(Array.isArray(items)){
@@ -8903,14 +8970,23 @@ ch.on('presence', { event: 'sync' }, () => {
         }
       })
       .catch(function(){});
-    fetch(API + '/api/me/weak-laws', { headers: H })
+    var weakReq = fetch(API + '/api/me/weak-laws', { headers: H })
       .then(function(r){
         if(!r.ok) return { __load_error: true, status: r.status };
         return r.json();
-      })
-      .then(function(d){
-        if(d && d.__load_error) return renderStudyWeakLoadIssue();
-        renderWeakLaws(d && d.items);
+      });
+    var wrongReq = fetch(API + '/api/me/wrong-articles', { headers: H })
+      .then(function(r){ return r.ok ? r.json() : { items: [] }; })
+      .catch(function(){ return { items: [] }; });
+    Promise.all([weakReq, wrongReq])
+      .then(function(results){
+        var d = results[0] || {};
+        var wrongItems = (results[1] && results[1].items) || [];
+        if(d && d.__load_error){
+          if(wrongItems.length) return renderWeakLaws(mergeWrongArticlesIntoWeakLaws([], wrongItems));
+          return renderStudyWeakLoadIssue();
+        }
+        renderWeakLaws(mergeWrongArticlesIntoWeakLaws((d && d.items) || [], wrongItems));
       })
       .catch(function(){ renderStudyWeakLoadIssue(); });
   } else {

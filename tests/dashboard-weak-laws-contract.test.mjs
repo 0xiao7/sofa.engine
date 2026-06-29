@@ -6,12 +6,15 @@ const html = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8')
 
 test('dashboard fetches authenticated weak-laws API for exam-pass recovery', () => {
   assert.match(html, /\/api\/me\/weak-laws/);
+  assert.match(html, /\/api\/me\/wrong-articles/);
   assert.match(html, /id="weak-laws-recap"/);
   assert.match(html, /id="weak-laws-list"/);
 });
 
 test('dashboard renders weak law items at law level with real counts', () => {
   assert.match(html, /function renderWeakLaws/);
+  assert.match(html, /function mergeWrongArticlesIntoWeakLaws/);
+  assert.match(html, /renderWeakLaws\(mergeWrongArticlesIntoWeakLaws/);
   assert.match(html, /_rememberRemoteWeakArticles\(items\)/);
   assert.match(html, /renderStudyWeakBrief\(laws\)/);
   assert.match(html, /function renderStudyWeakState/);
@@ -65,5 +68,18 @@ test('weak law API failures are not shown as no accumulated weakness', () => {
   assert.match(html, /這不是代表你沒有答題紀錄/);
   assert.match(html, /已累積的答題紀錄不會消失/);
   assert.match(html, /__load_error/);
+  assert.match(html, /wrongItems\.length/);
+  assert.match(html, /renderWeakLaws\(mergeWrongArticlesIntoWeakLaws\(\[\], wrongItems\)\)/);
   assert.match(html, /catch\(function\(\)\{ renderStudyWeakLoadIssue\(\); \}\)/);
+});
+
+test('dashboard can build weak-law groups from article-level wrong answers', () => {
+  const start = html.indexOf('function wrongArticlesToWeakLawItems');
+  assert.ok(start >= 0, 'wrongArticlesToWeakLawItems function must exist');
+  const fn = html.slice(start, start + 2600);
+  assert.match(fn, /law_name/);
+  assert.match(fn, /wrong_articles/);
+  assert.match(fn, /top_articles/);
+  assert.match(fn, /answer_source/);
+  assert.match(fn, /latest_answered_at/);
 });

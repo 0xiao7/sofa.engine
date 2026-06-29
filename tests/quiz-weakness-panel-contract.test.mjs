@@ -94,8 +94,21 @@ test('remote weakness panel has explicit empty and failure states for signed-in 
 
   const loadStart = active.indexOf('function _loadRemoteWeakLaws');
   assert.ok(loadStart > -1, '_loadRemoteWeakLaws must exist');
-  const loadFn = active.slice(loadStart, loadStart + 2200);
+  const loadFn = active.slice(loadStart, loadStart + 3200);
+  assert.match(loadFn, /\/api\/me\/wrong-articles/);
+  assert.match(loadFn, /_mergeWrongArticlesIntoWeakLaws/);
   assert.match(loadFn, /opts\.target === 'panel'[\s\S]*_renderSignedInWeaknessLoadIssue\(\)/);
+});
+
+test('weakness panel merges article-level wrong answers into law weaknesses', () => {
+  const mergeStart = active.indexOf('function _mergeWrongArticlesIntoWeakLaws');
+  assert.ok(mergeStart > -1, '_mergeWrongArticlesIntoWeakLaws must exist');
+  const mergeFn = active.slice(mergeStart, mergeStart + 2600);
+  assert.match(mergeFn, /_wrongArticlesToWeakLawItems/);
+  assert.match(mergeFn, /wrong_articles/);
+  assert.match(mergeFn, /top_articles/);
+  assert.match(mergeFn, /law_name/);
+  assert.match(mergeFn, /wrong_count/);
 });
 
 test('empty weakness state tells the learner what to do without self-judging', () => {

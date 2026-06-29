@@ -202,12 +202,13 @@ test('stats recent answers show readable answer source labels', () => {
   assert.match(active, /來源：\$\{esc\(_answerSourceLabel\(e\.source\)\)\}/);
 });
 
-test('wrong review can start from server weak laws when local wrong bank is empty', () => {
+test('wrong review can start from server wrong articles before weak-law fallback', () => {
   assert.match(active, /async function _loadRemoteWrongBankForQuiz/);
+  assert.match(active, /\/api\/me\/wrong-articles/);
   assert.match(active, /\/api\/me\/weak-laws/);
   assert.match(active, /wrong_articles/);
   assert.match(active, /top_articles/);
-  assert.match(active, /page_id:a\.page_id/);
+  assert.match(active, /function _wrongArticleToWeakEntry/);
 
   const wrongStart = active.indexOf('async function loadWrongQuiz');
   assert.ok(wrongStart > -1, 'loadWrongQuiz must exist');
@@ -221,11 +222,25 @@ test('wrong review can start from server weak laws when local wrong bank is empt
 test('remote wrong bank prefers latest wrong quiz-session articles over representative top articles', () => {
   const start = active.indexOf('async function _loadRemoteWrongBankForQuiz');
   assert.ok(start > -1, '_loadRemoteWrongBankForQuiz must exist');
-  const fn = active.slice(start, start + 1800);
+  const fn = active.slice(start, start + 2400);
+  assert.match(fn, /\/api\/me\/wrong-articles/);
+  assert.match(fn, /wrongItems\.length/);
+  assert.match(fn, /_wrongArticleToWeakEntry/);
   assert.match(fn, /item\.wrong_articles/);
   assert.match(fn, /item\.top_articles/);
   assert.match(fn, /const articles = \(item\.wrong_articles && item\.wrong_articles\.length\) \? item\.wrong_articles : \(item\.top_articles \|\| \[\]\)/);
   assert.match(fn, /source:a\.answer_source \|\| a\.source \|\| 'server_weak_laws'/);
+});
+
+test('remote wrong article mapping preserves source and exact article identity', () => {
+  const start = active.indexOf('function _wrongArticleToWeakEntry');
+  assert.ok(start > -1, '_wrongArticleToWeakEntry must exist');
+  const fn = active.slice(start, start + 1300);
+  assert.match(fn, /page_id:a\.page_id \|\| a\.id \|\| ''/);
+  assert.match(fn, /law:a\.law \|\| a\.law_name \|\| ''/);
+  assert.match(fn, /art:a\.article \|\| \(a\.article_no \? `§\$\{a\.article_no\}` : ''\)/);
+  assert.match(fn, /source:a\.answer_source \|\| a\.source \|\| 'wrong_articles'/);
+  assert.match(fn, /latest_answered_at:a\.latest_answered_at \|\| ''/);
 });
 
 test('weakness panel shows actual wrong articles when the server provides them', () => {
