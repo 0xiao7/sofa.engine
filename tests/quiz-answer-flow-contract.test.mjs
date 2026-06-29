@@ -221,11 +221,14 @@ test('quiz view-article fallback opens the exact article when only law and artic
   assert.ok(readerStart >= 0, '_articleReaderHref must exist');
   const readerEnd = active.indexOf('function renderQuizCitation', readerStart);
   const readerFn = active.slice(readerStart, readerEnd);
+  assert.match(active, /function _currentQuizReturnTarget/);
   assert.match(readerFn, /law-preview\.html\?law=/);
   assert.match(readerFn, /encodeURIComponent\(law\)/);
   assert.match(readerFn, /encodeURIComponent\(id\)/);
   assert.match(readerFn, /encodeURIComponent\(art\)/);
   assert.match(readerFn, /from=quiz/);
+  assert.match(readerFn, /back=/);
+  assert.match(readerFn, /encodeURIComponent\(_currentQuizReturnTarget\(\)\)/);
   assert.match(active, /onclick="_openArticleReader\(\)">查看法條/);
   const openStart = active.indexOf('function _openArticleReader');
   const openEnd = active.indexOf('let quizData', openStart);
@@ -317,7 +320,7 @@ test('weakness article chips open the exact article reader', () => {
   assert.match(fn, /_articleReaderHref\(law, art \|\| label, pageId\)/);
   assert.match(fn, /class="weak-article-link"/);
   assert.match(fn, /_answerSourceLabel\(a\.answer_source \|\| a\.source\)/);
-  assert.match(fn, /target="_blank"/);
+  assert.doesNotMatch(fn, /target="_blank"/);
 });
 
 test('short multiple-choice options can use compact two-column layout on desktop only', () => {

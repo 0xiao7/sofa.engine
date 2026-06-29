@@ -140,6 +140,14 @@ test('law preview analysis links cross-referenced law articles to the reader', (
   assert.doesNotMatch(linkedPrefixedLaw, />搭配公司法第29條</);
 });
 
+test('law preview keeps quiz return context when readers follow cross references', () => {
+  assert.match(preview, /const backTarget = params\.get\('back'\) \|\| ''/);
+  assert.match(preview, /function readerHrefFor\(lawName, articleNo\)/);
+  assert.match(preview, /url\.searchParams\.set\('from', returnFrom\)/);
+  assert.match(preview, /url\.searchParams\.set\('back', backTarget\)/);
+  assert.match(preview, /linkifyLawRefs\(escapeHtml\(visibleText\), currentLawName\)/);
+});
+
 test('law preview has a contextual return path instead of dumping readers at home', () => {
   assert.match(preview, /<a class="back-link" href="dashboard\.html#laws">← 回法規目錄<\/a>/);
   assert.match(preview, /function isSafeBackUrl/);
@@ -148,8 +156,11 @@ test('law preview has a contextual return path instead of dumping readers at hom
   assert.match(preview, /backLink\.href = 'dashboard\.html#laws'/);
   assert.match(preview, /backLink\.textContent = '← 回上一頁'/);
   assert.match(preview, /const returnFrom = params\.get\('from'\) \|\| ''/);
+  assert.match(preview, /const backTarget = params\.get\('back'\) \|\| ''/);
+  assert.match(preview, /isSafeBackUrl\(backTarget\) \? backTarget : 'quiz\.html'/);
   assert.match(preview, /returnFrom === 'quiz'/);
   assert.match(preview, /backLink\.textContent = '← 回到題目'/);
+  assert.match(preview, /else if\(isSafeBackUrl\(backTarget\)\)/);
   assert.match(preview, /history\.back\(\)/);
   assert.doesNotMatch(preview, /<a class="back-link" href="\/">← 回 SoFa<\/a>/);
 });

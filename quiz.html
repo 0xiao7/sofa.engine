@@ -1075,6 +1075,11 @@ async function _findArticleByUrlParam(law){
     return candidates.some(v => normalizeArticleCore(v) === target);
   }) || null;
 }
+function _currentQuizReturnTarget(){
+  const file = (location.pathname || '').split('/').pop() || 'quiz.html';
+  const page = file === 'quiz.html' ? file : 'quiz.html';
+  return page + (location.search || '') + (location.hash || '');
+}
 function _articleReaderHref(lawName, artNo, pageId){
   const law = String(lawName || '');
   const art = normalizeArticleCore(artNo) || String(artNo || '').replace(/｜.*$/,'').replace(/^§\s*/,'').trim();
@@ -1082,7 +1087,8 @@ function _articleReaderHref(lawName, artNo, pageId){
   return 'law-preview.html?law=' + encodeURIComponent(law)
     + (id ? '&id=' + encodeURIComponent(id) : '')
     + (art ? '&art=' + encodeURIComponent(art) : '')
-    + '&from=quiz';
+    + '&from=quiz'
+    + '&back=' + encodeURIComponent(_currentQuizReturnTarget());
 }
 function renderQuizCitation(artTitle, lawName){
   const cit=document.getElementById('quiz-citation');
@@ -3495,7 +3501,7 @@ function _weakArticleLinks(law, articles, limit) {
     const sourceHtml = sourceLabel ? `<span class="weak-article-source">${esc(sourceLabel)}</span>` : '';
     if(!pageId && !art) return `<span class="weak-article-link is-muted">${esc(label)}${esc(count)}${sourceHtml}</span>`;
     const href = _articleReaderHref(law, art || label, pageId);
-    return `<a class="weak-article-link" href="${href}" target="_blank" rel="noopener">${esc(label)}${esc(count)}${sourceHtml}</a>`;
+    return `<a class="weak-article-link" href="${href}">${esc(label)}${esc(count)}${sourceHtml}</a>`;
   }).join('、');
 }
 

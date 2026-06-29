@@ -354,7 +354,7 @@ test('dashboard article labels normalize raw article numbers before wrapping tex
   assert.equal(sandbox.helpers.fallbackArticleTitle('第13條', '文件補正期限'), '文件補正期限');
   assert.equal(
     sandbox.helpers.articleReaderHref('記帳士法', '第13條', 'abc123'),
-    'law-preview.html?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&id=abc123&art=13',
+    'law-preview.html?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&id=abc123&art=13&from=dashboard&back=dashboard.html',
   );
 });
 

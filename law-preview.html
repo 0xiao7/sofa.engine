@@ -433,6 +433,7 @@ const lawName = params.get('law') || '記帳士法';
 const targetId = params.get('id') || params.get('articleId');
 const targetArticleNo = params.get('art') || params.get('article');
 const returnFrom = params.get('from') || '';
+const backTarget = params.get('back') || '';
 const backLink = document.querySelector('.back-link');
 
 const listBody = document.getElementById('listBody');
@@ -460,16 +461,19 @@ function configureBackLink(){
   backLink.href = 'dashboard.html#laws';
   backLink.textContent = '← 回法規目錄';
   if(returnFrom === 'quiz' || /\/quiz\.html(?:$|[?#])/.test(document.referrer || '')){
-    backLink.href = 'quiz.html';
+    backLink.href = isSafeBackUrl(backTarget) ? backTarget : 'quiz.html';
     backLink.textContent = '← 回到題目';
     backLink.addEventListener('click', ev => {
-      if(history.length > 1){
+      if(history.length > 1 && /\/quiz\.html(?:$|[?#])/.test(document.referrer || '')){
         ev.preventDefault();
         history.back();
       }
     }, { once:false });
   }else if(isSafeBackUrl(document.referrer)){
     backLink.href = document.referrer;
+    backLink.textContent = '← 回上一頁';
+  }else if(isSafeBackUrl(backTarget)){
+    backLink.href = backTarget;
     backLink.textContent = '← 回上一頁';
   }
 }
@@ -683,6 +687,14 @@ function escapeHtml(s){
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   })[c]);
 }
+function readerHrefFor(lawName, articleNo){
+  const url = new URL('law-preview.html', location.href);
+  url.searchParams.set('law', String(lawName || '').replace(/\\/g, ''));
+  url.searchParams.set('art', articleNo);
+  if(returnFrom) url.searchParams.set('from', returnFrom);
+  if(backTarget && isSafeBackUrl(backTarget)) url.searchParams.set('back', backTarget);
+  return url.pathname.split('/').pop() + url.search;
+}
 function linkifyLawRefs(escapedText,currentLawName){
   let lastLaw = null;
   return String(escapedText || '').replace(/(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\s《》]{2,48}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第(\d+)條(?:之(\d+))?/g, (match, bracketLaw, plainLaw, sameLaw, art, sub) => {
@@ -691,7 +703,10 @@ function linkifyLawRefs(escapedText,currentLawName){
     else if(sameLaw && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
     if(!lastLaw) return match;
     const fullArt = art + (sub ? '之' + sub : '');
-    const href = 'law-preview.html?law=' + encodeURIComponent(lastLaw.replace(/\\/g, '')) + '&amp;art=' + encodeURIComponent(fullArt);
+    const href = (typeof readerHrefFor === 'function'
+      ? readerHrefFor(lastLaw, fullArt)
+      : 'law-preview.html?law=' + encodeURIComponent(lastLaw.replace(/\\/g, '')) + '&art=' + encodeURIComponent(fullArt)
+    ).replace(/&/g, '&amp;');
     const prefixMatch = match.match(/^(搭配|參照|依|按|見|與)(.+)$/);
     const prefix = prefixMatch ? prefixMatch[1] : '';
     const label = prefixMatch ? prefixMatch[2] : match;

@@ -21,6 +21,8 @@ test('notes page sends saved notes to the exact article reader instead of dashbo
   assert.match(active, /law-preview\.html\?law=/);
   assert.match(active, /&id=/);
   assert.match(active, /&art=/);
+  assert.match(active, /from=notes/);
+  assert.match(active, /back=/);
   assert.doesNotMatch(active, /dashboard\.html\?open=/);
   assert.doesNotMatch(active, /\+ '#search'/);
   assert.match(active, /encodeURIComponent\(num\)/);
