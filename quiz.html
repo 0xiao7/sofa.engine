@@ -1010,7 +1010,7 @@ async function _ensureArticleCache(law){
   if(!_artCache[law]){
     try{
       const r = await fetch(`${API}/api/articles?law=${encodeURIComponent(law)}`).then(r=>r.json());
-      _artCache[law] = r.articles || [];
+      _artCache[law] = Array.isArray(r.articles) ? r.articles : (Array.isArray(r.items) ? r.items : []);
     }catch(e){
       _artCache[law] = [];
     }
@@ -1021,7 +1021,10 @@ async function _findArticleByUrlParam(law){
   const target = normalizeArticleCore(_articleParamFromUrl());
   if(!target) return null;
   const arts = await _ensureArticleCache(law);
-  return arts.find(a => normalizeArticleCore(a.title) === target || normalizeArticleCore(a.article_no) === target) || null;
+  return arts.find(a => {
+    const candidates = [a.title, a.article_no, a.article, a.no];
+    return candidates.some(v => normalizeArticleCore(v) === target);
+  }) || null;
 }
 function _dashboardArticleHref(pageId, lawName, artNo){
   const law = String(lawName || '');

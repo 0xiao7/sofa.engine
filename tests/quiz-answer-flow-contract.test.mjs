@@ -159,8 +159,10 @@ test('quiz accepts law query params from dashboard single-practice links', () =>
 test('quiz drill links can target one article number from dashboard playlists', () => {
   assert.match(active, /function _articleParamFromUrl/);
   assert.match(active, /_searchParams\.get\('art'\)/);
+  assert.match(active, /Array\.isArray\(r\.articles\) \? r\.articles : \(Array\.isArray\(r\.items\) \? r\.items : \[\]\)/);
   assert.match(active, /function _findArticleByUrlParam/);
-  assert.match(active, /normalizeArticleCore\(a\.title\) === target/);
+  assert.match(active, /const candidates = \[a\.title, a\.article_no, a\.article, a\.no\]/);
+  assert.match(active, /candidates\.some\(v => normalizeArticleCore\(v\) === target\)/);
   assert.match(active, /const urlArticle = await _findArticleByUrlParam\(law\)/);
   assert.match(active, /urlArticle && _drillParam/);
   assert.match(active, /page_id=\$\{encodeURIComponent\(urlArticle\.id\)\}/);
