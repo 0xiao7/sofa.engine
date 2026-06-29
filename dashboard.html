@@ -6886,7 +6886,7 @@ function _speakStudyPlaylistText(button, text, idleLabel, meta){
     _setStudyPlaylistStatus('目前沒有可朗讀的重點；先看文字清單或回去答題累積弱點。');
     return;
   }
-  if(!('speechSynthesis' in window)){
+  if(!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)){
     _dashToast('這個瀏覽器不支援朗讀，請先看文字清單。');
     _setStudyPlaylistStatus('這個瀏覽器不支援朗讀；文字、單刷和看法條仍可用。');
     return;
@@ -6902,6 +6902,7 @@ function _speakStudyPlaylistText(button, text, idleLabel, meta){
     _resetStudyPlaylistSpeechButton();
   }
   var utt = new SpeechSynthesisUtterance(text);
+  var started = false;
   utt.lang = 'zh-TW';
   utt.rate = 0.92;
   utt.pitch = 1;
@@ -6909,8 +6910,19 @@ function _speakStudyPlaylistText(button, text, idleLabel, meta){
   var twVoice = voices.find(function(v){ return v.lang === 'zh-TW'; })
              || voices.find(function(v){ return v.lang && v.lang.indexOf('zh') === 0; });
   if(twVoice) utt.voice = twVoice;
-  utt.onend = _resetStudyPlaylistSpeechButton;
-  utt.onerror = _resetStudyPlaylistSpeechButton;
+  utt.onstart = function(){
+    started = true;
+    _setStudyPlaylistStatus(meta && meta.label ? ('正在朗讀：' + meta.label) : '正在朗讀全部重點。');
+  };
+  utt.onend = function(){
+    _resetStudyPlaylistSpeechButton();
+    _setStudyPlaylistStatus('朗讀結束；可以接著單刷或看法條。');
+  };
+  utt.onerror = function(){
+    _resetStudyPlaylistSpeechButton();
+    _dashToast('朗讀沒有啟動，請再點一次或先看文字清單。');
+    _setStudyPlaylistStatus('朗讀沒有啟動；文字、單刷和看法條仍可用。');
+  };
   if(button){
     button.setAttribute('data-idle-label', idleLabel || button.textContent || '朗讀');
     button.textContent = '停止';
@@ -6921,6 +6933,17 @@ function _speakStudyPlaylistText(button, text, idleLabel, meta){
   else _setStudyPlaylistSpeakingIndex(null);
   _setStudyPlaylistStatus(meta && meta.label ? ('正在朗讀：' + meta.label) : '正在朗讀全部重點。');
   speechSynthesis.speak(utt);
+  if(typeof speechSynthesis.resume === 'function'){
+    setTimeout(function(){
+      try{ speechSynthesis.resume(); }catch(e){}
+    }, 0);
+  }
+  setTimeout(function(){
+    if(_studyPlaylistSpeechButton !== button || started) return;
+    if(speechSynthesis.speaking || speechSynthesis.pending) return;
+    _resetStudyPlaylistSpeechButton();
+    _setStudyPlaylistStatus('朗讀沒有啟動；文字、單刷和看法條仍可用。');
+  }, 1200);
 }
 
 function playStudyPlaylistItem(button, idx){

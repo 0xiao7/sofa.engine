@@ -310,9 +310,12 @@ test('study playlist can directly play text through the browser speech engine', 
   assert.match(active, /function _speakStudyPlaylistText/);
   assert.match(active, /SpeechSynthesisUtterance/);
   assert.match(active, /speechSynthesis\.speak/);
+  assert.match(active, /utt\.onstart/);
+  assert.match(active, /speechSynthesis\.resume/);
   assert.match(active, /window\.__studyPlaylistAudioItems/);
   assert.match(active, /\.study-playlist-item\.is-speaking/);
   assert.match(active, /正在朗讀：/);
+  assert.match(active, /朗讀沒有啟動/);
   assert.match(active, /已停止朗讀/);
   assert.match(active, /已準備 ' \+ items\.length \+ ' 則文字重點/);
   assert.match(active, /重音\|停頓/);
