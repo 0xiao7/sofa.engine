@@ -410,7 +410,8 @@ test('study today shows the next private plan near the first action area', () =>
   assert.match(nextFn, /_actionableStudyItems/);
   assert.match(nextFn, /下一堂/);
   assert.match(nextFn, /今天留/);
-  assert.match(nextFn, /完成後到讀書計畫點完成/);
+  assert.match(nextFn, /讀完直接按「完成這堂」/);
+  assert.doesNotMatch(nextFn, /完成後到讀書計畫點完成/);
   assert.match(nextFn, /href="#study-plan-items"/);
 });
 
