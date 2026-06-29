@@ -59,6 +59,20 @@ test('visual entry QA checks stats overlay source wording', () => {
   assert.match(script, /考古題/);
 });
 
+test('visual entry QA checks study tool deep links in the mobile app shell', () => {
+  assert.match(script, /studyToolDeepLinkCase/);
+  assert.match(script, /#study-plan/);
+  assert.match(script, /#study-record/);
+  assert.match(script, /#study-playlist/);
+  assert.match(script, /study-plan-panel/);
+  assert.match(script, /study-record-panel/);
+  assert.match(script, /study-playlist-panel/);
+  assert.match(script, /設定讀書課程/);
+  assert.match(script, /補紀錄只會補進度/);
+  assert.match(script, /朗讀全部/);
+  assert.match(script, /sofa-visual-study-tool-/);
+});
+
 test('visual entry QA is safe to run without production writes', () => {
   assert.match(script, /page\.route\('https:\/\/sofa-engine-api\.onrender\.com\/\*\*'/);
   assert.match(script, /route\.fulfill/);

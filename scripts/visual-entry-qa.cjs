@@ -402,6 +402,62 @@ async function statsCase(browser, baseUrl) {
   return { name: 'stats-mobile', screenshot, boxes };
 }
 
+async function studyToolDeepLinkCase(browser, baseUrl) {
+  const cases = [
+    {
+      hash: '#study-plan',
+      panel: '#study-plan-panel',
+      action: '#study-plan-title',
+      name: 'study-tool-plan',
+      requiredText: /設定讀書課程/,
+      label: 'study plan first input'
+    },
+    {
+      hash: '#study-record',
+      panel: '#study-record-panel',
+      action: '#study-record-date',
+      name: 'study-tool-record',
+      requiredText: /補紀錄只會補進度/,
+      label: 'study record first input'
+    },
+    {
+      hash: '#study-playlist',
+      panel: '#study-playlist-panel',
+      action: '#study-playlist-playall',
+      name: 'study-tool-playlist',
+      requiredText: /朗讀全部/,
+      label: 'study playlist play all'
+    }
+  ];
+  const results = [];
+  for (const item of cases) {
+    const page = await browser.newPage({ viewport: { width: 390, height: 667 }, deviceScaleFactor: 2, isMobile: true });
+    await installApiMocks(page);
+    await page.goto(`${baseUrl}/dashboard.html${item.hash}`, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector(`${item.panel}.on`, { state: 'visible', timeout: 9000 });
+    await page.waitForFunction(selector => {
+      const el = document.querySelector(selector);
+      if (!el) return false;
+      const r = el.getBoundingClientRect();
+      const x = Math.min(Math.max(r.left + r.width / 2, 1), window.innerWidth - 1);
+      const y = Math.min(Math.max(r.top + r.height / 2, 1), window.innerHeight - 1);
+      const top = document.elementFromPoint(x, y);
+      return !!(top === el || (top && el.contains(top)));
+    }, item.action, { timeout: 9000 });
+    const panelText = await page.locator(item.panel).innerText();
+    if (!item.requiredText.test(panelText)) {
+      throw new Error(`${item.name}: did not land on a readable panel (${panelText.slice(0, 160)})`);
+    }
+    const actionBox = await assertTapTarget(page, item.action, item.label);
+    await assertNotCoveredBy(page, item.action, '#mobile-daily-bar', `${item.name} first action`);
+    const screenshot = path.join(OUT_DIR, `sofa-visual-study-tool-${item.name}.png`);
+    await page.screenshot({ path: screenshot, fullPage: false });
+    results.push({ name: item.name, screenshot, actionBox });
+    await page.close();
+  }
+  return { name: 'study-tool-deep-links-mobile', results };
+}
+
 (async () => {
   const { chromium } = maybePlaywright();
   const chrome = findChrome();
@@ -421,6 +477,7 @@ async function statsCase(browser, baseUrl) {
     results.push(await quizBehaviorCase(browser, baseUrl));
     results.push(await freeRetentionCase(browser, baseUrl));
     results.push(await statsCase(browser, baseUrl));
+    results.push(await studyToolDeepLinkCase(browser, baseUrl));
     console.log(JSON.stringify({ ok: true, root: ROOT, results }, null, 2));
   } finally {
     await browser.close();

@@ -69,8 +69,27 @@ test('law preview accepts common article deep-link aliases', () => {
   assert.match(preview, /const targetId = params\.get\('id'\) \|\| params\.get\('articleId'\)/);
   assert.match(preview, /const targetArticleNo = params\.get\('art'\) \|\| params\.get\('article'\)/);
   assert.match(preview, /function normalizeArticleNo/);
-  assert.match(preview, /normalizeArticleNo\(a\.title\) === normalizedTargetArticle/);
+  assert.match(preview, /articleMatchesTarget\(a, normalizedTargetArticle\)/);
   assert.match(preview, /const firstId = targetId && articlesCache\.find\(a => a\.id === targetId\)/);
+});
+
+test('law preview normalizes sub-articles before matching deep links', () => {
+  const source = [
+    extractFunction(preview, 'normalizeArticleNo'),
+    extractFunction(preview, 'articleMatchesTarget')
+  ].join('\n');
+  const sandbox = {};
+  vm.createContext(sandbox);
+  vm.runInContext(`${source}; this.normalizeArticleNo = normalizeArticleNo; this.articleMatchesTarget = articleMatchesTarget;`, sandbox);
+
+  assert.equal(sandbox.normalizeArticleNo('第43條之3 CFC'), '43之3');
+  assert.equal(sandbox.normalizeArticleNo('第 43 條之 3'), '43之3');
+  assert.equal(sandbox.normalizeArticleNo('§ 06-1｜民法親屬編施行法第6條之1'), '6之1');
+  assert.equal(sandbox.normalizeArticleNo('第十三條之一'), '13之1');
+  assert.equal(sandbox.normalizeArticleNo('§ １１４Ｑ４６｜題庫'), '114Q46');
+  assert.ok(sandbox.articleMatchesTarget({ title: '§ 06-1｜民法親屬編施行法第6條之1' }, '6之1'));
+  assert.ok(sandbox.articleMatchesTarget({ title: '第43條之3 CFC' }, '43之3'));
+  assert.ok(sandbox.articleMatchesTarget({ article_no: '第十三條之一' }, '13之1'));
 });
 
 function extractFunction(source, name) {

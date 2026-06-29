@@ -157,7 +157,7 @@ test('study plan and record panels have deep links for native app entry', () => 
   assert.match(active, /retryStudyHashScroll\('member',\s*30,\s*true\)/);
   assert.match(active, /retryStudyHashScroll\('study-plan-panel',\s*18,\s*true\)/);
   assert.match(active, /retryStudyHashScroll\('study-record-panel',\s*18,\s*true\)/);
-  assert.match(active, /retryStudyHashScroll\('study-playlist-panel',\s*18,\s*true\)/);
+  assert.match(active, /retryStudyHashScroll\('study-playlist-playall',\s*18,\s*true\)/);
   assert.match(active, /\.study-mode-status\{[\s\S]*scroll-margin-top:calc\(84px \+ env\(safe-area-inset-top, 0px\)\)/);
   assert.match(active, /\.study-plan-panel,\s*\.study-record-panel,\s*\.study-playlist-panel\{[\s\S]*scroll-margin-top:calc\(96px \+ env\(safe-area-inset-top, 0px\)\)/);
   assert.match(active, /\.study-plan-panel,\s*\.study-record-panel,\s*\.study-playlist-panel\{[\s\S]*scroll-margin-bottom:calc\(104px \+ env\(safe-area-inset-bottom, 0px\)\)/);

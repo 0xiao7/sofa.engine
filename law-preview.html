@@ -405,11 +405,48 @@ async function fetchJSON(url){
 function starsCount(imp){ return (imp || '').match(/★/g)?.length || 0; }
 function starsStr(n){ return '★'.repeat(n); }
 function normalizeArticleNo(value){
+  function partToArabic(part){
+    const s = String(part || '').replace(/[０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0));
+    if(/^\d+$/.test(s)) return String(Number(s));
+    const map = {零:0,〇:0,一:1,二:2,兩:2,两:2,三:3,四:4,五:5,六:6,七:7,八:8,九:9};
+    if(!/[十百千]/.test(s)){
+      const direct = s.split('').map(ch => map[ch]);
+      return direct.every(n => typeof n === 'number') ? String(Number(direct.join(''))) : s;
+    }
+    let total = 0;
+    let current = 0;
+    let valid = true;
+    s.split('').forEach(ch => {
+      if(typeof map[ch] === 'number'){
+        current = map[ch];
+      }else if(ch === '千' || ch === '百' || ch === '十'){
+        const unit = ch === '千' ? 1000 : (ch === '百' ? 100 : 10);
+        total += (current || 1) * unit;
+        current = 0;
+      }else{
+        valid = false;
+      }
+    });
+    return valid ? String(total + current) : s;
+  }
   let raw = String(value || '').trim();
-  raw = raw.replace(/^第\s*/, '').replace(/\s*條.*$/, '');
   raw = raw.replace(/^§\s*/, '').split(/[｜|]/)[0].trim();
-  raw = raw.replace(/[０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0));
-  return raw;
+  raw = raw.replace(/[０-９Ａ-Ｚａ-ｚ]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0));
+  raw = raw.replace(/^第\s*/, '').replace(/\s+/g, '').replace(/[－–—-]/g, '之');
+  const ch = '[0-9一二三四五六七八九十百千零兩两]+';
+  let m = raw.match(new RegExp('^(' + ch + ')條?之(' + ch + ')'));
+  if(m) return partToArabic(m[1]) + '之' + partToArabic(m[2]);
+  m = raw.match(new RegExp('^(' + ch + ')條'));
+  if(m) return partToArabic(m[1]);
+  m = raw.match(/^([0-9]+Q[0-9]+)/i);
+  if(m) return m[1].toUpperCase();
+  m = raw.match(new RegExp('^(' + ch + ')(?:之(' + ch + '))?$'));
+  return m ? partToArabic(m[1]) + (m[2] ? '之' + partToArabic(m[2]) : '') : raw;
+}
+function articleMatchesTarget(article, normalizedTargetArticle){
+  if(!normalizedTargetArticle) return false;
+  return [article?.title, article?.article_no, article?.article, article?.no]
+    .some(value => normalizeArticleNo(value) === normalizedTargetArticle);
 }
 
 // ── 整部平均星數 ────────────────────────
@@ -629,7 +666,7 @@ async function loadArticle(id, pushUrl){
 
     const normalizedTargetArticle = normalizeArticleNo(targetArticleNo);
     const articleMatch = normalizedTargetArticle
-      ? articlesCache.find(a => normalizeArticleNo(a.title) === normalizedTargetArticle)
+      ? articlesCache.find(a => articleMatchesTarget(a, normalizedTargetArticle))
       : null;
     const firstId = targetId && articlesCache.find(a => a.id === targetId)
       ? targetId
