@@ -29,6 +29,8 @@ test('weakness list uses harmonized card classes and explicit next actions', () 
   assert.match(active, /\.weak-card/);
   assert.match(active, /\.weak-action-primary/);
   assert.match(active, /\.weak-article-link/);
+  assert.match(active, /\.weak-article-link\{[\s\S]*min-height:44px/);
+  assert.match(active, /\.weak-action-primary,\.weak-action-soft\{[\s\S]*min-height:44px/);
   assert.match(active, /\.weak-source-note/);
   assert.match(active, /這裡先看最常錯的法規/);
   assert.match(active, /下一步先練/);

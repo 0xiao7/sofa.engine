@@ -111,7 +111,7 @@ test('mobile quiz keeps secondary mode controls out of the first screen', () => 
   assert.match(active, /class="seg score-seg">錯誤/);
   assert.match(active, /\.pr-meta \.score-seg\{display:none\}/);
   assert.match(active, /\.pr-meta\{width:100%;display:flex;flex-wrap:nowrap;overflow-x:auto/);
-  assert.match(active, /#btn-stats,#btn-open-weakness\{min-height:34px;text-align:center;white-space:nowrap;flex:0 0 auto\}/);
+  assert.match(active, /#btn-stats,#btn-open-weakness\{min-height:44px;text-align:center;white-space:nowrap;flex:0 0 auto\}/);
   assert.match(active, /\.pr-chips\{flex-wrap:nowrap;overflow-x:auto/);
 });
 
