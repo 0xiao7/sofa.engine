@@ -967,6 +967,7 @@ const tok = localStorage.getItem('sofa_token') || '';
 const _searchParams = new URLSearchParams(location.search);
 const freeParam = _searchParams.get('free') === '1';
 const _drillParam = _searchParams.get('drill') === '1';
+const _startQuizParam = _searchParams.get('start') === '1';
 const _PAST_EXAM_SUBJECTS = ['記帳相關法規概要', '稅務相關法規概要'];
 let _pastExamMode = _searchParams.get('mode') === 'past-exam';
 function _lawParamFromUrl(){
@@ -978,6 +979,10 @@ function _articleParamFromUrl(){
   const raw = _searchParams.get('art') || _searchParams.get('article') || '';
   try { return decodeURIComponent(raw).trim(); }
   catch(e) { return String(raw || '').trim(); }
+}
+function _focusQuizQuestionStart(){
+  const stage = document.querySelector('.stage');
+  if(stage) stage.scrollIntoView({block:'start', behavior:'auto'});
 }
 function _applyInitialLawParam(sel){
   const law = _lawParamFromUrl();
@@ -1239,7 +1244,7 @@ function _showQzExamBanner() {
   nav.before ? nav.before(bar) : document.body.prepend(bar);
 }
 function _shouldShowQzExamBanner(examKey) {
-  return !examKey && !_lawParamFromUrl() && !_articleParamFromUrl() && !_drillParam && !_pastExamMode;
+  return !examKey && !_lawParamFromUrl() && !_articleParamFromUrl() && !_drillParam && !_pastExamMode && !_startQuizParam;
 }
 
 (async()=>{
@@ -1296,6 +1301,7 @@ function _shouldShowQzExamBanner(examKey) {
     return;
   }
   if(_initialLawApplied){ loadQuiz(); return; }
+  if(_startQuizParam){ loadQuiz(); return; }
   // 進頁自動出第一題：只要已選考科（或已有選定法規）就直接出題，不必按「出題」
   if(_restored || _hasExam){ loadQuiz(); }
 })();
@@ -2592,6 +2598,7 @@ async function loadQuiz(){
 
     document.getElementById('questionBox').textContent=data.question||'出題失敗';
     document.getElementById('questionBox').style.opacity='1';
+    if(_startQuizParam) setTimeout(_focusQuizQuestionStart, 80);
     document.getElementById('btnFlag').classList.remove('flagged');
     document.getElementById('btnFlag').style.display='none';
     document.getElementById('btnFlag').textContent='⚑ 標記';

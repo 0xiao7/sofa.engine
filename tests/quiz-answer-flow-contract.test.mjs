@@ -117,8 +117,17 @@ test('mobile quiz keeps secondary mode controls out of the first screen', () => 
 
 test('law deep links bypass the exam picker banner', () => {
   assert.match(active, /function _shouldShowQzExamBanner\(examKey\)/);
-  assert.match(active, /return !examKey && !_lawParamFromUrl\(\) && !_articleParamFromUrl\(\) && !_drillParam && !_pastExamMode/);
+  assert.match(active, /return !examKey && !_lawParamFromUrl\(\) && !_articleParamFromUrl\(\) && !_drillParam && !_pastExamMode && !_startQuizParam/);
   assert.match(active, /if\(_shouldShowQzExamBanner\(examKey\)\) _showQzExamBanner\(\)/);
+});
+
+test('app start links go straight to the question area without the exam picker gate', () => {
+  assert.match(active, /const _startQuizParam = _searchParams\.get\('start'\) === '1'/);
+  assert.match(active, /function _focusQuizQuestionStart/);
+  assert.match(active, /document\.querySelector\('\.stage'\)/);
+  assert.match(active, /scrollIntoView\(\{block:'start', behavior:'auto'\}\)/);
+  assert.match(active, /if\(_startQuizParam\)\{ loadQuiz\(\); return; \}/);
+  assert.match(active, /if\(_startQuizParam\) setTimeout\(_focusQuizQuestionStart, 80\)/);
 });
 
 test('question label sits above the stem text instead of overlaying long questions', () => {
