@@ -7039,6 +7039,19 @@ function buildStudyPlaylistFallbackItems(data, subject){
   return items.slice(0, 8);
 }
 
+function refreshOpenStudyPlaylistFromWeakCache(){
+  var panel = document.getElementById('study-playlist-panel');
+  var list = document.getElementById('study-playlist-list');
+  if(!panel || !list || !panel.classList.contains('on')) return;
+  var audioItems = window.__studyPlaylistAudioItems || [];
+  var currentText = list.textContent || '';
+  var looksEmpty = !audioItems.length
+    || currentText.indexOf('今天還沒有弱點或題庫重點可朗讀') >= 0
+    || currentText.indexOf('目前沒有可朗讀') >= 0;
+  if(!looksEmpty) return;
+  loadStudyPlaylist();
+}
+
 async function loadStudyPlaylist(){
   var list = document.getElementById('study-playlist-list');
   var subjectEl = document.getElementById('study-playlist-subject');
@@ -8981,6 +8994,7 @@ ch.on('presence', { event: 'sync' }, () => {
     _latestWeakLawItems = laws;
     renderStudyWeakBrief(laws);
     renderStudyWeakState(laws);
+    refreshOpenStudyPlaylistFromWeakCache();
     if(navWeak) navWeak.textContent = String(laws.length);
     if(!laws.length){
       recap.style.display='block';

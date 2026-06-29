@@ -237,6 +237,20 @@ test('study playlist falls back to today weakness and topic blocks when playlist
   assert.doesNotMatch(load, /先回選擇題累積弱點/);
 });
 
+test('open study playlist refreshes when weak laws arrive after the panel opened', () => {
+  assert.match(active, /function refreshOpenStudyPlaylistFromWeakCache/);
+  const refresh = extractFunction(active, 'refreshOpenStudyPlaylistFromWeakCache');
+  assert.match(refresh, /study-playlist-panel/);
+  assert.match(refresh, /classList\.contains\('on'\)/);
+  assert.match(refresh, /__studyPlaylistAudioItems/);
+  assert.match(refresh, /今天還沒有弱點或題庫重點可朗讀/);
+  assert.match(refresh, /loadStudyPlaylist\(\)/);
+
+  const render = extractFunction(active, 'renderWeakLaws');
+  assert.match(render, /_latestWeakLawItems = laws/);
+  assert.match(render, /refreshOpenStudyPlaylistFromWeakCache\(\)/);
+});
+
 test('dashboard law plus article deep links auto-open the target article', () => {
   const fn = extractFunction(active, '_handleUrlLaw');
   assert.match(fn, /params\.get\('law'\)/);
