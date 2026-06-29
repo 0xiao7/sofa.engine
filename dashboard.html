@@ -2439,6 +2439,13 @@
     line-height:1.55;
   }
   .dr-wrong-alert b{color:var(--peach-3);font-weight:800}
+  .dr-wrong-alert small{
+    display:block;
+    margin-top:2px;
+    color:rgba(31,56,72,.62);
+    font-size:12px;
+    line-height:1.45;
+  }
   .dr-wrong-alert a{
     flex-shrink:0;
     border:1px solid rgba(200,149,128,.42);
@@ -5096,7 +5103,7 @@ function _rememberRemoteWeakArticles(items){
           law: law.law_name || '',
           article: a.article || (a.article_no ? ('第 ' + a.article_no + ' 條') : ''),
           errorCount: a.wrong_count || law.wrong_count || 1,
-          source: a.source || 'server_weak_laws'
+          source: a.answer_source || a.source || 'server_weak_laws'
         };
       });
     });
@@ -5121,8 +5128,10 @@ function _renderDrawerWrongAlert(pageId){
   if(!hit) return '';
   var count = Math.max(1, parseInt(hit.errorCount || 1, 10) || 1);
   var countText = count > 1 ? (' ' + count + ' 次') : '';
+  var sourceText = hit.source ? ('來源：' + esc(answerSourceLabel(hit.source))) : '';
   return '<div class="dr-wrong-alert">'
-    + '<span><b>這條曾答錯' + esc(countText) + '</b>，現在看原文就是在補剛剛漏掉的考點。</span>'
+    + '<span><b>這條曾答錯' + esc(countText) + '</b>，現在看原文就是在補剛剛漏掉的考點。'
+    + (sourceText ? '<small>' + sourceText + '</small>' : '') + '</span>'
     + '<a href="quiz.html?open=wrong">重練錯題</a>'
     + '</div>';
 }
@@ -8773,6 +8782,7 @@ ch.on('presence', { event: 'sync' }, () => {
       past_exam: '考古題',
       wrong_review: '錯題重練',
       timeout: '逾時未答',
+      server_weak_laws: '後端弱點紀錄',
       unknown: '未標來源'
     };
     return labels[key] || key;

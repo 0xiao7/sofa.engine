@@ -225,7 +225,7 @@ test('remote wrong bank prefers latest wrong quiz-session articles over represen
   assert.match(fn, /item\.wrong_articles/);
   assert.match(fn, /item\.top_articles/);
   assert.match(fn, /const articles = \(item\.wrong_articles && item\.wrong_articles\.length\) \? item\.wrong_articles : \(item\.top_articles \|\| \[\]\)/);
-  assert.match(fn, /source:a\.source \|\| 'server_weak_laws'/);
+  assert.match(fn, /source:a\.answer_source \|\| a\.source \|\| 'server_weak_laws'/);
 });
 
 test('weakness panel shows actual wrong articles when the server provides them', () => {
@@ -247,6 +247,7 @@ test('weakness article chips open the exact article reader', () => {
   assert.match(fn, /if\(!pageId && !art\) return `<span class="weak-article-link is-muted">/);
   assert.match(fn, /_articleReaderHref\(law, art \|\| label, pageId\)/);
   assert.match(fn, /class="weak-article-link"/);
+  assert.match(fn, /_answerSourceLabel\(a\.answer_source \|\| a\.source\)/);
   assert.match(fn, /target="_blank"/);
 });
 

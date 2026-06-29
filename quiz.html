@@ -580,6 +580,11 @@
   .weak-card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:8px}
   .weak-card-k{color:var(--bad);font-size:12px;font-family:var(--mono);letter-spacing:.1em}
   .weak-card-v{color:rgba(245,240,234,.48);font-size:11px;margin-top:2px}
+  .weak-article-source{
+    margin-left:4px;
+    color:rgba(245,240,234,.48);
+    font-weight:500;
+  }
   .weak-article-link{
     min-height:32px;
     display:inline-flex;
@@ -1555,7 +1560,7 @@ async function _loadRemoteWrongBankForQuiz() {
       law:item.law_name || '',
       art:a.article || (a.article_no ? `§${a.article_no}` : ''),
       errorCount:a.wrong_count || item.wrong_count || 1,
-      source:a.source || 'server_weak_laws',
+      source:a.answer_source || a.source || 'server_weak_laws',
     }));
     }).filter(e => e.id);
   } catch(e) {
@@ -3146,6 +3151,7 @@ function _answerSourceLabel(source) {
     past_exam: '考古題',
     wrong_review: '錯題重練',
     timeout: '逾時未答',
+    server_weak_laws: '後端弱點紀錄',
     unknown: '未標來源',
   };
   return labels[key] || key;
@@ -3259,9 +3265,11 @@ function _weakArticleLinks(law, articles, limit) {
     const pageId = a.page_id || a.id || '';
     const art = a.article_no || a.article || '';
     const count = a.wrong_count ? ` ✗${a.wrong_count}` : '';
-    if(!pageId && !art) return `<span class="weak-article-link is-muted">${esc(label)}${esc(count)}</span>`;
+    const sourceLabel = a.answer_source || a.source ? ` · ${_answerSourceLabel(a.answer_source || a.source)}` : '';
+    const sourceHtml = sourceLabel ? `<span class="weak-article-source">${esc(sourceLabel)}</span>` : '';
+    if(!pageId && !art) return `<span class="weak-article-link is-muted">${esc(label)}${esc(count)}${sourceHtml}</span>`;
     const href = _articleReaderHref(law, art || label, pageId);
-    return `<a class="weak-article-link" href="${href}" target="_blank" rel="noopener">${esc(label)}${esc(count)}</a>`;
+    return `<a class="weak-article-link" href="${href}" target="_blank" rel="noopener">${esc(label)}${esc(count)}${sourceHtml}</a>`;
   }).join('、');
 }
 

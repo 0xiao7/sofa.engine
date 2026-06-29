@@ -41,6 +41,7 @@ test('weakness wrong article labels are clickable article links', () => {
   assert.match(active, /function _weakArticleLinks/);
   assert.match(active, /_articleReaderHref/);
   assert.match(active, /weak-article-link/);
+  assert.match(active, /_answerSourceLabel\(a\.answer_source \|\| a\.source\)/);
   assert.match(active, /_weakArticleLinks\(law, item\.top_articles \|\| \[\], 2\)/);
   assert.match(active, /_weakArticleLinks\(law, sourceArticles, 2\)/);
 });
