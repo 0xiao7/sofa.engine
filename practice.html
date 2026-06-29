@@ -686,6 +686,10 @@ const API = 'https://sofa-engine-api.onrender.com';
 function isIOSReaderApp(){try{return !!(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='ios');}catch(e){return false;}}
 const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
 const tok = localStorage.getItem('sofa_token') || '';
+const _practiceSearchParams = new URLSearchParams(location.search);
+if (_practiceSearchParams.get('free') === '1' && !uid && !tok) {
+  localStorage.setItem('sofa_free', 'FREE');
+}
 // 過渡期：有 token 用 Bearer，否則 fallback X-Sofa-UID
 function formatLawText(raw){
   if(!raw) return '';
@@ -696,13 +700,60 @@ function formatLawText(raw){
   t=t.replace(/[ 　]*(（[一二三四五六七八九十百]+）)/g,'\n　$1');
   return t.replace(/^\n+/,'').replace(/\n{2,}/g,'\n').trim();
 }
+function normalizePracticeArticleNo(raw){
+  function cnNum(part){
+    let s=String(part||'').normalize('NFKC');
+    if(/^\d+$/.test(s))return s;
+    const map={零:0,〇:0,一:1,二:2,兩:2,两:2,三:3,四:4,五:5,六:6,七:7,八:8,九:9};
+    if(!/[十百千]/.test(s))return s.split('').map(ch=>map[ch]??ch).join('');
+    let total=0, section=0, num=0;
+    [...s].forEach(ch=>{
+      if(ch in map){num=map[ch];return;}
+      if(ch==='十'){section+=(num||1)*10;num=0;return;}
+      if(ch==='百'){section+=(num||1)*100;num=0;return;}
+      if(ch==='千'){section+=(num||1)*1000;num=0;}
+    });
+    return String(total+section+num);
+  }
+  let text=String(raw||'').normalize('NFKC')
+    .replace(/^第\s*/,'')
+    .replace(/\s*條$/,'')
+    .replace(/^§+/,'')
+    .replace(/\s+/g,'')
+    .replace(/條之/g,'之')
+    .trim();
+  const m=text.match(/^([0-9一二三四五六七八九十百千零兩两]+)(?:條)?(?:之([0-9一二三四五六七八九十百千零兩两]+))?$/);
+  if(!m)return text;
+  return cnNum(m[1])+(m[2]?'之'+cnNum(m[2]):'');
+}
+function practiceArticleNoFromRecord(a){
+  if(!a)return '';
+  if(a.article_no)return normalizePracticeArticleNo(a.article_no);
+  if(a.article)return normalizePracticeArticleNo(a.article);
+  if(a.no)return normalizePracticeArticleNo(a.no);
+  const title=String(a.title||'');
+  let m=title.match(/第\s*([0-9０-９一二三四五六七八九十百千零兩两]+)\s*條?\s*之\s*([0-9０-９一二三四五六七八九十百千零兩两]+)\s*條?/);
+  if(m)return normalizePracticeArticleNo(m[1]+'之'+m[2]);
+  m=title.match(/第\s*([0-9０-９一二三四五六七八九十百千零兩两]+(?:之[0-9０-９一二三四五六七八九十百千零兩两]+)?)\s*條/);
+  return m?normalizePracticeArticleNo(m[1]):'';
+}
+function findPracticeArticleByNo(articles,raw){
+  const target=normalizePracticeArticleNo(raw);
+  return (articles||[]).find(a=>practiceArticleNoFromRecord(a)===target)||null;
+}
+function practiceUrlLawParam(){return (_practiceSearchParams.get('law')||_practiceSearchParams.get('q')||'').trim();}
+function practiceUrlArticleParam(){return (_practiceSearchParams.get('art')||_practiceSearchParams.get('article')||'').trim();}
+function practiceUrlPageIdParam(){return (_practiceSearchParams.get('page_id')||_practiceSearchParams.get('id')||_practiceSearchParams.get('open')||'').trim();}
+let _practiceUrlTargetPending = !!(practiceUrlPageIdParam() || (practiceUrlLawParam() && practiceUrlArticleParam()));
+let _practiceUrlTargetResolving = false;
+let _skipPracticeLawPersistOnce = false;
 function _authH(extra) {
   const h = extra ? {...extra} : {};
   if (tok) h['Authorization'] = 'Bearer ' + tok;
   else if (uid) h['X-Sofa-UID'] = uid;
   return h;
 }
-const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
+const isFree = !uid && (_practiceSearchParams.get('free') === '1' || localStorage.getItem('sofa_free') === 'FREE');
 if (!uid && !isFree) { window.location.href = 'login.html?redirect=practice.html'; }
 document.getElementById('navUid').textContent = isFree ? '免費版' : (localStorage.getItem('sofa_nickname') || uid);
 if(isFree){
@@ -833,6 +884,28 @@ function _showPrExamBanner() {
     const lawsToShow = _filterLawsForExam(_allLoadedPrLaws, examKey);
     lawsToShow.forEach(l=>{ const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o); });
   } catch{}
+  const _urlPracticeLaw = practiceUrlLawParam();
+  if (_urlPracticeLaw) {
+    let opt = sel.querySelector(`option[value="${CSS.escape(_urlPracticeLaw)}"]`);
+    if (!opt && _allLoadedPrLaws.some(l => l.name === _urlPracticeLaw)) {
+      opt = document.createElement('option');
+      opt.value = _urlPracticeLaw;
+      opt.textContent = _urlPracticeLaw;
+      sel.appendChild(opt);
+    }
+    if (opt) {
+      _skipPracticeLawPersistOnce = true;
+      sel.value = _urlPracticeLaw;
+      sel.dispatchEvent(new Event('change'));
+      const art = practiceUrlArticleParam();
+      const artInput = document.getElementById('artNumInput');
+      if (artInput) artInput.value = normalizePracticeArticleNo(art);
+      _updatePracticeStatusBar(sel.value);
+      _updateScopeLabel(sel.value);
+      if (typeof loadNew === 'function') loadNew();
+      return;
+    }
+  }
   // Wave 80 — restore last selected law; default to first in list
   const _saved = localStorage.getItem('sofa_practice_law');
   if (_saved && sel.querySelector(`option[value="${CSS.escape(_saved)}"]`)) {
@@ -911,14 +984,18 @@ document.addEventListener('DOMContentLoaded',function(){
   _renderPracticeStreak();
 });
 document.getElementById('lawSelect').addEventListener('change', async function(){
-  localStorage.setItem('sofa_practice_law', this.value);
+  if(_skipPracticeLawPersistOnce)_skipPracticeLawPersistOnce = false;
+  else localStorage.setItem('sofa_practice_law', this.value);
   _updatePracticeStatusBar(this.value);
   _updateScopeLabel(this.value);
   const law = this.value;
   const wrap = document.getElementById('artPickWrap');
   const dl   = document.getElementById('artDatalist');
   const inp  = document.getElementById('artNumInput');
-  dl.innerHTML = ''; inp.value = '';
+  const urlArt = practiceUrlArticleParam();
+  const keepUrlArticle = _practiceUrlTargetPending && practiceUrlLawParam() === this.value && !!urlArt;
+  dl.innerHTML = '';
+  if(!keepUrlArticle) inp.value = '';
   const realLaw = law && !law.startsWith('__');
   wrap.style.display = realLaw ? '' : 'none';
   if (!realLaw) return;
@@ -929,13 +1006,14 @@ document.getElementById('lawSelect').addEventListener('change', async function()
     } catch { _artCache[law] = []; }
   }
   _artCache[law].forEach(a => {
-    const m = (a.title||'').match(/第(\d+(?:之\d+)?)條/);
-    if (!m) return;
     const opt = document.createElement('option');
-    opt.value = m[1];
+    const artNo = practiceArticleNoFromRecord(a);
+    if (!artNo) return;
+    opt.value = artNo;
     opt.label = a.title.replace(/第[\d之]+條\s*/,'').trim();
     dl.appendChild(opt);
   });
+  if(keepUrlArticle) inp.value = normalizePracticeArticleNo(urlArt);
 });
 
 let typeText='', typeInput='', startTime=null, timerIv=null;
@@ -1227,6 +1305,7 @@ function showDoneBanner(cor, total, mode){
 }
 
 async function loadNew(){
+  if(_practiceUrlTargetResolving) return;
   if(speechSynthesis.speaking) speechSynthesis.cancel();
   stopTimer();startTime=null;typeInput='';typeText='';ti.value='';
   // clear done banner from previous round
@@ -1243,7 +1322,34 @@ async function loadNew(){
   const law=document.getElementById('lawSelect').value;
   try{
     let d, lawMeta='';
-    if(law==='__starred__'){
+    if(_practiceUrlTargetPending){
+      const targetPid = practiceUrlPageIdParam();
+      const targetLaw = practiceUrlLawParam();
+      const targetArt = practiceUrlArticleParam();
+      _practiceUrlTargetResolving = true;
+      try{
+        if(targetPid){
+          d=await fetch(`${API}/api/article/${encodeURIComponent(targetPid)}`,{headers:_authH()}).then(r=>r.json());
+          lawMeta=targetLaw||d.law_name||'';
+        }else if(targetLaw && targetArt){
+          if(!_artCache[targetLaw]){
+            try{
+              const r=await fetch(`${API}/api/articles?law=${encodeURIComponent(targetLaw)}`,{headers:_authH()}).then(r=>r.json());
+              _artCache[targetLaw]=r.articles||r.items||[];
+            }catch{_artCache[targetLaw]=[];}
+          }
+          const match=findPracticeArticleByNo(_artCache[targetLaw],targetArt);
+          if(match){
+            d=await fetch(`${API}/api/article/${encodeURIComponent(match.id||match.page_id)}`,{headers:_authH()}).then(r=>r.json());
+            lawMeta=targetLaw;
+          }
+        }
+      }finally{
+        _practiceUrlTargetPending = false;
+        _practiceUrlTargetResolving = false;
+      }
+    }
+    if(!d && law==='__starred__'){
       const sl=await fetch(`${API}/api/starred?min_stars=5`,{headers:_authH()}).then(r=>r.json());
       const arts=(sl.articles||[]);
       if(!arts.length){
@@ -1253,7 +1359,7 @@ async function loadNew(){
       const pick=arts[Math.floor(Math.random()*arts.length)];
       d=await fetch(`${API}/api/article/${pick.id}`,{headers:_authH()}).then(r=>r.json());
       lawMeta=pick.law||'';
-    } else if(law==='__bookmarks__'){
+    } else if(!d && law==='__bookmarks__'){
       const bm=await fetch(`${API}/api/me/bookmarks`,{headers:_authH()}).then(r=>r.json());
       const ids=(bm.bookmarks||[]);
       if(!ids.length){
@@ -1262,7 +1368,7 @@ async function loadNew(){
       }
       const pick=ids[Math.floor(Math.random()*ids.length)];
       d=await fetch(`${API}/api/article/${pick}`,{headers:_authH()}).then(r=>r.json());
-    } else if(law==='__mastered__'||law==='__review__'){
+    } else if(!d && (law==='__mastered__'||law==='__review__')){
       const wantStatus=law==='__mastered__'?'mastered':'review';
       const mr=await fetch(`${API}/api/me/mastery`,{headers:_authH()}).then(r=>r.json());
       const items=(mr.items||[]).filter(m=>m.status===wantStatus&&m.page_id);
@@ -1274,11 +1380,11 @@ async function loadNew(){
       const pick=items[Math.floor(Math.random()*items.length)];
       d=await fetch(`${API}/api/article/${pick.page_id}`,{headers:_authH()}).then(r=>r.json());
       lawMeta=pick.law_name||'';
-    } else {
+    } else if(!d) {
       // 若有指定條號，直接取那條
       const artNum = (document.getElementById('artNumInput')||{}).value?.trim();
       if(artNum && law && _artCache[law]){
-        const match=_artCache[law].find(a=>{const m=(a.title||'').match(/第(\d+(?:之\d+)?)條/);return m&&m[1]===artNum;});
+        const match=findPracticeArticleByNo(_artCache[law],artNum);
         if(match){
           d=await fetch(`${API}/api/article/${match.id}`,{headers:_authH()}).then(r=>r.json());
           lawMeta=law;
@@ -1640,7 +1746,7 @@ document.addEventListener('keydown',e=>{
 
 // Wave 56 — start session timer immediately on page load
 ensureSessionTimer();
-loadNew();
+if(!_practiceUrlTargetPending) loadNew();
 
 // === Wave 89: TTS (朗讀法條) ===
 let _practiceTtsUtterance = null;

@@ -20,6 +20,40 @@ test('practice full article action deep-links to the article reader', () => {
   assert.doesNotMatch(practice, /btn\.addEventListener\('click',\(\)=>\{[\s\S]*prArtInline/);
 });
 
+test('practice URL deep links can target one article without replacing the saved default law', () => {
+  assert.match(practice, /const _practiceSearchParams = new URLSearchParams\(location\.search\)/);
+  assert.match(practice, /function practiceUrlLawParam\(\)/);
+  assert.match(practice, /function practiceUrlArticleParam\(\)/);
+  assert.match(practice, /function practiceUrlPageIdParam\(\)/);
+  assert.match(practice, /let _practiceUrlTargetPending = !!\(practiceUrlPageIdParam\(\) \|\| \(practiceUrlLawParam\(\) && practiceUrlArticleParam\(\)\)\)/);
+  assert.match(practice, /let _practiceUrlTargetResolving = false/);
+  assert.match(practice, /let _skipPracticeLawPersistOnce = false/);
+  assert.match(practice, /if\(_skipPracticeLawPersistOnce\)_skipPracticeLawPersistOnce = false;\s*else localStorage\.setItem\('sofa_practice_law', this\.value\)/);
+  assert.match(practice, /const keepUrlArticle = _practiceUrlTargetPending && practiceUrlLawParam\(\) === this\.value && !!urlArt/);
+  assert.match(practice, /if\(keepUrlArticle\) inp\.value = normalizePracticeArticleNo\(urlArt\)/);
+
+  const initStart = practice.indexOf('(async()=>{');
+  const initEnd = practice.indexOf('// ── 條號選單', initStart);
+  const initBlock = practice.slice(initStart, initEnd);
+  assert.match(initBlock, /const _urlPracticeLaw = practiceUrlLawParam\(\)/);
+  assert.match(initBlock, /_skipPracticeLawPersistOnce = true/);
+  assert.match(initBlock, /artInput\.value = normalizePracticeArticleNo\(art\)/);
+  assert.match(initBlock, /loadNew\(\);\s*return/);
+
+  const loadStart = practice.indexOf('async function loadNew');
+  const loadEnd = practice.indexOf('articleSections=d.sections', loadStart);
+  const loadBlock = practice.slice(loadStart, loadEnd);
+  assert.match(loadBlock, /if\(_practiceUrlTargetResolving\) return/);
+  assert.match(loadBlock, /if\(_practiceUrlTargetPending\)/);
+  assert.match(loadBlock, /_practiceUrlTargetResolving = true/);
+  assert.match(loadBlock, /finally\{\s*_practiceUrlTargetPending = false;\s*_practiceUrlTargetResolving = false;\s*\}/);
+  assert.match(loadBlock, /fetch\(`\$\{API\}\/api\/article\/\$\{encodeURIComponent\(targetPid\)\}`/);
+  assert.match(loadBlock, /const match=findPracticeArticleByNo\(_artCache\[targetLaw\],targetArt\)/);
+  assert.match(loadBlock, /fetch\(`\$\{API\}\/api\/article\/\$\{encodeURIComponent\(match\.id\|\|match\.page_id\)\}`/);
+  assert.match(loadBlock, /const match=findPracticeArticleByNo\(_artCache\[law\],artNum\)/);
+  assert.match(practice, /if\(!_practiceUrlTargetPending\) loadNew\(\)/);
+});
+
 test('inline original text toggles are named differently from full article links', () => {
   assert.match(quiz, /id="sourceLink">展開原文 ↓<\/button>/);
   assert.match(quiz, /btn\.textContent=open\?'收起原文 ↑':'展開原文 ↓'/);

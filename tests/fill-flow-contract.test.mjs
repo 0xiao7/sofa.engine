@@ -7,7 +7,7 @@ const html = readFileSync(new URL('../fill.html', import.meta.url), 'utf8');
 const active = html.replace(/<!--[\s\S]*?-->/g, '');
 
 function extractFunction(source, name) {
-  const marker = `function ${name}`;
+  const marker = `function ${name}(`;
   const start = source.indexOf(marker);
   assert.ok(start >= 0, `${name} must exist`);
   const open = source.indexOf('{', start);
@@ -97,4 +97,38 @@ test('fill source link helper preserves sub-article numbers in either title orde
     helpers.fillArticleReaderHref({ id: 'income-43-3', law_name: '所得稅法', title: '第43條之3 CFC' }),
     /^law-preview\.html\?law=%E6%89%80%E5%BE%97%E7%A8%85%E6%B3%95&id=income-43-3&art=43%E4%B9%8B3$/,
   );
+});
+
+test('fill URL deep links can target one article without replacing the saved default law', () => {
+  assert.match(active, /const _fillSearchParams = new URLSearchParams\(location\.search\)/);
+  assert.match(active, /function fillUrlLawParam\(\)/);
+  assert.match(active, /function fillUrlArticleParam\(\)/);
+  assert.match(active, /function fillUrlPageIdParam\(\)/);
+  assert.match(active, /let _fillUrlTargetPending = !!\(fillUrlPageIdParam\(\) \|\| \(fillUrlLawParam\(\) && fillUrlArticleParam\(\)\)\)/);
+  assert.match(active, /let _fillUrlTargetResolving = false/);
+  assert.match(active, /let _skipFillLawPersistOnce = false/);
+  assert.match(active, /if\(_skipFillLawPersistOnce\)_skipFillLawPersistOnce = false;\s*else localStorage\.setItem\('sofa_fill_law', this\.value\)/);
+  assert.match(active, /const keepUrlArticle = _fillUrlTargetPending && fillUrlLawParam\(\) === this\.value && !!urlArt/);
+  assert.match(active, /if\(keepUrlArticle\) inp\.value = normalizeFillArticleNo\(urlArt\)/);
+
+  const initStart = active.indexOf('(async()=>{');
+  const initEnd = active.indexOf('// 自製法規下拉', initStart);
+  const initBlock = active.slice(initStart, initEnd);
+  assert.match(initBlock, /const _urlFillLaw = fillUrlLawParam\(\)/);
+  assert.match(initBlock, /_skipFillLawPersistOnce = true/);
+  assert.match(initBlock, /artInput\.value=normalizeFillArticleNo\(art\)/);
+  assert.match(initBlock, /loadNew\(\);\s*return/);
+
+  const loadStart = active.indexOf('async function loadNew');
+  const loadEnd = active.indexOf('let resp=await fetch', loadStart);
+  const loadBlock = active.slice(loadStart, loadEnd);
+  assert.match(loadBlock, /if\(_fillUrlTargetResolving\) return/);
+  assert.match(loadBlock, /if\(_fillUrlTargetPending\)/);
+  assert.match(loadBlock, /_fillUrlTargetResolving = true/);
+  assert.match(loadBlock, /finally\{\s*_fillUrlTargetPending = false;\s*_fillUrlTargetResolving = false;\s*\}/);
+  assert.match(loadBlock, /url=`\$\{API\}\/api\/fill\?page_id=\$\{encodeURIComponent\(targetPid\)\}`/);
+  assert.match(loadBlock, /const match=findFillArticleByNo\(_artCache\[targetLaw\],targetArt\)/);
+  assert.match(loadBlock, /if\(match\)url=`\$\{API\}\/api\/fill\?page_id=\$\{encodeURIComponent\(match\.id\|\|match\.page_id\)\}`/);
+  assert.match(loadBlock, /const match=findFillArticleByNo\(_artCache\[law\],artNum\)/);
+  assert.match(active, /if\(_fillUrlTargetPending\) return;\s*var law=document\.getElementById\('lawSelect'\)\.value/);
 });

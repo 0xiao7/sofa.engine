@@ -515,7 +515,8 @@ function isIOSReaderApp(){try{return !!(window.Capacitor&&Capacitor.getPlatform&
 if(isIOSReaderApp()) document.documentElement.classList.add('ios-reader-app');
 const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
 const tok = localStorage.getItem('sofa_token') || '';
-const freeParam = new URLSearchParams(location.search).get('free') === '1';
+const _fillSearchParams = new URLSearchParams(location.search);
+const freeParam = _fillSearchParams.get('free') === '1';
 if (freeParam && !uid && !tok) {
   localStorage.setItem('sofa_free', 'FREE');
 }
@@ -568,6 +569,39 @@ function normLegalNum(s){
   r=r.replace(/[零〇○一二兩两三四五六七八九十百千萬万]+/g,parseNum);
   return r;
 }
+function normalizeFillArticleNo(raw){
+  let text=String(raw||'').normalize('NFKC')
+    .replace(/^第\s*/,'')
+    .replace(/\s*條$/,'')
+    .replace(/^§+/,'')
+    .replace(/\s+/g,'')
+    .trim();
+  text=text.replace(/條之/g,'之');
+  const m=text.match(/^([0-9一二三四五六七八九十百千零兩两]+)(?:條)?(?:之([0-9一二三四五六七八九十百千零兩两]+))?$/);
+  if(!m)return text;
+  return normLegalNum(m[1])+(m[2]?'之'+normLegalNum(m[2]):'');
+}
+function fillArticleNoFromRecord(a){
+  if(!a)return '';
+  if(a.article_no)return normalizeFillArticleNo(a.article_no);
+  if(a.article)return normalizeFillArticleNo(a.article);
+  if(a.no)return normalizeFillArticleNo(a.no);
+  const title=String(a.title||'');
+  let m=title.match(/第\s*([0-9０-９一二三四五六七八九十百千零兩两]+)\s*條?\s*之\s*([0-9０-９一二三四五六七八九十百千零兩两]+)\s*條?/);
+  if(m)return normalizeFillArticleNo(m[1]+'之'+m[2]);
+  m=title.match(/第\s*([0-9０-９一二三四五六七八九十百千零兩两]+(?:之[0-9０-９一二三四五六七八九十百千零兩两]+)?)\s*條/);
+  return m?normalizeFillArticleNo(m[1]):'';
+}
+function findFillArticleByNo(articles,raw){
+  const target=normalizeFillArticleNo(raw);
+  return (articles||[]).find(a=>fillArticleNoFromRecord(a)===target)||null;
+}
+function fillUrlLawParam(){return (_fillSearchParams.get('law')||_fillSearchParams.get('q')||'').trim();}
+function fillUrlArticleParam(){return (_fillSearchParams.get('art')||_fillSearchParams.get('article')||'').trim();}
+function fillUrlPageIdParam(){return (_fillSearchParams.get('page_id')||_fillSearchParams.get('id')||_fillSearchParams.get('open')||'').trim();}
+let _fillUrlTargetPending = !!(fillUrlPageIdParam() || (fillUrlLawParam() && fillUrlArticleParam()));
+let _fillUrlTargetResolving = false;
+let _skipFillLawPersistOnce = false;
 
 // ── 計時器 ──────────────────────────────────────────
 let _fillTimerIv=null, _fillStart=null, _sessionRight=0, _sessionHint=0;
@@ -673,6 +707,29 @@ function _showFillExamBanner() {
       _allFillLawNames.push(l.name);  // Wave 110: collect for random pick
     });
   } catch{}
+  const _urlFillLaw = fillUrlLawParam();
+  if(_urlFillLaw){
+    let opt = sel.querySelector(`option[value="${CSS.escape(_urlFillLaw)}"]`);
+    if(!opt && _allLoadedFillLaws.some(l=>l.name===_urlFillLaw)){
+      opt=document.createElement('option');
+      opt.value=_urlFillLaw;
+      opt.textContent=_urlFillLaw;
+      sel.appendChild(opt);
+      if(!_allFillLawNames.includes(_urlFillLaw))_allFillLawNames.push(_urlFillLaw);
+    }
+    if(opt){
+      _skipFillLawPersistOnce = true;
+      sel.value = _urlFillLaw;
+      sel.dispatchEvent(new Event('change'));
+      const art = fillUrlArticleParam();
+      const artInput = document.getElementById('artNumInput');
+      if(artInput)artInput.value=normalizeFillArticleNo(art);
+      _updateFillStatusBar(sel.value);
+      _updateFillScopeLabel();
+      loadNew();
+      return;
+    }
+  }
   // Wave 74: restore saved law preference and auto-load; default to 記帳士法 for first-time visitors
   const _savedFillLaw = localStorage.getItem('sofa_fill_law');
   if(_savedFillLaw&&sel.querySelector(`option[value="${CSS.escape(_savedFillLaw)}"]`)){
@@ -775,7 +832,8 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 document.getElementById('lawSelect').addEventListener('change', async function(){
   // Wave 74: persist law selection to localStorage
-  localStorage.setItem('sofa_fill_law', this.value);
+  if(_skipFillLawPersistOnce)_skipFillLawPersistOnce = false;
+  else localStorage.setItem('sofa_fill_law', this.value);
   // Wave 118: update law proficiency status bar
   _updateFillStatusBar(this.value);
   // 範圍標籤跟著選單即時更新
@@ -787,7 +845,10 @@ document.getElementById('lawSelect').addEventListener('change', async function()
   const wrap = document.getElementById('artPickWrap');
   const dl   = document.getElementById('artDatalist');
   const inp  = document.getElementById('artNumInput');
-  dl.innerHTML = ''; inp.value = '';
+  const urlArt = fillUrlArticleParam();
+  const keepUrlArticle = _fillUrlTargetPending && fillUrlLawParam() === this.value && !!urlArt;
+  dl.innerHTML = '';
+  if(!keepUrlArticle) inp.value = '';
   const realLaw = law && !law.startsWith('__');
   wrap.style.display = realLaw ? '' : 'none';
   if (!realLaw) return;
@@ -798,13 +859,14 @@ document.getElementById('lawSelect').addEventListener('change', async function()
     } catch { _artCache[law] = []; }
   }
   _artCache[law].forEach(a => {
-    const m = (a.title||'').match(/第(\d+(?:之\d+)?)條/);
-    if (!m) return;
+    const artNo = fillArticleNoFromRecord(a);
+    if (!artNo) return;
     const opt = document.createElement('option');
-    opt.value = m[1];
+    opt.value = artNo;
     opt.label = a.title.replace(/第[\d之]+條\s*/,'').trim();
     dl.appendChild(opt);
   });
+  if(keepUrlArticle) inp.value = normalizeFillArticleNo(urlArt);
 });
 
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
@@ -1641,6 +1703,7 @@ document.getElementById('fillSourceLink').addEventListener('click',()=>{
 });
 
 async function loadNew(){
+  if(_fillUrlTargetResolving) return;
   document.getElementById('btnNext').textContent = '下一篇';
   fillData=null;
   _lastFillPerfect = false;
@@ -1666,7 +1729,30 @@ async function loadNew(){
   }
   try{
     let url;
-    if(law==='__starred__'){
+    if(_fillUrlTargetPending){
+      const targetPid = fillUrlPageIdParam();
+      const targetLaw = fillUrlLawParam();
+      const targetArt = fillUrlArticleParam();
+      _fillUrlTargetResolving = true;
+      try{
+        if(targetPid){
+          url=`${API}/api/fill?page_id=${encodeURIComponent(targetPid)}`;
+        }else if(targetLaw && targetArt){
+          if(!_artCache[targetLaw]){
+            try{
+              const r=await fetch(`${API}/api/articles?law=${encodeURIComponent(targetLaw)}`,{headers:_authH()}).then(r=>r.json());
+              _artCache[targetLaw]=r.articles||r.items||[];
+            }catch{_artCache[targetLaw]=[];}
+          }
+          const match=findFillArticleByNo(_artCache[targetLaw],targetArt);
+          if(match)url=`${API}/api/fill?page_id=${encodeURIComponent(match.id||match.page_id)}`;
+        }
+      }finally{
+        _fillUrlTargetPending = false;
+        _fillUrlTargetResolving = false;
+      }
+    }
+    if(!url && law==='__starred__'){
       const sl=await fetch(`${API}/api/starred?min_stars=5`,{headers:_authH()}).then(r=>r.json());
       const arts=(sl.articles||[]);
       if(!arts.length){
@@ -1675,7 +1761,7 @@ async function loadNew(){
       }
       const pick=arts[Math.floor(Math.random()*arts.length)];
       url=`${API}/api/fill?page_id=${encodeURIComponent(pick.id)}`;
-    } else if(law==='__bookmarks__'){
+    } else if(!url && law==='__bookmarks__'){
       const bm=await fetch(`${API}/api/me/bookmarks`,{headers:_authH()}).then(r=>r.json());
       const ids=(bm.bookmarks||[]);
       if(!ids.length){
@@ -1684,7 +1770,7 @@ async function loadNew(){
       }
       const pick=ids[Math.floor(Math.random()*ids.length)];
       url=`${API}/api/fill?page_id=${encodeURIComponent(pick)}`;
-    } else if(law==='__mastered__'||law==='__review__'){
+    } else if(!url && (law==='__mastered__'||law==='__review__')){
       const wantStatus=law==='__mastered__'?'mastered':'review';
       const mr=await fetch(`${API}/api/me/mastery`,{headers:_authH()}).then(r=>r.json());
       const items=(mr.items||[]).filter(m=>m.status===wantStatus&&m.page_id);
@@ -1695,10 +1781,10 @@ async function loadNew(){
       }
       const pick=items[Math.floor(Math.random()*items.length)];
       url=`${API}/api/fill?page_id=${encodeURIComponent(pick.page_id)}`;
-    } else {
+    } else if(!url) {
       const artNum = (document.getElementById('artNumInput')||{}).value?.trim();
       if(artNum && law && _artCache[law]){
-        const match=_artCache[law].find(a=>{const m=(a.title||'').match(/第(\d+(?:之\d+)?)條/);return m&&m[1]===artNum;});
+        const match=findFillArticleByNo(_artCache[law],artNum);
         if(match){ url=`${API}/api/fill?page_id=${encodeURIComponent(match.id)}`; }
       }
       if(!url && _curPrChip!=='all' && law && _artCache[law]){
@@ -1830,6 +1916,7 @@ document.getElementById('btnReveal').addEventListener('click',()=>{
   updateBlankList();
 });
 (function(){
+  if(_fillUrlTargetPending) return;
   var law=document.getElementById('lawSelect').value;
   if(law){
     loadNew();
