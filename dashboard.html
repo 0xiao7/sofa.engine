@@ -2179,6 +2179,9 @@
     color:var(--cream);margin-top:14px;line-height:1;
     letter-spacing:-.01em;
     font-feature-settings:"lnum";
+    white-space:nowrap;
+    word-break:keep-all;
+    overflow-wrap:normal;
   }
   .li-card .sub{
     font-family:var(--serif);font-size:15px;
@@ -2449,6 +2452,9 @@
     font-family:var(--serif);font-weight:500;font-size:18px;
     color:var(--cream);min-width:50px;
     font-feature-settings:"lnum";
+    white-space:nowrap;
+    word-break:keep-all;
+    overflow-wrap:normal;
   }
   .rec-row .ttl{
     font-size:13.5px;color:rgba(245,240,234,.62);
@@ -3008,7 +3014,9 @@
       color:#173244;
       margin-top:10px;
       line-height:1.25;
-      word-break:break-word;
+      white-space:nowrap;
+      word-break:keep-all;
+      overflow-wrap:normal;
     }
     .li-card .sub{
       font-family:var(--sans);
@@ -3062,7 +3070,9 @@
       color:#173244;
       min-width:0;
       line-height:1.35;
-      word-break:break-word;
+      white-space:nowrap;
+      word-break:keep-all;
+      overflow-wrap:normal;
     }
     .rec-row .ttl{
       display:block;
@@ -4137,15 +4147,31 @@ if(document.readyState === 'loading'){
   document.addEventListener('DOMContentLoaded', applyIOSReaderAppReviewGuards);
 }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
-function displayArticleNo(raw){
+function escAttr(s){ return esc(s).replace(/"/g,'&quot;'); }
+function cleanArticleNoForDisplay(raw){
   var clean = String(raw || '').replace(/^§+/, '').trim();
+  clean = clean.replace(/^第\s*/, '').replace(/\s*條$/, '').trim();
+  return _normalizeArticleNo(clean) || clean;
+}
+function displayArticleNo(raw){
+  var clean = cleanArticleNoForDisplay(raw);
   return clean ? '§ ' + clean : '第 ? 條';
 }
 function fallbackArticleTitle(raw, title){
   var t = String(title || '').trim();
   if(t) return t;
-  var clean = String(raw || '').replace(/^§+/, '').trim();
+  var clean = cleanArticleNoForDisplay(raw);
   return clean ? ('第 ' + clean + ' 條') : '條文';
+}
+function articleReaderHref(lawName, artNo, pageId){
+  var safeLaw = String(lawName || '').trim();
+  var safeArt = cleanArticleNoForDisplay(artNo || '');
+  var safePid = String(pageId || '').trim();
+  var params = [];
+  if(safeLaw) params.push('law=' + encodeURIComponent(safeLaw));
+  if(safePid) params.push('id=' + encodeURIComponent(safePid));
+  if(safeArt) params.push('art=' + encodeURIComponent(safeArt));
+  return 'law-preview.html' + (params.length ? '?' + params.join('&') : '');
 }
 function chooseArticleOpenAction(pid, lawName, artNo){
   var safePid = String(pid || '').replace(/'/g, '');
@@ -4159,9 +4185,11 @@ function drawerOpenAttrs(pid, lawName, artNo, label){
   var safePid = String(pid || '').replace(/'/g, '');
   var safeLaw = String(lawName || '').replace(/'/g, '');
   var safeArt = _normalizeArticleNo(artNo || '').replace(/'/g, '');
+  var readerHref = articleReaderHref(safeLaw, safeArt, safePid);
   var action = chooseArticleOpenAction(safePid, safeLaw, safeArt);
+  var clickAction = "if(event.metaKey||event.ctrlKey){window.open(this.dataset.readerHref,'_blank','noopener');return;}" + action;
   var keyAction = "if(event.key==='Enter'||event.key===' '){event.preventDefault();" + action + ";}";
-  return ' role="button" tabindex="0" aria-label="' + esc(label || '開啟條文') + '" onclick="' + action + '" onkeydown="' + keyAction + '"';
+  return ' role="button" tabindex="0" aria-label="' + escAttr(label || '開啟條文') + '" data-reader-href="' + escAttr(readerHref) + '" onclick="' + clickAction + '" onkeydown="' + keyAction + '"';
 }
 function _normalizeArticleNo(raw){
   function partToArabic(part){
@@ -8724,12 +8752,17 @@ const navLinks = Array.from(document.querySelectorAll('.nav-list a[data-spy-targ
 window.__activeNavCanRefresh = true;
 function setActive(id){
   if(!navLinks || !navLinks.length) return;
+  var activeLink = null;
   navLinks.forEach(function(link){
     var on = link.dataset.spyTarget === id;
     link.classList.toggle('on', on);
+    if(on) activeLink = link;
     if(on) link.setAttribute('aria-current', 'true');
     else link.removeAttribute('aria-current');
   });
+  if(activeLink && typeof activeLink.scrollIntoView === 'function'){
+    activeLink.scrollIntoView({block:'nearest', inline:'nearest'});
+  }
 }
 function focusStudyGuideTarget(id){
   window.__activeNavPinnedUntil = Date.now() + 900;

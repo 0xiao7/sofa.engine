@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
+import vm from 'node:vm';
 
 const html = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
 const sharedCss = readFileSync(new URL('../sofa.css', import.meta.url), 'utf8');
@@ -66,6 +67,7 @@ test('today recaps are included in the sidebar navigation and scroll spy', () =>
   assert.match(html, /if\(nearBottom && candidates\.length\)\{[\s\S]*setActive\(candidates\[candidates\.length - 1\]\.id\)/);
   assert.match(html, /setActive\(best\.id\)/);
   assert.match(html, /aria-current/);
+  assert.match(html, /activeLink\.scrollIntoView\(\{block:'nearest', inline:'nearest'\}\)/);
 });
 
 test('today sidebar order follows the actual dashboard reading order', () => {
@@ -298,6 +300,9 @@ test('server recent answer recap shows readable source labels', () => {
 
 test('saved and recent law rows are semantic keyboard-operable controls', () => {
   assert.match(html, /function drawerOpenAttrs\(pid, lawName, artNo, label\)/);
+  assert.match(html, /function articleReaderHref\(lawName, artNo, pageId\)/);
+  assert.match(html, /data-reader-href="/);
+  assert.match(html, /event\.metaKey\|\|event\.ctrlKey/);
   assert.match(html, /role="button" tabindex="0" aria-label="/);
   assert.match(html, /event\.key==='Enter'\|\|event\.key===' '/);
   assert.match(html, /class="li-card"'\s*\+ drawerOpenAttrs\(pid, ln, artSafe, '開啟收藏條文/);
@@ -312,6 +317,39 @@ test('saved and recent law rows fall back to law and article lookup when page id
   assert.match(html, /if\(safeLaw && safeArt\) return "searchAndOpen\('/);
   assert.match(html, /drawerOpenAttrs\(pid, lawName, artNo, label\)[\s\S]*chooseArticleOpenAction\(safePid, safeLaw, safeArt\)/);
   assert.match(html, /onkeydown="' \+ keyAction \+ '"/);
+});
+
+test('dashboard article labels normalize raw article numbers before wrapping text', () => {
+  const source = [
+    extractFunction(html, '_normalizeArticleNo'),
+    extractFunction(html, 'cleanArticleNoForDisplay'),
+    extractFunction(html, 'displayArticleNo'),
+    extractFunction(html, 'fallbackArticleTitle'),
+    extractFunction(html, 'articleReaderHref'),
+  ].join('\n');
+  const sandbox = { encodeURIComponent };
+  vm.createContext(sandbox);
+  vm.runInContext(`${source}; this.helpers = { cleanArticleNoForDisplay, displayArticleNo, fallbackArticleTitle, articleReaderHref };`, sandbox);
+
+  assert.equal(sandbox.helpers.cleanArticleNoForDisplay('第13條'), '13');
+  assert.equal(sandbox.helpers.cleanArticleNoForDisplay('§ 13'), '13');
+  assert.equal(sandbox.helpers.cleanArticleNoForDisplay('第十三條之一'), '13之1');
+  assert.equal(sandbox.helpers.displayArticleNo('第13條'), '§ 13');
+  assert.equal(sandbox.helpers.fallbackArticleTitle('第13條', ''), '第 13 條');
+  assert.equal(sandbox.helpers.fallbackArticleTitle('第13條', '文件補正期限'), '文件補正期限');
+  assert.equal(
+    sandbox.helpers.articleReaderHref('記帳士法', '第13條', 'abc123'),
+    'law-preview.html?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&id=abc123&art=13',
+  );
+});
+
+test('article cards keep article labels horizontal on desktop and mobile', () => {
+  assert.match(html, /\.li-card \.art\{[\s\S]*white-space:nowrap/);
+  assert.match(html, /\.li-card \.art\{[\s\S]*word-break:keep-all/);
+  assert.match(html, /\.rec-row \.art\{[\s\S]*white-space:nowrap/);
+  assert.match(html, /\.rec-row \.art\{[\s\S]*word-break:keep-all/);
+  assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.li-card \.art\{[\s\S]*white-space:nowrap/);
+  assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.art\{[\s\S]*white-space:nowrap/);
 });
 
 test('review due rows use the same article fallback as saved and recent rows', () => {
