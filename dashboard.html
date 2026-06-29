@@ -1319,6 +1319,10 @@
     scroll-margin-top:calc(96px + env(safe-area-inset-top, 0px));
     scroll-margin-bottom:calc(104px + env(safe-area-inset-bottom, 0px));
   }
+  #study-record-date{
+    scroll-margin-top:calc(124px + env(safe-area-inset-top, 0px));
+    scroll-margin-bottom:calc(104px + env(safe-area-inset-bottom, 0px));
+  }
   .study-record-copy{
     font-size:13px;
     color:rgba(245,240,234,.62);
@@ -4231,22 +4235,13 @@ function articleReaderHref(lawName, artNo, pageId){
   if(safeArt) params.push('art=' + encodeURIComponent(safeArt));
   return 'law-preview.html' + (params.length ? '?' + params.join('&') : '');
 }
-function chooseArticleOpenAction(pid, lawName, artNo){
-  var safePid = String(pid || '').replace(/'/g, '');
-  var safeLaw = String(lawName || '').replace(/'/g, '');
-  var safeArt = _normalizeArticleNo(artNo || '').replace(/'/g, '');
-  if(safePid) return "openDrawer('" + safePid + "','" + safeLaw + "','" + safeArt + "')";
-  if(safeLaw && safeArt) return "searchAndOpen('" + safeLaw + "','" + safeArt + "')";
-  return "openDrawer('','" + safeLaw + "','" + safeArt + "')";
-}
 function drawerOpenAttrs(pid, lawName, artNo, label){
   var safePid = String(pid || '').replace(/'/g, '');
   var safeLaw = String(lawName || '').replace(/'/g, '');
   var safeArt = _normalizeArticleNo(artNo || '').replace(/'/g, '');
   var readerHref = articleReaderHref(safeLaw, safeArt, safePid);
-  var action = chooseArticleOpenAction(safePid, safeLaw, safeArt);
-  var clickAction = "if(event.metaKey||event.ctrlKey){window.open(this.dataset.readerHref,'_blank','noopener');return;}" + action;
-  var keyAction = "if(event.key==='Enter'||event.key===' '){event.preventDefault();" + action + ";}";
+  var clickAction = "if(event.metaKey||event.ctrlKey){window.open(this.dataset.readerHref,'_blank','noopener');return;}location.href=this.dataset.readerHref";
+  var keyAction = "if(event.key==='Enter'||event.key===' '){event.preventDefault();location.href=this.dataset.readerHref;}";
   return ' role="button" tabindex="0" aria-label="' + escAttr(label || '開啟條文') + '" data-reader-href="' + escAttr(readerHref) + '" onclick="' + clickAction + '" onkeydown="' + keyAction + '"';
 }
 function _normalizeArticleNo(raw){
@@ -7078,7 +7073,7 @@ function openStudyRecordPanel(forceOpen){
   if(playlist) playlist.classList.remove('on');
   if(date && !date.value) date.value = _todayInputValue();
   setStudyPanelMode(panel.classList.contains('on') ? 'record' : 'closed');
-  if(panel.classList.contains('on') && typeof focusStudyPanelTarget === 'function') focusStudyPanelTarget('study-record-panel', 'study-plan-items');
+  if(panel.classList.contains('on') && typeof focusStudyPanelTarget === 'function') focusStudyPanelTarget('study-record-date', 'study-plan-items');
 }
 
 function openStudyPlaylistPanel(forceOpen){
@@ -7122,7 +7117,7 @@ function openStudyPanelFromHash(){
   }
   if(hash === '#study-record') {
     openStudyRecordPanel(true);
-    retryStudyHashScroll('study-record-panel', 18, true);
+    retryStudyHashScroll('study-record-date', 18, true);
   }
   if(hash === '#study-playlist') {
     openStudyPlaylistPanel(true);
@@ -9367,16 +9362,13 @@ ch.on('presence', { event: 'sync' }, () => {
       + ' data-page-id="'+esc(pid)+'"'
       + ' data-law="'+esc(law)+'"'
       + ' data-art="'+esc(art)+'"'
+      + ' data-reader-href="'+esc(articleReaderHref(law, art, pid))+'"'
       + ' onclick="recapArticleOpen(this)"'
       + ' onkeydown="recapArticleKeyOpen(event, this)"';
   }
   function recapArticleOpen(el){
     if(!el) return;
-    var pid = el.dataset.pageId || '';
-    var law = el.dataset.law || '';
-    var art = el.dataset.art || '';
-    if(pid) openDrawer(pid, law, art);
-    else if(law && art) searchAndOpen(law, art);
+    if(el.dataset.readerHref) location.href = el.dataset.readerHref;
   }
   function recapArticleKeyOpen(event, el){
     if(!event || (event.key !== 'Enter' && event.key !== ' ')) return;

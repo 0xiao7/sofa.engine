@@ -220,11 +220,12 @@ test('study plan and record panels have deep links for native app entry', () => 
   assert.match(active, /hash === '#study-playlist'[\s\S]*openStudyPlaylistPanel\(true\)/);
   assert.match(active, /retryStudyHashScroll\('member',\s*30,\s*true\)/);
   assert.match(active, /retryStudyHashScroll\('study-plan-panel',\s*18,\s*true\)/);
-  assert.match(active, /retryStudyHashScroll\('study-record-panel',\s*18,\s*true\)/);
+  assert.match(active, /retryStudyHashScroll\('study-record-date',\s*18,\s*true\)/);
   assert.match(active, /retryStudyHashScroll\('study-playlist-playall',\s*18,\s*true\)/);
   assert.match(active, /\.study-mode-status\{[\s\S]*scroll-margin-top:calc\(84px \+ env\(safe-area-inset-top, 0px\)\)/);
   assert.match(active, /\.study-plan-panel,\s*\.study-record-panel,\s*\.study-playlist-panel\{[\s\S]*scroll-margin-top:calc\(96px \+ env\(safe-area-inset-top, 0px\)\)/);
   assert.match(active, /\.study-plan-panel,\s*\.study-record-panel,\s*\.study-playlist-panel\{[\s\S]*scroll-margin-bottom:calc\(104px \+ env\(safe-area-inset-bottom, 0px\)\)/);
+  assert.match(active, /#study-record-date\{[\s\S]*scroll-margin-bottom:calc\(104px \+ env\(safe-area-inset-bottom, 0px\)\)/);
   assert.match(active, /\.study-mode-status\.is-closed\{display:none\}/);
   assert.doesNotMatch(active, /retryStudyHashScroll\('study-mode-status',\s*18,\s*true\)/);
   assert.match(active, /hashchange', openStudyPanelFromHash/);
@@ -260,7 +261,7 @@ test('expanded study tools update the left guide instead of leaving it on the pr
   assert.match(extractFunction(active, 'updateActiveNavFromScroll'), /Date\.now\(\) < window\.__activeNavPinnedUntil/);
   assert.match(extractFunction(active, 'toggleStudyTimeEditor'), /focusStudyGuideTarget\('study-time-box'\)/);
   assert.match(extractFunction(active, 'openStudyPlanPanel'), /focusStudyPanelTarget\('study-plan-panel',\s*'study-plan-items'\)/);
-  assert.match(extractFunction(active, 'openStudyRecordPanel'), /focusStudyPanelTarget\('study-record-panel',\s*'study-plan-items'\)/);
+  assert.match(extractFunction(active, 'openStudyRecordPanel'), /focusStudyPanelTarget\('study-record-date',\s*'study-plan-items'\)/);
   assert.match(extractFunction(active, 'openStudyPlaylistPanel'), /focusStudyPanelTarget\('study-playlist-playall',\s*'study-cockpit-recap'\)/);
   assert.doesNotMatch(extractFunction(active, 'openStudyPlaylistPanel'), /focusStudyGuideTarget\('study-plan-items'\)/);
 });
