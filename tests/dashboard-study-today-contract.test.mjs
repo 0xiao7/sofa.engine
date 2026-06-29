@@ -475,22 +475,29 @@ test('study today action buttons are sized for mobile app shells', () => {
 test('study today exposes a time-first planning box before schedule details', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
-  const recap = active.slice(recapStart, recapStart + 9000);
+  const recap = active.slice(recapStart, recapStart + 11000);
   const flowSteps = recap.indexOf('id="study-flow-steps"');
+  const overview = recap.indexOf('id="study-planning-overview"');
   const timeBox = recap.indexOf('id="study-time-box"');
   const recommendPanel = recap.indexOf('id="study-recommend-panel"');
   const planPanel = recap.indexOf('id="study-plan-panel"');
   assert.ok(flowSteps > -1, 'study planning flow steps must exist');
+  assert.ok(overview > -1, 'study planning overview must exist');
   assert.ok(timeBox > -1, 'time-first box must exist');
   assert.ok(recommendPanel > -1, 'recommendation panel must exist');
   assert.ok(planPanel > -1, 'private plan panel must exist');
   assert.ok(flowSteps < timeBox, 'flow steps should explain the workflow before controls');
+  assert.ok(overview < timeBox, 'overview should explain current state before time controls');
   assert.ok(timeBox < recommendPanel, 'time settings should explain the recommendation before the recommendation appears');
   assert.ok(timeBox < planPanel, 'time guidance should appear before private schedule controls');
   assert.match(recap, /<div class="study-flow-steps" id="study-flow-steps" aria-label="讀書計畫三步驟"/);
   assert.match(recap, /<b>1\. 設時間<\/b>[\s\S]*決定總時數、每週可讀和今天要留多久/);
   assert.match(recap, /<b>2\. 預覽本週<\/b>[\s\S]*系統把弱點和私人課表排進空檔，不會自動寫入/);
   assert.match(recap, /<b>3\. 排入計畫<\/b>[\s\S]*按「排入本週計畫」後才同步帳號/);
+  assert.match(recap, /<div class="study-planning-overview" id="study-planning-overview" aria-label="讀書計畫總覽"/);
+  assert.match(recap, /id="study-overview-next"[\s\S]*先做一題或設定課程/);
+  assert.match(recap, /id="study-overview-save"[\s\S]*只在這台裝置/);
+  assert.match(recap, /id="study-overview-status"[\s\S]*待讀 0 \/ 完成 0/);
   assert.match(recap, /<div class="study-time-wrap" id="study-time-box"/);
   assert.match(recap, /id="study-time-summary"[\s\S]*500 小時目標/);
   assert.match(recap, /id="study-time-impact"[\s\S]*約 42 週/);
@@ -504,9 +511,27 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.match(active, /時間設定只先存在本機/);
   assert.match(active, /排入本週計畫/);
   assert.match(active, /\.study-flow-steps\{[\s\S]*display:grid/);
+  assert.match(active, /\.study-planning-overview\{[\s\S]*display:grid/);
+  assert.match(active, /function renderStudyPlanningOverview/);
   assert.match(active, /\.study-flow-step b\{[\s\S]*font-family:var\(--serif\)/);
   assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-flow-steps\{grid-template-columns:1fr\}/);
+  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-planning-overview\{grid-template-columns:1fr\}/);
   assert.doesNotMatch(active, /\/api\/me\/study\/settings/);
+});
+
+test('study planning overview explains next item save scope and completion status', () => {
+  const fn = extractFunction(active, 'renderStudyPlanningOverview');
+  assert.match(fn, /study-overview-next/);
+  assert.match(fn, /study-overview-save/);
+  assert.match(fn, /study-overview-status/);
+  assert.match(fn, /localStorage\.getItem\('sofa_token'\)/);
+  assert.match(fn, /localStorage\.getItem\('sofa_uid'\)/);
+  assert.match(fn, /已接序號，會同步到帳號/);
+  assert.match(fn, /只在這台裝置/);
+  assert.match(fn, /按「完成這堂」才算完成/);
+  assert.match(fn, /補紀錄不會改答題正確率/);
+  assert.match(extractFunction(active, 'renderStudyPlanItems'), /renderStudyPlanningOverview\(items\)/);
+  assert.match(extractFunction(active, 'renderStudyCloudState'), /renderStudyPlanningOverview\(window\.__studyPlanItemCache \|\| \[\]\)/);
 });
 
 test('study time settings stay collapsed into a readable summary until editing', () => {

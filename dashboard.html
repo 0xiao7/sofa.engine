@@ -838,6 +838,40 @@
     line-height:1.55;
     color:rgba(245,240,234,.52);
   }
+  .study-planning-overview{
+    display:grid;
+    grid-template-columns:1.25fr 1fr 1fr;
+    gap:8px;
+  }
+  .study-overview-card{
+    min-width:0;
+    border:1px solid rgba(159,184,159,.18);
+    background:rgba(159,184,159,.045);
+    border-radius:6px;
+    padding:11px 12px;
+    display:grid;
+    gap:4px;
+  }
+  .study-overview-card span{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.12em;
+    color:rgba(245,240,234,.48);
+    text-transform:uppercase;
+  }
+  .study-overview-card b{
+    min-width:0;
+    color:var(--cream);
+    font-family:var(--serif);
+    font-size:15px;
+    font-weight:650;
+    line-height:1.45;
+  }
+  .study-overview-card small{
+    color:rgba(245,240,234,.58);
+    font-size:12px;
+    line-height:1.55;
+  }
   @media(max-width:760px) and (max-height:720px){
     .study-weak-brief{
       padding:10px 10px;
@@ -1618,6 +1652,7 @@
     .study-time-cell{border-left:0;border-top:1px solid rgba(231,187,167,.16);padding-left:0;padding-top:9px}
     .study-time-cell:first-child{border-top:0;padding-top:0}
     .study-flow-steps{grid-template-columns:1fr}
+    .study-planning-overview{grid-template-columns:1fr}
     .study-suggestions{grid-template-columns:1fr}
     .study-record-kinds{grid-template-columns:1fr}
     .study-plan-map{grid-template-columns:1fr}
@@ -3444,6 +3479,23 @@
                 <span>按「排入本週計畫」後才同步帳號；之後讀完按完成。</span>
               </span>
             </div>
+            <div class="study-planning-overview" id="study-planning-overview" aria-label="讀書計畫總覽">
+              <span class="study-overview-card">
+                <span>現在先做</span>
+                <b id="study-overview-next">先做一題或設定課程</b>
+                <small id="study-overview-next-note">還沒有待讀項目；先用選擇題累積弱點，或把函授/課表排進來。</small>
+              </span>
+              <span class="study-overview-card">
+                <span>儲存位置</span>
+                <b id="study-overview-save">只在這台裝置</b>
+                <small id="study-overview-save-note">登入或輸入序號後，才會盡量同步到你的帳號。</small>
+              </span>
+              <span class="study-overview-card">
+                <span>完成判斷</span>
+                <b id="study-overview-status">待讀 0 / 完成 0</b>
+                <small id="study-overview-status-note">按「完成這堂」才算完成；補紀錄不會改答題正確率。</small>
+              </span>
+            </div>
             <div class="study-time-wrap" id="study-time-box" aria-label="備考時間規劃">
               <div class="study-time-summary-card">
                 <span class="study-time-main">
@@ -4508,7 +4560,47 @@ function _mergeStudyPlan(remotePlan){
   return { items:_dedupeStudyItems(remoteItems.concat(local.items || [], local.records || [])) };
 }
 
+function renderStudyPlanningOverview(items){
+  var list = Array.isArray(items) ? items : (window.__studyPlanItemCache || []);
+  var actionable = _actionableStudyItems(list);
+  var completed = _completedStudyItems(list);
+  var next = actionable[0] || null;
+  var nextEl = document.getElementById('study-overview-next');
+  var nextNote = document.getElementById('study-overview-next-note');
+  var saveEl = document.getElementById('study-overview-save');
+  var saveNote = document.getElementById('study-overview-save-note');
+  var statusEl = document.getElementById('study-overview-status');
+  var statusNote = document.getElementById('study-overview-status-note');
+  var token = localStorage.getItem('sofa_token') || '';
+  var uid = localStorage.getItem('sofa_uid') || '';
+  if(nextEl){
+    nextEl.textContent = next ? (next.title || next.subject || '讀書計畫') : '先做一題或設定課程';
+  }
+  if(nextNote){
+    if(next){
+      nextNote.textContent = [next.scheduled_date || '', next.scheduled_time || '', next.source_label || '私人計畫'].filter(Boolean).join(' · ') + '；讀完按「完成這堂」。';
+    } else {
+      nextNote.textContent = '還沒有待讀項目；先用選擇題累積弱點，或把函授/課表排進來。';
+    }
+  }
+  if(saveEl){
+    saveEl.textContent = (token || uid) ? '已接序號，會同步到帳號' : '只在這台裝置';
+  }
+  if(saveNote){
+    saveNote.textContent = (token || uid)
+      ? '登入後的私人課表只屬於這個序號/帳號，不會放進共用題庫。'
+      : '換手機或清瀏覽器資料可能不見；輸入序號後再同步。';
+  }
+  if(statusEl){
+    statusEl.textContent = '待讀 ' + actionable.length + ' / 完成 ' + completed.length;
+  }
+  if(statusNote){
+    statusNote.textContent = '按「完成這堂」才算完成；補紀錄不會改答題正確率。';
+  }
+}
+
 function renderStudyCloudState(remotePlan){
+  renderStudyPlanningOverview(window.__studyPlanItemCache || []);
   var el = document.getElementById('study-cloud-state');
   if(!el) return;
   var status = remotePlan && remotePlan.status;
@@ -7319,6 +7411,7 @@ function renderStudyPlanItems(plan){
   if(!el) return;
   var items = plan && Array.isArray(plan.items) ? plan.items : [];
   window.__studyPlanItemCache = items;
+  renderStudyPlanningOverview(items);
   renderStudyTimeOutcome(items);
   renderStudyNextPlan(items);
   renderStudyPlanMap(items);
