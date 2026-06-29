@@ -189,7 +189,7 @@ test('quiz view-article fallback opens the exact article when only law and artic
   assert.match(readerFn, /encodeURIComponent\(id\)/);
   assert.match(readerFn, /encodeURIComponent\(art\)/);
   assert.match(active, /onclick="_openArticleReader\(\)">查看法條/);
-  assert.match(active, /window\.open\(_articleReaderHref\(_currentLawName, _currentArtNo\), '_blank'\)/);
+  assert.match(active, /window\.open\(_articleReaderHref\(_currentLawName, _currentArtNo, _currentPageId\), '_blank'\)/);
   assert.doesNotMatch(active, /url = 'dashboard\.html\?q=' \+ encodeURIComponent\(_currentLawName\);\s*\}/);
 });
 
