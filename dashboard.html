@@ -1437,6 +1437,34 @@
     letter-spacing:.08em;
   }
   .study-import-actions button.primary{background:var(--peach);border-color:var(--peach);color:var(--navy);font-weight:800}
+  .study-plan-map{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:8px;
+    padding:10px;
+    border:1px solid rgba(231,187,167,.18);
+    background:rgba(13,28,40,.18);
+    border-radius:8px;
+  }
+  .study-plan-map span{
+    min-width:0;
+    display:grid;
+    gap:3px;
+    padding:9px 10px;
+    border:1px solid rgba(245,240,234,.09);
+    background:rgba(255,255,255,.025);
+    border-radius:7px;
+  }
+  .study-plan-map b{
+    font-size:13px;
+    color:var(--peach);
+    font-weight:700;
+  }
+  .study-plan-map small{
+    font-size:12px;
+    line-height:1.5;
+    color:rgba(245,240,234,.62);
+  }
   .study-cloud-state{
     border:1px dashed rgba(245,240,234,.14);
     background:rgba(2,12,18,.26);
@@ -1592,6 +1620,7 @@
     .study-flow-steps{grid-template-columns:1fr}
     .study-suggestions{grid-template-columns:1fr}
     .study-record-kinds{grid-template-columns:1fr}
+    .study-plan-map{grid-template-columns:1fr}
     .study-plan-grid{grid-template-columns:1fr}
     .study-plan-field.full{grid-column:1 / -1}
     .study-plan-field input,.study-plan-field select{min-height:44px}
@@ -3516,13 +3545,13 @@
               <div class="study-import">
                 <div class="study-import-head">
                   <span class="study-import-title">貼上課表</span>
-                  <span class="study-import-note">只會變成你的私人讀書計畫，不會放進共用題庫。</span>
+                  <span class="study-import-note">可以直接貼課表文字；只會變成你的私人讀書計畫，不會放進共用題庫。</span>
                 </div>
-                <textarea id="study-plan-import" placeholder="可貼 JSON，或 CSV/表格：date,start,end,subject,title,room,source_label,notes"></textarea>
+                <textarea id="study-plan-import" placeholder="例如：7/3 19:00 會計學第 4 堂；7/5 10:00 租稅申報實務複習"></textarea>
                 <div class="study-import-actions">
                   <button type="button" onclick="previewStudyPlanImport()">預覽</button>
                   <button class="primary" type="button" onclick="saveStudyPlanImport()">匯入私人計畫</button>
-                  <span class="study-plan-state" id="study-plan-import-state">貼上後先預覽。</span>
+                  <span class="study-plan-state" id="study-plan-import-state">貼上後先預覽；看得懂再匯入。</span>
                 </div>
               </div>
             </div>
@@ -3567,6 +3596,11 @@
                 <button class="study-plan-save" type="button" onclick="saveStudyRecordLocal()">儲存補紀錄</button>
                 <span class="study-plan-state" id="study-record-state">登入後會同步讀書時數；離線先存在本機。</span>
               </div>
+            </div>
+            <div class="study-plan-map" id="study-plan-map" aria-label="讀書計畫狀態地圖">
+              <span><b>時間設定</b><small id="study-map-time">只影響建議；先存在本機。</small></span>
+              <span><b>本週建議</b><small id="study-map-recommend">預覽不會自動寫入；按排入才保存。</small></span>
+              <span><b>私人計畫</b><small id="study-map-private">下方就是同一份清單；待讀、完成和補紀錄都在這裡。</small></span>
             </div>
             <div class="study-cloud-state" id="study-cloud-state">讀書計畫會先存在這台裝置。</div>
             <div class="study-plan-items" id="study-plan-items" aria-label="接下來的私人計畫"></div>
@@ -4573,6 +4607,34 @@ function renderStudyWeakLoadIssue(){
   }
 }
 
+function renderStudyPlanMap(items){
+  var local = _studyLocal();
+  var settings = local.settings || {};
+  var list = Array.isArray(items) ? items : (window.__studyPlanItemCache || []);
+  var actionable = _actionableStudyItems(list);
+  var completed = _completedStudyItems(list);
+  var rec = window.__studyWeekRecommendation;
+  var recCount = rec && Array.isArray(rec.items) ? rec.items.length : 0;
+  var timeEl = document.getElementById('study-map-time');
+  var recEl = document.getElementById('study-map-recommend');
+  var privateEl = document.getElementById('study-map-private');
+  if(timeEl){
+    var total = settings.total_hours || 500;
+    var weekly = settings.weekly_hours || 12;
+    timeEl.textContent = total + ' 小時目標、每週 ' + weekly + ' 小時；只影響建議。';
+  }
+  if(recEl){
+    recEl.textContent = recCount
+      ? '已預覽 ' + recCount + ' 筆；預覽不會自動寫入，按排入才保存。'
+      : '預覽不會自動寫入；按排入才保存。';
+  }
+  if(privateEl){
+    privateEl.textContent = actionable.length || completed.length
+      ? '待讀 ' + actionable.length + ' 筆、完成/補紀錄 ' + completed.length + ' 筆；下方就是同一份清單。'
+      : '下方就是同一份清單；待讀、完成和補紀錄都會在這裡。';
+  }
+}
+
 function renderStudyTimeSettings(){
   var local = _studyLocal();
   var s = local.settings || {};
@@ -4598,6 +4660,7 @@ function renderStudyTimeSettings(){
   if(impact){
     impact.textContent = weeks ? ('約 ' + weeks + ' 週') : '先填時間';
   }
+  renderStudyPlanMap(window.__studyPlanItemCache || []);
 }
 
 function toggleStudyTimeEditor(){
@@ -4899,6 +4962,7 @@ function renderStudyWeekRecommendation(rec){
   var el = document.getElementById('study-recommend-list');
   if(!el) return;
   var items = rec && Array.isArray(rec.items) ? rec.items : [];
+  renderStudyPlanMap(window.__studyPlanItemCache || []);
   if(!items.length){
     el.innerHTML = '<div class="study-empty">本週已排滿或可讀時間太少；可以先調整每週可讀時數。</div>';
     return;
@@ -7229,6 +7293,7 @@ function renderStudyPlanItems(plan){
   window.__studyPlanItemCache = items;
   renderStudyTimeOutcome(items);
   renderStudyNextPlan(items);
+  renderStudyPlanMap(items);
   if(!items.length){
     el.innerHTML = '<div class="study-plan-count"><b>目前還沒有私人讀書計畫</b><br>可以排函授、補習班課程、模考或自己的週任務。'
       + '<br>要新增時，回上方「整理」點設定讀書課程。</div>';

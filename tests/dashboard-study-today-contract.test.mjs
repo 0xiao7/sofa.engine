@@ -37,6 +37,70 @@ function buildRecommendationHarness() {
   return sandbox;
 }
 
+function createFakeElement(id = '') {
+  const classes = new Set();
+  const el = {
+    id,
+    value: '',
+    textContent: '',
+    innerHTML: '',
+    hidden: false,
+    attrs: {},
+    classList: {
+      add(name) { classes.add(name); },
+      remove(name) { classes.delete(name); },
+      contains(name) { return classes.has(name); },
+      toggle(name, force) {
+        const shouldAdd = typeof force === 'boolean' ? force : !classes.has(name);
+        if (shouldAdd) classes.add(name);
+        else classes.delete(name);
+      },
+    },
+    setAttribute(name, value) { el.attrs[name] = String(value); },
+    getAttribute(name) { return el.attrs[name] || ''; },
+  };
+  return el;
+}
+
+function buildStudyPanelHarness() {
+  const elements = {};
+  const element = (id) => {
+    if (!elements[id]) elements[id] = createFakeElement(id);
+    return elements[id];
+  };
+  ['study-plan-panel', 'study-record-panel', 'study-playlist-panel', 'study-mode-status', 'study-plan-state', 'study-plan-start', 'study-record-date'].forEach(element);
+  const triggers = ['playlist', 'plan', 'record'].map((mode) => {
+    const el = createFakeElement(`trigger-${mode}`);
+    el.attrs['data-study-panel-trigger'] = mode;
+    return el;
+  });
+  const calls = { focus: [], loadPlaylist: 0 };
+  const sandbox = {
+    document: {
+      getElementById: element,
+      querySelectorAll(selector) {
+        if (selector === '[data-study-panel-trigger]') return triggers;
+        return [];
+      },
+    },
+    esc(value) { return String(value ?? ''); },
+    focusStudyPanelTarget(panelId, navId) { calls.focus.push([panelId, navId]); },
+    loadStudyPlaylist() { calls.loadPlaylist += 1; },
+  };
+  vm.createContext(sandbox);
+  vm.runInContext([
+    `function _todayInputValue(){ return '2026-06-29'; }`,
+    extractFunction(active, 'setStudyPanelMode'),
+    extractFunction(active, 'openStudyPlanPanel'),
+    extractFunction(active, 'openStudyRecordPanel'),
+    extractFunction(active, 'openStudyPlaylistPanel'),
+    `this.openStudyPlanPanel = openStudyPlanPanel;`,
+    `this.openStudyRecordPanel = openStudyRecordPanel;`,
+    `this.openStudyPlaylistPanel = openStudyPlaylistPanel;`,
+  ].join('\n'), sandbox);
+  return { sandbox, elements, triggers, calls };
+}
+
 test('dashboard exposes a seed-backed cockpit recap', () => {
   assert.match(active, /id="study-cockpit-recap"/);
   assert.match(active, /id="study-cockpit-subjects"/);
@@ -360,6 +424,35 @@ test('study tool panels expose one active mode and explain where saved work goes
   assert.match(active, /結果會回到下方待讀清單/);
 });
 
+test('study tool mode switching opens only one panel and updates active state', () => {
+  const { sandbox, elements, triggers, calls } = buildStudyPanelHarness();
+  sandbox.openStudyPlanPanel(true);
+  assert.equal(elements['study-plan-panel'].classList.contains('on'), true);
+  assert.equal(elements['study-record-panel'].classList.contains('on'), false);
+  assert.equal(elements['study-playlist-panel'].classList.contains('on'), false);
+  assert.equal(elements['study-mode-status'].classList.contains('is-closed'), false);
+  assert.match(elements['study-mode-status'].innerHTML, /正在設定讀書課程/);
+  assert.equal(triggers.find((el) => el.id === 'trigger-plan').attrs['aria-expanded'], 'true');
+  assert.equal(elements['study-plan-start'].value, '2026-06-29');
+
+  sandbox.openStudyRecordPanel(true);
+  assert.equal(elements['study-plan-panel'].classList.contains('on'), false);
+  assert.equal(elements['study-record-panel'].classList.contains('on'), true);
+  assert.match(elements['study-mode-status'].innerHTML, /正在補讀書紀錄/);
+  assert.equal(triggers.find((el) => el.id === 'trigger-record').attrs['aria-expanded'], 'true');
+
+  sandbox.openStudyPlaylistPanel(true);
+  assert.equal(elements['study-record-panel'].classList.contains('on'), false);
+  assert.equal(elements['study-playlist-panel'].classList.contains('on'), true);
+  assert.equal(calls.loadPlaylist, 1);
+  assert.deepEqual(calls.focus.at(-1), ['study-playlist-playall', 'study-cockpit-recap']);
+
+  sandbox.openStudyPlaylistPanel();
+  assert.equal(elements['study-playlist-panel'].classList.contains('on'), false);
+  assert.equal(elements['study-mode-status'].classList.contains('is-closed'), true);
+  assert.equal(triggers.every((el) => el.attrs['aria-expanded'] === 'false'), true);
+});
+
 test('study today action buttons are sized for mobile app shells', () => {
   const studyActionButtonRule = active.match(/\.study-action-button\{[\s\S]*?\n  \}/)?.[0] || '';
   assert.match(active, /class="study-action-group primary"[\s\S]*<span class="study-action-label">先做<\/span>[\s\S]*開始選擇題[\s\S]*看今日複習[\s\S]*看弱點分析/);
@@ -447,7 +540,33 @@ test('study today supports private pasted schedule imports without law search co
   assert.match(active, /function saveStudyPlanImport/);
   assert.match(active, /\/api\/me\/study\/plan-items\/bulk/);
   assert.match(active, /只會變成你的私人讀書計畫/);
+  assert.match(active, /可以直接貼課表文字/);
+  assert.match(active, /例如：7\/3 19:00 會計學第 4 堂/);
+  assert.doesNotMatch(active, /placeholder="可貼 JSON/);
   assert.doesNotMatch(active, /搜尋法條|自動查法條|對應法條/);
+});
+
+test('study planning has one visible map that explains where each result lands', () => {
+  const recapStart = active.indexOf('id="study-cockpit-recap"');
+  assert.ok(recapStart >= 0, 'study recap must exist');
+  const recap = active.slice(recapStart, recapStart + 16000);
+  const mapIndex = recap.indexOf('id="study-plan-map"');
+  const cloudIndex = recap.indexOf('id="study-cloud-state"');
+  const listIndex = recap.indexOf('id="study-plan-items"');
+  assert.ok(mapIndex > -1, 'study plan map must exist');
+  assert.ok(cloudIndex > -1, 'cloud state must exist');
+  assert.ok(listIndex > -1, 'plan item list must exist');
+  assert.ok(mapIndex < cloudIndex, 'map should explain state before cloud copy');
+  assert.ok(mapIndex < listIndex, 'map should appear before the private plan list');
+  assert.match(recap, /aria-label="讀書計畫狀態地圖"/);
+  assert.match(recap, /時間設定/);
+  assert.match(recap, /本週建議/);
+  assert.match(recap, /私人計畫/);
+  assert.match(active, /function renderStudyPlanMap/);
+  assert.match(active, /預覽不會自動寫入/);
+  assert.match(active, /下方就是同一份清單/);
+  assert.match(active, /\.study-plan-map\{[\s\S]*display:grid/);
+  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-plan-map\{grid-template-columns:1fr\}/);
 });
 
 test('study today renders personal plan items returned by the study API', () => {
