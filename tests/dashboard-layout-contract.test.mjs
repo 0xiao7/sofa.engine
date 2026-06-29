@@ -53,6 +53,41 @@ test('today recaps are included in the sidebar navigation and scroll spy', () =>
   assert.match(html, /aria-current/);
 });
 
+test('today sidebar order follows the actual dashboard reading order', () => {
+  const navOrder = [
+    'study-cockpit-recap',
+    'study-weak-brief',
+    'study-time-box',
+    'study-plan-items',
+    'quiz-recap',
+    'weak-laws-recap',
+    'review-due',
+    'srs-settings',
+  ];
+  const pageOrder = [
+    'study-cockpit-recap',
+    'study-weak-brief',
+    'study-time-box',
+    'study-plan-items',
+    'quiz-recap',
+    'weak-laws-recap',
+    'review-due',
+    'srs-settings',
+  ];
+
+  navOrder.forEach((id, index) => {
+    assert.match(
+      html,
+      new RegExp(`data-spy-target="${id}"[\\s\\S]*<span class="num">T${index + 1}<\\/span>`),
+    );
+  });
+
+  const navPositions = navOrder.map((id) => html.indexOf(`data-spy-target="${id}"`));
+  const pagePositions = pageOrder.map((id) => html.indexOf(`id="${id}"`));
+  assert.deepEqual([...navPositions].sort((a, b) => a - b), navPositions);
+  assert.deepEqual([...pagePositions].sort((a, b) => a - b), pagePositions);
+});
+
 test('sidebar section numbers match the visible dashboard sections', () => {
   assert.match(html, /href="#search" data-spy-target="search"><span class="num">03<\/span>直接查法條/);
   assert.match(html, /href="#favorites" data-spy-target="favorites"><span class="num">04<\/span>我的收藏/);

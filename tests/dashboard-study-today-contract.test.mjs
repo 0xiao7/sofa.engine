@@ -572,11 +572,11 @@ test('sidebar and mobile quick entry use clear exam-loop labels', () => {
   assert.match(active, /<nav class="top-mid">[\s\S]*href="#review-due"[\s\S]*複習/);
   assert.match(active, /<a href="#study-cockpit-recap" data-spy-target="study-cockpit-recap"><span class="num">T1<\/span>今天先做/);
   assert.match(active, /<a href="#study-weak-brief" data-spy-target="study-weak-brief"><span class="num">T2<\/span>今日弱點/);
-  assert.match(active, /<a href="#review-due" data-spy-target="review-due"><span class="num">T3<\/span>今日複習/);
-  assert.match(active, /<a href="#study-time-box" data-spy-target="study-time-box"><span class="num">T4<\/span>讀書時間/);
-  assert.match(active, /<a href="#study-plan-items" data-spy-target="study-plan-items"><span class="num">T5<\/span>讀書計畫/);
-  assert.match(active, /<a href="#quiz-recap" data-spy-target="quiz-recap"><span class="num">T6<\/span>最近作答/);
-  assert.match(active, /<a href="#weak-laws-recap" data-spy-target="weak-laws-recap"><span class="num">T7<\/span>弱點法規/);
+  assert.match(active, /<a href="#study-time-box" data-spy-target="study-time-box"><span class="num">T3<\/span>讀書時間/);
+  assert.match(active, /<a href="#study-plan-items" data-spy-target="study-plan-items"><span class="num">T4<\/span>讀書計畫/);
+  assert.match(active, /<a href="#quiz-recap" data-spy-target="quiz-recap"><span class="num">T5<\/span>最近作答/);
+  assert.match(active, /<a href="#weak-laws-recap" data-spy-target="weak-laws-recap"><span class="num">T6<\/span>弱點法規/);
+  assert.match(active, /<a href="#review-due" data-spy-target="review-due"><span class="num">T7<\/span>今日複習/);
   assert.match(active, /<a href="#srs-settings" data-spy-target="srs-settings"><span class="num">T8<\/span>複習策略/);
   assert.match(active, /<a href="quiz\.html"><span class="num">練<\/span>選擇題/);
   assert.match(active, /<a href="quiz\.html\?open=weakness"><span class="num">補<\/span>弱點分析/);

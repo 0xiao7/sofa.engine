@@ -6,6 +6,7 @@ const sharedCss = readFileSync(new URL('../sofa.css', import.meta.url), 'utf8');
 const dashboardHtml = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
 const loginHtml = readFileSync(new URL('../login.html', import.meta.url), 'utf8');
 const quizHtml = readFileSync(new URL('../quiz.html', import.meta.url), 'utf8');
+const lawPreviewHtml = readFileSync(new URL('../law-preview.html', import.meta.url), 'utf8');
 
 test('shared controls keep Chinese-facing UI on the Songti-first stack', () => {
   assert.match(sharedCss, /--serif:"Songti TC","Noto Serif TC","PMingLiU",serif/);
@@ -44,6 +45,11 @@ test('standalone dashboard keeps Chinese navigation and actions off mono', () =>
   assert.match(dashboardHtml, /:where\(kbd,code,pre,\.mono,\.num,\.idx,\.ct[\s\S]*font-family:var\(--mono\)!important/);
   assert.match(dashboardHtml, /\.brand\{[\s\S]*min-height:44px/);
   assert.match(dashboardHtml, /\.brand\{[\s\S]*min-width:44px/);
+});
+
+test('law preview keeps the brand mark compact instead of letter-spaced like metadata', () => {
+  assert.match(lawPreviewHtml, /\.brand\{[\s\S]*letter-spacing:\.04em/);
+  assert.doesNotMatch(lawPreviewHtml, /\.brand\{[\s\S]*letter-spacing:\.4em/);
 });
 
 test('quiz question text is forced back to the Songti article-reading stack', () => {
