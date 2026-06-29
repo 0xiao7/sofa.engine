@@ -114,13 +114,17 @@ test('law drawer analysis linkifies sixth-section law references', () => {
   vm.runInContext(`${source}; this.linkify = _linkifyLaw;`, sandbox);
 
   const linkedSameLaw = sandbox.linkify('同法第13條、本法第15條', '記帳士法');
-  assert.match(linkedSameLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=13"/);
-  assert.match(linkedSameLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=15"/);
+  assert.match(linkedSameLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=13&amp;/);
+  assert.match(linkedSameLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=15&amp;/);
+  assert.match(linkedSameLaw, /from=dashboard/);
+  assert.match(linkedSameLaw, /back=dashboard\.html/);
   assert.doesNotMatch(linkedSameLaw, /searchAndOpen/);
 
   const linkedNamedLaw = sandbox.linkify('記帳士法第13條及第15條', '所得稅法');
-  assert.match(linkedNamedLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=13"/);
-  assert.match(linkedNamedLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=15"/);
+  assert.match(linkedNamedLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=13&amp;/);
+  assert.match(linkedNamedLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=15&amp;/);
+  assert.match(linkedNamedLaw, /from=dashboard/);
+  assert.match(linkedNamedLaw, /back=dashboard\.html/);
   assert.doesNotMatch(linkedNamedLaw, /searchAndOpen/);
 
   const linkedPrefixedLaw = sandbox.linkify('搭配公司法第29條經理人任免規定', '商業會計法');
@@ -291,7 +295,7 @@ test('study playlist items are executable with single-practice and article-reade
   assert.match(fn, /class="study-playlist-actions"/);
   assert.match(fn, /quiz\.html\?law=/);
   assert.match(fn, /&drill=1/);
-  assert.match(fn, /law-preview\.html\?law=/);
+  assert.match(fn, /articleReaderHref\(law, articleNo, itemId\)/);
   assert.match(fn, /item\.page_id \|\| item\.id/);
   assert.match(fn, /displayArticleNo = articleNo\.replace\(/);
   assert.match(fn, /displayTitle = String\(item\.title/);
@@ -301,9 +305,8 @@ test('study playlist items are executable with single-practice and article-reade
 
 test('study playlist article-reader links use law preview instead of dashboard search', () => {
   const fn = extractFunction(active, 'loadStudyPlaylist');
-  assert.match(fn, /var readerHref = 'law-preview\.html\?law='/);
-  assert.match(fn, /\+ \(itemId \? '&id=' \+ encodeURIComponent\(itemId\) : ''\)/);
-  assert.match(fn, /\+ \(articleNo \? '&art=' \+ encodeURIComponent\(articleNo\) : ''\)/);
+  assert.match(fn, /var readerHref = articleReaderHref\(law, articleNo, itemId\)/);
+  assert.match(active, /function articleReaderHref/);
   assert.doesNotMatch(fn, /dashboard\.html\?q=/);
   assert.doesNotMatch(fn, /#search/);
 });
@@ -730,8 +733,9 @@ test('study plan items expose learning actions only when item metadata supports 
   assert.match(helper, /target_url/);
   assert.match(helper, /https\?:/);
   assert.match(helper, /quiz\.html\?law=/);
-  assert.match(helper, /law-preview\.html\?law=/);
-  assert.match(helper, /law-preview\.html\?id=/);
+  assert.match(active, /function articleReaderHref/);
+  assert.match(helper, /articleReaderHref\(law, articleNo, pageId\)/);
+  assert.match(helper, /articleReaderHref\('', '', pageId\)/);
   assert.doesNotMatch(helper, /dashboard\.html\?q=/);
   assert.doesNotMatch(helper, /dashboard\.html\?open=/);
   assert.match(helper, /開啟資源/);

@@ -1579,7 +1579,10 @@ function fillArticleReaderHref(data){
   if(data && data.id){
     href += '&id=' + encodeURIComponent(data.id);
   }
-  return href + (art ? '&art=' + encodeURIComponent(art) : '');
+  href += (art ? '&art=' + encodeURIComponent(art) : '');
+  let back = 'fill.html';
+  try{ back = 'fill.html' + (location.search || '') + (location.hash || ''); }catch(e){}
+  return href + '&from=fill&back=' + encodeURIComponent(back);
 }
 
 function checkAnswers(){

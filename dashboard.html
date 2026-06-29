@@ -4241,6 +4241,10 @@ function articleReaderHref(lawName, artNo, pageId){
   if(safeLaw) params.push('law=' + encodeURIComponent(safeLaw));
   if(safePid) params.push('id=' + encodeURIComponent(safePid));
   if(safeArt) params.push('art=' + encodeURIComponent(safeArt));
+  var back = 'dashboard.html';
+  try{ back = 'dashboard.html' + (location.search || '') + (location.hash || ''); }catch(e){}
+  params.push('from=dashboard');
+  params.push('back=' + encodeURIComponent(back));
   return 'law-preview.html' + (params.length ? '?' + params.join('&') : '');
 }
 function drawerOpenAttrs(pid, lawName, artNo, label){
@@ -5282,7 +5286,11 @@ function _linkifyLaw(escapedText, currentLawName){
     else if(sameLaw && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
     if(!lastLaw) return match;
     var fullArt = art + (sub ? '之' + sub : '');
-    var href = 'law-preview.html?law=' + encodeURIComponent(lastLaw.replace(/\\/g,'')) + '&amp;art=' + encodeURIComponent(fullArt);
+    var back = 'dashboard.html';
+    try{ back = 'dashboard.html' + (location.search || '') + (location.hash || ''); }catch(e){}
+    var href = 'law-preview.html?law=' + encodeURIComponent(lastLaw.replace(/\\/g,''))
+      + '&amp;art=' + encodeURIComponent(fullArt)
+      + '&amp;from=dashboard&amp;back=' + encodeURIComponent(back);
     var prefixMatch = match.match(/^(搭配|參照|依|按|見|與)(.+)$/);
     var prefix = prefixMatch ? prefixMatch[1] : '';
     var label = prefixMatch ? prefixMatch[2] : match;
@@ -7437,9 +7445,7 @@ async function loadStudyPlaylist(){
       var displayTitle = String(item.title || '重點條文').replace(/§\s*0+(?=\d)/g, '§ ');
       var itemId = String(item.page_id || item.id || '').trim();
       var practiceHref = 'quiz.html?law=' + encodeURIComponent(law) + (articleNo ? '&art=' + encodeURIComponent(articleNo) : '') + '&drill=1';
-      var readerHref = 'law-preview.html?law=' + encodeURIComponent(law)
-        + (itemId ? '&id=' + encodeURIComponent(itemId) : '')
-        + (articleNo ? '&art=' + encodeURIComponent(articleNo) : '');
+      var readerHref = articleReaderHref(law, articleNo, itemId);
       var meta = [item.importance || '', item.law_name || ''].filter(Boolean).join(' · ');
       if(displayArticleNo || item.article_no) meta += (meta ? ' · ' : '') + '第 ' + (displayArticleNo || item.article_no) + ' 條';
       return '<div class="study-playlist-item" data-playlist-index="' + idx + '">'
@@ -7472,13 +7478,11 @@ function studyPlanItemActionLinks(item, compact){
   var links = [];
   if(law && articleNo){
     var quizHref = 'quiz.html?law=' + encodeURIComponent(law) + '&art=' + encodeURIComponent(articleNo) + '&drill=1';
-    var readerHref = 'law-preview.html?law=' + encodeURIComponent(law)
-      + (pageId ? '&id=' + encodeURIComponent(pageId) : '')
-      + '&art=' + encodeURIComponent(articleNo);
+    var readerHref = articleReaderHref(law, articleNo, pageId);
     links.push('<a class="primary" href="' + esc(quizHref) + '">' + (compact ? '單刷' : '單刷') + '</a>');
     links.push('<a href="' + esc(readerHref) + '">看法條</a>');
   }else if(pageId){
-    links.push('<a href="law-preview.html?id=' + esc(encodeURIComponent(pageId)) + '">看法條</a>');
+    links.push('<a href="' + esc(articleReaderHref('', '', pageId)) + '">看法條</a>');
   }
   if(safeUrl){
     links.push('<a class="resource" href="' + esc(safeUrl) + '" target="_blank" rel="noopener">開啟資源</a>');
@@ -8893,11 +8897,14 @@ function _articleReaderUrl(lawName, artNo){
   var art = _normalizeArticleNo(_safeDecodeUrlParam(artNo));
   var url = 'law-preview.html?law=' + encodeURIComponent(law);
   if(art) url += '&art=' + encodeURIComponent(art);
+  var back = 'dashboard.html';
+  try{ back = 'dashboard.html' + (location.search || '') + (location.hash || ''); }catch(e){}
+  url += '&from=dashboard&back=' + encodeURIComponent(back);
   return url;
 }
 function _redirectArticleUrlToReader(lawName, artNo){
   if(!lawName || !artNo) return false;
-  window.location.replace(_articleReaderUrl(lawName, artNo));
+  window.location.href = _articleReaderUrl(lawName, artNo);
   return true;
 }
 

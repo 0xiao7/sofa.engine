@@ -198,6 +198,9 @@
     var href = 'law-preview.html?law=' + encodeURIComponent(note.lawName || '');
     if(note.articleId) href += '&id=' + encodeURIComponent(note.articleId);
     if(num) href += '&art=' + encodeURIComponent(num);
+    var back = 'notes.html';
+    try{ back = 'notes.html' + (location.search || '') + (location.hash || ''); }catch(e){}
+    href += '&from=notes&back=' + encodeURIComponent(back);
     return href;
   }
 
