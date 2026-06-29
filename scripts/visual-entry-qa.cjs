@@ -162,6 +162,7 @@ async function installApiMocks(page, options = {}) {
 
 async function assertClickable(page, selector, label) {
   const loc = page.locator(selector).first();
+  await loc.waitFor({ state: 'attached', timeout: 7000 });
   const count = await loc.count();
   if (!count) throw new Error(`${label}: selector not found: ${selector}`);
   await loc.waitFor({ state: 'visible', timeout: 7000 });

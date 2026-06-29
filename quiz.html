@@ -7,6 +7,7 @@
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
+<script src="sofa-analytics.js" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#1F3848">
@@ -2441,6 +2442,13 @@ async function loadQuiz(){
           url+=(url.indexOf('?')>=0?'&':'?')+'chip='+encodeURIComponent(_curPrChip)+'&sub='+encodeURIComponent(_subVal);
         }
       }
+      if (typeof window.sofaTrack === 'function') {
+        window.sofaTrack('quiz_start', {
+          mode: _pastExamMode ? 'past_exam' : (_drillParam ? 'article_drill' : (wrongMode ? 'wrong_review' : 'quiz')),
+          law_name: law || '',
+          page_id: pickedPageId || (urlArticle && urlArticle.id) || ''
+        });
+      }
       data=await fetch(url,{headers:_authH()}).then(r=>r.json());
     }
     // Fallback: 指定 page_id 抽到沒有數字的條文時（API 回 404），改讓 API 用法規自己挑可出題條文，避免使用者卡死
@@ -2512,6 +2520,15 @@ async function loadQuiz(){
           if(jCorrect)b.classList.add('right');
         });
         const isCorrect=isOptCorrect;
+        if (typeof window.sofaTrack === 'function') {
+          window.sofaTrack('answer_submitted', {
+            mode: data._past_exam ? 'past_exam' : (_drillParam ? 'article_drill' : 'quiz'),
+            law_name: lawName || '',
+            page_id: pageId || '',
+            is_correct: isCorrect,
+            elapsed_sec: Math.round(_elapsed || 0)
+          });
+        }
         if(!isCorrect){
           btn.classList.add('wrong');wrong++;
           addToWrongBank(pageId, lawName, artTitle);
@@ -2740,6 +2757,13 @@ async function loadWrongQuiz() {
 
   try {
     const url = `${API}/api/quiz?page_id=${encodeURIComponent(pick.id)}`;
+    if (typeof window.sofaTrack === 'function') {
+      window.sofaTrack('quiz_start', {
+        mode: 'wrong_review',
+        law_name: pick.law || '',
+        page_id: pick.id || ''
+      });
+    }
     const data = await fetch(url, {headers:_authH()}).then(r=>r.json());
     if (data.error || data.detail) {
       // 此條文可能已刪除，從錯題本移除
@@ -2797,6 +2821,15 @@ async function loadWrongQuiz() {
           if(jCorrect)b.classList.add('right');
         });
         const isCorrect = isOptCorrect;
+        if (typeof window.sofaTrack === 'function') {
+          window.sofaTrack('answer_submitted', {
+            mode: 'wrong_review',
+            law_name: lawName || '',
+            page_id: pageId || '',
+            is_correct: isCorrect,
+            elapsed_sec: Math.round(_elapsed || 0)
+          });
+        }
         if (!isCorrect) {
           btn.classList.add('wrong'); wrong++;
           addToWrongBank(pageId, lawName, artTitle);

@@ -7,6 +7,7 @@
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
+<script src="sofa-analytics.js" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#1F3848">
@@ -1154,6 +1155,14 @@ function _prJudge(typed, target){
   return cor/target.length>=0.9;
 }
 function _prLogAnswer(isCorrect){
+  if (typeof window.sofaTrack === 'function') {
+    window.sofaTrack('answer_submitted', {
+      mode: currentMode === 3 ? 'practice_fill' : 'practice',
+      law_name: _prLawName || '',
+      page_id: _prArtId || '',
+      is_correct: !!isCorrect
+    });
+  }
   if(!_prArtId||!uid||uid==='PREVIEW'||isFree) return;
   fetch(`${API}/api/me/answer`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({
     article_id:_prArtId,

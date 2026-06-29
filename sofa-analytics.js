@@ -1,0 +1,128 @@
+(function(){
+  const ATTR_KEY = 'sofa_attribution_v1';
+  const ATTR_KEYS = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','gclid','fbclid'];
+  const CARRY_PATHS = new Set([
+    '/pricing.html','/checkout.html','/login.html','/quiz.html','/fill.html',
+    '/practice.html','/dashboard.html','/free.html'
+  ]);
+
+  function nowIso(){
+    try { return new Date().toISOString(); } catch(e) { return ''; }
+  }
+
+  function params(){
+    try { return new URLSearchParams(window.location.search || ''); }
+    catch(e) { return new URLSearchParams(); }
+  }
+
+  function readStored(){
+    try { return JSON.parse(localStorage.getItem(ATTR_KEY) || '{}') || {}; }
+    catch(e) { return {}; }
+  }
+
+  function captureAttribution(){
+    const qs = params();
+    const next = {};
+    ATTR_KEYS.forEach(k => {
+      const v = (qs.get(k) || '').trim();
+      if (v) next[k] = v;
+    });
+    if (!Object.keys(next).length) return readStored();
+    const stored = readStored();
+    const merged = Object.assign({}, stored, next, {
+      landing_path: stored.landing_path || (location.pathname + location.search),
+      captured_at: stored.captured_at || nowIso(),
+      last_touch_path: location.pathname + location.search,
+      last_touch_at: nowIso()
+    });
+    try { localStorage.setItem(ATTR_KEY, JSON.stringify(merged)); } catch(e) {}
+    return merged;
+  }
+
+  function attributionPayload(){
+    const a = readStored();
+    const out = {};
+    ATTR_KEYS.forEach(k => { if (a[k]) out[k] = a[k]; });
+    if (a.landing_path) out.landing_path = a.landing_path;
+    if (a.last_touch_path) out.last_touch_path = a.last_touch_path;
+    return out;
+  }
+
+  function normalizePayload(data){
+    const payload = Object.assign({
+      page_path: location.pathname,
+      page_title: document.title || ''
+    }, attributionPayload(), data || {});
+    Object.keys(payload).forEach(k => {
+      if (payload[k] === undefined || payload[k] === null || payload[k] === '') delete payload[k];
+    });
+    return payload;
+  }
+
+  function track(name, data){
+    if (!name) return;
+    const payload = normalizePayload(data);
+    try {
+      if (typeof window.gtag === 'function') {
+        window.gtag('event', name, payload);
+      } else {
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push(Object.assign({ event: name }, payload));
+      }
+    } catch(e) {}
+  }
+
+  function decorateHref(href){
+    let url;
+    try { url = new URL(href, location.href); } catch(e) { return href; }
+    if (url.origin !== location.origin) return href;
+    if (!CARRY_PATHS.has(url.pathname)) return href;
+    const a = readStored();
+    if (!ATTR_KEYS.some(k => !!a[k])) return href;
+    ATTR_KEYS.forEach(k => {
+      if (a[k] && !url.searchParams.has(k)) url.searchParams.set(k, a[k]);
+    });
+    return url.pathname + url.search + url.hash;
+  }
+
+  function decorateLinks(){
+    document.querySelectorAll('a[href]').forEach(a => {
+      const href = a.getAttribute('href') || '';
+      if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+      const next = decorateHref(href);
+      if (next !== href) a.setAttribute('href', next);
+    });
+  }
+
+  function queryPlan(){
+    return (params().get('plan') || '').trim();
+  }
+
+  window.sofaTrack = track;
+  window.sofaAttribution = {
+    capture: captureAttribution,
+    decorateLinks: decorateLinks,
+    payload: attributionPayload
+  };
+
+  captureAttribution();
+
+  document.addEventListener('click', ev => {
+    const target = ev.target && ev.target.closest ? ev.target.closest('[data-track-event]') : null;
+    if (!target) return;
+    track(target.getAttribute('data-track-event'), {
+      track_label: target.getAttribute('data-track-label') || target.textContent.trim().slice(0, 80),
+      plan: target.getAttribute('data-plan') || queryPlan()
+    });
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    decorateLinks();
+    const path = location.pathname.replace(/\/+$/, '') || '/';
+    if (path.endsWith('/pricing.html')) track('pricing_view');
+    if (path.endsWith('/checkout.html')) track('checkout_start', { plan: queryPlan() || '季費' });
+    const qs = params();
+    const success = ['paid','success'].some(k => qs.get(k) === '1') || /success|paid|completed/i.test(qs.get('status') || qs.get('payment') || '');
+    if (success) track('purchase_completed', { plan: queryPlan() });
+  });
+})();
