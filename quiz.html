@@ -1374,6 +1374,7 @@ function _shouldShowQzExamBanner(examKey) {
     if(_allOpt){ sel.value='__all__'; sel.dispatchEvent(new Event('change')); }
   }
   _updateQzScopeLabel();
+  _setQuizBootReady(true);
   if(_restoreQuizReturnState()) return;
   if(_pastExamMode){
     _setPastExamMode(true, {noHistory:true});
@@ -2462,6 +2463,7 @@ let _currentInlineArticleText = '';
 let _crossRefInlineOpen = false;
 let _quizLoading = false;
 let _quizManualRequested = false;
+let _quizBootReady = false;
 const QUIZ_RETURN_STATE_KEY = 'sofa_quiz_return_state_v1';
 
 // ── Wave 106: 每題計時 ────────────────────────────────────────────
@@ -2580,6 +2582,15 @@ function _autoLoadQuizOnce(){
   if(_quizManualRequested || _quizLoading || total > 0) return;
   loadQuiz();
 }
+function _setQuizBootReady(isReady){
+  _quizBootReady = !!isReady;
+  const btn=document.getElementById('btnNew');
+  if(!btn) return;
+  btn.disabled = !_quizBootReady;
+  btn.classList.toggle('is-loading', !_quizBootReady);
+  btn.textContent = _quizBootReady ? '出題' : '載入中';
+}
+_setQuizBootReady(false);
 
 // Wave 68: 開啟法條閱讀器並直接帶到該條
 function _openArticleReader() {
@@ -3008,6 +3019,11 @@ document.addEventListener('click', function(ev){
 });
 document.getElementById('btnFlag').addEventListener('click',doFlag);
 document.getElementById('btnNew').addEventListener('click',()=>{
+  if(!_quizBootReady){
+    document.getElementById('questionBox').textContent='法規範圍載入中，馬上可以開始。';
+    document.getElementById('questionBox').style.opacity='1';
+    return;
+  }
   _quizManualRequested = true;
   if(wrongMode){
     loadWrongQuiz();
