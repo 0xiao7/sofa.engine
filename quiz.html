@@ -1719,7 +1719,9 @@ function buildSections(sections,isPaid,wrapEl,beforeEl,article){
       const lk=document.createElement('div');lk.className='sec-lock';
       const preview=sections[name]||'';
       lk.innerHTML=isIOSReaderApp()
-        ? '<div class="sec-label">'+label+'</div><div class="sec-lock-cta">進階內容，訂閱者可見</div>'
+        ? '<div class="sec-label">'+label+'</div>'
+          +'<div class="sec-lock-preview">'+(preview?formatSection(preview, articleLawName):'')+'</div>'
+          +'<div class="sec-lock-cta">進階內容，訂閱者可見</div>'
         : '<div class="sec-label">'+label+'</div>'
           +'<div class="sec-lock-preview">'+(preview?formatSection(preview, articleLawName):'')+'</div>'
           +'<div class="sec-lock-cta">升級解鎖完整內容 <a href="pricing.html">查看方案 →</a></div>';

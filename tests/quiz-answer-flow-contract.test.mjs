@@ -450,6 +450,21 @@ test('paid answer explanation renders advanced analysis sections instead of hidi
   assert.match(active, /相關法規及注意事項/);
 });
 
+test('native iOS free quiz explanations still tease locked advanced sections', () => {
+  const buildStart = active.indexOf('function buildSections');
+  assert.ok(buildStart > -1, 'buildSections must exist');
+  const buildEnd = active.indexOf('// ── 錯題本', buildStart);
+  const build = active.slice(buildStart, buildEnd);
+  assert.match(build, /isIOSReaderApp\(\)/);
+  const iosBranchStart = build.indexOf("isIOSReaderApp()");
+  const webBranchStart = build.indexOf("\n        : '<div class=\"sec-label\">'+label+'</div>'", iosBranchStart);
+  const iosBranch = build.slice(iosBranchStart, webBranchStart);
+  assert.match(iosBranch, /<div class="sec-lock-preview">/);
+  assert.match(iosBranch, /preview\?formatSection\(preview, articleLawName\):''/);
+  assert.match(iosBranch, /進階內容，訂閱者可見/);
+  assert.doesNotMatch(iosBranch, /pricing\.html/);
+});
+
 test('signed-in learners are not treated as free while entitlement is uncertain', () => {
   assert.match(active, /window\.__sofaPaid = !isFree/);
   assert.match(active, /if\(!d\)\{ _setPaid\(true\); return; \}/);
