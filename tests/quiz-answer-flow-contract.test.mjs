@@ -261,8 +261,26 @@ test('quiz restores answered state after returning from article reader', () => {
   const openFn = active.slice(openStart, openEnd);
   assert.match(openFn, /_saveQuizReturnState\(\)/);
   assert.match(active, /if\(_restoreQuizReturnState\(\)\) return/);
-  assert.match(active, /async function loadQuiz\(\)\{\s*_clearQuizReturnState\(\)/);
-  assert.match(active, /async function loadWrongQuiz\(\) \{\s*_clearQuizReturnState\(\)/);
+  assert.match(active, /async function loadQuiz\(\)\{\s*if\(_quizLoading\) return;\s*_quizLoading = true;\s*_clearQuizReturnState\(\)/);
+  assert.match(active, /async function loadWrongQuiz\(\) \{\s*if\(_quizLoading\) return;\s*_quizLoading = true;\s*_clearQuizReturnState\(\)/);
+});
+
+test('quiz loaders reject concurrent loads so options cannot duplicate', () => {
+  assert.match(active, /let _quizLoading = false/);
+  const loadStart = active.indexOf('async function loadQuiz');
+  const loadEnd = active.indexOf('function doFlag', loadStart);
+  const loadFn = active.slice(loadStart, loadEnd);
+  assert.match(loadFn, /if\(_quizLoading\) return/);
+  assert.match(loadFn, /_quizLoading = true/);
+  assert.match(loadFn, /finally\{\s*_quizLoading = false;\s*\}/);
+
+  const wrongStart = active.indexOf('async function loadWrongQuiz');
+  const wrongEnd = active.indexOf('// ── DOMContentLoaded', wrongStart);
+  const wrongFn = active.slice(wrongStart, wrongEnd > wrongStart ? wrongEnd : wrongStart + 7000);
+  assert.match(wrongFn, /if\(_quizLoading\) return/);
+  assert.match(wrongFn, /_quizLoading = true/);
+  assert.match(wrongFn, /if \(!bank\.length\) \{\s*_quizLoading = false;/);
+  assert.match(wrongFn, /finally \{\s*_quizLoading = false;\s*\}/);
 });
 
 test('stats modal merges server quiz sessions and weak laws before relying on localStorage', () => {

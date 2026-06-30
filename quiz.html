@@ -2444,6 +2444,7 @@ function showSessionSummary() {
 let answered=false,right=0,wrong=0,total=0,flagged=0;
 let _currentInlineArticleText = '';
 let _crossRefInlineOpen = false;
+let _quizLoading = false;
 const QUIZ_RETURN_STATE_KEY = 'sofa_quiz_return_state_v1';
 
 // ── Wave 106: 每題計時 ────────────────────────────────────────────
@@ -2630,6 +2631,8 @@ function _applyOptionLayout(optionTexts) {
 }
 
 async function loadQuiz(){
+  if(_quizLoading) return;
+  _quizLoading = true;
   _clearQuizReturnState();
   answered=false; total++;
   // 新增到 sessionHistory
@@ -2924,6 +2927,8 @@ async function loadQuiz(){
     document.getElementById('questionBox').textContent='載入失敗，請稍後再試';
     document.getElementById('questionBox').style.opacity='1';
     sessionHistory.pop(); total--; updateScore();
+  }finally{
+    _quizLoading = false;
   }
 }
 
@@ -3054,10 +3059,13 @@ setTimeout(() => {
 
 // ── 錯題模式出題 ──────────────────────────────────────────────
 async function loadWrongQuiz() {
+  if(_quizLoading) return;
+  _quizLoading = true;
   _clearQuizReturnState();
   let bank = await _loadRemoteWrongBankForQuiz();
   if (!bank.length) bank = loadWrongBank();
   if (!bank.length) {
+    _quizLoading = false;
     alert('錯題本是空的，後端弱點也還沒有可重練的題。先做幾題再來吧。');
     return;
   }
@@ -3233,6 +3241,8 @@ async function loadWrongQuiz() {
     document.getElementById('questionBox').textContent = '載入失敗，請稍後再試';
     document.getElementById('questionBox').style.opacity = '1';
     sessionHistory.pop(); total--; updateScore();
+  } finally {
+    _quizLoading = false;
   }
 }
 
