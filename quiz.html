@@ -1358,6 +1358,7 @@ function _shouldShowQzExamBanner(examKey) {
     if(_allOpt){ sel.value='__all__'; sel.dispatchEvent(new Event('change')); }
   }
   _updateQzScopeLabel();
+  if(_restoreQuizReturnState()) return;
   if(_pastExamMode){
     _setPastExamMode(true, {noHistory:true});
     loadQuiz();
@@ -2443,6 +2444,7 @@ function showSessionSummary() {
 let answered=false,right=0,wrong=0,total=0,flagged=0;
 let _currentInlineArticleText = '';
 let _crossRefInlineOpen = false;
+const QUIZ_RETURN_STATE_KEY = 'sofa_quiz_return_state_v1';
 
 // ── Wave 106: 每題計時 ────────────────────────────────────────────
 let _qStartTime = 0;
@@ -2478,9 +2480,88 @@ function showQuizAnswerActions(){
   }
 }
 
+function _clearQuizReturnState(){
+  try { sessionStorage.removeItem(QUIZ_RETURN_STATE_KEY); } catch(e) {}
+}
+
+function _quizReturnStatePayload(){
+  const options = document.getElementById('optionsBox');
+  const explain = document.getElementById('explainBox');
+  const actions = document.getElementById('quiz-answer-actions');
+  const citation = document.getElementById('quiz-citation');
+  return {
+    ts: Date.now(),
+    scrollY: window.scrollY || document.documentElement.scrollTop || 0,
+    answered,
+    right,
+    wrong,
+    total,
+    flagged,
+    currentLawName: _currentLawName || '',
+    currentArtNo: _currentArtNo || '',
+    currentPageId: _currentPageId || '',
+    currentInlineArticleText: _currentInlineArticleText || '',
+    sessionHistory,
+    questionText: document.getElementById('questionBox')?.textContent || '',
+    qSrcHtml: document.getElementById('qSrc')?.innerHTML || '',
+    optionsHtml: options?.innerHTML || '',
+    optionsClass: options?.className || '',
+    citationHtml: citation?.innerHTML || '',
+    citationClass: citation?.className || '',
+    actionsClass: actions?.className || '',
+    explainHtml: explain?.innerHTML || '',
+    explainDisplay: explain?.style.display || '',
+    artInlineDisplay: document.getElementById('artInline')?.style.display || ''
+  };
+}
+
+function _saveQuizReturnState(){
+  if(!answered) return;
+  try { sessionStorage.setItem(QUIZ_RETURN_STATE_KEY, JSON.stringify(_quizReturnStatePayload())); } catch(e) {}
+}
+
+function _restoreQuizReturnState(){
+  let state = null;
+  try { state = JSON.parse(sessionStorage.getItem(QUIZ_RETURN_STATE_KEY) || 'null'); } catch(e) {}
+  if(!state || !state.answered || Date.now() - (state.ts || 0) > 30 * 60 * 1000) return false;
+  answered = true;
+  right = Number(state.right || 0);
+  wrong = Number(state.wrong || 0);
+  total = Number(state.total || 0);
+  flagged = Number(state.flagged || 0);
+  _currentLawName = state.currentLawName || '';
+  _currentArtNo = state.currentArtNo || '';
+  _currentPageId = state.currentPageId || '';
+  _currentInlineArticleText = state.currentInlineArticleText || '';
+  sessionHistory = Array.isArray(state.sessionHistory) ? state.sessionHistory : sessionHistory;
+  const question = document.getElementById('questionBox');
+  const options = document.getElementById('optionsBox');
+  const qSrc = document.getElementById('qSrc');
+  const citation = document.getElementById('quiz-citation');
+  const actions = document.getElementById('quiz-answer-actions');
+  const explain = document.getElementById('explainBox');
+  const inline = document.getElementById('artInline');
+  if(question){ question.textContent = state.questionText || ''; question.style.opacity = '1'; }
+  if(qSrc) qSrc.innerHTML = state.qSrcHtml || '—';
+  if(options){ options.innerHTML = state.optionsHtml || ''; options.className = state.optionsClass || 'opts'; }
+  if(citation){ citation.innerHTML = state.citationHtml || ''; citation.className = state.citationClass || ''; }
+  if(actions) actions.className = state.actionsClass || 'show';
+  if(explain){ explain.innerHTML = state.explainHtml || explain.innerHTML; explain.style.display = state.explainDisplay || 'block'; }
+  if(inline) inline.style.display = state.artInlineDisplay || inline.style.display;
+  _bindSourceLink();
+  document.getElementById('view-article-btn').style.display = 'inline-flex';
+  document.getElementById('view-weakness-btn').style.display = 'inline-flex';
+  document.getElementById('btnFlag').style.display = 'inline-flex';
+  document.getElementById('btnNext').style.display = 'inline-flex';
+  updateScore();
+  setTimeout(() => window.scrollTo({ top: Number(state.scrollY || 0), behavior:'auto' }), 60);
+  return true;
+}
+
 // Wave 68: 開啟法條閱讀器並直接帶到該條
 function _openArticleReader() {
   if (!_currentLawName) return;
+  _saveQuizReturnState();
   window.location.href = _articleReaderHref(_currentLawName, _currentArtNo, _currentPageId);
 }
 let quizData=null;
@@ -2549,6 +2630,7 @@ function _applyOptionLayout(optionTexts) {
 }
 
 async function loadQuiz(){
+  _clearQuizReturnState();
   answered=false; total++;
   // 新增到 sessionHistory
   sessionHistory.push({num:total, correct:null, flagged:false, law:'', title:''});
@@ -2865,7 +2947,7 @@ function doFlag(){
   }
   updateScore();
 }
-document.getElementById('sourceLink').addEventListener('click',()=>{
+function _handleSourceLinkClick(){
   const panel=document.getElementById('artInline');
   const btn=document.getElementById('sourceLink');
   const source=document.getElementById('sourceBox');
@@ -2880,7 +2962,14 @@ document.getElementById('sourceLink').addEventListener('click',()=>{
   const open=panel.style.display==='none'||!panel.style.display;
   panel.style.display=open?'block':'none';
   btn.textContent=open?'收起原文 ↑':'展開原文 ↓';
-});
+}
+function _bindSourceLink(){
+  const btn=document.getElementById('sourceLink');
+  if(!btn) return;
+  btn.removeEventListener('click', _handleSourceLinkClick);
+  btn.addEventListener('click', _handleSourceLinkClick);
+}
+_bindSourceLink();
 document.addEventListener('click', function(ev){
   const a = ev.target && ev.target.closest ? ev.target.closest('a.crossref') : null;
   if(!a) return;
@@ -2965,6 +3054,7 @@ setTimeout(() => {
 
 // ── 錯題模式出題 ──────────────────────────────────────────────
 async function loadWrongQuiz() {
+  _clearQuizReturnState();
   let bank = await _loadRemoteWrongBankForQuiz();
   if (!bank.length) bank = loadWrongBank();
   if (!bank.length) {
