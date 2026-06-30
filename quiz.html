@@ -2918,9 +2918,9 @@ async function loadQuiz(){
               const h=_authH();
               const art=await fetch(`${API}/api/article/${pageId}`,{headers:h}).then(r=>r.json());
               stopInlineFallback();
-              showInlineArticleText(art.original_text);
-              document.getElementById('sourceBox').querySelector('span').textContent='條文原文已放在上方';
-              document.getElementById('sourceLink').textContent='收起原文 ↑';
+              const hasInlineText=showInlineArticleText(art.original_text);
+              document.getElementById('sourceBox').querySelector('span').textContent=hasInlineText?'條文原文已放在上方':'暫時沒有原文；可按上方查看法條';
+              document.getElementById('sourceLink').textContent=hasInlineText?'收起原文 ↑':'收起提示 ↑';
               buildSections(art.sections||{},articleSectionsArePaid(art),
                 document.getElementById('explainBox'),document.getElementById('sourceBox'),art);
             }catch(e){
@@ -3236,9 +3236,9 @@ async function loadWrongQuiz() {
             try {
               const art = await fetch(`${API}/api/article/${pageId}`,{headers:_authH()}).then(r=>r.json());
               stopInlineFallback();
-              showInlineArticleText(art.original_text);
-              document.getElementById('sourceBox').querySelector('span').textContent = '條文原文已放在上方';
-              document.getElementById('sourceLink').textContent = '收起原文 ↑';
+              const hasInlineText=showInlineArticleText(art.original_text);
+              document.getElementById('sourceBox').querySelector('span').textContent = hasInlineText?'條文原文已放在上方':'暫時沒有原文；可按上方查看法條';
+              document.getElementById('sourceLink').textContent = hasInlineText?'收起原文 ↑':'收起提示 ↑';
               buildSections(art.sections||{},articleSectionsArePaid(art),
                 document.getElementById('explainBox'),document.getElementById('sourceBox'),art);
             } catch(e){
