@@ -494,24 +494,18 @@ test('study today exposes a time-first planning box before schedule details', ()
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
   const recap = active.slice(recapStart, recapStart + 11000);
-  const flowSteps = recap.indexOf('id="study-flow-steps"');
   const overview = recap.indexOf('id="study-planning-overview"');
   const timeBox = recap.indexOf('id="study-time-box"');
   const recommendPanel = recap.indexOf('id="study-recommend-panel"');
   const planPanel = recap.indexOf('id="study-plan-panel"');
-  assert.ok(flowSteps > -1, 'study planning flow steps must exist');
   assert.ok(overview > -1, 'study planning overview must exist');
   assert.ok(timeBox > -1, 'time-first box must exist');
   assert.ok(recommendPanel > -1, 'recommendation panel must exist');
   assert.ok(planPanel > -1, 'private plan panel must exist');
-  assert.ok(flowSteps < timeBox, 'flow steps should explain the workflow before controls');
   assert.ok(overview < timeBox, 'overview should explain current state before time controls');
   assert.ok(timeBox < recommendPanel, 'time settings should explain the recommendation before the recommendation appears');
   assert.ok(timeBox < planPanel, 'time guidance should appear before private schedule controls');
-  assert.match(recap, /<div class="study-flow-steps" id="study-flow-steps" aria-label="讀書計畫三步驟"/);
-  assert.match(recap, /<b>1\. 時間<\/b>[\s\S]*設定目標、每週可讀和今天多久/);
-  assert.match(recap, /<b>2\. 推薦<\/b>[\s\S]*先看建議，不會自動寫入/);
-  assert.match(recap, /<b>3\. 私人計畫<\/b>[\s\S]*按排入後只存到你的帳號/);
+  assert.doesNotMatch(recap, /id="study-flow-steps"/);
   assert.match(recap, /<div class="study-planning-overview" id="study-planning-overview" aria-label="讀書計畫總覽"/);
   assert.match(recap, /id="study-overview-next"[\s\S]*先做一題或設定課程/);
   assert.match(recap, /id="study-overview-save"[\s\S]*只在這台裝置/);
@@ -530,11 +524,8 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.match(active, /impact\.textContent = weeks \? \('剩約 ' \+ weeks \+ ' 週'\) : '先填時間'/);
   assert.match(active, /時間設定只先存在本機/);
   assert.match(active, /排入本週計畫/);
-  assert.match(active, /\.study-flow-steps\{[\s\S]*display:grid/);
   assert.match(active, /\.study-planning-overview\{[\s\S]*display:grid/);
   assert.match(active, /function renderStudyPlanningOverview/);
-  assert.match(active, /\.study-flow-step b\{[\s\S]*font-family:var\(--serif\)/);
-  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-flow-steps\{display:none\}/);
   assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-planning-overview\{grid-template-columns:1fr\}/);
   assert.doesNotMatch(active, /\/api\/me\/study\/settings/);
 });
@@ -612,27 +603,19 @@ test('study plan pasted natural example is actually parseable', () => {
   assert.match(extractFunction(active, '_parseStudyPlanImport'), /_parseNaturalStudyPlanItems\(text\)/);
 });
 
-test('study planning has one visible map that explains where each result lands', () => {
+test('study planning avoids a duplicate visible map before the private list', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
   const recap = active.slice(recapStart, recapStart + 16000);
   const mapIndex = recap.indexOf('id="study-plan-map"');
   const cloudIndex = recap.indexOf('id="study-cloud-state"');
   const listIndex = recap.indexOf('id="study-plan-items"');
-  assert.ok(mapIndex > -1, 'study plan map must exist');
+  assert.equal(mapIndex, -1, 'study plan should not duplicate the same status in a separate map');
   assert.ok(cloudIndex > -1, 'cloud state must exist');
   assert.ok(listIndex > -1, 'plan item list must exist');
-  assert.ok(mapIndex < cloudIndex, 'map should explain state before cloud copy');
-  assert.ok(mapIndex < listIndex, 'map should appear before the private plan list');
-  assert.match(recap, /aria-label="讀書計畫狀態地圖"/);
-  assert.match(recap, /時間設定/);
-  assert.match(recap, /本週建議/);
-  assert.match(recap, /私人計畫/);
   assert.match(active, /function renderStudyPlanMap/);
   assert.match(active, /預覽不會自動寫入/);
   assert.match(active, /下方就是同一份清單/);
-  assert.match(active, /\.study-plan-map\{[\s\S]*display:grid/);
-  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-plan-map\{grid-template-columns:1fr\}/);
 });
 
 test('study plan updates the left guide with waiting and completed counts', () => {
@@ -681,9 +664,15 @@ test('study today shows the next private plan near the first action area', () =>
   assert.match(extractFunction(active, 'saveStudyTimeSettings'), /renderStudyNextPlan\(window\.__studyPlanItemCache \|\| \[\]\)/);
   const nextFn = extractFunction(active, 'renderStudyNextPlan');
   assert.match(nextFn, /_actionableStudyItems/);
+  assert.match(nextFn, /_studyTimeLedger/);
+  assert.match(nextFn, /今天已讀/);
+  assert.match(nextFn, /累積/);
   assert.match(nextFn, /下一堂/);
   assert.match(nextFn, /今天留/);
   assert.match(nextFn, /讀完直接按「完成這堂」/);
+  assert.match(nextFn, /預覽推薦/);
+  assert.match(nextFn, /openStudyPlanPanel/);
+  assert.match(nextFn, /openStudyRecordPanel/);
   assert.doesNotMatch(nextFn, /完成後到讀書計畫點完成/);
   assert.match(nextFn, /href="#study-plan-items"/);
 });

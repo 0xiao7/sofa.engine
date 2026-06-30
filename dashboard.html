@@ -722,9 +722,15 @@
     background:var(--peach);
     border-color:var(--peach);
   }
+  .study-next-plan button.secondary{
+    color:var(--peach);
+    background:rgba(255,255,255,.02);
+    border-color:rgba(231,187,167,.34);
+  }
   .study-next-plan a:hover,
   .study-next-plan button:hover{background:rgba(231,187,167,.1)}
   .study-next-plan button:hover{background:var(--peach-2)}
+  .study-next-plan button.secondary:hover{background:rgba(231,187,167,.1);color:var(--peach)}
   .study-action-link.is-active{
     color:var(--navy);
     background:var(--peach-2);
@@ -3483,20 +3489,6 @@
               <span>選「重點清單」「設定讀書課程」或「補紀錄」；儲存後結果會回到下方待讀清單。</span>
             </div>
             <div class="study-suggestions" id="study-suggestions" aria-label="今天建議讀什麼"></div>
-            <div class="study-flow-steps" id="study-flow-steps" aria-label="讀書計畫三步驟">
-              <span class="study-flow-step">
-                <b>1. 時間</b>
-                <span>設定目標、每週可讀和今天多久。</span>
-              </span>
-              <span class="study-flow-step">
-                <b>2. 推薦</b>
-                <span>先看建議，不會自動寫入。</span>
-              </span>
-              <span class="study-flow-step">
-                <b>3. 私人計畫</b>
-                <span>按排入後只存到你的帳號。</span>
-              </span>
-            </div>
             <div class="study-planning-overview" id="study-planning-overview" aria-label="讀書計畫總覽">
               <span class="study-overview-card">
                 <span>現在先做</span>
@@ -3676,11 +3668,6 @@
                 <button class="study-plan-save" type="button" onclick="saveStudyRecordLocal()">儲存補紀錄</button>
                 <span class="study-plan-state" id="study-record-state">登入後會同步讀書時數；離線先存在本機。</span>
               </div>
-            </div>
-            <div class="study-plan-map" id="study-plan-map" aria-label="讀書計畫狀態地圖">
-              <span><b>時間設定</b><small id="study-map-time">只影響建議；先存在本機。</small></span>
-              <span><b>本週建議</b><small id="study-map-recommend">預覽不會自動寫入；按排入才保存。</small></span>
-              <span><b>私人計畫</b><small id="study-map-private">下方就是同一份清單；待讀、完成和補紀錄都在這裡。</small></span>
             </div>
             <div class="study-cloud-state" id="study-cloud-state">讀書計畫會先存在這台裝置。</div>
             <div class="study-plan-items" id="study-plan-items" aria-label="接下來的私人計畫"></div>
@@ -7605,6 +7592,8 @@ function renderStudyNextPlan(items){
   var actionable = _actionableStudyItems(list);
   var settings = (_studyLocal().settings || {});
   var minutes = settings.today_minutes || 60;
+  var ledger = _studyTimeLedger(window.__studyTimeSummary || null, list);
+  var timeLine = '今天已讀 ' + ledger.today + ' 分鐘；累積 ' + _formatStudyHours(ledger.accumulated) + '。';
   if(actionable.length){
     var next = actionable[0] || {};
     var key = _studyItemKey(next);
@@ -7613,15 +7602,21 @@ function renderStudyNextPlan(items){
     var source = next.source_label ? '來源：' + next.source_label + '。' : '';
     var learningActions = studyPlanItemActionLinks(next, true);
     el.innerHTML = '<span><span class="k">今天讀什麼</span><b>下一堂：' + esc(title) + '</b><span>'
-      + esc([when, source + '今天留 ' + minutes + ' 分鐘；讀完直接按「完成這堂」。'].filter(Boolean).join(' · '))
+      + esc([timeLine, when, source + '今天留 ' + minutes + ' 分鐘；讀完直接按「完成這堂」。'].filter(Boolean).join(' · '))
       + '</span></span><span class="study-next-plan-actions">'
       + learningActions
       + '<button type="button" data-study-action-kind="done" data-next-study-key="' + esc(key) + '" data-study-action-key="' + esc(key) + '" aria-label="完成這堂讀書計畫">完成這堂</button>'
+      + '<button class="secondary" type="button" onclick="openStudyRecordPanel()">補紀錄</button>'
       + '<a href="#study-plan-items">看讀書計畫</a></span>';
     return;
   }
   el.innerHTML = '<span><span class="k">今天讀什麼</span><b>先做一題開始累積弱點</b><span>今天留 ' + minutes
-    + ' 分鐘；還沒接到私人課表，可以先答題或設定讀書課程。</span></span><a href="quiz.html">開始選擇題</a>';
+    + ' 分鐘；' + esc(timeLine) + '還沒接到私人課表，可以先答題、預覽推薦或設定讀書課程。</span></span><span class="study-next-plan-actions">'
+    + '<a href="quiz.html">開始選擇題</a>'
+    + '<button class="secondary" type="button" onclick="previewStudyWeekRecommendation()">預覽推薦</button>'
+    + '<button class="secondary" type="button" onclick="openStudyPlanPanel()">設定課程</button>'
+    + '<button class="secondary" type="button" onclick="openStudyRecordPanel()">補紀錄</button>'
+    + '</span>';
 }
 
 function _studyStatusLabel(status){
