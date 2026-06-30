@@ -238,6 +238,33 @@ test('quiz view-article fallback opens the exact article when only law and artic
   assert.doesNotMatch(active, /url = 'dashboard\.html\?q=' \+ encodeURIComponent\(_currentLawName\);\s*\}/);
 });
 
+test('quiz restores answered state after returning from article reader', () => {
+  assert.match(active, /const QUIZ_RETURN_STATE_KEY = 'sofa_quiz_return_state_v1'/);
+  assert.match(active, /function _quizReturnStatePayload/);
+  assert.match(active, /questionText: document\.getElementById\('questionBox'\)\?\.textContent/);
+  assert.match(active, /optionsHtml: options\?\.innerHTML/);
+  assert.match(active, /explainHtml: explain\?\.innerHTML/);
+  assert.match(active, /function _saveQuizReturnState/);
+  assert.match(active, /sessionStorage\.setItem\(QUIZ_RETURN_STATE_KEY, JSON\.stringify\(_quizReturnStatePayload\(\)\)\)/);
+  assert.match(active, /function _restoreQuizReturnState/);
+  assert.match(active, /Date\.now\(\) - \(state\.ts \|\| 0\) > 30 \* 60 \* 1000/);
+  assert.match(active, /options\.innerHTML = state\.optionsHtml/);
+  assert.match(active, /explain\.innerHTML = state\.explainHtml/);
+  assert.match(active, /_bindSourceLink\(\)/);
+  assert.match(active, /function _handleSourceLinkClick/);
+  assert.match(active, /btn\.removeEventListener\('click', _handleSourceLinkClick\)/);
+  assert.match(active, /btn\.addEventListener\('click', _handleSourceLinkClick\)/);
+  assert.match(active, /updateScore\(\)/);
+  assert.match(active, /window\.scrollTo\(\{ top: Number\(state\.scrollY \|\| 0\), behavior:'auto' \}\)/);
+  const openStart = active.indexOf('function _openArticleReader');
+  const openEnd = active.indexOf('let quizData', openStart);
+  const openFn = active.slice(openStart, openEnd);
+  assert.match(openFn, /_saveQuizReturnState\(\)/);
+  assert.match(active, /if\(_restoreQuizReturnState\(\)\) return/);
+  assert.match(active, /async function loadQuiz\(\)\{\s*_clearQuizReturnState\(\)/);
+  assert.match(active, /async function loadWrongQuiz\(\) \{\s*_clearQuizReturnState\(\)/);
+});
+
 test('stats modal merges server quiz sessions and weak laws before relying on localStorage', () => {
   assert.match(active, /function _loadRemoteQuizStats/);
   assert.match(active, /\/api\/me\/quiz-stats/);

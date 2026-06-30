@@ -476,6 +476,51 @@ const targetArticleNo = params.get('art') || params.get('article');
 const returnFrom = params.get('from') || '';
 const backTarget = params.get('back') || '';
 const backLink = document.querySelector('.back-link');
+const uid = localStorage.getItem('sofa_uid') || '';
+const tok = localStorage.getItem('sofa_token') || '';
+let readerPaid = !!(uid || tok);
+let currentArticle = null;
+
+function _authH(extra){
+  const h = extra ? {...extra} : {};
+  if(tok) h['Authorization'] = 'Bearer ' + tok;
+  else if(uid) h['X-Sofa-UID'] = uid;
+  return h;
+}
+
+function _todayISO(){
+  const n = new Date();
+  return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
+}
+
+function shouldLockAdvancedSections(){
+  return !readerPaid;
+}
+
+function _profileMeansPaid(profile){
+  if(!profile) return true;
+  if(profile.is_admin) return true;
+  const plan = String(profile.plan || '').trim();
+  if(plan === '免費' || plan === 'free') return false;
+  const expire = String(profile.expire || '').slice(0, 10);
+  if(/^\d{4}-\d{2}-\d{2}$/.test(expire) && expire < _todayISO()) return false;
+  return true;
+}
+
+function resolveReaderEntitlement(){
+  if(!uid && !tok) return Promise.resolve(readerPaid);
+  return fetch(`${API}/api/me/profile`, { headers:_authH() })
+    .then(r => r.ok ? r.json() : null)
+    .then(profile => {
+      const next = _profileMeansPaid(profile);
+      if(next !== readerPaid){
+        readerPaid = next;
+        if(currentArticle) renderDetail(currentArticle);
+      }
+      return readerPaid;
+    })
+    .catch(() => readerPaid);
+}
 
 const listBody = document.getElementById('listBody');
 const detail = document.getElementById('detail');
@@ -521,7 +566,7 @@ function configureBackLink(){
 configureBackLink();
 
 async function fetchJSON(url){
-  const r = await fetch(url);
+  const r = await fetch(url, { headers:_authH() });
   if(!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 }
@@ -659,6 +704,7 @@ function scrollActiveListItem(id, block='nearest'){
 }
 
 function renderDetail(d){
+  currentArticle = d;
   const stars = (d.importance || '').match(/★/g)?.join('') || '';
   const chapter = d.chapter ? `<div class="detail-chapter">${d.chapter}</div>` : '';
   const sections = d.sections || {};
@@ -697,7 +743,7 @@ function renderPreviewSections(sections,currentLawName){
     if(!body && seg <= 4) return '';
     const visibleText = cleanVisibleSpeechCueText(body || PREVIEW_LOCK_LEADS[seg] || '');
     const html = linkifyLawRefs(escapeHtml(visibleText), currentLawName);
-    if(seg >= 5){
+    if(shouldLockAdvancedSections() && seg >= 5){
       return `
         <div class="section locked" data-seg="${seg}">
           <div class="section-locked-head">
@@ -712,8 +758,10 @@ function renderPreviewSections(sections,currentLawName){
         </div>
       `;
     }
+    const unlocked = seg >= 5 ? ' data-unlocked="true"' : '';
+    if(!visibleText) return '';
     return `
-      <div class="section" data-seg="${seg}">
+      <div class="section"${unlocked} data-seg="${seg}">
         <div class="section-label">第 ${seg} 段｜${label}</div>
         <div class="section-body">${html}</div>
       </div>
@@ -739,10 +787,16 @@ function readerHrefFor(lawName, articleNo){
   if(backTarget && isSafeBackUrl(backTarget)) url.searchParams.set('back', backTarget);
   return url.pathname.split('/').pop() + url.search;
 }
+function cleanCrossRefLawName(lawName){
+  return String(lawName || '')
+    .replace(/^(搭配|參照|依|按|見|與)+/, '')
+    .replace(/[，。、；：\s]+$/, '')
+    .trim();
+}
 function linkifyLawRefs(escapedText,currentLawName){
   let lastLaw = null;
   return String(escapedText || '').replace(/(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\s《》]{2,48}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第(\d+)條(?:之(\d+))?/g, (match, bracketLaw, plainLaw, sameLaw, art, sub) => {
-    const law = bracketLaw || plainLaw || '';
+    const law = cleanCrossRefLawName(bracketLaw || plainLaw || '');
     if(law) lastLaw = law;
     else if(sameLaw && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
     if(!lastLaw) return match;
@@ -758,14 +812,14 @@ function linkifyLawRefs(escapedText,currentLawName){
   });
 }
 function buildCpiAdjustmentNote(article,sections){
-  const lawName = article?.law_name || currentLawName || '';
+  const articleLawName = article?.law_name || lawName || '';
   const articleText = [article?.title, article?.article_no, article?.original_text, JSON.stringify(sections || {})].join('\n');
   const artNo = String(article?.article_no || article?.title || '');
   const hasCpiText = /CPI|消費者物價指數|物價指數|公告調整|按.*物價/.test(articleText);
-  const isBasicTax = lawName.includes('所得基本稅額條例') && /(^|第|\D)13(條|$|\D)/.test(artNo);
+  const isBasicTax = articleLawName.includes('所得基本稅額條例') && /(^|第|\D)13(條|$|\D)/.test(artNo);
   const estateGiftAmountArticle = /12\s*[-之]\s*1|十二條之一|第十二條之一|(^|第|\D)(13|17|18|19|20|22)(條|$|\D)/.test(artNo);
   const estateGiftAmountText = /免稅額|扣除額|配偶|直系血親卑親屬|父母|喪葬費|殘障|扶養|課稅級距|贈與稅|遺產稅|萬|元/.test(articleText);
-  const isEstateGift = lawName.includes('遺產及贈與稅法') && (estateGiftAmountArticle || hasCpiText || estateGiftAmountText);
+  const isEstateGift = articleLawName.includes('遺產及贈與稅法') && (estateGiftAmountArticle || hasCpiText || estateGiftAmountText);
   if(!hasCpiText && !isBasicTax && !isEstateGift) return '';
   if(isBasicTax){
     return '<div class="cpi-note"><b>CPI / 公告額提醒</b>' + escapeHtml('這題條文寫六百萬元，但 113 年度起個人基本所得額扣除額已調整為 750 萬元；115 年度沿用 750 萬元。題目仍可考條文基準或比例，考前請以當年度公告額為準。') + '</div>';
@@ -861,6 +915,7 @@ async function loadArticle(id, pushUrl){
     detail.innerHTML = `<div class="error">載入失敗:${e.message}<br>請稍後再試或回 <a href="/" style="color:var(--peach);text-decoration:underline;">SoFa 首頁</a></div>`;
   }
 })();
+resolveReaderEntitlement();
 </script>
 
 </body>

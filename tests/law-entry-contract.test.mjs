@@ -119,6 +119,7 @@ function extractFunction(source, name) {
 test('law preview analysis links cross-referenced law articles to the reader', () => {
   const source = [
     extractFunction(preview, 'escapeHtml'),
+    extractFunction(preview, 'cleanCrossRefLawName'),
     extractFunction(preview, 'linkifyLawRefs')
   ].join('\n');
   const sandbox = { encodeURIComponent };
@@ -138,6 +139,10 @@ test('law preview analysis links cross-referenced law articles to the reader', (
   const linkedPrefixedLaw = sandbox.linkify('搭配公司法第29條經理人任免規定', '商業會計法');
   assert.match(linkedPrefixedLaw, />公司法第29條</);
   assert.doesNotMatch(linkedPrefixedLaw, />搭配公司法第29條</);
+
+  const linkedConjunctionLaw = sandbox.linkify('與刑法第214條一起看', '商業會計法');
+  assert.match(linkedConjunctionLaw, /law=%E5%88%91%E6%B3%95&amp;art=214/);
+  assert.doesNotMatch(linkedConjunctionLaw, /law=%E8%88%87%E5%88%91%E6%B3%95/);
 });
 
 test('law preview keeps quiz return context when readers follow cross references', () => {
@@ -199,7 +204,7 @@ test('law preview teases paid fifth and sixth sections instead of hiding the val
   assert.match(preview, /'相關法規及注意事項'/);
   assert.match(preview, /const PREVIEW_LOCK_LEADS = \{/);
   assert.match(preview, /function renderPreviewSections\(sections,currentLawName\)/);
-  assert.match(preview, /if\(seg >= 5\)/);
+  assert.match(preview, /if\(shouldLockAdvancedSections\(\) && seg >= 5\)/);
   assert.match(preview, /class="section locked"/);
   assert.match(preview, /class="section-locked-head"/);
   assert.match(preview, /class="section-lock-badge" aria-label="付費解鎖">LOCKED<\/span>/);
@@ -210,6 +215,21 @@ test('law preview teases paid fifth and sixth sections instead of hiding the val
   assert.match(preview, /\.section-lock-badge::before/);
   assert.match(preview, /\.section-lock-badge::after/);
   assert.match(preview, /\.section-locked-preview::after/);
+});
+
+test('law preview only locks advanced sections for explicitly free readers', () => {
+  assert.match(preview, /const uid = localStorage\.getItem\('sofa_uid'\) \|\| ''/);
+  assert.match(preview, /const tok = localStorage\.getItem\('sofa_token'\) \|\| ''/);
+  assert.match(preview, /let readerPaid = !!\(uid \|\| tok\)/);
+  assert.match(preview, /function shouldLockAdvancedSections/);
+  assert.match(preview, /return !readerPaid/);
+  assert.match(preview, /function resolveReaderEntitlement/);
+  assert.match(preview, /\/api\/me\/profile/);
+  assert.doesNotMatch(preview, /plan === '免費' \|\| plan === 'free' \|\| plan === ''/);
+  assert.match(preview, /fetch\(url, \{ headers:_authH\(\) \}\)/);
+  assert.match(preview, /renderPreviewSections\(sections, d\.law_name \|\| lawName\)/);
+  assert.match(preview, /if\(shouldLockAdvancedSections\(\) && seg >= 5\)/);
+  assert.match(preview, /const unlocked = seg >= 5 \? ' data-unlocked="true"' : ''/);
 });
 
 test('tree read entries use the same law preview reader URL', () => {

@@ -186,10 +186,21 @@ async function installApiMocks(page, options = {}) {
   await page.addInitScript(() => {
     localStorage.removeItem('sofa.study.localPlan.v1');
     localStorage.removeItem('sofa.study.saveNudgeDismissed.v1');
-    localStorage.setItem('sofa_uid', 'VISUAL_QA');
-    localStorage.setItem('sofa_token', 'VISUAL_QA_TOKEN');
-    localStorage.setItem('sofa_nickname', '視覺驗收');
   });
+  if (options.auth !== false) {
+    await page.addInitScript(() => {
+      localStorage.setItem('sofa_uid', 'VISUAL_QA');
+      localStorage.setItem('sofa_token', 'VISUAL_QA_TOKEN');
+      localStorage.setItem('sofa_nickname', '視覺驗收');
+    });
+  } else {
+    await page.addInitScript(() => {
+      localStorage.removeItem('sofa_uid');
+      localStorage.removeItem('sofa_token');
+      localStorage.removeItem('sofa_nickname');
+      localStorage.removeItem('sofa_free');
+    });
+  }
 }
 
 async function assertClickable(page, selector, label) {
@@ -404,17 +415,28 @@ async function lawPreviewCase(browser, baseUrl) {
     cta: await assertTapTarget(page, '.cta-btn', 'law preview bottom CTA')
   };
   await assertNotCoveredBy(page, '#originalText', '.cta-bar', 'law preview original text');
-  await page.locator('.section.locked[data-seg="5"]').scrollIntoViewIfNeeded();
-  const lockedText = await page.locator('.section.locked[data-seg="5"]').innerText();
+  await page.waitForFunction(() => document.querySelectorAll('.section.locked').length === 0 && document.querySelectorAll('.section[data-unlocked="true"]').length >= 2, { timeout: 9000 });
+  await page.locator('.section[data-unlocked="true"][data-seg="5"]').scrollIntoViewIfNeeded();
+  boxes.unlockedSection = await assertClickable(page, '.section[data-unlocked="true"][data-seg="5"] .section-body', 'law preview paid unlocked section');
+  const paidScreenshot = path.join(OUT_DIR, 'sofa-visual-law-preview-paid-mobile.png');
+  await page.screenshot({ path: paidScreenshot, fullPage: false });
+  await page.close();
+
+  const freePage = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true });
+  await installApiMocks(freePage, { auth: false });
+  await freePage.goto(`${baseUrl}/law-preview.html?law=${encodeURIComponent('記帳士法')}&art=13%E4%B9%8B1`, { waitUntil: 'domcontentloaded' });
+  await freePage.waitForSelector('#detailTitle', { state: 'visible', timeout: 9000 });
+  await freePage.locator('.section.locked[data-seg="5"]').scrollIntoViewIfNeeded();
+  const lockedText = await freePage.locator('.section.locked[data-seg="5"]').innerText();
   if (!/第 5 段|付費解鎖|查看方案/.test(lockedText)) {
     throw new Error(`law preview paid teaser is missing section 5 value cue: ${lockedText}`);
   }
-  boxes.lockedSection = await assertClickable(page, '.section.locked[data-seg="5"] .section-locked-preview', 'law preview locked paid section');
-  boxes.pricing = await assertTapTarget(page, '.section.locked[data-seg="5"] a[href="pricing.html"]', 'law preview pricing CTA');
+  boxes.lockedSection = await assertClickable(freePage, '.section.locked[data-seg="5"] .section-locked-preview', 'law preview free locked section');
+  boxes.pricing = await assertTapTarget(freePage, '.section.locked[data-seg="5"] a[href="pricing.html"]', 'law preview pricing CTA');
   const screenshot = path.join(OUT_DIR, 'sofa-visual-law-preview-mobile.png');
-  await page.screenshot({ path: screenshot, fullPage: false });
-  await page.close();
-  return { name: 'law-preview-mobile', screenshot, boxes, title };
+  await freePage.screenshot({ path: screenshot, fullPage: false });
+  await freePage.close();
+  return { name: 'law-preview-mobile', screenshot, paidScreenshot, boxes, title };
 }
 
 async function quizBehaviorCase(browser, baseUrl) {
