@@ -66,8 +66,8 @@ test('inline original text toggles are named differently from full article links
 });
 
 test('law preview accepts common article deep-link aliases', () => {
-  assert.match(preview, /const targetId = params\.get\('id'\) \|\| params\.get\('articleId'\)/);
-  assert.match(preview, /const targetArticleNo = params\.get\('art'\) \|\| params\.get\('article'\)/);
+  assert.match(preview, /let targetId = params\.get\('id'\) \|\| params\.get\('articleId'\)/);
+  assert.match(preview, /let targetArticleNo = params\.get\('art'\) \|\| params\.get\('article'\)/);
   assert.match(preview, /function normalizeArticleNo/);
   assert.match(preview, /articleMatchesTarget\(a, normalizedTargetArticle\)/);
   assert.match(preview, /const firstId = targetId && articlesCache\.find\(a => a\.id === targetId\)/);
@@ -151,6 +151,16 @@ test('law preview keeps quiz return context when readers follow cross references
   assert.match(preview, /url\.searchParams\.set\('from', returnFrom\)/);
   assert.match(preview, /url\.searchParams\.set\('back', backTarget\)/);
   assert.match(preview, /linkifyLawRefs\(escapeHtml\(visibleText\), currentLawName\)/);
+});
+
+test('law preview opens cross references inside the reader instead of full page jumping', () => {
+  assert.match(preview, /let lawName = params\.get\('law'\) \|\| '記帳士法'/);
+  assert.match(preview, /async function loadLawReader\(nextLaw, opts\)/);
+  assert.match(preview, /detail\.addEventListener\('click', ev => \{/);
+  assert.match(preview, /closest\('a\.crossref'\)/);
+  assert.match(preview, /ev\.preventDefault\(\)/);
+  assert.match(preview, /loadLawReader\(url\.searchParams\.get\('law'\) \|\| lawName/);
+  assert.match(preview, /history\.pushState\(null, '', u\.toString\(\)\)/);
 });
 
 test('law preview has a contextual return path instead of dumping readers at home', () => {

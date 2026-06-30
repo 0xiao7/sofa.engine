@@ -1564,6 +1564,13 @@ function startDailyChallenge() {
 
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
+function cleanCrossRefLawName(lawName){
+  return String(lawName || '')
+    .replace(/^(搭配|參照|依|按|見|與)+/, '')
+    .replace(/[，。、；：\s]+$/, '')
+    .trim();
+}
+
 const _FREE_SECS=[
   '章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示','核心摘要與記憶策略',
   '條文解析','考點整理','記憶技巧','相關條文'
@@ -1575,7 +1582,7 @@ const _LOCKED_SECS=[
 function linkifyLawRefs(escapedText,currentLawName){
   let lastLaw = null;
   return String(escapedText||'').replace(/(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\s《》]{2,48}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第(\d+)條(?:之(\d+))?/g, (match, bracketLaw, plainLaw, sameLaw, art, sub)=>{
-    const law = bracketLaw || plainLaw || '';
+    const law = cleanCrossRefLawName(bracketLaw || plainLaw || '');
     if(law) lastLaw = law;
     else if(sameLaw && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
     if(!lastLaw) return match;
