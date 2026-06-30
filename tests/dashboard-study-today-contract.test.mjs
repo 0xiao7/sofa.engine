@@ -187,8 +187,8 @@ test('small mobile screens compact the weak brief above the fixed quick bar', ()
 
 test('study today uses exam-facing wording instead of internal cockpit jargon', () => {
   assert.match(active, /TODAY · 今天先做/);
-  assert.match(active, /不知道從哪裡開始，先做一題/);
   assert.match(active, /今天先做/);
+  assert.match(active, /看時間、弱點和下一堂；要排課再開下方工具/);
   assert.doesNotMatch(active, /COCKPIT · 今日備考座艙|今日座艙/);
 });
 
@@ -494,18 +494,25 @@ test('study today exposes a time-first planning box before schedule details', ()
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
   const recap = active.slice(recapStart, recapStart + 11000);
+  const statusStrip = recap.indexOf('id="study-status-strip"');
   const overview = recap.indexOf('id="study-planning-overview"');
   const timeBox = recap.indexOf('id="study-time-box"');
   const recommendPanel = recap.indexOf('id="study-recommend-panel"');
   const planPanel = recap.indexOf('id="study-plan-panel"');
+  assert.ok(statusStrip > -1, 'first screen status strip must exist');
   assert.ok(overview > -1, 'study planning overview must exist');
   assert.ok(timeBox > -1, 'time-first box must exist');
   assert.ok(recommendPanel > -1, 'recommendation panel must exist');
   assert.ok(planPanel > -1, 'private plan panel must exist');
+  assert.ok(statusStrip < overview, 'compact status should appear before lower planning detail');
   assert.ok(overview < timeBox, 'overview should explain current state before time controls');
   assert.ok(timeBox < recommendPanel, 'time settings should explain the recommendation before the recommendation appears');
   assert.ok(timeBox < planPanel, 'time guidance should appear before private schedule controls');
   assert.doesNotMatch(recap, /id="study-flow-steps"/);
+  assert.match(recap, /<div class="study-status-strip" id="study-status-strip" aria-label="今日讀書狀態"/);
+  assert.match(recap, /id="study-status-total"[\s\S]*0 小時/);
+  assert.match(recap, /id="study-status-today"[\s\S]*預留 60 分鐘/);
+  assert.match(recap, /id="study-status-next"[\s\S]*先做一題/);
   assert.match(recap, /<div class="study-planning-overview" id="study-planning-overview" aria-label="讀書計畫總覽"/);
   assert.match(recap, /id="study-overview-next"[\s\S]*先做一題或設定課程/);
   assert.match(recap, /id="study-overview-save"[\s\S]*只在這台裝置/);
@@ -524,8 +531,11 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.match(active, /impact\.textContent = weeks \? \('剩約 ' \+ weeks \+ ' 週'\) : '先填時間'/);
   assert.match(active, /時間設定只先存在本機/);
   assert.match(active, /排入本週計畫/);
+  assert.match(active, /\.study-status-strip\{[\s\S]*display:grid/);
   assert.match(active, /\.study-planning-overview\{[\s\S]*display:grid/);
+  assert.match(active, /function renderStudyStatusStrip/);
   assert.match(active, /function renderStudyPlanningOverview/);
+  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-status-strip\{grid-template-columns:1fr\}/);
   assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-planning-overview\{grid-template-columns:1fr\}/);
   assert.doesNotMatch(active, /\/api\/me\/study\/settings/);
 });
@@ -551,7 +561,7 @@ test('study time settings stay collapsed into a readable summary until editing',
   assert.ok(recapStart >= 0, 'study recap must exist');
   const recap = active.slice(recapStart, recapStart + 8200);
   assert.match(recap, /class="study-time-summary-card"/);
-  assert.match(recap, /id="study-time-purpose"[\s\S]*先設定時間，按「預覽本週排法」看建議/);
+  assert.match(recap, /id="study-time-purpose"[\s\S]*預覽只給建議；按「排入本週計畫」才保存到私人計畫/);
   assert.match(recap, /id="study-time-edit-panel" hidden/);
   assert.match(recap, /aria-expanded="false"[\s\S]*onclick="toggleStudyTimeEditor\(\)"[\s\S]*修改時間/);
   assert.match(active, /function toggleStudyTimeEditor/);
@@ -670,6 +680,7 @@ test('study today shows the next private plan near the first action area', () =>
   assert.match(nextFn, /下一堂/);
   assert.match(nextFn, /今天留/);
   assert.match(nextFn, /讀完直接按「完成這堂」/);
+  assert.match(nextFn, /預覽只給建議，排入後才存進私人計畫/);
   assert.match(nextFn, /預覽推薦/);
   assert.match(nextFn, /openStudyPlanPanel/);
   assert.match(nextFn, /openStudyRecordPanel/);
