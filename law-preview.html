@@ -559,6 +559,9 @@ function configureBackLink(){
         history.back();
       }
     }, { once:false });
+  }else if(returnFrom === 'tree'){
+    backLink.href = isSafeBackUrl(backTarget) ? backTarget : 'tree.html';
+    backLink.textContent = '← 回考試地圖';
   }else if(isSafeBackUrl(document.referrer)){
     backLink.href = document.referrer;
     backLink.textContent = '← 回上一頁';
