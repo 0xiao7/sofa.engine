@@ -428,6 +428,15 @@ test('answer explanation shows article text before analysis sections', () => {
   assert.doesNotMatch(active, /\.art-inline\{[\s\S]*max-height:380px/);
 });
 
+test('answer explanation original text card can wrap without clipping mobile content', () => {
+  assert.match(active, /\.explain\{[\s\S]*max-width:100%/);
+  assert.match(active, /\.explain \.src\{[\s\S]*flex-wrap:wrap/);
+  assert.match(active, /\.explain \.src span\{[\s\S]*min-width:0/);
+  assert.match(active, /\.explain \.src span\{[\s\S]*overflow-wrap:anywhere/);
+  assert.match(active, /\.art-inline\{[\s\S]*overflow-wrap:anywhere/);
+  assert.match(active, /@media \(max-width:760px\)\{[\s\S]*\.explain\{[\s\S]*padding:20px 18px/);
+});
+
 test('paid answer explanation renders advanced analysis sections instead of hiding them', () => {
   const buildStart = active.indexOf('function buildSections');
   assert.ok(buildStart > -1, 'buildSections must exist');

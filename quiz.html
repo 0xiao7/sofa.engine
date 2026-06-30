@@ -219,7 +219,7 @@
   .explain{
     margin-top:24px;background:var(--cream);color:var(--navy);
     border-radius:4px;padding:24px 28px;border-left:4px solid var(--peach-3);
-    position:relative;
+    position:relative;max-width:100%;overflow:visible;
   }
   .explain .eb{
     font-family:var(--mono);font-size:11px;font-weight:600;color:var(--peach-3);
@@ -233,12 +233,13 @@
   .explain .kw{background:rgba(231,187,167,.45);padding:1px 5px;border-radius:2px;color:var(--navy);font-weight:600}
   .explain .src{
     margin-top:16px;padding-top:12px;border-top:1px dashed rgba(31,56,72,.15);
-    display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;
+    display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;font-family:var(--mono);font-size:11px;
     letter-spacing:.12em;color:rgba(31,56,72,.55);text-transform:uppercase;
   }
+  .explain .src span{min-width:0;overflow-wrap:anywhere}
   .explain .src a{color:var(--peach-3);font-weight:600}
   .explain .src button{background:none;border:none;padding:0;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--peach-3);font-weight:600}
-  .art-inline{margin-top:14px;padding:16px 20px;background:rgba(31,56,72,.06);border-radius:3px;max-height:none;overflow:visible;font-family:"Songti TC",var(--serif);font-size:clamp(1rem, 3vw, 1.08rem);line-height:2;color:rgba(31,56,72,.82);white-space:pre-wrap;display:none}
+  .art-inline{margin-top:14px;padding:16px 20px;background:rgba(31,56,72,.06);border-radius:3px;max-height:none;overflow:visible;overflow-wrap:anywhere;font-family:"Songti TC",var(--serif);font-size:clamp(1rem, 3vw, 1.08rem);line-height:2;color:rgba(31,56,72,.82);white-space:pre-wrap;display:none}
   .art-inline.is-loading,
   .art-inline.is-empty{font-family:var(--sans);font-size:13px;line-height:1.8;color:rgba(31,56,72,.58);background:rgba(231,187,167,.16)}
 
@@ -351,6 +352,7 @@
     .opts.compact{display:flex;flex-direction:column}
     .opt .body{font-size:14.5px}
     .opt.right::after,.opt.wrong::after{display:none}
+    .explain{padding:20px 18px}
     #ans-toast{top:calc(14px + env(safe-area-inset-top, 0px));right:14px;padding:8px 14px;font-size:11px;letter-spacing:.08em}
     .q-foot{flex-direction:column;align-items:stretch}
     .q-foot .l{display:none}            /* 鍵盤快捷提示在觸控手機無意義，收起 */
