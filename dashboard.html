@@ -1695,7 +1695,7 @@
     }
     .study-next-plan-actions{
       display:grid;
-      grid-template-columns:repeat(2,minmax(0,1fr));
+      grid-template-columns:1fr;
       justify-content:stretch;
     }
     .study-next-plan a,.study-next-plan button{
@@ -7654,8 +7654,6 @@ function renderStudyNextPlan(items){
   if(!el) return;
   var list = Array.isArray(items) ? items : (window.__studyPlanItemCache || []);
   var actionable = _actionableStudyItems(list);
-  var settings = (_studyLocal().settings || {});
-  var minutes = settings.today_minutes || 60;
   var ledger = _studyTimeLedger(window.__studyTimeSummary || null, list);
   var timeLine = '今天已讀 ' + ledger.today + ' 分鐘；累積 ' + _formatStudyHours(ledger.accumulated) + '。';
   if(actionable.length){
@@ -7663,16 +7661,12 @@ function renderStudyNextPlan(items){
     var key = _studyItemKey(next);
     var title = next.title || next.subject || '讀書計畫';
     var when = [next.scheduled_date || '', next.scheduled_time || ''].filter(Boolean).join(' · ');
-    var source = next.source_label ? '來源：' + next.source_label : '';
-    var meta = [when, source].filter(Boolean).join(' · ');
-    var learningActions = studyPlanItemActionLinks(next, true);
+    var meta = [when, timeLine].filter(Boolean).join(' · ');
     el.innerHTML = '<span class="study-next-plan-copy"><span class="k">今日任務</span><b>下一堂：' + esc(title) + '</b><span>'
       + esc(meta || timeLine)
       + '</span></span><span class="study-next-plan-actions">'
-      + learningActions
       + '<button type="button" data-study-action-kind="done" data-next-study-key="' + esc(key) + '" data-study-action-key="' + esc(key) + '" aria-label="完成這堂讀書計畫">完成這堂</button>'
-      + '<button class="secondary" type="button" onclick="openStudyRecordPanel()">補紀錄</button>'
-      + '<a href="#study-plan-items">看讀書計畫</a></span>';
+      + '</span>';
     return;
   }
   el.innerHTML = '<span class="study-next-plan-copy"><span class="k">今日任務</span><b>先做一題</b><span>答完更新弱點。</span></span><span class="study-next-plan-actions">'
