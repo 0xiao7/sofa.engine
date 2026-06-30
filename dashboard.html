@@ -3470,7 +3470,7 @@
             <div class="study-summary">
               <div class="study-copy">
                 <b>今天先做</b>
-                看時間、弱點和下一堂；要排課再開下方工具。
+                先看下一步；有空再排課。
               </div>
               <div class="study-weak-state" id="study-cockpit-weak-state"></div>
             </div>
@@ -3483,13 +3483,13 @@
               <div class="study-action-group primary">
                 <span class="study-action-label">先做</span>
                 <a class="study-action-link primary" href="quiz.html">開始選擇題</a>
-                <a class="study-action-link" href="#review-due">看今日複習</a>
-                <a class="study-action-link" href="quiz.html?open=weakness">看弱點分析</a>
+                <a class="study-action-link" href="#review-due">今日複習</a>
+                <a class="study-action-link" href="quiz.html?open=weakness">弱點分析</a>
               </div>
               <div class="study-action-group secondary">
                 <span class="study-action-label">整理</span>
                 <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="playlist" aria-expanded="false" onclick="openStudyPlaylistPanel()">重點朗讀</button>
-                <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="plan" aria-expanded="false" onclick="openStudyPlanPanel()">設定讀書課程</button>
+                <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="plan" aria-expanded="false" onclick="openStudyPlanPanel()">排課</button>
                 <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="record" aria-expanded="false" onclick="openStudyRecordPanel()">補紀錄</button>
               </div>
             </div>
@@ -3530,8 +3530,8 @@
               <div class="study-playlist-status" id="study-playlist-status">清單產生後，可以逐則朗讀、單刷，或回去看原文。</div>
             </div>
             <div class="study-mode-status is-closed" id="study-mode-status" aria-live="polite">
-              <b>目前沒有展開工具</b>
-              <span>選「重點清單」「設定讀書課程」或「補紀錄」；儲存後結果會回到下方待讀清單。</span>
+              <b>沒有展開工具</b>
+              <span>從「整理」選重點朗讀、排課或補紀錄。</span>
             </div>
             <div class="study-suggestions" id="study-suggestions" aria-label="今天建議讀什麼"></div>
             <div class="study-planning-overview" id="study-planning-overview" aria-label="讀書計畫總覽">
@@ -7141,9 +7141,9 @@ function setStudyPanelMode(mode){
   var status = document.getElementById('study-mode-status');
   var copy = {
     playlist: ['正在看重點朗讀', '先按「朗讀全部」聽一輪；「單刷」會去練題，「看法條」會回到條文。'],
-    plan: ['正在設定讀書課程', '排入後會收起表單，新的待讀項目會出現在下方「讀書計畫」。'],
+    plan: ['正在排課', '存完會回到下方待讀清單。'],
     record: ['正在補讀書紀錄', '補紀錄只補時間與進度，不會改答題正確率；存完也會回到下方清單。'],
-    closed: ['目前沒有展開工具', '選「重點清單」「設定讀書課程」或「補紀錄」；儲存後結果會回到下方待讀清單。']
+    closed: ['沒有展開工具', '從「整理」選重點朗讀、排課或補紀錄。']
   };
   var active = copy[mode] ? mode : 'closed';
   document.querySelectorAll('[data-study-panel-trigger]').forEach(function(btn){
@@ -7578,7 +7578,7 @@ function renderStudyPlanItems(plan){
     : '';
   if(!items.length){
     el.innerHTML = actionMessage + '<div class="study-plan-count"><b>目前還沒有私人讀書計畫</b><br>可以排函授、補習班課程、模考或自己的週任務。'
-      + '<br>要新增時，回上方「整理」點設定讀書課程。</div>';
+      + '<br>要新增時，回上方「整理」點「排課」。</div>';
     scheduleActiveNavRefresh();
     return;
   }
