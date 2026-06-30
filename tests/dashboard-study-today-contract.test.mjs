@@ -490,6 +490,15 @@ test('study today action buttons are sized for mobile app shells', () => {
   assert.match(active, /\.study-weak-brief-head\{[\s\S]*?flex-wrap:wrap/);
 });
 
+test('study next card is direct for active learners and cannot squeeze labels vertical', () => {
+  assert.doesNotMatch(active, /今天讀什麼先/);
+  assert.doesNotMatch(active, /預覽只給建議，排入後才存進私人計畫/);
+  assert.match(active, /id="study-next-plan"[\s\S]*今日任務/);
+  assert.match(active, /class="study-next-plan-copy"/);
+  assert.match(active, /\.study-next-plan-copy\{[\s\S]*min-width:0/);
+  assert.match(active, /\.study-next-plan \.k\{[\s\S]*white-space:nowrap/);
+});
+
 test('study today exposes a time-first planning box before schedule details', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
@@ -668,7 +677,7 @@ test('study today shows the next private plan near the first action area', () =>
   assert.ok(recapStart >= 0, 'study recap must exist');
   const recap = active.slice(recapStart, recapStart + 8000);
   assert.match(recap, /id="study-next-plan"/);
-  assert.match(recap, /今天讀什麼/);
+  assert.match(recap, /今日任務/);
   assert.match(active, /function renderStudyNextPlan/);
   assert.match(extractFunction(active, 'renderStudyPlanItems'), /renderStudyNextPlan\(items\)/);
   assert.match(extractFunction(active, 'saveStudyTimeSettings'), /renderStudyNextPlan\(window\.__studyPlanItemCache \|\| \[\]\)/);
@@ -678,11 +687,11 @@ test('study today shows the next private plan near the first action area', () =>
   assert.match(nextFn, /今天已讀/);
   assert.match(nextFn, /累積/);
   assert.match(nextFn, /下一堂/);
-  assert.match(nextFn, /今天留/);
-  assert.match(nextFn, /讀完直接按「完成這堂」/);
-  assert.match(nextFn, /預覽只給建議，排入後才存進私人計畫/);
-  assert.match(nextFn, /預覽推薦/);
-  assert.match(nextFn, /openStudyPlanPanel/);
+  assert.doesNotMatch(nextFn, /今天留/);
+  assert.doesNotMatch(nextFn, /讀完按「完成這堂」/);
+  assert.doesNotMatch(nextFn, /預覽只給建議，排入後才存進私人計畫/);
+  assert.doesNotMatch(nextFn, /預覽推薦/);
+  assert.doesNotMatch(nextFn, /openStudyPlanPanel/);
   assert.match(nextFn, /openStudyRecordPanel/);
   assert.doesNotMatch(nextFn, /完成後到讀書計畫點完成/);
   assert.match(nextFn, /href="#study-plan-items"/);

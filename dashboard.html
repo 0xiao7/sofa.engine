@@ -704,6 +704,9 @@
     background:rgba(231,187,167,.045);
     padding:11px 13px;
   }
+  .study-next-plan-copy{
+    min-width:0;
+  }
   .study-next-plan span{
     display:block;
     color:rgba(245,240,234,.56);
@@ -716,6 +719,7 @@
     letter-spacing:.12em;
     color:var(--peach);
     margin-bottom:2px;
+    white-space:nowrap;
   }
   .study-next-plan b{
     display:block;
@@ -1667,7 +1671,7 @@
       align-items:stretch;
       gap:7px;
     }
-    .study-action-label{grid-column:1/-1;width:auto;margin:0}
+    .study-action-label{display:none}
     .study-action-link,.study-pending{
       width:100%;
       min-width:0;
@@ -1678,21 +1682,24 @@
       text-align:center;
     }
     .study-next-plan{
-      grid-template-columns:minmax(0,1fr) auto;
+      grid-template-columns:1fr;
       gap:8px;
       padding:10px 11px;
     }
-    .study-next-plan > span{min-width:0}
-    .study-next-plan > span > span:not(.k){display:none}
+    .study-next-plan-copy{min-width:0}
     .study-next-plan b{
       font-size:14.5px;
       white-space:nowrap;
       overflow:hidden;
       text-overflow:ellipsis;
     }
-    .study-next-plan-actions{justify-content:stretch}
+    .study-next-plan-actions{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      justify-content:stretch;
+    }
     .study-next-plan a,.study-next-plan button{
-      width:auto;
+      width:100%;
       min-height:40px;
       padding:7px 10px;
     }
@@ -3499,8 +3506,8 @@
               </div>
             </div>
             <div class="study-next-plan" id="study-next-plan" aria-live="polite">
-              <span><span class="k">今天讀什麼</span><b>先做一題開始累積弱點</b><span>預覽只給建議，排入後才存進私人計畫。</span></span>
-              <a href="quiz.html">開始選擇題</a>
+              <span class="study-next-plan-copy"><span class="k">今日任務</span><b>先做一題</b><span>答完會更新弱點。</span></span>
+              <span class="study-next-plan-actions"><a href="quiz.html">開始選擇題</a></span>
             </div>
             <div class="study-playlist-panel" id="study-playlist-panel" aria-label="通勤重點朗讀清單">
               <div class="study-playlist-head">
@@ -7656,10 +7663,11 @@ function renderStudyNextPlan(items){
     var key = _studyItemKey(next);
     var title = next.title || next.subject || '讀書計畫';
     var when = [next.scheduled_date || '', next.scheduled_time || ''].filter(Boolean).join(' · ');
-    var source = next.source_label ? '來源：' + next.source_label + '。' : '';
+    var source = next.source_label ? '來源：' + next.source_label : '';
+    var meta = [when, source].filter(Boolean).join(' · ');
     var learningActions = studyPlanItemActionLinks(next, true);
-    el.innerHTML = '<span><span class="k">今天讀什麼</span><b>下一堂：' + esc(title) + '</b><span>'
-      + esc([timeLine, when, source + '今天留 ' + minutes + ' 分鐘；讀完直接按「完成這堂」。'].filter(Boolean).join(' · '))
+    el.innerHTML = '<span class="study-next-plan-copy"><span class="k">今日任務</span><b>下一堂：' + esc(title) + '</b><span>'
+      + esc(meta || timeLine)
       + '</span></span><span class="study-next-plan-actions">'
       + learningActions
       + '<button type="button" data-study-action-kind="done" data-next-study-key="' + esc(key) + '" data-study-action-key="' + esc(key) + '" aria-label="完成這堂讀書計畫">完成這堂</button>'
@@ -7667,12 +7675,8 @@ function renderStudyNextPlan(items){
       + '<a href="#study-plan-items">看讀書計畫</a></span>';
     return;
   }
-  el.innerHTML = '<span><span class="k">今天讀什麼</span><b>先做一題開始累積弱點</b><span>今天留 ' + minutes
-    + ' 分鐘；' + esc(timeLine) + '預覽只給建議，排入後才存進私人計畫。</span></span><span class="study-next-plan-actions">'
+  el.innerHTML = '<span class="study-next-plan-copy"><span class="k">今日任務</span><b>先做一題</b><span>答完更新弱點。</span></span><span class="study-next-plan-actions">'
     + '<a href="quiz.html">開始選擇題</a>'
-    + '<button class="secondary" type="button" onclick="previewStudyWeekRecommendation()">預覽推薦</button>'
-    + '<button class="secondary" type="button" onclick="openStudyPlanPanel()">設定課程</button>'
-    + '<button class="secondary" type="button" onclick="openStudyRecordPanel()">補紀錄</button>'
     + '</span>';
 }
 
