@@ -868,9 +868,12 @@ test('signed-in auth failures are not rendered as empty weakness data', () => {
   assert.match(active, /window\._sofaAuthIssue = false/);
   assert.match(active, /if\(r\.status === 401\) window\._sofaAuthIssue = true/);
   assert.match(active, /function renderStudyAuthIssue/);
-  assert.match(active, /登入狀態異常/);
-  assert.match(active, /請重新登入/);
-  assert.match(active, /你的序號已驗過，但會員資料暫時讀不到/);
+  assert.match(active, /資料同步中/);
+  assert.match(active, /弱點稍後更新/);
+  assert.match(active, /會員資料暫時讀不到。可先練題；需要時重新輸入序號。/);
+  assert.doesNotMatch(active, /登入狀態異常/);
+  assert.doesNotMatch(active, /請重新登入/);
+  assert.doesNotMatch(active, /請附序號後 4 碼聯絡我們/);
   assert.match(active, /if\(window\._sofaAuthIssue && !profile\)\{[\s\S]*renderStudyAuthIssue\(\);[\s\S]*return;/);
 });
 
