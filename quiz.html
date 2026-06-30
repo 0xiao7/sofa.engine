@@ -1361,13 +1361,13 @@ function _shouldShowQzExamBanner(examKey) {
   if(_restoreQuizReturnState()) return;
   if(_pastExamMode){
     _setPastExamMode(true, {noHistory:true});
-    loadQuiz();
+    _autoLoadQuizOnce();
     return;
   }
-  if(_initialLawApplied){ loadQuiz(); return; }
-  if(_startQuizParam){ loadQuiz(); return; }
+  if(_initialLawApplied){ _autoLoadQuizOnce(); return; }
+  if(_startQuizParam){ _autoLoadQuizOnce(); return; }
   // 進頁自動出第一題：只要已選考科（或已有選定法規）就直接出題，不必按「出題」
-  if(_restored || _hasExam){ loadQuiz(); }
+  if(_restored || _hasExam){ _autoLoadQuizOnce(); }
 })();
 
 // ── 練習區 chip 細篩（期限 / 罰則）─────────────────────────
@@ -2445,6 +2445,7 @@ let answered=false,right=0,wrong=0,total=0,flagged=0;
 let _currentInlineArticleText = '';
 let _crossRefInlineOpen = false;
 let _quizLoading = false;
+let _quizManualRequested = false;
 const QUIZ_RETURN_STATE_KEY = 'sofa_quiz_return_state_v1';
 
 // ── Wave 106: 每題計時 ────────────────────────────────────────────
@@ -2557,6 +2558,11 @@ function _restoreQuizReturnState(){
   updateScore();
   setTimeout(() => window.scrollTo({ top: Number(state.scrollY || 0), behavior:'auto' }), 60);
   return true;
+}
+
+function _autoLoadQuizOnce(){
+  if(_quizManualRequested || _quizLoading || total > 0) return;
+  loadQuiz();
 }
 
 // Wave 68: 開啟法條閱讀器並直接帶到該條
@@ -2983,6 +2989,7 @@ document.addEventListener('click', function(ev){
 });
 document.getElementById('btnFlag').addEventListener('click',doFlag);
 document.getElementById('btnNew').addEventListener('click',()=>{
+  _quizManualRequested = true;
   if(wrongMode){
     loadWrongQuiz();
   } else {
