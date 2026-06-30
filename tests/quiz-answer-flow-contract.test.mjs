@@ -409,6 +409,9 @@ test('answer explanation shows article text before analysis sections', () => {
   assert.match(active, /function startInlineArticleLoadingFallback/);
   assert.match(active, /原文還在載入。可以先按上方「查看法條」開完整條文/);
   assert.match(active, /stopInlineFallback\(\)/);
+  assert.match(active, /const hasInlineText=showInlineArticleText\(art\.original_text\)/);
+  assert.match(active, /hasInlineText\?'條文原文已放在上方':'暫時沒有原文；可按上方查看法條'/);
+  assert.match(active, /hasInlineText\?'收起原文 ↑':'收起提示 ↑'/);
   assert.match(active, /暫時沒有原文/);
   assert.match(active, /\.art-inline\{[\s\S]*max-height:none/);
   assert.match(active, /\.art-inline\{[\s\S]*font-size:clamp\(1rem, 3vw, 1\.08rem\)/);
