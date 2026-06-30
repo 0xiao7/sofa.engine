@@ -487,12 +487,14 @@ test('quiz analysis linkifies sixth-section law references to the article reader
   const linkedSameLaw = helpers.linkifyLawRefs('同法第13條、本法第15條', '記帳士法');
   assert.match(linkedSameLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=13/);
   assert.match(linkedSameLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=15/);
+  assert.match(linkedSameLaw, /&from=quiz&back=quiz\.html/);
 
   const linkedNamedLaw = helpers.linkifyLawRefs('記帳士法第13條及第15條', '所得稅法');
   assert.match(linkedNamedLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=13/);
   assert.match(linkedNamedLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=15/);
   const linkedPrefixedLaw = helpers.linkifyLawRefs('搭配公司法第29條經理人任免規定', '商業會計法');
   assert.match(linkedPrefixedLaw, />公司法第29條</);
+  assert.match(linkedPrefixedLaw, /&from=quiz&back=quiz\.html/);
   assert.doesNotMatch(linkedPrefixedLaw, />搭配公司法第29條</);
   assert.equal(helpers.cleanCrossRefLawName('搭配公司法'), '公司法');
   assert.doesNotMatch(linkedNamedLaw, /target="_blank"/);
