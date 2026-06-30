@@ -212,7 +212,7 @@ test('quiz drill links can target one article number from dashboard playlists', 
   assert.match(active, /const candidates = \[a\.title, a\.article_no, a\.article, a\.no\]/);
   assert.match(active, /candidates\.some\(v => normalizeArticleCore\(v\) === target\)/);
   assert.match(active, /const urlArticle = await _findArticleByUrlParam\(law\)/);
-  assert.match(active, /urlArticle && _drillParam/);
+  assert.match(active, /urlArticle && _shouldUseUrlArticleDrill\(\)/);
   assert.match(active, /page_id=\$\{encodeURIComponent\(urlArticle\.id\)\}/);
 });
 
@@ -459,6 +459,23 @@ test('local quiz picks avoid recently shown articles before calling the API', ()
   assert.match(active, /pickNonRecentArticle\(_hiArts\)/);
   assert.match(active, /pickNonRecentArticle\(_pool\)/);
   assert.match(active, /rememberRecentQuizArticle\(pageId\)/);
+});
+
+test('article drill deep links consume the exact article only once', () => {
+  assert.match(active, /let _articleDrillConsumed = false/);
+  assert.match(active, /function _shouldUseUrlArticleDrill\(\)/);
+  assert.match(active, /return _drillParam && !_articleDrillConsumed && !!_articleParamFromUrl\(\)/);
+  assert.match(active, /else if\(urlArticle && _shouldUseUrlArticleDrill\(\)\)/);
+  assert.match(active, /_articleDrillConsumed = true/);
+});
+
+test('wrong review avoids recently shown articles when possible', () => {
+  const start = active.indexOf('async function loadWrongQuiz');
+  const end = active.indexOf('// 統計面板 open/close', start);
+  assert.ok(start >= 0 && end > start, 'wrong quiz loader must be extractable');
+  const wrongLoader = active.slice(start, end);
+  assert.match(wrongLoader, /const pick = pickNonRecentArticle\(bank\) \|\| bank\[Math\.floor\(Math\.random\(\) \* bank\.length\)\]/);
+  assert.match(wrongLoader, /rememberRecentQuizArticle\(pageId\)/);
 });
 
 test('quiz analysis linkifies sixth-section law references to the article reader', () => {

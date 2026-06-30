@@ -988,6 +988,7 @@ const _drillParam = _searchParams.get('drill') === '1';
 const _startQuizParam = _searchParams.get('start') === '1';
 const _PAST_EXAM_SUBJECTS = ['記帳相關法規概要', '稅務相關法規概要'];
 let _pastExamMode = _searchParams.get('mode') === 'past-exam';
+let _articleDrillConsumed = false;
 function _lawParamFromUrl(){
   const raw = _searchParams.get('law') || _searchParams.get('q') || '';
   try { return decodeURIComponent(raw).trim(); }
@@ -997,6 +998,9 @@ function _articleParamFromUrl(){
   const raw = _searchParams.get('art') || _searchParams.get('article') || '';
   try { return decodeURIComponent(raw).trim(); }
   catch(e) { return String(raw || '').trim(); }
+}
+function _shouldUseUrlArticleDrill(){
+  return _drillParam && !_articleDrillConsumed && !!_articleParamFromUrl();
 }
 function _focusQuizQuestionStart(){
   const stage = document.querySelector('.stage');
@@ -2747,8 +2751,9 @@ async function loadQuiz(){
       let url;
       if(pickedPageId){
         url=`${API}/api/quiz?page_id=${encodeURIComponent(pickedPageId)}`;
-      } else if(urlArticle && _drillParam){
+      } else if(urlArticle && _shouldUseUrlArticleDrill()){
         url=`${API}/api/quiz?page_id=${encodeURIComponent(urlArticle.id)}`;
+        _articleDrillConsumed = true;
       } else if(artNum && law && _artCache[law]){
         const match=_artCache[law].find(a=>{const m=(a.title||'').match(/第(\d+(?:之\d+)?)條/);return m&&m[1]===artNum;});
         url = match ? `${API}/api/quiz?page_id=${encodeURIComponent(match.id)}` : (law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`);
@@ -3118,7 +3123,7 @@ async function loadWrongQuiz() {
     alert('錯題本是空的，後端弱點也還沒有可重練的題。先做幾題再來吧。');
     return;
   }
-  const pick = bank[Math.floor(Math.random() * bank.length)];
+  const pick = pickNonRecentArticle(bank) || bank[Math.floor(Math.random() * bank.length)];
   // 暫時切回非 wrong-url 模式，用 page_id 出題
   const origLoadQuiz = loadQuiz;
   answered = false; total++;
@@ -3160,6 +3165,7 @@ async function loadWrongQuiz() {
     const isNewFmt = typeof (data.options||[])[0] !== 'object';
     const correctAnswer = isNewFmt ? data.answer : null;
     const pageId = data.page_id || data.correct_id || null;
+    rememberRecentQuizArticle(pageId);
     const lawName = data.law_name || pick.law || '';
     const artTitle = data.title || data.correct_title || pick.art || '';
     const cur = sessionHistory[sessionHistory.length-1];
