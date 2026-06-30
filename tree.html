@@ -1551,16 +1551,15 @@ function renderDetail(nid) {
   let lawsHtml = '';
   if (node.laws && node.laws.length > 0) {
     lawsHtml = node.laws.map((l) => {
-      // 法規名 → 對照序列號 → 啟動該序號的連結；找不到則用搜尋頁 fallback
+      // 法規名 → 對照序列號 → 進 SoFa reader；是否已上線由下方 click handler 即時判斷。
       const lawName = l.replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '').trim();
       const rec = LAW_LINKS[l] || LAW_LINKS[lawName];
       const sid = rec ? rec.id : '—';
-      const url = rec ? rec.url
-        : `https://law.moj.gov.tw/LawClass/LawSearchResult.aspx?q=${encodeURIComponent(lawName)}`;
+      const url = SOFA_READ_URL(lawName);
       return `
       <div class="law-item">
         <span class="law-num">${sid}</span>
-        <a class="law-link" href="${url}" target="_blank" rel="noopener">${l}</a>
+        <a class="law-link" href="${url}">${l}</a>
       </div>
     `;}).join('');
   } else {
@@ -1944,10 +1943,12 @@ function triggerAutoReset() {
 render();
 
 // SoFa: 法本 item 點擊行為
-//   已上線(SoFa 33 部) → 直接 window.open 新分頁去法本試讀頁(無登入門檻)
+//   已上線 → 直接在同一個閱讀脈絡進法本試讀頁(無登入門檻)
 //   未上線 → toast 預告「即將上線」
 // 試讀頁直接從 Supabase API 拉條文 + 六段,使用者不會被 dashboard auth gate 擋
-const SOFA_READ_URL = (lawName) => `https://sofaengine.org/law-preview.html?law=${encodeURIComponent(lawName)}`;
+function SOFA_READ_URL(lawName) {
+  return `law-preview.html?law=${encodeURIComponent(lawName)}&from=tree&back=tree.html`;
+}
 
 (function() {
   const origRenderDetail = window.renderDetail;
@@ -1968,8 +1969,8 @@ const SOFA_READ_URL = (lawName) => `https://sofaengine.org/law-preview.html?law=
         link.addEventListener('click', (e) => {
           e.preventDefault();
           if (isOnline()) {
-            // 已上線:直接跳新分頁
-            window.open(SOFA_READ_URL(lawName), '_blank', 'noopener');
+            // 已上線:保留在同一個 app/browser 脈絡，讀完可以回考試地圖。
+            location.href = SOFA_READ_URL(lawName);
           } else {
             // 未上線:toast 預告
             showLawToast(lawName);
@@ -2078,7 +2079,7 @@ const SOFA_READ_URL = (lawName) => `https://sofaengine.org/law-preview.html?law=
       // SoFa 已上線:鼓勵點進去讀
       const readHref = SOFA_READ_URL(lawName);
       if (titleEl) titleEl.textContent = `「${lawName}」`;
-      if (subEl) subEl.innerHTML = '✓ 已在 SoFa 陪你讀 · <a href="' + readHref + '" target="_blank" rel="noopener" style="color:var(--sofa-peach);text-decoration:underline;font-weight:600;">前往閱讀 →</a>';
+      if (subEl) subEl.innerHTML = '✓ 已在 SoFa 陪你讀 · <a href="' + readHref + '" style="color:var(--sofa-peach);text-decoration:underline;font-weight:600;">前往閱讀 →</a>';
       if (iconEl) iconEl.textContent = '✓';
     } else {
       // 未上線:預告

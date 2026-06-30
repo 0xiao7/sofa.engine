@@ -163,6 +163,12 @@ test('law preview keeps quiz return context when readers follow cross references
   assert.match(preview, /linkifyLawRefs\(escapeHtml\(visibleText\), currentLawName\)/);
 });
 
+test('law preview names the return path for tree readers', () => {
+  assert.match(preview, /returnFrom === 'tree'/);
+  assert.match(preview, /backLink\.href = isSafeBackUrl\(backTarget\) \? backTarget : 'tree\.html'/);
+  assert.match(preview, /backLink\.textContent = '← 回考試地圖'/);
+});
+
 test('law preview opens cross references inside the reader instead of full page jumping', () => {
   assert.match(preview, /let lawName = params\.get\('law'\) \|\| '記帳士法'/);
   assert.match(preview, /async function loadLawReader\(nextLaw, opts\)/);
@@ -253,10 +259,15 @@ test('law preview only locks advanced sections for explicitly free readers', () 
 });
 
 test('tree read entries use the same law preview reader URL', () => {
-  assert.match(tree, /const SOFA_READ_URL = \(lawName\) => `https:\/\/sofaengine\.org\/law-preview\.html\?law=\$\{encodeURIComponent\(lawName\)\}`/);
-  assert.match(tree, /window\.open\(SOFA_READ_URL\(lawName\), '_blank', 'noopener'\)/);
+  assert.match(tree, /function SOFA_READ_URL\(lawName\) \{/);
+  assert.match(tree, /law-preview\.html\?law=\$\{encodeURIComponent\(lawName\)\}&from=tree&back=tree\.html/);
+  assert.match(tree, /const url = SOFA_READ_URL\(lawName\)/);
+  assert.match(tree, /<a class="law-link" href="\$\{url\}">\$\{l\}<\/a>/);
+  assert.match(tree, /location\.href = SOFA_READ_URL\(lawName\)/);
   assert.match(tree, /前往閱讀 →/);
   assert.match(tree, /const readHref = SOFA_READ_URL\(lawName\)/);
   assert.match(tree, /href="' \+ readHref \+ '"/);
+  assert.doesNotMatch(tree, /window\.open\(SOFA_READ_URL\(lawName\)/);
+  assert.doesNotMatch(tree, /LawSearchResult\.aspx/);
   assert.doesNotMatch(tree, /\?intent=read&law=/);
 });
