@@ -73,6 +73,16 @@ test('law preview accepts common article deep-link aliases', () => {
   assert.match(preview, /const firstId = targetId && articlesCache\.find\(a => a\.id === targetId\)/);
 });
 
+test('law preview can resolve an id-only deep link before loading the law list', () => {
+  assert.match(preview, /const hasExplicitLawParam = params\.has\('law'\)/);
+  assert.match(preview, /async function resolveArticleIdBeforeLawList/);
+  assert.match(preview, /if\(targetId && !hasExplicitLawParam\)/);
+  assert.match(preview, /fetchJSON\(`\$\{API\}\/api\/article\/\$\{encodeURIComponent\(targetId\)\}`\)/);
+  assert.match(preview, /lawName = article\.law_name \|\| article\.law \|\| lawName/);
+  assert.match(preview, /if\(articleMatchesTarget\(article, targetArticleNo\) \|\| article\.id === targetId\)/);
+  assert.match(preview, /renderDetail\(article\)/);
+});
+
 test('law preview is native-safe inside the iOS shell', () => {
   assert.match(preview, /<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">/);
   assert.match(preview, /body\{[\s\S]*padding-bottom:calc\(96px \+ env\(safe-area-inset-bottom, 0px\)\)/);

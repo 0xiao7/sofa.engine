@@ -1630,7 +1630,9 @@ function linkifyLawRefs(escapedText,currentLawName){
     const prefixMatch = match.match(/^(搭配|參照|依|按|見|與)(.+)$/);
     const prefix = prefixMatch ? prefixMatch[1] : '';
     const label = prefixMatch ? prefixMatch[2] : match;
-    return `${prefix}<a class="crossref" href="law-preview.html?law=${safeLaw}&art=${safeArt}" data-law="${safeLaw}" data-art="${safeArt}">${label}</a>`;
+    const back = typeof _currentQuizReturnTarget === 'function' ? _currentQuizReturnTarget() : 'quiz.html';
+    const safeBack = encodeURIComponent(back || 'quiz.html');
+    return `${prefix}<a class="crossref" href="law-preview.html?law=${safeLaw}&art=${safeArt}&from=quiz&back=${safeBack}" data-law="${safeLaw}" data-art="${safeArt}">${label}</a>`;
   });
 }
 function cleanVisibleSpeechCueText(text){
