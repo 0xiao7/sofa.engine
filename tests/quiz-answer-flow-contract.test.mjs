@@ -287,11 +287,21 @@ test('quiz loaders reject concurrent loads so options cannot duplicate', () => {
   assert.match(wrongFn, /_quizLoading = true/);
   assert.match(wrongFn, /if \(!bank\.length\) \{\s*_quizLoading = false;/);
   assert.match(wrongFn, /finally \{\s*_quizLoading = false;\s*\}/);
-  assert.match(active, /btnNew'\)\.addEventListener\('click',\(\)=>\{\s*_quizManualRequested = true;/);
+  assert.match(active, /btnNew'\)\.addEventListener\('click',\(\)=>\{[\s\S]*?_quizManualRequested = true;/);
   assert.doesNotMatch(active, /if\(_initialLawApplied\)\{ loadQuiz\(\); return; \}/);
   assert.doesNotMatch(active, /if\(_startQuizParam\)\{ loadQuiz\(\); return; \}/);
   assert.match(active, /if\(_initialLawApplied\)\{ _autoLoadQuizOnce\(\); return; \}/);
   assert.match(active, /if\(_startQuizParam\)\{ _autoLoadQuizOnce\(\); return; \}/);
+});
+
+test('manual quiz starts wait until initial law scope is ready', () => {
+  assert.match(active, /let _quizBootReady = false/);
+  assert.match(active, /function _setQuizBootReady\(isReady\)/);
+  assert.match(active, /btn\.disabled = !_quizBootReady/);
+  assert.match(active, /btn\.textContent = _quizBootReady \? '出題' : '載入中'/);
+  assert.match(active, /_setQuizBootReady\(false\)/);
+  assert.match(active, /_setQuizBootReady\(true\);\s*if\(_restoreQuizReturnState\(\)\) return/);
+  assert.match(active, /if\(!_quizBootReady\)\{\s*document\.getElementById\('questionBox'\)\.textContent='法規範圍載入中，馬上可以開始。'/);
 });
 
 test('stats modal merges server quiz sessions and weak laws before relying on localStorage', () => {
