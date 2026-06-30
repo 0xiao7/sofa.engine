@@ -154,7 +154,7 @@ test('app start links go straight to the question area without the exam picker g
   assert.match(active, /function _focusQuizQuestionStart/);
   assert.match(active, /document\.querySelector\('\.stage'\)/);
   assert.match(active, /scrollIntoView\(\{block:'start', behavior:'auto'\}\)/);
-  assert.match(active, /if\(_startQuizParam\)\{ loadQuiz\(\); return; \}/);
+  assert.match(active, /if\(_startQuizParam\)\{ _autoLoadQuizOnce\(\); return; \}/);
   assert.match(active, /if\(_startQuizParam\) setTimeout\(_focusQuizQuestionStart, 80\)/);
 });
 
@@ -201,7 +201,7 @@ test('quiz accepts law query params from dashboard single-practice links', () =>
   assert.match(active, /o\.value = law/);
   assert.match(active, /sel\.appendChild\(o\)/);
   assert.match(active, /_applyInitialLawParam\(sel\)/);
-  assert.match(active, /if\(_initialLawApplied\)\{ loadQuiz\(\); return; \}/);
+  assert.match(active, /if\(_initialLawApplied\)\{ _autoLoadQuizOnce\(\); return; \}/);
 });
 
 test('quiz drill links can target one article number from dashboard playlists', () => {
@@ -267,6 +267,12 @@ test('quiz restores answered state after returning from article reader', () => {
 
 test('quiz loaders reject concurrent loads so options cannot duplicate', () => {
   assert.match(active, /let _quizLoading = false/);
+  assert.match(active, /let _quizManualRequested = false/);
+  assert.match(active, /function _autoLoadQuizOnce\(\)/);
+  const autoStart = active.indexOf('function _autoLoadQuizOnce');
+  const autoFn = active.slice(autoStart, autoStart + 260);
+  assert.match(autoFn, /if\(_quizManualRequested \|\| _quizLoading \|\| total > 0\) return/);
+  assert.match(autoFn, /loadQuiz\(\)/);
   const loadStart = active.indexOf('async function loadQuiz');
   const loadEnd = active.indexOf('function doFlag', loadStart);
   const loadFn = active.slice(loadStart, loadEnd);
@@ -281,6 +287,11 @@ test('quiz loaders reject concurrent loads so options cannot duplicate', () => {
   assert.match(wrongFn, /_quizLoading = true/);
   assert.match(wrongFn, /if \(!bank\.length\) \{\s*_quizLoading = false;/);
   assert.match(wrongFn, /finally \{\s*_quizLoading = false;\s*\}/);
+  assert.match(active, /btnNew'\)\.addEventListener\('click',\(\)=>\{\s*_quizManualRequested = true;/);
+  assert.doesNotMatch(active, /if\(_initialLawApplied\)\{ loadQuiz\(\); return; \}/);
+  assert.doesNotMatch(active, /if\(_startQuizParam\)\{ loadQuiz\(\); return; \}/);
+  assert.match(active, /if\(_initialLawApplied\)\{ _autoLoadQuizOnce\(\); return; \}/);
+  assert.match(active, /if\(_startQuizParam\)\{ _autoLoadQuizOnce\(\); return; \}/);
 });
 
 test('stats modal merges server quiz sessions and weak laws before relying on localStorage', () => {
