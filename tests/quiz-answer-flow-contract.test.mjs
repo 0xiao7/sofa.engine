@@ -462,10 +462,10 @@ test('local quiz picks avoid recently shown articles before calling the API', ()
 });
 
 test('quiz analysis linkifies sixth-section law references to the article reader', () => {
-  const start = active.indexOf('function linkifyLawRefs');
+  const start = active.indexOf('function cleanCrossRefLawName');
   const end = active.indexOf('function formatSection', start);
   assert.ok(start >= 0 && end > start, 'law reference helper must be extractable before formatSection');
-  const helpers = vm.runInNewContext(`${active.slice(start, end)};({linkifyLawRefs})`);
+  const helpers = vm.runInNewContext(`${active.slice(start, end)};({linkifyLawRefs,cleanCrossRefLawName})`);
 
   const linkedSameLaw = helpers.linkifyLawRefs('同法第13條、本法第15條', '記帳士法');
   assert.match(linkedSameLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=13/);
@@ -477,6 +477,7 @@ test('quiz analysis linkifies sixth-section law references to the article reader
   const linkedPrefixedLaw = helpers.linkifyLawRefs('搭配公司法第29條經理人任免規定', '商業會計法');
   assert.match(linkedPrefixedLaw, />公司法第29條</);
   assert.doesNotMatch(linkedPrefixedLaw, />搭配公司法第29條</);
+  assert.equal(helpers.cleanCrossRefLawName('搭配公司法'), '公司法');
   assert.doesNotMatch(linkedNamedLaw, /target="_blank"/);
   assert.match(active, /function openCrossRefArticleInline/);
   assert.match(active, /closest\('a\.crossref'\)/);
