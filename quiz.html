@@ -1507,6 +1507,7 @@ const _today = new Date().toISOString().slice(0,10);
 const _dailyKey = 'sofa_daily_' + _today;
 let _isDailyMode = false;
 const RECENT_QUIZ_ARTICLES_KEY = 'sofa_recent_quiz_articles_v1';
+const RECENT_PAST_EXAM_QUESTIONS_KEY = 'sofa_recent_past_exam_questions_v1';
 
 function recentQuizArticleIds(){
   try{
@@ -1531,6 +1532,39 @@ function pickNonRecentArticle(items){
   var fresh = pool.filter(function(item){ return item && item.id && !recent.has(item.id); });
   var source = fresh.length ? fresh : pool;
   return source[Math.floor(Math.random() * source.length)] || null;
+}
+
+function recentPastExamQuestionKeys(){
+  try{
+    return JSON.parse(localStorage.getItem(RECENT_PAST_EXAM_QUESTIONS_KEY) || '[]').filter(Boolean);
+  }catch(e){
+    return [];
+  }
+}
+
+function _pastExamQuestionKey(raw, subject){
+  if(!raw) return '';
+  const rawId = raw.id || raw.question_id || raw.source_id || raw.uuid || '';
+  const subj = raw.subject || subject || '';
+  const year = raw.roc_year || raw.year || '';
+  const no = raw.question_no || raw.no || '';
+  const stem = (raw.stem || raw.question || '').slice(0, 60);
+  return [subj, rawId || year, no, stem].filter(Boolean).join('|');
+}
+
+function rememberRecentPastExamQuestion(question){
+  const key = typeof question === 'string' ? question : (question && question._past_exam_key);
+  if(!key) return;
+  var keys = recentPastExamQuestionKeys().filter(function(item){ return item !== key; });
+  keys.unshift(key);
+  if(keys.length > 40) keys.length = 40;
+  try{ localStorage.setItem(RECENT_PAST_EXAM_QUESTIONS_KEY, JSON.stringify(keys)); }catch(e){}
+}
+
+function isRecentPastExamQuestion(question){
+  const key = typeof question === 'string' ? question : (question && question._past_exam_key);
+  if(!key) return false;
+  return recentPastExamQuestionKeys().indexOf(key) >= 0;
 }
 
 function _getDailyResult() {
@@ -3403,7 +3437,7 @@ function _statsToneClass(pct) {
   return 'is-empty';
 }
 
-function _normalizePastExamQuestion(raw) {
+function _normalizePastExamQuestion(raw, subject) {
   const opts = Array.isArray(raw.options) ? raw.options : [];
   const correctOpt = opts.find(o=>o.key===raw.answer);
   return {
@@ -3420,15 +3454,26 @@ function _normalizePastExamQuestion(raw) {
     law_change_note: raw.law_change_note || '',
     verify_status: raw.verify_status || '',
     _past_exam: true,
+    _past_exam_key: _pastExamQuestionKey(raw, subject),
   };
 }
 
 async function _fetchPastExamQuestion() {
   const sel = document.getElementById('pastExamSubject');
   const subject = (sel && sel.value) || _PAST_EXAM_SUBJECTS[0];
-  const raw = await fetch(`${API}/api/past-exam?subject=${encodeURIComponent(subject)}`, {headers:_authH()}).then(r=>r.json());
-  if(raw.error || raw.detail) return raw;
-  return _normalizePastExamQuestion(raw);
+  let lastData = null;
+  for(let attempt=0;attempt<5;attempt++){
+    const raw = await fetch(`${API}/api/past-exam?subject=${encodeURIComponent(subject)}`, {headers:_authH()}).then(r=>r.json());
+    if(raw.error || raw.detail) return raw;
+    const data = _normalizePastExamQuestion(raw, subject);
+    lastData = data;
+    if(!isRecentPastExamQuestion(data) || attempt===4){
+      rememberRecentPastExamQuestion(data);
+      return data;
+    }
+  }
+  if(lastData) rememberRecentPastExamQuestion(lastData);
+  return lastData;
 }
 
 function _renderStatsContent(s, sourceLabel) {
