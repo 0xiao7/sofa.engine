@@ -44,3 +44,19 @@ test('loadQuiz routes to past-exam questions before generated law questions', ()
   assert.match(fn, /data=await _fetchPastExamQuestion\(\)/);
   assert.match(fn, /\/api\/quiz/);
 });
+
+test('past-exam mode remembers recent questions and retries duplicates', () => {
+  const start = activeQuiz.indexOf('async function _fetchPastExamQuestion');
+  assert.ok(start > -1, 'past-exam fetcher must exist');
+  const fn = activeQuiz.slice(start, activeQuiz.indexOf('function _renderStatsContent', start));
+
+  assert.match(activeQuiz, /const RECENT_PAST_EXAM_QUESTIONS_KEY = 'sofa_recent_past_exam_questions_v1'/);
+  assert.match(activeQuiz, /function recentPastExamQuestionKeys/);
+  assert.match(activeQuiz, /function rememberRecentPastExamQuestion/);
+  assert.match(activeQuiz, /function isRecentPastExamQuestion/);
+  assert.match(activeQuiz, /function _pastExamQuestionKey/);
+  assert.match(activeQuiz, /_past_exam_key:/);
+  assert.match(fn, /for\(let attempt=0;attempt<5;attempt\+\+\)/);
+  assert.match(fn, /if\(!isRecentPastExamQuestion\(data\) \|\| attempt===4\)/);
+  assert.match(fn, /rememberRecentPastExamQuestion\(data\)/);
+});
