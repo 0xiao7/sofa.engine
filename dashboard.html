@@ -574,6 +574,38 @@
   .study-copy{font-size:13px;color:rgba(245,240,234,.62);line-height:1.7;max-width:620px}
   .study-copy b{display:block;color:var(--cream);font-family:var(--serif);font-size:16px;font-weight:500;margin-bottom:2px}
   .study-weak-state{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;color:rgba(245,240,234,.48)}
+  .study-status-strip{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:8px;
+  }
+  .study-status-chip{
+    min-width:0;
+    border:1px solid rgba(231,187,167,.2);
+    border-radius:5px;
+    background:rgba(231,187,167,.045);
+    padding:10px 12px;
+    display:grid;
+    gap:4px;
+  }
+  .study-status-chip span{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.12em;
+    color:var(--peach);
+    text-transform:uppercase;
+  }
+  .study-status-chip b{
+    min-width:0;
+    color:var(--cream);
+    font-family:var(--serif);
+    font-size:16px;
+    font-weight:650;
+    line-height:1.35;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
   .study-subjects{display:flex;flex-wrap:wrap;gap:8px}
   .study-subject{
     border:1px solid var(--line-2);border-radius:3px;
@@ -1627,6 +1659,7 @@
     .srs-limit{min-height:40px}
     .study-blocks{grid-template-columns:1fr}
     .study-summary{align-items:flex-start}
+    .study-status-strip{grid-template-columns:1fr}
     .study-actions{align-items:stretch;gap:12px}
     .study-action-group{
       display:grid;
@@ -3429,10 +3462,15 @@
           <div class="study-panel">
             <div class="study-summary">
               <div class="study-copy">
-                <b>不知道從哪裡開始，先做一題</b>
-                選擇題會累積錯題與弱點；有到期內容時，再回來看今日複習。
+                <b>今天先做</b>
+                看時間、弱點和下一堂；要排課再開下方工具。
               </div>
               <div class="study-weak-state" id="study-cockpit-weak-state"></div>
+            </div>
+            <div class="study-status-strip" id="study-status-strip" aria-label="今日讀書狀態">
+              <span class="study-status-chip"><span>累積時間</span><b id="study-status-total">0 小時</b></span>
+              <span class="study-status-chip"><span>今天</span><b id="study-status-today">預留 60 分鐘</b></span>
+              <span class="study-status-chip"><span>下一步</span><b id="study-status-next">先做一題</b></span>
             </div>
             <div class="study-actions" aria-label="今日讀書工具">
               <div class="study-action-group primary">
@@ -3461,7 +3499,7 @@
               </div>
             </div>
             <div class="study-next-plan" id="study-next-plan" aria-live="polite">
-              <span><span class="k">今天讀什麼</span><b>先做一題開始累積弱點</b><span>還沒接到私人課表；有時間時再設定讀書課程。</span></span>
+              <span><span class="k">今天讀什麼</span><b>先做一題開始累積弱點</b><span>預覽只給建議，排入後才存進私人計畫。</span></span>
               <a href="quiz.html">開始選擇題</a>
             </div>
             <div class="study-playlist-panel" id="study-playlist-panel" aria-label="通勤重點朗讀清單">
@@ -3511,7 +3549,7 @@
                 <span class="study-time-main">
                   <b>讀書時間</b>
                   <small id="study-time-summary">今天已讀 0 分鐘；本週已讀 0 小時；目標 500 小時，今天預留 60 分鐘。</small>
-                  <span id="study-time-purpose">先設定時間，按「預覽本週排法」看建議；排入後才存進你的私人計畫。</span>
+                  <span id="study-time-purpose">預覽只給建議；按「排入本週計畫」才保存到私人計畫。</span>
                 </span>
                 <span class="study-time-impact" aria-live="polite">
                   <b id="study-time-impact">剩約 42 週</b>
@@ -4636,6 +4674,7 @@ function renderStudyPlanningOverview(items, timeSummary){
   var completed = _completedStudyItems(list);
   var ledger = _studyTimeLedger(timeSummary, list);
   var next = actionable[0] || null;
+  renderStudyStatusStrip(list, timeSummary);
   var nextEl = document.getElementById('study-overview-next');
   var nextNote = document.getElementById('study-overview-next-note');
   var saveEl = document.getElementById('study-overview-save');
@@ -4671,6 +4710,23 @@ function renderStudyPlanningOverview(items, timeSummary){
   }
   if(statusNote){
     statusNote.textContent = '今天已讀 ' + ledger.today + ' 分鐘 / 本週已讀 ' + _formatStudyHours(ledger.week) + '；補紀錄不會改答題正確率。';
+  }
+}
+
+function renderStudyStatusStrip(items, timeSummary){
+  var list = Array.isArray(items) ? items : (window.__studyPlanItemCache || []);
+  var actionable = _actionableStudyItems(list);
+  var ledger = _studyTimeLedger(timeSummary || window.__studyTimeSummary || null, list);
+  var settings = (_studyLocal().settings || {});
+  var totalEl = document.getElementById('study-status-total');
+  var todayEl = document.getElementById('study-status-today');
+  var nextEl = document.getElementById('study-status-next');
+  var minutes = settings.today_minutes || 60;
+  if(totalEl) totalEl.textContent = _formatStudyHours(ledger.accumulated);
+  if(todayEl) todayEl.textContent = ledger.today ? ('已讀 ' + ledger.today + ' 分鐘') : ('預留 ' + minutes + ' 分鐘');
+  if(nextEl){
+    var next = actionable[0] || null;
+    nextEl.textContent = next ? (next.title || next.subject || '完成下一堂') : '先做一題';
   }
 }
 
@@ -4865,6 +4921,7 @@ function renderStudyTimeSettings(){
   if(impact){
     impact.textContent = weeks ? ('剩約 ' + weeks + ' 週') : '先填時間';
   }
+  renderStudyStatusStrip(window.__studyPlanItemCache || [], window.__studyTimeSummary || null);
   renderStudyPlanMap(window.__studyPlanItemCache || []);
 }
 
@@ -7611,7 +7668,7 @@ function renderStudyNextPlan(items){
     return;
   }
   el.innerHTML = '<span><span class="k">今天讀什麼</span><b>先做一題開始累積弱點</b><span>今天留 ' + minutes
-    + ' 分鐘；' + esc(timeLine) + '還沒接到私人課表，可以先答題、預覽推薦或設定讀書課程。</span></span><span class="study-next-plan-actions">'
+    + ' 分鐘；' + esc(timeLine) + '預覽只給建議，排入後才存進私人計畫。</span></span><span class="study-next-plan-actions">'
     + '<a href="quiz.html">開始選擇題</a>'
     + '<button class="secondary" type="button" onclick="previewStudyWeekRecommendation()">預覽推薦</button>'
     + '<button class="secondary" type="button" onclick="openStudyPlanPanel()">設定課程</button>'
