@@ -1004,6 +1004,16 @@ function _articleParamFromUrl(){
 function _shouldUseUrlArticleDrill(){
   return _drillParam && !_articleDrillConsumed && !!_articleParamFromUrl();
 }
+function _clearUrlArticleDrillInput(){
+  const input = document.getElementById('artNumInput');
+  if(!input) return;
+  const urlArticle = normalizeArticleCore(_articleParamFromUrl()) || _articleParamFromUrl();
+  const current = normalizeArticleCore(input.value) || input.value;
+  if(urlArticle && current === urlArticle){
+    input.value = '';
+  }
+  input.dataset.urlArticleDrillConsumed = '1';
+}
 function _focusQuizQuestionStart(){
   const stage = document.querySelector('.stage');
   if(stage) stage.scrollIntoView({block:'start', behavior:'auto'});
@@ -1185,9 +1195,9 @@ function _authH(extra) {
   else if (uid) h['X-Sofa-UID'] = uid;
   return h;
 }
-const isFree = !uid && (freeParam || localStorage.getItem('sofa_free') === 'FREE');
-if (!uid && !isFree) { window.location.href = 'login.html?redirect=quiz.html'; }
-document.getElementById('navUid').textContent = isFree ? '免費版' : (localStorage.getItem('sofa_nickname') || uid);
+const isFree = !(uid || tok) && (freeParam || localStorage.getItem('sofa_free') === 'FREE');
+if (!(uid || tok) && !isFree) { window.location.href = 'login.html?redirect=quiz.html'; }
+document.getElementById('navUid').textContent = isFree ? '免費版' : (localStorage.getItem('sofa_nickname') || uid || '已登入');
 if(isFree){
   const bar=document.createElement('div');
   bar.className='free-quiz-notice';
@@ -1233,14 +1243,14 @@ function _setPastExamMode(on, opts){
 // ── 全域付費判定（keystone，fail-OPEN）────────────────────────────
 // 規則：判定不確定一律「不鎖」（視為付費），絕不把付費會員擋在外面。
 //   · 明確免費（無 uid 且 sofa_free=FREE）→ 鎖。
-//   · 其餘（已登入 / 預覽 / 任何網路錯誤）→ 不鎖。
-//   · 已登入者非同步向 /api/me/profile 確認 plan；只有「明確回免費 plan」才降為鎖，
+//   · 其餘（已登入 / token / 預覽 / 任何網路錯誤）→ 不鎖。
+//   · 已登入/token 者非同步向 /api/me/profile 確認 plan；只有「明確回免費 plan」才降為鎖，
 //     其餘狀況（200 付費 / 4xx / 5xx / 逾時 / parse 失敗）都維持不鎖。
 const _PAID_PLANS = new Set(['月費','季費','買斷','體驗','Admin','monthly','quarterly','trial']);
 const _FREE_PLANS = new Set(['免費','free','']);
 // 同步初值：只有「明確免費」才預設 false，其餘 fail-open 為 true。
 window.__sofaPaid = !isFree;
-window.__sofaPaidResolved = !uid; // 未登入沒得查，視為已定案
+window.__sofaPaidResolved = !(uid || tok); // 未登入沒得查，視為已定案
 const _paidListeners = [];
 function onPaidResolved(fn){ if(window.__sofaPaidResolved) fn(window.__sofaPaid); else _paidListeners.push(fn); }
 function _setPaid(v){
@@ -1248,8 +1258,8 @@ function _setPaid(v){
   _paidListeners.splice(0).forEach(fn=>{ try{fn(v);}catch(e){} });
 }
 (function _confirmPaid(){
-  if(!uid){ return; } // 未登入：isFree 已決定，不需查
-  // 已登入：預設付費（fail-open），非同步確認
+  if(!uid && !tok){ return; } // 未登入：isFree 已決定，不需查
+  // 已登入/token：預設付費（fail-open），非同步確認
   const ctrl = (typeof AbortController!=='undefined') ? new AbortController() : null;
   const timer = ctrl ? setTimeout(()=>ctrl.abort(), 6000) : null;
   fetch(`${API}/api/me/profile`, { headers: _authH(), signal: ctrl ? ctrl.signal : undefined })
@@ -1531,7 +1541,10 @@ function pickNonRecentArticle(items){
   var pool = (items || []).filter(Boolean);
   if(!pool.length) return null;
   var recent = new Set(recentQuizArticleIds());
-  var fresh = pool.filter(function(item){ return item && item.id && !recent.has(item.id); });
+  var fresh = pool.filter(function(item){
+    var itemId = item && (item.id || item.page_id);
+    return itemId && !recent.has(itemId);
+  });
   var source = fresh.length ? fresh : pool;
   return source[Math.floor(Math.random() * source.length)] || null;
 }
@@ -2770,7 +2783,8 @@ async function loadQuiz(){
         document.getElementById('questionBox').style.opacity='1';
         return;
       }
-      pickedPageId=ids[Math.floor(Math.random()*ids.length)];
+      const pick=pickNonRecentArticle(ids.map(id=>({id}))) || {id:ids[Math.floor(Math.random()*ids.length)]};
+      pickedPageId=pick.id;
       law='';
     } else if(!_pastExamMode && (law==='__mastered__'||law==='__review__')){
       const wantStatus=law==='__mastered__'?'mastered':'review';
@@ -2786,6 +2800,7 @@ async function loadQuiz(){
       law='';
     }
     if(!_pastExamMode){
+      const cachedArticles = law ? await _ensureArticleCache(law) : [];
       const artNum = (document.getElementById('artNumInput')||{}).value?.trim();
       const urlArticle = await _findArticleByUrlParam(law);
       let url;
@@ -2794,11 +2809,12 @@ async function loadQuiz(){
       } else if(urlArticle && _shouldUseUrlArticleDrill()){
         url=`${API}/api/quiz?page_id=${encodeURIComponent(urlArticle.id)}`;
         _articleDrillConsumed = true;
-      } else if(artNum && law && _artCache[law]){
-        const match=_artCache[law].find(a=>{const m=(a.title||'').match(/第(\d+(?:之\d+)?)條/);return m&&m[1]===artNum;});
+        _clearUrlArticleDrillInput();
+      } else if(artNum && !_articleDrillConsumed && law && cachedArticles.length){
+        const match=cachedArticles.find(a=>{const m=(a.title||'').match(/第(\d+(?:之\d+)?)條/);return m&&m[1]===artNum;});
         url = match ? `${API}/api/quiz?page_id=${encodeURIComponent(match.id)}` : (law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`);
-      } else if(_curPrChip!=='all' && law && _artCache[law]){
-        const filtered=_prFilterByChip(_artCache[law]);
+      } else if(_curPrChip!=='all' && law && cachedArticles.length){
+        const filtered=_prFilterByChip(cachedArticles);
         if(!filtered.length){
           document.getElementById('questionBox').textContent='此細篩條件下沒有條文';
           document.getElementById('questionBox').style.opacity='1';
@@ -2806,11 +2822,11 @@ async function loadQuiz(){
         }
         const pick=pickNonRecentArticle(filtered) || filtered[Math.floor(Math.random()*filtered.length)];
         url=`${API}/api/quiz?page_id=${encodeURIComponent(pick.id)}`;
-      } else if(law && _artCache[law] && _artCache[law].length) {
+      } else if(law && cachedArticles.length) {
         // Smart weighting: wrong answers first, then high-importance, else random
         const _wb = loadWrongBank();
         const _wrongSet = new Set(_wb.filter(e=>e.law===law).map(e=>e.id));
-        const _pool = _artCache[law];
+        const _pool = cachedArticles;
         const _wrongArts = _pool.filter(a=>_wrongSet.has(a.id));
         const _hiArts  = _pool.filter(a=>!_wrongSet.has(a.id) && parseInt(a.importance||0)>=4);
         const _rnd = Math.random();

@@ -467,6 +467,10 @@ test('native iOS free quiz explanations still tease locked advanced sections', (
 
 test('signed-in learners are not treated as free while entitlement is uncertain', () => {
   assert.match(active, /window\.__sofaPaid = !isFree/);
+  assert.match(active, /const isFree = !\(uid \|\| tok\) && \(freeParam \|\| localStorage\.getItem\('sofa_free'\) === 'FREE'\)/);
+  assert.match(active, /if \(!\(uid \|\| tok\) && !isFree\)/);
+  assert.match(active, /window\.__sofaPaidResolved = !\(uid \|\| tok\)/);
+  assert.match(active, /if\(!uid && !tok\)\{ return; \}/);
   assert.match(active, /if\(!d\)\{ _setPaid\(true\); return; \}/);
   assert.match(active, /_setPaid\(true\); \/\/ 未知 plan 字串/);
   assert.match(active, /catch\(\(\) => \{ if\(timer\) clearTimeout\(timer\); _setPaid\(true\); \}/);
@@ -479,18 +483,29 @@ test('local quiz picks avoid recently shown articles before calling the API', ()
   assert.match(active, /const RECENT_QUIZ_ARTICLES_KEY = 'sofa_recent_quiz_articles_v1'/);
   assert.match(active, /function rememberRecentQuizArticle/);
   assert.match(active, /function pickNonRecentArticle/);
+  assert.match(active, /var itemId = item && \(item\.id \|\| item\.page_id\)/);
+  assert.match(active, /!recent\.has\(itemId\)/);
+  const start = active.indexOf('async function loadQuiz');
+  const end = active.indexOf('// Fallback:', start);
+  assert.ok(start >= 0 && end > start, 'quiz loader must be extractable before API fallback');
+  const loader = active.slice(start, end);
+  assert.match(loader, /const cachedArticles = law \? await _ensureArticleCache\(law\) : \[\]/);
   assert.match(active, /pickNonRecentArticle\(_wrongArts\)/);
   assert.match(active, /pickNonRecentArticle\(_hiArts\)/);
   assert.match(active, /pickNonRecentArticle\(_pool\)/);
   assert.match(active, /rememberRecentQuizArticle\(pageId\)/);
+  assert.doesNotMatch(loader, /rememberRecentQuizArticle\(pageId\);\s*rememberRecentQuizArticle\(pageId\)/);
 });
 
 test('article drill deep links consume the exact article only once', () => {
   assert.match(active, /let _articleDrillConsumed = false/);
   assert.match(active, /function _shouldUseUrlArticleDrill\(\)/);
   assert.match(active, /return _drillParam && !_articleDrillConsumed && !!_articleParamFromUrl\(\)/);
+  assert.match(active, /function _clearUrlArticleDrillInput\(\)/);
   assert.match(active, /else if\(urlArticle && _shouldUseUrlArticleDrill\(\)\)/);
   assert.match(active, /_articleDrillConsumed = true/);
+  assert.match(active, /_clearUrlArticleDrillInput\(\)/);
+  assert.match(active, /else if\(artNum && !_articleDrillConsumed && law && cachedArticles\.length\)/);
 });
 
 test('wrong review avoids recently shown articles when possible', () => {
