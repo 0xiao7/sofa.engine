@@ -206,7 +206,7 @@ test('mobile dashboard first actions stay compact above the fixed quick bar', ()
   assert.match(html, /@media \(max-width:760px\)\{[\s\S]*\.study-action-label\{display:none\}/);
   assert.match(html, /@media \(max-width:760px\)\{[\s\S]*\.study-next-plan\{[\s\S]*grid-template-columns:1fr/);
   assert.match(html, /@media \(max-width:760px\)\{[\s\S]*\.study-next-plan-copy\{min-width:0\}/);
-  assert.match(html, /@media \(max-width:760px\)\{[\s\S]*\.study-next-plan-actions\{[\s\S]*display:grid[\s\S]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(html, /@media \(max-width:760px\)\{[\s\S]*\.study-next-plan-actions\{[\s\S]*display:grid[\s\S]*grid-template-columns:1fr/);
   assert.doesNotMatch(html, /@media \(max-width:760px\)\{[\s\S]*\.study-next-plan > span > span:not\(\.k\)\{display:none\}/);
   assert.doesNotMatch(html, /@media \(max-height:720px\)\{[\s\S]*\.study-next-plan\{display:none\}/);
   assert.match(html, /@media \(max-height:720px\)\{[\s\S]*\.study-next-plan\{[\s\S]*min-height:44px/);

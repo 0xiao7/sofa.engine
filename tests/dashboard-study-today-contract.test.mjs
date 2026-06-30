@@ -692,9 +692,9 @@ test('study today shows the next private plan near the first action area', () =>
   assert.doesNotMatch(nextFn, /預覽只給建議，排入後才存進私人計畫/);
   assert.doesNotMatch(nextFn, /預覽推薦/);
   assert.doesNotMatch(nextFn, /openStudyPlanPanel/);
-  assert.match(nextFn, /openStudyRecordPanel/);
+  assert.doesNotMatch(nextFn, /openStudyRecordPanel/);
   assert.doesNotMatch(nextFn, /完成後到讀書計畫點完成/);
-  assert.match(nextFn, /href="#study-plan-items"/);
+  assert.doesNotMatch(nextFn, /href="#study-plan-items"/);
 });
 
 test('study next plan card can mark the next item complete without hunting the list', () => {
@@ -705,6 +705,18 @@ test('study next plan card can mark the next item complete without hunting the l
   assert.match(active, /if\(kind === 'done'\) completeStudyItem\(key\)/);
   assert.match(nextFn, /完成這堂/);
   assert.match(nextFn, /aria-label="完成這堂讀書計畫"/);
+});
+
+test('returning learners get a compact next card without onboarding-style extra links', () => {
+  const nextFn = extractFunction(active, 'renderStudyNextPlan');
+  assert.match(nextFn, /下一堂/);
+  assert.match(nextFn, /今天已讀/);
+  assert.match(nextFn, /累積/);
+  assert.match(nextFn, /完成這堂/);
+  assert.doesNotMatch(nextFn, /studyPlanItemActionLinks/);
+  assert.doesNotMatch(nextFn, /openStudyRecordPanel/);
+  assert.doesNotMatch(nextFn, /href="#study-plan-items"/);
+  assert.doesNotMatch(nextFn, /來源：/);
 });
 
 test('study today uses learner-facing subject status wording, not seed jargon', () => {
@@ -752,7 +764,7 @@ test('study plan items expose learning actions only when item metadata supports 
   assert.match(helper, /單刷/);
   assert.match(helper, /看法條/);
   assert.match(extractFunction(active, 'renderStudyPlanItems'), /studyPlanItemActionLinks\(item\)/);
-  assert.match(extractFunction(active, 'renderStudyNextPlan'), /studyPlanItemActionLinks\(next, true\)/);
+  assert.doesNotMatch(extractFunction(active, 'renderStudyNextPlan'), /studyPlanItemActionLinks\(next, true\)/);
   assert.doesNotMatch(helper, /搜尋法條/);
 });
 
