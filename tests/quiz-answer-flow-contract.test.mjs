@@ -405,6 +405,10 @@ test('answer explanation shows article text before analysis sections', () => {
   assert.match(active, /style\.display='block'/);
   assert.match(active, /function showInlineArticleText/);
   assert.match(active, /條文原文載入中/);
+  assert.match(active, /const ARTICLE_INLINE_LOADING_FALLBACK_MS = 4500/);
+  assert.match(active, /function startInlineArticleLoadingFallback/);
+  assert.match(active, /原文還在載入。可以先按上方「查看法條」開完整條文/);
+  assert.match(active, /stopInlineFallback\(\)/);
   assert.match(active, /暫時沒有原文/);
   assert.match(active, /\.art-inline\{[\s\S]*max-height:none/);
   assert.match(active, /\.art-inline\{[\s\S]*font-size:clamp\(1rem, 3vw, 1\.08rem\)/);
