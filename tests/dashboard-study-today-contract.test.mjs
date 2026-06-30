@@ -188,7 +188,8 @@ test('small mobile screens compact the weak brief above the fixed quick bar', ()
 test('study today uses exam-facing wording instead of internal cockpit jargon', () => {
   assert.match(active, /TODAY · 今天先做/);
   assert.match(active, /今天先做/);
-  assert.match(active, /看時間、弱點和下一堂；要排課再開下方工具/);
+  assert.match(active, /先看下一步；有空再排課/);
+  assert.doesNotMatch(active, /看時間、弱點和下一堂；要排課再開下方工具/);
   assert.doesNotMatch(active, /COCKPIT · 今日備考座艙|今日座艙/);
 });
 
@@ -196,10 +197,10 @@ test('study today makes working tools and personal planning obvious', () => {
   assert.match(active, /class="study-actions"/);
   assert.match(active, /下一步/);
   assert.match(active, /class="study-action-link primary" href="quiz\.html"[\s\S]*開始選擇題/);
-  assert.match(active, /href="#review-due"[\s\S]*看今日複習/);
-  assert.match(active, /href="quiz\.html\?open=weakness"[\s\S]*看弱點分析/);
+  assert.match(active, /href="#review-due"[\s\S]*今日複習/);
+  assert.match(active, /href="quiz\.html\?open=weakness"[\s\S]*弱點分析/);
   assert.match(active, /onclick="openStudyPlaylistPanel\(\)"[\s\S]*重點朗讀/);
-  assert.match(active, /onclick="openStudyPlanPanel\(\)"[\s\S]*設定讀書課程/);
+  assert.match(active, /onclick="openStudyPlanPanel\(\)"[\s\S]*排課/);
   assert.match(active, /onclick="openStudyRecordPanel\(\)"[\s\S]*補紀錄/);
   assert.match(active, /id="study-playlist-panel"/);
   assert.match(active, /id="study-plan-panel"/);
@@ -428,7 +429,8 @@ test('study playlist can directly play text through the browser speech engine', 
 
 test('study tool panels expose one active mode and explain where saved work goes', () => {
   assert.match(active, /class="study-mode-status is-closed" id="study-mode-status" aria-live="polite"/);
-  assert.match(active, /目前沒有展開工具/);
+  assert.match(active, /沒有展開工具/);
+  assert.match(active, /從「整理」選重點朗讀、排課或補紀錄/);
   assert.match(active, /data-study-panel-trigger="playlist" aria-expanded="false"/);
   assert.match(active, /data-study-panel-trigger="plan" aria-expanded="false"/);
   assert.match(active, /data-study-panel-trigger="record" aria-expanded="false"/);
@@ -437,9 +439,10 @@ test('study tool panels expose one active mode and explain where saved work goes
   assert.match(active, /btn\.setAttribute\('aria-expanded', on \? 'true' : 'false'\)/);
   assert.match(active, /status\.classList\.toggle\('is-closed', active === 'closed'\)/);
   assert.match(active, /正在看重點朗讀/);
-  assert.match(active, /正在設定讀書課程/);
+  assert.match(active, /正在排課/);
   assert.match(active, /正在補讀書紀錄/);
-  assert.match(active, /結果會回到下方待讀清單/);
+  assert.match(active, /存完會回到下方待讀清單/);
+  assert.doesNotMatch(active, /選「重點清單」「設定讀書課程」或「補紀錄」/);
 });
 
 test('study tool mode switching opens only one panel and updates active state', () => {
@@ -449,7 +452,7 @@ test('study tool mode switching opens only one panel and updates active state', 
   assert.equal(elements['study-record-panel'].classList.contains('on'), false);
   assert.equal(elements['study-playlist-panel'].classList.contains('on'), false);
   assert.equal(elements['study-mode-status'].classList.contains('is-closed'), false);
-  assert.match(elements['study-mode-status'].innerHTML, /正在設定讀書課程/);
+  assert.match(elements['study-mode-status'].innerHTML, /正在排課/);
   assert.equal(triggers.find((el) => el.id === 'trigger-plan').attrs['aria-expanded'], 'true');
   assert.equal(elements['study-plan-start'].value, '2026-06-29');
 
@@ -473,8 +476,16 @@ test('study tool mode switching opens only one panel and updates active state', 
 
 test('study today action buttons are sized for mobile app shells', () => {
   const studyActionButtonRule = active.match(/\.study-action-button\{[\s\S]*?\n  \}/)?.[0] || '';
-  assert.match(active, /class="study-action-group primary"[\s\S]*<span class="study-action-label">先做<\/span>[\s\S]*開始選擇題[\s\S]*看今日複習[\s\S]*看弱點分析/);
-  assert.match(active, /class="study-action-group secondary"[\s\S]*<span class="study-action-label">整理<\/span>[\s\S]*重點清單[\s\S]*設定讀書課程[\s\S]*補紀錄/);
+  const actionsStart = active.indexOf('<div class="study-actions"');
+  const actionsEnd = active.indexOf('<div class="study-next-plan"', actionsStart);
+  const actionBlock = active.slice(actionsStart, actionsEnd);
+  assert.ok(actionsStart >= 0 && actionsEnd > actionsStart, 'study action block must be extractable');
+  assert.match(actionBlock, /class="study-action-group primary"[\s\S]*<span class="study-action-label">先做<\/span>[\s\S]*開始選擇題[\s\S]*今日複習[\s\S]*弱點分析/);
+  assert.match(actionBlock, /class="study-action-group secondary"[\s\S]*<span class="study-action-label">整理<\/span>[\s\S]*重點朗讀[\s\S]*排課[\s\S]*補紀錄/);
+  assert.doesNotMatch(active, /看時間、弱點和下一堂；要排課再開下方工具/);
+  assert.doesNotMatch(actionBlock, />看今日複習</);
+  assert.doesNotMatch(actionBlock, />看弱點分析</);
+  assert.doesNotMatch(actionBlock, />設定讀書課程</);
   assert.match(active, /\.study-actions\{[\s\S]*display:grid/);
   assert.match(active, /\.study-action-group\.secondary \.study-action-link\{[\s\S]*background:rgba\(255,255,255,\.025\)/);
   assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?min-height:44px/);
@@ -1009,8 +1020,8 @@ test('empty study plans point back to the single setup entry instead of duplicat
   assert.doesNotMatch(fn, /el\.innerHTML = ''/);
   assert.match(fn, /目前還沒有私人讀書計畫/);
   assert.doesNotMatch(fn, /onclick="openStudyPlanPanel\(\)"/);
-  assert.match(fn, /設定讀書課程/);
-  assert.match(fn, /回上方「整理」點設定讀書課程/);
+  assert.match(fn, /排課/);
+  assert.match(fn, /回上方「整理」點「排課」/);
 });
 
 test('local study plan items can be completed postponed or cancelled from the list', () => {
