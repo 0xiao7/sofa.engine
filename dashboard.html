@@ -4824,7 +4824,7 @@ function renderStudyWeakBrief(items){
   if(!list) return;
   var laws = Array.isArray(items) ? items.filter(function(x){ return x && x.law_name; }) : [];
   if(!laws.length){
-    list.innerHTML = '<div class="study-weak-empty">答題後，這裡會直接列出最該補的法規。先做一題就會開始累積。</div>';
+    list.innerHTML = '<div class="study-weak-empty">答題後會列出最該補的法規。</div>';
     scheduleActiveNavRefresh();
     return;
   }
@@ -4851,10 +4851,10 @@ function renderStudyAuthIssue(){
   var weakEl = document.getElementById('study-cockpit-weak-state');
   var list = document.getElementById('study-weak-brief-list');
   if(box) box.style.display = '';
-  if(summary) summary.textContent = '登入狀態異常';
-  if(weakEl) weakEl.textContent = '請重新登入';
+  if(summary) summary.textContent = '資料同步中';
+  if(weakEl) weakEl.textContent = '弱點稍後更新';
   if(list){
-    list.innerHTML = '<div class="study-weak-empty">你的序號已驗過，但會員資料暫時讀不到。請登出後重新輸入序號；如果仍然出現，請附序號後 4 碼聯絡我們。</div>';
+    list.innerHTML = '<div class="study-weak-empty">會員資料暫時讀不到。可先練題；需要時重新輸入序號。</div>';
   }
 }
 
@@ -4863,13 +4863,13 @@ function renderStudyWeakLoadIssue(){
   var list = document.getElementById('weak-laws-list');
   var weakEl = document.getElementById('study-cockpit-weak-state');
   var brief = document.getElementById('study-weak-brief-list');
-  if(weakEl) weakEl.textContent = '弱點暫時讀不到';
+  if(weakEl) weakEl.textContent = '弱點稍後更新';
   if(brief){
-    brief.innerHTML = '<div class="study-weak-empty">弱點分析暫時載入失敗，請稍後重試；這不是代表你沒有答題紀錄。</div>';
+    brief.innerHTML = '<div class="study-weak-empty">弱點暫時讀不到。先做題不受影響。</div>';
   }
   if(recap && list){
     recap.style.display = 'block';
-    list.innerHTML = '<div class="recap-empty">弱點分析暫時載入失敗，請稍後再開一次；已累積的答題紀錄不會消失。</div>';
+    list.innerHTML = '<div class="recap-empty">弱點暫時讀不到；答題紀錄仍保留。</div>';
   }
 }
 
