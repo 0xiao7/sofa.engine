@@ -164,6 +164,7 @@ test('desktop sidebar stays present while the main dashboard scrolls', () => {
   assert.match(cssRule(html, '.nav-list a'), /min-height:44px/);
   assert.match(html, /id="side-mode-btn"[\s\S]*onclick="toggleDashboardSideNav\(\)"[\s\S]*隱藏導覽/);
   assert.match(html, /body\.side-collapsed \.topbar \.menu-btn::after\{[\s\S]*content:"固定導覽"/);
+  assert.match(html, /body\.side-collapsed \.topbar \.menu-btn::after\{[\s\S]*right:calc\(100% \+ 22px\)/);
   assert.match(html, /modeButton\.textContent = on \? '固定導覽' : '隱藏導覽'/);
   assert.match(html, /\.shell::before\{[\s\S]*position:fixed;top:71px;bottom:0;left:0;width:280px/);
   assert.match(html, /\.shell::before\{[\s\S]*background:var\(--navy-2\)/);

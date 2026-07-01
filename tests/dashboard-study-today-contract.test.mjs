@@ -503,6 +503,8 @@ test('study today action buttons are sized for mobile app shells', () => {
   assert.match(active, /\.study-actions\{[\s\S]*gap:12px 28px/);
   assert.match(active, /\.study-actions\{[\s\S]*justify-content:start/);
   assert.match(active, /\.study-action-group\{[\s\S]*grid-template-columns:auto repeat\(3,minmax\(112px,max-content\)\)/);
+  assert.match(active, /@media \(max-width:980px\)\{[\s\S]*\.study-actions\{grid-template-columns:1fr;align-items:stretch;gap:12px\}/);
+  assert.match(active, /@media \(max-width:980px\)\{[\s\S]*\.study-action-group\{grid-template-columns:auto repeat\(3,minmax\(0,1fr\)\)\}/);
   assert.match(active, /\.study-action-group\.secondary \.study-action-link\{[\s\S]*background:rgba\(255,255,255,\.025\)/);
   assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?min-height:44px/);
   assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?font-family:var\(--serif\)/);
