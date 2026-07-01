@@ -159,7 +159,26 @@ function apiPayload(url) {
   if (u.pathname === '/api/me/profile') return { ok: true, name: '視覺驗收' };
   if (u.pathname === '/api/me/progress') return { items: [] };
   if (u.pathname === '/api/me/bookmarks') return { items: [] };
-  if (u.pathname === '/api/me/history') return { items: [] };
+  if (u.pathname === '/api/me/history') {
+    return {
+      history: [
+        {
+          page_id: 'recent-long-27',
+          law_name: '國土計畫法',
+          article: '§ 27 | 使用許可案件審議通過後核發使用許可;公開展覽不少於三十日;許可使用計畫之使用地類別配置項目強度為管制依據',
+          title: '',
+          timestamp: '2026-07-01T06:49:00Z'
+        },
+        {
+          page_id: 'recent-sub-102-1',
+          law_name: '醫療法',
+          article: '§ 102-1 | 違反醫院設置標準之醫院層級加重罰則',
+          title: '',
+          timestamp: '2026-07-01T06:48:00Z'
+        }
+      ]
+    };
+  }
   return {};
 }
 
@@ -279,6 +298,68 @@ async function assertWithinContainer(page, childSelector, containerSelector, lab
   }, { childSelector, containerSelector });
   if (!result.ok) throw new Error(`${label}: overflows container (${JSON.stringify(result)})`);
   return result;
+}
+
+async function assertNoHorizontalOverflow(page, label) {
+  const result = await page.evaluate(() => ({
+    scrollWidth: document.documentElement.scrollWidth,
+    clientWidth: document.documentElement.clientWidth,
+    bodyScrollWidth: document.body.scrollWidth,
+    innerWidth: window.innerWidth
+  }));
+  if (result.scrollWidth > result.clientWidth + 1 || result.bodyScrollWidth > result.innerWidth + 1) {
+    throw new Error(`${label}: horizontal overflow (${JSON.stringify(result)})`);
+  }
+  return result;
+}
+
+async function dashboardResponsiveLayoutCase(browser, baseUrl) {
+  const viewports = [
+    { name: 'mobile', width: 390, height: 844 },
+    { name: 'tablet', width: 820, height: 1180 },
+    { name: 'desktop', width: 1440, height: 900 }
+  ];
+  const checks = [];
+  for (const viewport of viewports) {
+    const page = await browser.newPage({ viewport, deviceScaleFactor: viewport.width <= 480 ? 2 : 1, isMobile: viewport.width <= 480 });
+    await installApiMocks(page);
+    await page.goto(`${baseUrl}/dashboard.html#recent`, { waitUntil: 'domcontentloaded' });
+    await page.waitForSelector('#recent-list .rec-row', { state: 'visible', timeout: 9000 });
+    await page.locator('#recent').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(220);
+    const overflow = await assertNoHorizontalOverflow(page, `dashboard responsive ${viewport.name}`);
+    const rows = await page.locator('#recent-list .rec-row').evaluateAll(nodes => nodes.map(node => {
+      const art = node.querySelector('.art');
+      const title = node.querySelector('.ttl');
+      const rowBox = node.getBoundingClientRect();
+      const artBox = art && art.getBoundingClientRect();
+      return {
+        text: node.innerText.replace(/\s+/g, ' ').trim(),
+        row: { left: rowBox.left, right: rowBox.right, width: rowBox.width },
+        art: artBox && { left: artBox.left, right: artBox.right, width: artBox.width, height: artBox.height },
+        artWritingMode: art ? getComputedStyle(art).writingMode : '',
+        artWhiteSpace: art ? getComputedStyle(art).whiteSpace : '',
+        titleWhiteSpace: title ? getComputedStyle(title).whiteSpace : ''
+      };
+    }));
+    if (!rows.length) throw new Error(`dashboard responsive ${viewport.name}: mocked recent rows did not render`);
+    if (!rows.some(row => /§ 27/.test(row.text) && !/§ 27\s*\|\s*§ 27/.test(row.text))) {
+      throw new Error(`dashboard responsive ${viewport.name}: recent row duplicated article label (${JSON.stringify(rows)})`);
+    }
+    for (const row of rows) {
+      if (row.artWritingMode && row.artWritingMode !== 'horizontal-tb') {
+        throw new Error(`dashboard responsive ${viewport.name}: article label is not horizontal (${JSON.stringify(row)})`);
+      }
+      if (row.art && row.art.height > 48) {
+        throw new Error(`dashboard responsive ${viewport.name}: article label appears vertically squeezed (${JSON.stringify(row)})`);
+      }
+    }
+    const screenshot = path.join(OUT_DIR, `sofa-visual-dashboard-responsive-${viewport.name}.png`);
+    await page.screenshot({ path: screenshot, fullPage: false });
+    checks.push({ viewport: viewport.name, screenshot, overflow, rows: rows.map(row => row.text) });
+    await page.close();
+  }
+  return { name: 'dashboard-responsive-layout', checks };
 }
 
 async function dashboardCase(browser, baseUrl, name, viewport) {
@@ -655,6 +736,7 @@ async function studyPlanFlowCase(browser, baseUrl) {
     const results = [];
     results.push(await dashboardCase(browser, baseUrl, 'dashboard-mobile', { width: 390, height: 667 }));
     results.push(await dashboardCase(browser, baseUrl, 'dashboard-desktop', { width: 1440, height: 900 }));
+    results.push(await dashboardResponsiveLayoutCase(browser, baseUrl));
     results.push(await dashboardSidebarScrollCase(browser, baseUrl));
     results.push(await quizCase(browser, baseUrl));
     results.push(await lawPreviewCase(browser, baseUrl));
