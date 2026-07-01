@@ -42,7 +42,11 @@ test('visual entry QA catches dashboard responsive overflow and recent-row regre
   assert.match(script, /assertNoHorizontalOverflow/);
   assert.match(script, /\/api\/me\/history/);
   assert.match(script, /§ 27 \| 使用許可案件審議通過後核發使用許可/);
+  assert.match(script, /title-only-72/);
+  assert.match(script, /§ 72 \| 電子會計資料不實罪/);
   assert.match(script, /#recent-list \.rec-row/);
+  assert.match(script, /artText/);
+  assert.match(script, /article label still contains title text/);
   assert.match(script, /artWritingMode/);
   assert.match(script, /horizontal-tb/);
   assert.match(script, /duplicated article label/);
