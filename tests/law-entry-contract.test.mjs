@@ -165,9 +165,17 @@ test('law preview analysis links cross-referenced law articles to the reader', (
   assert.match(linkedArticleSeries, /law=%E5%88%91%E6%B3%95&amp;art=319/);
   assert.match(linkedArticleSeries, /law=%E5%9C%B0%E6%94%BF%E5%A3%AB%E6%B3%95&amp;art=26/);
   assert.doesNotMatch(linkedArticleSeries, /law=.*%E5%9C%B0%E6%94%BF%E5%A3%AB%E5%AE%88%E5%AF%86/);
+  assert.doesNotMatch(linkedArticleSeries, /target="_blank"/);
 
   const linkedProfessionalLaw = sandbox.linkify('會計師法43條等專業守密規定並列', '記帳士法');
   assert.match(linkedProfessionalLaw, /law=%E6%9C%83%E8%A8%88%E5%B8%AB%E6%B3%95&amp;art=43/);
+});
+
+test('law preview analysis makes cross references and nested bullets visually scannable', () => {
+  assert.match(preview, /\.crossref\{\s*color:var\(--peach\);[\s\S]*text-decoration-thickness:1\.5px/);
+  assert.match(preview, /\.crossref\{[\s\S]*background:rgba\(231,187,167,\.08\)/);
+  assert.match(preview, /\.section-body \.preview-head,[\s\S]*padding-left:1\.35em;[\s\S]*text-indent:-1\.35em/);
+  assert.match(preview, /\.section-body \.preview-sub,[\s\S]*margin-left:1\.45em;[\s\S]*padding-left:2em;[\s\S]*border-left:2px solid rgba\(231,187,167,\.42\)/);
 });
 
 test('law preview keeps quiz return context when readers follow cross references', () => {
