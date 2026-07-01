@@ -126,7 +126,7 @@ test('visual entry QA checks study tool deep links in the mobile app shell', () 
   assert.match(script, /study-plan-panel/);
   assert.match(script, /study-record-panel/);
   assert.match(script, /study-playlist-panel/);
-  assert.match(script, /設定讀書課程/);
+  assert.match(script, /設定讀書任務/);
   assert.match(script, /補紀錄只會補進度/);
   assert.match(script, /朗讀全部/);
   assert.match(script, /sofa-visual-study-tool-/);

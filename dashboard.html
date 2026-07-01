@@ -3823,7 +3823,7 @@
                 </div>
               </div>
               <div class="study-recommend-list" id="study-recommend-list">
-                <div class="study-empty">先按預覽建議，系統會避開已排課程，補上本週空檔。</div>
+                <div class="study-empty">先按預覽建議，系統會避開已排項目，補上本週空檔。</div>
               </div>
             </div>
             <div class="study-save-nudge" id="study-save-nudge" aria-live="polite">
@@ -3836,22 +3836,22 @@
                 <button type="button" onclick="dismissStudySaveNudge()">先繼續</button>
               </div>
             </div>
-            <div class="study-plan-panel" id="study-plan-panel" aria-label="個人讀書課程">
+            <div class="study-plan-panel" id="study-plan-panel" aria-label="個人讀書任務">
               <div class="study-panel-head">
-                <b>設定讀書課程</b>
-                <span>一次排函授、補習班、模考或自己的週任務；排入後每堂仍可單獨調整。</span>
+                <b>設定讀書任務</b>
+                <span>可排固定複習、模考、課程或自己的每週任務；存入後每筆都能單獨調整。</span>
               </div>
               <div class="study-plan-grid">
                 <div class="study-plan-field full">
-                  <label for="study-plan-title">課程</label>
-                  <input id="study-plan-title" value="會計學函授" maxlength="40">
+                  <label for="study-plan-title">任務名稱</label>
+                  <input id="study-plan-title" value="讀書任務" maxlength="40">
                 </div>
                 <div class="study-plan-field">
                   <label for="study-plan-subject">科目</label>
                   <input id="study-plan-subject" value="會計學" maxlength="24">
                 </div>
                 <div class="study-plan-field">
-                  <label for="study-plan-count">堂數</label>
+                  <label for="study-plan-count">次數</label>
                   <input id="study-plan-count" type="number" min="1" max="60" value="20">
                 </div>
                 <div class="study-plan-field">
@@ -3881,14 +3881,14 @@
               </div>
               <div class="study-plan-row">
                 <button class="study-plan-save" type="button" onclick="saveStudySeries()">排入讀書計畫</button>
-                <span class="study-plan-state" id="study-plan-state">適合函授、補習班課程、模考或自己的週任務。</span>
+                <span class="study-plan-state" id="study-plan-state">適合課程、模考、固定複習或自訂任務。</span>
               </div>
               <div class="study-import">
                 <div class="study-import-head">
                   <span class="study-import-title">貼上課表</span>
                   <span class="study-import-note">可以直接貼課表文字；只會變成你的私人讀書計畫，不會放進共用題庫。</span>
                 </div>
-                <textarea id="study-plan-import" placeholder="例如：7/3 19:00 會計學第 4 堂；7/5 10:00 租稅申報實務複習"></textarea>
+                <textarea id="study-plan-import" placeholder="例如：7/3 19:00 商業會計法複習；7/5 10:00 租稅申報實務練題"></textarea>
                 <div class="study-import-actions">
                   <button type="button" onclick="previewStudyPlanImport()">預覽</button>
                   <button class="primary" type="button" onclick="saveStudyPlanImport()">匯入私人計畫</button>
@@ -3915,7 +3915,7 @@
             <div class="study-record-panel" id="study-record-panel" aria-label="補讀書紀錄">
               <div class="study-panel-head study-record-copy">
                 <b>補紀錄只會補進度，不會補答題正確率</b>
-                適合補今天讀了幾小時、課程完成、某個範圍熟悉度；真正的答對率與弱點仍然只從實際答題來。
+                適合補今天讀了幾小時、任務完成、某個範圍熟悉度；真正的答對率與弱點仍然只從實際答題來。
               </div>
               <div class="study-record-kinds" aria-label="可補的紀錄種類">
                 <div class="study-record-kind">
@@ -3923,8 +3923,8 @@
                   <span>補今天或過去某天讀了多久，用來看時間差距。</span>
                 </div>
                 <div class="study-record-kind">
-                  <strong>課程完成</strong>
-                  <span>補函授、補習班課程、模考或自己的任務進度。</span>
+                  <strong>任務完成</strong>
+                  <span>補模考、課程或自己的任務進度。</span>
                 </div>
                 <div class="study-record-kind">
                   <strong>熟悉度</strong>
@@ -4912,7 +4912,7 @@ async function logCompletedStudyItemHours(item){
     title: title,
     scheduled_date: item.scheduled_date || _todayInputValue(),
     scheduled_time: item.scheduled_time || '',
-    source_label:'完成課程 ' + minutes + ' 分鐘',
+    source_label:'完成任務 ' + minutes + ' 分鐘',
     status:'done',
     minutes: minutes,
     notes: '完成項目自動記錄',
@@ -5046,7 +5046,7 @@ function renderStudyPlanningOverview(items, timeSummary){
   }
   if(saveNote){
     saveNote.textContent = (token || uid)
-      ? '私人課表只在你的帳號。'
+      ? '私人讀書計畫只在你的帳號。'
       : '輸入序號後才會同步。';
   }
   if(statusEl){
@@ -5109,7 +5109,7 @@ function renderStudyCloudState(remotePlan){
     if(cloudItems.length){
       setStudyCloudState(
         '雲端已同步',
-        cloudItems.length + ' 筆私人課表',
+        cloudItems.length + ' 筆私人計畫',
         sourceCopy + '只在你的帳號；換裝置登入後也會看到。'
       );
     } else {
@@ -5121,7 +5121,7 @@ function renderStudyCloudState(remotePlan){
     setStudyCloudState('雲端同步準備中', '先本機保存', '目前先存在這台裝置。');
     return;
   }
-  setStudyCloudState('先存在這台裝置', '可先排課', '輸入序號後再同步到帳號。');
+  setStudyCloudState('先存在這台裝置', '可先排任務', '輸入序號後再同步到帳號。');
 }
 
 async function trySyncLocalStudyAfterLogin(){
@@ -7612,7 +7612,7 @@ function setStudyPanelMode(mode){
   var status = document.getElementById('study-mode-status');
   var copy = {
     playlist: ['正在看重點朗讀', '先按「朗讀全部」聽一輪；「單刷」會去練題，「看法條」會回到條文。'],
-    plan: ['正在排課', '存完會回到下方待讀清單。'],
+    plan: ['正在排讀書任務', '存完會回到下方待讀清單。'],
     record: ['正在補讀書紀錄', '補紀錄只補時間與進度，不會改答題正確率；存完也會回到下方清單。'],
     closed: ['沒有展開工具', '從「整理」選重點朗讀、排課或補紀錄。']
   };
@@ -7642,7 +7642,7 @@ function openStudyPlanPanel(forceOpen){
   if(start && !start.value) start.value = _todayInputValue();
   setStudyPanelMode(panel.classList.contains('on') ? 'plan' : 'closed');
   if(state && panel.classList.contains('on')){
-    state.textContent = '填課名、堂數和固定日；排入後每堂仍可單獨調整。';
+    state.textContent = '填任務名、次數和固定日；排入後每筆仍可單獨調整。';
   }
   if(panel.classList.contains('on') && typeof focusStudyPanelTarget === 'function') focusStudyPanelTarget('study-plan-panel', 'study-plan-items');
 }
@@ -8107,7 +8107,7 @@ function renderStudyPlanItems(plan){
     ? '<div class="study-plan-count ' + (window.__studyPlanActionMessage.indexOf('失敗') >= 0 ? 'warn' : 'done') + '">' + esc(window.__studyPlanActionMessage) + '</div>'
     : '';
   if(!items.length){
-    el.innerHTML = actionMessage + '<div class="study-plan-count"><b>目前還沒有私人讀書計畫</b><br>可以排函授、補習班課程、模考或自己的週任務。'
+    el.innerHTML = actionMessage + '<div class="study-plan-count"><b>目前還沒有私人讀書計畫</b><br>可以排課程、模考、固定複習或自己的週任務。'
       + '<br>要新增時，回上方「整理」點「排課」。</div>';
     scheduleActiveNavRefresh();
     return;
@@ -8502,7 +8502,7 @@ async function saveStudySeries(){
   function tell(msg){ if(state) state.textContent = msg; }
   var uid = localStorage.getItem('sofa_uid') || '';
   var token = localStorage.getItem('sofa_token') || '';
-  var title = _studyVal('study-plan-title') || '讀書課程';
+  var title = _studyVal('study-plan-title') || '讀書任務';
   var subject = _studyVal('study-plan-subject') || title;
   var count = Math.max(1, Math.min(60, parseInt(_studyVal('study-plan-count') || '1', 10) || 1));
   var weekday = parseInt(_studyVal('study-plan-weekday') || '0', 10);
@@ -8521,9 +8521,9 @@ async function saveStudySeries(){
   };
   var localItems = _studySeriesItems(body);
   if(!uid && !token){
-    setStudyPlanActionMessage('已排入本機 ' + localItems.length + ' 堂；下方待讀清單可以逐堂完成。');
+    setStudyPlanActionMessage('已排入本機 ' + localItems.length + ' 筆；下方待讀清單可以逐項完成。');
     _addLocalStudyItems(localItems);
-    tell('已先存在本機 ' + localItems.length + ' 堂；登入後再同步帳號。');
+    tell('已先存在本機 ' + localItems.length + ' 筆；登入後再同步帳號。');
     var localPanel = document.getElementById('study-plan-panel');
     if(localPanel) localPanel.classList.remove('on');
     setStudyPanelMode('closed');
@@ -8540,9 +8540,9 @@ async function saveStudySeries(){
     if(res && (res.ok || res.items || res.series_id)){
       var savedItems = Array.isArray(res.items) ? res.items : localItems;
       var made = Array.isArray(res.items) ? res.items.length : count;
-      setStudyPlanActionMessage('已排入 ' + made + ' 堂；下方待讀清單可以逐堂完成。');
+      setStudyPlanActionMessage('已排入 ' + made + ' 筆；下方待讀清單可以逐項完成。');
       _addLocalStudyItems(savedItems);
-      tell('已排入 ' + made + ' 堂；之後可以再單堂改期。');
+      tell('已排入 ' + made + ' 筆；之後可以再單筆改期。');
       var panel = document.getElementById('study-plan-panel');
       if(panel) panel.classList.remove('on');
       setStudyPanelMode('closed');

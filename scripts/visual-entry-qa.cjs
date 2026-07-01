@@ -743,7 +743,7 @@ async function studyToolDeepLinkCase(browser, baseUrl) {
       panel: '#study-plan-panel',
       action: '#study-plan-title',
       name: 'study-tool-plan',
-      requiredText: /設定讀書課程/,
+      requiredText: /設定讀書任務/,
       label: 'study plan first input'
     },
     {
@@ -804,7 +804,7 @@ async function studyPlanFlowCase(browser, baseUrl) {
   await installApiMocks(page);
   await page.goto(`${baseUrl}/dashboard.html#study-plan`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#study-plan-panel.on', { state: 'visible', timeout: 9000 });
-  await page.fill('#study-plan-title', '視覺驗收課程');
+  await page.fill('#study-plan-title', '視覺驗收任務');
   await page.fill('#study-plan-subject', '租稅申報實務');
   await page.fill('#study-plan-count', '2');
   await page.fill('#study-plan-start', '2026-07-01');
