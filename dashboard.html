@@ -1950,8 +1950,8 @@
   }
 
   /* sections */
-  section.block{margin-bottom:64px;scroll-margin-top:90px}
-  section.block:last-child{margin-bottom:28px}
+  section.block{margin-bottom:24px;scroll-margin-top:90px}
+  section.block:last-child{margin-bottom:16px}
   .sec-head{
     display:flex;align-items:flex-end;justify-content:space-between;
     margin-bottom:28px;gap:24px;
@@ -3170,7 +3170,7 @@
     }
     main.main::after{display:none}
     .main-inner{display:flex;flex-direction:column}
-    section.block{margin-bottom:34px;scroll-margin-top:92px}
+    section.block{margin-bottom:22px;scroll-margin-top:92px}
     #study-cockpit-recap{order:-32;margin-bottom:14px}
     #tools{order:-30;margin-bottom:24px}
     #tools .sec-head{
@@ -3721,7 +3721,7 @@
             <div class="study-summary">
               <div class="study-copy">
                 <b>今天先做</b>
-                先看下一步；有空再排課。
+                先做一題或接著讀。
               </div>
               <div class="study-weak-state" id="study-cockpit-weak-state"></div>
             </div>
@@ -3781,8 +3781,8 @@
               <div class="study-playlist-status" id="study-playlist-status">清單產生後，可以逐則朗讀、單刷，或回去看原文。</div>
             </div>
             <div class="study-mode-status is-closed" id="study-mode-status" aria-live="polite">
-              <b>沒有展開工具</b>
-              <span>從「整理」選重點朗讀、排課或補紀錄。</span>
+              <b>工具收合</b>
+              <span></span>
             </div>
             <div class="study-suggestions" id="study-suggestions" aria-label="今天建議讀什麼"></div>
             <span id="study-plan" data-anchor-alias="study-plan-panel" aria-hidden="true"></span>
@@ -5078,7 +5078,7 @@ function renderStudyPlanningOverview(items, timeSummary){
   }
   if(saveNote){
     saveNote.textContent = (token || uid)
-      ? '只屬於這個帳號。'
+      ? '私人保存。'
       : '輸入序號後同步。';
   }
   if(statusEl){
@@ -5140,20 +5140,20 @@ function renderStudyCloudState(remotePlan){
   if(status === 'ready'){
     if(cloudItems.length){
       setStudyCloudState(
-        '已同步',
-        cloudItems.length + ' 筆私人計畫',
-        sourceCopy + '只在你的帳號。'
+        '私人計畫',
+        '已同步 ' + cloudItems.length + ' 筆',
+        sourceCopy + '只在帳號內。'
       );
     } else {
-      setStudyCloudState('已同步', '已接序號', '私人讀書計畫會跟著這個帳號。');
+      setStudyCloudState('私人計畫', '已同步', '接下來排課會存到帳號。');
     }
     return;
   }
   if(status === 'unavailable'){
-    setStudyCloudState('雲端同步準備中', '先本機保存', '目前先存在這台裝置。');
+    setStudyCloudState('同步中', '本機保存', '稍後會再同步。');
     return;
   }
-  setStudyCloudState('本機暫存', '可先排任務', '輸入序號後再同步到帳號。');
+  setStudyCloudState('本機保存', '可先排任務', '輸入序號後同步。');
 }
 
 async function trySyncLocalStudyAfterLogin(){
@@ -7699,7 +7699,7 @@ function setStudyPanelMode(mode){
     playlist: ['正在看重點朗讀', '先按「朗讀全部」聽一輪；「單刷」會去練題，「看法條」會回到條文。'],
     plan: ['正在排讀書任務', '存完會回到下方待讀清單。'],
     record: ['正在補讀書紀錄', '補紀錄只補時間與進度，不會改答題正確率；存完也會回到下方清單。'],
-    closed: ['沒有展開工具', '從「整理」選重點朗讀、排課或補紀錄。']
+    closed: ['工具收合', '']
   };
   var active = copy[mode] ? mode : 'closed';
   document.querySelectorAll('[data-study-panel-trigger]').forEach(function(btn){

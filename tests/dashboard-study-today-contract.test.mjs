@@ -204,7 +204,8 @@ test('small mobile screens compact the weak brief above the fixed quick bar', ()
 test('study today uses exam-facing wording instead of internal cockpit jargon', () => {
   assert.match(active, /TODAY · 今天先做/);
   assert.match(active, /今天先做/);
-  assert.match(active, /先看下一步；有空再排課/);
+  assert.match(active, /先做一題或接著讀。/);
+  assert.doesNotMatch(active, /有空再排課|沒有展開工具|從「整理」選/);
   assert.doesNotMatch(active, /看時間、弱點和下一堂；要排課再開下方工具/);
   assert.doesNotMatch(active, /COCKPIT · 今日備考座艙|今日座艙/);
 });
@@ -459,8 +460,8 @@ test('study playlist can directly play text through the browser speech engine', 
 
 test('study tool panels expose one active mode and explain where saved work goes', () => {
   assert.match(active, /class="study-mode-status is-closed" id="study-mode-status" aria-live="polite"/);
-  assert.match(active, /沒有展開工具/);
-  assert.match(active, /從「整理」選重點朗讀、排課或補紀錄/);
+  assert.match(active, /工具收合/);
+  assert.doesNotMatch(active, /沒有展開工具|從「整理」選重點朗讀、排課或補紀錄/);
   assert.match(active, /data-study-panel-trigger="playlist" aria-expanded="false"/);
   assert.match(active, /data-study-panel-trigger="plan" aria-expanded="false"/);
   assert.match(active, /data-study-panel-trigger="record" aria-expanded="false"/);
@@ -716,10 +717,11 @@ test('study today renders personal plan items returned by the study API', () => 
 
 test('study today explains cloud save status in learner words', () => {
   assert.match(active, /function renderStudyCloudState/);
-  assert.match(active, /已同步/);
-  assert.match(active, /雲端同步準備中/);
-  assert.match(active, /本機暫存/);
+  assert.match(active, /私人計畫/);
+  assert.match(active, /同步中/);
+  assert.match(active, /本機保存/);
   assert.match(active, /personal_plan[\s\S]*status/);
+  assert.doesNotMatch(active, /雲端計畫已接上|私人讀書計畫會跟著這個帳號|只屬於這個帳號/);
   assert.doesNotMatch(active, /schema pending|schema_pending[^'"]*$/);
 });
 
@@ -730,7 +732,8 @@ test('study cloud state names the connected private schedule source and visible 
   assert.match(fn, /cloudItems\.length/);
   assert.match(fn, /source_label/);
   assert.match(helper, /<summary>/);
-  assert.match(fn, /cloudItems\.length \+ ' 筆私人計畫/);
+  assert.match(fn, /'私人計畫'/);
+  assert.match(fn, /'已同步 ' \+ cloudItems\.length \+ ' 筆'/);
   assert.match(fn, /來源：/);
   assert.match(fn, /setStudyCloudState/);
   assert.match(active, /\.study-cloud-state summary\{/);

@@ -186,8 +186,8 @@ test('desktop sidebar stays present while the main dashboard scrolls', () => {
 });
 
 test('recent query section hands off to compass without a large blank wall', () => {
-  assert.match(html, /section\.block\{[\s\S]*margin-bottom:64px/);
-  assert.match(html, /section\.block:last-child\{margin-bottom:28px\}/);
+  assert.match(html, /section\.block\{[\s\S]*margin-bottom:24px/);
+  assert.match(html, /section\.block:last-child\{margin-bottom:16px\}/);
   assert.match(html, /\.recent-list\{[\s\S]*min-height:0/);
   assert.match(html, /function renderDashboardLoadingFallbacks/);
   assert.match(html, /if\(!uid \|\| isFree\)\{[\s\S]*setTimeout\(renderDashboardLoadingFallbacks,\s*4000\)/);
