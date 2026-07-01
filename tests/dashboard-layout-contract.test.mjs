@@ -141,6 +141,8 @@ test('law table of contents separates reading searching and single-practice acti
   assert.match(tocSource, /var encodedName = encodeURIComponent\(rawName\)/);
   assert.match(tocSource, /class="toc-main" href="law-preview\.html\?law='\+encodedName\+'"/);
   assert.match(tocSource, /<span class="meta"><span class="ct">'\+ct\+'<\/span><span class="arrow">讀整部<\/span><\/span><\/a>/);
+  assert.match(tocSource, /var ct\s*=\s*l\.article_count \? l\.article_count \+ ' 條' : ''/);
+  assert.doesNotMatch(tocSource, /— 條/);
   assert.match(tocSource, /<span class="toc-actions" aria-label="'\+nm\+' 的動作">/);
   assert.match(tocSource, /onclick="searchLaw\(decodeURIComponent\(this\.dataset\.law\)\)">查條文<\/button>/);
   assert.match(tocSource, /href="quiz\.html\?law='\+encodedName\+'\&drill=1">單刷<\/a>/);
@@ -377,6 +379,24 @@ test('dashboard article labels normalize raw article numbers before wrapping tex
     sandbox.helpers.articleReaderHref('記帳士法', '第13條', 'abc123'),
     'law-preview.html?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&id=abc123&art=13&from=dashboard&back=dashboard.html',
   );
+});
+
+test('saved article sections use normalized label parts to avoid duplicated titles', () => {
+  const favStart = html.indexOf("var el = document.getElementById('favorites-list')");
+  const favEnd = html.indexOf('// ── 05 已熟記', favStart);
+  assert.ok(favStart >= 0 && favEnd > favStart, 'favorites renderer must be extractable');
+  const favBlock = html.slice(favStart, favEnd);
+  assert.match(favBlock, /var parts\s*=\s*articleLabelParts\(artRaw,\s*b\.title\)/);
+  assert.match(favBlock, /displayArticleNo\(parts\.article_no\)/);
+  assert.match(favBlock, /esc\(parts\.title\)/);
+
+  const masterStart = html.indexOf('// ── 05 已熟記');
+  const masterEnd = html.indexOf('// ── 今日複習提醒', masterStart);
+  assert.ok(masterStart >= 0 && masterEnd > masterStart, 'mastery renderer must be extractable');
+  const masterBlock = html.slice(masterStart, masterEnd);
+  assert.match(masterBlock, /var parts\s*=\s*articleLabelParts\(artRaw,\s*m\.title\)/);
+  assert.match(masterBlock, /displayArticleNo\(parts\.article_no\)/);
+  assert.match(masterBlock, /esc\(parts\.title\)/);
 });
 
 test('article cards keep article labels horizontal on desktop and mobile', () => {

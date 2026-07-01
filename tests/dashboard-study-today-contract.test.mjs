@@ -230,6 +230,7 @@ test('desktop dashboard keeps the left library rail persistent', () => {
 });
 
 test('study plan and record panels have deep links for native app entry', () => {
+  assert.match(active, /id="study-plan"[^>]+data-anchor-alias="study-plan-panel"/);
   assert.match(active, /function openStudyPanelFromHash/);
   assert.match(active, /function retryStudyHashScroll/);
   assert.match(active, /hash === '#member'[\s\S]*retryStudyHashScroll\('member',\s*30,\s*true\)/);

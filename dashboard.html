@@ -3660,6 +3660,7 @@
               <span>從「整理」選重點朗讀、排課或補紀錄。</span>
             </div>
             <div class="study-suggestions" id="study-suggestions" aria-label="今天建議讀什麼"></div>
+            <span id="study-plan" data-anchor-alias="study-plan-panel" aria-hidden="true"></span>
             <div class="study-planning-overview" id="study-planning-overview" aria-label="讀書計畫總覽">
               <span class="study-overview-card">
                 <span>現在先做</span>
@@ -7081,12 +7082,13 @@ function _readArticle(btn, text) {
         var pid      = (b.page_id||'').replace(/'/g,'');
         var ln       = (b.law_name||'').replace(/'/g,'');
         var artRaw   = (b.article||'').replace(/^§+/,'');  // 去除重複 §
-        var artSafe  = artRaw.replace(/'/g,'');
-        return '<div class="li-card"' + drawerOpenAttrs(pid, ln, artSafe, '開啟收藏條文 ' + (b.law_name || '') + ' ' + displayArticleNo(artRaw)) + '>'+
+        var parts    = articleLabelParts(artRaw, b.title);
+        var artSafe  = parts.article_no.replace(/'/g,'');
+        return '<div class="li-card"' + drawerOpenAttrs(pid, ln, artSafe, '開啟收藏條文 ' + (b.law_name || '') + ' ' + displayArticleNo(parts.article_no)) + '>'+
           '<span class="star">★</span>'+
           '<div class="law">'+esc(b.law_name||'——')+'</div>'+
-          '<div class="art">'+esc(displayArticleNo(artRaw))+'</div>'+
-          '<div class="sub">'+esc(fallbackArticleTitle(artRaw, b.title))+'</div>'+
+          '<div class="art">'+esc(displayArticleNo(parts.article_no))+'</div>'+
+          '<div class="sub">'+esc(parts.title)+'</div>'+
           '<div class="meta"><span>收藏於 '+esc(dateStr)+'</span></div>'+
           '</div>';
       }).join('');
@@ -7114,11 +7116,12 @@ function _readArticle(btn, text) {
             var pid     = (m.page_id||'').replace(/'/g,'');
             var ln      = (m.law_name||'').replace(/'/g,'');
             var artRaw  = (m.article||'').replace(/^§+/,'');
-            var artSafe = artRaw.replace(/'/g,'');
-            return '<div class="li-card"' + drawerOpenAttrs(pid, ln, artSafe, '開啟已熟記條文 ' + (m.law_name || '') + ' ' + displayArticleNo(artRaw)) + '>'+
+            var parts   = articleLabelParts(artRaw, m.title);
+            var artSafe = parts.article_no.replace(/'/g,'');
+            return '<div class="li-card"' + drawerOpenAttrs(pid, ln, artSafe, '開啟已熟記條文 ' + (m.law_name || '') + ' ' + displayArticleNo(parts.article_no)) + '>'+
               '<div class="law">'+esc(m.law_name||'——')+'</div>'+
-              '<div class="art">'+esc(displayArticleNo(artRaw))+'</div>'+
-              '<div class="sub">'+esc(fallbackArticleTitle(artRaw, m.title))+'</div>'+
+              '<div class="art">'+esc(displayArticleNo(parts.article_no))+'</div>'+
+              '<div class="sub">'+esc(parts.title)+'</div>'+
               '</div>';
           }).join('');
         }
@@ -7136,12 +7139,13 @@ function _readArticle(btn, text) {
             var pid     = (m.page_id||'').replace(/'/g,'');
             var ln      = (m.law_name||'').replace(/'/g,'');
             var artRaw  = (m.article||'').replace(/^§+/,'');
-            var artSafe = artRaw.replace(/'/g,'');
+            var parts   = articleLabelParts(artRaw, m.title);
+            var artSafe = parts.article_no.replace(/'/g,'');
             var days    = m.review_days || 7;
-            return '<div class="li-card warn full"' + drawerOpenAttrs(pid, ln, artSafe, '開啟待複習條文 ' + (m.law_name || '') + ' ' + displayArticleNo(artRaw)) + '>'+
+            return '<div class="li-card warn full"' + drawerOpenAttrs(pid, ln, artSafe, '開啟待複習條文 ' + (m.law_name || '') + ' ' + displayArticleNo(parts.article_no)) + '>'+
               '<div class="law">'+esc(m.law_name||'——')+'</div>'+
-              '<div class="art">'+esc(displayArticleNo(artRaw))+'</div>'+
-              '<div class="sub">'+esc(fallbackArticleTitle(artRaw, m.title))+'</div>'+
+              '<div class="art">'+esc(displayArticleNo(parts.article_no))+'</div>'+
+              '<div class="sub">'+esc(parts.title)+'</div>'+
               '<div class="meta"><span>複習間隔 · <b>'+esc(String(days))+'</b> 天</span></div>'+
               '</div>';
           }).join('');
@@ -8898,7 +8902,7 @@ function _renderLawsToc(page){
         var rawName = l.name || '';
         var nm  = esc(rawName);
         var nmHl = _hlMatch(nm, esc(filter));
-        var ct  = l.article_count ? l.article_count + ' 條' : '— 條';
+        var ct = l.article_count ? l.article_count + ' 條' : '';
         var star = l.starred ? '<span class="star-mark">★ 高頻</span>' : '';
         var idx = String(start + i + 1).padStart(2,'0');
         var encodedName = encodeURIComponent(rawName);

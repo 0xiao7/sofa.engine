@@ -955,7 +955,34 @@ function cleanVisibleSpeechCueText(text){
     .replace(/[，,]\s*[，,]+/g, '，')
     .trim();
 }
-function formatSection(text){
+function cleanCrossRefLawName(lawName){
+  return String(lawName || '')
+    .replace(/^(搭配|參照|依|按|見|與)+/, '')
+    .replace(/[，。、；：\s]+$/, '')
+    .trim();
+}
+function currentFillReturnTarget(){
+  try{ return 'fill.html' + (location.search || '') + (location.hash || ''); }catch(e){}
+  return 'fill.html';
+}
+function linkifyLawRefs(escapedText,currentLawName){
+  let lastLaw = null;
+  return String(escapedText||'').replace(/(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\s《》]{2,48}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第(\d+)條(?:之(\d+))?/g, (match, bracketLaw, plainLaw, sameLaw, art, sub)=>{
+    const law = cleanCrossRefLawName(bracketLaw || plainLaw || '');
+    if(law) lastLaw = law;
+    else if(sameLaw && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
+    if(!lastLaw) return match;
+    const safeLaw = encodeURIComponent(String(lastLaw));
+    const fullArt = art + (sub ? '之' + sub : '');
+    const safeArt = encodeURIComponent(fullArt);
+    const prefixMatch = match.match(/^(搭配|參照|依|按|見|與)(.+)$/);
+    const prefix = prefixMatch ? prefixMatch[1] : '';
+    const label = prefixMatch ? prefixMatch[2] : match;
+    const safeBack = encodeURIComponent(currentFillReturnTarget() || 'fill.html');
+    return `${prefix}<a class="crossref" href="law-preview.html?law=${safeLaw}&art=${safeArt}&from=fill&back=${safeBack}" data-law="${safeLaw}" data-art="${safeArt}">${label}</a>`;
+  });
+}
+function formatSection(text,currentLawName){
   if(!text) return '';
   var lines=String(text).replace(/\r\n?/g,'\n').split('\n'),out='';
   lines.forEach(function(raw){
@@ -967,7 +994,7 @@ function formatSection(text){
     body=cleanVisibleSpeechCueText(body.trim());if(!body)return;
     var esc=body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     esc=esc.replace(/^([^：:]{1,14}[：:])/,'<b>$1</b>');
-    out+='<p class="'+(isSub?'sec-i':'sec-h')+'">'+esc+'</p>';
+    out+='<p class="'+(isSub?'sec-i':'sec-h')+'">'+linkifyLawRefs(esc,currentLawName)+'</p>';
   });
   return out;
 }
@@ -1001,11 +1028,12 @@ function appendCpiAdjustmentNote(wrapEl,beforeEl,article,sections){
 function buildSections(sections,isPaid,wrapEl,beforeEl,article){
   wrapEl.querySelectorAll('.sec-block,.sec-lock,.sec-empty,.cpi-note').forEach(e=>e.remove());
   appendCpiAdjustmentNote(wrapEl,beforeEl,article,sections);
+  const articleLawName=article?.law_name||(document.getElementById('lawSelect')||{}).value||'';
   _FREE_SECS.forEach(name=>{
     if(!sections[name])return;
     const d=document.createElement('div');d.className='sec-block';
     const lb=document.createElement('div');lb.className='sec-label';lb.textContent=name;
-    const tx=document.createElement('div');tx.className='sec-text';tx.innerHTML=formatSection(sections[name]);
+    const tx=document.createElement('div');tx.className='sec-text';tx.innerHTML=formatSection(sections[name], articleLawName);
     d.append(lb,tx);
     if(beforeEl)wrapEl.insertBefore(d,beforeEl);else wrapEl.appendChild(d);
   });
@@ -1016,7 +1044,7 @@ function buildSections(sections,isPaid,wrapEl,beforeEl,article){
       lk.innerHTML=isIOSReaderApp()
         ? '<div class="sec-label">'+label+'</div><div class="sec-lock-cta">進階內容，訂閱者可見</div>'
         : '<div class="sec-label">'+label+'</div>'
-          +'<div class="sec-lock-preview">'+(preview?formatSection(preview):'')+'</div>'
+          +'<div class="sec-lock-preview">'+(preview?formatSection(preview, articleLawName):'')+'</div>'
           +'<div class="sec-lock-cta">升級解鎖完整內容 <a href="pricing.html">查看方案 →</a></div>';
       if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
     });
