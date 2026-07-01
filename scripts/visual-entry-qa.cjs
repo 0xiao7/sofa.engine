@@ -91,6 +91,25 @@ function maybePlaywright() {
   }
 }
 
+async function closeWithTimeout(label, closeFn) {
+  let timer;
+  try {
+    await Promise.race([
+      closeFn(),
+      new Promise(resolve => {
+        timer = setTimeout(() => {
+          console.warn(`[visual-entry-qa] cleanup timeout: ${label}`);
+          resolve();
+        }, 3000);
+      })
+    ]);
+  } catch (err) {
+    console.warn(`[visual-entry-qa] cleanup failed: ${label}: ${err && err.message || err}`);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 function apiPayload(url) {
   const u = new URL(url);
   if (u.pathname === '/api/quiz') {
@@ -951,9 +970,10 @@ async function studyPlanFlowCase(browser, baseUrl) {
     results.push(await studyPlanFlowCase(browser, baseUrl));
     console.log(JSON.stringify({ ok: true, root: ROOT, results }, null, 2));
   } finally {
-    await browser.close();
-    await new Promise(resolve => server.close(resolve));
+    await closeWithTimeout('browser', () => browser.close());
+    await closeWithTimeout('server', () => new Promise(resolve => server.close(resolve)));
   }
+  process.exit(0);
 })().catch(err => {
   console.error('[visual-entry-qa] failed:', err && err.stack || err);
   process.exit(1);
