@@ -389,6 +389,23 @@ test('dashboard article labels normalize raw article numbers before wrapping tex
   );
 });
 
+test('dashboard search result article numbers prefer the leading article label over cross references', () => {
+  const source = [
+    extractFunction(html, '_normalizeArticleNo'),
+    extractFunction(html, '_articleNoFromRecord'),
+  ].join('\n');
+  const sandbox = {};
+  vm.createContext(sandbox);
+  vm.runInContext(`${source}; this.articleNo = _articleNoFromRecord;`, sandbox);
+
+  assert.equal(
+    sandbox.articleNo({
+      title: '§ 102｜附始期之法律行為於期限屆至時發生效力、附終期之法律行為於期限屆滿時失其效力、並準用第100條期待權保護',
+    }),
+    '102',
+  );
+});
+
 test('saved article sections use normalized label parts to avoid duplicated titles', () => {
   const favStart = html.indexOf("var el = document.getElementById('favorites-list')");
   const favEnd = html.indexOf('// ── 05 已熟記', favStart);

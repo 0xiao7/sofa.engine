@@ -238,8 +238,8 @@ test('study plan and record panels have deep links for native app entry', () => 
   assert.match(active, /hash === '#study-record'[\s\S]*openStudyRecordPanel\(true\)/);
   assert.match(active, /hash === '#study-playlist'[\s\S]*openStudyPlaylistPanel\(true\)/);
   assert.match(active, /retryStudyHashScroll\('member',\s*30,\s*true\)/);
-  assert.match(active, /retryStudyHashScroll\('study-plan-panel',\s*18,\s*true\)/);
-  assert.match(active, /retryStudyHashScroll\('study-record-panel',\s*18,\s*true\)/);
+  assert.match(active, /retryStudyHashScroll\('study-plan-title',\s*18,\s*true\)/);
+  assert.match(active, /retryStudyHashScroll\('study-record-date',\s*18,\s*true\)/);
   assert.match(active, /retryStudyHashScroll\('study-playlist-playall',\s*18,\s*true\)/);
   assert.match(active, /\.study-mode-status\{[\s\S]*scroll-margin-top:calc\(84px \+ env\(safe-area-inset-top, 0px\)\)/);
   assert.match(active, /\.study-plan-panel,\s*\.study-record-panel,\s*\.study-playlist-panel\{[\s\S]*scroll-margin-top:calc\(96px \+ env\(safe-area-inset-top, 0px\)\)/);
@@ -253,6 +253,10 @@ test('study plan and record panels have deep links for native app entry', () => 
   assert.match(extractFunction(active, 'retryStudyHashScroll'), /scrollIntoView\(\{behavior:'auto',\s*block:'start'\}\)/);
   assert.match(extractFunction(active, 'retryStudyHashScroll'), /document\.querySelector\('\.topbar'\)/);
   assert.match(extractFunction(active, 'retryStudyHashScroll'), /window\.scrollBy\(0, box\.top - topLimit\)/);
+  assert.match(extractFunction(active, 'retryStudyHashScroll'), /document\.getElementById\('mobile-daily-bar'\)/);
+  assert.match(extractFunction(active, 'retryStudyHashScroll'), /box\.bottom > bottomLimit/);
+  assert.match(extractFunction(active, 'openStudyPanelFromHash'), /retryStudyHashScroll\('study-plan-title'/);
+  assert.match(extractFunction(active, 'openStudyPanelFromHash'), /retryStudyHashScroll\('study-record-date'/);
   assert.doesNotMatch(extractFunction(active, 'retryStudyHashScroll'), /behavior:'smooth'/);
   assert.match(active, /getComputedStyle\(el\)\.display === 'none'/);
 });

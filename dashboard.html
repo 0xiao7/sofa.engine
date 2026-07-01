@@ -4552,6 +4552,12 @@ function _articleNoFromRecord(a){
   if(a.article) return _normalizeArticleNo(a.article);
   var title = String(a.title || '');
   var ch = '[0-9０-９一二三四五六七八九十百千零兩两]+';
+  var lead = title.match(new RegExp('^\\s*§\\s*(' + ch + '(?:\\s*(?:之|-)\\s*' + ch + ')?)'));
+  if(lead) return _normalizeArticleNo(lead[1].replace(/-/g, '之'));
+  lead = title.match(new RegExp('^\\s*第\\s*(' + ch + ')\\s*條\\s*之\\s*(' + ch + ')'));
+  if(lead) return _normalizeArticleNo(lead[1] + '之' + lead[2]);
+  lead = title.match(new RegExp('^\\s*第\\s*(' + ch + '(?:之' + ch + ')*)\\s*條'));
+  if(lead) return _normalizeArticleNo(lead[1]);
   var m = title.match(new RegExp('第\\s*(' + ch + ')\\s*條?\\s*之\\s*(' + ch + ')\\s*條?'));
   if(m) return _normalizeArticleNo(m[1] + '之' + m[2]);
   m = title.match(new RegExp('第\\s*(' + ch + '(?:之' + ch + ')*)\\s*條'));
@@ -7626,10 +7632,14 @@ function retryStudyHashScroll(targetId, attemptsLeft, keepTrying){
   catch(_){ el.scrollIntoView(); }
   requestAnimationFrame(function(){
     var bar = document.querySelector('.topbar');
+    var bottomBar = document.getElementById('mobile-daily-bar');
     var topLimit = (bar ? bar.getBoundingClientRect().bottom : 0) + 12;
+    var bottomLimit = window.innerHeight - ((bottomBar && getComputedStyle(bottomBar).display !== 'none') ? bottomBar.getBoundingClientRect().height + 12 : 12);
     var box = el.getBoundingClientRect();
     if(box.top < topLimit){
       window.scrollBy(0, box.top - topLimit);
+    }else if(box.bottom > bottomLimit){
+      window.scrollBy(0, box.bottom - bottomLimit);
     }
   });
   if(keepTrying && attemptsLeft > 0){
@@ -7644,11 +7654,11 @@ function openStudyPanelFromHash(){
   }
   if(hash === '#study-plan') {
     openStudyPlanPanel(true);
-    retryStudyHashScroll('study-plan-panel', 18, true);
+    retryStudyHashScroll('study-plan-title', 18, true);
   }
   if(hash === '#study-record') {
     openStudyRecordPanel(true);
-    retryStudyHashScroll('study-record-panel', 18, true);
+    retryStudyHashScroll('study-record-date', 18, true);
   }
   if(hash === '#study-playlist') {
     openStudyPlaylistPanel(true);
