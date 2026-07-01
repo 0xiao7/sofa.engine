@@ -582,9 +582,10 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.match(recap, /id="study-status-next"[\s\S]*先做一題/);
   assert.match(recap, /<div class="study-planning-overview" id="study-planning-overview" aria-label="讀書計畫總覽"/);
   assert.match(recap, /id="study-overview-next"[\s\S]*先做一題或排一項任務/);
-  assert.match(recap, /id="study-overview-save"[\s\S]*只在這台裝置/);
   assert.match(recap, /id="study-overview-hours"[\s\S]*累積 0 小時/);
   assert.match(recap, /id="study-overview-status"[\s\S]*待讀 0 \/ 完成 0/);
+  assert.doesNotMatch(recap, /id="study-overview-save"/);
+  assert.doesNotMatch(recap, />儲存位置</);
   assert.match(recap, /<div class="study-time-wrap" id="study-time-box"/);
   assert.match(recap, /id="study-time-title"[\s\S]*累積 0 小時/);
   assert.match(recap, /id="study-time-summary"[\s\S]*累積 0 小時；本週 0 小時；今天 0 分/);
@@ -602,6 +603,7 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.match(active, /排入本週計畫/);
   assert.match(active, /\.study-status-strip\{[\s\S]*display:grid/);
   assert.match(active, /\.study-planning-overview\{[\s\S]*display:grid/);
+  assert.match(active, /\.study-planning-overview\{[\s\S]*grid-template-columns:minmax\(0,1\.35fr\) minmax\(0,\.9fr\)/);
   assert.match(active, /function renderStudyStatusStrip/);
   assert.match(active, /function renderStudyPlanningOverview/);
   assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-status-strip\{grid-template-columns:1fr\}/);
@@ -612,12 +614,9 @@ test('study today exposes a time-first planning box before schedule details', ()
 test('study planning overview explains next item save scope and completion status', () => {
   const fn = extractFunction(active, 'renderStudyPlanningOverview');
   assert.match(fn, /study-overview-next/);
-  assert.match(fn, /study-overview-save/);
   assert.match(fn, /study-overview-status/);
-  assert.match(fn, /localStorage\.getItem\('sofa_token'\)/);
-  assert.match(fn, /localStorage\.getItem\('sofa_uid'\)/);
-  assert.match(fn, /已接序號/);
-  assert.match(fn, /只在這台裝置/);
+  assert.doesNotMatch(fn, /study-overview-save/);
+  assert.doesNotMatch(fn, /已接序號|只在這台裝置/);
   assert.match(fn, /今天/);
   assert.match(fn, /本週/);
   assert.match(fn, /補紀錄不改答題率/);
