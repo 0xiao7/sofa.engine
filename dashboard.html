@@ -148,6 +148,24 @@
   .menu-btn span::before{top:-5px}
   .menu-btn span::after{top:5px}
   .menu-btn[aria-expanded="true"]{border-color:var(--peach);background:rgba(231,187,167,.1)}
+  .side-guide-controls{
+    margin-top:10px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:8px;
+    padding:8px 9px;
+    border:1px solid rgba(245,240,234,.08);
+    background:rgba(245,240,234,.025);
+    border-radius:3px;
+  }
+  .side-mode-status{
+    color:rgba(245,240,234,.55);
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.1em;
+    white-space:nowrap;
+  }
   .side-mode-btn{
     min-height:32px;
     display:inline-flex;
@@ -156,7 +174,6 @@
     border:1px solid rgba(231,187,167,.28);
     border-radius:3px;
     padding:6px 10px;
-    margin-top:8px;
     color:var(--peach);
     background:rgba(231,187,167,.06);
     font-family:var(--mono);
@@ -165,7 +182,7 @@
     white-space:nowrap;
   }
   .side-mode-btn:hover{background:rgba(231,187,167,.13)}
-  body.side-collapsed .side-mode-btn{display:none}
+  body.side-collapsed .side-guide-controls{display:none}
 
   .free-retention-strip{
     display:none;
@@ -3547,7 +3564,10 @@
         <div class="nav-section">
           <div class="lab">導 覽</div>
           <div class="nav-helper">右邊滑到哪，左邊會亮哪一段。</div>
-          <button class="side-mode-btn" type="button" id="side-mode-btn" onclick="toggleDashboardSideNav()">隱藏導覽</button>
+          <div class="side-guide-controls" aria-label="導覽顯示狀態">
+            <span class="side-mode-status" id="side-mode-status">固定中</span>
+            <button class="side-mode-btn" type="button" id="side-mode-btn" onclick="toggleDashboardSideNav()">隱藏</button>
+          </div>
           <div class="nav-list today-nav">
           <a href="#study-cockpit-recap" data-spy-target="study-cockpit-recap"><span class="num">T1</span>今天先做<span class="ct" id="nav-ct-study"></span></a>
           <a href="#study-weak-brief" data-spy-target="study-weak-brief"><span class="num">T2</span>今日弱點<span class="ct" id="nav-ct-weak">0</span></a>
@@ -7808,15 +7828,17 @@ function setDashboardSideCollapsed(collapsed){
   try{ localStorage.setItem(DASHBOARD_SIDE_COLLAPSED_KEY, on ? '1' : '0'); }catch(e){}
   var button = document.querySelector('.menu-btn');
   var modeButton = document.getElementById('side-mode-btn');
+  var status = document.getElementById('side-mode-status');
   if(button){
     button.setAttribute('aria-expanded', on ? 'false' : 'true');
-    button.setAttribute('aria-label', on ? '固定導覽' : '隱藏導覽');
-    button.setAttribute('title', on ? '固定導覽' : '隱藏導覽');
+    button.setAttribute('aria-label', on ? '顯示導覽' : '隱藏導覽');
+    button.setAttribute('title', on ? '顯示導覽' : '隱藏導覽');
   }
   if(modeButton){
-    modeButton.textContent = on ? '固定導覽' : '隱藏導覽';
+    modeButton.textContent = on ? '顯示' : '隱藏';
     modeButton.setAttribute('aria-pressed', on ? 'false' : 'true');
   }
+  if(status) status.textContent = on ? '已隱藏' : '固定中';
 }
 
 function applyDashboardSidePreference(){

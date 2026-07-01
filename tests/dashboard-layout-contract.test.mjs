@@ -162,10 +162,14 @@ test('desktop sidebar stays present while the main dashboard scrolls', () => {
   assert.match(html, /aside\.side\{[\s\S]*height:calc\(100dvh - 71px\)/);
   assert.match(html, /aside\.side\{[\s\S]*overflow-y:auto/);
   assert.match(cssRule(html, '.nav-list a'), /min-height:44px/);
-  assert.match(html, /id="side-mode-btn"[\s\S]*onclick="toggleDashboardSideNav\(\)"[\s\S]*隱藏導覽/);
+  assert.match(html, /class="side-guide-controls"[\s\S]*aria-label="導覽顯示狀態"/);
+  assert.match(html, /id="side-mode-status"[\s\S]*固定中/);
+  assert.match(html, /id="side-mode-btn"[\s\S]*onclick="toggleDashboardSideNav\(\)"[\s\S]*隱藏/);
   assert.doesNotMatch(html, /body\.side-collapsed \.topbar \.menu-btn::after/);
-  assert.match(html, /button\.setAttribute\('aria-label', on \? '固定導覽' : '隱藏導覽'\)/);
-  assert.match(html, /modeButton\.textContent = on \? '固定導覽' : '隱藏導覽'/);
+  assert.match(html, /button\.setAttribute\('aria-label', on \? '顯示導覽' : '隱藏導覽'\)/);
+  assert.match(html, /modeButton\.textContent = on \? '顯示' : '隱藏'/);
+  assert.match(html, /status\.textContent = on \? '已隱藏' : '固定中'/);
+  assert.match(html, /body\.side-collapsed \.side-guide-controls\{display:none\}/);
   assert.match(html, /\.shell::before\{[\s\S]*position:fixed;top:71px;bottom:0;left:0;width:280px/);
   assert.match(html, /\.shell::before\{[\s\S]*background:var\(--navy-2\)/);
   assert.match(html, /\.shell::before\{[\s\S]*pointer-events:none/);
