@@ -6,6 +6,23 @@ import vm from 'node:vm';
 const html = readFileSync(new URL('../quiz.html', import.meta.url), 'utf8');
 const active = html.replace(/<!--[\s\S]*?-->/g, '');
 
+function extractFunction(source, name) {
+  let start = source.indexOf(`function ${name}`);
+  assert.ok(start >= 0, `${name} must exist`);
+  const asyncStart = source.lastIndexOf('async ', start);
+  if (asyncStart >= 0 && source.slice(asyncStart + 6, start) === '') start = asyncStart;
+  const brace = source.indexOf('{', start);
+  let depth = 0;
+  for (let i = brace; i < source.length; i++) {
+    if (source[i] === '{') depth++;
+    if (source[i] === '}') {
+      depth--;
+      if (depth === 0) return source.slice(start, i + 1);
+    }
+  }
+  throw new Error(`${name} function did not close`);
+}
+
 test('post-answer actions place next question next to view article', () => {
   assert.match(active, /id="quiz-answer-actions"/);
   const start = active.indexOf('id="quiz-answer-actions"');
@@ -483,6 +500,8 @@ test('local quiz picks avoid recently shown articles before calling the API', ()
   assert.match(active, /const RECENT_QUIZ_ARTICLES_KEY = 'sofa_recent_quiz_articles_v1'/);
   assert.match(active, /function rememberRecentQuizArticle/);
   assert.match(active, /function pickNonRecentArticle/);
+  assert.match(active, /function isRecentQuizArticleId/);
+  assert.match(active, /function fetchQuizWithRecentGuard/);
   assert.match(active, /var itemId = item && \(item\.id \|\| item\.page_id\)/);
   assert.match(active, /!recent\.has\(itemId\)/);
   const start = active.indexOf('async function loadQuiz');
@@ -493,8 +512,71 @@ test('local quiz picks avoid recently shown articles before calling the API', ()
   assert.match(active, /pickNonRecentArticle\(_wrongArts\)/);
   assert.match(active, /pickNonRecentArticle\(_hiArts\)/);
   assert.match(active, /pickNonRecentArticle\(_pool\)/);
+  assert.match(loader, /data=await fetchQuizWithRecentGuard\(url,\{headers:_authH\(\)\}\)/);
+  assert.doesNotMatch(loader, /data=await fetch\(url,\{headers:_authH\(\)\}\)\.then\(r=>r\.json\(\)\)/);
   assert.match(active, /rememberRecentQuizArticle\(pageId\)/);
   assert.doesNotMatch(loader, /rememberRecentQuizArticle\(pageId\);\s*rememberRecentQuizArticle\(pageId\)/);
+});
+
+test('random backend quiz fallback retries when it returns recently shown articles', async () => {
+  const source = [
+    "const RECENT_QUIZ_ARTICLES_KEY = 'sofa_recent_quiz_articles_v1';",
+    extractFunction(active, 'recentQuizArticleIds'),
+    extractFunction(active, 'isRecentQuizArticleId'),
+    extractFunction(active, 'fetchQuizWithRecentGuard'),
+  ].join('\n');
+  const calls = [];
+  const responses = [
+    { page_id: 'recent-a' },
+    { correct_id: 'recent-b' },
+    { page_id: 'fresh-c' },
+  ];
+  const sandbox = {
+    localStorage: {
+      getItem(key) {
+        assert.equal(key, 'sofa_recent_quiz_articles_v1');
+        return JSON.stringify(['recent-a', 'recent-b']);
+      },
+    },
+    fetch: async (url) => {
+      calls.push(url);
+      const payload = responses.shift();
+      return { json: async () => payload };
+    },
+  };
+  vm.createContext(sandbox);
+  vm.runInContext(`${source}; this.guard = fetchQuizWithRecentGuard;`, sandbox);
+
+  const data = await sandbox.guard('https://api.example.test/api/quiz?law=民法', {});
+
+  assert.equal(data.page_id, 'fresh-c');
+  assert.equal(calls.length, 3);
+});
+
+test('page-specific quiz requests do not retry and API errors return immediately', async () => {
+  const source = [
+    "const RECENT_QUIZ_ARTICLES_KEY = 'sofa_recent_quiz_articles_v1';",
+    extractFunction(active, 'recentQuizArticleIds'),
+    extractFunction(active, 'isRecentQuizArticleId'),
+    extractFunction(active, 'fetchQuizWithRecentGuard'),
+  ].join('\n');
+  const sandbox = {
+    localStorage: { getItem: () => JSON.stringify(['recent-a']) },
+    fetch: async () => ({ json: async () => ({ page_id: 'recent-a' }) }),
+  };
+  vm.createContext(sandbox);
+  vm.runInContext(`${source}; this.guard = fetchQuizWithRecentGuard;`, sandbox);
+  const direct = await sandbox.guard('https://api.example.test/api/quiz?page_id=recent-a', {});
+  assert.equal(direct.page_id, 'recent-a');
+
+  let calls = 0;
+  sandbox.fetch = async () => {
+    calls++;
+    return { json: async () => ({ detail: 'not found' }) };
+  };
+  const failed = await sandbox.guard('https://api.example.test/api/quiz?law=民法', {});
+  assert.equal(failed.detail, 'not found');
+  assert.equal(calls, 1);
 });
 
 test('article drill deep links consume the exact article only once', () => {

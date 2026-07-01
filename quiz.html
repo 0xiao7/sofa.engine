@@ -1549,6 +1549,25 @@ function pickNonRecentArticle(items){
   return source[Math.floor(Math.random() * source.length)] || null;
 }
 
+function isRecentQuizArticleId(pageId){
+  if(!pageId) return false;
+  return recentQuizArticleIds().indexOf(pageId) >= 0;
+}
+
+async function fetchQuizWithRecentGuard(url, options){
+  var randomQuiz = /\/api\/quiz(?:\?|$)/.test(url) && !/[?&]page_id=/.test(url);
+  var attempts = randomQuiz ? 4 : 1;
+  var lastData = null;
+  for(var attempt=0; attempt<attempts; attempt++){
+    var data = await fetch(url, options).then(r=>r.json());
+    lastData = data;
+    if(!randomQuiz || data.error || data.detail) return data;
+    var pageId = data.page_id || data.correct_id || '';
+    if(!isRecentQuizArticleId(pageId)) return data;
+  }
+  return lastData;
+}
+
 function recentPastExamQuestionKeys(){
   try{
     return JSON.parse(localStorage.getItem(RECENT_PAST_EXAM_QUESTIONS_KEY) || '[]').filter(Boolean);
@@ -2853,13 +2872,13 @@ async function loadQuiz(){
           page_id: pickedPageId || (urlArticle && urlArticle.id) || ''
         });
       }
-      data=await fetch(url,{headers:_authH()}).then(r=>r.json());
+      data=await fetchQuizWithRecentGuard(url,{headers:_authH()});
     }
     // Fallback: 指定 page_id 抽到沒有數字的條文時（API 回 404），改讓 API 用法規自己挑可出題條文，避免使用者卡死
     if((data.error||data.detail) && law){
       for(let _retry=0; _retry<4 && (data.error||data.detail); _retry++){
         try{
-          data=await fetch(`${API}/api/quiz?law=${encodeURIComponent(law)}`,{headers:_authH()}).then(r=>r.json());
+          data=await fetchQuizWithRecentGuard(`${API}/api/quiz?law=${encodeURIComponent(law)}`,{headers:_authH()});
         }catch(_e){ break; }
       }
     }
