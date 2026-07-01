@@ -352,7 +352,8 @@ test('saved and recent law rows are semantic keyboard-operable controls', () => 
   assert.match(html, /class="li-card"'\s*\+ drawerOpenAttrs\(pid, ln, artSafe, '開啟收藏條文/);
   assert.match(html, /class="li-card"'\s*\+ drawerOpenAttrs\(pid, ln, artSafe, '開啟已熟記條文/);
   assert.match(html, /class="li-card warn full"'\s*\+ drawerOpenAttrs\(pid, ln, artSafe, '開啟待複習條文/);
-  assert.match(html, /class="rec-row"'\s*\+ drawerOpenAttrs\(pid, ln, artSafe, '開啟最近查詢/);
+  assert.match(html, /var openLabel\s*=\s*\['開啟最近查詢'/);
+  assert.match(html, /class="rec-row"'\s*\+ drawerOpenAttrs\(pid, ln, artSafe, openLabel\)/);
 });
 
 test('saved and recent law rows open the article reader instead of dashboard search fallback', () => {
@@ -452,6 +453,19 @@ test('saved article sections use normalized label parts to avoid duplicated titl
   assert.match(masterBlock, /esc\(parts\.title\)/);
 });
 
+test('recent query rows keep article numbers separate from titles', () => {
+  const recentStart = html.indexOf('// ── 09 最近查詢');
+  const recentEnd = html.indexOf('// ── 會員期限明細', recentStart);
+  assert.ok(recentStart >= 0 && recentEnd > recentStart, 'recent query renderer must be extractable');
+  const recentBlock = html.slice(recentStart, recentEnd);
+  assert.match(recentBlock, /var parts\s*=\s*articleLabelParts\(h\.article \|\| h\.article_no \|\| '',\s*h\.title\)/);
+  assert.match(recentBlock, /var articleLabel\s*=\s*displayArticleNo\(parts\.article_no\)/);
+  assert.match(recentBlock, /var title\s*=\s*parts\.title === articleLabel \? '' : parts\.title/);
+  assert.match(recentBlock, /'<span class="art">'\+esc\(articleLabel\)\+'<\/span>'/);
+  assert.match(recentBlock, /\(title \? '<span class="ttl">'\+esc\(title\)\+'<\/span>' : ''\)/);
+  assert.doesNotMatch(recentBlock, /'<span class="art">'\+esc\(displayArticleNo\(parts\.article_no\)\)\+'<\/span>'/);
+});
+
 test('article cards keep article labels horizontal on desktop and mobile', () => {
   assert.match(html, /\.li-card \.art\{[\s\S]*white-space:nowrap/);
   assert.match(html, /\.li-card \.art\{[\s\S]*word-break:keep-all/);
@@ -462,9 +476,16 @@ test('article cards keep article labels horizontal on desktop and mobile', () =>
 });
 
 test('recent query rows move titles to a second line before squeezing them vertical', () => {
+  assert.match(html, /\.rec-row\{[\s\S]*grid-template-columns:minmax\(86px,150px\) minmax\(72px,max-content\) minmax\(0,1fr\) auto/);
+  assert.match(html, /\.rec-row\{[\s\S]*column-gap:22px/);
   assert.match(html, /@media \(max-width:1350px\)\{[\s\S]*\.rec-row\{[\s\S]*grid-template-areas:"law art time" "law title title"/);
   assert.match(html, /@media \(max-width:1350px\)\{[\s\S]*\.rec-row \.ttl\{[\s\S]*grid-area:title/);
   assert.match(html, /@media \(max-width:1350px\)\{[\s\S]*\.rec-row \.ttl\{[\s\S]*border-left:0/);
+  assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row\{[\s\S]*grid-template-areas:"law time" "art time" "title title"/);
+  assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.law\{[\s\S]*grid-area:law/);
+  assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.art\{[\s\S]*grid-area:art/);
+  assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.ttl\{[\s\S]*grid-area:title/);
+  assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.time\{[\s\S]*grid-area:time/);
 });
 
 test('review due rows use the same article fallback as saved and recent rows', () => {
