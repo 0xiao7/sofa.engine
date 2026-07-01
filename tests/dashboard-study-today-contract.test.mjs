@@ -210,7 +210,8 @@ test('study today makes working tools and personal planning obvious', () => {
   assert.match(active, /onclick="openStudyRecordPanel\(\)"[\s\S]*補紀錄/);
   assert.match(active, /id="study-playlist-panel"/);
   assert.match(active, /id="study-plan-panel"/);
-  assert.match(active, /適合函授、補習班課程、模考或自己的週任務/);
+  assert.match(active, /適合課程、模考、固定複習或自訂任務/);
+  assert.doesNotMatch(active, /適合函授、補習班課程、模考或自己的週任務/);
   assert.match(active, /function saveStudySeries/);
   assert.match(active, /\/api\/me\/study\/series/);
   assert.match(active, /count:\s*count/);
@@ -271,9 +272,9 @@ test('study plan and record deep-link panels start with readable headings before
   assert.ok(recordStart > -1, 'study record panel exists');
   const planPanel = active.slice(planStart, planStart + 900);
   const recordPanel = active.slice(recordStart, recordStart + 1400);
-  assert.match(planPanel, /class="study-panel-head"[\s\S]*設定讀書課程/);
-  assert.match(planPanel, /class="study-panel-head"[\s\S]*函授、補習班、模考或自己的週任務/);
-  assert.ok(planPanel.indexOf('設定讀書課程') < planPanel.indexOf('id="study-plan-title"'));
+  assert.match(planPanel, /class="study-panel-head"[\s\S]*設定讀書任務/);
+  assert.match(planPanel, /class="study-panel-head"[\s\S]*可排固定複習、模考、課程或自己的每週任務/);
+  assert.ok(planPanel.indexOf('設定讀書任務') < planPanel.indexOf('id="study-plan-title"'));
   assert.match(recordPanel, /class="study-panel-head study-record-copy"[\s\S]*補紀錄只會補進度，不會補答題正確率/);
   assert.ok(recordPanel.indexOf('補紀錄只會補進度') < recordPanel.indexOf('id="study-record-date"'));
 });
@@ -458,10 +459,11 @@ test('study tool panels expose one active mode and explain where saved work goes
   assert.match(active, /btn\.setAttribute\('aria-expanded', on \? 'true' : 'false'\)/);
   assert.match(active, /status\.classList\.toggle\('is-closed', active === 'closed'\)/);
   assert.match(active, /正在看重點朗讀/);
-  assert.match(active, /正在排課/);
+  assert.match(active, /正在排讀書任務/);
   assert.match(active, /正在補讀書紀錄/);
   assert.match(active, /存完會回到下方待讀清單/);
   assert.doesNotMatch(active, /選「重點清單」「設定讀書課程」或「補紀錄」/);
+  assert.doesNotMatch(active, /正在排課/);
 });
 
 test('study tool mode switching opens only one panel and updates active state', () => {
@@ -471,7 +473,7 @@ test('study tool mode switching opens only one panel and updates active state', 
   assert.equal(elements['study-record-panel'].classList.contains('on'), false);
   assert.equal(elements['study-playlist-panel'].classList.contains('on'), false);
   assert.equal(elements['study-mode-status'].classList.contains('is-closed'), false);
-  assert.match(elements['study-mode-status'].innerHTML, /正在排課/);
+  assert.match(elements['study-mode-status'].innerHTML, /正在排讀書任務/);
   assert.equal(triggers.find((el) => el.id === 'trigger-plan').attrs['aria-expanded'], 'true');
   assert.equal(elements['study-plan-start'].value, '2026-06-29');
 
@@ -629,7 +631,7 @@ test('study today separates manual records from answer accuracy', () => {
   assert.match(active, /function openStudyRecordPanel/);
   assert.match(active, /補紀錄只會補進度，不會補答題正確率/);
   assert.match(active, /讀書時數/);
-  assert.match(active, /課程完成/);
+  assert.match(active, /任務完成/);
   assert.match(active, /熟悉度/);
   assert.doesNotMatch(active, /補答對率|補正確率|修正錯題數/);
 });
@@ -642,7 +644,8 @@ test('study today supports private pasted schedule imports without law search co
   assert.match(active, /\/api\/me\/study\/plan-items\/bulk/);
   assert.match(active, /只會變成你的私人讀書計畫/);
   assert.match(active, /可以直接貼課表文字/);
-  assert.match(active, /例如：7\/3 19:00 會計學第 4 堂/);
+  assert.match(active, /例如：7\/3 19:00 商業會計法複習/);
+  assert.doesNotMatch(active, /placeholder="[^"]*第 4 堂/);
   assert.doesNotMatch(active, /placeholder="可貼 JSON/);
   assert.doesNotMatch(active, /搜尋法條|自動查法條|對應法條/);
 });
@@ -715,7 +718,7 @@ test('study cloud state names the connected private schedule source and visible 
   assert.match(fn, /cloudItems\.length/);
   assert.match(fn, /source_label/);
   assert.match(helper, /<summary>/);
-  assert.match(fn, /cloudItems\.length \+ ' 筆私人課表/);
+  assert.match(fn, /cloudItems\.length \+ ' 筆私人計畫/);
   assert.match(fn, /來源：/);
   assert.match(fn, /setStudyCloudState/);
   assert.match(active, /\.study-cloud-state summary\{/);
@@ -1107,7 +1110,7 @@ test('completing a study plan item records planned minutes into the same hours l
   assert.match(fn, /\/api\/me\/study\/hours/);
   assert.match(fn, /_studyItemMinutes\(item\)/);
   assert.match(fn, /status:'done'/);
-  assert.match(fn, /source_label:'完成課程 ' \+ minutes \+ ' 分鐘'/);
+  assert.match(fn, /source_label:'完成任務 ' \+ minutes \+ ' 分鐘'/);
   assert.match(fn, /completed_hours_for/);
   assert.match(fn, /local\.records = \(local\.records \|\| \[\]\)\.filter/);
   assert.match(fn, /track_key:item\.track_key \|\| 'bookkeeper'/);
