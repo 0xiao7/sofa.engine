@@ -457,6 +457,12 @@ test('article cards keep article labels horizontal on desktop and mobile', () =>
   assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.art\{[\s\S]*white-space:nowrap/);
 });
 
+test('recent query rows move titles to a second line before squeezing them vertical', () => {
+  assert.match(html, /@media \(max-width:1350px\)\{[\s\S]*\.rec-row\{[\s\S]*grid-template-areas:"law art time" "law title title"/);
+  assert.match(html, /@media \(max-width:1350px\)\{[\s\S]*\.rec-row \.ttl\{[\s\S]*grid-area:title/);
+  assert.match(html, /@media \(max-width:1350px\)\{[\s\S]*\.rec-row \.ttl\{[\s\S]*border-left:0/);
+});
+
 test('review due rows use the same article fallback as saved and recent rows', () => {
   const fn = html.slice(html.indexOf('function renderReviewDue'), html.indexOf('function renderStudyToday'));
   assert.match(fn, /var parts\s*=\s*articleLabelParts\(m\.article \|\| m\.article_no \|\| '',\s*m\.title\)/);
