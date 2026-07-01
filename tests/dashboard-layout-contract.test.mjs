@@ -518,6 +518,14 @@ test('searchAndOpen uses normalized article numbers instead of a numeric-title r
   assert.doesNotMatch(fn, /title\|\|''\)\.match\(\/第\\\(\\d\+\\\)條/);
 });
 
+test('law drawer nested analysis bullets have visible hierarchy', () => {
+  assert.match(html, /\.acc-inner \.sec-i\{[^}]*margin:10px 0 10px 44px/);
+  assert.match(html, /\.acc-inner \.sec-i\{[^}]*border-left:4px solid rgba\(231,187,167,\.[0-9]+\)/);
+  assert.match(html, /\.acc-inner \.sec-i\{[^}]*background:rgba\(231,187,167,\.[0-9]+\)/);
+  assert.match(html, /\.acc-inner \.sec-i::before\{[^}]*left:14px/);
+  assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.acc-inner \.sec-i\{[^}]*margin:9px 0 9px 18px/);
+});
+
 test('law article URL handlers open the target article through the canonical fallback', () => {
   const queryFn = extractFunction(html, '_handleUrlQuery');
   const lawFn = extractFunction(html, '_handleUrlLaw');
