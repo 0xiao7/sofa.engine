@@ -186,6 +186,14 @@ test('law preview keeps quiz return context when readers follow cross references
   assert.match(preview, /linkifyLawRefs\(escapeHtml\(visibleText\), currentLawName\)/);
 });
 
+test('law preview describes free and paid reader states honestly', () => {
+  assert.match(preview, /id="cta-text"/);
+  assert.match(preview, /function updateReaderModeCopy/);
+  assert.match(preview, /readerPaid \? '點清單任一條可閱讀完整內容' : '前四段可試讀；第 5、6 段露重點並上鎖'/);
+  assert.match(preview, /readerPaid \? '讀完這條，就做 5 題看弱點' : '讀完前四段，就做 5 題看弱點'/);
+  assert.doesNotMatch(preview, /可試讀完整六段/);
+});
+
 test('law preview names the return path for tree readers', () => {
   assert.match(preview, /returnFrom === 'tree'/);
   assert.match(preview, /backLink\.href = isSafeBackUrl\(backTarget\) \? backTarget : 'tree\.html'/);
