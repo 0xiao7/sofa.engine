@@ -165,6 +165,9 @@ test('desktop sidebar stays present while the main dashboard scrolls', () => {
   assert.match(html, /aside\.side\{[\s\S]*overflow-y:auto/);
   assert.match(cssRule(html, '.nav-list a'), /min-height:44px/);
   assert.match(html, /class="side-guide-controls"[\s\S]*aria-label="導覽顯示狀態"/);
+  assert.match(cssRule(html, '.side-guide-controls'), /position:sticky/);
+  assert.match(cssRule(html, '.side-guide-controls'), /top:0/);
+  assert.match(cssRule(html, '.side-guide-controls'), /background:rgba\(25,48,62,\.96\)/);
   assert.match(html, /id="side-mode-status"[\s\S]*固定中/);
   assert.match(html, /id="side-mode-btn"[\s\S]*onclick="toggleDashboardSideNav\(\)"[\s\S]*隱藏/);
   assert.match(html, /class="side-peek-btn"[\s\S]*onclick="setDashboardSideCollapsed\(false\)"[\s\S]*導覽/);
