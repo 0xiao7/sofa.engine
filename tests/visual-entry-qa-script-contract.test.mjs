@@ -151,3 +151,12 @@ test('visual entry QA is safe to run without production writes', () => {
   assert.match(script, /request\.method\(\) === 'POST'/);
   assert.match(script, /request\.postData\(\)/);
 });
+
+test('visual entry QA exits after emitting results instead of hanging on browser cleanup', () => {
+  assert.match(script, /async function closeWithTimeout\(label, closeFn\)/);
+  assert.match(script, /Promise\.race\(\[/);
+  assert.match(script, /visual-entry-qa\] cleanup timeout/);
+  assert.match(script, /await closeWithTimeout\('browser', \(\) => browser\.close\(\)\)/);
+  assert.match(script, /await closeWithTimeout\('server', \(\) => new Promise\(resolve => server\.close\(resolve\)\)\)/);
+  assert.match(script, /process\.exit\(0\)/);
+});
