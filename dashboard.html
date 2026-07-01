@@ -4559,6 +4559,19 @@ function articleLabelParts(raw, title){
     art = cleanArticleNoForDisplay(m[1]) || art;
     if(!ttl) ttl = m[2].trim();
   }
+  if(!art && ttl){
+    var titleSub = ttl.match(new RegExp('^\\s*§?\\s*(?:第\\s*)?(' + num + ')\\s*條\\s*之\\s*(' + num + ')\\s*條?\\s*(?:[|｜:：—]\\s*|\\s+)(.+)$'));
+    if(titleSub){
+      art = _normalizeArticleNo(titleSub[1] + '之' + titleSub[2]) || art;
+      ttl = titleSub[3].trim();
+    }else{
+      var titleMatch = ttl.match(new RegExp('^\\s*§?\\s*(?:第\\s*)?(' + ch + ')\\s*條?\\s*(?:[|｜:：—]\\s*|\\s+)(.+)$'));
+      if(titleMatch){
+        art = cleanArticleNoForDisplay(titleMatch[1]) || art;
+        ttl = titleMatch[2].trim();
+      }
+    }
+  }
   if(ttl){
     ttl = ttl
       .replace(new RegExp('^\\s*§?\\s*(?:第\\s*)?' + num + '\\s*條\\s*之\\s*' + num + '\\s*條?\\s*(?:[|｜:：—]\\s*)?'), '')

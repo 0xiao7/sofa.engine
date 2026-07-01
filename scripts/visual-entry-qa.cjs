@@ -272,6 +272,13 @@ function apiPayload(url) {
           article: '§ 102-1 | 違反醫院設置標準之醫院層級加重罰則',
           title: '',
           timestamp: '2026-07-01T06:48:00Z'
+        },
+        {
+          page_id: 'title-only-72',
+          law_name: '商業會計法',
+          article: '',
+          title: '§ 72 | 電子會計資料不實罪',
+          timestamp: '2026-07-01T06:47:00Z'
         }
       ]
     };
@@ -509,6 +516,7 @@ async function dashboardResponsiveLayoutCase(browser, baseUrl) {
       return {
         text: node.innerText.replace(/\s+/g, ' ').trim(),
         row: { left: rowBox.left, right: rowBox.right, width: rowBox.width },
+        artText: art ? art.textContent.replace(/\s+/g, ' ').trim() : '',
         art: artBox && { left: artBox.left, right: artBox.right, width: artBox.width, height: artBox.height },
         artWritingMode: art ? getComputedStyle(art).writingMode : '',
         artWhiteSpace: art ? getComputedStyle(art).whiteSpace : '',
@@ -525,6 +533,9 @@ async function dashboardResponsiveLayoutCase(browser, baseUrl) {
       }
       if (row.art && row.art.height > 48) {
         throw new Error(`dashboard responsive ${viewport.name}: article label appears vertically squeezed (${JSON.stringify(row)})`);
+      }
+      if (row.artText && (/[|｜]/.test(row.artText) || /電子會計資料不實罪|使用許可案件|違反醫院設置標準/.test(row.artText))) {
+        throw new Error(`dashboard responsive ${viewport.name}: article label still contains title text (${JSON.stringify(row)})`);
       }
     }
     const screenshot = path.join(OUT_DIR, `sofa-visual-dashboard-responsive-${viewport.name}.png`);

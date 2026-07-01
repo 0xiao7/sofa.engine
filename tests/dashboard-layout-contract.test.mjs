@@ -409,6 +409,14 @@ test('dashboard article labels normalize raw article numbers before wrapping tex
     { article_no: '72', title: '電子會計資料不實罪' },
   );
   assert.deepEqual(
+    JSON.parse(JSON.stringify(sandbox.helpers.articleLabelParts('', '§ 72 | 電子會計資料不實罪'))),
+    { article_no: '72', title: '電子會計資料不實罪' },
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(sandbox.helpers.articleLabelParts('', '第 27 條 | 使用許可案件審議通過後核發使用許可'))),
+    { article_no: '27', title: '使用許可案件審議通過後核發使用許可' },
+  );
+  assert.deepEqual(
     JSON.parse(JSON.stringify(sandbox.helpers.articleLabelParts('§ 08', '第 08 條'))),
     { article_no: '08', title: '' },
   );
