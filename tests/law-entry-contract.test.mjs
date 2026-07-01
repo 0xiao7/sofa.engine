@@ -176,8 +176,32 @@ test('law preview analysis makes cross references and nested bullets visually sc
   assert.match(preview, /\.crossref\{[\s\S]*background:rgba\(231,187,167,\.14\)/);
   assert.match(preview, /\.crossref\{[\s\S]*padding:0 3px/);
   assert.match(preview, /\.section-body \.preview-head,[\s\S]*padding-left:1\.35em;[\s\S]*text-indent:-1\.35em/);
-  assert.match(preview, /\.section-body \.preview-sub,[\s\S]*margin-left:2\.75em;[\s\S]*padding:6px 10px 6px 2\.8em;[\s\S]*border-left:4px solid rgba\(231,187,167,\.62\);[\s\S]*background:rgba\(245,240,234,\.035\)/);
-  assert.match(preview, /@media \(max-width:768px\)\{[\s\S]*\.section-body \.preview-sub,[\s\S]*margin-left:1\.2em;[\s\S]*padding:5px 8px 5px 2\.15em/);
+  assert.match(preview, /\.section-body \.preview-sub,[\s\S]*margin-left:3\.2em;[\s\S]*padding:8px 12px 8px 3\.25em;[\s\S]*border-left:5px solid rgba\(231,187,167,\.72\);[\s\S]*background:rgba\(231,187,167,\.08\)/);
+  assert.match(preview, /@media \(max-width:768px\)\{[\s\S]*\.section-body \.preview-sub,[\s\S]*margin-left:1\.45em;[\s\S]*padding:7px 9px 7px 2\.45em/);
+});
+
+test('law preview formatted analysis body renders cross-reference anchors in nested bullets', () => {
+  const source = [
+    extractFunction(preview, 'escapeHtml'),
+    extractFunction(preview, 'readerHrefFor'),
+    extractFunction(preview, 'cleanCrossRefLawName'),
+    extractFunction(preview, 'linkifyLawRefs'),
+    extractFunction(preview, 'formatPreviewSectionBody')
+  ].join('\n');
+  const sandbox = {
+    encodeURIComponent,
+    URL,
+    location: { href: 'https://sofaengine.org/law-preview.html?law=x', search: '', pathname: '/law-preview.html' },
+    returnFrom: 'quiz',
+    backTarget: 'quiz.html?free=1',
+    isSafeBackUrl: () => true
+  };
+  vm.createContext(sandbox);
+  vm.runInContext(`${source}; this.rendered = formatPreviewSectionBody('• 關聯條文：\\n◦ 刑法317、318、319條;地政士法26條(地政士守密義務)', '記帳士法');`, sandbox);
+  assert.match(sandbox.rendered, /class="preview-line preview-sub"/);
+  assert.match(sandbox.rendered, /class="crossref"/);
+  assert.match(sandbox.rendered, /law-preview\.html\?law=%E5%88%91%E6%B3%95&amp;art=317/);
+  assert.match(sandbox.rendered, /law-preview\.html\?law=%E5%9C%B0%E6%94%BF%E5%A3%AB%E6%B3%95&amp;art=26/);
 });
 
 test('law preview keeps quiz return context when readers follow cross references', () => {
