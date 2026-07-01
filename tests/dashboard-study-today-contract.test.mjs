@@ -116,6 +116,9 @@ test('law drawer analysis linkifies sixth-section law references', () => {
   const linkedSameLaw = sandbox.linkify('同法第13條、本法第15條', '記帳士法');
   assert.match(linkedSameLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=13&amp;/);
   assert.match(linkedSameLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=15&amp;/);
+  assert.match(linkedSameLaw, /data-cross-law="記帳士法"/);
+  assert.match(linkedSameLaw, /data-cross-art="13"/);
+  assert.match(linkedSameLaw, /onclick="return openDashboardCrossRef\(event,this\)"/);
   assert.match(linkedSameLaw, /from=dashboard/);
   assert.match(linkedSameLaw, /back=dashboard\.html/);
   assert.doesNotMatch(linkedSameLaw, /searchAndOpen/);
@@ -123,6 +126,8 @@ test('law drawer analysis linkifies sixth-section law references', () => {
   const linkedNamedLaw = sandbox.linkify('記帳士法第13條及第15條', '所得稅法');
   assert.match(linkedNamedLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=13&amp;/);
   assert.match(linkedNamedLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=15&amp;/);
+  assert.match(linkedNamedLaw, /data-cross-law="記帳士法"/);
+  assert.match(linkedNamedLaw, /data-cross-art="15"/);
   assert.match(linkedNamedLaw, /from=dashboard/);
   assert.match(linkedNamedLaw, /back=dashboard\.html/);
   assert.doesNotMatch(linkedNamedLaw, /searchAndOpen/);
@@ -140,6 +145,36 @@ test('law drawer analysis linkifies sixth-section law references', () => {
 
   const linkedProfessionalLaw = sandbox.linkify('會計師法43條等專業守密規定並列', '記帳士法');
   assert.match(linkedProfessionalLaw, /law=%E6%9C%83%E8%A8%88%E5%B8%AB%E6%B3%95&amp;art=43&amp;/);
+});
+
+test('dashboard cross references open inside the article drawer by default', () => {
+  const fn = extractFunction(active, 'openDashboardCrossRef');
+  assert.match(fn, /event\.preventDefault\(\)/);
+  assert.match(fn, /event\.stopPropagation\(\)/);
+  assert.match(fn, /anchor\.dataset\.crossLaw/);
+  assert.match(fn, /anchor\.dataset\.crossArt/);
+  assert.match(fn, /searchAndOpen\(law, art\)/);
+  assert.match(fn, /event\.metaKey \|\| event\.ctrlKey/);
+});
+
+test('dashboard cross reference click calls the inline article opener', () => {
+  const source = extractFunction(active, 'openDashboardCrossRef');
+  const calls = [];
+  const sandbox = {
+    searchAndOpen(law, art) { calls.push([law, art]); },
+  };
+  vm.createContext(sandbox);
+  vm.runInContext(`${source}; this.openDashboardCrossRef = openDashboardCrossRef;`, sandbox);
+  const ev = { prevented: 0, stopped: 0, preventDefault(){ this.prevented += 1; }, stopPropagation(){ this.stopped += 1; } };
+  const result = sandbox.openDashboardCrossRef(ev, { dataset: { crossLaw: '公司法', crossArt: '29' } });
+  assert.equal(result, false);
+  assert.equal(ev.prevented, 1);
+  assert.equal(ev.stopped, 1);
+  assert.deepEqual(calls, [['公司法', '29']]);
+
+  const metaResult = sandbox.openDashboardCrossRef({ metaKey: true }, { dataset: { crossLaw: '公司法', crossArt: '29' } });
+  assert.equal(metaResult, true);
+  assert.equal(calls.length, 1);
 });
 
 test('dashboard fetches the authenticated study today endpoint', () => {

@@ -2936,10 +2936,17 @@
   .acc-inner p{margin-bottom:8px}
   .acc-inner b{color:var(--navy);font-weight:600}
   .acc-inner .kw{background:rgba(231,187,167,.32);padding:1px 5px;border-radius:2px;color:var(--navy);font-weight:500}
-  .acc-inner .sec-h{margin:13px 0 5px;color:var(--navy);font-weight:600}
+  .acc-inner .sec-h{margin:16px 0 7px;color:var(--navy);font-weight:600}
   .acc-inner .sec-h:first-child{margin-top:0}
-  .acc-inner .sec-i{position:relative;padding-left:44px;margin:9px 0 9px 22px;color:rgba(31,56,72,.74)}
-  .acc-inner .sec-i::before{content:'';position:absolute;left:18px;top:.72em;width:4px;height:4px;border:1.3px solid var(--peach-3);border-radius:50%;box-sizing:border-box}
+  .acc-inner .sec-i{position:relative;padding:8px 12px 8px 42px;margin:10px 0 10px 44px;color:rgba(31,56,72,.76);border-left:4px solid rgba(231,187,167,.58);background:rgba(231,187,167,.10);border-radius:4px}
+  .acc-inner .sec-i::before{content:'';position:absolute;left:14px;top:1.02em;width:7px;height:7px;border:1.5px solid var(--peach-3);border-radius:50%;box-sizing:border-box;background:var(--cream)}
+  .acc-inner .crossref{color:var(--peach-3);text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:3px;cursor:pointer;background:rgba(231,187,167,.12);padding:0 3px;border-radius:2px}
+  .acc-inner .crossref:hover{color:var(--navy);background:rgba(231,187,167,.24)}
+  @media (max-width: 760px){
+    .acc-inner{padding:2px 16px 18px 18px}
+    .acc-inner .sec-i{padding:7px 9px 7px 32px;margin:9px 0 9px 18px;border-left-width:3px}
+    .acc-inner .sec-i::before{left:10px;width:6px;height:6px}
+  }
 
   .dr-foot{padding:18px 28px;background:var(--cream-2);border-top:1px solid var(--cream-3);display:flex;gap:10px;flex-wrap:wrap}
   #dr-review-picker{display:none;width:100%;gap:8px;padding-top:4px}
@@ -5851,6 +5858,12 @@ function _linkifyLaw(escapedText, currentLawName){
       + '&amp;art=' + encodeURIComponent(art)
       + '&amp;from=dashboard&amp;back=' + encodeURIComponent(back);
   }
+  function attrEscape(value){
+    return String(value || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
+  function crossRefAnchor(law, art, label){
+    return '<a class="crossref" href="'+articleHref(law, art)+'" data-cross-law="'+attrEscape(law)+'" data-cross-art="'+attrEscape(art)+'" onclick="return openDashboardCrossRef(event,this)">'+label+'</a>';
+  }
   function normalizeArtLabel(value){
     return String(value || '').replace(/\s+/g, '').replace(/條?之/g, '之').replace(/-/g, '之').replace(/^第/, '').replace(/條$/, '');
   }
@@ -5877,7 +5890,7 @@ function _linkifyLaw(escapedText, currentLawName){
       if(!art) return token;
       var label = first ? law + (String(token).trim().startsWith('第') ? String(token).trim() : art) + '條' : (String(token).trim().startsWith('第') ? String(token).trim() : art + '條');
       first = false;
-      return '<a class="crossref" href="'+articleHref(law, art)+'" onclick="event.stopPropagation()" style="color:var(--peach-3);text-decoration:underline;cursor:pointer">'+label+'</a>';
+      return crossRefAnchor(law, art, label);
     }).join('');
     return prefix + stashLinked(linked);
   });
@@ -5887,11 +5900,10 @@ function _linkifyLaw(escapedText, currentLawName){
     else if((sameLaw || law === '同法' || law === '本法') && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
     if(!lastLaw) return match;
     var fullArt = art + (sub ? '之' + sub : '');
-    var href = articleHref(lastLaw, fullArt);
     var prefixMatch = match.match(/^(.+?(?:可看|請看|請參照|請見|另參照|另見)|搭配|參照|依|按|見|與)(.+)$/);
     var prefix = prefixMatch ? prefixMatch[1] : '';
     var label = prefixMatch ? prefixMatch[2] : match;
-    return prefix + '<a class="crossref" href="'+href+'" onclick="event.stopPropagation()" style="color:var(--peach-3);text-decoration:underline;cursor:pointer">'+label+'</a>';
+    return prefix + crossRefAnchor(lastLaw, fullArt, label);
   }).replace(/@@SOFA_XREF_(\d+)@@/g, function(match, idx){ return linkedAnchors[Number(idx)] || match; });
 }
 
@@ -5975,6 +5987,19 @@ function _initSectionToggle(containerEl){
   });
 }
 /* ──────────────────────────────────────────────────── */
+
+function openDashboardCrossRef(event, anchor){
+  if(event && (event.metaKey || event.ctrlKey)) return true;
+  if(event){
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  var law = anchor && anchor.dataset ? anchor.dataset.crossLaw : '';
+  var art = anchor && anchor.dataset ? anchor.dataset.crossArt : '';
+  if(!law || !art) return false;
+  searchAndOpen(law, art);
+  return false;
+}
 
 function searchAndOpen(lawName, artNum){
   var targetArt = _normalizeArticleNo(artNum);
