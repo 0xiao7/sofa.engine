@@ -172,10 +172,11 @@ test('law preview analysis links cross-referenced law articles to the reader', (
 });
 
 test('law preview analysis makes cross references and nested bullets visually scannable', () => {
-  assert.match(preview, /\.crossref\{\s*color:var\(--peach\);[\s\S]*text-decoration-thickness:1\.5px/);
-  assert.match(preview, /\.crossref\{[\s\S]*background:rgba\(231,187,167,\.08\)/);
+  assert.match(preview, /\.crossref\{\s*color:var\(--peach\);[\s\S]*text-decoration-thickness:2px/);
+  assert.match(preview, /\.crossref\{[\s\S]*background:rgba\(231,187,167,\.14\)/);
+  assert.match(preview, /\.crossref\{[\s\S]*padding:0 3px/);
   assert.match(preview, /\.section-body \.preview-head,[\s\S]*padding-left:1\.35em;[\s\S]*text-indent:-1\.35em/);
-  assert.match(preview, /\.section-body \.preview-sub,[\s\S]*margin-left:1\.45em;[\s\S]*padding-left:2em;[\s\S]*border-left:2px solid rgba\(231,187,167,\.42\)/);
+  assert.match(preview, /\.section-body \.preview-sub,[\s\S]*margin-left:2\.1em;[\s\S]*padding-left:2\.25em;[\s\S]*border-left:3px solid rgba\(231,187,167,\.55\)/);
 });
 
 test('law preview keeps quiz return context when readers follow cross references', () => {
