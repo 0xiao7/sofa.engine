@@ -183,6 +183,32 @@
   }
   .side-mode-btn:hover{background:rgba(231,187,167,.13)}
   body.side-collapsed .side-guide-controls{display:none}
+  .side-peek-btn{
+    display:none;
+    position:fixed;
+    top:94px;
+    left:0;
+    z-index:42;
+    box-sizing:border-box;
+    width:44px;
+    min-width:44px;
+    min-height:44px;
+    padding:9px 12px 9px 10px;
+    border:1px solid rgba(231,187,167,.34);
+    border-left:0;
+    border-radius:0 4px 4px 0;
+    color:var(--peach);
+    background:rgba(23,50,68,.96);
+    box-shadow:0 12px 24px rgba(0,0,0,.22);
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.16em;
+    writing-mode:vertical-rl;
+    text-orientation:mixed;
+    cursor:pointer;
+  }
+  .side-peek-btn:hover{background:rgba(31,56,72,.98);border-color:var(--peach)}
+  body.side-collapsed .side-peek-btn{display:inline-flex;align-items:center;justify-content:center}
 
   .free-retention-strip{
     display:none;
@@ -3547,6 +3573,7 @@
   </div>
 
   <div class="shell">
+    <button class="side-peek-btn" type="button" id="side-peek-btn" onclick="setDashboardSideCollapsed(false)" aria-label="顯示左側導覽">導覽</button>
 
     <!-- ============ SIDEBAR ============ -->
     <aside class="side">
@@ -4509,6 +4536,10 @@ function articleLabelParts(raw, title){
     article_no: art,
     title: ttl || fallbackArticleTitle(art || text, '')
   };
+}
+function formatLawArticleCount(value){
+  var n = Number(value);
+  return Number.isFinite(n) && n > 0 ? String(n) + ' 條' : '';
 }
 function articleReaderHref(lawName, artNo, pageId){
   var safeLaw = String(lawName || '').trim();
@@ -7274,9 +7305,9 @@ function _readArticle(btn, text) {
           var artRaw = parts.article_no;
           var artSafe  = artRaw.replace(/'/g,'');
           var title    = parts.title;
-          html += '<div class="rec-row"' + drawerOpenAttrs(pid, ln, artSafe, '開啟最近查詢 ' + (h.law_name || '') + ' ' + displayArticleNo(artRaw)) + '>'+
+          html += '<div class="rec-row"' + drawerOpenAttrs(pid, ln, artSafe, '開啟最近查詢 ' + (h.law_name || '') + ' ' + displayArticleNo(parts.article_no)) + '>'+
             '<span class="law">'+esc(h.law_name||'——')+'</span>'+
-            '<span class="art">'+esc(displayArticleNo(artRaw))+'</span>'+
+            '<span class="art">'+esc(displayArticleNo(parts.article_no))+'</span>'+
             '<span class="ttl">'+esc(title)+'</span>'+
             '<span class="time">'+esc(time)+'</span>'+
             '</div>';
@@ -7493,10 +7524,11 @@ function renderReviewDue(nextItems){
     var m = row.item || {};
     var pid    = _safeClickArg(m.page_id);
     var ln     = _safeClickArg(m.law_name);
-    var artNo  = _safeClickArg(m.article_no);
+    var parts  = articleLabelParts(m.article || m.article_no || '', m.title);
+    var artNo  = _safeClickArg(parts.article_no || m.article_no);
     var od     = m.overdue_days || 0;
     var badge  = od > 0 ? ('逾期 '+od+' 天') : '今天到期';
-    var disp   = (m.article||'').replace(/^§+/,'') || ('§'+artNo);
+    var disp   = displayArticleNo(parts.article_no || artNo);
     var reasonsHTML = reviewReasonChipsHTML(m);
     var reasonsBlock = reasonsHTML ? '<div class="reasons">'+reasonsHTML+'</div>' : '';
     var goalTag = row.goalMatch ? '<span>目標相關</span>' : '';
@@ -7834,6 +7866,7 @@ function setDashboardSideCollapsed(collapsed){
   var button = document.querySelector('.menu-btn');
   var modeButton = document.getElementById('side-mode-btn');
   var status = document.getElementById('side-mode-status');
+  var peek = document.getElementById('side-peek-btn');
   if(button){
     button.setAttribute('aria-expanded', on ? 'false' : 'true');
     button.setAttribute('aria-label', on ? '顯示導覽' : '隱藏導覽');
@@ -7844,6 +7877,7 @@ function setDashboardSideCollapsed(collapsed){
     modeButton.setAttribute('aria-pressed', on ? 'false' : 'true');
   }
   if(status) status.textContent = on ? '已隱藏' : '固定中';
+  if(peek) peek.setAttribute('aria-hidden', on ? 'false' : 'true');
 }
 
 function applyDashboardSidePreference(){
@@ -9007,7 +9041,7 @@ function _renderLawsToc(page){
         var rawName = l.name || '';
         var nm  = esc(rawName);
         var nmHl = _hlMatch(nm, esc(filter));
-        var ct = l.article_count ? l.article_count + ' 條' : '';
+        var ct = formatLawArticleCount(l.article_count);
         var star = l.starred ? '<span class="star-mark">★ 高頻</span>' : '';
         var idx = String(start + i + 1).padStart(2,'0');
         var encodedName = encodeURIComponent(rawName);
