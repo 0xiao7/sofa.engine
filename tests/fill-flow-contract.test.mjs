@@ -99,6 +99,27 @@ test('fill source link helper preserves sub-article numbers in either title orde
   );
 });
 
+test('fill analysis linkifies cross-law references inside the article reader', () => {
+  const start = active.indexOf('function cleanCrossRefLawName');
+  const end = active.indexOf('function formatSection', start);
+  assert.ok(start >= 0 && end > start, 'law reference helper must be extractable before formatSection');
+  const helpers = vm.runInNewContext(`${active.slice(start, end)};({linkifyLawRefs,cleanCrossRefLawName})`);
+
+  const linkedSameLaw = helpers.linkifyLawRefs('同法第13條、本法第15條', '記帳士法');
+  assert.match(linkedSameLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=13/);
+  assert.match(linkedSameLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=15/);
+  assert.match(linkedSameLaw, /&from=fill&back=fill\.html/);
+
+  const linkedNamedLaw = helpers.linkifyLawRefs('搭配公司法第29條經理人任免規定', '商業會計法');
+  assert.match(linkedNamedLaw, />公司法第29條</);
+  assert.match(linkedNamedLaw, /law-preview\.html\?law=%E5%85%AC%E5%8F%B8%E6%B3%95&art=29/);
+  assert.match(linkedNamedLaw, /&from=fill&back=fill\.html/);
+  assert.doesNotMatch(linkedNamedLaw, />搭配公司法第29條</);
+  assert.equal(helpers.cleanCrossRefLawName('搭配公司法'), '公司法');
+  assert.doesNotMatch(linkedNamedLaw, /target="_blank"/);
+  assert.match(active, /formatSection\(sections\[name\],\s*articleLawName\)/);
+});
+
 test('fill URL deep links can target one article without replacing the saved default law', () => {
   assert.match(active, /const _fillSearchParams = new URLSearchParams\(location\.search\)/);
   assert.match(active, /function fillUrlLawParam\(\)/);

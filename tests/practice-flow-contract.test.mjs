@@ -1,9 +1,24 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import vm from 'node:vm';
 
 const html = readFileSync(new URL('../practice.html', import.meta.url), 'utf8');
 const active = html.replace(/<!--[\s\S]*?-->/g, '');
+
+function extractFunction(source, name) {
+  const marker = `function ${name}(`;
+  const start = source.indexOf(marker);
+  assert.ok(start >= 0, `${name} must exist`);
+  const open = source.indexOf('{', start);
+  let depth = 0;
+  for (let i = open; i < source.length; i += 1) {
+    if (source[i] === '{') depth += 1;
+    if (source[i] === '}') depth -= 1;
+    if (depth === 0) return source.slice(start, i + 1);
+  }
+  assert.fail(`${name} must close`);
+}
 
 test('practice session summary uses SoFa brand classes instead of bright inline styling', () => {
   const start = active.indexOf('id="session-summary"');
@@ -56,4 +71,25 @@ test('practice session summary counters are wired to rendered metric ids', () =>
 test('practice mobile share control avoids the top bar and timer corner', () => {
   assert.match(active, /@media \(max-width:760px\)\{[\s\S]*?#practice-share-btn\{top:auto;right:auto;bottom:58px;left:14px\}/);
   assert.match(active, /@media \(max-width:760px\)\{[\s\S]*?#session-timer,#practice-stats-btn\{display:none\}/);
+});
+
+test('practice analysis linkifies cross-law references inside the article reader', () => {
+  const start = active.indexOf('function cleanCrossRefLawName');
+  const end = active.indexOf('function formatSection', start);
+  assert.ok(start >= 0 && end > start, 'law reference helper must be extractable before formatSection');
+  const helpers = vm.runInNewContext(`${active.slice(start, end)};({linkifyLawRefs,cleanCrossRefLawName})`);
+
+  const linkedSameLaw = helpers.linkifyLawRefs('同法第13條、本法第15條', '記帳士法');
+  assert.match(linkedSameLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=13/);
+  assert.match(linkedSameLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=15/);
+  assert.match(linkedSameLaw, /&from=practice&back=practice\.html/);
+
+  const linkedNamedLaw = helpers.linkifyLawRefs('搭配公司法第29條經理人任免規定', '商業會計法');
+  assert.match(linkedNamedLaw, />公司法第29條</);
+  assert.match(linkedNamedLaw, /law-preview\.html\?law=%E5%85%AC%E5%8F%B8%E6%B3%95&art=29/);
+  assert.match(linkedNamedLaw, /&from=practice&back=practice\.html/);
+  assert.doesNotMatch(linkedNamedLaw, />搭配公司法第29條</);
+  assert.equal(helpers.cleanCrossRefLawName('搭配公司法'), '公司法');
+  assert.doesNotMatch(linkedNamedLaw, /target="_blank"/);
+  assert.match(active, /formatSection\(sections\[name\],\s*articleLawName\)/);
 });
