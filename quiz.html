@@ -1342,6 +1342,19 @@ function _shouldShowQzExamBanner(examKey) {
   return !examKey && !_lawParamFromUrl() && !_articleParamFromUrl() && !_drillParam && !_pastExamMode && !_startQuizParam;
 }
 
+let _currentLawName = '';
+let _currentPageId = '';
+let _currentArtNo = '';
+let answered=false,right=0,wrong=0,total=0,flagged=0;
+let _currentInlineArticleText = '';
+let _crossRefInlineOpen = false;
+let _quizLoading = false;
+let _quizManualRequested = false;
+let _quizBootReady = false;
+const QUIZ_RETURN_STATE_KEY = 'sofa_quiz_return_state_v1';
+let quizData=null;
+let sessionHistory=[]; // [{num, correct:null|true|false, flagged:false, law:'', title:''}]
+
 (async()=>{
   const sel=document.getElementById('lawSelect');
   if(uid){
@@ -1638,6 +1651,7 @@ function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace
 
 function cleanCrossRefLawName(lawName){
   return String(lawName || '')
+    .replace(/^.*?(?:可看|請看|請參照|請見|另參照|另見)/, '')
     .replace(/^(搭配|參照|依|按|見|與)+/, '')
     .replace(/[，。、；：\s]+$/, '')
     .trim();
@@ -1661,7 +1675,7 @@ function linkifyLawRefs(escapedText,currentLawName){
     const safeLaw = encodeURIComponent(String(lastLaw));
     const fullArt = art + (sub ? '之' + sub : '');
     const safeArt = encodeURIComponent(fullArt);
-    const prefixMatch = match.match(/^(搭配|參照|依|按|見|與)(.+)$/);
+    const prefixMatch = match.match(/^(.+?(?:可看|請看|請參照|請見|另參照|另見)|搭配|參照|依|按|見|與)(.+)$/);
     const prefix = prefixMatch ? prefixMatch[1] : '';
     const label = prefixMatch ? prefixMatch[2] : match;
     const back = typeof _currentQuizReturnTarget === 'function' ? _currentQuizReturnTarget() : 'quiz.html';
@@ -1925,9 +1939,6 @@ const SESSION_AUTO_NEXT_DELAY_MS = 260;
 
 // ── 連續答對計數器 ────────────────────────────────────────────────
 let _quizStreak = 0;
-let _currentLawName = '';
-let _currentPageId = '';
-let _currentArtNo = '';
 
 // ── 個人答題統計（localStorage）────────────────────────────────────
 const STATS_KEY = 'sofa_quiz_stats_v1';
@@ -2541,14 +2552,6 @@ function showSessionSummary() {
   }
 }
 
-let answered=false,right=0,wrong=0,total=0,flagged=0;
-let _currentInlineArticleText = '';
-let _crossRefInlineOpen = false;
-let _quizLoading = false;
-let _quizManualRequested = false;
-let _quizBootReady = false;
-const QUIZ_RETURN_STATE_KEY = 'sofa_quiz_return_state_v1';
-
 // ── Wave 106: 每題計時 ────────────────────────────────────────────
 let _qStartTime = 0;
 let _qTimerInterval = null;
@@ -2661,6 +2664,18 @@ function _restoreQuizReturnState(){
   return true;
 }
 
+function _restoreQuizReturnStateWhenReady(){
+  const run = () => {
+    if(!answered) _restoreQuizReturnState();
+  };
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', () => setTimeout(run, 0), { once:true });
+  }else{
+    setTimeout(run, 0);
+  }
+}
+_restoreQuizReturnStateWhenReady();
+
 function _autoLoadQuizOnce(){
   if(_quizManualRequested || _quizLoading || total > 0) return;
   loadQuiz();
@@ -2681,9 +2696,7 @@ function _openArticleReader() {
   _saveQuizReturnState();
   window.location.href = _articleReaderHref(_currentLawName, _currentArtNo, _currentPageId);
 }
-let quizData=null;
 // 本次作答紀錄
-let sessionHistory=[]; // [{num, correct:null|true|false, flagged:false, law:'', title:''}]
 // 計時器
 let sessionStart=null, timerIv=null;
 

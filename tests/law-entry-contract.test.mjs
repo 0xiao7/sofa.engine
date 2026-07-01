@@ -150,6 +150,11 @@ test('law preview analysis links cross-referenced law articles to the reader', (
   assert.match(linkedPrefixedLaw, />公司法第29條</);
   assert.doesNotMatch(linkedPrefixedLaw, />搭配公司法第29條</);
 
+  const linkedReadableLead = sandbox.linkify('交叉記憶可看公司法第29條', '商業會計法');
+  assert.match(linkedReadableLead, /law=%E5%85%AC%E5%8F%B8%E6%B3%95&amp;art=29/);
+  assert.match(linkedReadableLead, />公司法第29條</);
+  assert.doesNotMatch(linkedReadableLead, /law=.*%E4%BA%A4%E5%8F%89/);
+
   const linkedConjunctionLaw = sandbox.linkify('與刑法第214條一起看', '商業會計法');
   assert.match(linkedConjunctionLaw, /law=%E5%88%91%E6%B3%95&amp;art=214/);
   assert.doesNotMatch(linkedConjunctionLaw, /law=%E8%88%87%E5%88%91%E6%B3%95/);
@@ -192,7 +197,11 @@ test('law preview has a contextual return path instead of dumping readers at hom
   assert.match(preview, /returnFrom === 'quiz'/);
   assert.match(preview, /backLink\.textContent = '← 回到題目'/);
   assert.match(preview, /else if\(isSafeBackUrl\(backTarget\)\)/);
-  assert.match(preview, /history\.back\(\)/);
+  const configureStart = preview.indexOf('function configureBackLink');
+  const configureEnd = preview.indexOf('configureBackLink();', configureStart);
+  assert.ok(configureStart >= 0 && configureEnd > configureStart, 'configureBackLink must be extractable');
+  const configureSource = preview.slice(configureStart, configureEnd);
+  assert.doesNotMatch(configureSource, /history\.back\(\)/);
   assert.doesNotMatch(preview, /<a class="back-link" href="\/">← 回 SoFa<\/a>/);
 });
 

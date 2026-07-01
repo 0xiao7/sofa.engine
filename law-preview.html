@@ -553,12 +553,6 @@ function configureBackLink(){
   if(returnFrom === 'quiz' || /\/quiz\.html(?:$|[?#])/.test(document.referrer || '')){
     backLink.href = isSafeBackUrl(backTarget) ? backTarget : 'quiz.html';
     backLink.textContent = '← 回到題目';
-    backLink.addEventListener('click', ev => {
-      if(history.length > 1 && /\/quiz\.html(?:$|[?#])/.test(document.referrer || '')){
-        ev.preventDefault();
-        history.back();
-      }
-    }, { once:false });
   }else if(returnFrom === 'tree'){
     backLink.href = isSafeBackUrl(backTarget) ? backTarget : 'tree.html';
     backLink.textContent = '← 回考試地圖';
@@ -809,6 +803,7 @@ function readerHrefFor(lawName, articleNo){
 }
 function cleanCrossRefLawName(lawName){
   return String(lawName || '')
+    .replace(/^.*?(?:可看|請看|請參照|請見|另參照|另見)/, '')
     .replace(/^(搭配|參照|依|按|見|與)+/, '')
     .replace(/[，。、；：\s]+$/, '')
     .trim();
@@ -825,7 +820,7 @@ function linkifyLawRefs(escapedText,currentLawName){
       ? readerHrefFor(lastLaw, fullArt)
       : 'law-preview.html?law=' + encodeURIComponent(lastLaw.replace(/\\/g, '')) + '&art=' + encodeURIComponent(fullArt)
     ).replace(/&/g, '&amp;');
-    const prefixMatch = match.match(/^(搭配|參照|依|按|見|與)(.+)$/);
+    const prefixMatch = match.match(/^(.+?(?:可看|請看|請參照|請見|另參照|另見)|搭配|參照|依|按|見|與)(.+)$/);
     const prefix = prefixMatch ? prefixMatch[1] : '';
     const label = prefixMatch ? prefixMatch[2] : match;
     return prefix + '<a class="crossref" href="' + href + '">' + label + '</a>';

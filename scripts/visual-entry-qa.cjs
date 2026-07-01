@@ -78,8 +78,44 @@ function apiPayload(url) {
       original_text: '視覺驗收條文原文：扣繳義務人應依規定辦理扣繳。',
       _plan: 'paid',
       sections: {
-        short_explanation: '扣繳題型先看原文，再看解析。',
-        exam_tip: '注意百分比與主詞。'
+        '章節標題與戰略權重': '扣繳題型先看原文，再看解析。',
+        '規範意旨與條文解析': '注意百分比與主詞；交叉記憶可看公司法第29條。',
+        '執業要點與考情提示': '視覺驗收第三段：從題目進來時要能回到原題。',
+        '核心摘要與記憶策略': '視覺驗收第四段：讀完條文後保留作答狀態。'
+      }
+    };
+  }
+  if (u.pathname === '/api/articles' && u.searchParams.get('law') === '所得稅法') {
+    return {
+      law_name: '所得稅法',
+      count: 1,
+      articles: [
+        { id: 'visual-page-id', law_name: '所得稅法', article_no: '88', title: '§ 88｜扣繳義務', importance: '★★★' }
+      ]
+    };
+  }
+  if (u.pathname === '/api/articles' && u.searchParams.get('law') === '公司法') {
+    return {
+      law_name: '公司法',
+      count: 1,
+      articles: [
+        { id: 'company-law-29', law_name: '公司法', article_no: '29', title: '§ 29｜經理人任免', importance: '★★★' }
+      ]
+    };
+  }
+  if (u.pathname === '/api/article/company-law-29') {
+    return {
+      page_id: 'company-law-29',
+      id: 'company-law-29',
+      law_name: '公司法',
+      article_no: '29',
+      title: '第 29 條｜經理人任免',
+      original_text: '視覺驗收公司法第29條原文：公司得依章程置經理人。',
+      importance: '★★★',
+      _plan: 'paid',
+      sections: {
+        short_explanation: '公司法第29條用來對照主辦會計人員與經理人的任免程序。',
+        exam_tip: '從題目看法條進來後，交叉法條必須在同一閱讀器內開啟。'
       }
     };
   }
@@ -283,6 +319,43 @@ async function assertNotCoveredBy(page, selector, coverSelector, label) {
   return result;
 }
 
+async function assertAllNotCoveredBy(page, selector, coverSelector, label) {
+  await page.locator(selector).first().waitFor({ state: 'visible', timeout: 7000 });
+  await page.locator(coverSelector).first().waitFor({ state: 'visible', timeout: 7000 });
+  const result = await page.evaluate(({ selector, coverSelector }) => {
+    const cover = document.querySelector(coverSelector);
+    if (!cover) return { ok: false, reason: 'missing cover' };
+    const b = cover.getBoundingClientRect();
+    const failures = Array.from(document.querySelectorAll(selector))
+      .filter(el => {
+        const style = getComputedStyle(el);
+        return style.display !== 'none' && style.visibility !== 'hidden';
+      })
+      .map((el, index) => {
+        const a = el.getBoundingClientRect();
+        const centerX = a.left + a.width / 2;
+        const centerY = a.top + a.height / 2;
+        const intersects = a.right > b.left && a.left < b.right && a.bottom > b.top && a.top < b.bottom;
+        const centerCovered = centerX >= b.left && centerX <= b.right && centerY >= b.top && centerY <= b.bottom;
+        return {
+          index,
+          text: (el.textContent || '').trim(),
+          intersects,
+          centerCovered,
+          element: { top: a.top, bottom: a.bottom, left: a.left, right: a.right, width: a.width, height: a.height }
+        };
+      })
+      .filter(item => item.intersects || item.centerCovered);
+    return {
+      ok: failures.length === 0,
+      failures,
+      cover: { top: b.top, bottom: b.bottom, left: b.left, right: b.right, width: b.width, height: b.height }
+    };
+  }, { selector, coverSelector });
+  if (!result.ok) throw new Error(`${label}: covered by ${coverSelector} (${JSON.stringify(result)})`);
+  return result;
+}
+
 async function assertWithinContainer(page, childSelector, containerSelector, label) {
   const result = await page.evaluate(({ childSelector, containerSelector }) => {
     const child = document.querySelector(childSelector);
@@ -368,7 +441,7 @@ async function dashboardCase(browser, baseUrl, name, viewport) {
   await page.goto(`${baseUrl}/dashboard.html`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#study-cockpit-recap', { state: 'visible', timeout: 7000 });
   const checks = [];
-  checks.push(['#study-cockpit-recap a[href="quiz.html?open=weakness"]', 'today weakness CTA']);
+  checks.push(['#study-cockpit-recap .study-action-group.primary a[href="quiz.html?open=weakness"]', 'today weakness CTA']);
   if (viewport.width <= 768) {
     checks.push(['#mobile-daily-bar a[href="quiz.html?open=weakness"]', 'mobile weakness quick entry']);
     checks.push(['#mobile-daily-bar a[href="#review-due"]', 'mobile review quick entry']);
@@ -387,7 +460,10 @@ async function dashboardCase(browser, baseUrl, name, viewport) {
   }
   if (viewport.width <= 768) {
     await assertNotCoveredBy(page, '#study-next-plan', '#mobile-daily-bar', `${name} next study card`);
-    await assertNotCoveredBy(page, '#study-cockpit-recap a[href="quiz.html?open=weakness"]', '#mobile-daily-bar', `${name} weakness CTA`);
+    await assertAllNotCoveredBy(page, '#study-cockpit-recap .study-actions .study-action-link', '#mobile-daily-bar', `${name} study action buttons`);
+    await assertNotCoveredBy(page, '#study-cockpit-recap .study-action-group.primary a[href="quiz.html?open=weakness"]', '#mobile-daily-bar', `${name} weakness CTA`);
+    await page.locator('#study-weak-brief').scrollIntoViewIfNeeded();
+    await page.evaluate(() => window.scrollBy(0, 96));
     await assertNotCoveredBy(page, '#study-weak-brief .study-weak-brief-row, #study-weak-brief .study-weak-empty', '#mobile-daily-bar', `${name} first weakness row`);
   }
   const weakState = await page.locator('#study-cockpit-weak-state').innerText();
@@ -556,6 +632,50 @@ async function quizBehaviorCase(browser, baseUrl) {
   await page.screenshot({ path: screenshot, fullPage: false });
   await page.close();
   return { name: 'quiz-behavior-mobile', screenshot, answerPost: { choice: post.choice, is_correct: post.is_correct, article_id: post.article_id } };
+}
+
+async function quizReaderRoundTripCase(browser, baseUrl) {
+  const answerPosts = [];
+  const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true });
+  await installApiMocks(page, { answerPosts });
+  await page.addInitScript(() => {
+    localStorage.removeItem('sofa_exam_key');
+    localStorage.removeItem('sofa_last_law');
+    if (!sessionStorage.getItem('sofa_quiz_return_state_v1')) sessionStorage.clear();
+  });
+  await page.goto(`${baseUrl}/quiz.html`, { waitUntil: 'domcontentloaded' });
+  await page.evaluate(() => {
+    loadQuiz();
+  });
+  await page.waitForSelector('#optionsBox .opt', { state: 'visible', timeout: 7000 });
+  const opts = page.locator('#optionsBox .opt');
+  await opts.nth(1).click();
+  await page.waitForSelector('#quiz-answer-actions.show', { state: 'visible', timeout: 7000 });
+  await page.locator('#view-article-btn').click();
+  await page.waitForURL(/law-preview\.html/, { timeout: 7000 });
+  await page.waitForSelector('#detailTitle', { state: 'visible', timeout: 7000 });
+  await page.waitForFunction(() => document.querySelector('#originalText')?.innerText.includes('扣繳義務人'), null, { timeout: 7000 });
+
+  const crossref = page.locator('a.crossref', { hasText: /公司法第29條|公司法.*29/ }).first();
+  await crossref.scrollIntoViewIfNeeded();
+  await crossref.click();
+  await page.waitForFunction(() => {
+    const title = document.querySelector('#detailTitle')?.innerText || '';
+    const original = document.querySelector('#originalText')?.innerText || '';
+    return /29/.test(title) && /公司法第29條原文/.test(original);
+  }, null, { timeout: 7000 });
+  const crossTitle = await page.locator('#detailTitle').innerText();
+  await page.locator('.back-link').click();
+  await page.waitForURL(/quiz\.html/, { timeout: 7000 });
+  await page.waitForSelector('#quiz-answer-actions.show', { state: 'visible', timeout: 7000 });
+  await page.waitForSelector('#optionsBox .opt.wrong', { state: 'visible', timeout: 7000 });
+  await page.waitForSelector('#optionsBox .opt.right', { state: 'visible', timeout: 7000 });
+  const restoredQuestion = await page.locator('#questionBox').innerText();
+  if (!/扣繳義務人/.test(restoredQuestion)) throw new Error(`quiz question did not restore after reader round trip: ${restoredQuestion}`);
+  const screenshot = path.join(OUT_DIR, 'sofa-visual-quiz-reader-roundtrip-mobile.png');
+  await page.screenshot({ path: screenshot, fullPage: false });
+  await page.close();
+  return { name: 'quiz-reader-roundtrip-mobile', screenshot, crossTitle, answerPosts: answerPosts.length };
 }
 
 async function freeRetentionCase(browser, baseUrl) {
@@ -741,6 +861,7 @@ async function studyPlanFlowCase(browser, baseUrl) {
     results.push(await quizCase(browser, baseUrl));
     results.push(await lawPreviewCase(browser, baseUrl));
     results.push(await quizBehaviorCase(browser, baseUrl));
+    results.push(await quizReaderRoundTripCase(browser, baseUrl));
     results.push(await freeRetentionCase(browser, baseUrl));
     results.push(await statsCase(browser, baseUrl));
     results.push(await studyToolDeepLinkCase(browser, baseUrl));

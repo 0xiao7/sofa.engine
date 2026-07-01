@@ -166,17 +166,20 @@ test('study today surfaces weakness before lower dashboard sections', () => {
   assert.doesNotMatch(active, /目前有 0 條弱點|0 條弱點/);
 });
 
-test('today weak brief appears before the next plan card on mobile first screen', () => {
+test('today actions appear before detail cards on mobile first screen', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
   const recap = active.slice(recapStart, recapStart + 5200);
   const weakIndex = recap.indexOf('id="study-weak-brief"');
   const actionIndex = recap.indexOf('class="study-actions"');
+  const statusIndex = recap.indexOf('id="study-status-strip"');
   const nextPlanIndex = recap.indexOf('id="study-next-plan"');
   assert.ok(weakIndex > -1, 'weak brief must exist inside today recap');
   assert.ok(actionIndex > -1, 'action buttons must exist inside today recap');
+  assert.ok(statusIndex > -1, 'status strip must exist inside today recap');
   assert.ok(nextPlanIndex > -1, 'next plan card must exist inside today recap');
-  assert.ok(weakIndex < actionIndex, 'weak brief should appear before tool buttons on tight mobile screens');
+  assert.ok(actionIndex < statusIndex, 'tool buttons should appear before status details on tight mobile screens');
+  assert.ok(actionIndex < weakIndex, 'tool buttons should appear before weak detail cards on tight mobile screens');
   assert.ok(weakIndex < nextPlanIndex, 'weak brief should appear before the next plan card');
 });
 
@@ -494,8 +497,11 @@ test('study today action buttons are sized for mobile app shells', () => {
   const studyActionButtonRule = active.match(/\.study-action-button\{[\s\S]*?\n  \}/)?.[0] || '';
   const actionsStart = active.indexOf('<div class="study-actions"');
   const actionsEnd = active.indexOf('<div class="study-next-plan"', actionsStart);
+  const statusStart = active.indexOf('<div class="study-status-strip"', actionsStart);
+  const weakStart = active.indexOf('<div class="study-weak-brief"', actionsStart);
   const actionBlock = active.slice(actionsStart, actionsEnd);
   assert.ok(actionsStart >= 0 && actionsEnd > actionsStart, 'study action block must be extractable');
+  assert.ok(statusStart > actionsStart && weakStart > actionsStart, 'study action buttons should appear before status and weak details');
   assert.match(actionBlock, /class="study-action-group primary"[\s\S]*<span class="study-action-label">先做<\/span>[\s\S]*開始選擇題[\s\S]*今日複習[\s\S]*弱點分析/);
   assert.match(actionBlock, /class="study-action-group secondary"[\s\S]*<span class="study-action-label">整理<\/span>[\s\S]*重點朗讀[\s\S]*排課[\s\S]*補紀錄/);
   assert.doesNotMatch(active, /看時間、弱點和下一堂；要排課再開下方工具/);
@@ -508,7 +514,8 @@ test('study today action buttons are sized for mobile app shells', () => {
   assert.match(active, /\.study-actions\{[\s\S]*justify-content:stretch/);
   assert.match(active, /\.study-action-group\{[\s\S]*grid-template-columns:auto repeat\(3,minmax\(0,1fr\)\)/);
   assert.match(active, /@media \(max-width:980px\)\{[\s\S]*\.study-actions\{grid-template-columns:1fr;align-items:stretch;gap:12px\}/);
-  const mobileActionStart = active.indexOf('.study-actions{grid-template-columns:1fr;align-items:stretch;gap:12px}');
+  assert.match(active, /@media \(max-width:760px\)\{[\s\S]*\.study-actions\{[\s\S]*grid-template-columns:1fr;[\s\S]*gap:8px/);
+  const mobileActionStart = active.indexOf('.study-actions{\n      grid-template-columns:1fr;');
   const mobileActionEnd = active.indexOf('.study-next-plan{', mobileActionStart);
   const mobileActionRule = active.slice(mobileActionStart, mobileActionEnd);
   assert.ok(mobileActionStart >= 0 && mobileActionEnd > mobileActionStart, 'mobile study action rules must be extractable');
