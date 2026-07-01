@@ -142,12 +142,30 @@
     transition:.2s;
   }
   .btn-out:hover{background:rgba(245,240,234,.06);color:var(--cream);border-color:var(--cream)}
-  .menu-btn{display:flex;width:36px;height:36px;border:1px solid var(--line-2);border-radius:2px;align-items:center;justify-content:center}
+  .menu-btn{position:relative;display:flex;width:36px;height:36px;border:1px solid var(--line-2);border-radius:2px;align-items:center;justify-content:center}
   .menu-btn span{display:block;width:16px;height:1.5px;background:var(--cream);position:relative}
   .menu-btn span::before,.menu-btn span::after{content:"";position:absolute;left:0;width:16px;height:1.5px;background:var(--cream)}
   .menu-btn span::before{top:-5px}
   .menu-btn span::after{top:5px}
   .menu-btn[aria-expanded="true"]{border-color:var(--peach);background:rgba(231,187,167,.1)}
+  .side-mode-btn{
+    min-height:32px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid rgba(231,187,167,.28);
+    border-radius:3px;
+    padding:6px 10px;
+    margin-top:8px;
+    color:var(--peach);
+    background:rgba(231,187,167,.06);
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.1em;
+    white-space:nowrap;
+  }
+  .side-mode-btn:hover{background:rgba(231,187,167,.13)}
+  body.side-collapsed .side-mode-btn{display:none}
 
   .free-retention-strip{
     display:none;
@@ -250,6 +268,18 @@
   body.side-collapsed aside.side{transform:translateX(-100%);pointer-events:none}
   body.side-collapsed main.main{grid-column:1}
   body.side-collapsed .menu-btn{border-color:var(--peach);background:rgba(231,187,167,.1)}
+  body.side-collapsed .topbar .menu-btn::after{
+    content:"固定導覽";
+    position:absolute;
+    right:44px;
+    top:50%;
+    transform:translateY(-50%);
+    color:var(--peach);
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.1em;
+    white-space:nowrap;
+  }
   /* almanac-style countdown */
   .countdown{
     border:1px solid var(--line-2);
@@ -648,14 +678,15 @@
     border-bottom:1px dashed var(--line);
     padding-bottom:14px;
     display:grid;
-    grid-template-columns:repeat(2,minmax(0,1fr));
-    gap:12px 18px;
+    grid-template-columns:max-content max-content;
+    gap:12px 28px;
     align-items:start;
+    justify-content:start;
   }
   .study-action-group{
     min-width:0;
     display:grid;
-    grid-template-columns:auto repeat(3,minmax(0,1fr));
+    grid-template-columns:auto repeat(3,minmax(112px,max-content));
     align-items:center;
     gap:9px;
   }
@@ -693,7 +724,7 @@
     text-decoration:none;
     white-space:nowrap;
     border:1px solid var(--line-2);
-    width:100%;
+    width:auto;
   }
   .study-action-link{
     color:var(--cream);
@@ -1652,13 +1683,14 @@
     line-height:1.65;
     overflow:hidden;
   }
+  .study-cloud-state.is-quiet{opacity:.82}
   .study-cloud-state summary{
     list-style:none;
     display:flex;
     align-items:center;
     justify-content:space-between;
     gap:12px;
-    padding:9px 11px;
+    padding:8px 11px;
     cursor:pointer;
   }
   .study-cloud-state summary::-webkit-details-marker{display:none}
@@ -1694,6 +1726,25 @@
     font-size:12px;
     line-height:1.6;
   }
+  .study-plan-count.is-compact{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .study-plan-count.is-compact span{color:rgba(245,240,234,.58)}
+  .study-plan-more{
+    border:0;
+    color:var(--peach);
+    background:transparent;
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.08em;
+    padding:0;
+    margin:0;
+    cursor:pointer;
+  }
   .study-plan-count b{color:var(--peach);font-weight:700}
   .study-plan-count button{
     min-height:34px;
@@ -1726,6 +1777,8 @@
   .study-plan-item .date{font-family:var(--mono);font-size:11px;color:var(--peach);white-space:nowrap}
   .study-plan-item .title{font-family:var(--serif);font-size:14px;color:var(--cream);font-weight:600}
   .study-plan-item .meta{font-size:12px;color:rgba(245,240,234,.52);grid-column:2 / -1}
+  .study-plan-item.is-hidden{display:none}
+  .study-plan-items.show-all .study-plan-item.is-hidden{display:grid}
   .study-plan-item .status{
     justify-self:end;
     border:1px solid rgba(245,240,234,.14);
@@ -3503,6 +3556,7 @@
         <div class="nav-section">
           <div class="lab">導 覽</div>
           <div class="nav-helper">右邊滑到哪，左邊會亮哪一段。</div>
+          <button class="side-mode-btn" type="button" id="side-mode-btn" onclick="toggleDashboardSideNav()">隱藏導覽</button>
           <div class="nav-list today-nav">
           <a href="#study-cockpit-recap" data-spy-target="study-cockpit-recap"><span class="num">T1</span>今天先做<span class="ct" id="nav-ct-study"></span></a>
           <a href="#study-weak-brief" data-spy-target="study-weak-brief"><span class="num">T2</span>今日弱點<span class="ct" id="nav-ct-weak">0</span></a>
@@ -3665,25 +3719,25 @@
               <span class="study-overview-card">
                 <span>現在先做</span>
                 <b id="study-overview-next">先做一題或排一項任務</b>
-                <small id="study-overview-next-note">還沒有待讀項目；先用選擇題累積弱點，或把課程/自讀任務排進來。</small>
+                <small id="study-overview-next-note">還沒有待讀項目；先刷一題或排一項任務。</small>
               </span>
               <span class="study-overview-card">
                 <span>儲存位置</span>
                 <b id="study-overview-save">只在這台裝置</b>
-                <small id="study-overview-save-note">登入或輸入序號後，才會盡量同步到你的帳號。</small>
+                <small id="study-overview-save-note">輸入序號後才會同步。</small>
               </span>
               <span class="study-overview-card">
                 <span>累積時間</span>
                 <b id="study-overview-hours">累積 0 小時</b>
-                <small><span id="study-overview-status">待讀 0 / 完成 0</span><br><span id="study-overview-status-note">完成課程與補紀錄會加總；答題正確率另算。</span></small>
+                <small><span id="study-overview-status">待讀 0 / 完成 0</span><br><span id="study-overview-status-note">補紀錄不改答題率。</span></small>
               </span>
             </div>
             <div class="study-time-wrap" id="study-time-box" aria-label="備考時間規劃">
               <div class="study-time-summary-card">
                 <span class="study-time-main">
                   <b>讀書時間</b>
-                  <small id="study-time-summary">今天已讀 0 分鐘；本週已讀 0 小時；目標 500 小時，今天預留 60 分鐘。</small>
-                  <span id="study-time-purpose">預覽只給建議；按「排入本週計畫」才保存到私人計畫。</span>
+                  <small id="study-time-summary">累積 0 小時；本週 0 小時；今天 0 分。</small>
+                  <span id="study-time-purpose">改時間只影響建議。</span>
                 </span>
                 <span class="study-time-impact" aria-live="polite">
                   <b id="study-time-impact">剩約 42 週</b>
@@ -4923,18 +4977,18 @@ function renderStudyPlanningOverview(items, timeSummary){
   }
   if(nextNote){
     if(next){
-      nextNote.textContent = [next.scheduled_date || '', next.scheduled_time || '', next.source_label || '私人計畫'].filter(Boolean).join(' · ') + '；讀完按「完成這項」。';
+      nextNote.textContent = [next.scheduled_date || '', next.scheduled_time || '', next.source_label || '私人計畫'].filter(Boolean).join(' · ');
     } else {
-      nextNote.textContent = '還沒有待讀項目；先用選擇題累積弱點，或把課程/自讀任務排進來。';
+      nextNote.textContent = '還沒有待讀項目；先刷一題或排一項任務。';
     }
   }
   if(saveEl){
-    saveEl.textContent = (token || uid) ? '已接序號，會同步到帳號' : '只在這台裝置';
+    saveEl.textContent = (token || uid) ? '已接序號' : '只在這台裝置';
   }
   if(saveNote){
     saveNote.textContent = (token || uid)
-      ? '登入後的私人課表只屬於這個序號/帳號，不會放進共用題庫。'
-      : '換手機或清瀏覽器資料可能不見；輸入序號後再同步。';
+      ? '私人課表只在你的帳號。'
+      : '輸入序號後才會同步。';
   }
   if(statusEl){
     statusEl.textContent = '待讀 ' + actionable.length + ' / 完成 ' + completed.length;
@@ -4943,7 +4997,7 @@ function renderStudyPlanningOverview(items, timeSummary){
     hoursEl.textContent = '累積 ' + _formatStudyHours(ledger.accumulated);
   }
   if(statusNote){
-    statusNote.textContent = '今天已讀 ' + ledger.today + ' 分鐘 / 本週已讀 ' + _formatStudyHours(ledger.week) + '；補紀錄不會改答題正確率。';
+    statusNote.textContent = '今天 ' + ledger.today + ' 分 / 本週 ' + _formatStudyHours(ledger.week) + '；補紀錄不改答題率。';
   }
 }
 
@@ -4975,6 +5029,7 @@ function renderStudyPlanNavCount(actionable, completed){
 function setStudyCloudState(title, meta, detail){
   var el = document.getElementById('study-cloud-state');
   if(!el) return;
+  el.classList.toggle('is-quiet', /已接上|已同步|已接序號/.test(String(meta || title || '')));
   el.innerHTML = '<summary><b>' + esc(title) + '</b><span>' + esc(meta || '') + '</span></summary>'
     + '<div class="study-cloud-detail">' + detail + '</div>';
 }
@@ -4994,20 +5049,20 @@ function renderStudyCloudState(remotePlan){
   if(status === 'ready'){
     if(cloudItems.length){
       setStudyCloudState(
-        '雲端計畫已接上',
-        '已接上 ' + cloudItems.length + ' 筆',
-        '接下來的私人課表只屬於這個帳號。' + sourceCopy + '換裝置登入後也會看到。'
+        '雲端已同步',
+        cloudItems.length + ' 筆私人課表',
+        sourceCopy + '只在你的帳號；換裝置登入後也會看到。'
       );
     } else {
-      setStudyCloudState('雲端計畫已接上', '已接序號', '換裝置登入後，也會看到你的私人讀書計畫。');
+      setStudyCloudState('雲端已同步', '已接序號', '私人讀書計畫會跟著這個帳號。');
     }
     return;
   }
   if(status === 'unavailable'){
-    setStudyCloudState('雲端同步準備中', '先本機保存', '目前先存在這台裝置；資料表上線後再同步到帳號。');
+    setStudyCloudState('雲端同步準備中', '先本機保存', '目前先存在這台裝置。');
     return;
   }
-  setStudyCloudState('先存在這台裝置', '可先排課', '排課、補紀錄都能先用；登入後會盡量同步到你的帳號。');
+  setStudyCloudState('先存在這台裝置', '可先排課', '輸入序號後再同步到帳號。');
 }
 
 async function trySyncLocalStudyAfterLogin(){
@@ -5022,7 +5077,7 @@ async function trySyncLocalStudyAfterLogin(){
     return;
   }
   var plannedItems = _actionableStudyItems(local.items || []);
-  setStudyCloudState('本機讀書計畫已接回', '同步中', '排課項目會嘗試同步；補紀錄會在下次儲存時同步讀書時數。');
+  setStudyCloudState('本機讀書計畫已接回', '同步中', '排課項目會嘗試同步。');
   if(!plannedItems.length){
     localStorage.setItem(STUDY_AFTER_LOGIN_SYNC_DONE_KEY, new Date().toISOString());
     localStorage.removeItem(STUDY_AFTER_LOGIN_SYNC_KEY);
@@ -5042,11 +5097,11 @@ async function trySyncLocalStudyAfterLogin(){
       })
     });
     if(res && res.ok){
-      setStudyCloudState('本機讀書計畫已接回', '已同步 ' + (res.count || plannedItems.length) + ' 筆', '補紀錄會在下次儲存時同步讀書時數。');
+      setStudyCloudState('本機讀書計畫已接回', '已同步 ' + (res.count || plannedItems.length) + ' 筆', '補紀錄會另寫入時數。');
       localStorage.setItem(STUDY_AFTER_LOGIN_SYNC_DONE_KEY, doneKey);
       localStorage.removeItem(STUDY_AFTER_LOGIN_SYNC_KEY);
     } else {
-      setStudyCloudState('本機讀書計畫已接回', '稍後再同步', esc(_studySaveMessage(res, '雲端同步稍後再試，本機資料不會消失。')));
+      setStudyCloudState('本機讀書計畫已接回', '稍後再同步', esc(_studySaveMessage(res, '雲端稍後再試，本機資料不會消失。')));
     }
   }catch(e){
     setStudyCloudState('本機讀書計畫已接回', '先本機保存', '網路暫時不穩，本機資料不會消失。');
@@ -5154,10 +5209,10 @@ function renderStudyTimeSettings(){
   var remainingHours = Math.max(0, totalHours - (ledger.accumulated / 60));
   var weeks = weeklyHours ? Math.ceil(remainingHours / weeklyHours) : 0;
   if(hint){
-    hint.textContent = weeks ? ('照這個速度約 ' + weeks + ' 週；今天先留 ' + todayMinutes + ' 分鐘。時間設定只影響建議。') : '時間設定只影響建議，不會改答題正確率。';
+    hint.textContent = weeks ? ('約 ' + weeks + ' 週；今天留 ' + todayMinutes + ' 分。') : '只影響建議，不改答題率。';
   }
   if(summary){
-    summary.textContent = '今天已讀 ' + ledger.today + ' 分鐘；本週已讀 ' + _formatStudyHours(ledger.week) + '；目標 ' + totalHours + ' 小時，今天預留 ' + todayMinutes + ' 分鐘。';
+    summary.textContent = '累積 ' + _formatStudyHours(ledger.accumulated) + '；本週 ' + _formatStudyHours(ledger.week) + '；今天 ' + ledger.today + ' 分。';
   }
   if(impact){
     impact.textContent = weeks ? ('剩約 ' + weeks + ' 週') : '先填時間';
@@ -7745,10 +7800,15 @@ function setDashboardSideCollapsed(collapsed){
   document.body.classList.toggle('side-collapsed', on);
   try{ localStorage.setItem(DASHBOARD_SIDE_COLLAPSED_KEY, on ? '1' : '0'); }catch(e){}
   var button = document.querySelector('.menu-btn');
+  var modeButton = document.getElementById('side-mode-btn');
   if(button){
     button.setAttribute('aria-expanded', on ? 'false' : 'true');
     button.setAttribute('aria-label', on ? '顯示導覽' : '隱藏導覽');
     button.setAttribute('title', on ? '顯示導覽' : '隱藏導覽');
+  }
+  if(modeButton){
+    modeButton.textContent = on ? '固定導覽' : '隱藏導覽';
+    modeButton.setAttribute('aria-pressed', on ? 'false' : 'true');
   }
 }
 
@@ -7984,9 +8044,9 @@ function renderStudyPlanItems(plan){
     scheduleActiveNavRefresh();
     return;
   }
-  var completed = completedAll.slice(0,5);
+  var completed = completedAll.slice(0,3);
   var completedHtml = completed.length
-    ? '<div class="study-plan-count done"><b>最近完成 / 補紀錄</b>：' + completed.length + ' 筆已留下狀態。</div>'
+    ? '<div class="study-plan-count done is-compact"><b>最近完成 / 補紀錄</b><span>' + completedAll.length + ' 筆已留下狀態</span></div>'
       + completed.map(function(item){
         var meta = [item.subject || '', item.scheduled_time || '', item.source_label || ''].filter(Boolean).join(' · ');
         return '<div class="study-plan-item study-plan-item-done">'
@@ -8004,11 +8064,14 @@ function renderStudyPlanItems(plan){
   }
   var next = actionable[0] || {};
   var nextText = [next.scheduled_date || '', next.scheduled_time || '', next.title || next.subject || '讀書計畫'].filter(Boolean).join(' · ');
-  var summary = '<div class="study-plan-count"><b>接下來</b>：' + actionable.length + ' 筆'
+  var hiddenCount = Math.max(0, actionable.length - 4);
+  var summary = '<div class="study-plan-count is-compact"><span><b>接下來</b> ' + actionable.length + ' 筆'
     + (nextText ? '；下一筆：<b>' + esc(nextText) + '</b>' : '')
-    + '<br>完成、改期或取消都會保留紀錄。'
+    + '</span>'
+    + (hiddenCount ? '<button class="study-plan-more" type="button" data-collapsed-label="展開全部 ' + hiddenCount + ' 筆" onclick="toggleStudyPlanList(this)">展開全部 ' + hiddenCount + ' 筆</button>' : '')
     + '</div>';
-  el.innerHTML = actionMessage + summary + actionable.slice(0,8).map(function(item){
+  el.classList.remove('show-all');
+  el.innerHTML = actionMessage + summary + actionable.map(function(item, idx){
     var meta = [item.subject || '', item.scheduled_time || '', item.source_label || ''].filter(Boolean).join(' · ');
     var key = _studyItemKey(item);
     var canEdit = item.source_label !== '補紀錄 ' + (item.minutes || '') + ' 分鐘';
@@ -8021,7 +8084,7 @@ function renderStudyPlanItems(plan){
     var actionHtml = learningActions || editActions
       ? '<span class="study-plan-actions">' + learningActions + editActions + '</span>'
       : '';
-    return '<div class="study-plan-item">'
+    return '<div class="study-plan-item' + (idx >= 4 ? ' is-hidden' : '') + '">'
       + '<span class="date">' + esc(item.scheduled_date || '') + '</span>'
       + '<span class="title">' + esc(item.title || item.subject || '讀書計畫') + '</span>'
       + '<span class="status ' + esc(_studyStatusClass(item.status)) + '">' + esc(_studyStatusLabel(item.status)) + '</span>'
@@ -8030,6 +8093,14 @@ function renderStudyPlanItems(plan){
       + '</div>';
   }).join('') + completedHtml;
   scheduleActiveNavRefresh();
+}
+
+function toggleStudyPlanList(button){
+  var el = document.getElementById('study-plan-items');
+  if(!el) return;
+  var show = !el.classList.contains('show-all');
+  el.classList.toggle('show-all', show);
+  if(button) button.textContent = show ? '收起清單' : button.getAttribute('data-collapsed-label') || '展開全部';
 }
 
 function renderStudyTimeOutcome(items){

@@ -499,9 +499,10 @@ test('study today action buttons are sized for mobile app shells', () => {
   assert.doesNotMatch(actionBlock, />看弱點分析</);
   assert.doesNotMatch(actionBlock, />設定讀書課程</);
   assert.match(active, /\.study-actions\{[\s\S]*display:grid/);
-  assert.match(active, /\.study-actions\{[\s\S]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
-  assert.match(active, /\.study-actions\{[\s\S]*gap:12px 18px/);
-  assert.match(active, /\.study-action-group\{[\s\S]*grid-template-columns:auto repeat\(3,minmax\(0,1fr\)\)/);
+  assert.match(active, /\.study-actions\{[\s\S]*grid-template-columns:max-content max-content/);
+  assert.match(active, /\.study-actions\{[\s\S]*gap:12px 28px/);
+  assert.match(active, /\.study-actions\{[\s\S]*justify-content:start/);
+  assert.match(active, /\.study-action-group\{[\s\S]*grid-template-columns:auto repeat\(3,minmax\(112px,max-content\)\)/);
   assert.match(active, /\.study-action-group\.secondary \.study-action-link\{[\s\S]*background:rgba\(255,255,255,\.025\)/);
   assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?min-height:44px/);
   assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?font-family:var\(--serif\)/);
@@ -554,7 +555,7 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.match(recap, /id="study-overview-hours"[\s\S]*累積 0 小時/);
   assert.match(recap, /id="study-overview-status"[\s\S]*待讀 0 \/ 完成 0/);
   assert.match(recap, /<div class="study-time-wrap" id="study-time-box"/);
-  assert.match(recap, /id="study-time-summary"[\s\S]*今天已讀 0 分鐘；本週已讀 0 小時；目標 500 小時/);
+  assert.match(recap, /id="study-time-summary"[\s\S]*累積 0 小時；本週 0 小時；今天 0 分/);
   assert.match(recap, /id="study-time-impact"[\s\S]*剩約 42 週/);
   assert.match(recap, /id="study-time-outcome"[\s\S]*還沒安排；可先預覽本週建議或自己設定/);
   assert.match(recap, /class="study-time-summary-card"[\s\S]*讀書時間[\s\S]*修改時間/);
@@ -562,7 +563,7 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.match(recap, /id="study-weekly-hours"[\s\S]*每週可讀/);
   assert.match(recap, /建議總時數可以改/);
   assert.match(active, /function _studyAccumulatedMinutes/);
-  assert.match(active, /summary\.textContent = '今天已讀 ' \+ ledger\.today/);
+  assert.match(active, /summary\.textContent = '累積 ' \+ _formatStudyHours\(ledger\.accumulated\)/);
   assert.match(active, /impact\.textContent = weeks \? \('剩約 ' \+ weeks \+ ' 週'\) : '先填時間'/);
   assert.match(active, /時間設定只影響建議；按排入後才保存/);
   assert.match(active, /排入本週計畫/);
@@ -582,11 +583,11 @@ test('study planning overview explains next item save scope and completion statu
   assert.match(fn, /study-overview-status/);
   assert.match(fn, /localStorage\.getItem\('sofa_token'\)/);
   assert.match(fn, /localStorage\.getItem\('sofa_uid'\)/);
-  assert.match(fn, /已接序號，會同步到帳號/);
+  assert.match(fn, /已接序號/);
   assert.match(fn, /只在這台裝置/);
-  assert.match(fn, /今天已讀/);
-  assert.match(fn, /本週已讀/);
-  assert.match(fn, /補紀錄不會改答題正確率/);
+  assert.match(fn, /今天/);
+  assert.match(fn, /本週/);
+  assert.match(fn, /補紀錄不改答題率/);
   assert.match(extractFunction(active, 'renderStudyPlanItems'), /renderStudyPlanningOverview\(items, window\.__studyTimeSummary \|\| null\)/);
   assert.match(extractFunction(active, 'renderStudyCloudState'), /renderStudyPlanningOverview\(window\.__studyPlanItemCache \|\| \[\], window\.__studyTimeSummary \|\| null\)/);
 });
@@ -596,7 +597,7 @@ test('study time settings stay collapsed into a readable summary until editing',
   assert.ok(recapStart >= 0, 'study recap must exist');
   const recap = active.slice(recapStart, recapStart + 8200);
   assert.match(recap, /class="study-time-summary-card"/);
-  assert.match(recap, /id="study-time-purpose"[\s\S]*預覽只給建議；按「排入本週計畫」才保存到私人計畫/);
+  assert.match(recap, /id="study-time-purpose"[\s\S]*改時間只影響建議/);
   assert.match(recap, /id="study-time-edit-panel" hidden/);
   assert.match(recap, /aria-expanded="false"[\s\S]*onclick="toggleStudyTimeEditor\(\)"[\s\S]*修改時間/);
   assert.match(active, /function toggleStudyTimeEditor/);
@@ -682,7 +683,7 @@ test('study today renders personal plan items returned by the study API', () => 
 
 test('study today explains cloud save status in learner words', () => {
   assert.match(active, /function renderStudyCloudState/);
-  assert.match(active, /雲端計畫已接上/);
+  assert.match(active, /雲端已同步/);
   assert.match(active, /雲端同步準備中/);
   assert.match(active, /先存在這台裝置/);
   assert.match(active, /personal_plan[\s\S]*status/);
@@ -696,7 +697,7 @@ test('study cloud state names the connected private schedule source and visible 
   assert.match(fn, /cloudItems\.length/);
   assert.match(fn, /source_label/);
   assert.match(helper, /<summary>/);
-  assert.match(fn, /已接上 ' \+ cloudItems\.length \+ ' 筆/);
+  assert.match(fn, /cloudItems\.length \+ ' 筆私人課表/);
   assert.match(fn, /來源：/);
   assert.match(fn, /setStudyCloudState/);
   assert.match(active, /\.study-cloud-state summary\{/);
@@ -715,7 +716,7 @@ test('study today shows the next private plan near the first action area', () =>
   const nextFn = extractFunction(active, 'renderStudyNextPlan');
   assert.match(nextFn, /_actionableStudyItems/);
   assert.match(nextFn, /_studyTimeLedger/);
-  assert.match(nextFn, /今天已讀/);
+  assert.match(nextFn, /今天/);
   assert.match(nextFn, /累積/);
   assert.match(nextFn, /下一項/);
   assert.doesNotMatch(nextFn, /今天留/);
@@ -741,7 +742,7 @@ test('study next plan card can mark the next item complete without hunting the l
 test('returning learners get a compact next card without onboarding-style extra links', () => {
   const nextFn = extractFunction(active, 'renderStudyNextPlan');
   assert.match(nextFn, /下一項/);
-  assert.match(nextFn, /今天已讀/);
+  assert.match(nextFn, /今天/);
   assert.match(nextFn, /累積/);
   assert.match(nextFn, /完成這項/);
   assert.doesNotMatch(nextFn, /studyPlanItemActionLinks/);
@@ -775,7 +776,7 @@ test('study plan items show explicit status text for completion tracking', () =>
   const fn = extractFunction(active, 'renderStudyPlanItems');
   assert.doesNotMatch(fn, /狀態：/);
   assert.match(active, /接下來/);
-  assert.match(active, /完成、改期或取消都會保留紀錄/);
+  assert.match(active, /展開全部/);
   assert.match(active, /已完成/);
   assert.match(active, /改期/);
 });
@@ -950,7 +951,7 @@ test('study time planning is editable and persisted locally', () => {
   assert.match(active, /id="study-today-minutes-input"/);
   assert.match(active, /function saveStudyTimeSettings/);
   assert.match(active, /local\.settings =/);
-  assert.match(active, /照這個速度約/);
+  assert.match(active, /約 ' \+ weeks \+ ' 週/);
   assert.match(active, /function renderStudyTimeOutcome/);
   assert.match(active, /已套用到本週建議；還沒寫進帳號/);
   assert.match(active, /時間設定只影響建議；按排入後才保存/);
@@ -966,8 +967,8 @@ test('study time overview renders cloud accumulated hours from today API', () =>
   assert.match(active, /today_logged_minutes/);
   assert.match(active, /week_logged_minutes/);
   assert.match(active, /total_logged_minutes/);
-  assert.match(active, /今天已讀/);
-  assert.match(active, /本週已讀/);
+  assert.match(active, /今天/);
+  assert.match(active, /本週/);
   assert.match(active, /renderStudyPlanningOverview\(items, window\.__studyTimeSummary/);
 });
 
@@ -1025,14 +1026,14 @@ test('series planning can generate local weekly items before API sync', () => {
 
 test('saved study plans show an immediate readable summary and focus the plan list', () => {
   assert.match(active, /class="study-plan-count"/);
-  assert.match(active, /接下來<\/b>：' \+ actionable\.length \+ ' 筆/);
+  assert.match(active, /接下來<\/b> ' \+ actionable\.length \+ ' 筆/);
   assert.match(active, /下一筆：<b>/);
   assert.match(active, /function _studyStatusLabel/);
   assert.match(active, /已完成/);
   assert.match(active, /待讀/);
   assert.match(active, /function _studyStatusClass/);
   assert.match(active, /status-planned/);
-  assert.match(active, /完成、改期或取消都會保留紀錄/);
+  assert.match(active, /study-plan-more/);
   assert.match(active, /function focusStudyPlanItems/);
   assert.match(active, /scrollIntoView\(\{ block:'nearest', behavior:'smooth' \}\)/);
   assert.match(active, /_addLocalStudyItems[\s\S]*focusStudyPlanItems\(\)/);
@@ -1212,7 +1213,7 @@ test('study planning reconnects local progress after serial login', () => {
   assert.match(fn, /setStudyCloudState\('本機讀書計畫已接回'/);
   assert.doesNotMatch(fn, /study-cloud-state'[\s\S]*\.innerHTML\s*=/);
   assert.match(active, /排課項目會嘗試同步/);
-  assert.match(active, /補紀錄會在下次儲存時同步讀書時數/);
+  assert.match(active, /補紀錄會另寫入時數/);
   assert.match(active, /\/api\/me\/study\/plan-items\/bulk/);
   assert.match(active, /after_login_local_handoff/);
   assert.match(active, /_actionableStudyItems\(local\.items \|\| \[\]\)/);
