@@ -21,6 +21,41 @@ function contentType(file) {
   return 'application/octet-stream';
 }
 
+function futureIsoDate(days) {
+  const d = new Date();
+  d.setDate(d.getDate() + days);
+  return d.toISOString().slice(0, 10);
+}
+
+function visualStudySeriesItems(firstStatus = 'planned') {
+  return [
+    {
+      id: 'visual-study-series-1',
+      track_key: 'bookkeeper',
+      subject: '租稅申報實務',
+      title: '視覺驗收任務 1',
+      sequence_no: 1,
+      scheduled_date: futureIsoDate(1),
+      scheduled_time: '19:00',
+      source_label: '自排',
+      status: firstStatus,
+      notes: 'visual qa'
+    },
+    {
+      id: 'visual-study-series-2',
+      track_key: 'bookkeeper',
+      subject: '租稅申報實務',
+      title: '視覺驗收任務 2',
+      sequence_no: 2,
+      scheduled_date: futureIsoDate(8),
+      scheduled_time: '19:00',
+      source_label: '自排',
+      status: 'planned',
+      notes: 'visual qa'
+    }
+  ];
+}
+
 function startServer() {
   const server = http.createServer((req, res) => {
     const rawPath = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
@@ -144,8 +179,8 @@ function apiPayload(url) {
         '規範意旨與條文解析': '視覺驗收第二段：先看條文原文，再看解析。',
         '執業要點與考情提示': '視覺驗收第三段：從題目點看法條時，必須直接看到該條，不要只回到搜尋或法規首頁。',
         '核心摘要與記憶策略': '視覺驗收第四段：前四段是免費試讀的主體。',
-        '修法與聯覺備註': '視覺驗收第五段：修法、舊題數字、考點變動會在完整會員版中展開。',
-        '相關法規及注意事項': '視覺驗收第六段：同法第13條、同法第15條等關聯條文會在完整會員版中串起來。'
+        '修法與聯覺備註': '• 2026修法狀況：現行條文\n  ◦ 視覺驗收第五段：修法、舊題數字、考點變動會在完整會員版中展開。\n• 實務聯覺：公司法第29條可對照任免程序',
+        '相關法規及注意事項': '• 關聯條文：刑法317、318、319條;地政士法26條(地政士守密義務)\n  ◦ 視覺驗收第六段：同法第13條、同法第15條等關聯條文會在完整會員版中串起來。\n• 法規對比：會計師法43條等專業守密規定並列'
       }
     };
   }
@@ -164,6 +199,13 @@ function apiPayload(url) {
       today: {
         blocks: [{ display_name: '扣繳所得範圍', subject: '租稅相關法規', phase_key: 'core', question_signal: 2, law_names: ['所得稅法'] }]
       }
+    };
+  }
+  if (u.pathname === '/api/me/study/series') {
+    return {
+      ok: true,
+      series_id: 'visual-study-series',
+      items: visualStudySeriesItems()
     };
   }
   if (u.pathname === '/api/me/quiz-stats') {
@@ -219,8 +261,11 @@ function apiPayload(url) {
 }
 
 async function installApiMocks(page, options = {}) {
+  let studySeriesSaved = false;
+  let studyFirstDone = false;
   await page.route('https://sofa-engine-api.onrender.com/**', route => {
     const request = route.request();
+    const requestUrl = new URL(request.url());
     if (request.url().includes('/api/me/answer') && request.method() === 'POST') {
       if (options.answerPosts) {
         try { options.answerPosts.push(JSON.parse(request.postData() || '{}')); }
@@ -230,6 +275,42 @@ async function installApiMocks(page, options = {}) {
         status: 200,
         contentType: 'application/json; charset=utf-8',
         body: JSON.stringify({ ok: true, source: 'visual_entry_qa' })
+      });
+    }
+    if (requestUrl.pathname === '/api/me/study/series' && request.method() === 'POST') {
+      studySeriesSaved = true;
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json; charset=utf-8',
+        body: JSON.stringify({ ok: true, series_id: 'visual-study-series', items: visualStudySeriesItems() })
+      });
+    }
+    if (/^\/api\/me\/study\/plan-item\/[^/]+\/status$/.test(requestUrl.pathname) && request.method() === 'POST') {
+      studyFirstDone = true;
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json; charset=utf-8',
+        body: JSON.stringify({ ok: true, item: visualStudySeriesItems('done')[0] })
+      });
+    }
+    if (requestUrl.pathname === '/api/me/study/hours' && request.method() === 'POST') {
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json; charset=utf-8',
+        body: JSON.stringify({ ok: true, hours_log: { id: 'visual-hours-log' } })
+      });
+    }
+    if (requestUrl.pathname === '/api/me/study/today' && (studySeriesSaved || studyFirstDone)) {
+      const payload = apiPayload(request.url());
+      payload.personal_plan = {
+        status: 'ready',
+        source: 'visual_qa',
+        items: studyFirstDone ? visualStudySeriesItems('done') : visualStudySeriesItems()
+      };
+      return route.fulfill({
+        status: 200,
+        contentType: 'application/json; charset=utf-8',
+        body: JSON.stringify(payload)
       });
     }
     route.fulfill({
@@ -807,7 +888,7 @@ async function studyPlanFlowCase(browser, baseUrl) {
   await page.fill('#study-plan-title', '視覺驗收任務');
   await page.fill('#study-plan-subject', '租稅申報實務');
   await page.fill('#study-plan-count', '2');
-  await page.fill('#study-plan-start', '2026-07-01');
+  await page.fill('#study-plan-start', new Date(Date.now() + 86400000).toISOString().slice(0, 10));
   await page.click('#study-plan-panel .study-plan-save');
   await page.waitForFunction(() => /已先排入本機|已排入/.test(document.querySelector('#study-plan-items')?.innerText || ''), null, { timeout: 9000 });
   let overview = await page.locator('#study-overview-status').innerText();
@@ -830,6 +911,8 @@ async function studyPlanFlowCase(browser, baseUrl) {
   await page.fill('#study-record-note', '視覺驗收補紀錄');
   await page.click('#study-record-panel .study-plan-save');
   await page.waitForFunction(() => /待讀 1 \/ 完成 2/.test(document.querySelector('#study-overview-status')?.innerText || ''), null, { timeout: 9000 });
+  overview = await page.locator('#study-overview-status').innerText();
+  nav = await page.locator('#nav-ct-plan').innerText();
   const message = await page.locator('#study-plan-items .study-plan-count').first().innerText();
   if (!/補紀錄|已先保存|已同步/.test(message)) {
     throw new Error(`study record save result is not visible outside the closed panel: ${message}`);

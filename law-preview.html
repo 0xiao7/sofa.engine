@@ -229,7 +229,24 @@ a{color:inherit;text-decoration:none}
 }
 .section-body{
   font-size:14.5px;line-height:1.85;color:var(--cream-2);
-  white-space:pre-wrap;
+  white-space:normal;
+}
+.section-body .preview-line,
+.section-locked-preview .preview-line{
+  margin:7px 0;
+}
+.section-body .preview-head,
+.section-locked-preview .preview-head{
+  padding-left:1.05em;
+  text-indent:-1.05em;
+}
+.section-body .preview-sub,
+.section-locked-preview .preview-sub{
+  margin-left:2.4em;
+  padding-left:1.7em;
+  text-indent:-1.35em;
+  border-left:1px solid rgba(231,187,167,.28);
+  color:rgba(245,240,234,.72);
 }
 .section.locked{
   border:1px solid rgba(231,187,167,.24);
@@ -482,6 +499,10 @@ const tok = localStorage.getItem('sofa_token') || '';
 let readerPaid = !!(uid || tok);
 let currentArticle = null;
 
+function readerModeLabel(){
+  return readerPaid ? '法本閱讀' : '法本試讀';
+}
+
 function _authH(extra){
   const h = extra ? {...extra} : {};
   if(tok) h['Authorization'] = 'Bearer ' + tok;
@@ -516,6 +537,7 @@ function resolveReaderEntitlement(){
       const next = _profileMeansPaid(profile);
       if(next !== readerPaid){
         readerPaid = next;
+        updateLawHeader();
         if(currentArticle) renderDetail(currentArticle);
       }
       return readerPaid;
@@ -531,7 +553,8 @@ const crumb = document.getElementById('crumb');
 const listLabel = document.getElementById('listLabel');
 
 function updateLawHeader(){
-  document.title = `${lawName} · SoFa 法本試讀`;
+  document.title = `${lawName} · SoFa ${readerModeLabel()}`;
+  document.querySelector('.brand').textContent = `SoFa Engine · ${readerModeLabel()}`;
   lawTitle.textContent = lawName;
   crumb.textContent = `SoFa 法本 · ${lawName}`;
 }
@@ -756,7 +779,7 @@ function renderPreviewSections(sections,currentLawName){
     const body = sections[label] || '';
     if(!body && seg <= 4) return '';
     const visibleText = cleanVisibleSpeechCueText(body || PREVIEW_LOCK_LEADS[seg] || '');
-    const html = linkifyLawRefs(escapeHtml(visibleText), currentLawName);
+    const html = formatPreviewSectionBody(visibleText, currentLawName);
     if(shouldLockAdvancedSections() && seg >= 5){
       return `
         <div class="section locked" data-seg="${seg}">
@@ -781,6 +804,29 @@ function renderPreviewSections(sections,currentLawName){
       </div>
     `;
   }).join('');
+}
+
+function formatPreviewSectionBody(text,currentLawName){
+  const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n');
+  const out = lines.map(raw => {
+    if(!raw || !raw.trim()) return '';
+    const lead = (raw.match(/^[ \t　]*/) || [''])[0];
+    let body = raw.slice(lead.length).trim();
+    let isSub = lead.length >= 2 || /　/.test(lead);
+    const bullet = body.match(/^([•◦‣·▪])\s*/);
+    if(bullet){
+      isSub = bullet[1] === '◦';
+      body = body.slice(bullet[0].length).trim();
+    }
+    const visibleText = body;
+    const html = linkifyLawRefs(escapeHtml(visibleText), currentLawName);
+    if(!html) return '';
+    const marker = isSub ? '◦ ' : '• ';
+    return '<p class="preview-line ' + (isSub ? 'preview-sub' : 'preview-head') + '">' + marker + html + '</p>';
+  }).filter(Boolean);
+  if(out.length) return out.join('');
+  const visibleText = String(text || '').trim();
+  return linkifyLawRefs(escapeHtml(visibleText), currentLawName);
 }
 
 function scrollReaderIntoView(){
@@ -810,21 +856,59 @@ function cleanCrossRefLawName(lawName){
 }
 function linkifyLawRefs(escapedText,currentLawName){
   let lastLaw = null;
-  return String(escapedText || '').replace(/(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\s《》]{2,48}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第(\d+)條(?:之(\d+))?/g, (match, bracketLaw, plainLaw, sameLaw, art, sub) => {
+  const linkedAnchors = [];
+  function stashLinked(html){
+    const key = '@@SOFA_XREF_' + linkedAnchors.length + '@@';
+    linkedAnchors.push(html);
+    return key;
+  }
+  const lawTypes = '(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)';
+  const lawPat = '(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\\s《》()（）;；]{1,40}' + lawTypes + '))';
+  const numPat = '[0-9０-９一二三四五六七八九十百千零兩两]+(?:\\s*(?:條?之|-)\\s*[0-9０-９一二三四五六七八九十百千零兩两]+)?';
+  const articleSeq = new RegExp(lawPat + '第?\\s*(' + numPat + '(?:\\s*(?:、|,|，|及|和|與)\\s*第?\\s*' + numPat + ')+)\\s*條', 'g');
+  function splitLawPrefix(rawLaw, law){
+    const raw = String(rawLaw || '');
+    return raw.endsWith(law) ? raw.slice(0, raw.length - law.length) : '';
+  }
+  function articleHref(law, art){
+    return (typeof readerHrefFor === 'function'
+      ? readerHrefFor(law, art)
+      : 'law-preview.html?law=' + encodeURIComponent(law.replace(/\\/g, '')) + '&art=' + encodeURIComponent(art)
+    ).replace(/&/g, '&amp;');
+  }
+  function normalizeArtLabel(value){
+    return String(value || '').replace(/\s+/g, '').replace(/條?之/g, '之').replace(/-/g, '之').replace(/^第/, '').replace(/條$/, '');
+  }
+  const sequenced = String(escapedText || '').replace(articleSeq, (match, bracketLaw, plainLaw, nums) => {
+    const rawLaw = bracketLaw || plainLaw || '';
+    const law = cleanCrossRefLawName(rawLaw);
+    if(!law || law === '同法' || law === '本法') return match;
+    lastLaw = law;
+    const prefix = bracketLaw ? '' : splitLawPrefix(rawLaw, law);
+    const tokens = nums.split(/(、|,|，|及|和|與)/);
+    let first = true;
+    const linked = tokens.map(token => {
+      if(/^(、|,|，|及|和|與)$/.test(token)) return token;
+      const art = normalizeArtLabel(token);
+      if(!art) return token;
+      const label = first ? law + (String(token).trim().startsWith('第') ? String(token).trim() : art) + '條' : (String(token).trim().startsWith('第') ? String(token).trim() : art + '條');
+      first = false;
+      return '<a class="crossref" href="' + articleHref(law, art) + '">' + label + '</a>';
+    }).join('');
+    return prefix + stashLinked(linked);
+  });
+  return sequenced.replace(/(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\s《》()（）;；]{1,40}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第?(\d+)條(?:之(\d+))?/g, (match, bracketLaw, plainLaw, sameLaw, art, sub) => {
     const law = cleanCrossRefLawName(bracketLaw || plainLaw || '');
-    if(law) lastLaw = law;
-    else if(sameLaw && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
+    if(law && law !== '同法' && law !== '本法') lastLaw = law;
+    else if((sameLaw || law === '同法' || law === '本法') && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
     if(!lastLaw) return match;
     const fullArt = art + (sub ? '之' + sub : '');
-    const href = (typeof readerHrefFor === 'function'
-      ? readerHrefFor(lastLaw, fullArt)
-      : 'law-preview.html?law=' + encodeURIComponent(lastLaw.replace(/\\/g, '')) + '&art=' + encodeURIComponent(fullArt)
-    ).replace(/&/g, '&amp;');
+    const href = articleHref(lastLaw, fullArt);
     const prefixMatch = match.match(/^(.+?(?:可看|請看|請參照|請見|另參照|另見)|搭配|參照|依|按|見|與)(.+)$/);
     const prefix = prefixMatch ? prefixMatch[1] : '';
     const label = prefixMatch ? prefixMatch[2] : match;
     return prefix + '<a class="crossref" href="' + href + '">' + label + '</a>';
-  });
+  }).replace(/@@SOFA_XREF_(\d+)@@/g, (match, idx) => linkedAnchors[Number(idx)] || match);
 }
 function buildCpiAdjustmentNote(article,sections){
   const articleLawName = article?.law_name || lawName || '';
@@ -910,7 +994,7 @@ async function loadLawReader(nextLaw, opts){
       return;
     }
     articlesCache = list.articles;
-    lawMeta.innerHTML = `點清單任一條可試讀完整六段`;
+    lawMeta.innerHTML = readerPaid ? `點清單任一條可閱讀完整內容` : `點清單任一條可試讀完整六段`;
 
     // ── context bar:立刻能算的(重要性 / 條數) ──
     const ctxBar = document.getElementById('ctxBar');

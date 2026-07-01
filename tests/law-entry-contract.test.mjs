@@ -158,6 +158,16 @@ test('law preview analysis links cross-referenced law articles to the reader', (
   const linkedConjunctionLaw = sandbox.linkify('與刑法第214條一起看', '商業會計法');
   assert.match(linkedConjunctionLaw, /law=%E5%88%91%E6%B3%95&amp;art=214/);
   assert.doesNotMatch(linkedConjunctionLaw, /law=%E8%88%87%E5%88%91%E6%B3%95/);
+
+  const linkedArticleSeries = sandbox.linkify('刑法317、318、319條;地政士法26條(地政士守密義務)', '記帳士法');
+  assert.match(linkedArticleSeries, /law=%E5%88%91%E6%B3%95&amp;art=317/);
+  assert.match(linkedArticleSeries, /law=%E5%88%91%E6%B3%95&amp;art=318/);
+  assert.match(linkedArticleSeries, /law=%E5%88%91%E6%B3%95&amp;art=319/);
+  assert.match(linkedArticleSeries, /law=%E5%9C%B0%E6%94%BF%E5%A3%AB%E6%B3%95&amp;art=26/);
+  assert.doesNotMatch(linkedArticleSeries, /law=.*%E5%9C%B0%E6%94%BF%E5%A3%AB%E5%AE%88%E5%AF%86/);
+
+  const linkedProfessionalLaw = sandbox.linkify('會計師法43條等專業守密規定並列', '記帳士法');
+  assert.match(linkedProfessionalLaw, /law=%E6%9C%83%E8%A8%88%E5%B8%AB%E6%B3%95&amp;art=43/);
 });
 
 test('law preview keeps quiz return context when readers follow cross references', () => {
@@ -256,6 +266,10 @@ test('law preview only locks advanced sections for explicitly free readers', () 
   assert.match(preview, /const uid = localStorage\.getItem\('sofa_uid'\) \|\| ''/);
   assert.match(preview, /const tok = localStorage\.getItem\('sofa_token'\) \|\| ''/);
   assert.match(preview, /let readerPaid = !!\(uid \|\| tok\)/);
+  assert.match(preview, /function readerModeLabel/);
+  assert.match(preview, /readerPaid \? '法本閱讀' : '法本試讀'/);
+  assert.match(preview, /document\.title = `\$\{lawName\} · SoFa \$\{readerModeLabel\(\)\}`/);
+  assert.match(preview, /document\.querySelector\('\.brand'\)\.textContent = `SoFa Engine · \$\{readerModeLabel\(\)\}`/);
   assert.match(preview, /function shouldLockAdvancedSections/);
   assert.match(preview, /return !readerPaid/);
   assert.match(preview, /function resolveReaderEntitlement/);
