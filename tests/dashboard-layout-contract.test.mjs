@@ -404,6 +404,10 @@ test('dashboard article labels normalize raw article numbers before wrapping tex
     JSON.parse(JSON.stringify(sandbox.helpers.articleLabelParts('§ 72 | 電子會計資料不實罪', '§ 72 | 電子會計資料不實罪'))),
     { article_no: '72', title: '電子會計資料不實罪' },
   );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(sandbox.helpers.articleLabelParts('§ 08', '第 08 條'))),
+    { article_no: '08', title: '' },
+  );
   assert.equal(sandbox.helpers.formatLawArticleCount(567), '567 條');
   assert.equal(sandbox.helpers.formatLawArticleCount(''), '');
   assert.equal(sandbox.helpers.formatLawArticleCount('—'), '');

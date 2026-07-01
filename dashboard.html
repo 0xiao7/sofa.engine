@@ -2940,8 +2940,8 @@
   .acc-inner .kw{background:rgba(231,187,167,.32);padding:1px 5px;border-radius:2px;color:var(--navy);font-weight:500}
   .acc-inner .sec-h{margin:13px 0 5px;color:var(--navy);font-weight:600}
   .acc-inner .sec-h:first-child{margin-top:0}
-  .acc-inner .sec-i{position:relative;padding-left:20px;margin:4px 0}
-  .acc-inner .sec-i::before{content:'';position:absolute;left:6px;top:.66em;width:4px;height:4px;border:1.3px solid var(--peach-3);border-radius:50%;box-sizing:border-box}
+  .acc-inner .sec-i{position:relative;padding-left:44px;margin:9px 0 9px 22px;color:rgba(31,56,72,.74)}
+  .acc-inner .sec-i::before{content:'';position:absolute;left:18px;top:.72em;width:4px;height:4px;border:1.3px solid var(--peach-3);border-radius:50%;box-sizing:border-box}
 
   .dr-foot{padding:18px 28px;background:var(--cream-2);border-top:1px solid var(--cream-3);display:flex;gap:10px;flex-wrap:wrap}
   #dr-review-picker{display:none;width:100%;gap:8px;padding-top:4px}
@@ -3908,7 +3908,7 @@
                 </div>
               </div>
               <div class="study-plan-row">
-                <button class="study-plan-save" type="button" onclick="saveStudySeries()">排入讀書計畫</button>
+                <button class="study-plan-save" id="study-plan-save" type="button" onclick="saveStudySeries()">排入讀書計畫</button>
                 <span class="study-plan-state" id="study-plan-state">適合課程、模考、固定複習或自訂任務。</span>
               </div>
               <div class="study-import">
@@ -3978,7 +3978,7 @@
                 </div>
               </div>
               <div class="study-plan-row">
-                <button class="study-plan-save" type="button" onclick="saveStudyRecordLocal()">儲存補紀錄</button>
+                <button class="study-plan-save" id="study-record-save" type="button" onclick="saveStudyRecordLocal()">儲存補紀錄</button>
                 <span class="study-plan-state" id="study-record-state">登入後會同步讀書時數；離線先存在本機。</span>
               </div>
             </div>
@@ -4560,9 +4560,13 @@ function articleLabelParts(raw, title){
       .replace(new RegExp('^\\s*第\\s*' + ch + '\\s*條?\\s*(?:[|｜:：—]\\s*)?'), '')
       .trim();
   }
+  var safeArt = (art || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  var bareArticleRe = safeArt ? new RegExp('^\\s*§?\\s*(?:第\\s*)?' + safeArt + '\\s*條?\\s*$') : null;
+  if(ttl && bareArticleRe && bareArticleRe.test(ttl)) ttl = '';
+  var rawIsBareArticle = bareArticleRe && bareArticleRe.test(text);
   return {
     article_no: art,
-    title: ttl || fallbackArticleTitle(art || text, '')
+    title: ttl || (rawIsBareArticle ? '' : fallbackArticleTitle(art || text, ''))
   };
 }
 function formatLawArticleCount(value){
@@ -5834,22 +5838,67 @@ function formatLawText(raw){
 
 function _linkifyLaw(escapedText, currentLawName){
   var lastLaw = null;
-  return escapedText.replace(/(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\s《》]{2,48}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第(\d+)條(?:之(\d+))?/g, function(match, bracketLaw, plainLaw, sameLaw, art, sub){
-    var law = bracketLaw || plainLaw || '';
-    if(law) lastLaw = law;
-    else if(sameLaw && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
-    if(!lastLaw) return match;
-    var fullArt = art + (sub ? '之' + sub : '');
+  var linkedAnchors = [];
+  function cleanLawName(lawName){
+    return String(lawName || '')
+      .replace(/^.*?(?:可看|請看|請參照|請見|另參照|另見)/, '')
+      .replace(/^(搭配|參照|依|按|見|與)+/, '')
+      .replace(/[，。、；：\s]+$/, '')
+      .trim();
+  }
+  function splitLawPrefix(rawLaw, law){
+    var raw = String(rawLaw || '');
+    return raw.endsWith(law) ? raw.slice(0, raw.length - law.length) : '';
+  }
+  function articleHref(law, art){
     var back = 'dashboard.html';
     try{ back = 'dashboard.html' + (location.search || '') + (location.hash || ''); }catch(e){}
-    var href = 'law-preview.html?law=' + encodeURIComponent(lastLaw.replace(/\\/g,''))
-      + '&amp;art=' + encodeURIComponent(fullArt)
+    return 'law-preview.html?law=' + encodeURIComponent(law.replace(/\\/g,''))
+      + '&amp;art=' + encodeURIComponent(art)
       + '&amp;from=dashboard&amp;back=' + encodeURIComponent(back);
-    var prefixMatch = match.match(/^(搭配|參照|依|按|見|與)(.+)$/);
+  }
+  function normalizeArtLabel(value){
+    return String(value || '').replace(/\s+/g, '').replace(/條?之/g, '之').replace(/-/g, '之').replace(/^第/, '').replace(/條$/, '');
+  }
+  function stashLinked(html){
+    var key = '@@SOFA_XREF_' + linkedAnchors.length + '@@';
+    linkedAnchors.push(html);
+    return key;
+  }
+  var lawTypes = '(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)';
+  var lawPat = '(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\\s《》()（）;；]{1,40}' + lawTypes + '))';
+  var numPat = '[0-9０-９一二三四五六七八九十百千零兩两]+(?:\\s*(?:條?之|-)\\s*[0-9０-９一二三四五六七八九十百千零兩两]+)?';
+  var articleSeq = new RegExp(lawPat + '第?\\s*(' + numPat + '(?:\\s*(?:、|,|，|及|和|與)\\s*第?\\s*' + numPat + ')+)\\s*條', 'g');
+  var sequenced = String(escapedText || '').replace(articleSeq, function(match, bracketLaw, plainLaw, nums){
+    var rawLaw = bracketLaw || plainLaw || '';
+    var law = cleanLawName(rawLaw);
+    if(!law || law === '同法' || law === '本法') return match;
+    lastLaw = law;
+    var prefix = bracketLaw ? '' : splitLawPrefix(rawLaw, law);
+    var tokens = String(nums || '').split(/(、|,|，|及|和|與)/);
+    var first = true;
+    var linked = tokens.map(function(token){
+      if(/^(、|,|，|及|和|與)$/.test(token)) return token;
+      var art = normalizeArtLabel(token);
+      if(!art) return token;
+      var label = first ? law + (String(token).trim().startsWith('第') ? String(token).trim() : art) + '條' : (String(token).trim().startsWith('第') ? String(token).trim() : art + '條');
+      first = false;
+      return '<a class="crossref" href="'+articleHref(law, art)+'" onclick="event.stopPropagation()" style="color:var(--peach-3);text-decoration:underline;cursor:pointer">'+label+'</a>';
+    }).join('');
+    return prefix + stashLinked(linked);
+  });
+  return sequenced.replace(/(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\s《》()（）;；]{1,40}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第?(\d+)條(?:之(\d+))?/g, function(match, bracketLaw, plainLaw, sameLaw, art, sub){
+    var law = cleanLawName(bracketLaw || plainLaw || '');
+    if(law && law !== '同法' && law !== '本法') lastLaw = law;
+    else if((sameLaw || law === '同法' || law === '本法') && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
+    if(!lastLaw) return match;
+    var fullArt = art + (sub ? '之' + sub : '');
+    var href = articleHref(lastLaw, fullArt);
+    var prefixMatch = match.match(/^(.+?(?:可看|請看|請參照|請見|另參照|另見)|搭配|參照|依|按|見|與)(.+)$/);
     var prefix = prefixMatch ? prefixMatch[1] : '';
     var label = prefixMatch ? prefixMatch[2] : match;
     return prefix + '<a class="crossref" href="'+href+'" onclick="event.stopPropagation()" style="color:var(--peach-3);text-decoration:underline;cursor:pointer">'+label+'</a>';
-  });
+  }).replace(/@@SOFA_XREF_(\d+)@@/g, function(match, idx){ return linkedAnchors[Number(idx)] || match; });
 }
 
 function formatSection(text, currentLawName){
@@ -7344,7 +7393,7 @@ function _readArticle(btn, text) {
           html += '<div class="rec-row"' + drawerOpenAttrs(pid, ln, artSafe, '開啟最近查詢 ' + (h.law_name || '') + ' ' + displayArticleNo(parts.article_no)) + '>'+
             '<span class="law">'+esc(h.law_name||'——')+'</span>'+
             '<span class="art">'+esc(displayArticleNo(parts.article_no))+'</span>'+
-            '<span class="ttl">'+esc(title)+'</span>'+
+            (title ? '<span class="ttl">'+esc(title)+'</span>' : '')+
             '<span class="time">'+esc(time)+'</span>'+
             '</div>';
         });
@@ -8416,7 +8465,7 @@ async function saveStudyRecordLocal(){
     var local = _studyLocal();
     local.records = (local.records || []).concat([savedRecord]);
     _saveStudyLocal(local);
-    renderStudyPlanItems(_mergeStudyPlan(null));
+    renderStudyPlanItems(_mergeStudyPlan({ items: window.__studyPlanItemCache || [] }));
     focusStudyPlanItems();
     var panel = document.getElementById('study-record-panel');
     if(panel) panel.classList.remove('on');
@@ -8534,7 +8583,7 @@ async function saveStudyPlanImport(){
 
 async function saveStudySeries(){
   var state = document.getElementById('study-plan-state');
-  var saveBtn = document.querySelector('.study-plan-save');
+  var saveBtn = document.getElementById('study-plan-save');
   function tell(msg){ if(state) state.textContent = msg; }
   var uid = localStorage.getItem('sofa_uid') || '';
   var token = localStorage.getItem('sofa_token') || '';

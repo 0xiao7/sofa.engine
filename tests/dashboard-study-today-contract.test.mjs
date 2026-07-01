@@ -130,6 +130,16 @@ test('law drawer analysis linkifies sixth-section law references', () => {
   const linkedPrefixedLaw = sandbox.linkify('搭配公司法第29條經理人任免規定', '商業會計法');
   assert.match(linkedPrefixedLaw, />公司法第29條</);
   assert.doesNotMatch(linkedPrefixedLaw, />搭配公司法第29條</);
+
+  const linkedArticleSeries = sandbox.linkify('刑法317、318、319條;地政士法26條(地政士守密義務)', '記帳士法');
+  assert.match(linkedArticleSeries, /law=%E5%88%91%E6%B3%95&amp;art=317&amp;/);
+  assert.match(linkedArticleSeries, /law=%E5%88%91%E6%B3%95&amp;art=318&amp;/);
+  assert.match(linkedArticleSeries, /law=%E5%88%91%E6%B3%95&amp;art=319&amp;/);
+  assert.match(linkedArticleSeries, /law=%E5%9C%B0%E6%94%BF%E5%A3%AB%E6%B3%95&amp;art=26&amp;/);
+  assert.doesNotMatch(linkedArticleSeries, /law=.*%E5%9C%B0%E6%94%BF%E5%A3%AB%E5%AE%88%E5%AF%86/);
+
+  const linkedProfessionalLaw = sandbox.linkify('會計師法43條等專業守密規定並列', '記帳士法');
+  assert.match(linkedProfessionalLaw, /law=%E6%9C%83%E8%A8%88%E5%B8%AB%E6%B3%95&amp;art=43&amp;/);
 });
 
 test('dashboard fetches the authenticated study today endpoint', () => {
@@ -1020,6 +1030,12 @@ test('manual study records sync to hours API before local fallback', () => {
   assert.doesNotMatch(fn, /correct_count|wrong_count|answer_source|quiz_sessions/);
 });
 
+test('manual study records preserve current remote plan statuses while adding local records', () => {
+  const fn = extractFunction(active, 'saveStudyRecordLocal');
+  assert.match(fn, /renderStudyPlanItems\(_mergeStudyPlan\(\{ items: window\.__studyPlanItemCache \|\| \[\] \}\)\)/);
+  assert.doesNotMatch(fn, /renderStudyPlanItems\(_mergeStudyPlan\(null\)\)/);
+});
+
 test('mobile study plan and record forms do not squeeze native inputs', () => {
   assert.match(active, /\.study-plan-field\{[\s\S]*min-width:0/);
   assert.match(active, /\.study-plan-field input,\s*\.study-plan-field select\{[\s\S]*width:100%/);
@@ -1045,6 +1061,13 @@ test('series planning can generate local weekly items before API sync', () => {
   assert.match(active, /_nextWeekdayOnOrAfter/);
   assert.match(active, /i \* 7/);
   assert.match(active, /if\(!uid && !token\)\{[\s\S]*_addLocalStudyItems\(localItems\)/);
+});
+
+test('series planning and manual records use separate save controls', () => {
+  assert.match(active, /id="study-plan-save"[\s\S]*onclick="saveStudySeries\(\)"/);
+  assert.match(active, /id="study-record-save"[\s\S]*onclick="saveStudyRecordLocal\(\)"/);
+  assert.match(active, /var saveBtn = document\.getElementById\('study-plan-save'\)/);
+  assert.doesNotMatch(active, /var saveBtn = document\.querySelector\('\.study-plan-save'\)/);
 });
 
 test('saved study plans show an immediate readable summary and focus the plan list', () => {
