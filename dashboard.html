@@ -974,7 +974,7 @@
   }
   .study-planning-overview{
     display:grid;
-    grid-template-columns:1.25fr 1fr 1fr;
+    grid-template-columns:minmax(0,1.35fr) minmax(0,.9fr);
     gap:8px;
   }
   .study-overview-card{
@@ -3799,11 +3799,6 @@
                 <small id="study-overview-next-note">還沒有待讀項目；先刷一題或排一項任務。</small>
               </span>
               <span class="study-overview-card">
-                <span>儲存位置</span>
-                <b id="study-overview-save">只在這台裝置</b>
-                <small id="study-overview-save-note">輸入序號後才會同步。</small>
-              </span>
-              <span class="study-overview-card">
                 <span>累積時間</span>
                 <b id="study-overview-hours">累積 0 小時</b>
                 <small><span id="study-overview-status">待讀 0 / 完成 0</span><br><span id="study-overview-status-note">補紀錄不改答題率。</span></small>
@@ -5075,13 +5070,9 @@ function renderStudyPlanningOverview(items, timeSummary){
   renderStudyStatusStrip(list, timeSummary);
   var nextEl = document.getElementById('study-overview-next');
   var nextNote = document.getElementById('study-overview-next-note');
-  var saveEl = document.getElementById('study-overview-save');
-  var saveNote = document.getElementById('study-overview-save-note');
   var hoursEl = document.getElementById('study-overview-hours');
   var statusEl = document.getElementById('study-overview-status');
   var statusNote = document.getElementById('study-overview-status-note');
-  var token = localStorage.getItem('sofa_token') || '';
-  var uid = localStorage.getItem('sofa_uid') || '';
   if(nextEl){
     nextEl.textContent = next ? (next.title || next.subject || '讀書計畫') : '先做一題或排一項任務';
   }
@@ -5091,14 +5082,6 @@ function renderStudyPlanningOverview(items, timeSummary){
     } else {
       nextNote.textContent = '還沒有待讀項目；先刷一題或排一項任務。';
     }
-  }
-  if(saveEl){
-    saveEl.textContent = (token || uid) ? '已接序號' : '只在這台裝置';
-  }
-  if(saveNote){
-    saveNote.textContent = (token || uid)
-      ? '私人保存。'
-      : '輸入序號後同步。';
   }
   if(statusEl){
     statusEl.textContent = '待讀 ' + actionable.length + ' / 完成 ' + completed.length;
