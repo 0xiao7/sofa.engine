@@ -268,18 +268,6 @@
   body.side-collapsed aside.side{transform:translateX(-100%);pointer-events:none}
   body.side-collapsed main.main{grid-column:1}
   body.side-collapsed .menu-btn{border-color:var(--peach);background:rgba(231,187,167,.1)}
-  body.side-collapsed .topbar .menu-btn::after{
-    content:"固定導覽";
-    position:absolute;
-    right:calc(100% + 22px);
-    top:50%;
-    transform:translateY(-50%);
-    color:var(--peach);
-    font-family:var(--mono);
-    font-size:10px;
-    letter-spacing:.1em;
-    white-space:nowrap;
-  }
   /* almanac-style countdown */
   .countdown{
     border:1px solid var(--line-2);
@@ -4475,13 +4463,19 @@ function articleLabelParts(raw, title){
   var ttl = String(title || '').trim();
   var num = '[0-9０-９一二三四五六七八九十百千零兩两]+';
   var ch = num + '(?:\\s*(?:條?\\s*之|-)\\s*' + num + ')?';
+  var sub = text.match(new RegExp('^\\s*§?\\s*(?:第\\s*)?(' + num + ')\\s*條\\s*之\\s*(' + num + ')\\s*條?\\s*(?:[|｜:：—]\\s*|\\s+)(.+)$'));
+  if(sub){
+    art = _normalizeArticleNo(sub[1] + '之' + sub[2]) || art;
+    if(!ttl) ttl = sub[3].trim();
+  }
   var m = text.match(new RegExp('^\\s*§?\\s*(?:第\\s*)?(' + ch + ')\\s*條?\\s*(?:[|｜:：—]\\s*|\\s+)(.+)$'));
-  if(m){
+  if(m && !sub){
     art = cleanArticleNoForDisplay(m[1]) || art;
     if(!ttl) ttl = m[2].trim();
   }
   if(ttl){
     ttl = ttl
+      .replace(new RegExp('^\\s*§?\\s*(?:第\\s*)?' + num + '\\s*條\\s*之\\s*' + num + '\\s*條?\\s*(?:[|｜:：—]\\s*)?'), '')
       .replace(new RegExp('^\\s*§?\\s*(?:第\\s*)?' + (art || ch).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*條?\\s*(?:[|｜:：—]\\s*)?'), '')
       .replace(new RegExp('^\\s*第\\s*' + ch + '\\s*條?\\s*(?:[|｜:：—]\\s*)?'), '')
       .trim();
@@ -7806,8 +7800,8 @@ function setDashboardSideCollapsed(collapsed){
   var modeButton = document.getElementById('side-mode-btn');
   if(button){
     button.setAttribute('aria-expanded', on ? 'false' : 'true');
-    button.setAttribute('aria-label', on ? '顯示導覽' : '隱藏導覽');
-    button.setAttribute('title', on ? '顯示導覽' : '隱藏導覽');
+    button.setAttribute('aria-label', on ? '固定導覽' : '隱藏導覽');
+    button.setAttribute('title', on ? '固定導覽' : '隱藏導覽');
   }
   if(modeButton){
     modeButton.textContent = on ? '固定導覽' : '隱藏導覽';

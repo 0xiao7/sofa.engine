@@ -163,8 +163,8 @@ test('desktop sidebar stays present while the main dashboard scrolls', () => {
   assert.match(html, /aside\.side\{[\s\S]*overflow-y:auto/);
   assert.match(cssRule(html, '.nav-list a'), /min-height:44px/);
   assert.match(html, /id="side-mode-btn"[\s\S]*onclick="toggleDashboardSideNav\(\)"[\s\S]*隱藏導覽/);
-  assert.match(html, /body\.side-collapsed \.topbar \.menu-btn::after\{[\s\S]*content:"固定導覽"/);
-  assert.match(html, /body\.side-collapsed \.topbar \.menu-btn::after\{[\s\S]*right:calc\(100% \+ 22px\)/);
+  assert.doesNotMatch(html, /body\.side-collapsed \.topbar \.menu-btn::after/);
+  assert.match(html, /button\.setAttribute\('aria-label', on \? '固定導覽' : '隱藏導覽'\)/);
   assert.match(html, /modeButton\.textContent = on \? '固定導覽' : '隱藏導覽'/);
   assert.match(html, /\.shell::before\{[\s\S]*position:fixed;top:71px;bottom:0;left:0;width:280px/);
   assert.match(html, /\.shell::before\{[\s\S]*background:var\(--navy-2\)/);
@@ -378,6 +378,10 @@ test('dashboard article labels normalize raw article numbers before wrapping tex
   assert.deepEqual(
     JSON.parse(JSON.stringify(sandbox.helpers.articleLabelParts('§ 102-1 | 違反醫院設置標準之醫院層級加重罰則', ''))),
     { article_no: '102-1', title: '違反醫院設置標準之醫院層級加重罰則' },
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(sandbox.helpers.articleLabelParts('第 12 條之1 第 12 條之1 決議書內容與作成期限', ''))),
+    { article_no: '12之1', title: '決議書內容與作成期限' },
   );
   assert.equal(
     sandbox.helpers.articleReaderHref('記帳士法', '第13條', 'abc123'),
