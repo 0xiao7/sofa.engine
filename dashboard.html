@@ -2746,10 +2746,11 @@
   .rec-row{
     display:grid;
     grid-template-columns:minmax(86px,150px) minmax(72px,max-content) minmax(0,1fr) auto;
-    align-items:center;
-    column-gap:22px;
+    grid-template-areas:"law art . time" "law title title title";
+    align-items:start;
+    column-gap:18px;
     row-gap:7px;
-    padding:14px 14px 14px 28px;
+    padding:16px 14px 16px 28px;
     cursor:pointer;transition:.18s;
     position:relative;
     margin-left:-14px;border-radius:2px;
@@ -2762,6 +2763,7 @@
   .rec-row:hover{background:rgba(245,240,234,.025)}
   .rec-row:hover::before{opacity:1;background:var(--peach);box-shadow:0 0 0 3px rgba(231,187,167,.18)}
   .rec-row .law{
+    grid-area:law;
     font-family:var(--mono);font-size:11px;letter-spacing:.12em;
     color:rgba(245,240,234,.55);min-width:0;
     overflow:hidden;
@@ -2769,6 +2771,7 @@
     white-space:nowrap;
   }
   .rec-row .art{
+    grid-area:art;
     font-family:var(--serif);font-weight:500;font-size:18px;
     color:var(--cream);min-width:62px;
     font-feature-settings:"lnum";
@@ -2777,35 +2780,24 @@
     overflow-wrap:normal;
   }
   .rec-row .ttl{
+    grid-area:title;
     min-width:0;
     font-size:13.5px;color:rgba(245,240,234,.62);
-    border-left:1px solid var(--line);padding-left:18px;
+    border-left:0;padding-left:0;
     line-height:1.55;
-    overflow-wrap:anywhere;
+    overflow-wrap:break-word;
+    word-break:normal;
   }
   .rec-row .time{
+    grid-area:time;
+    justify-self:end;
     font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.4);
     letter-spacing:.06em;
   }
   @media (max-width:1350px){
     .rec-row{
-      grid-template-columns:minmax(82px,150px) minmax(62px,max-content) auto;
-      grid-template-areas:"law art time" "law title title";
-      align-items:start;
-      gap:7px 18px;
-      padding-top:16px;
-      padding-bottom:16px;
+      grid-template-columns:minmax(82px,150px) minmax(62px,max-content) minmax(0,1fr) auto;
     }
-    .rec-row .law{grid-area:law}
-    .rec-row .art{grid-area:art}
-    .rec-row .ttl{
-      grid-area:title;
-      border-left:0;
-      padding-left:0;
-      overflow-wrap:break-word;
-      word-break:normal;
-    }
-    .rec-row .time{grid-area:time;justify-self:end}
   }
 
   /* === Drawer (unchanged base) === */

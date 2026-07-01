@@ -488,10 +488,14 @@ test('article cards keep article labels horizontal on desktop and mobile', () =>
 
 test('recent query rows move titles to a second line before squeezing them vertical', () => {
   assert.match(html, /\.rec-row\{[\s\S]*grid-template-columns:minmax\(86px,150px\) minmax\(72px,max-content\) minmax\(0,1fr\) auto/);
-  assert.match(html, /\.rec-row\{[\s\S]*column-gap:22px/);
-  assert.match(html, /@media \(max-width:1350px\)\{[\s\S]*\.rec-row\{[\s\S]*grid-template-areas:"law art time" "law title title"/);
-  assert.match(html, /@media \(max-width:1350px\)\{[\s\S]*\.rec-row \.ttl\{[\s\S]*grid-area:title/);
-  assert.match(html, /@media \(max-width:1350px\)\{[\s\S]*\.rec-row \.ttl\{[\s\S]*border-left:0/);
+  assert.match(html, /\.rec-row\{[\s\S]*grid-template-areas:"law art \. time" "law title title title"/);
+  assert.match(html, /\.rec-row\{[\s\S]*column-gap:18px/);
+  assert.match(html, /\.rec-row \.law\{[\s\S]*grid-area:law/);
+  assert.match(html, /\.rec-row \.art\{[\s\S]*grid-area:art/);
+  assert.match(html, /\.rec-row \.ttl\{[\s\S]*grid-area:title/);
+  assert.match(html, /\.rec-row \.ttl\{[\s\S]*border-left:0/);
+  assert.match(html, /\.rec-row \.ttl\{[\s\S]*overflow-wrap:break-word/);
+  assert.match(html, /\.rec-row \.time\{[\s\S]*grid-area:time/);
   assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row\{[\s\S]*grid-template-areas:"law time" "art time" "title title"/);
   assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.law\{[\s\S]*grid-area:law/);
   assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.art\{[\s\S]*grid-area:art/);
