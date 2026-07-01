@@ -141,7 +141,9 @@ test('law table of contents separates reading searching and single-practice acti
   assert.match(tocSource, /var encodedName = encodeURIComponent\(rawName\)/);
   assert.match(tocSource, /class="toc-main" href="law-preview\.html\?law='\+encodedName\+'"/);
   assert.match(tocSource, /<span class="meta"><span class="ct">'\+ct\+'<\/span><span class="arrow">讀整部<\/span><\/span><\/a>/);
-  assert.match(tocSource, /var ct\s*=\s*l\.article_count \? l\.article_count \+ ' 條' : ''/);
+  assert.match(tocSource, /var ct\s*=\s*formatLawArticleCount\(l\.article_count\)/);
+  assert.match(html, /function formatLawArticleCount\(value\)/);
+  assert.match(html, /Number\.isFinite\(n\) && n > 0 \? String\(n\) \+ ' 條' : ''/);
   assert.doesNotMatch(tocSource, /— 條/);
   assert.match(tocSource, /<span class="toc-actions" aria-label="'\+nm\+' 的動作">/);
   assert.match(tocSource, /onclick="searchLaw\(decodeURIComponent\(this\.dataset\.law\)\)">查條文<\/button>/);
@@ -165,6 +167,12 @@ test('desktop sidebar stays present while the main dashboard scrolls', () => {
   assert.match(html, /class="side-guide-controls"[\s\S]*aria-label="導覽顯示狀態"/);
   assert.match(html, /id="side-mode-status"[\s\S]*固定中/);
   assert.match(html, /id="side-mode-btn"[\s\S]*onclick="toggleDashboardSideNav\(\)"[\s\S]*隱藏/);
+  assert.match(html, /class="side-peek-btn"[\s\S]*onclick="setDashboardSideCollapsed\(false\)"[\s\S]*導覽/);
+  assert.match(cssRule(html, '.side-peek-btn'), /width:44px/);
+  assert.match(cssRule(html, '.side-peek-btn'), /min-width:44px/);
+  assert.match(cssRule(html, '.side-peek-btn'), /min-height:44px/);
+  assert.match(html, /body\.side-collapsed \.side-peek-btn\{display:inline-flex/);
+  assert.match(html, /peek\.setAttribute\('aria-hidden', on \? 'false' : 'true'\)/);
   assert.doesNotMatch(html, /body\.side-collapsed \.topbar \.menu-btn::after/);
   assert.match(html, /button\.setAttribute\('aria-label', on \? '顯示導覽' : '隱藏導覽'\)/);
   assert.match(html, /modeButton\.textContent = on \? '顯示' : '隱藏'/);
@@ -361,11 +369,12 @@ test('dashboard article labels normalize raw article numbers before wrapping tex
     extractFunction(html, 'displayArticleNo'),
     extractFunction(html, 'fallbackArticleTitle'),
     extractFunction(html, 'articleLabelParts'),
+    extractFunction(html, 'formatLawArticleCount'),
     extractFunction(html, 'articleReaderHref'),
   ].join('\n');
   const sandbox = { encodeURIComponent };
   vm.createContext(sandbox);
-  vm.runInContext(`${source}; this.helpers = { cleanArticleNoForDisplay, displayArticleNo, fallbackArticleTitle, articleLabelParts, articleReaderHref };`, sandbox);
+  vm.runInContext(`${source}; this.helpers = { cleanArticleNoForDisplay, displayArticleNo, fallbackArticleTitle, articleLabelParts, formatLawArticleCount, articleReaderHref };`, sandbox);
 
   assert.equal(sandbox.helpers.cleanArticleNoForDisplay('第13條'), '13');
   assert.equal(sandbox.helpers.cleanArticleNoForDisplay('§ 13'), '13');
@@ -387,6 +396,17 @@ test('dashboard article labels normalize raw article numbers before wrapping tex
     JSON.parse(JSON.stringify(sandbox.helpers.articleLabelParts('第 12 條之1 第 12 條之1 決議書內容與作成期限', ''))),
     { article_no: '12之1', title: '決議書內容與作成期限' },
   );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(sandbox.helpers.articleLabelParts('§ 102-1 | § 102-1 | 違反醫院設置標準之醫院層級加重罰則', ''))),
+    { article_no: '102-1', title: '違反醫院設置標準之醫院層級加重罰則' },
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(sandbox.helpers.articleLabelParts('§ 72 | 電子會計資料不實罪', '§ 72 | 電子會計資料不實罪'))),
+    { article_no: '72', title: '電子會計資料不實罪' },
+  );
+  assert.equal(sandbox.helpers.formatLawArticleCount(567), '567 條');
+  assert.equal(sandbox.helpers.formatLawArticleCount(''), '');
+  assert.equal(sandbox.helpers.formatLawArticleCount('—'), '');
   assert.equal(
     sandbox.helpers.articleReaderHref('記帳士法', '第13條', 'abc123'),
     'law-preview.html?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&id=abc123&art=13&from=dashboard&back=dashboard.html',
@@ -439,6 +459,8 @@ test('article cards keep article labels horizontal on desktop and mobile', () =>
 
 test('review due rows use the same article fallback as saved and recent rows', () => {
   const fn = html.slice(html.indexOf('function renderReviewDue'), html.indexOf('function renderStudyToday'));
+  assert.match(fn, /var parts\s*=\s*articleLabelParts\(m\.article \|\| m\.article_no \|\| '',\s*m\.title\)/);
+  assert.match(fn, /var disp\s*=\s*displayArticleNo\(parts\.article_no \|\| artNo\)/);
   assert.match(fn, /drawerOpenAttrs\(pid, ln, artNo, '開啟今日複習條文/);
   assert.doesNotMatch(fn, /onclick="openDrawer\('\\'\+pid/);
 });
