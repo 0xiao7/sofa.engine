@@ -70,7 +70,7 @@
     border-bottom:1px solid var(--line);
     padding:18px 44px;
     display:flex;align-items:center;justify-content:space-between;
-    position:sticky;top:0;z-index:50;
+    position:fixed;top:0;left:0;right:0;z-index:80;
   }
   .brand{
     display:flex;align-items:center;gap:13px;line-height:1;
@@ -142,7 +142,7 @@
     transition:.2s;
   }
   .btn-out:hover{background:rgba(245,240,234,.06);color:var(--cream);border-color:var(--cream)}
-  .menu-btn{display:none;width:36px;height:36px;border:1px solid var(--line-2);border-radius:2px;align-items:center;justify-content:center}
+  .menu-btn{display:flex;width:36px;height:36px;border:1px solid var(--line-2);border-radius:2px;align-items:center;justify-content:center}
   .menu-btn span{display:block;width:16px;height:1.5px;background:var(--cream);position:relative}
   .menu-btn span::before,.menu-btn span::after{content:"";position:absolute;left:0;width:16px;height:1.5px;background:var(--cream)}
   .menu-btn span::before{top:-5px}
@@ -223,7 +223,10 @@
     display:grid;
     grid-template-columns:280px minmax(0,1fr);
     min-height:calc(100vh - 71px);
+    margin-top:71px;
   }
+  body.side-collapsed .shell{grid-template-columns:minmax(0,1fr)}
+  body.side-collapsed .shell::before{display:none}
   .shell::before{
     content:"";
     position:fixed;top:71px;bottom:0;left:0;width:280px;
@@ -242,7 +245,11 @@
     height:calc(100dvh - 71px);
     overflow-y:auto;
     z-index:31;
+    transition:transform .22s ease;
   }
+  body.side-collapsed aside.side{transform:translateX(-100%);pointer-events:none}
+  body.side-collapsed main.main{grid-column:1}
+  body.side-collapsed .menu-btn{border-color:var(--peach);background:rgba(231,187,167,.1)}
   /* almanac-style countdown */
   .countdown{
     border:1px solid var(--line-2);
@@ -618,7 +625,7 @@
     color:rgba(245,240,234,.7);
     background:rgba(255,255,255,.018);
   }
-  .study-blocks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;border-top:1px dashed var(--line)}
+  .study-blocks{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:4px 38px;border-top:1px dashed var(--line)}
   .study-block{
     padding:13px 0;border-bottom:1px dashed var(--line);
     display:grid;grid-template-columns:1fr auto;gap:8px 14px;align-items:baseline;
@@ -641,13 +648,16 @@
     border-bottom:1px dashed var(--line);
     padding-bottom:14px;
     display:grid;
-    gap:10px;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:12px 18px;
+    align-items:start;
   }
   .study-action-group{
-    display:flex;
+    min-width:0;
+    display:grid;
+    grid-template-columns:auto repeat(3,minmax(0,1fr));
     align-items:center;
     gap:9px;
-    flex-wrap:wrap;
   }
   .study-action-label{
     font-family:var(--mono);
@@ -683,6 +693,7 @@
     text-decoration:none;
     white-space:nowrap;
     border:1px solid var(--line-2);
+    width:100%;
   }
   .study-action-link{
     color:var(--cream);
@@ -811,7 +822,7 @@
     line-height:1.55;
   }
   .study-weak-brief-link{
-    min-height:36px;
+    min-height:44px;
     display:inline-flex;
     align-items:center;
     justify-content:center;
@@ -940,7 +951,7 @@
       font-size:12.5px;
     }
     .study-weak-brief-link{
-      min-height:32px;
+      min-height:44px;
       padding:6px 10px;
     }
   }
@@ -1395,6 +1406,78 @@
     grid-template-columns:repeat(3,minmax(0,1fr));
     gap:8px;
   }
+  .study-timer-panel{
+    border:1px solid rgba(231,187,167,.22);
+    background:rgba(255,255,255,.025);
+    padding:12px;
+    border-radius:4px;
+    display:grid;
+    gap:10px;
+  }
+  .study-timer-panel .head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .study-timer-panel .head b{
+    font-family:var(--serif);
+    font-size:15px;
+    color:var(--cream);
+    font-weight:600;
+  }
+  .study-timer-panel .head span{
+    font-size:12px;
+    color:rgba(245,240,234,.58);
+  }
+  .study-timer-face{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+  }
+  .study-timer-clock{
+    min-width:108px;
+    font-family:var(--mono);
+    font-size:28px;
+    line-height:1;
+    color:var(--peach);
+  }
+  .study-timer-controls{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .study-timer-controls input{
+    width:84px;
+    border:1px solid var(--line-2);
+    border-radius:4px;
+    background:rgba(2,12,18,.36);
+    color:var(--cream);
+    padding:8px 9px;
+    font-size:14px;
+  }
+  .study-timer-controls button{
+    min-height:38px;
+    border:1px solid var(--line-2);
+    border-radius:4px;
+    padding:8px 12px;
+    background:rgba(255,255,255,.025);
+    color:rgba(245,240,234,.82);
+    font-size:13px;
+    font-weight:600;
+  }
+  .study-timer-controls button.primary{
+    background:var(--peach);
+    border-color:var(--peach);
+    color:var(--navy);
+  }
+  .study-timer-state{
+    font-size:12px;
+    color:rgba(245,240,234,.55);
+  }
   .study-record-kind{
     border:1px solid var(--line-2);
     background:rgba(255,255,255,.025);
@@ -1563,10 +1646,42 @@
     border:1px dashed rgba(245,240,234,.14);
     background:rgba(2,12,18,.26);
     border-radius:4px;
-    padding:9px 11px;
+    padding:0;
     color:rgba(245,240,234,.58);
     font-size:12px;
     line-height:1.65;
+    overflow:hidden;
+  }
+  .study-cloud-state summary{
+    list-style:none;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    padding:9px 11px;
+    cursor:pointer;
+  }
+  .study-cloud-state summary::-webkit-details-marker{display:none}
+  .study-cloud-state summary::after{
+    content:"展開";
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.12em;
+    color:rgba(231,187,167,.7);
+    white-space:nowrap;
+  }
+  .study-cloud-state[open] summary::after{content:"收合"}
+  .study-cloud-state summary span{
+    min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    color:rgba(245,240,234,.46);
+  }
+  .study-cloud-detail{
+    border-top:1px dashed rgba(245,240,234,.12);
+    padding:8px 11px 10px;
+    color:rgba(245,240,234,.58);
   }
   .study-cloud-state b{color:var(--peach);font-weight:700}
   .study-plan-items{display:grid;gap:8px}
@@ -1664,7 +1779,7 @@
     .study-blocks{grid-template-columns:1fr}
     .study-summary{align-items:flex-start}
     .study-status-strip{grid-template-columns:1fr}
-    .study-actions{align-items:stretch;gap:12px}
+    .study-actions{grid-template-columns:1fr;align-items:stretch;gap:12px}
     .study-action-group{
       display:grid;
       grid-template-columns:repeat(3,minmax(0,1fr));
@@ -2529,8 +2644,8 @@
   .rec-date-head::after{content:"";flex:1;height:1px;background:var(--line)}
   .rec-row{
     display:grid;
-    grid-template-columns:auto auto 1fr auto;
-    align-items:center;gap:18px;
+    grid-template-columns:minmax(86px,150px) auto minmax(0,1fr) auto;
+    align-items:center;gap:20px;
     padding:14px 14px 14px 28px;
     cursor:pointer;transition:.18s;
     position:relative;
@@ -2545,19 +2660,25 @@
   .rec-row:hover::before{opacity:1;background:var(--peach);box-shadow:0 0 0 3px rgba(231,187,167,.18)}
   .rec-row .law{
     font-family:var(--mono);font-size:11px;letter-spacing:.12em;
-    color:rgba(245,240,234,.55);min-width:90px;
+    color:rgba(245,240,234,.55);min-width:0;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
   }
   .rec-row .art{
     font-family:var(--serif);font-weight:500;font-size:18px;
-    color:var(--cream);min-width:50px;
+    color:var(--cream);min-width:52px;
     font-feature-settings:"lnum";
     white-space:nowrap;
     word-break:keep-all;
     overflow-wrap:normal;
   }
   .rec-row .ttl{
+    min-width:0;
     font-size:13.5px;color:rgba(245,240,234,.62);
     border-left:1px solid var(--line);padding-left:18px;
+    line-height:1.55;
+    overflow-wrap:anywhere;
   }
   .rec-row .time{
     font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.4);
@@ -3304,8 +3425,13 @@
     --mauve:#B38BA7;
     background:linear-gradient(180deg,var(--navy-3) 0,var(--cream-2) 20px,var(--cream-2) 100%);
     padding:40px 0 48px;
-    margin:0;
+    margin:0 0 0 280px;
+    width:calc(100% - 280px);
     border-top:1px solid rgba(231,187,167,.16);
+  }
+  body.side-collapsed .compass-embed{margin-left:0;width:100%}
+  @media (max-width:980px){
+    .compass-embed{margin-left:0;width:100%}
   }
 </style>
 <link rel="stylesheet" href="compass-widget.css?v=3">
@@ -3479,6 +3605,18 @@
               <span class="study-status-chip"><span>今天</span><b id="study-status-today">預留 60 分鐘</b></span>
               <span class="study-status-chip"><span>下一步</span><b id="study-status-next">先做一題</b></span>
             </div>
+            <div class="study-weak-brief" id="study-weak-brief" aria-label="今日弱點">
+              <div class="study-weak-brief-head">
+                <div class="study-weak-brief-copy">
+                  <span class="study-weak-brief-title">今日弱點</span>
+                  <span class="study-weak-brief-kicker">錯最多的法規先排前面，不用自己判斷哪裡弱。</span>
+                </div>
+                <a class="study-weak-brief-link" href="quiz.html?open=weakness">補這些弱點 →</a>
+              </div>
+              <div class="study-weak-brief-list" id="study-weak-brief-list">
+                <div class="study-weak-empty">答題後，這裡會直接列出最該補的法規。</div>
+              </div>
+            </div>
             <div class="study-actions" aria-label="今日讀書工具">
               <div class="study-action-group primary">
                 <span class="study-action-label">先做</span>
@@ -3491,18 +3629,6 @@
                 <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="playlist" aria-expanded="false" onclick="openStudyPlaylistPanel()">重點朗讀</button>
                 <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="plan" aria-expanded="false" onclick="openStudyPlanPanel()">排課</button>
                 <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="record" aria-expanded="false" onclick="openStudyRecordPanel()">補紀錄</button>
-              </div>
-            </div>
-            <div class="study-weak-brief" id="study-weak-brief" aria-label="今日弱點">
-              <div class="study-weak-brief-head">
-                <div class="study-weak-brief-copy">
-                  <span class="study-weak-brief-title">今日弱點</span>
-                  <span class="study-weak-brief-kicker">錯最多的法規先排前面，不用自己判斷哪裡弱。</span>
-                </div>
-                <a class="study-weak-brief-link" href="quiz.html?open=weakness">補這些弱點 →</a>
-              </div>
-              <div class="study-weak-brief-list" id="study-weak-brief-list">
-                <div class="study-weak-empty">答題後，這裡會直接列出最該補的法規。</div>
               </div>
             </div>
             <div class="study-next-plan" id="study-next-plan" aria-live="polite">
@@ -3537,8 +3663,8 @@
             <div class="study-planning-overview" id="study-planning-overview" aria-label="讀書計畫總覽">
               <span class="study-overview-card">
                 <span>現在先做</span>
-                <b id="study-overview-next">先做一題或設定課程</b>
-                <small id="study-overview-next-note">還沒有待讀項目；先用選擇題累積弱點，或把函授/課表排進來。</small>
+                <b id="study-overview-next">先做一題或排一項任務</b>
+                <small id="study-overview-next-note">還沒有待讀項目；先用選擇題累積弱點，或把課程/自讀任務排進來。</small>
               </span>
               <span class="study-overview-card">
                 <span>儲存位置</span>
@@ -3560,7 +3686,7 @@
                 </span>
                 <span class="study-time-impact" aria-live="polite">
                   <b id="study-time-impact">剩約 42 週</b>
-                  <small id="study-time-outcome">還沒排課；先預覽本週排法或設定課程。</small>
+                  <small id="study-time-outcome">還沒安排；可先預覽本週建議或自己設定。</small>
                 </span>
                 <button class="study-time-edit-btn" type="button" aria-expanded="false" onclick="toggleStudyTimeEditor()">修改時間</button>
               </div>
@@ -3582,16 +3708,16 @@
                 </div>
                 <div class="study-time-save">
                   <button type="button" onclick="saveStudyTimeSettings()">儲存時間設定</button>
-                  <span id="study-time-state">時間設定只先存在本機；預覽不會寫入，排入後才進你的私人讀書計畫。</span>
+                  <span id="study-time-state">時間設定只影響建議；按排入後才保存。</span>
                 </div>
               </div>
             </div>
             <div class="study-recommend-panel" id="study-recommend-panel" aria-label="本週讀書計畫推薦">
               <div class="study-recommend-head">
                 <div class="study-recommend-copy">
-                  <span>本週建議排法</span>
+                  <span>本週建議</span>
                   <b>先預覽，再決定要不要排入</b>
-                  <small>這裡只是建議；按「排入本週計畫」後，才會出現在下方私人計畫。</small>
+                  <small>這裡只是建議；按「排入本週計畫」後才保存。</small>
                 </div>
                 <div class="study-recommend-actions">
                   <button type="button" onclick="previewStudyWeekRecommendation()">預覽本週排法</button>
@@ -3672,6 +3798,22 @@
                 </div>
               </div>
             </div>
+            <div class="study-timer-panel" id="study-timer-panel" aria-label="番茄鐘計時">
+              <div class="head">
+                <b>番茄鐘</b>
+                <span>結束後會寫入讀書時數。</span>
+              </div>
+              <div class="study-timer-face">
+                <span class="study-timer-clock" id="study-timer-clock">25:00</span>
+                <span class="study-timer-controls">
+                  <input id="study-timer-minutes" type="number" min="5" max="180" step="5" value="25" aria-label="番茄鐘分鐘">
+                  <button class="primary" type="button" onclick="startStudyTimer()">開始</button>
+                  <button type="button" onclick="pauseStudyTimer()">暫停</button>
+                  <button type="button" onclick="finishStudyTimer()">完成並記錄</button>
+                </span>
+              </div>
+              <span class="study-timer-state" id="study-timer-state">可改分鐘；完成後進同一個時數累積。</span>
+            </div>
             <div class="study-record-panel" id="study-record-panel" aria-label="補讀書紀錄">
               <div class="study-panel-head study-record-copy">
                 <b>補紀錄只會補進度，不會補答題正確率</b>
@@ -3714,7 +3856,10 @@
                 <span class="study-plan-state" id="study-record-state">登入後會同步讀書時數；離線先存在本機。</span>
               </div>
             </div>
-            <div class="study-cloud-state" id="study-cloud-state">讀書計畫會先存在這台裝置。</div>
+            <details class="study-cloud-state" id="study-cloud-state">
+              <summary><b>讀書計畫狀態</b><span>先存在這台裝置</span></summary>
+              <div class="study-cloud-detail">排課、補紀錄都能先用；登入後會盡量同步到你的帳號。</div>
+            </details>
             <div class="study-plan-items" id="study-plan-items" aria-label="接下來的私人計畫"></div>
             <div class="study-subjects" id="study-cockpit-subjects"></div>
             <div class="study-blocks" id="study-cockpit-blocks"></div>
@@ -4252,6 +4397,7 @@ function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;')
 function escAttr(s){ return esc(s).replace(/"/g,'&quot;'); }
 function cleanArticleNoForDisplay(raw){
   var clean = String(raw || '').replace(/^§+/, '').trim();
+  clean = clean.split(/[|｜:：—]/)[0].trim();
   clean = clean.replace(/^第\s*/, '').replace(/\s*條$/, '').trim();
   return _normalizeArticleNo(clean) || clean;
 }
@@ -4264,6 +4410,28 @@ function fallbackArticleTitle(raw, title){
   if(t) return t;
   var clean = cleanArticleNoForDisplay(raw);
   return clean ? ('第 ' + clean + ' 條') : '條文';
+}
+function articleLabelParts(raw, title){
+  var text = String(raw || '').trim();
+  var art = cleanArticleNoForDisplay(text);
+  var ttl = String(title || '').trim();
+  var num = '[0-9０-９一二三四五六七八九十百千零兩两]+';
+  var ch = num + '(?:\\s*(?:條?\\s*之|-)\\s*' + num + ')?';
+  var m = text.match(new RegExp('^\\s*§?\\s*(?:第\\s*)?(' + ch + ')\\s*條?\\s*(?:[|｜:：—]\\s*|\\s+)(.+)$'));
+  if(m){
+    art = cleanArticleNoForDisplay(m[1]) || art;
+    if(!ttl) ttl = m[2].trim();
+  }
+  if(ttl){
+    ttl = ttl
+      .replace(new RegExp('^\\s*§?\\s*(?:第\\s*)?' + (art || ch).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*條?\\s*(?:[|｜:：—]\\s*)?'), '')
+      .replace(new RegExp('^\\s*第\\s*' + ch + '\\s*條?\\s*(?:[|｜:：—]\\s*)?'), '')
+      .trim();
+  }
+  return {
+    article_no: art,
+    title: ttl || fallbackArticleTitle(art || text, '')
+  };
 }
 function articleReaderHref(lawName, artNo, pageId){
   var safeLaw = String(lawName || '').trim();
@@ -4444,6 +4612,8 @@ var STUDY_LOCAL_KEY = 'sofa.study.localPlan.v1';
 var STUDY_SAVE_NUDGE_DISMISS_KEY = 'sofa.study.saveNudgeDismissed.v1';
 var STUDY_AFTER_LOGIN_SYNC_KEY = 'sofa.study.afterLoginSync.v1';
 var STUDY_AFTER_LOGIN_SYNC_DONE_KEY = 'sofa.study.afterLoginSyncDone.v1';
+var STUDY_TIMER_KEY = 'sofa.study.timer.v1';
+var studyTimerTick = null;
 
 function _studyLocal(){
   try{
@@ -4514,8 +4684,13 @@ function _actionableStudyItems(items){
   return (items || []).filter(_isStudyItemActionable);
 }
 
+function _isAutoStudyHoursRecord(item){
+  return !!(item && item.completed_hours_for);
+}
+
 function _completedStudyItems(items){
   return (items || []).filter(function(item){
+    if(_isAutoStudyHoursRecord(item)) return false;
     var status = String(item && item.status || '').trim();
     return status === 'done' || status === 'cancelled' || status === 'skipped';
   });
@@ -4523,13 +4698,17 @@ function _completedStudyItems(items){
 
 function _studyItemMinutes(item){
   if(!item) return 0;
-  var raw = item.minutes || item.duration_minutes || item.planned_minutes || item.estimated_minutes || 0;
+  var meta = item.metadata && typeof item.metadata === 'object' ? item.metadata : {};
+  var raw = item.minutes || item.duration_minutes || item.planned_minutes || item.estimated_minutes || meta.minutes || meta.duration_minutes || meta.planned_minutes || meta.estimated_minutes || 0;
   var mins = parseInt(raw, 10);
   return isFinite(mins) && mins > 0 ? mins : 0;
 }
 
 function _studyAccumulatedMinutes(items){
-  return _completedStudyItems(items || []).reduce(function(sum, item){
+  return (items || []).filter(function(item){
+    if(_isAutoStudyHoursRecord(item)) return true;
+    return String(item && item.status || '').trim() === 'done';
+  }).reduce(function(sum, item){
     return sum + _studyItemMinutes(item);
   }, 0);
 }
@@ -4607,6 +4786,51 @@ function _findStudyPlanItem(key){
   return null;
 }
 
+async function logCompletedStudyItemHours(item){
+  if(!item) return;
+  var key = _studyItemKey(item);
+  var minutes = _studyItemMinutes(item) || _studyItemDurationMinutes(item) || ((_studyLocal().settings || {}).today_minutes || 60);
+  minutes = Math.max(5, Math.min(720, parseInt(minutes || '60', 10) || 60));
+  var title = item.title || item.subject || '讀書紀錄';
+  var record = {
+    track_key: item.track_key || 'bookkeeper',
+    subject: item.subject || title,
+    title: title,
+    scheduled_date: item.scheduled_date || _todayInputValue(),
+    scheduled_time: item.scheduled_time || '',
+    source_label:'完成課程 ' + minutes + ' 分鐘',
+    status:'done',
+    minutes: minutes,
+    notes: '完成項目自動記錄',
+    completed_hours_for: key
+  };
+  var token = localStorage.getItem('sofa_token') || '';
+  var uid = localStorage.getItem('sofa_uid') || '';
+  if(token || uid){
+    try{
+      var res = await _fetchStudyJSON(API + '/api/me/study/hours', {
+        method:'POST',
+        headers:_authH({'Content-Type':'application/json'}),
+        body: JSON.stringify({
+          track_key:item.track_key || 'bookkeeper',
+          log_date:item.scheduled_date || _todayInputValue(),
+          minutes:minutes,
+          note:'完成：' + title
+        })
+      });
+      if(res && res.ok && res.hours_log){
+        record.remote_hours_log_id = res.hours_log.id || '';
+        record.notes = '完成項目已同步時數';
+      }
+    }catch(e){}
+  }
+  var local = _studyLocal();
+  local.records = (local.records || []).filter(function(existing){
+    return existing && existing.completed_hours_for !== key;
+  }).concat([record]);
+  _saveStudyLocal(local);
+}
+
 async function updateStudyItemStatus(key, status, shiftDays){
   var item = _findStudyPlanItem(key);
   var token = localStorage.getItem('sofa_token') || '';
@@ -4631,6 +4855,7 @@ async function updateStudyItemStatus(key, status, shiftDays){
           body: JSON.stringify({ status:status })
         });
         if(res && res.ok){
+          if(status === 'done' && item) await logCompletedStudyItemHours(item);
           var latest = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
           renderStudyToday(latest || null);
           focusStudyPlanItems();
@@ -4647,6 +4872,7 @@ async function updateStudyItemStatus(key, status, shiftDays){
       }
     }
     setStudyPlanActionMessage('');
+    if(status === 'done' && item) await logCompletedStudyItemHours(item);
     updateLocalStudyItemStatus(key, status, shiftDays);
   } finally {
     setStudyItemPending(key, false);
@@ -4692,13 +4918,13 @@ function renderStudyPlanningOverview(items, timeSummary){
   var token = localStorage.getItem('sofa_token') || '';
   var uid = localStorage.getItem('sofa_uid') || '';
   if(nextEl){
-    nextEl.textContent = next ? (next.title || next.subject || '讀書計畫') : '先做一題或設定課程';
+    nextEl.textContent = next ? (next.title || next.subject || '讀書計畫') : '先做一題或排一項任務';
   }
   if(nextNote){
     if(next){
-      nextNote.textContent = [next.scheduled_date || '', next.scheduled_time || '', next.source_label || '私人計畫'].filter(Boolean).join(' · ') + '；讀完按「完成這堂」。';
+      nextNote.textContent = [next.scheduled_date || '', next.scheduled_time || '', next.source_label || '私人計畫'].filter(Boolean).join(' · ') + '；讀完按「完成這項」。';
     } else {
-      nextNote.textContent = '還沒有待讀項目；先用選擇題累積弱點，或把函授/課表排進來。';
+      nextNote.textContent = '還沒有待讀項目；先用選擇題累積弱點，或把課程/自讀任務排進來。';
     }
   }
   if(saveEl){
@@ -4733,7 +4959,7 @@ function renderStudyStatusStrip(items, timeSummary){
   if(todayEl) todayEl.textContent = ledger.today ? ('已讀 ' + ledger.today + ' 分鐘') : ('預留 ' + minutes + ' 分鐘');
   if(nextEl){
     var next = actionable[0] || null;
-    nextEl.textContent = next ? (next.title || next.subject || '完成下一堂') : '先做一題';
+    nextEl.textContent = next ? (next.title || next.subject || '完成下一項') : '先做一題';
   }
 }
 
@@ -4745,10 +4971,15 @@ function renderStudyPlanNavCount(actionable, completed){
   el.textContent = waiting || done ? ('待' + waiting + ' 完' + done) : '';
 }
 
-function renderStudyCloudState(remotePlan){
-  renderStudyPlanningOverview(window.__studyPlanItemCache || [], window.__studyTimeSummary || null);
+function setStudyCloudState(title, meta, detail){
   var el = document.getElementById('study-cloud-state');
   if(!el) return;
+  el.innerHTML = '<summary><b>' + esc(title) + '</b><span>' + esc(meta || '') + '</span></summary>'
+    + '<div class="study-cloud-detail">' + detail + '</div>';
+}
+
+function renderStudyCloudState(remotePlan){
+  renderStudyPlanningOverview(window.__studyPlanItemCache || [], window.__studyTimeSummary || null);
   var status = remotePlan && remotePlan.status;
   var cloudItems = remotePlan && Array.isArray(remotePlan.items) ? remotePlan.items : [];
   var sourceLabel = '';
@@ -4761,17 +4992,21 @@ function renderStudyCloudState(remotePlan){
   var sourceCopy = sourceLabel ? '來源：' + esc(sourceLabel) + '。' : '';
   if(status === 'ready'){
     if(cloudItems.length){
-      el.innerHTML = '<b>雲端計畫已接上</b>：已接上' + cloudItems.length + ' 筆接下來的私人課表。' + sourceCopy + '換裝置登入後也會看到。';
+      setStudyCloudState(
+        '雲端計畫已接上',
+        '已接上 ' + cloudItems.length + ' 筆',
+        '接下來的私人課表只屬於這個帳號。' + sourceCopy + '換裝置登入後也會看到。'
+      );
     } else {
-      el.innerHTML = '<b>雲端計畫已接上</b>：換裝置登入後，也會看到你的私人讀書計畫。';
+      setStudyCloudState('雲端計畫已接上', '已接序號', '換裝置登入後，也會看到你的私人讀書計畫。');
     }
     return;
   }
   if(status === 'unavailable'){
-    el.innerHTML = '<b>雲端同步準備中</b>：目前先存在這台裝置；資料表上線後再同步到帳號。';
+    setStudyCloudState('雲端同步準備中', '先本機保存', '目前先存在這台裝置；資料表上線後再同步到帳號。');
     return;
   }
-  el.innerHTML = '<b>先存在這台裝置</b>：排課、補紀錄都能先用；登入後會盡量同步到你的帳號。';
+  setStudyCloudState('先存在這台裝置', '可先排課', '排課、補紀錄都能先用；登入後會盡量同步到你的帳號。');
 }
 
 async function trySyncLocalStudyAfterLogin(){
@@ -4785,10 +5020,8 @@ async function trySyncLocalStudyAfterLogin(){
     localStorage.removeItem(STUDY_AFTER_LOGIN_SYNC_KEY);
     return;
   }
-  var state = document.getElementById('study-cloud-state');
   var plannedItems = _actionableStudyItems(local.items || []);
-  var handoffCopy = '<b>本機讀書計畫已接回這個序號</b>：排課項目會嘗試同步；補紀錄會在下次儲存時同步讀書時數。';
-  if(state) state.innerHTML = handoffCopy;
+  setStudyCloudState('本機讀書計畫已接回', '同步中', '排課項目會嘗試同步；補紀錄會在下次儲存時同步讀書時數。');
   if(!plannedItems.length){
     localStorage.setItem(STUDY_AFTER_LOGIN_SYNC_DONE_KEY, new Date().toISOString());
     localStorage.removeItem(STUDY_AFTER_LOGIN_SYNC_KEY);
@@ -4808,14 +5041,14 @@ async function trySyncLocalStudyAfterLogin(){
       })
     });
     if(res && res.ok){
-      if(state) state.innerHTML = '<b>本機讀書計畫已接回這個序號</b>：已同步 ' + esc(res.count || plannedItems.length) + ' 筆排課；補紀錄會在下次儲存時同步讀書時數。';
+      setStudyCloudState('本機讀書計畫已接回', '已同步 ' + (res.count || plannedItems.length) + ' 筆', '補紀錄會在下次儲存時同步讀書時數。');
       localStorage.setItem(STUDY_AFTER_LOGIN_SYNC_DONE_KEY, doneKey);
       localStorage.removeItem(STUDY_AFTER_LOGIN_SYNC_KEY);
     } else {
-      if(state) state.innerHTML = handoffCopy + ' ' + esc(_studySaveMessage(res, '雲端同步稍後再試，本機資料不會消失。'));
+      setStudyCloudState('本機讀書計畫已接回', '稍後再同步', esc(_studySaveMessage(res, '雲端同步稍後再試，本機資料不會消失。')));
     }
   }catch(e){
-    if(state) state.innerHTML = handoffCopy + ' 網路暫時不穩，本機資料不會消失。';
+    setStudyCloudState('本機讀書計畫已接回', '先本機保存', '網路暫時不穩，本機資料不會消失。');
   }
 }
 
@@ -4966,6 +5199,107 @@ function saveStudyTimeSettings(){
   showStudySaveNudge();
 }
 
+function _studyTimerState(){
+  try{ return JSON.parse(localStorage.getItem(STUDY_TIMER_KEY) || '{}') || {}; }catch(e){ return {}; }
+}
+
+function _saveStudyTimerState(state){
+  try{ localStorage.setItem(STUDY_TIMER_KEY, JSON.stringify(state || {})); }catch(e){}
+}
+
+function _studyTimerInputMinutes(){
+  var input = document.getElementById('study-timer-minutes');
+  var raw = input ? parseInt(input.value || '25', 10) : 25;
+  var mins = Math.max(5, Math.min(180, isFinite(raw) ? raw : 25));
+  if(input) input.value = String(mins);
+  return mins;
+}
+
+function _formatStudyTimerSeconds(seconds){
+  var safe = Math.max(0, parseInt(seconds || '0', 10) || 0);
+  var mm = Math.floor(safe / 60);
+  var ss = safe % 60;
+  return String(mm).padStart(2, '0') + ':' + String(ss).padStart(2, '0');
+}
+
+function _studyTimerElapsedSeconds(state){
+  state = state || _studyTimerState();
+  var elapsed = parseInt(state.elapsed_seconds || '0', 10) || 0;
+  if(state.running && state.started_at){
+    elapsed += Math.max(0, Math.floor((Date.now() - Number(state.started_at || 0)) / 1000));
+  }
+  return elapsed;
+}
+
+function updateStudyTimerUI(){
+  var clock = document.getElementById('study-timer-clock');
+  var label = document.getElementById('study-timer-state');
+  var state = _studyTimerState();
+  var total = parseInt(state.total_seconds || '0', 10) || (_studyTimerInputMinutes() * 60);
+  var remaining = Math.max(0, total - _studyTimerElapsedSeconds(state));
+  if(clock) clock.textContent = _formatStudyTimerSeconds(remaining);
+  if(label) label.textContent = state.running ? '計時中；完成後寫入讀書時數。' : '可改分鐘；完成後進同一個時數累積。';
+  if(state.running && remaining <= 0) finishStudyTimer();
+}
+
+function startStudyTimer(){
+  var state = _studyTimerState();
+  var total = parseInt(state.total_seconds || '0', 10) || (_studyTimerInputMinutes() * 60);
+  var elapsed = Math.min(total, _studyTimerElapsedSeconds(state));
+  _saveStudyTimerState({
+    total_seconds: total,
+    elapsed_seconds: elapsed,
+    started_at: Date.now(),
+    running: true
+  });
+  if(studyTimerTick) clearInterval(studyTimerTick);
+  studyTimerTick = setInterval(updateStudyTimerUI, 1000);
+  updateStudyTimerUI();
+}
+
+function pauseStudyTimer(){
+  var state = _studyTimerState();
+  var total = parseInt(state.total_seconds || '0', 10) || (_studyTimerInputMinutes() * 60);
+  _saveStudyTimerState({
+    total_seconds: total,
+    elapsed_seconds: Math.min(total, _studyTimerElapsedSeconds(state)),
+    running: false
+  });
+  if(studyTimerTick) clearInterval(studyTimerTick);
+  studyTimerTick = null;
+  updateStudyTimerUI();
+}
+
+async function finishStudyTimer(){
+  var state = _studyTimerState();
+  var elapsed = _studyTimerElapsedSeconds(state);
+  var label = document.getElementById('study-timer-state');
+  if(elapsed < 1){
+    if(label) label.textContent = '請先開始計時，再完成記錄。';
+    return;
+  }
+  var minutes = Math.max(1, Math.round(elapsed / 60));
+  var dateEl = document.getElementById('study-record-date');
+  var subjectEl = document.getElementById('study-record-subject');
+  var minutesEl = document.getElementById('study-record-minutes');
+  var noteEl = document.getElementById('study-record-note');
+  if(dateEl) dateEl.value = _todayInputValue();
+  if(subjectEl) subjectEl.value = '讀書時間';
+  if(minutesEl) document.getElementById('study-record-minutes').value = String(minutes);
+  if(noteEl) document.getElementById('study-record-note').value = '番茄鐘計時';
+  try{ localStorage.removeItem(STUDY_TIMER_KEY); }catch(e){}
+  if(studyTimerTick) clearInterval(studyTimerTick);
+  studyTimerTick = null;
+  await saveStudyRecordLocal();
+  updateStudyTimerUI();
+}
+
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', updateStudyTimerUI);
+}else{
+  updateStudyTimerUI();
+}
+
 function buildStudySuggestions(data, mergedPlan){
   var local = _studyLocal();
   var settings = local.settings || {};
@@ -4997,7 +5331,7 @@ function buildStudySuggestions(data, mergedPlan){
     var next = items[0] || {};
     suggestions.push({
       label:'PLAN',
-      title:'下一堂課',
+      title:'下一項安排',
       meta:[next.scheduled_date || '', next.scheduled_time || '', next.title || next.subject || '讀書計畫'].filter(Boolean).join(' · '),
       href:'#study-plan-items'
     });
@@ -5036,7 +5370,7 @@ function _studySuggestionLabel(label){
   var key = String(label || '').toUpperCase();
   if(key === 'WEAK') return '弱點';
   if(key === 'QUIZ') return '選擇題';
-  if(key === 'PLAN') return '課程';
+  if(key === 'PLAN') return '安排';
   if(key === 'BLOCK') return '題庫';
   if(key === 'TIME') return '時間';
   return '下一步';
@@ -6480,6 +6814,8 @@ function _readArticle(btn, text) {
   const uid = localStorage.getItem('sofa_uid') || '';
   const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
   if(!uid || isFree){
+    window.__dashboardDataLoaded = false;
+    setTimeout(renderDashboardLoadingFallbacks, 4000);
     renderStudyToday(null);
     return; // 免費版不拉個人資料，但保留今日工具入口
   }
@@ -6577,6 +6913,21 @@ function _readArticle(btn, text) {
     box.classList.add('on');
   }
 
+  function renderDashboardLoadingFallbacks(){
+    if(window.__dashboardDataLoaded) return;
+    var recent = document.getElementById('recent-list');
+    if(recent && /載入中/.test(recent.textContent || '')){
+      recent.innerHTML = '<div style="padding:24px 0;text-align:center;opacity:.48;font-size:.85rem;font-family:var(--sans)">還沒有查詢紀錄；查過的條文會放在這裡。</div>';
+    }
+    var lawsBox = document.getElementById('laws-toc');
+    if(lawsBox && /載入中/.test(lawsBox.textContent || '')){
+      lawsBox.innerHTML = '<div style="padding:24px 0;text-align:center;opacity:.48;font-size:.85rem;font-family:var(--sans)">法規目錄載入較慢；可先用上方搜尋。</div>';
+    }
+  }
+
+  window.__dashboardDataLoaded = false;
+  setTimeout(renderDashboardLoadingFallbacks, 4000);
+
   Promise.all([
     _fetchJSON(API+'/api/me/profile',   { headers: H }),
     _fetchJSON(API+'/api/me/progress',  { headers: H }),
@@ -6587,6 +6938,7 @@ function _readArticle(btn, text) {
     _fetchJSON(API+'/api/me/entitlements',{ headers: H }),
     _fetchJSON(API+'/api/me/study/today?track=bookkeeper',{ headers: H }),
   ]).then(function(results){
+    window.__dashboardDataLoaded = true;
     var profile   = results[0];
     var progress  = results[1];
     var bookmarks = results[2];
@@ -6810,7 +7162,7 @@ function _readArticle(btn, text) {
       if(!el) return;
       var hist = (historyRes && historyRes.history) || [];
       if(!hist.length){
-        el.innerHTML = '<div style="padding:24px 0;text-align:center;opacity:.4;font-size:.85rem;font-family:var(--sans)">還沒有查詢紀錄，去查第一條吧！</div>';
+        el.innerHTML = '<div style="padding:24px 0;text-align:center;opacity:.48;font-size:.85rem;font-family:var(--sans)">還沒有查詢紀錄；查過的條文會放在這裡。</div>';
         return;
       }
       // 按日期分組
@@ -6831,10 +7183,10 @@ function _readArticle(btn, text) {
           var time = (h.timestamp||h.queried_at||'').slice(11,16);
           var pid  = (h.page_id||'').replace(/'/g,'');
           var ln   = (h.law_name||'').replace(/'/g,'');
-          // 去掉 Firestore 裡可能已含的 § 前綴，避免顯示 §§9
-          var artRaw   = (h.article||'').replace(/^§+/,'');
+          var parts = articleLabelParts(h.article || h.article_no || '', h.title);
+          var artRaw = parts.article_no;
           var artSafe  = artRaw.replace(/'/g,'');
-          var title    = fallbackArticleTitle(artRaw, h.title);
+          var title    = parts.title;
           html += '<div class="rec-row"' + drawerOpenAttrs(pid, ln, artSafe, '開啟最近查詢 ' + (h.law_name || '') + ' ' + displayArticleNo(artRaw)) + '>'+
             '<span class="law">'+esc(h.law_name||'——')+'</span>'+
             '<span class="art">'+esc(displayArticleNo(artRaw))+'</span>'+
@@ -7216,6 +7568,14 @@ function retryStudyHashScroll(targetId, attemptsLeft, keepTrying){
   }
   try{ el.scrollIntoView({behavior:'auto', block:'start'}); }
   catch(_){ el.scrollIntoView(); }
+  requestAnimationFrame(function(){
+    var bar = document.querySelector('.topbar');
+    var topLimit = (bar ? bar.getBoundingClientRect().bottom : 0) + 12;
+    var box = el.getBoundingClientRect();
+    if(box.top < topLimit){
+      window.scrollBy(0, box.top - topLimit);
+    }
+  });
   if(keepTrying && attemptsLeft > 0){
     setTimeout(function(){ retryStudyHashScroll(targetId, attemptsLeft - 1, keepTrying); }, 180);
   }
@@ -7374,13 +7734,51 @@ function closeDashboardSideNav(){
   if(button) button.setAttribute('aria-expanded', 'false');
 }
 
+var DASHBOARD_SIDE_COLLAPSED_KEY = 'sofa.dashboard.sideCollapsed.v1';
+
+function setDashboardSideCollapsed(collapsed){
+  var on = !!collapsed;
+  document.body.classList.toggle('side-collapsed', on);
+  try{ localStorage.setItem(DASHBOARD_SIDE_COLLAPSED_KEY, on ? '1' : '0'); }catch(e){}
+  var button = document.querySelector('.menu-btn');
+  if(button){
+    button.setAttribute('aria-expanded', on ? 'false' : 'true');
+    button.setAttribute('aria-label', on ? '顯示導覽' : '隱藏導覽');
+    button.setAttribute('title', on ? '顯示導覽' : '隱藏導覽');
+  }
+}
+
+function applyDashboardSidePreference(){
+  var desktop = window.matchMedia('(min-width:981px)').matches;
+  if(!desktop){
+    document.body.classList.remove('side-collapsed');
+    closeDashboardSideNav();
+    var mobileButton = document.querySelector('.menu-btn');
+    if(mobileButton){
+      mobileButton.setAttribute('aria-label', '開啟導覽');
+      mobileButton.setAttribute('title', '開啟導覽');
+    }
+    return;
+  }
+  var saved = '';
+  try{ saved = localStorage.getItem(DASHBOARD_SIDE_COLLAPSED_KEY) || ''; }catch(e){}
+  setDashboardSideCollapsed(saved === '1');
+}
+
 function toggleDashboardSideNav(){
   var side = document.querySelector('aside.side');
   var button = document.querySelector('.menu-btn');
   if(!side) return;
+  if(window.matchMedia('(min-width:981px)').matches){
+    setDashboardSideCollapsed(!document.body.classList.contains('side-collapsed'));
+    return;
+  }
   side.classList.toggle('open');
   if(button) button.setAttribute('aria-expanded', side.classList.contains('open') ? 'true' : 'false');
 }
+
+applyDashboardSidePreference();
+window.addEventListener('resize', applyDashboardSidePreference);
 
 document.querySelectorAll('aside.side a').forEach(function(link){
   link.addEventListener('click', function(){
@@ -7646,7 +8044,7 @@ function renderStudyTimeOutcome(items){
     el.textContent = '目前沒有待讀；已留下 ' + completed.length + ' 筆完成 / 補紀錄。';
     return;
   }
-  el.textContent = '還沒排課；先預覽本週排法或設定課程。';
+  el.textContent = '還沒安排；可先預覽本週建議或自己設定。';
 }
 
 function renderStudyNextPlan(items){
@@ -7662,10 +8060,10 @@ function renderStudyNextPlan(items){
     var title = next.title || next.subject || '讀書計畫';
     var when = [next.scheduled_date || '', next.scheduled_time || ''].filter(Boolean).join(' · ');
     var meta = [when, timeLine].filter(Boolean).join(' · ');
-    el.innerHTML = '<span class="study-next-plan-copy"><span class="k">今日任務</span><b>下一堂：' + esc(title) + '</b><span>'
+    el.innerHTML = '<span class="study-next-plan-copy"><span class="k">今日任務</span><b>下一項：' + esc(title) + '</b><span>'
       + esc(meta || timeLine)
       + '</span></span><span class="study-next-plan-actions">'
-      + '<button type="button" data-study-action-kind="done" data-next-study-key="' + esc(key) + '" data-study-action-key="' + esc(key) + '" aria-label="完成這堂讀書計畫">完成這堂</button>'
+      + '<button type="button" data-study-action-kind="done" data-next-study-key="' + esc(key) + '" data-study-action-key="' + esc(key) + '" aria-label="完成這項讀書安排">完成這項</button>'
       + '</span>';
     return;
   }

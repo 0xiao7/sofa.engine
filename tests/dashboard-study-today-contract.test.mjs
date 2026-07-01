@@ -171,9 +171,12 @@ test('today weak brief appears before the next plan card on mobile first screen'
   assert.ok(recapStart >= 0, 'study recap must exist');
   const recap = active.slice(recapStart, recapStart + 5200);
   const weakIndex = recap.indexOf('id="study-weak-brief"');
+  const actionIndex = recap.indexOf('class="study-actions"');
   const nextPlanIndex = recap.indexOf('id="study-next-plan"');
   assert.ok(weakIndex > -1, 'weak brief must exist inside today recap');
+  assert.ok(actionIndex > -1, 'action buttons must exist inside today recap');
   assert.ok(nextPlanIndex > -1, 'next plan card must exist inside today recap');
+  assert.ok(weakIndex < actionIndex, 'weak brief should appear before tool buttons on tight mobile screens');
   assert.ok(weakIndex < nextPlanIndex, 'weak brief should appear before the next plan card');
 });
 
@@ -213,8 +216,14 @@ test('study today makes working tools and personal planning obvious', () => {
 
 test('desktop dashboard keeps the left library rail persistent', () => {
   assert.match(active, /\.shell\{[\s\S]*grid-template-columns:280px minmax\(0,1fr\)/);
+  assert.match(active, /\.topbar\{[\s\S]*position:fixed;top:0;left:0;right:0;z-index:80/);
+  assert.match(active, /\.shell\{[\s\S]*margin-top:71px/);
   assert.match(active, /aside\.side\{[\s\S]*position:fixed;top:71px;bottom:0;left:0;width:280px/);
   assert.match(active, /aside\.side\{[\s\S]*height:calc\(100dvh - 71px\)/);
+  assert.match(active, /body\.side-collapsed \.shell\{grid-template-columns:minmax\(0,1fr\)\}/);
+  assert.match(active, /body\.side-collapsed aside\.side\{transform:translateX\(-100%\);pointer-events:none\}/);
+  assert.match(active, /function setDashboardSideCollapsed/);
+  assert.match(active, /DASHBOARD_SIDE_COLLAPSED_KEY\s*=\s*'sofa\.dashboard\.sideCollapsed\.v1'/);
   assert.match(active, /main\.main\{[\s\S]*grid-column:2/);
   assert.match(active, /@media \(max-width:980px\)\{[\s\S]*\.shell\{grid-template-columns:1fr\}/);
   assert.match(active, /@media \(max-width:980px\)\{[\s\S]*aside\.side\{[\s\S]*position:fixed;top:65px;left:0;width:280px/);
@@ -241,6 +250,8 @@ test('study plan and record panels have deep links for native app entry', () => 
   assert.match(active, /keepTrying/);
   assert.match(active, /retryStudyHashScroll\(targetId, attemptsLeft - 1, keepTrying\)/);
   assert.match(extractFunction(active, 'retryStudyHashScroll'), /scrollIntoView\(\{behavior:'auto',\s*block:'start'\}\)/);
+  assert.match(extractFunction(active, 'retryStudyHashScroll'), /document\.querySelector\('\.topbar'\)/);
+  assert.match(extractFunction(active, 'retryStudyHashScroll'), /window\.scrollBy\(0, box\.top - topLimit\)/);
   assert.doesNotMatch(extractFunction(active, 'retryStudyHashScroll'), /behavior:'smooth'/);
   assert.match(active, /getComputedStyle\(el\)\.display === 'none'/);
 });
@@ -487,6 +498,9 @@ test('study today action buttons are sized for mobile app shells', () => {
   assert.doesNotMatch(actionBlock, />看弱點分析</);
   assert.doesNotMatch(actionBlock, />設定讀書課程</);
   assert.match(active, /\.study-actions\{[\s\S]*display:grid/);
+  assert.match(active, /\.study-actions\{[\s\S]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(active, /\.study-actions\{[\s\S]*gap:12px 18px/);
+  assert.match(active, /\.study-action-group\{[\s\S]*grid-template-columns:auto repeat\(3,minmax\(0,1fr\)\)/);
   assert.match(active, /\.study-action-group\.secondary \.study-action-link\{[\s\S]*background:rgba\(255,255,255,\.025\)/);
   assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?min-height:44px/);
   assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?font-family:var\(--serif\)/);
@@ -497,7 +511,7 @@ test('study today action buttons are sized for mobile app shells', () => {
   assert.match(active, /\.study-action-link,\.study-pending\{[\s\S]*?text-decoration:none/);
   assert.doesNotMatch(studyActionButtonRule, /font:inherit/);
   assert.match(active, /@media \(max-width:760px\)\{[\s\S]*?\.study-action-link,\.study-pending\{[\s\S]*?min-height:44px/);
-  assert.match(active, /\.study-weak-brief-link\{[\s\S]*?min-height:36px/);
+  assert.match(active, /\.study-weak-brief-link\{[\s\S]*?min-height:44px/);
   assert.match(active, /\.study-weak-brief-head\{[\s\S]*?flex-wrap:wrap/);
 });
 
@@ -534,14 +548,14 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.match(recap, /id="study-status-today"[\s\S]*預留 60 分鐘/);
   assert.match(recap, /id="study-status-next"[\s\S]*先做一題/);
   assert.match(recap, /<div class="study-planning-overview" id="study-planning-overview" aria-label="讀書計畫總覽"/);
-  assert.match(recap, /id="study-overview-next"[\s\S]*先做一題或設定課程/);
+  assert.match(recap, /id="study-overview-next"[\s\S]*先做一題或排一項任務/);
   assert.match(recap, /id="study-overview-save"[\s\S]*只在這台裝置/);
   assert.match(recap, /id="study-overview-hours"[\s\S]*累積 0 小時/);
   assert.match(recap, /id="study-overview-status"[\s\S]*待讀 0 \/ 完成 0/);
   assert.match(recap, /<div class="study-time-wrap" id="study-time-box"/);
   assert.match(recap, /id="study-time-summary"[\s\S]*今天已讀 0 分鐘；本週已讀 0 小時；目標 500 小時/);
   assert.match(recap, /id="study-time-impact"[\s\S]*剩約 42 週/);
-  assert.match(recap, /id="study-time-outcome"[\s\S]*還沒排課；先預覽本週排法或設定課程/);
+  assert.match(recap, /id="study-time-outcome"[\s\S]*還沒安排；可先預覽本週建議或自己設定/);
   assert.match(recap, /class="study-time-summary-card"[\s\S]*讀書時間[\s\S]*修改時間/);
   assert.match(recap, /id="study-target-hours"[\s\S]*500/);
   assert.match(recap, /id="study-weekly-hours"[\s\S]*每週可讀/);
@@ -549,7 +563,7 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.match(active, /function _studyAccumulatedMinutes/);
   assert.match(active, /summary\.textContent = '今天已讀 ' \+ ledger\.today/);
   assert.match(active, /impact\.textContent = weeks \? \('剩約 ' \+ weeks \+ ' 週'\) : '先填時間'/);
-  assert.match(active, /時間設定只先存在本機/);
+  assert.match(active, /時間設定只影響建議；按排入後才保存/);
   assert.match(active, /排入本週計畫/);
   assert.match(active, /\.study-status-strip\{[\s\S]*display:grid/);
   assert.match(active, /\.study-planning-overview\{[\s\S]*display:grid/);
@@ -658,7 +672,7 @@ test('study plan updates the left guide with waiting and completed counts', () =
 
 test('study today renders personal plan items returned by the study API', () => {
   assert.match(active, /personal_plan/);
-  assert.match(active, /id="study-cloud-state"/);
+  assert.match(active, /<details class="study-cloud-state" id="study-cloud-state"/);
   assert.match(active, /id="study-plan-items"/);
   assert.match(active, /renderStudyPlanItems/);
   assert.match(active, /待讀清單/);
@@ -676,11 +690,16 @@ test('study today explains cloud save status in learner words', () => {
 
 test('study cloud state names the connected private schedule source and visible item count', () => {
   const fn = extractFunction(active, 'renderStudyCloudState');
+  const helper = extractFunction(active, 'setStudyCloudState');
   assert.match(fn, /remotePlan\.items/);
   assert.match(fn, /cloudItems\.length/);
   assert.match(fn, /source_label/);
-  assert.match(fn, /已接上' \+ cloudItems\.length \+ ' 筆/);
+  assert.match(helper, /<summary>/);
+  assert.match(fn, /已接上 ' \+ cloudItems\.length \+ ' 筆/);
   assert.match(fn, /來源：/);
+  assert.match(fn, /setStudyCloudState/);
+  assert.match(active, /\.study-cloud-state summary\{/);
+  assert.match(active, /\.study-cloud-detail\{/);
 });
 
 test('study today shows the next private plan near the first action area', () => {
@@ -697,7 +716,7 @@ test('study today shows the next private plan near the first action area', () =>
   assert.match(nextFn, /_studyTimeLedger/);
   assert.match(nextFn, /今天已讀/);
   assert.match(nextFn, /累積/);
-  assert.match(nextFn, /下一堂/);
+  assert.match(nextFn, /下一項/);
   assert.doesNotMatch(nextFn, /今天留/);
   assert.doesNotMatch(nextFn, /讀完按「完成這堂」/);
   assert.doesNotMatch(nextFn, /預覽只給建議，排入後才存進私人計畫/);
@@ -714,16 +733,16 @@ test('study next plan card can mark the next item complete without hunting the l
   assert.match(nextFn, /data-next-study-key/);
   assert.match(nextFn, /data-study-action-kind="done"/);
   assert.match(active, /if\(kind === 'done'\) completeStudyItem\(key\)/);
-  assert.match(nextFn, /完成這堂/);
-  assert.match(nextFn, /aria-label="完成這堂讀書計畫"/);
+  assert.match(nextFn, /完成這項/);
+  assert.match(nextFn, /aria-label="完成這項讀書安排"/);
 });
 
 test('returning learners get a compact next card without onboarding-style extra links', () => {
   const nextFn = extractFunction(active, 'renderStudyNextPlan');
-  assert.match(nextFn, /下一堂/);
+  assert.match(nextFn, /下一項/);
   assert.match(nextFn, /今天已讀/);
   assert.match(nextFn, /累積/);
-  assert.match(nextFn, /完成這堂/);
+  assert.match(nextFn, /完成這項/);
   assert.doesNotMatch(nextFn, /studyPlanItemActionLinks/);
   assert.doesNotMatch(nextFn, /openStudyRecordPanel/);
   assert.doesNotMatch(nextFn, /href="#study-plan-items"/);
@@ -782,7 +801,8 @@ test('study plan items expose learning actions only when item metadata supports 
 test('study today puts next-step actions before lower-priority subject detail', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
-  const recap = active.slice(recapStart, recapStart + 15000);
+  const recapEnd = active.indexOf('id="quiz-recap"', recapStart);
+  const recap = active.slice(recapStart, recapEnd > recapStart ? recapEnd : recapStart + 24000);
   const actionIndex = recap.indexOf('class="study-actions"');
   const weakIndex = recap.indexOf('id="study-weak-brief"');
   const subjectsIndex = recap.indexOf('id="study-cockpit-subjects"');
@@ -932,7 +952,7 @@ test('study time planning is editable and persisted locally', () => {
   assert.match(active, /照這個速度約/);
   assert.match(active, /function renderStudyTimeOutcome/);
   assert.match(active, /已套用到本週建議；還沒寫進帳號/);
-  assert.match(active, /預覽不會寫入，排入後才進你的私人讀書計畫/);
+  assert.match(active, /時間設定只影響建議；按排入後才保存/);
   assert.match(active, /預覽本週排法/);
   assert.match(active, /排入本週計畫/);
   assert.match(active, /下一筆：/);
@@ -1061,6 +1081,29 @@ test('remote study plan actions persist status before falling back locally', () 
   assert.match(active, /updateLocalStudyItemStatus\(key, status, shiftDays\)/);
 });
 
+test('completing a study plan item records planned minutes into the same hours ledger', () => {
+  assert.match(active, /function logCompletedStudyItemHours/);
+  const fn = extractFunction(active, 'logCompletedStudyItemHours');
+  assert.match(fn, /\/api\/me\/study\/hours/);
+  assert.match(fn, /_studyItemMinutes\(item\)/);
+  assert.match(fn, /status:'done'/);
+  assert.match(fn, /source_label:'完成課程 ' \+ minutes \+ ' 分鐘'/);
+  assert.match(fn, /completed_hours_for/);
+  assert.match(fn, /local\.records = \(local\.records \|\| \[\]\)\.filter/);
+  assert.match(fn, /track_key:item\.track_key \|\| 'bookkeeper'/);
+  assert.match(fn, /log_date:item\.scheduled_date \|\| _todayInputValue\(\)/);
+  const actionFn = extractFunction(active, 'updateStudyItemStatus');
+  assert.match(actionFn, /if\(status === 'done' && item\) await logCompletedStudyItemHours\(item\)/);
+  assert.doesNotMatch(actionFn, /postponed[\s\S]{0,160}logCompletedStudyItemHours/);
+});
+
+test('automatic hours records add time without inflating completed plan counts', () => {
+  assert.match(active, /function _isAutoStudyHoursRecord/);
+  assert.match(extractFunction(active, '_completedStudyItems'), /_isAutoStudyHoursRecord\(item\)\) return false/);
+  assert.match(extractFunction(active, '_studyAccumulatedMinutes'), /_isAutoStudyHoursRecord\(item\)\) return true/);
+  assert.match(extractFunction(active, '_studyAccumulatedMinutes'), /status \|\| ''\)\.trim\(\) === 'done'/);
+});
+
 test('remote study plan action failures keep the item visible with a clear message', () => {
   const fn = extractFunction(active, 'updateStudyItemStatus');
   assert.match(active, /function setStudyPlanActionMessage/);
@@ -1080,13 +1123,13 @@ test('study today builds concrete local suggestions from time weakness and plan 
   assert.match(active, /_mergeStudyPlan\(data\.personal_plan \|\| null\)/);
   assert.match(active, /renderStudySuggestions\(buildStudySuggestions\(data, mergedPlan\)\)/);
   assert.match(active, /先做一題弱點/);
-  assert.match(active, /下一堂課/);
+  assert.match(active, /下一項安排/);
   assert.match(active, /今天預留/);
 });
 
 test('study today can recommend a private weekly plan without shipping personal schedules', () => {
   assert.match(active, /id="study-recommend-panel"/);
-  assert.match(active, /本週建議排法/);
+  assert.match(active, /本週建議/);
   assert.match(active, /預覽本週排法/);
   assert.match(active, /排入本週計畫/);
   assert.match(active, /function buildStudyWeekRecommendation/);
@@ -1164,7 +1207,9 @@ test('study planning reconnects local progress after serial login', () => {
   assert.match(active, /STUDY_AFTER_LOGIN_SYNC_KEY\s*=\s*'sofa\.study\.afterLoginSync\.v1'/);
   assert.match(active, /STUDY_AFTER_LOGIN_SYNC_DONE_KEY\s*=\s*'sofa\.study\.afterLoginSyncDone\.v1'/);
   assert.match(active, /function trySyncLocalStudyAfterLogin/);
-  assert.match(active, /本機讀書計畫已接回這個序號/);
+  const fn = extractFunction(active, 'trySyncLocalStudyAfterLogin');
+  assert.match(fn, /setStudyCloudState\('本機讀書計畫已接回'/);
+  assert.doesNotMatch(fn, /study-cloud-state'[\s\S]*\.innerHTML\s*=/);
   assert.match(active, /排課項目會嘗試同步/);
   assert.match(active, /補紀錄會在下次儲存時同步讀書時數/);
   assert.match(active, /\/api\/me\/study\/plan-items\/bulk/);
@@ -1172,4 +1217,26 @@ test('study planning reconnects local progress after serial login', () => {
   assert.match(active, /_actionableStudyItems\(local\.items \|\| \[\]\)/);
   assert.match(active, /localStorage\.removeItem\(STUDY_AFTER_LOGIN_SYNC_KEY\)/);
   assert.match(active, /renderStudyCloudState[\s\S]*trySyncLocalStudyAfterLogin\(\)/);
+});
+
+test('study panel includes a simple pomodoro timer that saves through the hours ledger', () => {
+  assert.match(active, /id="study-timer-panel"/);
+  assert.match(active, /番茄鐘/);
+  assert.match(active, /id="study-timer-minutes"/);
+  assert.match(active, /function startStudyTimer/);
+  assert.match(active, /function pauseStudyTimer/);
+  assert.match(active, /async function finishStudyTimer/);
+  assert.match(active, /STUDY_TIMER_KEY\s*=\s*'sofa\.study\.timer\.v1'/);
+  const finishFn = extractFunction(active, 'finishStudyTimer');
+  assert.match(finishFn, /document\.getElementById\('study-record-minutes'\)\.value = String\(minutes\)/);
+  assert.match(finishFn, /document\.getElementById\('study-record-note'\)\.value = '番茄鐘計時'/);
+  assert.match(finishFn, /await saveStudyRecordLocal\(\)/);
+  assert.doesNotMatch(finishFn, /study-room|自習室/);
+});
+
+test('study pomodoro does not create fake time before the timer starts', () => {
+  const finishFn = extractFunction(active, 'finishStudyTimer');
+  assert.match(finishFn, /elapsed < 1/);
+  assert.match(finishFn, /請先開始計時/);
+  assert.doesNotMatch(finishFn, /_studyTimerInputMinutes\(\)/);
 });

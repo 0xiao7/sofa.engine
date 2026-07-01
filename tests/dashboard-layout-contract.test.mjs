@@ -171,8 +171,15 @@ test('recent query section hands off to compass without a large blank wall', () 
   assert.match(html, /section\.block\{[\s\S]*margin-bottom:64px/);
   assert.match(html, /section\.block:last-child\{margin-bottom:28px\}/);
   assert.match(html, /\.recent-list\{[\s\S]*min-height:0/);
+  assert.match(html, /function renderDashboardLoadingFallbacks/);
+  assert.match(html, /if\(!uid \|\| isFree\)\{[\s\S]*setTimeout\(renderDashboardLoadingFallbacks,\s*4000\)/);
+  assert.match(html, /setTimeout\(renderDashboardLoadingFallbacks,\s*4000\)/);
+  assert.match(html, /還沒有查詢紀錄；查過的條文會放在這裡/);
   assert.match(html, /\.compass-embed\{[\s\S]*background:linear-gradient/);
-  assert.match(html, /\.compass-embed\{[\s\S]*margin:0/);
+  assert.match(html, /\.compass-embed\{[\s\S]*margin:0 0 0 280px/);
+  assert.match(html, /\.compass-embed\{[\s\S]*width:calc\(100% - 280px\)/);
+  assert.match(html, /body\.side-collapsed \.compass-embed\{margin-left:0;width:100%\}/);
+  assert.match(html, /@media \(max-width:980px\)\{[\s\S]*\.compass-embed\{margin-left:0;width:100%\}/);
   assert.match(html, /<section class="compass-embed" data-screen-label="Compass">/);
   assert.doesNotMatch(html, /class="compass-embed"[^>]+style=/);
 });
@@ -343,18 +350,29 @@ test('dashboard article labels normalize raw article numbers before wrapping tex
     extractFunction(html, 'cleanArticleNoForDisplay'),
     extractFunction(html, 'displayArticleNo'),
     extractFunction(html, 'fallbackArticleTitle'),
+    extractFunction(html, 'articleLabelParts'),
     extractFunction(html, 'articleReaderHref'),
   ].join('\n');
   const sandbox = { encodeURIComponent };
   vm.createContext(sandbox);
-  vm.runInContext(`${source}; this.helpers = { cleanArticleNoForDisplay, displayArticleNo, fallbackArticleTitle, articleReaderHref };`, sandbox);
+  vm.runInContext(`${source}; this.helpers = { cleanArticleNoForDisplay, displayArticleNo, fallbackArticleTitle, articleLabelParts, articleReaderHref };`, sandbox);
 
   assert.equal(sandbox.helpers.cleanArticleNoForDisplay('第13條'), '13');
   assert.equal(sandbox.helpers.cleanArticleNoForDisplay('§ 13'), '13');
   assert.equal(sandbox.helpers.cleanArticleNoForDisplay('第十三條之一'), '13之1');
+  assert.equal(sandbox.helpers.cleanArticleNoForDisplay('§ 27 | 使用許可案件審議通過後核發使用許可'), '27');
+  assert.equal(sandbox.helpers.cleanArticleNoForDisplay('§ 102-1'), '102-1');
   assert.equal(sandbox.helpers.displayArticleNo('第13條'), '§ 13');
   assert.equal(sandbox.helpers.fallbackArticleTitle('第13條', ''), '第 13 條');
   assert.equal(sandbox.helpers.fallbackArticleTitle('第13條', '文件補正期限'), '文件補正期限');
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(sandbox.helpers.articleLabelParts('§ 27 | 使用許可案件審議通過後核發使用許可', ''))),
+    { article_no: '27', title: '使用許可案件審議通過後核發使用許可' },
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(sandbox.helpers.articleLabelParts('§ 102-1 | 違反醫院設置標準之醫院層級加重罰則', ''))),
+    { article_no: '102-1', title: '違反醫院設置標準之醫院層級加重罰則' },
+  );
   assert.equal(
     sandbox.helpers.articleReaderHref('記帳士法', '第13條', 'abc123'),
     'law-preview.html?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&id=abc123&art=13&from=dashboard&back=dashboard.html',

@@ -32,6 +32,21 @@ test('visual entry QA scrolls dashboard sections and verifies sidebar active vis
   assert.match(script, /sofa-visual-dashboard-sidebar-scroll\.png/);
 });
 
+test('visual entry QA catches dashboard responsive overflow and recent-row regressions', () => {
+  assert.match(script, /dashboardResponsiveLayoutCase/);
+  assert.match(script, /width:\s*390,\s*height:\s*844/);
+  assert.match(script, /width:\s*820,\s*height:\s*1180/);
+  assert.match(script, /width:\s*1440,\s*height:\s*900/);
+  assert.match(script, /assertNoHorizontalOverflow/);
+  assert.match(script, /\/api\/me\/history/);
+  assert.match(script, /§ 27 \| 使用許可案件審議通過後核發使用許可/);
+  assert.match(script, /#recent-list \.rec-row/);
+  assert.match(script, /artWritingMode/);
+  assert.match(script, /horizontal-tb/);
+  assert.match(script, /duplicated article label/);
+  assert.match(script, /sofa-visual-dashboard-responsive-\$\{viewport\.name\}\.png/);
+});
+
 test('visual entry QA checks quiz post-answer actions and article deep link', () => {
   assert.match(script, /quizCase/);
   assert.match(script, /#view-article-btn/);
