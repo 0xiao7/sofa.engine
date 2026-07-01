@@ -575,15 +575,17 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.match(recap, /id="study-overview-hours"[\s\S]*累積 0 小時/);
   assert.match(recap, /id="study-overview-status"[\s\S]*待讀 0 \/ 完成 0/);
   assert.match(recap, /<div class="study-time-wrap" id="study-time-box"/);
+  assert.match(recap, /id="study-time-title"[\s\S]*累積 0 小時/);
   assert.match(recap, /id="study-time-summary"[\s\S]*累積 0 小時；本週 0 小時；今天 0 分/);
   assert.match(recap, /id="study-time-impact"[\s\S]*剩約 42 週/);
-  assert.match(recap, /id="study-time-outcome"[\s\S]*還沒安排；可先預覽本週建議或自己設定/);
-  assert.match(recap, /class="study-time-summary-card"[\s\S]*讀書時間[\s\S]*修改時間/);
+  assert.match(recap, /id="study-time-outcome"[\s\S]*可預覽或直接排入本週/);
+  assert.match(recap, /class="study-time-summary-card"[\s\S]*累積 0 小時[\s\S]*修改時間/);
   assert.match(recap, /id="study-target-hours"[\s\S]*500/);
   assert.match(recap, /id="study-weekly-hours"[\s\S]*每週可讀/);
   assert.match(recap, /建議總時數可以改/);
   assert.match(active, /function _studyAccumulatedMinutes/);
-  assert.match(active, /summary\.textContent = '累積 ' \+ _formatStudyHours\(ledger\.accumulated\)/);
+  assert.match(active, /title\.textContent = '累積 ' \+ _formatStudyHours\(ledger\.accumulated\)/);
+  assert.match(active, /summary\.textContent = '本週 ' \+ _formatStudyHours\(ledger\.week\)/);
   assert.match(active, /impact\.textContent = weeks \? \('剩約 ' \+ weeks \+ ' 週'\) : '先填時間'/);
   assert.match(active, /時間設定只影響建議；按排入後才保存/);
   assert.match(active, /排入本週計畫/);
@@ -617,7 +619,7 @@ test('study time settings stay collapsed into a readable summary until editing',
   assert.ok(recapStart >= 0, 'study recap must exist');
   const recap = active.slice(recapStart, recapStart + 8200);
   assert.match(recap, /class="study-time-summary-card"/);
-  assert.match(recap, /id="study-time-purpose"[\s\S]*改時間只影響建議/);
+  assert.match(recap, /id="study-time-purpose"[\s\S]*修改時間只影響建議排法/);
   assert.match(recap, /id="study-time-edit-panel" hidden/);
   assert.match(recap, /aria-expanded="false"[\s\S]*onclick="toggleStudyTimeEditor\(\)"[\s\S]*修改時間/);
   assert.match(active, /function toggleStudyTimeEditor/);
@@ -704,9 +706,9 @@ test('study today renders personal plan items returned by the study API', () => 
 
 test('study today explains cloud save status in learner words', () => {
   assert.match(active, /function renderStudyCloudState/);
-  assert.match(active, /雲端已同步/);
+  assert.match(active, /已同步/);
   assert.match(active, /雲端同步準備中/);
-  assert.match(active, /先存在這台裝置/);
+  assert.match(active, /本機暫存/);
   assert.match(active, /personal_plan[\s\S]*status/);
   assert.doesNotMatch(active, /schema pending|schema_pending[^'"]*$/);
 });

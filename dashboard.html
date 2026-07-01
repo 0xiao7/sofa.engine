@@ -674,6 +674,14 @@
     overflow:hidden;
     text-overflow:ellipsis;
   }
+  .study-status-chip.primary{
+    border-color:rgba(159,184,159,.28);
+    background:rgba(159,184,159,.07);
+  }
+  .study-status-chip.primary b{
+    color:var(--cream);
+    font-size:18px;
+  }
   .study-subjects{display:flex;flex-wrap:wrap;gap:8px}
   .study-subject{
     border:1px solid var(--line-2);border-radius:3px;
@@ -1033,18 +1041,19 @@
   }
   .study-time-summary-card{
     min-height:54px;
-    display:flex;
+    display:grid;
+    grid-template-columns:minmax(0,1.45fr) minmax(180px,.8fr) auto;
     align-items:center;
-    justify-content:space-between;
     gap:14px;
     padding:12px 14px;
   }
   .study-time-main{display:grid;gap:3px;min-width:0}
   .study-time-main b{
     font-family:var(--serif);
-    font-size:16px;
+    font-size:22px;
     font-weight:600;
     color:var(--cream);
+    line-height:1.25;
   }
   .study-time-main small{
     color:rgba(245,240,234,.58);
@@ -1057,8 +1066,7 @@
     line-height:1.55;
   }
   .study-time-impact{
-    flex-shrink:0;
-    min-width:150px;
+    min-width:0;
     display:grid;
     gap:2px;
     padding:8px 12px;
@@ -1078,7 +1086,6 @@
     font-size:11.5px;
   }
   .study-time-edit-btn{
-    flex-shrink:0;
     border:1px solid rgba(231,187,167,.32);
     color:var(--peach);
     border-radius:4px;
@@ -1712,7 +1719,7 @@
     padding:0;
     color:rgba(245,240,234,.58);
     font-size:12px;
-    line-height:1.65;
+    line-height:1.55;
     overflow:hidden;
   }
   .study-cloud-state.is-quiet{opacity:.82}
@@ -1722,7 +1729,7 @@
     align-items:center;
     justify-content:space-between;
     gap:12px;
-    padding:8px 11px;
+    padding:7px 10px;
     cursor:pointer;
   }
   .study-cloud-state summary::-webkit-details-marker{display:none}
@@ -1747,6 +1754,7 @@
     padding:8px 11px 10px;
     color:rgba(245,240,234,.58);
   }
+  .study-cloud-state:not([open]) .study-cloud-detail{display:none}
   .study-cloud-state b{color:var(--peach);font-weight:700}
   .study-plan-items{display:grid;gap:8px}
   .study-plan-count{
@@ -1915,7 +1923,7 @@
       .study-next-plan a,.study-next-plan button{min-height:44px;padding:7px 10px}
     }
     .study-time-box{grid-template-columns:1fr}
-    .study-time-summary-card{align-items:flex-start;flex-wrap:wrap}
+    .study-time-summary-card{grid-template-columns:1fr;align-items:flex-start}
     .study-time-impact{width:100%;border-left:0;border-top:1px solid rgba(231,187,167,.16);padding:9px 0 0}
     .study-time-cell{border-left:0;border-top:1px solid rgba(231,187,167,.16);padding-left:0;padding-top:9px}
     .study-time-cell:first-child{border-top:0;padding-top:0}
@@ -3712,7 +3720,7 @@
               </div>
             </div>
             <div class="study-status-strip" id="study-status-strip" aria-label="今日讀書狀態">
-              <span class="study-status-chip"><span>累積時間</span><b id="study-status-total">0 小時</b></span>
+              <span class="study-status-chip primary"><span>累積時間</span><b id="study-status-total">0 小時</b></span>
               <span class="study-status-chip"><span>今天</span><b id="study-status-today">預留 60 分鐘</b></span>
               <span class="study-status-chip"><span>下一步</span><b id="study-status-next">先做一題</b></span>
             </div>
@@ -3778,13 +3786,13 @@
             <div class="study-time-wrap" id="study-time-box" aria-label="備考時間規劃">
               <div class="study-time-summary-card">
                 <span class="study-time-main">
-                  <b>讀書時間</b>
+                  <b id="study-time-title">累積 0 小時</b>
                   <small id="study-time-summary">累積 0 小時；本週 0 小時；今天 0 分。</small>
-                  <span id="study-time-purpose">改時間只影響建議。</span>
+                  <span id="study-time-purpose">修改時間只影響建議排法。</span>
                 </span>
                 <span class="study-time-impact" aria-live="polite">
                   <b id="study-time-impact">剩約 42 週</b>
-                  <small id="study-time-outcome">還沒安排；可先預覽本週建議或自己設定。</small>
+                  <small id="study-time-outcome">可預覽或直接排入本週。</small>
                 </span>
                 <button class="study-time-edit-btn" type="button" aria-expanded="false" onclick="toggleStudyTimeEditor()">修改時間</button>
               </div>
@@ -5046,8 +5054,8 @@ function renderStudyPlanningOverview(items, timeSummary){
   }
   if(saveNote){
     saveNote.textContent = (token || uid)
-      ? '私人讀書計畫只在你的帳號。'
-      : '輸入序號後才會同步。';
+      ? '只屬於這個帳號。'
+      : '輸入序號後同步。';
   }
   if(statusEl){
     statusEl.textContent = '待讀 ' + actionable.length + ' / 完成 ' + completed.length;
@@ -5108,12 +5116,12 @@ function renderStudyCloudState(remotePlan){
   if(status === 'ready'){
     if(cloudItems.length){
       setStudyCloudState(
-        '雲端已同步',
+        '已同步',
         cloudItems.length + ' 筆私人計畫',
-        sourceCopy + '只在你的帳號；換裝置登入後也會看到。'
+        sourceCopy + '只在你的帳號。'
       );
     } else {
-      setStudyCloudState('雲端已同步', '已接序號', '私人讀書計畫會跟著這個帳號。');
+      setStudyCloudState('已同步', '已接序號', '私人讀書計畫會跟著這個帳號。');
     }
     return;
   }
@@ -5121,7 +5129,7 @@ function renderStudyCloudState(remotePlan){
     setStudyCloudState('雲端同步準備中', '先本機保存', '目前先存在這台裝置。');
     return;
   }
-  setStudyCloudState('先存在這台裝置', '可先排任務', '輸入序號後再同步到帳號。');
+  setStudyCloudState('本機暫存', '可先排任務', '輸入序號後再同步到帳號。');
 }
 
 async function trySyncLocalStudyAfterLogin(){
@@ -5259,19 +5267,27 @@ function renderStudyTimeSettings(){
   if(weekly) weekly.value = s.weekly_hours || 12;
   if(today) today.value = s.today_minutes || 60;
   var hint = document.getElementById('study-time-hint');
+  var title = document.getElementById('study-time-title');
   var summary = document.getElementById('study-time-summary');
   var impact = document.getElementById('study-time-impact');
+  var purpose = document.getElementById('study-time-purpose');
   var totalHours = s.total_hours || 500;
   var weeklyHours = s.weekly_hours || 12;
   var todayMinutes = s.today_minutes || 60;
   var ledger = _studyTimeLedger(window.__studyTimeSummary || null, window.__studyPlanItemCache || []);
   var remainingHours = Math.max(0, totalHours - (ledger.accumulated / 60));
   var weeks = weeklyHours ? Math.ceil(remainingHours / weeklyHours) : 0;
+  if(title){
+    title.textContent = '累積 ' + _formatStudyHours(ledger.accumulated);
+  }
   if(hint){
     hint.textContent = weeks ? ('約 ' + weeks + ' 週；今天留 ' + todayMinutes + ' 分。') : '只影響建議，不改答題率。';
   }
   if(summary){
-    summary.textContent = '累積 ' + _formatStudyHours(ledger.accumulated) + '；本週 ' + _formatStudyHours(ledger.week) + '；今天 ' + ledger.today + ' 分。';
+    summary.textContent = '本週 ' + _formatStudyHours(ledger.week) + '；今天 ' + ledger.today + ' 分。';
+  }
+  if(purpose){
+    purpose.textContent = '目標 ' + totalHours + ' 小時；每週 ' + weeklyHours + ' 小時。';
   }
   if(impact){
     impact.textContent = weeks ? ('剩約 ' + weeks + ' 週') : '先填時間';
@@ -8187,7 +8203,7 @@ function renderStudyTimeOutcome(items){
     el.textContent = '目前沒有待讀；已留下 ' + completed.length + ' 筆完成 / 補紀錄。';
     return;
   }
-  el.textContent = '還沒安排；可先預覽本週建議或自己設定。';
+  el.textContent = '可預覽或直接排入本週。';
 }
 
 function renderStudyNextPlan(items){
