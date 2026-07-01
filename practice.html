@@ -1043,6 +1043,7 @@ function cleanVisibleSpeechCueText(text){
 }
 function cleanCrossRefLawName(lawName){
   return String(lawName || '')
+    .replace(/^.*?(?:可看|請看|請參照|請見|另參照|另見)/, '')
     .replace(/^(搭配|參照|依|按|見|與)+/, '')
     .replace(/[，。、；：\s]+$/, '')
     .trim();
@@ -1061,7 +1062,7 @@ function linkifyLawRefs(escapedText,currentLawName){
     const safeLaw = encodeURIComponent(String(lastLaw));
     const fullArt = art + (sub ? '之' + sub : '');
     const safeArt = encodeURIComponent(fullArt);
-    const prefixMatch = match.match(/^(搭配|參照|依|按|見|與)(.+)$/);
+    const prefixMatch = match.match(/^(.+?(?:可看|請看|請參照|請見|另參照|另見)|搭配|參照|依|按|見|與)(.+)$/);
     const prefix = prefixMatch ? prefixMatch[1] : '';
     const label = prefixMatch ? prefixMatch[2] : match;
     const safeBack = encodeURIComponent(currentPracticeReturnTarget() || 'practice.html');

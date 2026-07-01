@@ -90,6 +90,11 @@ test('practice analysis linkifies cross-law references inside the article reader
   assert.match(linkedNamedLaw, /&from=practice&back=practice\.html/);
   assert.doesNotMatch(linkedNamedLaw, />搭配公司法第29條</);
   assert.equal(helpers.cleanCrossRefLawName('搭配公司法'), '公司法');
+  const linkedReadableLead = helpers.linkifyLawRefs('交叉記憶可看公司法第29條', '商業會計法');
+  assert.match(linkedReadableLead, /law-preview\.html\?law=%E5%85%AC%E5%8F%B8%E6%B3%95&art=29/);
+  assert.match(linkedReadableLead, />公司法第29條</);
+  assert.doesNotMatch(linkedReadableLead, /law=.*%E4%BA%A4%E5%8F%89/);
+  assert.equal(helpers.cleanCrossRefLawName('交叉記憶可看公司法'), '公司法');
   assert.doesNotMatch(linkedNamedLaw, /target="_blank"/);
   assert.match(active, /formatSection\(sections\[name\],\s*articleLawName\)/);
 });

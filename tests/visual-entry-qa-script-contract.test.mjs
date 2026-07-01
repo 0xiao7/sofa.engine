@@ -8,9 +8,11 @@ test('visual entry QA covers dashboard first-layer entries across mobile and des
   assert.match(script, /dashboardCase/);
   assert.match(script, /width:\s*390,\s*height:\s*667/);
   assert.match(script, /width:\s*1440,\s*height:\s*900/);
-  assert.match(script, /#study-cockpit-recap a\[href="quiz\.html\?open=weakness"\]/);
+  assert.match(script, /#study-cockpit-recap \.study-action-group\.primary a\[href="quiz\.html\?open=weakness"\]/);
   assert.match(script, /#mobile-daily-bar a\[href="quiz\.html\?open=weakness"\]/);
   assert.match(script, /#mobile-daily-bar a\[href="#review-due"\]/);
+  assert.match(script, /assertAllNotCoveredBy/);
+  assert.match(script, /#study-cockpit-recap \.study-actions \.study-action-link/);
   assert.match(script, /#study-weak-brief \.study-weak-brief-row,\s*#study-weak-brief \.study-weak-empty/);
   assert.match(script, /aside\.side a\[href="quiz\.html\?open=weakness"\]/);
   assert.match(script, /#study-cockpit-weak-state/);
@@ -85,6 +87,17 @@ test('visual entry QA clicks a real mocked quiz answer and verifies answer ledge
   assert.match(script, /#explainBox/);
   assert.match(script, /choice !== 1/);
   assert.match(script, /is_correct !== false/);
+});
+
+test('visual entry QA round-trips from quiz to reader cross reference and back', () => {
+  assert.match(script, /quizReaderRoundTripCase/);
+  assert.match(script, /公司法第29條/);
+  assert.match(script, /company-law-29/);
+  assert.match(script, /a\.crossref/);
+  assert.match(script, /\.back-link/);
+  assert.match(script, /#quiz-answer-actions\.show/);
+  assert.match(script, /#optionsBox \.opt\.wrong/);
+  assert.match(script, /sofa-visual-quiz-reader-roundtrip-mobile\.png/);
 });
 
 test('visual entry QA checks free retention serial entry on mobile', () => {
