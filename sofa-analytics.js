@@ -1,6 +1,18 @@
 (function(){
   const ATTR_KEY = 'sofa_attribution_v1';
+  const SESSION_KEY = 'sofa_session_v1';
+  const FUNNEL_ENDPOINT = 'https://sofa-engine-api.onrender.com/api/funnel-event';
   const ATTR_KEYS = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','gclid','fbclid'];
+  const SERVER_EVENT_MAP = new Map([
+    ['pricing_view', 'pricing_view'],
+    ['pricing_select_plan', 'pricing_select_plan'],
+    ['checkout_start', 'checkout_start'],
+    ['checkout_submit', 'checkout_submit'],
+    ['payment_return_success', 'payment_return_success'],
+    ['expire_feedback_click', 'expiry_feedback_start'],
+    ['expire_share_click', 'share_extension_start'],
+    ['expire_renew_click', 'pricing_select_plan']
+  ]);
   const CARRY_PATHS = new Set([
     '/pricing.html','/checkout.html','/login.html','/quiz.html','/fill.html',
     '/practice.html','/dashboard.html','/free.html'
@@ -18,6 +30,23 @@
   function readStored(){
     try { return JSON.parse(localStorage.getItem(ATTR_KEY) || '{}') || {}; }
     catch(e) { return {}; }
+  }
+
+  function sessionId(){
+    try {
+      let id = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY) || '';
+      if (!id) {
+        const raw = (window.crypto && window.crypto.randomUUID)
+          ? window.crypto.randomUUID()
+          : String(Date.now()) + '-' + Math.random().toString(16).slice(2);
+        id = 'web-' + raw;
+        sessionStorage.setItem(SESSION_KEY, id);
+        localStorage.setItem(SESSION_KEY, id);
+      }
+      return id;
+    } catch(e) {
+      return '';
+    }
   }
 
   function captureAttribution(){
@@ -59,6 +88,35 @@
     return payload;
   }
 
+  function postServerFunnel(name, payload){
+    const mapped = SERVER_EVENT_MAP.get(name);
+    if (!mapped) return;
+    const body = JSON.stringify({
+      event_name: mapped,
+      session_id: sessionId(),
+      plan: payload.plan || '',
+      page_path: payload.page_path || location.pathname,
+      page_title: payload.page_title || document.title || '',
+      referrer: document.referrer || '',
+      attribution: attributionPayload(),
+      payload
+    });
+    try {
+      if (navigator.sendBeacon) {
+        const blob = new Blob([body], { type: 'application/json' });
+        if (navigator.sendBeacon(FUNNEL_ENDPOINT, blob)) return;
+      }
+    } catch(e) {}
+    try {
+      fetch(FUNNEL_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body,
+        keepalive: true
+      }).catch(() => {});
+    } catch(e) {}
+  }
+
   function track(name, data){
     if (!name) return;
     const payload = normalizePayload(data);
@@ -70,6 +128,7 @@
         window.dataLayer.push(Object.assign({ event: name }, payload));
       }
     } catch(e) {}
+    postServerFunnel(name, payload);
   }
 
   function decorateHref(href){
