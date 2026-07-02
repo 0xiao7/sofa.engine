@@ -40,3 +40,9 @@ test('support serial page is not published in public discovery files', () => {
   assert.doesNotMatch(sitemap, /support-serial\.html/);
   assert.doesNotMatch(robots, /support-serial\.html/);
 });
+
+test('support serial page labels created_at as issue record time, not payment time', () => {
+  const html = page();
+  assert.match(html, /發號紀錄時間/);
+  assert.doesNotMatch(html, /付款時間/);
+});
