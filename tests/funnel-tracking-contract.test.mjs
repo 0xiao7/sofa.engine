@@ -65,3 +65,13 @@ test('free entry CTAs are measurable before users reach the practice tools', () 
   assert.match(free, /data-track-label="fill"/);
   assert.match(free, /data-track-label="practice"/);
 });
+
+test('expired learner recovery choices are measurable before renewal', () => {
+  assert.match(dashboard, /data-track-event="expire_feedback_click"/);
+  assert.match(dashboard, /data-track-label="feedback_10_days"/);
+  assert.match(dashboard, /data-track-event="expire_share_click"/);
+  assert.match(dashboard, /data-track-label="share_10_days"/);
+  assert.match(dashboard, /data-track-event="expire_renew_click"/);
+  assert.match(dashboard, /data-track-label="renew_pricing"/);
+  assert.match(dashboard, /data-track-event="expire_free_switch"/);
+});
