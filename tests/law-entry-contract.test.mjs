@@ -352,7 +352,14 @@ test('law preview only locks advanced sections for explicitly free readers', () 
   assert.match(preview, /return !readerPaid/);
   assert.match(preview, /function resolveReaderEntitlement/);
   assert.match(preview, /\/api\/me\/profile/);
+  assert.match(preview, /const PAID_READER_PLANS = new Set\(\['月費','季費','買斷','體驗','Admin','monthly','quarterly','trial'\]\)/);
+  assert.match(preview, /const FREE_READER_PLANS = new Set\(\['免費','free'\]\)/);
+  assert.match(preview, /PAID_READER_PLANS\.has\(plan\)/);
+  assert.match(preview, /FREE_READER_PLANS\.has\(plan\)/);
   assert.doesNotMatch(preview, /plan === '免費' \|\| plan === 'free' \|\| plan === ''/);
+  assert.match(preview, /AbortController/);
+  assert.match(preview, /setTimeout\(\(\) => ctrl\.abort\(\), 6000\)/);
+  assert.match(preview, /\.catch\(\(\) => \{[\s\S]*return readerPaid \|\| true;/);
   assert.match(preview, /fetch\(url, \{ headers:_authH\(\) \}\)/);
   assert.match(preview, /renderPreviewSections\(sections, d\.law_name \|\| lawName\)/);
   assert.match(preview, /if\(shouldLockAdvancedSections\(\) && seg >= 5\)/);
