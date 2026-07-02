@@ -1,0 +1,1101 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8"/>
+<title>SoFa 自習室 — 無止盡圖書館（場景預覽）</title>
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"/>
+<meta name="robots" content="noindex"/>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23244658'/%3E%3Ctext x='16' y='23.5' font-size='21' font-family='Georgia,serif' font-weight='700' text-anchor='middle' fill='%23E7BBA7'%3ES%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@500;700&family=Noto+Sans+TC:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+/* ============================================================
+   Endless Minimal Library Walk — 無止盡走路 · 安靜陪讀 · 低 UI
+   room.html 場景改版 prototype（純前端假資料，未接 Supabase）
+   ============================================================ */
+:root{
+  --paper:   #F7F3EA;
+  --card:    rgba(255,253,247,.86);
+  --card-solid:#FFFDF7;
+  --ink:     #3D3628;
+  --ink-2:   #8A7E68;
+  --ink-3:   #B5AB94;
+  --line:    rgba(140,120,90,.14);
+  --line-2:  rgba(140,120,90,.26);
+  --accent:  #5E93B8;      /* mockup 的灰藍 */
+  --accent-2:#EAF2F6;
+  --good:    #6FA98C;
+  --serif:"Noto Serif TC",serif;
+  --sans:"Noto Sans TC",system-ui,sans-serif;
+  --mono:"JetBrains Mono","Courier New",monospace;
+  --r-card:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100dvh;overflow:hidden;font-family:var(--sans);background:var(--paper);color:var(--ink);-webkit-font-smoothing:antialiased;}
+button{font-family:var(--sans);}
+
+/* ── three.js canvas ── */
+#stage{position:fixed;inset:0;z-index:0;}
+#stage canvas{display:block;}
+
+/* ── loader ── */
+#loader{
+  position:fixed;inset:0;z-index:60;background:var(--paper);
+  display:flex;flex-direction:column;gap:14px;align-items:center;justify-content:center;
+  transition:opacity .9s ease;color:var(--ink-2);
+}
+#loader.off{opacity:0;pointer-events:none;}
+#loader .dot{width:9px;height:9px;border-radius:50%;background:var(--accent);animation:pulse 1.1s ease-in-out infinite;}
+@keyframes pulse{0%,100%{transform:scale(.7);opacity:.4}50%{transform:scale(1);opacity:1}}
+#loader .msg{font-size:.85rem;letter-spacing:.14em;font-family:var(--serif);}
+
+/* ── 頂欄 ── */
+#topbar{
+  position:fixed;top:14px;left:16px;right:16px;z-index:20;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;pointer-events:none;
+}
+.bar-chunk{
+  display:flex;align-items:center;gap:8px;pointer-events:auto;
+  background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border:1px solid var(--line);border-radius:999px;
+  box-shadow:0 4px 18px rgba(90,70,40,.08);
+  padding:8px 14px;
+}
+.brand{display:flex;align-items:center;gap:9px;font-family:var(--serif);font-weight:700;font-size:.98rem;letter-spacing:.02em;}
+.brand .mark{width:26px;height:26px;border-radius:50%;background:var(--accent-2);display:flex;align-items:center;justify-content:center;color:var(--accent);}
+.brand .mark svg{width:15px;height:15px;}
+.brand .sep{width:1px;height:16px;background:var(--line-2);margin:0 3px;}
+.brand .who{font-family:var(--sans);font-weight:500;font-size:.8rem;color:var(--ink-2);letter-spacing:.01em;}
+.brand .who b{color:var(--accent);font-weight:600;}
+#topbar .right{display:flex;gap:8px;pointer-events:auto;}
+.pill-btn{
+  display:flex;align-items:center;gap:6px;border:1px solid var(--line);cursor:pointer;
+  background:var(--card);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-radius:999px;padding:8px 14px;font-size:.8rem;color:var(--ink);font-weight:500;
+  box-shadow:0 4px 18px rgba(90,70,40,.08);transition:background .2s,transform .12s;
+}
+.pill-btn:hover{background:var(--card-solid);}
+.pill-btn:active{transform:scale(.97);}
+.pill-btn svg{width:14px;height:14px;color:var(--ink-2);}
+.pill-btn.static{cursor:default;}
+.pill-btn.static:active{transform:none;}
+
+/* ── 右側卡片欄（桌面） ── */
+#side{
+  position:fixed;right:16px;top:72px;bottom:16px;z-index:15;width:250px;
+  display:flex;flex-direction:column;gap:10px;overflow:hidden auto;scrollbar-width:none;
+}
+#side::-webkit-scrollbar{display:none;}
+.card{
+  background:var(--card);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border:1px solid var(--line);border-radius:var(--r-card);
+  box-shadow:0 6px 24px rgba(90,70,40,.09);
+  padding:13px 15px;flex-shrink:0;
+}
+.card-head{display:flex;align-items:center;gap:8px;font-size:.84rem;font-weight:600;color:var(--ink);}
+.card-head svg{width:15px;height:15px;color:var(--ink-2);}
+.card-sub{font-size:.7rem;color:var(--ink-2);margin-top:4px;line-height:1.5;}
+
+/* 在線名單 */
+#list-rows{margin-top:9px;display:flex;flex-direction:column;gap:2px;max-height:236px;overflow:hidden auto;scrollbar-width:none;}
+#list-rows::-webkit-scrollbar{display:none;}
+.u-row{display:flex;align-items:center;gap:8px;padding:5px 6px;border-radius:10px;font-size:.76rem;}
+.u-row.me{background:rgba(94,147,184,.10);}
+.u-row .ava{
+  width:24px;height:24px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:.62rem;font-weight:600;
+}
+.u-row .nm{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--ink);}
+.u-row .tm{font-size:.68rem;color:var(--ink-2);font-family:var(--mono);letter-spacing:-.02em;}
+.list-more{
+  margin-top:7px;width:100%;display:flex;align-items:center;justify-content:space-between;
+  background:none;border:none;border-top:1px solid var(--line);padding:9px 6px 2px;cursor:pointer;
+  font-size:.72rem;color:var(--ink-2);
+}
+.list-more:hover{color:var(--accent);}
+
+/* 番茄鐘 */
+.pom-row{display:flex;align-items:center;justify-content:space-between;margin-top:6px;}
+.pom-time{font-family:var(--mono);font-size:1.72rem;font-weight:600;color:var(--ink);letter-spacing:.01em;font-variant-numeric:tabular-nums;}
+.pom-play{
+  width:40px;height:40px;border-radius:50%;border:none;cursor:pointer;
+  background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 12px rgba(94,147,184,.35);transition:transform .12s,background .2s;
+}
+.pom-play:hover{background:#4F83A8;}
+.pom-play:active{transform:scale(.94);}
+.pom-play svg{width:15px;height:15px;}
+.pom-state{font-size:.68rem;color:var(--ink-2);margin-top:4px;min-height:1em;}
+
+/* 喊話 */
+.shout-row{display:flex;gap:6px;margin-top:9px;}
+.shout-input{
+  flex:1;min-width:0;border:1px solid var(--line-2);border-radius:11px;background:rgba(255,255,255,.7);
+  padding:8px 11px;font-size:.76rem;font-family:var(--sans);color:var(--ink);outline:none;
+}
+.shout-input:focus{border-color:var(--accent);}
+.shout-input::placeholder{color:var(--ink-3);}
+.shout-send{
+  width:36px;height:34px;flex-shrink:0;border:none;border-radius:11px;cursor:pointer;
+  background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;
+  transition:opacity .2s;font-size:.66rem;font-family:var(--mono);
+}
+.shout-send:disabled{background:var(--ink-3);cursor:default;}
+.shout-send svg{width:14px;height:14px;}
+
+/* 今日記錄 */
+.note-open{
+  width:100%;display:flex;align-items:center;justify-content:space-between;margin-top:8px;
+  background:none;border:none;cursor:pointer;font-size:.74rem;color:var(--ink-2);padding:2px 2px 0;
+}
+.note-open:hover{color:var(--accent);}
+
+/* ── 喊話 banner ── */
+#banner{
+  position:fixed;top:66px;left:50%;transform:translate(-50%,-12px);z-index:30;
+  background:rgba(61,54,40,.88);color:#F6F1E4;border-radius:999px;
+  padding:8px 18px;font-size:.8rem;max-width:min(80vw,480px);
+  opacity:0;transition:opacity .4s,transform .4s;pointer-events:none;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+#banner.on{opacity:1;transform:translate(-50%,0);}
+#banner b{color:#FFD9A8;font-weight:600;margin-right:6px;}
+
+/* ── 左下提示 ── */
+#hint{
+  position:fixed;left:18px;bottom:18px;z-index:15;
+  background:var(--card);border:1px solid var(--line);border-radius:14px;
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  padding:9px 14px;font-size:.72rem;color:var(--ink-2);letter-spacing:.06em;
+  display:flex;align-items:center;gap:8px;
+  transition:opacity 1.2s ease;font-family:var(--serif);
+}
+#hint.off{opacity:0;pointer-events:none;}
+#hint .dot{width:5px;height:5px;border-radius:50%;background:var(--accent);}
+
+/* ── 記錄 modal / sheet ── */
+#overlay{position:fixed;inset:0;z-index:40;background:rgba(50,42,28,.28);opacity:0;pointer-events:none;transition:opacity .3s;}
+#overlay.on{opacity:1;pointer-events:auto;}
+#note-modal{
+  position:fixed;z-index:41;left:50%;top:50%;transform:translate(-50%,-46%) scale(.97);
+  width:min(400px,92vw);background:var(--card-solid);border:1px solid var(--line);
+  border-radius:20px;box-shadow:0 24px 70px rgba(60,45,20,.25);padding:20px;
+  opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
+}
+#note-modal.on{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1);}
+#note-modal h3{font-family:var(--serif);font-size:.95rem;margin-bottom:4px;}
+#note-modal .tip{font-size:.7rem;color:var(--ink-2);margin-bottom:12px;}
+#note-ta{
+  width:100%;height:120px;resize:none;border:1px solid var(--line-2);border-radius:12px;
+  background:rgba(255,255,255,.8);padding:10px 12px;font-size:.8rem;font-family:var(--sans);
+  color:var(--ink);outline:none;line-height:1.7;
+}
+#note-ta:focus{border-color:var(--accent);}
+#note-modal .foot{display:flex;align-items:center;justify-content:space-between;margin-top:10px;}
+#note-cnt{font-size:.7rem;color:var(--ink-2);font-family:var(--mono);}
+#note-save{
+  border:none;background:var(--accent);color:#fff;border-radius:999px;
+  padding:8px 20px;font-size:.78rem;font-weight:500;cursor:pointer;transition:background .2s;
+}
+#note-save:hover{background:#4F83A8;}
+#note-saved-msg{font-size:.7rem;color:var(--good);opacity:0;transition:opacity .4s;margin-right:auto;padding-left:2px;}
+
+/* ── 鎖定（低 UI 專注模式） ── */
+body.locked #side,body.locked #hint,body.locked #mob-bar,body.locked #mob-pom{opacity:0;pointer-events:none;}
+#side,#hint,#mob-bar,#mob-pom{transition:opacity .5s;}
+
+/* ══════════ Mobile ══════════ */
+#mob-pom,#mob-bar,#sheet{display:none;}
+
+@media (max-width:760px){
+  #side,#hint{display:none;}
+  #topbar{top:10px;left:10px;right:10px;}
+  .brand .sep,.brand .who{display:none;}
+  #btn-lock span,#btn-leave span{display:none;}
+  .pill-btn{padding:8px 11px;}
+
+  /* 浮動番茄鐘 pill */
+  #mob-pom{
+    display:flex;position:fixed;top:64px;left:50%;transform:translateX(-50%);z-index:18;
+    align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    border-radius:999px;padding:7px 8px 7px 16px;box-shadow:0 6px 22px rgba(90,70,40,.12);
+  }
+  #mob-pom .lab{font-size:.62rem;color:var(--ink-2);letter-spacing:.08em;}
+  #mob-pom .t{font-family:var(--mono);font-size:1.05rem;font-weight:600;font-variant-numeric:tabular-nums;}
+  #mob-pom .pom-play{width:32px;height:32px;}
+  #mob-pom .pom-play svg{width:12px;height:12px;}
+
+  /* 底部導航 */
+  #mob-bar{
+    display:flex;position:fixed;left:14px;right:14px;bottom:calc(12px + env(safe-area-inset-bottom));
+    z-index:22;gap:10px;justify-content:center;
+  }
+  .mob-btn{
+    flex:1;max-width:86px;display:flex;flex-direction:column;align-items:center;gap:4px;
+    background:var(--card);border:1px solid var(--line);border-radius:18px;
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    padding:11px 4px 9px;cursor:pointer;color:var(--ink);
+    box-shadow:0 6px 22px rgba(90,70,40,.10);transition:transform .12s,background .2s;
+  }
+  .mob-btn:active{transform:scale(.95);}
+  .mob-btn svg{width:17px;height:17px;color:var(--ink-2);}
+  .mob-btn .lb{font-size:.64rem;font-weight:500;font-variant-numeric:tabular-nums;}
+  .mob-btn.act{background:var(--accent-2);border-color:rgba(94,147,184,.4);}
+  .mob-btn.act svg{color:var(--accent);}
+
+  /* bottom sheet */
+  #sheet{
+    display:block;position:fixed;left:0;right:0;bottom:0;z-index:45;
+    background:var(--card-solid);border-radius:22px 22px 0 0;
+    box-shadow:0 -14px 50px rgba(60,45,20,.22);
+    transform:translateY(105%);transition:transform .32s cubic-bezier(.32,.72,0,1);
+    padding:10px 20px calc(20px + env(safe-area-inset-bottom));max-height:72dvh;overflow:hidden auto;
+  }
+  #sheet.on{transform:translateY(0);}
+  #sheet .grab{width:40px;height:4px;border-radius:2px;background:var(--line-2);margin:2px auto 14px;}
+  .sheet-pane{display:none;}
+  .sheet-pane.on{display:block;}
+  .sheet-title{font-family:var(--serif);font-size:.95rem;font-weight:700;margin-bottom:4px;}
+  .sheet-sub{font-size:.72rem;color:var(--ink-2);margin-bottom:12px;}
+  .seg-tabs{display:flex;gap:6px;margin-bottom:12px;}
+  .seg-tab{
+    flex:1;border:1px solid var(--line-2);background:none;border-radius:999px;
+    padding:7px 4px;font-size:.72rem;color:var(--ink-2);cursor:pointer;
+  }
+  .seg-tab.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+  #m-list-rows{display:flex;flex-direction:column;gap:2px;}
+  #m-list-rows .u-row{font-size:.82rem;padding:7px 6px;}
+  #m-list-rows .u-row .ava{width:28px;height:28px;font-size:.68rem;}
+  #m-list-rows .u-row .tm{font-size:.74rem;}
+  /* sheet 內番茄鐘 */
+  .sheet-pom-row{display:flex;align-items:center;justify-content:space-between;padding:6px 4px;}
+  .sheet-pom-row .pom-time{font-size:2.2rem;}
+  .sheet-pom-row .pom-play{width:48px;height:48px;}
+  /* sheet 喊話 / 記錄 */
+  #m-shout-input{height:auto;}
+  #m-note-ta{
+    width:100%;height:110px;resize:none;border:1px solid var(--line-2);border-radius:12px;
+    background:rgba(255,255,255,.8);padding:10px 12px;font-size:.85rem;font-family:var(--sans);
+    color:var(--ink);outline:none;line-height:1.7;
+  }
+  #note-modal{display:none;}
+}
+</style>
+</head>
+<body>
+
+<div id="stage"></div>
+
+<!-- loader -->
+<div id="loader">
+  <div class="dot"></div>
+  <div class="msg">整理書架中⋯</div>
+</div>
+
+<!-- 頂欄 -->
+<div id="topbar">
+  <div class="bar-chunk brand">
+    <div class="mark">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 21c-4.5-2.5-8-6.5-8-11a8 8 0 0 1 16 0c0 4.5-3.5 8.5-8 11z" fill="currentColor" stroke="none" opacity=".18"/><path d="M12 3v18M12 8c2-2 5-2.5 7-2M12 13c-2-2-5-2.5-7-2"/></svg>
+    </div>
+    <span>SoFa 自習室</span>
+    <span class="sep"></span>
+    <span class="who">登入 <b>fayytest</b></span>
+  </div>
+  <div class="right">
+    <div class="pill-btn static" id="count-pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.4"/><path d="M3.5 19c.6-3.2 2.9-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.5" cy="9" r="2.6"/><path d="M16 14.2c2.3.2 4 1.8 4.5 4.3"/></svg>
+      <span id="count-txt">20 人在場</span>
+    </div>
+    <button class="pill-btn" id="btn-lock">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+      <span>鎖定</span>
+    </button>
+    <button class="pill-btn" id="btn-leave">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h-7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h7"/><path d="M10 12h10M17 9l3 3-3 3"/></svg>
+      <span>離開</span>
+    </button>
+  </div>
+</div>
+
+<!-- 右側卡片欄 -->
+<div id="side">
+  <div class="card">
+    <div class="card-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.4"/><path d="M3.5 19c.6-3.2 2.9-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.5" cy="9" r="2.6"/><path d="M16 14.2c2.3.2 4 1.8 4.5 4.3"/></svg>
+      在線名單
+    </div>
+    <div class="card-sub">顯示最久 19 名＋自己<br/>其他人在列表</div>
+    <div id="list-rows"></div>
+    <button class="list-more" id="list-more">
+      <span>查看其他人（列表）</span><span>›</span>
+    </button>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9.5V13l2.4 2M10 2.5h4"/></svg>
+      番茄鐘
+    </div>
+    <div class="pom-row">
+      <div class="pom-time" id="pom-time">25:00</div>
+      <button class="pom-play" id="pom-play" aria-label="開始">
+        <svg viewBox="0 0 24 24" fill="currentColor" id="pom-ico"><path d="M8 5.5v13l11-6.5z"/></svg>
+      </button>
+    </div>
+    <div class="pom-state" id="pom-state">25 分鐘專注 → 5 分鐘休息</div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a7.5 7.5 0 0 1-11 6.6L4 19.5l1.5-4.4A7.5 7.5 0 1 1 20 11.5z"/></svg>
+      喊話
+    </div>
+    <div class="shout-row">
+      <input class="shout-input" id="shout-input" placeholder="輸入內容⋯（30 秒冷卻）" maxlength="40"/>
+      <button class="shout-send" id="shout-send" aria-label="送出">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 10.5 13.5M21 3l-7 18-3.5-7.5L3 10z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h10l3 3v15H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>
+      今日記錄
+    </div>
+    <button class="note-open" id="note-open">
+      <span id="note-count">已儲存 0 / 200</span><span>›</span>
+    </button>
+  </div>
+</div>
+
+<!-- 喊話 banner -->
+<div id="banner"><b id="banner-who"></b><span id="banner-msg"></span></div>
+
+<!-- 左下提示 -->
+<div id="hint"><span class="dot"></span>無止盡走路 · 安靜陪讀 · 低 UI</div>
+
+<!-- 記錄 modal（桌面） -->
+<div id="overlay"></div>
+<div id="note-modal">
+  <h3>今日記錄</h3>
+  <div class="tip">留一句今天的心得，明天回來看得到。</div>
+  <textarea id="note-ta" maxlength="200" placeholder="今天讀了什麼？"></textarea>
+  <div class="foot">
+    <span id="note-saved-msg">已儲存 ✓</span>
+    <span id="note-cnt">0 / 200</span>
+    <button id="note-save">儲存</button>
+  </div>
+</div>
+
+<!-- 手機：浮動番茄鐘 -->
+<div id="mob-pom">
+  <div>
+    <div class="lab">番茄鐘</div>
+    <div class="t" id="m-pom-time">25:00</div>
+  </div>
+  <button class="pom-play" id="m-pom-play" aria-label="開始">
+    <svg viewBox="0 0 24 24" fill="currentColor" id="m-pom-ico"><path d="M8 5.5v13l11-6.5z"/></svg>
+  </button>
+</div>
+
+<!-- 手機：底部導航 -->
+<div id="mob-bar">
+  <button class="mob-btn" data-pane="list">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.4"/><path d="M3.5 19c.6-3.2 2.9-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.5" cy="9" r="2.6"/><path d="M16 14.2c2.3.2 4 1.8 4.5 4.3"/></svg>
+    <span class="lb">名單</span>
+  </button>
+  <button class="mob-btn" data-pane="pom">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="13" r="8"/><path d="M12 9.5V13l2.4 2M10 2.5h4"/></svg>
+    <span class="lb" id="m-bar-pom">25:00</span>
+  </button>
+  <button class="mob-btn" data-pane="shout">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a7.5 7.5 0 0 1-11 6.6L4 19.5l1.5-4.4A7.5 7.5 0 1 1 20 11.5z"/></svg>
+    <span class="lb">喊話</span>
+  </button>
+  <button class="mob-btn" data-pane="note">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h10l3 3v15H6z"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>
+    <span class="lb">記錄</span>
+  </button>
+</div>
+
+<!-- 手機：bottom sheet -->
+<div id="sheet">
+  <div class="grab"></div>
+
+  <div class="sheet-pane" data-pane="list">
+    <div class="sheet-title">在線名單</div>
+    <div class="sheet-sub">場景顯示最久 19 名＋自己，其餘同學都在列表。</div>
+    <div class="seg-tabs">
+      <button class="seg-tab on" data-tab="top">最久 19 名＋自己</button>
+      <button class="seg-tab" data-tab="rest">其餘列表</button>
+    </div>
+    <div id="m-list-rows"></div>
+  </div>
+
+  <div class="sheet-pane" data-pane="pom">
+    <div class="sheet-title">番茄鐘</div>
+    <div class="sheet-sub">25 分鐘專注 → 5 分鐘休息</div>
+    <div class="sheet-pom-row">
+      <div class="pom-time" id="s-pom-time">25:00</div>
+      <button class="pom-play" id="s-pom-play" aria-label="開始">
+        <svg viewBox="0 0 24 24" fill="currentColor" id="s-pom-ico"><path d="M8 5.5v13l11-6.5z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="sheet-pane" data-pane="shout">
+    <div class="sheet-title">喊話</div>
+    <div class="sheet-sub">30 秒冷卻，最多 40 字。</div>
+    <div class="shout-row">
+      <input class="shout-input" id="m-shout-input" placeholder="輸入內容⋯（30 秒冷卻）" maxlength="40"/>
+      <button class="shout-send" id="m-shout-send" aria-label="送出">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 10.5 13.5M21 3l-7 18-3.5-7.5L3 10z"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="sheet-pane" data-pane="note">
+    <div class="sheet-title">今日記錄</div>
+    <div class="sheet-sub" id="m-note-count">已儲存 0 / 200</div>
+    <textarea id="m-note-ta" maxlength="200" placeholder="今天讀了什麼？"></textarea>
+    <div class="foot" style="display:flex;justify-content:flex-end;margin-top:10px;">
+      <button id="m-note-save" style="border:none;background:var(--accent);color:#fff;border-radius:999px;padding:9px 24px;font-size:.82rem;cursor:pointer;">儲存</button>
+    </div>
+  </div>
+</div>
+
+<script src="three.min.js"></script>
+<script src="GLTFLoader.js?v=20260617c"></script>
+<script src="SkeletonUtils.js?v=20260617c"></script>
+<script>
+/* ════════════════════════════════════════════════════════════
+   假資料 & UI 邏輯（之後接 Supabase presence 時替換這一段）
+   ════════════════════════════════════════════════════════════ */
+const USERS = [
+  { n:'你（fayytest）', min:208, me:true },
+  { n:'晨曦',   min:187 }, { n:'小光',   min:168 }, { n:'專注熊', min:152 },
+  { n:'靜靜讀書',min:141 }, { n:'阿布',   min:135 }, { n:'貓貓',   min:128 },
+  { n:'Chloe',  min:117 }, { n:'草莓',   min:104 }, { n:'Kai',    min:98  },
+  { n:'呱呱',   min:91  }, { n:'小白',   min:83  }, { n:'Nora',   min:75  },
+  { n:'布丁',   min:66  }, { n:'嘿嘿',   min:58  }, { n:'Iris',   min:47  },
+  { n:'烤地瓜', min:39  }, { n:'Evan',   min:26  }, { n:'語晴',   min:18  },
+  { n:'Yoyo',   min:7   },
+];
+const AVA_COLORS = ['#8FB4CC','#D3A791','#A6BE92','#C8B285','#AC9DC4','#CC9AA5','#8FBCAF','#C2AE86'];
+const fmtMin = m => `${Math.floor(m/60)}時${String(m%60).padStart(2,'0')}分`;
+
+function userRow(u,i){
+  const row = document.createElement('div');
+  row.className = 'u-row' + (u.me ? ' me' : '');
+  const c = AVA_COLORS[i % AVA_COLORS.length];
+  row.innerHTML = `<span class="ava" style="background:${c}">${u.n.replace(/（.*/,'').slice(0,1)}</span>
+    <span class="nm">${u.n}</span><span class="tm">${fmtMin(u.min)}</span>`;
+  return row;
+}
+function renderLists(){
+  const rows = document.getElementById('list-rows');
+  rows.textContent = '';
+  const n = listExpanded ? USERS.length : 6;
+  USERS.slice(0,n).forEach((u,i)=>rows.appendChild(userRow(u,i)));
+  document.querySelector('#list-more span').textContent = listExpanded ? '收合' : '查看其他人（列表）';
+  // mobile
+  const mrows = document.getElementById('m-list-rows');
+  mrows.textContent = '';
+  const src = mobTab === 'top' ? USERS.slice(0,20) : USERS.slice(20);
+  if (!src.length) mrows.innerHTML = '<div style="font-size:.76rem;color:var(--ink-2);padding:14px 4px;">目前大家都在場景裡 ☺</div>';
+  src.forEach((u,i)=>mrows.appendChild(userRow(u,i)));
+  document.getElementById('count-txt').textContent = `${USERS.length} 人在場`;
+}
+let listExpanded = false, mobTab = 'top';
+document.getElementById('list-more').addEventListener('click',()=>{listExpanded=!listExpanded;renderLists();});
+document.querySelectorAll('.seg-tab').forEach(b=>b.addEventListener('click',()=>{
+  document.querySelectorAll('.seg-tab').forEach(x=>x.classList.toggle('on',x===b));
+  mobTab = b.dataset.tab; renderLists();
+}));
+renderLists();
+// 自己的時數每分鐘 +1（陪讀感）
+setInterval(()=>{ USERS[0].min++; renderLists(); }, 60000);
+
+/* ── 番茄鐘（focus 25 → break 5，同步三個顯示點） ── */
+const POM_FOCUS = 25*60, POM_BREAK = 5*60;
+const pom = { remaining: POM_FOCUS, running: false, mode: 'focus', timer: null };
+const PLAY = '<path d="M8 5.5v13l11-6.5z"/>', PAUSE = '<path d="M7.5 5.5h3.4v13H7.5zM13.1 5.5h3.4v13h-3.4z"/>';
+function pomRender(){
+  const t = `${String(Math.floor(pom.remaining/60)).padStart(2,'0')}:${String(pom.remaining%60).padStart(2,'0')}`;
+  for (const id of ['pom-time','m-pom-time','s-pom-time']) document.getElementById(id).textContent = t;
+  document.getElementById('m-bar-pom').textContent = t;
+  for (const id of ['pom-ico','m-pom-ico','s-pom-ico']) document.getElementById(id).innerHTML = pom.running ? PAUSE : PLAY;
+  document.getElementById('pom-state').textContent =
+    pom.running ? (pom.mode==='focus' ? '專注中 — 大家陪你一起讀' : '休息中 — 站起來走走 🍵')
+                : '25 分鐘專注 → 5 分鐘休息';
+}
+function pomToggle(){
+  pom.running = !pom.running;
+  clearInterval(pom.timer);
+  if (pom.running) pom.timer = setInterval(()=>{
+    if (--pom.remaining <= 0){
+      if (pom.mode === 'focus'){ pom.mode='break'; pom.remaining=POM_BREAK; showBanner('番茄鐘','25 分鐘完成！休息 5 分鐘 🍵'); }
+      else { pom.mode='focus'; pom.remaining=POM_FOCUS; pom.running=false; clearInterval(pom.timer); showBanner('番茄鐘','休息結束，準備下一輪'); }
+    }
+    pomRender();
+  },1000);
+  pomRender();
+}
+for (const id of ['pom-play','m-pom-play','s-pom-play']) document.getElementById(id).addEventListener('click',pomToggle);
+pomRender();
+
+/* ── 喊話（30 秒冷卻） ── */
+let shoutCd = 0, shoutCdTimer = null, bannerTimer = null;
+function showBanner(who,msg){
+  document.getElementById('banner-who').textContent = who;
+  document.getElementById('banner-msg').textContent = msg;
+  const b = document.getElementById('banner');
+  b.classList.add('on');
+  clearTimeout(bannerTimer);
+  bannerTimer = setTimeout(()=>b.classList.remove('on'), 5000);
+}
+function sendShout(inputId){
+  const inp = document.getElementById(inputId);
+  const msg = inp.value.trim();
+  if (!msg || shoutCd > 0) return;
+  showBanner('fayytest', msg);
+  inp.value = '';
+  shoutCd = 30;
+  const btns = [document.getElementById('shout-send'), document.getElementById('m-shout-send')];
+  const tick = ()=>{
+    btns.forEach(b=>{ b.disabled = shoutCd>0; b.textContent='';
+      if (shoutCd>0) b.textContent = shoutCd;
+      else b.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 3 10.5 13.5M21 3l-7 18-3.5-7.5L3 10z"/></svg>';
+    });
+    if (shoutCd-- <= 0) clearInterval(shoutCdTimer);
+  };
+  clearInterval(shoutCdTimer); tick();
+  shoutCdTimer = setInterval(tick, 1000);
+}
+document.getElementById('shout-send').addEventListener('click',()=>sendShout('shout-input'));
+document.getElementById('shout-input').addEventListener('keydown',e=>{ if(e.key==='Enter') sendShout('shout-input'); });
+document.getElementById('m-shout-send').addEventListener('click',()=>{sendShout('m-shout-input'); closeSheet();});
+// 環境喊話：偶爾有人說句話，比較有人氣
+const AMBIENT = [
+  ['晨曦','先讀 25 分鐘，衝'],['專注熊','民法 §184 看第三遍了'],['小光','今天目標三章'],
+  ['靜靜讀書','加油，還有一小時下課'],['阿布','喝口水再繼續'],['貓貓','這題終於懂了！'],
+];
+(function ambientLoop(){
+  setTimeout(()=>{
+    const [w,m] = AMBIENT[Math.floor(Math.random()*AMBIENT.length)];
+    showBanner(w,m); ambientLoop();
+  }, 45000 + Math.random()*45000);
+})();
+
+/* ── 今日記錄（localStorage） ── */
+const NOTE_KEY = 'sofa-v2-note-' + new Date().toISOString().slice(0,10);
+function noteLoad(){ return localStorage.getItem(NOTE_KEY) || ''; }
+function noteCountRender(){
+  const v = noteLoad();
+  document.getElementById('note-count').textContent = `已儲存 ${v.length} / 200`;
+  document.getElementById('m-note-count').textContent = `已儲存 ${v.length} / 200`;
+}
+noteCountRender();
+const overlay = document.getElementById('overlay');
+document.getElementById('note-open').addEventListener('click',()=>{
+  document.getElementById('note-ta').value = noteLoad();
+  document.getElementById('note-cnt').textContent = `${noteLoad().length} / 200`;
+  overlay.classList.add('on');
+  document.getElementById('note-modal').classList.add('on');
+});
+document.getElementById('note-ta').addEventListener('input',e=>{
+  document.getElementById('note-cnt').textContent = `${e.target.value.length} / 200`;
+});
+document.getElementById('note-save').addEventListener('click',()=>{
+  localStorage.setItem(NOTE_KEY, document.getElementById('note-ta').value);
+  noteCountRender();
+  const m = document.getElementById('note-saved-msg');
+  m.style.opacity = 1; setTimeout(()=>m.style.opacity=0, 1800);
+});
+document.getElementById('m-note-save').addEventListener('click',()=>{
+  localStorage.setItem(NOTE_KEY, document.getElementById('m-note-ta').value);
+  noteCountRender(); closeSheet();
+});
+function closeModal(){ overlay.classList.remove('on'); document.getElementById('note-modal').classList.remove('on'); closeSheet(); }
+overlay.addEventListener('click', closeModal);
+
+/* ── 手機 bottom sheet ── */
+const sheet = document.getElementById('sheet');
+function openSheet(pane){
+  document.querySelectorAll('.sheet-pane').forEach(p=>p.classList.toggle('on', p.dataset.pane===pane));
+  document.querySelectorAll('.mob-btn').forEach(b=>b.classList.toggle('act', b.dataset.pane===pane));
+  if (pane==='note') document.getElementById('m-note-ta').value = noteLoad();
+  sheet.classList.add('on'); overlay.classList.add('on');
+}
+function closeSheet(){
+  sheet.classList.remove('on');
+  overlay.classList.remove('on');
+  document.querySelectorAll('.mob-btn').forEach(b=>b.classList.remove('act'));
+}
+document.querySelectorAll('.mob-btn').forEach(b=>b.addEventListener('click',()=>{
+  if (sheet.classList.contains('on') && b.classList.contains('act')) closeSheet();
+  else openSheet(b.dataset.pane);
+}));
+
+/* ── 鎖定 = 低 UI 專注模式；離開 = 預覽提示 ── */
+document.getElementById('btn-lock').addEventListener('click',function(){
+  document.body.classList.toggle('locked');
+  const on = document.body.classList.contains('locked');
+  this.querySelector('span') && (this.querySelector('span').textContent = on ? '解除' : '鎖定');
+  showBanner('專注模式', on ? '介面已收起，安靜讀書' : '介面已恢復');
+});
+document.getElementById('btn-leave').addEventListener('click',()=>showBanner('預覽','此頁為場景 prototype，離開功能之後接回自習室'));
+
+/* 提示自動淡出 */
+setTimeout(()=>document.getElementById('hint').classList.add('off'), 9000);
+
+/* ════════════════════════════════════════════════════════════
+   three.js — 無止盡圖書館走廊
+   主角原地走路（Walk_Loop），世界往鏡頭方向流動，段落循環回收
+   ════════════════════════════════════════════════════════════ */
+const SEG_LEN = 16, NUM_SEG = 6, HALL_W = 11, CEIL_H = 6.6;
+const WALK_SPEED = 1.15;               // m/s，悠閒步伐
+const FOG_COLOR = 0xF2EEE2;
+
+const renderer = new THREE.WebGLRenderer({ antialias:true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.12;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.getElementById('stage').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(FOG_COLOR);
+scene.fog = new THREE.Fog(FOG_COLOR, 14, 58);
+
+const camera = new THREE.PerspectiveCamera(46, innerWidth/innerHeight, 0.1, 200);
+camera.position.set(0, 2.55, 5.6);
+
+/* 光：柔和天光 + 從左側窗戶進來的暖陽 */
+scene.add(new THREE.HemisphereLight(0xFFFDF4, 0xC9B896, 0.85));
+const sun = new THREE.DirectionalLight(0xFFF2D8, 1.35);
+sun.position.set(-9, 11, -3);
+sun.castShadow = true;
+sun.shadow.mapSize.set(2048, 2048);
+sun.shadow.camera.left = -18; sun.shadow.camera.right = 18;
+sun.shadow.camera.top = 18;   sun.shadow.camera.bottom = -18;
+sun.shadow.camera.far = 50;
+sun.shadow.bias = -0.0004;
+scene.add(sun);
+scene.add(sun.target);
+
+/* ── 材質 ── */
+function woodFloorTexture(){
+  const c = document.createElement('canvas'); c.width = c.height = 512;
+  const g = c.getContext('2d');
+  g.fillStyle = '#D9BF97'; g.fillRect(0,0,512,512);
+  const PW = 512/6;
+  for (let i=0;i<6;i++){
+    const tint = 8 - Math.floor(Math.sin(i*3.7)*8);
+    g.fillStyle = `rgba(120,90,50,${0.04 + (i%3)*0.02})`;
+    g.fillRect(i*PW,0,PW,512);
+    g.fillStyle = 'rgba(100,75,45,.28)';
+    g.fillRect(i*PW,0,2,512);
+    // 木紋細線
+    g.strokeStyle = 'rgba(120,92,55,.10)'; g.lineWidth = 1;
+    for (let k=0;k<5;k++){
+      g.beginPath();
+      const x = i*PW + 8 + Math.abs((i*37+k*61)%Math.floor(PW-16));
+      g.moveTo(x, 0); g.bezierCurveTo(x+4,140, x-4,320, x+2,512); g.stroke();
+    }
+    // 橫向接縫
+    const seamY = ((i*197)%512);
+    g.fillStyle = 'rgba(100,75,45,.22)';
+    g.fillRect(i*PW, seamY, PW, 2);
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.wrapS = t.wrapT = THREE.RepeatWrapping;
+  t.colorSpace = THREE.SRGBColorSpace;
+  t.repeat.set(2.2, 3.2);
+  return t;
+}
+const MAT = {
+  floor: new THREE.MeshStandardMaterial({ map: woodFloorTexture(), roughness:.85, metalness:0 }),
+  wall:  new THREE.MeshStandardMaterial({ color:0xF2ECDD, roughness:1 }),
+  trim:  new THREE.MeshStandardMaterial({ color:0xE9E2CF, roughness:1 }),
+  ceil:  new THREE.MeshStandardMaterial({ color:0xF7F2E6, roughness:1 }),
+  frame: new THREE.MeshStandardMaterial({ color:0xE5DECB, roughness:.9 }),
+  pane:  new THREE.MeshBasicMaterial({ color:0xFFFEF8 }),          // 亮到像天光
+  shade: new THREE.MeshStandardMaterial({ color:0xF5EFE0, roughness:.7, side:THREE.DoubleSide }),
+  cord:  new THREE.MeshBasicMaterial({ color:0x9A8A70 }),
+  book:  new THREE.MeshStandardMaterial({ color:0xFDFBF2, roughness:.9 }),
+};
+const CHAR_COLORS = [0xB7CFE3,0xE3C3B7,0xC4D6B4,0xE0CFA8,0xCBBCDD,0xE4B8C2,0xA9CDC3,0xD9C6A0];
+
+/* ── GLB 載入 & 尺寸標準化 ── */
+const gltfLoader = new THREE.GLTFLoader();
+const loadGLB = url => new Promise((res,rej)=>gltfLoader.load(url,res,undefined,rej));
+function normalize(obj, targetH){
+  const box = new THREE.Box3().setFromObject(obj);
+  const size = box.getSize(new THREE.Vector3());
+  const s = targetH / (size.y || 1);
+  obj.scale.setScalar(s);
+  // 重新計算，讓底部貼地、水平置中
+  const b2 = new THREE.Box3().setFromObject(obj);
+  const ctr = b2.getCenter(new THREE.Vector3());
+  obj.position.x -= ctr.x;
+  obj.position.z -= ctr.z;
+  obj.position.y -= b2.min.y;
+  const wrap = new THREE.Group();
+  wrap.add(obj);
+  return wrap;
+}
+function shadowify(root){
+  root.traverse(n=>{ if (n.isMesh || n.isSkinnedMesh){ n.castShadow = true; n.receiveShadow = true; } });
+  return root;
+}
+/* GLB 原始材質偏深色（深木書櫃、黑辦公椅），照明亮圖書館的調性整批換淺色 */
+const LIFT = {
+  Wood1:0xD8B98C, Wood2:0xCCAC7A, DarkWood:0xBA9668, Wood:0xD8B98C,
+  Cover1:0xC07A66, Cover2:0x7288AE, Cover3:0xCCa863, Cover4:0x86A876, Cover5:0x9DB28D, Cover6:0xAE7E96,
+  Pages:0xF0E7CE, Metal:0xC8B078,
+  Executive:0xC2B49A, Executive__1:0x93805F, Executive__2:0x93805F, Executive__3:0xB2A38A,
+};
+function liftColors(root){
+  root.traverse(n=>{
+    if (!n.isMesh) return;
+    const mats = Array.isArray(n.material) ? n.material : [n.material];
+    for (const m of mats){ if (m && LIFT[m.name] != null) m.color.set(LIFT[m.name]); }
+  });
+  return root;
+}
+
+/* ── 段落生成 ── */
+const mixers = [];
+const segments = [];
+let TPL = {};          // 標準化後的模板
+let charGLTF = null;
+const rng = seed => () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
+
+/* skinned mesh 的 bbox 要用 computeBoundingBox()（含骨骼變換），
+   Box3.setFromObject 只看未 skin 的幾何，會量錯尺寸 */
+function charNormalize(root, targetH){
+  root.updateMatrixWorld(true);
+  const box = new THREE.Box3();
+  let found = false;
+  root.traverse(n=>{
+    if (n.isSkinnedMesh){
+      n.computeBoundingBox();
+      box.union(n.boundingBox.clone().applyMatrix4(n.matrixWorld));
+      found = true;
+    }
+  });
+  if (!found) box.setFromObject(root);
+  const h = box.max.y - box.min.y || 1;
+  const s = targetH / h;
+  root.scale.setScalar(s);
+  root.position.set(
+    -((box.min.x+box.max.x)/2)*s,
+    -box.min.y*s,
+    -((box.min.z+box.max.z)/2)*s);
+  const wrap = new THREE.Group();
+  wrap.add(root);
+  return wrap;
+}
+function makeCharacter(color, clipName, opts={}){
+  const clone = THREE.SkeletonUtils.clone(charGLTF.scene);
+  clone.traverse(n=>{
+    if (n.isMesh || n.isSkinnedMesh){
+      n.material = new THREE.MeshLambertMaterial({ color });
+      n.castShadow = true;
+      n.frustumCulled = false;      // 骨骼動畫 + 世界移動，避免被錯誤剔除
+    }
+  });
+  const wrap = charNormalize(clone, opts.height || 1.32);
+  if (charGLTF.animations?.length){
+    const clip = charGLTF.animations.find(a=>a.name.includes(clipName)) || charGLTF.animations[0];
+    const mixer = new THREE.AnimationMixer(clone);
+    const action = mixer.clipAction(clip);
+    action.time = Math.random()*clip.duration;
+    action.timeScale = opts.timeScale || (0.92 + Math.random()*0.16);
+    action.play();
+    mixers.push(mixer);
+  }
+  return wrap;
+}
+
+/* 桌 + 椅 + 讀書的人（面向 rotY 方向） */
+function makeStudySpot(rand){
+  const g = new THREE.Group();
+  const desk = TPL.desk.clone(true);
+  g.add(desk);
+  const chair = TPL.chair.clone(true);
+  chair.position.set(0, 0, 0.62);
+  chair.rotation.y = Math.PI;         // 椅背朝外，人面向桌子
+  g.add(chair);
+  if (rand() < 0.8){
+    const color = CHAR_COLORS[Math.floor(rand()*CHAR_COLORS.length)];
+    const person = makeCharacter(color, 'Sitting_Idle_Loop');
+    person.position.set(0, 0.02, 0.60);   // 坐在椅面上（截圖校過）
+    g.add(person);
+  }
+  if (rand() < 0.5){
+    const lamp = TPL.lamp.clone(true);
+    lamp.position.set(0.5, 0.78, -0.1);
+    g.add(lamp);
+  }
+  // 攤開的書
+  const bookL = new THREE.Mesh(new THREE.BoxGeometry(0.17,0.015,0.24), MAT.book);
+  bookL.rotation.z = 0.09; bookL.position.set(-0.09, 0.80, 0.12);
+  const bookR = bookL.clone(); bookR.rotation.z = -0.09; bookR.position.x = 0.09;
+  g.add(bookL, bookR);
+  return g;
+}
+
+function buildSegment(index, seed){
+  const rand = rng(seed*2654435761 >>> 0 || 1);
+  const g = new THREE.Group();
+  const X = HALL_W/2;
+
+  // 地板
+  const floor = new THREE.Mesh(new THREE.BoxGeometry(HALL_W+3, 0.2, SEG_LEN), MAT.floor);
+  floor.position.set(0,-0.1,-SEG_LEN/2);
+  floor.receiveShadow = true;
+  g.add(floor);
+
+  // 天花板
+  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(HALL_W+3, SEG_LEN), MAT.ceil);
+  ceil.rotation.x = Math.PI/2;
+  ceil.position.set(0, CEIL_H, -SEG_LEN/2);
+  g.add(ceil);
+
+  // 兩側牆
+  for (const side of [-1,1]){
+    const wall = new THREE.Mesh(new THREE.PlaneGeometry(SEG_LEN, CEIL_H), MAT.wall);
+    wall.rotation.y = side>0 ? -Math.PI/2 : Math.PI/2;
+    wall.position.set(side*X, CEIL_H/2, -SEG_LEN/2);
+    wall.receiveShadow = true;
+    g.add(wall);
+    // 踢腳線
+    const skirt = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.35, SEG_LEN), MAT.trim);
+    skirt.position.set(side*(X-0.03), 0.175, -SEG_LEN/2);
+    g.add(skirt);
+  }
+
+  // 拱門 + 柱（段落交界）
+  const archCurve = new THREE.QuadraticBezierCurve3(
+    new THREE.Vector3(-X+0.4, 4.4, 0), new THREE.Vector3(0, CEIL_H+1.6, 0), new THREE.Vector3(X-0.4, 4.4, 0));
+  const arch = new THREE.Mesh(new THREE.TubeGeometry(archCurve, 24, 0.16, 10), MAT.trim);
+  g.add(arch);
+  for (const side of [-1,1]){
+    const col = new THREE.Mesh(new THREE.BoxGeometry(0.46, 4.6, 0.46), MAT.trim);
+    col.position.set(side*(X-0.42), 2.3, 0);
+    col.castShadow = true;
+    g.add(col);
+    const cap = new THREE.Mesh(new THREE.BoxGeometry(0.64, 0.16, 0.64), MAT.trim);
+    cap.position.set(side*(X-0.42), 4.66, 0);
+    g.add(cap);
+  }
+
+  // 左牆窗戶 ×2（高窗 + 十字窗櫺）
+  for (const wz of [-4.2, -11]){
+    const win = new THREE.Group();
+    const pane = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 3.4), MAT.pane);
+    pane.rotation.y = Math.PI/2;
+    win.add(pane);
+    const fr = new THREE.Mesh(new THREE.BoxGeometry(0.12, 3.7, 2.4), MAT.frame);
+    fr.position.x = -0.03;
+    win.add(fr);
+    // 挖十字窗櫺：改用細條交叉貼在玻璃前
+    fr.visible = false;
+    const mk = (w,h,y,z)=>{ const m = new THREE.Mesh(new THREE.BoxGeometry(0.1,h,w), MAT.frame); m.position.set(0.02,y,z); win.add(m); };
+    mk(2.4, 0.12,  1.75, 0); mk(2.4, 0.12, -1.75, 0);   // 上下框
+    mk(0.12, 3.6, 0,  1.16); mk(0.12, 3.6, 0, -1.16);   // 左右框
+    mk(0.07, 3.5, 0, 0);                                 // 中櫺
+    mk(2.3, 0.07, 0.6, 0);  mk(2.3, 0.07, -0.6, 0);     // 橫櫺
+    win.position.set(-X+0.02, 2.6, wz);
+    g.add(win);
+  }
+
+  // 書櫃：右牆 ×2、左牆窗間 ×1
+  const shelfAt = (x, z, rotY)=>{
+    const s = shadowify(TPL.bookcase.clone(true));
+    s.position.set(x, 0, z); s.rotation.y = rotY;
+    g.add(s);
+  };
+  shelfAt( X-0.65, -3.5 - rand()*1.5, -Math.PI/2);
+  shelfAt( X-0.65, -9.5 - rand()*2,   -Math.PI/2);
+  shelfAt(-X+0.65, -7.6, Math.PI/2);
+
+  // 讀書座位：左右交錯
+  const spots = [];
+  if (rand() < 0.9) spots.push({ x:-X+2.6, z:-4.2 - rand()*1.2, r: Math.PI/2 + (rand()-0.5)*0.5 });
+  if (rand() < 0.9) spots.push({ x: X-2.6, z:-10 - rand()*2.5,  r:-Math.PI/2 + (rand()-0.5)*0.5 });
+  if (rand() < 0.45) spots.push({ x: X-2.8, z:-4.5 - rand()*1.5, r:-Math.PI/2 + (rand()-0.5)*0.4 });
+  for (const sp of spots){
+    const spot = makeStudySpot(rand);
+    spot.position.set(sp.x, 0, sp.z);
+    spot.rotation.y = sp.r;
+    g.add(spot);
+  }
+
+  // 植物（柱邊）
+  if (rand() < 0.75){
+    const p = shadowify(TPL.plant.clone(true));
+    const side = rand() < 0.5 ? -1 : 1;
+    p.position.set(side*(X-1.15), 0, -0.9);
+    p.rotation.y = rand()*Math.PI*2;
+    g.add(p);
+  }
+
+  // 吊燈（燈罩 + 暖光）
+  const lampG = new THREE.Group();
+  const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,1.5), MAT.cord);
+  cord.position.y = CEIL_H - 0.75;
+  const shade = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.3, 20, 1, true), MAT.shade);
+  shade.position.y = CEIL_H - 1.55;
+  const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.07), new THREE.MeshBasicMaterial({ color:0xFFE8C0 }));
+  bulb.position.y = CEIL_H - 1.62;
+  const glow = new THREE.PointLight(0xFFE6C2, 3.2, 6.5, 2);
+  glow.position.y = CEIL_H - 1.7;
+  lampG.add(cord, shade, bulb, glow);
+  lampG.position.z = -SEG_LEN/2;
+  g.add(lampG);
+
+  // 右牆掛畫
+  if (rand() < 0.6){
+    const art = new THREE.Group();
+    const mat = new THREE.MeshBasicMaterial({ color: [0xD8E4DC,0xE8DCC8,0xD8DCE8][Math.floor(rand()*3)] });
+    const canvasM = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.15), mat);
+    canvasM.rotation.y = -Math.PI/2;
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.3, 1.05), MAT.frame);
+    art.add(frame, canvasM);
+    canvasM.position.x = -0.035;
+    art.position.set(X-0.05, 3.1, -13.5);
+    g.add(art);
+  }
+
+  g.position.z = -index * SEG_LEN;
+  g.userData.recycles = 0;
+  scene.add(g);
+  return g;
+}
+
+/* ── 主角：原地走路 ── */
+let walker = null;
+function makeWalker(){
+  walker = makeCharacter(0xEDE3CE, 'Walk_Loop', { height:1.38, timeScale:1.0 });
+  walker.rotation.y = 0;            // 模型原生面向 -z，背對鏡頭走向遠方
+  walker.position.set(0, 0, -1.4);
+  scene.add(walker);
+}
+
+/* ── 塵埃微粒（光裡的漂浮感） ── */
+let motes = null;
+function makeMotes(){
+  const N = 140, pos = new Float32Array(N*3);
+  for (let i=0;i<N;i++){
+    pos[i*3]   = (Math.random()-0.5)*9;
+    pos[i*3+1] = 0.4 + Math.random()*4.6;
+    pos[i*3+2] = 6 - Math.random()*50;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos,3));
+  const c = document.createElement('canvas'); c.width=c.height=32;
+  const g = c.getContext('2d');
+  const gr = g.createRadialGradient(16,16,0,16,16,16);
+  gr.addColorStop(0,'rgba(255,250,235,.9)'); gr.addColorStop(1,'rgba(255,250,235,0)');
+  g.fillStyle = gr; g.fillRect(0,0,32,32);
+  const tex = new THREE.CanvasTexture(c);
+  motes = new THREE.Points(geo, new THREE.PointsMaterial({
+    map:tex, size:0.09, transparent:true, opacity:.55, depthWrite:false,
+    blending:THREE.AdditiveBlending, sizeAttenuation:true,
+  }));
+  scene.add(motes);
+}
+
+/* ── 啟動 ── */
+const clock = new THREE.Clock();
+let mouseX = 0, mouseY = 0;
+addEventListener('pointermove', e=>{
+  mouseX = (e.clientX/innerWidth - 0.5)*2;
+  mouseY = (e.clientY/innerHeight - 0.5)*2;
+});
+addEventListener('resize', ()=>{
+  camera.aspect = innerWidth/innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(innerWidth, innerHeight);
+});
+
+Promise.all([
+  loadGLB('models/character.glb'),
+  loadGLB('models/desk.glb'),
+  loadGLB('models/chair.glb'),
+  loadGLB('models/bookcase.glb'),
+  loadGLB('models/lamp.glb'),
+  loadGLB('models/plant.glb'),
+]).then(([ch, desk, chair, bookcase, lamp, plant])=>{
+  charGLTF = ch;
+  TPL = {
+    desk:     shadowify(liftColors(normalize(desk.scene,     0.82))),
+    chair:    shadowify(liftColors(normalize(chair.scene,    0.95))),
+    bookcase: shadowify(liftColors(normalize(bookcase.scene, 2.65))),
+    lamp:     shadowify(normalize(lamp.scene,     0.42)),
+    plant:    shadowify(normalize(plant.scene,    1.25)),
+  };
+  for (let i=0;i<NUM_SEG;i++) segments.push(buildSegment(i, i+7));
+  makeWalker();
+  makeMotes();
+  document.getElementById('loader').classList.add('off');
+  animate();
+}).catch(err=>{
+  console.error('GLB 載入失敗', err);
+  document.querySelector('#loader .msg').textContent = '素材載入失敗，請重新整理';
+});
+
+let t = 0;
+function animate(){
+  requestAnimationFrame(animate);
+  const dt = Math.min(clock.getDelta(), 0.05);
+  t += dt;
+  const dz = WALK_SPEED * dt;
+
+  // 世界往 +z 流動；走出鏡頭後回收到最前面
+  for (const seg of segments){
+    seg.position.z += dz;
+    if (seg.position.z > SEG_LEN * 1.1){
+      seg.position.z -= NUM_SEG * SEG_LEN;
+      seg.userData.recycles++;
+    }
+  }
+  // 塵埃
+  if (motes){
+    const p = motes.geometry.attributes.position;
+    for (let i=0;i<p.count;i++){
+      p.setZ(i, p.getZ(i) + dz*0.92);
+      p.setY(i, p.getY(i) + Math.sin(t*0.7 + i)*0.0012);
+      if (p.getZ(i) > 7) p.setZ(i, p.getZ(i) - 50);
+    }
+    p.needsUpdate = true;
+  }
+  // 主角輕微左右漂移 + 呼吸感
+  if (walker){
+    const drift = Math.sin(t*0.22)*0.55;
+    walker.position.x = drift;
+    walker.rotation.y = Math.sin(t*0.22)*0.06;
+  }
+  // 鏡頭：跟在主角後方，滑鼠視差 + 步伐微晃
+  const cx = (walker ? walker.position.x*0.55 : 0) + mouseX*0.7;
+  camera.position.x += (cx - camera.position.x)*0.04;
+  camera.position.y += ((2.55 - mouseY*0.3 + Math.sin(t*2.0)*0.03) - camera.position.y)*0.06;
+  camera.lookAt((walker ? walker.position.x*0.4 : 0) + mouseX*0.4, 1.7, -9);
+
+  for (const m of mixers) m.update(dt);
+  renderer.render(scene, camera);
+}
+</script>
+</body>
+</html>
