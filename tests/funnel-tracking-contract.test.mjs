@@ -21,14 +21,30 @@ test('core funnel pages load the shared analytics bridge', () => {
 
 test('analytics bridge preserves attribution and falls back safely when gtag is unavailable', () => {
   assert.match(analytics, /const ATTR_KEY = 'sofa_attribution_v1'/);
+  assert.match(analytics, /const SESSION_KEY = 'sofa_session_v1'/);
+  assert.match(analytics, /const FUNNEL_ENDPOINT = 'https:\/\/sofa-engine-api\.onrender\.com\/api\/funnel-event'/);
   assert.match(analytics, /utm_source/);
   assert.match(analytics, /utm_campaign/);
   assert.match(analytics, /window\.sofaTrack = track/);
   assert.match(analytics, /typeof window\.gtag === 'function'/);
   assert.match(analytics, /window\.dataLayer\.push/);
+  assert.match(analytics, /sendBeacon/);
+  assert.match(analytics, /keepalive: true/);
   assert.match(analytics, /decorateLinks/);
   assert.match(analytics, /CARRY_PATHS/);
   assert.match(analytics, /if \(!ATTR_KEYS\.some\(k => !!a\[k\]\)\) return href;/);
+});
+
+test('server-side funnel forwarding is limited to revenue and recovery events', () => {
+  assert.match(analytics, /const SERVER_EVENT_MAP = new Map/);
+  assert.match(analytics, /\['pricing_view', 'pricing_view'\]/);
+  assert.match(analytics, /\['pricing_select_plan', 'pricing_select_plan'\]/);
+  assert.match(analytics, /\['checkout_start', 'checkout_start'\]/);
+  assert.match(analytics, /\['checkout_submit', 'checkout_submit'\]/);
+  assert.match(analytics, /\['payment_return_success', 'payment_return_success'\]/);
+  assert.match(analytics, /\['expire_feedback_click', 'expiry_feedback_start'\]/);
+  assert.match(analytics, /\['expire_share_click', 'share_extension_start'\]/);
+  assert.doesNotMatch(analytics, /SERVER_EVENT_MAP[\s\S]*answer_submitted/);
 });
 
 test('pricing and checkout expose plan selection, checkout start, and payment return signals', () => {
