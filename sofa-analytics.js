@@ -123,6 +123,7 @@
     if (path.endsWith('/checkout.html')) track('checkout_start', { plan: queryPlan() || '季費' });
     const qs = params();
     const success = ['paid','success'].some(k => qs.get(k) === '1') || /success|paid|completed/i.test(qs.get('status') || qs.get('payment') || '');
-    if (success) track('purchase_completed', { plan: queryPlan() });
+    // URL return params only prove the browser came back from payment; verified revenue is server-side only.
+    if (success) track('payment_return_success', { plan: queryPlan() });
   });
 })();

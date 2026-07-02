@@ -258,12 +258,13 @@ function renderRows(items, emptyCopy){
     const serial = item.masked_serial || item.serial_hint || '未提供';
     const suffix = item.serial_suffix ? `後四碼 ${item.serial_suffix}` : '';
     const label = item.identity_status || item.status || item.plan || '未標狀態';
+    const issueTime = item.created_at ? `發號紀錄時間 ${item.created_at}` : '';
     const extra = [
       item.email_hint,
       item.uid_hint,
       item.plan,
       item.expire,
-      item.created_at,
+      issueTime,
     ].filter(Boolean).join(' · ');
     return `<div class="row">
       <div class="mono">${esc(serial)}</div>
