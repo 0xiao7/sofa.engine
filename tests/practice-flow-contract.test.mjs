@@ -104,3 +104,12 @@ test('practice analysis linkifies cross-law references inside the article reader
   assert.doesNotMatch(linkedNamedLaw, /target="_blank"/);
   assert.match(active, /formatSection\(sections\[name\],\s*articleLawName\)/);
 });
+
+test('practice analysis nested bullets have visible hierarchy', () => {
+  assert.match(active, /\.sec-text \.sec-i\{[^}]*margin:8px 0 8px 26px/);
+  assert.match(active, /\.sec-text \.sec-i\{[^}]*padding:8px 12px 8px 34px/);
+  assert.match(active, /\.sec-text \.sec-i\{[^}]*border-left:4px solid rgba\(231,187,167,\.[0-9]+\)/);
+  assert.match(active, /\.sec-text \.sec-i\{[^}]*background:rgba\(231,187,167,\.[0-9]+\)/);
+  assert.match(active, /\.sec-text \.sec-i::before\{[^}]*left:11px/);
+  assert.match(active, /@media \(max-width:760px\)\{[\s\S]*\.sec-text \.sec-i\{[^}]*margin:7px 0 7px 12px/);
+});
