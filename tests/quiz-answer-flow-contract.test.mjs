@@ -681,6 +681,15 @@ test('quiz analysis linkifies sixth-section law references to the article reader
   assert.match(active, /formatSection\(sections\[name\],\s*articleLawName\)/);
 });
 
+test('quiz analysis nested bullets have visible hierarchy', () => {
+  assert.match(active, /\.sec-text \.sec-i\{[^}]*margin:8px 0 8px 26px/);
+  assert.match(active, /\.sec-text \.sec-i\{[^}]*padding:8px 12px 8px 34px/);
+  assert.match(active, /\.sec-text \.sec-i\{[^}]*border-left:4px solid rgba\(231,187,167,\.[0-9]+\)/);
+  assert.match(active, /\.sec-text \.sec-i\{[^}]*background:rgba\(231,187,167,\.[0-9]+\)/);
+  assert.match(active, /\.sec-text \.sec-i::before\{[^}]*left:11px/);
+  assert.match(active, /@media \(max-width:760px\)\{[\s\S]*\.sec-text \.sec-i\{[^}]*margin:7px 0 7px 12px/);
+});
+
 test('CPI-adjusted article answers always show a visible adjustment warning', () => {
   assert.match(active, /function buildCpiAdjustmentNote/);
   assert.match(active, /function appendCpiAdjustmentNote/);
