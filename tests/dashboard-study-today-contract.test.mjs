@@ -592,6 +592,17 @@ test('study next card is direct for active learners and cannot squeeze labels ve
   assert.match(active, /\.study-next-plan \.k\{[\s\S]*white-space:nowrap/);
 });
 
+test('study today keeps active learner copy compact and folds lower details', () => {
+  assert.match(active, /<details class="study-recommend-panel" id="study-recommend-panel"/);
+  assert.match(active, /<summary class="study-recommend-head"/);
+  assert.match(active, /\.study-recommend-panel summary::-webkit-details-marker\{display:none\}/);
+  assert.match(active, /\.study-recommend-panel:not\(\[open\]\) \.study-recommend-list\{display:none\}/);
+  assert.match(active, /\.study-record-copy\{[\s\S]*font-size:12\.5px/);
+  assert.doesNotMatch(active, /真正的答對率與弱點仍然只從實際答題來/);
+  assert.doesNotMatch(active, /排課、補紀錄都能先用；登入後會盡量同步到你的帳號/);
+  assert.doesNotMatch(active, /目前還沒有私人讀書計畫<\/b><br>可以排課程、模考、固定複習或自己的週任務/);
+});
+
 test('study today exposes a time-first planning box before schedule details', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
@@ -625,7 +636,7 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.match(recap, /id="study-time-title"[\s\S]*累積 0 小時/);
   assert.match(recap, /id="study-time-summary"[\s\S]*累積 0 小時；本週 0 小時；今天 0 分/);
   assert.match(recap, /id="study-time-impact"[\s\S]*剩約 42 週/);
-  assert.match(recap, /id="study-time-outcome"[\s\S]*可預覽或直接排入本週/);
+  assert.match(recap, /id="study-time-outcome"[\s\S]*可先看建議/);
   assert.match(recap, /class="study-time-summary-card"[\s\S]*累積 0 小時[\s\S]*開始計時[\s\S]*補紀錄[\s\S]*修改時間/);
   assert.match(recap, /class="study-time-actions"/);
   assert.match(recap, /id="study-target-hours"[\s\S]*500/);
@@ -635,7 +646,7 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.match(active, /title\.textContent = '累積 ' \+ _formatStudyHours\(ledger\.accumulated\)/);
   assert.match(active, /summary\.textContent = '本週 ' \+ _formatStudyHours\(ledger\.week\)/);
   assert.match(active, /impact\.textContent = weeks \? \('剩約 ' \+ weeks \+ ' 週'\) : '先填時間'/);
-  assert.match(active, /時間設定只影響建議；按排入後才保存/);
+  assert.match(active, /時間設定只影響建議/);
   assert.match(active, /排入本週計畫/);
   assert.match(active, /\.study-status-strip\{[\s\S]*display:grid/);
   assert.match(active, /\.study-planning-overview\{[\s\S]*display:grid/);
@@ -732,7 +743,7 @@ test('study planning avoids a duplicate visible map before the private list', ()
   assert.ok(cloudIndex > -1, 'cloud state must exist');
   assert.ok(listIndex > -1, 'plan item list must exist');
   assert.match(active, /function renderStudyPlanMap/);
-  assert.match(active, /預覽不會自動寫入/);
+  assert.match(active, /預覽不會寫入/);
   assert.match(active, /下方就是同一份清單/);
 });
 
@@ -1031,7 +1042,8 @@ test('study time planning is editable and persisted locally', () => {
   assert.match(active, /約 ' \+ weeks \+ ' 週/);
   assert.match(active, /function renderStudyTimeOutcome/);
   assert.match(active, /已套用到本週建議；還沒寫進帳號/);
-  assert.match(active, /時間設定只影響建議；按排入後才保存/);
+  assert.match(active, /時間設定只影響建議/);
+  assert.doesNotMatch(active, /時間設定只影響建議；按排入後才保存/);
   assert.match(active, /預覽本週排法/);
   assert.match(active, /排入本週計畫/);
   assert.match(active, /下一筆：/);
@@ -1133,10 +1145,11 @@ test('saved study plans show an immediate readable summary and focus the plan li
 test('empty study plans point back to the single setup entry instead of duplicating buttons', () => {
   const fn = extractFunction(active, 'renderStudyPlanItems');
   assert.doesNotMatch(fn, /el\.innerHTML = ''/);
-  assert.match(fn, /目前還沒有私人讀書計畫/);
+  assert.match(fn, /還沒有私人讀書計畫/);
   assert.doesNotMatch(fn, /onclick="openStudyPlanPanel\(\)"/);
   assert.match(fn, /排課/);
-  assert.match(fn, /回上方「整理」點「排課」/);
+  assert.match(fn, /點上方「排課」/);
+  assert.doesNotMatch(fn, /可以排課程、模考、固定複習或自己的週任務/);
 });
 
 test('local study plan items can be completed postponed or cancelled from the list', () => {

@@ -506,6 +506,10 @@ test('article cards keep article labels horizontal on desktop and mobile', () =>
 });
 
 test('recent query rows stay horizontal and only stack on narrower screens', () => {
+  assert.match(html, /\.recent-list\{[\s\S]*overflow:hidden/);
+  assert.match(html, /\.rec-row\{[\s\S]*min-width:0/);
+  assert.match(html, /\.rec-row\{[\s\S]*max-width:100%/);
+  assert.match(html, /\.rec-row\{[\s\S]*overflow:hidden/);
   assert.match(html, /\.rec-row\{[\s\S]*grid-template-columns:minmax\(86px,150px\) minmax\(74px,132px\) minmax\(0,1fr\) auto/);
   assert.match(html, /\.rec-row\{[\s\S]*grid-template-areas:"law art title time"/);
   assert.match(html, /\.rec-row\{[\s\S]*column-gap:18px/);
@@ -516,11 +520,13 @@ test('recent query rows stay horizontal and only stack on narrower screens', () 
   assert.match(html, /\.rec-row \.art\{[\s\S]*text-overflow:ellipsis/);
   assert.match(html, /\.rec-row \.ttl\{[\s\S]*grid-area:title/);
   assert.match(html, /\.rec-row \.ttl\{[\s\S]*border-left:0/);
-  assert.match(html, /\.rec-row \.ttl\{[\s\S]*word-break:keep-all/);
+  assert.match(html, /\.rec-row \.ttl\{[\s\S]*word-break:normal/);
+  assert.match(html, /\.rec-row \.ttl\{[\s\S]*overflow-wrap:anywhere/);
   assert.match(html, /\.rec-row \.ttl\{[\s\S]*-webkit-line-clamp:2/);
   assert.doesNotMatch(html, /\.rec-row \.ttl\{[\s\S]*overflow-wrap:break-word/);
   assert.match(html, /\.rec-row \.time\{[\s\S]*grid-area:time/);
-  assert.match(html, /@media \(max-width:980px\)\{[\s\S]*\.rec-row\{[\s\S]*grid-template-areas:"law time" "art title"/);
+  assert.match(html, /@media \(max-width:1180px\)\{[\s\S]*\.rec-row\{[\s\S]*grid-template-columns:minmax\(64px,132px\) minmax\(0,1fr\)/);
+  assert.match(html, /@media \(max-width:1180px\)\{[\s\S]*\.rec-row\{[\s\S]*grid-template-areas:"law time" "art title"/);
   assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row\{[\s\S]*grid-template-areas:"law time" "art time" "title title"/);
   assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.law\{[\s\S]*grid-area:law/);
   assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.art\{[\s\S]*grid-area:art/);
@@ -528,6 +534,14 @@ test('recent query rows stay horizontal and only stack on narrower screens', () 
   assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.art\{[\s\S]*text-overflow:ellipsis/);
   assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.ttl\{[\s\S]*grid-area:title/);
   assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.time\{[\s\S]*grid-area:time/);
+});
+
+test('dashboard analysis cross references look like tappable law chips', () => {
+  assert.match(html, /\.acc-inner \.crossref\{[\s\S]*display:inline-flex/);
+  assert.match(html, /\.acc-inner \.crossref\{[\s\S]*align-items:center/);
+  assert.match(html, /\.acc-inner \.crossref\{[\s\S]*border:1px solid rgba\(213,154,120,\.[0-9]+\)/);
+  assert.match(html, /\.acc-inner \.crossref\{[\s\S]*white-space:nowrap/);
+  assert.match(html, /\.acc-inner \.crossref\{[\s\S]*margin:0 3px 4px 0/);
 });
 
 test('review due rows use the same article fallback as saved and recent rows', () => {
