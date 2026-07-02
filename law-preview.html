@@ -523,6 +523,8 @@ const uid = localStorage.getItem('sofa_uid') || '';
 const tok = localStorage.getItem('sofa_token') || '';
 let readerPaid = !!(uid || tok);
 let currentArticle = null;
+const PAID_READER_PLANS = new Set(['月費','季費','買斷','體驗','Admin','monthly','quarterly','trial']);
+const FREE_READER_PLANS = new Set(['免費','free']);
 
 function readerModeLabel(){
   return readerPaid ? '法本閱讀' : '法本試讀';
@@ -548,7 +550,12 @@ function _profileMeansPaid(profile){
   if(!profile) return true;
   if(profile.is_admin) return true;
   const plan = String(profile.plan || '').trim();
-  if(plan === '免費' || plan === 'free') return false;
+  if(PAID_READER_PLANS.has(plan)){
+    const expire = String(profile.expire || '').slice(0, 10);
+    if(/^\d{4}-\d{2}-\d{2}$/.test(expire) && expire < _todayISO()) return false;
+    return true;
+  }
+  if(FREE_READER_PLANS.has(plan)) return false;
   const expire = String(profile.expire || '').slice(0, 10);
   if(/^\d{4}-\d{2}-\d{2}$/.test(expire) && expire < _todayISO()) return false;
   return true;
@@ -556,9 +563,12 @@ function _profileMeansPaid(profile){
 
 function resolveReaderEntitlement(){
   if(!uid && !tok) return Promise.resolve(readerPaid);
-  return fetch(`${API}/api/me/profile`, { headers:_authH() })
+  const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
+  const timer = ctrl ? setTimeout(() => ctrl.abort(), 6000) : null;
+  return fetch(`${API}/api/me/profile`, { headers:_authH(), signal: ctrl ? ctrl.signal : undefined })
     .then(r => r.ok ? r.json() : null)
     .then(profile => {
+      if(timer) clearTimeout(timer);
       const next = _profileMeansPaid(profile);
       if(next !== readerPaid){
         readerPaid = next;
@@ -568,7 +578,10 @@ function resolveReaderEntitlement(){
       }
       return readerPaid;
     })
-    .catch(() => readerPaid);
+    .catch(() => {
+      if(timer) clearTimeout(timer);
+      return readerPaid || true;
+    });
 }
 
 const listBody = document.getElementById('listBody');
