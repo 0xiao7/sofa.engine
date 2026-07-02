@@ -681,6 +681,14 @@ test('quiz analysis linkifies sixth-section law references to the article reader
   assert.match(active, /formatSection\(sections\[name\],\s*articleLawName\)/);
 });
 
+test('quiz analysis cross references look like tappable in-reader chips', () => {
+  assert.match(active, /\.sec-text \.crossref\{[\s\S]*display:inline-flex/);
+  assert.match(active, /\.sec-text \.crossref\{[\s\S]*background:rgba\(231,187,167,\.[0-9]+\)/);
+  assert.match(active, /\.sec-text \.crossref\{[\s\S]*border:1px solid rgba\(213,154,120,\.[0-9]+\)/);
+  assert.match(active, /\.sec-text \.crossref\{[\s\S]*white-space:nowrap/);
+  assert.match(active, /\.sec-text \.crossref:hover\{[\s\S]*background:rgba\(231,187,167,\.[0-9]+\)/);
+});
+
 test('quiz analysis nested bullets have visible hierarchy', () => {
   assert.match(active, /\.sec-text \.sec-i\{[^}]*margin:8px 0 8px 26px/);
   assert.match(active, /\.sec-text \.sec-i\{[^}]*padding:8px 12px 8px 34px/);
