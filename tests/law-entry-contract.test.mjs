@@ -207,8 +207,13 @@ test('law preview analysis makes cross references and nested bullets visually sc
   assert.match(preview, /\.crossref\{[\s\S]*padding:1px 6px/);
   assert.match(preview, /\.crossref\{[\s\S]*white-space:nowrap/);
   assert.match(preview, /\.section-body \.preview-head,[\s\S]*padding-left:1\.35em;[\s\S]*text-indent:-1\.35em/);
-  assert.match(preview, /\.section-body \.preview-sub,[\s\S]*margin-left:4em;[\s\S]*padding:9px 14px 9px 3\.65em;[\s\S]*border-left:6px solid rgba\(231,187,167,\.78\);[\s\S]*background:rgba\(231,187,167,\.12\)/);
+  assert.match(preview, /\.section-body \.preview-sub,[\s\S]*margin-left:4em;[\s\S]*margin-top:10px;[\s\S]*margin-bottom:10px;[\s\S]*padding:10px 16px 10px 3\.85em;[\s\S]*border-left:6px solid rgba\(231,187,167,\.78\);[\s\S]*background:rgba\(231,187,167,\.12\)/);
   assert.match(preview, /@media \(max-width:768px\)\{[\s\S]*\.section-body \.preview-sub,[\s\S]*margin-left:1\.8em;[\s\S]*padding:8px 10px 8px 2\.65em/);
+});
+
+test('law preview renders only one law breadcrumb in the header', () => {
+  const matches = preview.match(/<div class="crumb" id="crumb">/g) || [];
+  assert.equal(matches.length, 1);
 });
 
 test('law preview formatted analysis body renders cross-reference anchors in nested bullets', () => {
