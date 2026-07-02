@@ -78,6 +78,10 @@ test('visual entry QA opens the law reader deep link and checks native-safe cont
   assert.match(script, /\.section\.locked\[data-seg="5"\] \.section-locked-preview/);
   assert.match(script, /\.section\.locked\[data-seg="5"\] a\[href="pricing\.html"\]/);
   assert.match(script, /sofa-visual-law-preview-mobile\.png/);
+  assert.match(script, /width:\s*820,\s*height:\s*1180/);
+  assert.match(script, /\.section\.locked\[data-seg="6"\] a\.crossref/);
+  assert.match(script, /law preview tablet: crossref chips overflow or stack oddly/);
+  assert.match(script, /sofa-visual-law-preview-tablet\.png/);
 });
 
 test('visual entry QA clicks a real mocked quiz answer and verifies answer ledger payload', () => {

@@ -487,11 +487,14 @@ test('article cards keep article labels horizontal on desktop and mobile', () =>
 });
 
 test('recent query rows move titles to a second line before squeezing them vertical', () => {
-  assert.match(html, /\.rec-row\{[\s\S]*grid-template-columns:minmax\(86px,150px\) minmax\(72px,max-content\) minmax\(0,1fr\) auto/);
+  assert.match(html, /\.rec-row\{[\s\S]*grid-template-columns:minmax\(86px,150px\) minmax\(74px,132px\) minmax\(0,1fr\) auto/);
   assert.match(html, /\.rec-row\{[\s\S]*grid-template-areas:"law art \. time" "law title title title"/);
   assert.match(html, /\.rec-row\{[\s\S]*column-gap:18px/);
   assert.match(html, /\.rec-row \.law\{[\s\S]*grid-area:law/);
   assert.match(html, /\.rec-row \.art\{[\s\S]*grid-area:art/);
+  assert.match(html, /\.rec-row \.art\{[\s\S]*max-width:132px/);
+  assert.match(html, /\.rec-row \.art\{[\s\S]*overflow:hidden/);
+  assert.match(html, /\.rec-row \.art\{[\s\S]*text-overflow:ellipsis/);
   assert.match(html, /\.rec-row \.ttl\{[\s\S]*grid-area:title/);
   assert.match(html, /\.rec-row \.ttl\{[\s\S]*border-left:0/);
   assert.match(html, /\.rec-row \.ttl\{[\s\S]*overflow-wrap:break-word/);
@@ -499,6 +502,8 @@ test('recent query rows move titles to a second line before squeezing them verti
   assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row\{[\s\S]*grid-template-areas:"law time" "art time" "title title"/);
   assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.law\{[\s\S]*grid-area:law/);
   assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.art\{[\s\S]*grid-area:art/);
+  assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.art\{[\s\S]*max-width:100%/);
+  assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.art\{[\s\S]*text-overflow:ellipsis/);
   assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.ttl\{[\s\S]*grid-area:title/);
   assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row \.time\{[\s\S]*grid-area:time/);
 });
@@ -519,11 +524,12 @@ test('searchAndOpen uses normalized article numbers instead of a numeric-title r
 });
 
 test('law drawer nested analysis bullets have visible hierarchy', () => {
-  assert.match(html, /\.acc-inner \.sec-i\{[^}]*margin:10px 0 10px 44px/);
-  assert.match(html, /\.acc-inner \.sec-i\{[^}]*border-left:4px solid rgba\(231,187,167,\.[0-9]+\)/);
+  assert.match(html, /\.acc-inner \.sec-i\{[^}]*margin:10px 0 10px 56px/);
+  assert.match(html, /\.acc-inner \.sec-i\{[^}]*padding:9px 14px 9px 46px/);
+  assert.match(html, /\.acc-inner \.sec-i\{[^}]*border-left:5px solid rgba\(231,187,167,\.[0-9]+\)/);
   assert.match(html, /\.acc-inner \.sec-i\{[^}]*background:rgba\(231,187,167,\.[0-9]+\)/);
-  assert.match(html, /\.acc-inner \.sec-i::before\{[^}]*left:14px/);
-  assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.acc-inner \.sec-i\{[^}]*margin:9px 0 9px 18px/);
+  assert.match(html, /\.acc-inner \.sec-i::before\{[^}]*left:16px/);
+  assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.acc-inner \.sec-i\{[^}]*margin:9px 0 9px 24px/);
 });
 
 test('law article URL handlers open the target article through the canonical fallback', () => {

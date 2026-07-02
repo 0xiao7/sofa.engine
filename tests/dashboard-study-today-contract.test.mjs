@@ -759,16 +759,19 @@ test('study today explains cloud save status in learner words', () => {
   assert.doesNotMatch(active, /schema pending|schema_pending[^'"]*$/);
 });
 
-test('study cloud state names the connected private schedule source and visible item count', () => {
+test('study cloud state keeps connected private schedule status compact', () => {
   const fn = extractFunction(active, 'renderStudyCloudState');
   const helper = extractFunction(active, 'setStudyCloudState');
   assert.match(fn, /remotePlan\.items/);
   assert.match(fn, /cloudItems\.length/);
-  assert.match(fn, /source_label/);
   assert.match(helper, /<summary>/);
+  assert.match(helper, /detail\s*\?/);
   assert.match(fn, /'私人計畫'/);
   assert.match(fn, /'已同步 ' \+ cloudItems\.length \+ ' 筆'/);
-  assert.match(fn, /來源：/);
+  assert.doesNotMatch(fn, /來源：/);
+  assert.doesNotMatch(fn, /只在帳號內。/);
+  assert.doesNotMatch(fn, /接下來排課會存到帳號。/);
+  assert.doesNotMatch(fn, /稍後會再同步。/);
   assert.match(fn, /setStudyCloudState/);
   assert.match(active, /\.study-cloud-state summary\{/);
   assert.match(active, /\.study-cloud-detail\{/);
@@ -1295,8 +1298,8 @@ test('study planning reconnects local progress after serial login', () => {
   const fn = extractFunction(active, 'trySyncLocalStudyAfterLogin');
   assert.match(fn, /setStudyCloudState\('本機讀書計畫已接回'/);
   assert.doesNotMatch(fn, /study-cloud-state'[\s\S]*\.innerHTML\s*=/);
-  assert.match(active, /排課項目會嘗試同步/);
-  assert.match(active, /補紀錄會另寫入時數/);
+  assert.doesNotMatch(active, /排課項目會嘗試同步/);
+  assert.doesNotMatch(active, /補紀錄會另寫入時數/);
   assert.match(active, /\/api\/me\/study\/plan-items\/bulk/);
   assert.match(active, /after_login_local_handoff/);
   assert.match(active, /_actionableStudyItems\(local\.items \|\| \[\]\)/);

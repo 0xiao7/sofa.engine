@@ -704,7 +704,31 @@ async function lawPreviewCase(browser, baseUrl) {
   const screenshot = path.join(OUT_DIR, 'sofa-visual-law-preview-mobile.png');
   await freePage.screenshot({ path: screenshot, fullPage: false });
   await freePage.close();
-  return { name: 'law-preview-mobile', screenshot, paidScreenshot, boxes, title };
+
+  const tabletPage = await browser.newPage({ viewport: { width: 820, height: 1180 }, deviceScaleFactor: 1, isMobile: false });
+  await installApiMocks(tabletPage, { auth: false });
+  await tabletPage.goto(`${baseUrl}/law-preview.html?law=${encodeURIComponent('記帳士法')}&art=13%E4%B9%8B1`, { waitUntil: 'domcontentloaded' });
+  await tabletPage.waitForSelector('#detailTitle', { state: 'visible', timeout: 9000 });
+  await tabletPage.locator('.section.locked[data-seg="6"]').scrollIntoViewIfNeeded();
+  const tabletOverflow = await assertNoHorizontalOverflow(tabletPage, 'law preview tablet');
+  const tabletCrossRefs = await tabletPage.locator('.section.locked[data-seg="6"] a.crossref').evaluateAll(nodes => nodes.map(node => {
+    const box = node.getBoundingClientRect();
+    const style = getComputedStyle(node);
+    return {
+      text: node.textContent.trim(),
+      box: { left: box.left, right: box.right, top: box.top, bottom: box.bottom, width: box.width, height: box.height },
+      display: style.display,
+      whiteSpace: style.whiteSpace
+    };
+  }));
+  if (!tabletCrossRefs.length) throw new Error('law preview tablet: sixth-section cross references did not render');
+  const outside = tabletCrossRefs.filter(item => item.box.left < -1 || item.box.right > 821 || item.box.height > 48);
+  if (outside.length) throw new Error(`law preview tablet: crossref chips overflow or stack oddly (${JSON.stringify(outside)})`);
+  const tabletScreenshot = path.join(OUT_DIR, 'sofa-visual-law-preview-tablet.png');
+  await tabletPage.screenshot({ path: tabletScreenshot, fullPage: false });
+  await tabletPage.close();
+
+  return { name: 'law-preview-mobile', screenshot, paidScreenshot, tabletScreenshot, boxes, title, tabletOverflow, tabletCrossRefs };
 }
 
 async function quizBehaviorCase(browser, baseUrl) {

@@ -111,6 +111,34 @@ test('law preview normalizes sub-articles before matching deep links', () => {
   assert.ok(sandbox.articleMatchesTarget({ article_no: '第十三條之一' }, '13之1'));
 });
 
+test('law preview list strips duplicated article labels before rendering titles', () => {
+  const source = [
+    extractFunction(preview, 'normalizeArticleNo'),
+    extractFunction(preview, 'displayArticleNoFromRaw'),
+    extractFunction(preview, 'articleTitleParts')
+  ].join('\n');
+  const sandbox = {};
+  vm.createContext(sandbox);
+  vm.runInContext(`${source}; this.parts = articleTitleParts;`, sandbox);
+
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(sandbox.parts({ title: '§ 72 | 電子會計資料不實罪' }))),
+    { article_no: '72', title: '電子會計資料不實罪' },
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(sandbox.parts({ title: '§ 102-1 | § 102-1 | 違反醫院設置標準之醫院層級加重罰則' }))),
+    { article_no: '102-1', title: '違反醫院設置標準之醫院層級加重罰則' },
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(sandbox.parts({ article_no: '第 12 條之1', title: '第 12 條之1 第 12 條之1 決議書內容與作成期限' }))),
+    { article_no: '12之1', title: '決議書內容與作成期限' },
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(sandbox.parts({ title: '第 27 條 | 使用許可案件審議通過後核發使用許可' }))),
+    { article_no: '27', title: '使用許可案件審議通過後核發使用許可' },
+  );
+});
+
 function extractFunction(source, name) {
   const start = source.indexOf(`function ${name}`);
   assert.ok(start >= 0, `${name} must exist`);
@@ -172,12 +200,15 @@ test('law preview analysis links cross-referenced law articles to the reader', (
 });
 
 test('law preview analysis makes cross references and nested bullets visually scannable', () => {
-  assert.match(preview, /\.crossref\{\s*color:var\(--peach\);[\s\S]*text-decoration-thickness:2px/);
+  assert.match(preview, /\.crossref\{[\s\S]*color:var\(--peach\);[\s\S]*text-decoration-thickness:2px/);
   assert.match(preview, /\.crossref\{[\s\S]*background:rgba\(231,187,167,\.14\)/);
-  assert.match(preview, /\.crossref\{[\s\S]*padding:0 3px/);
+  assert.match(preview, /\.crossref\{[\s\S]*display:inline-flex/);
+  assert.match(preview, /\.crossref\{[\s\S]*margin:0 3px 4px 0/);
+  assert.match(preview, /\.crossref\{[\s\S]*padding:1px 6px/);
+  assert.match(preview, /\.crossref\{[\s\S]*white-space:nowrap/);
   assert.match(preview, /\.section-body \.preview-head,[\s\S]*padding-left:1\.35em;[\s\S]*text-indent:-1\.35em/);
-  assert.match(preview, /\.section-body \.preview-sub,[\s\S]*margin-left:3\.2em;[\s\S]*padding:8px 12px 8px 3\.25em;[\s\S]*border-left:5px solid rgba\(231,187,167,\.72\);[\s\S]*background:rgba\(231,187,167,\.08\)/);
-  assert.match(preview, /@media \(max-width:768px\)\{[\s\S]*\.section-body \.preview-sub,[\s\S]*margin-left:1\.45em;[\s\S]*padding:7px 9px 7px 2\.45em/);
+  assert.match(preview, /\.section-body \.preview-sub,[\s\S]*margin-left:4em;[\s\S]*padding:9px 14px 9px 3\.65em;[\s\S]*border-left:6px solid rgba\(231,187,167,\.78\);[\s\S]*background:rgba\(231,187,167,\.12\)/);
+  assert.match(preview, /@media \(max-width:768px\)\{[\s\S]*\.section-body \.preview-sub,[\s\S]*margin-left:1\.8em;[\s\S]*padding:8px 10px 8px 2\.65em/);
 });
 
 test('law preview formatted analysis body renders cross-reference anchors in nested bullets', () => {
