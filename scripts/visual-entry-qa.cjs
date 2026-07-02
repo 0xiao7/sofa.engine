@@ -538,6 +538,12 @@ async function dashboardResponsiveLayoutCase(browser, baseUrl) {
         throw new Error(`dashboard responsive ${viewport.name}: article label still contains title text (${JSON.stringify(row)})`);
       }
     }
+    if (viewport.name === 'desktop') {
+      const stackedTitles = rows.filter(row => row.art && row.row && row.art.left >= row.row.left + 220);
+      if (stackedTitles.length) {
+        throw new Error(`dashboard responsive desktop: recent rows are wasting wide-screen space (${JSON.stringify(stackedTitles)})`);
+      }
+    }
     const screenshot = path.join(OUT_DIR, `sofa-visual-dashboard-responsive-${viewport.name}.png`);
     await page.screenshot({ path: screenshot, fullPage: false });
     checks.push({ viewport: viewport.name, screenshot, overflow, rows: rows.map(row => row.text) });
@@ -709,6 +715,8 @@ async function lawPreviewCase(browser, baseUrl) {
   await installApiMocks(tabletPage, { auth: false });
   await tabletPage.goto(`${baseUrl}/law-preview.html?law=${encodeURIComponent('記帳士法')}&art=13%E4%B9%8B1`, { waitUntil: 'domcontentloaded' });
   await tabletPage.waitForSelector('#detailTitle', { state: 'visible', timeout: 9000 });
+  const crumbCount = await tabletPage.locator('.law-header #crumb').count();
+  if (crumbCount !== 1) throw new Error(`law preview tablet: duplicated breadcrumb (${crumbCount})`);
   await tabletPage.locator('.section.locked[data-seg="6"]').scrollIntoViewIfNeeded();
   const tabletOverflow = await assertNoHorizontalOverflow(tabletPage, 'law preview tablet');
   const tabletCrossRefs = await tabletPage.locator('.section.locked[data-seg="6"] a.crossref').evaluateAll(nodes => nodes.map(node => {

@@ -2746,10 +2746,10 @@
   .rec-row{
     display:grid;
     grid-template-columns:minmax(86px,150px) minmax(74px,132px) minmax(0,1fr) auto;
-    grid-template-areas:"law art . time" "law title title title";
-    align-items:start;
+    grid-template-areas:"law art title time";
+    align-items:center;
     column-gap:18px;
-    row-gap:7px;
+    row-gap:6px;
     padding:16px 14px 16px 28px;
     cursor:pointer;transition:.18s;
     position:relative;
@@ -2800,6 +2800,14 @@
     .rec-row{
       grid-template-columns:minmax(82px,150px) minmax(68px,118px) minmax(0,1fr) auto;
     }
+  }
+  @media (max-width:980px){
+    .rec-row{
+      grid-template-columns:minmax(0,1fr) auto;
+      grid-template-areas:"law time" "art title";
+      align-items:start;
+    }
+    .rec-row .time{align-self:start}
   }
 
   /* === Drawer (unchanged base) === */
