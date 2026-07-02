@@ -1683,21 +1683,60 @@ const _LOCKED_SECS=[
 ];
 function linkifyLawRefs(escapedText,currentLawName){
   let lastLaw = null;
-  return String(escapedText||'').replace(/(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\s《》]{2,48}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第(\d+)條(?:之(\d+))?/g, (match, bracketLaw, plainLaw, sameLaw, art, sub)=>{
+  const linkedAnchors = [];
+  function stashLinked(html){
+    const key = '@@SOFA_XREF_' + linkedAnchors.length + '@@';
+    linkedAnchors.push(html);
+    return key;
+  }
+  function hrefFor(law, art){
+    const safeLaw = encodeURIComponent(String(law || '').replace(/\\/g, ''));
+    const safeArt = encodeURIComponent(String(art || ''));
+    const back = typeof _currentQuizReturnTarget === 'function' ? _currentQuizReturnTarget() : 'quiz.html';
+    const safeBack = encodeURIComponent(back || 'quiz.html');
+    return `law-preview.html?law=${safeLaw}&art=${safeArt}&from=quiz&back=${safeBack}`;
+  }
+  function normalizeArtLabel(value){
+    return String(value || '').replace(/\s+/g, '').replace(/條?之/g, '之').replace(/-/g, '之').replace(/^第/, '').replace(/條$/, '');
+  }
+  function splitLawPrefix(rawLaw, law){
+    const raw = String(rawLaw || '');
+    return raw.endsWith(law) ? raw.slice(0, raw.length - law.length) : '';
+  }
+  const lawTypes = '(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)';
+  const lawPat = '(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\\s《》()（）;；]{1,40}' + lawTypes + '))';
+  const numPat = '[0-9０-９一二三四五六七八九十百千零兩两]+(?:\\s*(?:條?之|-)\\s*[0-9０-９一二三四五六七八九十百千零兩两]+)?';
+  const articleSeq = new RegExp(lawPat + '第?\\s*(' + numPat + '(?:\\s*(?:、|,|，|及|和|與)\\s*第?\\s*' + numPat + ')+)\\s*條', 'g');
+  const sequenced = String(escapedText || '').replace(articleSeq, (match, bracketLaw, plainLaw, nums) => {
+    const rawLaw = bracketLaw || plainLaw || '';
+    const law = cleanCrossRefLawName(rawLaw);
+    if(!law || law === '同法' || law === '本法') return match;
+    lastLaw = law;
+    const prefix = bracketLaw ? '' : splitLawPrefix(rawLaw, law);
+    const tokens = nums.split(/(、|,|，|及|和|與)/);
+    let first = true;
+    const linked = tokens.map(token => {
+      if(/^(、|,|，|及|和|與)$/.test(token)) return token;
+      const cleanToken = String(token).trim();
+      const art = normalizeArtLabel(cleanToken);
+      if(!art) return token;
+      const label = first ? law + (cleanToken.startsWith('第') ? cleanToken : art) + '條' : (cleanToken.startsWith('第') ? cleanToken : art + '條');
+      first = false;
+      return `<a class="crossref" href="${hrefFor(law, art)}" data-law="${encodeURIComponent(law)}" data-art="${encodeURIComponent(art)}">${label}</a>`;
+    }).join('');
+    return prefix + stashLinked(linked);
+  });
+  return sequenced.replace(/(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\s《》()（）;；]{1,40}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第?(\d+)條(?:之(\d+))?/g, (match, bracketLaw, plainLaw, sameLaw, art, sub)=>{
     const law = cleanCrossRefLawName(bracketLaw || plainLaw || '');
-    if(law) lastLaw = law;
-    else if(sameLaw && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
+    if(law && law !== '同法' && law !== '本法') lastLaw = law;
+    else if((sameLaw || law === '同法' || law === '本法') && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
     if(!lastLaw) return match;
-    const safeLaw = encodeURIComponent(String(lastLaw));
     const fullArt = art + (sub ? '之' + sub : '');
-    const safeArt = encodeURIComponent(fullArt);
     const prefixMatch = match.match(/^(.+?(?:可看|請看|請參照|請見|另參照|另見)|搭配|參照|依|按|見|與)(.+)$/);
     const prefix = prefixMatch ? prefixMatch[1] : '';
     const label = prefixMatch ? prefixMatch[2] : match;
-    const back = typeof _currentQuizReturnTarget === 'function' ? _currentQuizReturnTarget() : 'quiz.html';
-    const safeBack = encodeURIComponent(back || 'quiz.html');
-    return `${prefix}<a class="crossref" href="law-preview.html?law=${safeLaw}&art=${safeArt}&from=quiz&back=${safeBack}" data-law="${safeLaw}" data-art="${safeArt}">${label}</a>`;
-  });
+    return `${prefix}<a class="crossref" href="${hrefFor(lastLaw, fullArt)}" data-law="${encodeURIComponent(lastLaw)}" data-art="${encodeURIComponent(fullArt)}">${label}</a>`;
+  }).replace(/@@SOFA_XREF_(\d+)@@/g, (match, idx) => linkedAnchors[Number(idx)] || match);
 }
 function cleanVisibleSpeechCueText(text){
   return String(text || '')

@@ -95,6 +95,12 @@ test('practice analysis linkifies cross-law references inside the article reader
   assert.match(linkedReadableLead, />公司法第29條</);
   assert.doesNotMatch(linkedReadableLead, /law=.*%E4%BA%A4%E5%8F%89/);
   assert.equal(helpers.cleanCrossRefLawName('交叉記憶可看公司法'), '公司法');
+  const linkedArticleSeries = helpers.linkifyLawRefs('刑法317、318、319條;地政士法26條(地政士守密義務)', '記帳士法');
+  assert.match(linkedArticleSeries, /law-preview\.html\?law=%E5%88%91%E6%B3%95&art=317/);
+  assert.match(linkedArticleSeries, /law-preview\.html\?law=%E5%88%91%E6%B3%95&art=318/);
+  assert.match(linkedArticleSeries, /law-preview\.html\?law=%E5%88%91%E6%B3%95&art=319/);
+  assert.match(linkedArticleSeries, /law-preview\.html\?law=%E5%9C%B0%E6%94%BF%E5%A3%AB%E6%B3%95&art=26/);
+  assert.doesNotMatch(linkedArticleSeries, /law=.*%E5%9C%B0%E6%94%BF%E5%A3%AB%E5%AE%88%E5%AF%86/);
   assert.doesNotMatch(linkedNamedLaw, /target="_blank"/);
   assert.match(active, /formatSection\(sections\[name\],\s*articleLawName\)/);
 });
