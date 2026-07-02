@@ -197,11 +197,14 @@ test('recent query section hands off to compass without a large blank wall', () 
   assert.match(html, /setTimeout\(renderDashboardLoadingFallbacks,\s*4000\)/);
   assert.match(html, /還沒有查詢紀錄；查過的條文會放在這裡/);
   assert.match(html, /\.compass-embed\{[\s\S]*background:linear-gradient/);
-  assert.match(html, /\.compass-embed\{[\s\S]*margin:0 0 0 280px/);
-  assert.match(html, /\.compass-embed\{[\s\S]*width:calc\(100% - 280px\)/);
-  assert.match(html, /body\.side-collapsed \.compass-embed\{margin-left:0;width:100%\}/);
-  assert.match(html, /@media \(max-width:980px\)\{[\s\S]*\.compass-embed\{margin-left:0;width:100%\}/);
+  assert.match(html, /\.compass-embed\{[\s\S]*margin:8px 0 0/);
+  assert.match(html, /\.compass-embed\{[\s\S]*width:100%/);
+  assert.match(html, /\.compass-embed\{[\s\S]*border-radius:4px/);
+  assert.doesNotMatch(html, /\.compass-embed\{[\s\S]*margin:0 0 0 280px/);
+  assert.doesNotMatch(html, /\.compass-embed\{[\s\S]*width:calc\(100% - 280px\)/);
+  assert.doesNotMatch(html, /body\.side-collapsed \.compass-embed\{margin-left:0;width:100%\}/);
   assert.match(html, /<section class="compass-embed" data-screen-label="Compass">/);
+  assert.match(html, /<section class="block" id="recent">[\s\S]*<section class="compass-embed" data-screen-label="Compass">[\s\S]*<\/main>/);
   assert.doesNotMatch(html, /class="compass-embed"[^>]+style=/);
 });
 
@@ -410,6 +413,14 @@ test('dashboard article labels normalize raw article numbers before wrapping tex
   );
   assert.deepEqual(
     JSON.parse(JSON.stringify(sandbox.helpers.articleLabelParts('§ 102-1', '第 102-1 條｜§ 102-1｜違反醫院設置標準之醫院層級加重罰則'))),
+    { article_no: '102-1', title: '違反醫院設置標準之醫院層級加重罰則' },
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(sandbox.helpers.articleLabelParts('§102-1', '§102-1 | 違反醫院設置標準之醫院層級加重罰則'))),
+    { article_no: '102-1', title: '違反醫院設置標準之醫院層級加重罰則' },
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(sandbox.helpers.articleLabelParts('§102-1', '第102-1條 | §102-1 | 違反醫院設置標準之醫院層級加重罰則'))),
     { article_no: '102-1', title: '違反醫院設置標準之醫院層級加重罰則' },
   );
   assert.deepEqual(
