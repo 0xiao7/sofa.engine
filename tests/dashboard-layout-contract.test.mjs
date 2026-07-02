@@ -409,6 +409,14 @@ test('dashboard article labels normalize raw article numbers before wrapping tex
     { article_no: '72', title: '電子會計資料不實罪' },
   );
   assert.deepEqual(
+    JSON.parse(JSON.stringify(sandbox.helpers.articleLabelParts('§ 102-1', '第 102-1 條｜§ 102-1｜違反醫院設置標準之醫院層級加重罰則'))),
+    { article_no: '102-1', title: '違反醫院設置標準之醫院層級加重罰則' },
+  );
+  assert.deepEqual(
+    JSON.parse(JSON.stringify(sandbox.helpers.articleLabelParts('§ 27', '§ 27｜第 27 條｜使用許可案件審議通過後核發使用許可'))),
+    { article_no: '27', title: '使用許可案件審議通過後核發使用許可' },
+  );
+  assert.deepEqual(
     JSON.parse(JSON.stringify(sandbox.helpers.articleLabelParts('', '§ 72 | 電子會計資料不實罪'))),
     { article_no: '72', title: '電子會計資料不實罪' },
   );
@@ -497,7 +505,9 @@ test('recent query rows stay horizontal and only stack on narrower screens', () 
   assert.match(html, /\.rec-row \.art\{[\s\S]*text-overflow:ellipsis/);
   assert.match(html, /\.rec-row \.ttl\{[\s\S]*grid-area:title/);
   assert.match(html, /\.rec-row \.ttl\{[\s\S]*border-left:0/);
-  assert.match(html, /\.rec-row \.ttl\{[\s\S]*overflow-wrap:break-word/);
+  assert.match(html, /\.rec-row \.ttl\{[\s\S]*word-break:keep-all/);
+  assert.match(html, /\.rec-row \.ttl\{[\s\S]*-webkit-line-clamp:2/);
+  assert.doesNotMatch(html, /\.rec-row \.ttl\{[\s\S]*overflow-wrap:break-word/);
   assert.match(html, /\.rec-row \.time\{[\s\S]*grid-area:time/);
   assert.match(html, /@media \(max-width:980px\)\{[\s\S]*\.rec-row\{[\s\S]*grid-template-areas:"law time" "art title"/);
   assert.match(html, /@media \(max-width: 760px\)\{[\s\S]*\.rec-row\{[\s\S]*grid-template-areas:"law time" "art time" "title title"/);

@@ -2787,8 +2787,12 @@
     font-size:13.5px;color:rgba(245,240,234,.62);
     border-left:0;padding-left:0;
     line-height:1.55;
-    overflow-wrap:break-word;
-    word-break:normal;
+    display:-webkit-box;
+    -webkit-line-clamp:2;
+    -webkit-box-orient:vertical;
+    overflow:hidden;
+    overflow-wrap:normal;
+    word-break:keep-all;
   }
   .rec-row .time{
     grid-area:time;
@@ -4580,11 +4584,15 @@ function articleLabelParts(raw, title){
     }
   }
   if(ttl){
-    ttl = ttl
-      .replace(new RegExp('^\\s*§?\\s*(?:第\\s*)?' + num + '\\s*條\\s*之\\s*' + num + '\\s*條?\\s*(?:[|｜:：—]\\s*)?'), '')
-      .replace(new RegExp('^\\s*§?\\s*(?:第\\s*)?' + (art || ch).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*條?\\s*(?:[|｜:：—]\\s*)?'), '')
-      .replace(new RegExp('^\\s*第\\s*' + ch + '\\s*條?\\s*(?:[|｜:：—]\\s*)?'), '')
-      .trim();
+    for(var stripI = 0; stripI < 3; stripI++){
+      var beforeStrip = ttl;
+      ttl = ttl
+        .replace(new RegExp('^\\s*§?\\s*(?:第\\s*)?' + num + '\\s*條\\s*之\\s*' + num + '\\s*條?\\s*(?:[|｜:：—]\\s*)?'), '')
+        .replace(new RegExp('^\\s*§?\\s*(?:第\\s*)?' + (art || ch).replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*條?\\s*(?:[|｜:：—]\\s*)?'), '')
+        .replace(new RegExp('^\\s*第\\s*' + ch + '\\s*條?\\s*(?:[|｜:：—]\\s*)?'), '')
+        .trim();
+      if(ttl === beforeStrip) break;
+    }
   }
   var safeArt = (art || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
   var bareArticleRe = safeArt ? new RegExp('^\\s*§?\\s*(?:第\\s*)?' + safeArt + '\\s*條?\\s*$') : null;
