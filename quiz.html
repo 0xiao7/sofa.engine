@@ -1543,11 +1543,27 @@ function recentQuizArticleIds(){
 }
 
 function rememberRecentQuizArticle(pageId){
-  if(!pageId) return;
-  var ids = recentQuizArticleIds().filter(function(id){ return id !== pageId; });
-  ids.unshift(pageId);
+  rememberRecentQuizArticles([pageId]);
+}
+
+function rememberRecentQuizArticles(pageIds){
+  var incoming = (pageIds || []).map(function(id){ return id ? String(id) : ''; }).filter(Boolean);
+  if(!incoming.length) return;
+  var incomingSet = new Set(incoming);
+  var ids = recentQuizArticleIds().filter(function(id){ return !incomingSet.has(id); });
+  Array.prototype.unshift.apply(ids, incoming);
   if(ids.length > 30) ids.length = 30;
   try{ localStorage.setItem(RECENT_QUIZ_ARTICLES_KEY, JSON.stringify(ids)); }catch(e){}
+}
+
+function quizArticleIdentityAliases(data, fallbackId){
+  return [
+    data && data.page_id,
+    data && data.correct_id,
+    data && data.article_id,
+    data && data.id,
+    fallbackId,
+  ];
 }
 
 function pickNonRecentArticle(items){
@@ -2910,7 +2926,7 @@ async function loadQuiz(){
     const isNewFmt = typeof (data.options||[])[0] !== 'object';
     const correctAnswer = isNewFmt ? data.answer : null;
     const pageId = data.page_id || data.correct_id || null;
-    rememberRecentQuizArticle(pageId);
+    rememberRecentQuizArticles(quizArticleIdentityAliases(data, pickedPageId));
 
     const lawName=data.law_name||(law&&law!=='__starred__'?document.getElementById('lawSelect').selectedOptions[0]?.text:'');
     const artTitle=data.title||data.correct_title||'';
@@ -3253,7 +3269,7 @@ async function loadWrongQuiz() {
     const isNewFmt = typeof (data.options||[])[0] !== 'object';
     const correctAnswer = isNewFmt ? data.answer : null;
     const pageId = data.page_id || data.correct_id || null;
-    rememberRecentQuizArticle(pageId);
+    rememberRecentQuizArticles(quizArticleIdentityAliases(data, pick.id));
     const lawName = data.law_name || pick.law || '';
     const artTitle = data.title || data.correct_title || pick.art || '';
     const cur = sessionHistory[sessionHistory.length-1];

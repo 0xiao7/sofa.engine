@@ -505,6 +505,8 @@ test('signed-in learners are not treated as free while entitlement is uncertain'
 test('local quiz picks avoid recently shown articles before calling the API', () => {
   assert.match(active, /const RECENT_QUIZ_ARTICLES_KEY = 'sofa_recent_quiz_articles_v1'/);
   assert.match(active, /function rememberRecentQuizArticle/);
+  assert.match(active, /function rememberRecentQuizArticles/);
+  assert.match(active, /function quizArticleIdentityAliases/);
   assert.match(active, /function pickNonRecentArticle/);
   assert.match(active, /function isRecentQuizArticleId/);
   assert.match(active, /function fetchQuizWithRecentGuard/);
@@ -521,7 +523,42 @@ test('local quiz picks avoid recently shown articles before calling the API', ()
   assert.match(loader, /data=await fetchQuizWithRecentGuard\(url,\{headers:_authH\(\)\}\)/);
   assert.doesNotMatch(loader, /data=await fetch\(url,\{headers:_authH\(\)\}\)\.then\(r=>r\.json\(\)\)/);
   assert.match(active, /rememberRecentQuizArticle\(pageId\)/);
+  assert.match(active, /rememberRecentQuizArticles\(quizArticleIdentityAliases\(data, pickedPageId\)\)/);
   assert.doesNotMatch(loader, /rememberRecentQuizArticle\(pageId\);\s*rememberRecentQuizArticle\(pageId\)/);
+});
+
+test('quiz remembers all article id aliases so recent filtering survives API id format changes', () => {
+  const source = [
+    "const RECENT_QUIZ_ARTICLES_KEY = 'sofa_recent_quiz_articles_v1';",
+    extractFunction(active, 'recentQuizArticleIds'),
+    extractFunction(active, 'rememberRecentQuizArticles'),
+    extractFunction(active, 'rememberRecentQuizArticle'),
+    extractFunction(active, 'quizArticleIdentityAliases'),
+  ].join('\n');
+  const writes = [];
+  const sandbox = {
+    Set,
+    Array,
+    String,
+    localStorage: {
+      getItem(key) {
+        assert.equal(key, 'sofa_recent_quiz_articles_v1');
+        return JSON.stringify(['old-a', 'notion-a']);
+      },
+      setItem(key, value) {
+        writes.push([key, JSON.parse(value)]);
+      },
+    },
+  };
+  vm.createContext(sandbox);
+  vm.runInContext(`${source}; this.remember = rememberRecentQuizArticles; this.aliases = quizArticleIdentityAliases;`, sandbox);
+
+  sandbox.remember(sandbox.aliases({ page_id: 'notion-a', article_id: 'uuid-a', id: 'legacy-a' }, 'picked-a'));
+
+  assert.deepEqual(writes.at(-1), [
+    'sofa_recent_quiz_articles_v1',
+    ['notion-a', 'uuid-a', 'legacy-a', 'picked-a', 'old-a'],
+  ]);
 });
 
 test('random backend quiz fallback retries when it returns recently shown articles', async () => {
@@ -602,7 +639,7 @@ test('wrong review avoids recently shown articles when possible', () => {
   assert.ok(start >= 0 && end > start, 'wrong quiz loader must be extractable');
   const wrongLoader = active.slice(start, end);
   assert.match(wrongLoader, /const pick = pickNonRecentArticle\(bank\) \|\| bank\[Math\.floor\(Math\.random\(\) \* bank\.length\)\]/);
-  assert.match(wrongLoader, /rememberRecentQuizArticle\(pageId\)/);
+  assert.match(wrongLoader, /rememberRecentQuizArticles\(quizArticleIdentityAliases\(data, pick\.id\)\)/);
 });
 
 test('quiz analysis linkifies sixth-section law references to the article reader', () => {
