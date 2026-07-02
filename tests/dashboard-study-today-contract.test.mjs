@@ -626,7 +626,8 @@ test('study today exposes a time-first planning box before schedule details', ()
   assert.match(recap, /id="study-time-summary"[\s\S]*累積 0 小時；本週 0 小時；今天 0 分/);
   assert.match(recap, /id="study-time-impact"[\s\S]*剩約 42 週/);
   assert.match(recap, /id="study-time-outcome"[\s\S]*可預覽或直接排入本週/);
-  assert.match(recap, /class="study-time-summary-card"[\s\S]*累積 0 小時[\s\S]*修改時間/);
+  assert.match(recap, /class="study-time-summary-card"[\s\S]*累積 0 小時[\s\S]*開始計時[\s\S]*補紀錄[\s\S]*修改時間/);
+  assert.match(recap, /class="study-time-actions"/);
   assert.match(recap, /id="study-target-hours"[\s\S]*500/);
   assert.match(recap, /id="study-weekly-hours"[\s\S]*每週可讀/);
   assert.match(recap, /建議總時數可以改/);
@@ -666,8 +667,11 @@ test('study time settings stay collapsed into a readable summary until editing',
   assert.match(recap, /class="study-time-summary-card"/);
   assert.match(recap, /id="study-time-purpose"[\s\S]*修改時間只影響建議排法/);
   assert.match(recap, /id="study-time-edit-panel" hidden/);
+  assert.match(recap, /onclick="openStudyTimerPanel\(true\)"[\s\S]*開始計時/);
+  assert.match(recap, /onclick="openStudyRecordPanel\(true\)"[\s\S]*補紀錄/);
   assert.match(recap, /aria-expanded="false"[\s\S]*onclick="toggleStudyTimeEditor\(\)"[\s\S]*修改時間/);
   assert.match(active, /function toggleStudyTimeEditor/);
+  assert.match(active, /function openStudyTimerPanel/);
   assert.match(active, /panel\.hidden = !panel\.hidden/);
   assert.match(active, /button\.setAttribute\('aria-expanded', panel\.hidden \? 'false' : 'true'\)/);
   assert.doesNotMatch(recap, /<details class="study-time-wrap"/);
@@ -1308,8 +1312,11 @@ test('study planning reconnects local progress after serial login', () => {
 });
 
 test('study panel includes a simple pomodoro timer that saves through the hours ledger', () => {
-  assert.match(active, /id="study-timer-panel"/);
+  assert.match(active, /class="study-timer-panel" id="study-timer-panel"/);
   assert.match(active, /番茄鐘/);
+  assert.match(active, /\.study-timer-panel\{[\s\S]*display:none/);
+  assert.match(active, /\.study-timer-panel\.on\{display:grid\}/);
+  assert.match(active, /timer: \['正在計時'/);
   assert.match(active, /id="study-timer-minutes"/);
   assert.match(active, /function startStudyTimer/);
   assert.match(active, /function pauseStudyTimer/);

@@ -1099,6 +1099,32 @@
     font-weight:700;
   }
   .study-time-edit-btn:hover{background:rgba(231,187,167,.12)}
+  .study-time-actions{
+    min-width:0;
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px;
+    flex-wrap:wrap;
+  }
+  .study-time-actions button{
+    min-height:40px;
+    border:1px solid rgba(231,187,167,.32);
+    color:var(--peach);
+    border-radius:4px;
+    padding:8px 11px;
+    background:rgba(231,187,167,.06);
+    font-size:13px;
+    font-weight:700;
+    white-space:nowrap;
+  }
+  .study-time-actions button.primary{
+    background:var(--peach);
+    color:var(--navy);
+    border-color:var(--peach);
+  }
+  .study-time-actions button:hover{background:rgba(231,187,167,.12)}
+  .study-time-actions button.primary:hover{background:var(--peach-2)}
   .study-time-box[hidden]{display:none}
   .study-time-wrap .study-time-box{
     border:0;
@@ -1481,13 +1507,14 @@
     gap:8px;
   }
   .study-timer-panel{
+    display:none;
     border:1px solid rgba(231,187,167,.22);
     background:rgba(255,255,255,.025);
     padding:12px;
     border-radius:4px;
-    display:grid;
     gap:10px;
   }
+  .study-timer-panel.on{display:grid}
   .study-timer-panel .head{
     display:flex;
     align-items:center;
@@ -1928,6 +1955,8 @@
     }
     .study-time-box{grid-template-columns:1fr}
     .study-time-summary-card{grid-template-columns:1fr;align-items:flex-start}
+    .study-time-actions{width:100%;justify-content:flex-start}
+    .study-time-actions button{flex:1 1 120px}
     .study-time-impact{width:100%;border-left:0;border-top:1px solid rgba(231,187,167,.16);padding:9px 0 0}
     .study-time-cell{border-left:0;border-top:1px solid rgba(231,187,167,.16);padding-left:0;padding-top:9px}
     .study-time-cell:first-child{border-top:0;padding-top:0}
@@ -3829,7 +3858,11 @@
                   <b id="study-time-impact">剩約 42 週</b>
                   <small id="study-time-outcome">可預覽或直接排入本週。</small>
                 </span>
-                <button class="study-time-edit-btn" type="button" aria-expanded="false" onclick="toggleStudyTimeEditor()">修改時間</button>
+                <span class="study-time-actions">
+                  <button class="primary" type="button" data-study-panel-trigger="timer" aria-expanded="false" onclick="openStudyTimerPanel(true)">開始計時</button>
+                  <button type="button" data-study-panel-trigger="record" aria-expanded="false" onclick="openStudyRecordPanel(true)">補紀錄</button>
+                  <button class="study-time-edit-btn" type="button" aria-expanded="false" onclick="toggleStudyTimeEditor()">修改時間</button>
+                </span>
               </div>
               <div class="study-time-box" id="study-time-edit-panel" hidden>
                 <div class="study-time-cell" id="study-target-hours">
@@ -7731,6 +7764,7 @@ function setStudyPanelMode(mode){
     playlist: ['正在看重點朗讀', '先按「朗讀全部」聽一輪；「單刷」會去練題，「看法條」會回到條文。'],
     plan: ['正在排讀書任務', '存完會回到下方待讀清單。'],
     record: ['正在補讀書紀錄', '補紀錄只補時間與進度，不會改答題正確率；存完也會回到下方清單。'],
+    timer: ['正在計時', '番茄鐘只記讀書時間；完成後才會寫入累積時數。'],
     closed: ['工具收合', '']
   };
   var active = copy[mode] ? mode : 'closed';
@@ -7749,6 +7783,7 @@ function openStudyPlanPanel(forceOpen){
   var panel = document.getElementById('study-plan-panel');
   var record = document.getElementById('study-record-panel');
   var playlist = document.getElementById('study-playlist-panel');
+  var timer = document.getElementById('study-timer-panel');
   var state = document.getElementById('study-plan-state');
   var start = document.getElementById('study-plan-start');
   if(!panel) return;
@@ -7756,6 +7791,7 @@ function openStudyPlanPanel(forceOpen){
   else panel.classList.toggle('on');
   if(record) record.classList.remove('on');
   if(playlist) playlist.classList.remove('on');
+  if(timer) timer.classList.remove('on');
   if(start && !start.value) start.value = _todayInputValue();
   setStudyPanelMode(panel.classList.contains('on') ? 'plan' : 'closed');
   if(state && panel.classList.contains('on')){
@@ -7768,12 +7804,14 @@ function openStudyRecordPanel(forceOpen){
   var panel = document.getElementById('study-record-panel');
   var plan = document.getElementById('study-plan-panel');
   var playlist = document.getElementById('study-playlist-panel');
+  var timer = document.getElementById('study-timer-panel');
   var date = document.getElementById('study-record-date');
   if(!panel) return;
   if(forceOpen === true) panel.classList.add('on');
   else panel.classList.toggle('on');
   if(plan) plan.classList.remove('on');
   if(playlist) playlist.classList.remove('on');
+  if(timer) timer.classList.remove('on');
   if(date && !date.value) date.value = _todayInputValue();
   setStudyPanelMode(panel.classList.contains('on') ? 'record' : 'closed');
   if(panel.classList.contains('on') && typeof focusStudyPanelTarget === 'function') focusStudyPanelTarget('study-record-panel', 'study-plan-items');
@@ -7783,14 +7821,32 @@ function openStudyPlaylistPanel(forceOpen){
   var panel = document.getElementById('study-playlist-panel');
   var plan = document.getElementById('study-plan-panel');
   var record = document.getElementById('study-record-panel');
+  var timer = document.getElementById('study-timer-panel');
   if(!panel) return;
   if(forceOpen === true) panel.classList.add('on');
   else panel.classList.toggle('on');
   if(plan) plan.classList.remove('on');
   if(record) record.classList.remove('on');
+  if(timer) timer.classList.remove('on');
   setStudyPanelMode(panel.classList.contains('on') ? 'playlist' : 'closed');
   if(panel.classList.contains('on')) loadStudyPlaylist();
   if(panel.classList.contains('on') && typeof focusStudyPanelTarget === 'function') focusStudyPanelTarget('study-playlist-playall', 'study-cockpit-recap');
+}
+
+function openStudyTimerPanel(forceOpen){
+  var panel = document.getElementById('study-timer-panel');
+  var plan = document.getElementById('study-plan-panel');
+  var record = document.getElementById('study-record-panel');
+  var playlist = document.getElementById('study-playlist-panel');
+  if(!panel) return;
+  if(forceOpen === true) panel.classList.add('on');
+  else panel.classList.toggle('on');
+  if(plan) plan.classList.remove('on');
+  if(record) record.classList.remove('on');
+  if(playlist) playlist.classList.remove('on');
+  setStudyPanelMode(panel.classList.contains('on') ? 'timer' : 'closed');
+  if(panel.classList.contains('on') && typeof focusStudyPanelTarget === 'function') focusStudyPanelTarget('study-timer-panel', 'study-time-box');
+  updateStudyTimerUI();
 }
 
 function retryStudyHashScroll(targetId, attemptsLeft, keepTrying){
