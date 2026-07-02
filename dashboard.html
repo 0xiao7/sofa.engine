@@ -1382,6 +1382,12 @@
     display:grid;
     gap:12px;
   }
+  .study-recommend-panel summary::-webkit-details-marker{display:none}
+  .study-recommend-panel summary{
+    list-style:none;
+    cursor:pointer;
+  }
+  .study-recommend-panel:not([open]) .study-recommend-list{display:none}
   .study-recommend-head{
     display:flex;
     justify-content:space-between;
@@ -1481,9 +1487,9 @@
     scroll-margin-bottom:calc(104px + env(safe-area-inset-bottom, 0px));
   }
   .study-record-copy{
-    font-size:13px;
+    font-size:12.5px;
     color:rgba(245,240,234,.62);
-    line-height:1.7;
+    line-height:1.6;
   }
   .study-panel-head{
     font-size:13px;
@@ -2762,6 +2768,7 @@
     padding:8px 0;
     position:relative;
     min-height:0;
+    overflow:hidden;
   }
   .rec-group{padding:0 28px}
   .rec-date-head{
@@ -2783,6 +2790,9 @@
     cursor:pointer;transition:.18s;
     position:relative;
     margin-left:-14px;border-radius:2px;
+    min-width:0;
+    max-width:100%;
+    overflow:hidden;
   }
   .rec-row::before{
     content:"";position:absolute;left:6px;top:50%;transform:translateY(-50%);
@@ -2820,8 +2830,8 @@
     -webkit-line-clamp:2;
     -webkit-box-orient:vertical;
     overflow:hidden;
-    overflow-wrap:normal;
-    word-break:keep-all;
+    overflow-wrap:anywhere;
+    word-break:normal;
   }
   .rec-row .time{
     grid-area:time;
@@ -2834,9 +2844,9 @@
       grid-template-columns:minmax(82px,150px) minmax(68px,118px) minmax(0,1fr) auto;
     }
   }
-  @media (max-width:980px){
+  @media (max-width:1180px){
     .rec-row{
-      grid-template-columns:minmax(0,1fr) auto;
+      grid-template-columns:minmax(64px,132px) minmax(0,1fr);
       grid-template-areas:"law time" "art title";
       align-items:start;
     }
@@ -2983,7 +2993,7 @@
   .acc-inner .sec-h:first-child{margin-top:0}
   .acc-inner .sec-i{position:relative;padding:9px 14px 9px 46px;margin:10px 0 10px 56px;color:rgba(31,56,72,.78);border-left:5px solid rgba(231,187,167,.7);background:rgba(231,187,167,.16);border-radius:4px}
   .acc-inner .sec-i::before{content:'';position:absolute;left:16px;top:1.02em;width:7px;height:7px;border:1.5px solid var(--peach-3);border-radius:50%;box-sizing:border-box;background:var(--cream)}
-  .acc-inner .crossref{color:var(--peach-3);text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:3px;cursor:pointer;background:rgba(231,187,167,.12);padding:0 3px;border-radius:2px}
+  .acc-inner .crossref{display:inline-flex;align-items:center;color:var(--peach-3);text-decoration:underline;text-decoration-thickness:1.5px;text-underline-offset:3px;cursor:pointer;background:rgba(231,187,167,.12);border:1px solid rgba(213,154,120,.32);padding:1px 6px;border-radius:2px;white-space:nowrap;margin:0 3px 4px 0}
   .acc-inner .crossref:hover{color:var(--navy);background:rgba(231,187,167,.24)}
   @media (max-width: 760px){
     .acc-inner{padding:2px 16px 18px 18px}
@@ -3856,7 +3866,7 @@
                 </span>
                 <span class="study-time-impact" aria-live="polite">
                   <b id="study-time-impact">剩約 42 週</b>
-                  <small id="study-time-outcome">可預覽或直接排入本週。</small>
+                  <small id="study-time-outcome">可先看建議。</small>
                 </span>
                 <span class="study-time-actions">
                   <button class="primary" type="button" data-study-panel-trigger="timer" aria-expanded="false" onclick="openStudyTimerPanel(true)">開始計時</button>
@@ -3882,26 +3892,26 @@
                 </div>
                 <div class="study-time-save">
                   <button type="button" onclick="saveStudyTimeSettings()">儲存時間設定</button>
-                  <span id="study-time-state">時間設定只影響建議；按排入後才保存。</span>
+                  <span id="study-time-state">時間設定只影響建議。</span>
                 </div>
               </div>
             </div>
-            <div class="study-recommend-panel" id="study-recommend-panel" aria-label="本週讀書計畫推薦">
-              <div class="study-recommend-head">
+            <details class="study-recommend-panel" id="study-recommend-panel" aria-label="本週讀書計畫推薦">
+              <summary class="study-recommend-head">
                 <div class="study-recommend-copy">
                   <span>本週建議</span>
                   <b>先預覽，再決定要不要排入</b>
-                  <small>這裡只是建議；按「排入本週計畫」後才保存。</small>
+                  <small>預覽不會寫入；排入後才保存。</small>
                 </div>
                 <div class="study-recommend-actions">
                   <button type="button" onclick="previewStudyWeekRecommendation()">預覽本週排法</button>
                   <button class="primary" type="button" onclick="saveStudyRecommendedWeek()">排入本週計畫</button>
                 </div>
-              </div>
+              </summary>
               <div class="study-recommend-list" id="study-recommend-list">
                 <div class="study-empty">先按預覽建議，系統會避開已排項目，補上本週空檔。</div>
               </div>
-            </div>
+            </details>
             <div class="study-save-nudge" id="study-save-nudge" aria-live="polite">
               <div>
                 <b>保留這些進度</b>
@@ -3991,7 +4001,7 @@
             <div class="study-record-panel" id="study-record-panel" aria-label="補讀書紀錄">
               <div class="study-panel-head study-record-copy">
                 <b>補紀錄只會補進度，不會補答題正確率</b>
-                適合補今天讀了幾小時、任務完成、某個範圍熟悉度；真正的答對率與弱點仍然只從實際答題來。
+                適合補今天讀多久、任務完成或熟悉度；答對率仍只看實際答題。
               </div>
               <div class="study-record-kinds" aria-label="可補的紀錄種類">
                 <div class="study-record-kind">
@@ -4032,7 +4042,7 @@
             </div>
             <details class="study-cloud-state" id="study-cloud-state">
               <summary><b>讀書計畫狀態</b><span>先存在這台裝置</span></summary>
-              <div class="study-cloud-detail">排課、補紀錄都能先用；登入後會盡量同步到你的帳號。</div>
+              <div class="study-cloud-detail">登入後同步。</div>
             </details>
             <div class="study-plan-items" id="study-plan-items" aria-label="接下來的私人計畫"></div>
             <div class="study-subjects" id="study-cockpit-subjects"></div>
@@ -5316,8 +5326,8 @@ function renderStudyPlanMap(items){
   }
   if(recEl){
     recEl.textContent = recCount
-      ? '已預覽 ' + recCount + ' 筆；預覽不會自動寫入，按排入才保存。'
-      : '預覽不會自動寫入；按排入才保存。';
+      ? '已預覽 ' + recCount + ' 筆；預覽不會寫入，按排入才保存。'
+      : '預覽不會寫入；按排入才保存。';
   }
   if(privateEl){
     privateEl.textContent = actionable.length || completed.length
@@ -8280,8 +8290,7 @@ function renderStudyPlanItems(plan){
     ? '<div class="study-plan-count ' + (window.__studyPlanActionMessage.indexOf('失敗') >= 0 ? 'warn' : 'done') + '">' + esc(window.__studyPlanActionMessage) + '</div>'
     : '';
   if(!items.length){
-    el.innerHTML = actionMessage + '<div class="study-plan-count"><b>目前還沒有私人讀書計畫</b><br>可以排課程、模考、固定複習或自己的週任務。'
-      + '<br>要新增時，回上方「整理」點「排課」。</div>';
+    el.innerHTML = actionMessage + '<div class="study-plan-count"><b>還沒有私人讀書計畫</b><br>要新增時，點上方「排課」。</div>';
     scheduleActiveNavRefresh();
     return;
   }
@@ -8360,7 +8369,7 @@ function renderStudyTimeOutcome(items){
     el.textContent = '目前沒有待讀；已留下 ' + completed.length + ' 筆完成 / 補紀錄。';
     return;
   }
-  el.textContent = '可預覽或直接排入本週。';
+  el.textContent = '可先看建議。';
 }
 
 function renderStudyNextPlan(items){
