@@ -597,6 +597,10 @@ test('dashboard article open URLs land on the article reader instead of the sear
 
 test('expire overlay explains feedback and sharing extension rules', () => {
   assert.match(html, /id="expire-overlay"/);
+  assert.match(html, /謝謝你花時間體驗 SoFa/);
+  assert.match(html, /給我們一次改進的機會/);
+  assert.match(html, /卡、煩、不清楚/);
+  assert.match(html, /黎明前最暗的那段/);
   assert.match(html, /回饋缺點 \+10 天/);
   assert.match(html, /分享標記 \+10 天/);
   assert.match(html, /兩個都可以做，不衝突/);
