@@ -1186,8 +1186,8 @@ function makeStudySpot(rand){
   }
   // 桌上迷你盆栽
   if (rand() < 0.3 && TPL.plant){
-    const mini = TPL.plant.clone(true);
-    mini.scale.multiplyScalar(0.2);
+    const mini = (TPL.plantSmall || TPL.plant).clone(true);
+    mini.scale.multiplyScalar(TPL.plantSmall ? 0.5 : 0.2);
     mini.position.set(-0.5, 0.80, -0.08);
     g.add(mini);
   }
@@ -1260,6 +1260,24 @@ const PENDANT_GEO = {
 };
 const PENDANT_BULB_MAT = new THREE.MeshBasicMaterial({ color:0xFFF1D2 });
 function makePendantLamp(withLight){
+  if (TPL.pendantV2){
+    const lampG = new THREE.Group();
+    const model = TPL.pendantV2.clone(true);
+    model.position.y = CEIL_H - 0.72;   // 掛在天花板下
+    lampG.add(model);
+    const glowSpr = new THREE.Sprite(new THREE.SpriteMaterial({
+      map:POOL_TEX, color:0xFFE2B0, transparent:true, opacity:0.55,
+      depthWrite:false, blending:THREE.AdditiveBlending }));
+    glowSpr.scale.setScalar(0.85);
+    glowSpr.position.y = CEIL_H - 0.55;
+    lampG.add(glowSpr);
+    if (withLight){
+      const glow = new THREE.PointLight(0xFFDFAE, 1.25, 4.6, 2);
+      glow.position.y = CEIL_H - 0.95;
+      lampG.add(glow);
+    }
+    return lampG;
+  }
   const CORD_L = 0.55;   // mockup 是短吊繩小圓燈
   const lampG = new THREE.Group();
   const cap = new THREE.Mesh(PENDANT_GEO.cap, MAT.cord);
@@ -1524,6 +1542,7 @@ const WINDOW_HALO_MAT = new THREE.MeshBasicMaterial({
 /* 簡易木椅（mockup 是四腳木椅，chair.glb 辦公椅椅背正後方看像白圓筒） */
 const CHAIR_MAT = new THREE.MeshStandardMaterial({ color:0xD3B888, roughness:.85 });
 function makeWoodChair(){
+  if (TPL.chairV2) return TPL.chairV2.clone(true);
   const g = new THREE.Group();
   const sh = m => { m.castShadow = true; return m; };
   const seat = sh(new THREE.Mesh(new THREE.BoxGeometry(0.44,0.05,0.44), CHAIR_MAT));
@@ -1554,6 +1573,19 @@ const SIDEBOARD_MATS = {
   seam: new THREE.MeshStandardMaterial({ color:0xC7AC80, roughness:.9 }),
 };
 function makeSideboard(withPlant, sc){
+  if (TPL.sideboardV2){
+    const g = new THREE.Group();
+    g.add(contactShadow(1.75, 0.65, 0.3));
+    g.add(TPL.sideboardV2.clone(true));
+    if (withPlant && TPL.plant){
+      const pl = (TPL.plantSmall || TPL.plant).clone(true);
+      if (!TPL.plantSmall) pl.scale.multiplyScalar(0.42);
+      pl.position.set(0.25, 0.86, 0);
+      g.add(pl);
+    }
+    if (sc) g.scale.multiplyScalar(sc);
+    return g;
+  }
   const g = new THREE.Group();
   g.add(contactShadow(1.75, 0.65, 0.3));
   const body = new THREE.Mesh(new THREE.BoxGeometry(1.5,0.82,0.42), SIDEBOARD_MATS.body);
@@ -1637,19 +1669,36 @@ addEventListener('resize', ()=>{
   renderer.setSize(innerWidth, innerHeight);
 });
 
+/* ── 熱插拔資產：把新 GLB 丟進 models/v2/ 並照下表命名，重新整理就生效；
+      刪掉檔案 = 還原。任何尺寸都行（會自動縮放貼地置中），模型直立正面朝前即可。
+      desk.glb 書桌 / chair.glb 木椅 / bookcase.glb 書櫃 / sideboard.glb 矮櫃 /
+      pendant.glb 吊燈 / plant.glb 大盆栽 / plant-small.glb 小盆栽 ── */
+const V2_NAMES = ['desk','chair','bookcase','sideboard','pendant','plant','plant-small'];
+const loadOptionalGLB = url => new Promise(res => gltfLoader.load(url, g=>res(g), undefined, ()=>res(null)));
 Promise.all([
   loadGLB('models/desk.glb'),
   loadGLB('models/chair.glb'),
   loadGLB('models/bookcase.glb'),
   loadGLB('models/lamp.glb'),
   loadGLB('models/plant.glb'),
-]).then(([desk, chair, bookcase, lamp, plant])=>{
+  Promise.all(V2_NAMES.map(n => loadOptionalGLB('models/v2/' + n + '.glb'))),
+]).then(([desk, chair, bookcase, lamp, plant, v2arr])=>{
+  const V2 = Object.fromEntries(V2_NAMES.map((n,i)=>[n, v2arr[i]]));
+  const used = V2_NAMES.filter(n=>V2[n]);
+  if (used.length) console.info('[v2 assets] 使用 models/v2/：' + used.join(', '));
   TPL = {
-    desk:     shadowify(liftColors(normalize(desk.scene,     0.82))),
+    desk:     V2.desk     ? shadowify(normalize(V2.desk.scene, 0.82))
+                          : shadowify(liftColors(normalize(desk.scene,     0.82))),
     chair:    shadowify(liftColors(normalize(chair.scene,    0.95))),
-    bookcase: shadowify(liftColors(normalize(bookcase.scene, 2.65))),
+    bookcase: V2.bookcase ? shadowify(normalize(V2.bookcase.scene, 2.65))
+                          : shadowify(liftColors(normalize(bookcase.scene, 2.65))),
     lamp:     shadowify((r=>{ r.traverse(n=>{ if(n.isMesh){ const ms=Array.isArray(n.material)?n.material:[n.material]; ms.forEach(m=>m&&m.color&&m.color.set(0x5E7064)); } }); return r; })(normalize(lamp.scene, 0.42))),
-    plant:    shadowify(normalize(plant.scene,    1.25)),
+    plant:    V2.plant    ? shadowify(normalize(V2.plant.scene, 1.25))
+                          : shadowify(normalize(plant.scene,    1.25)),
+    plantSmall:  V2['plant-small'] ? shadowify(normalize(V2['plant-small'].scene, 0.55)) : null,
+    chairV2:     V2.chair     ? shadowify(normalize(V2.chair.scene,     0.95)) : null,
+    sideboardV2: V2.sideboard ? shadowify(normalize(V2.sideboard.scene, 0.85)) : null,
+    pendantV2:   V2.pendant   ? shadowify(normalize(V2.pendant.scene,   0.55)) : null,
   };
   BOOK_W = new THREE.Box3().setFromObject(TPL.bookcase).getSize(new THREE.Vector3()).x;
   for (let i=0;i<NUM_SEG;i++) segments.push(buildSegment(i, i+7));
