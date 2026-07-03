@@ -16,10 +16,12 @@ test('room v2 target plate is a moving layered scene, not a dead pasted mockup',
   assert.match(html, /updatePainterlyMotion\(t\)/);
 });
 
-test('room v2 has quiet companion and study-time flower layers', () => {
-  assert.match(html, /id="soft-avatar"/);
-  assert.match(html, /class="soft-avatar"/);
-  assert.match(html, /assets\/room-v2-companion-back\.png/);
+test('room v2 library has seated study companion and study-time flower layers', () => {
+  assert.match(html, /id="seated-reader"/);
+  assert.match(html, /class="seated-reader"/);
+  assert.match(html, /assets\/room-v2-seated-reader-girl\.png/);
+  assert.doesNotMatch(html, /id="soft-avatar"/);
+  assert.doesNotMatch(html, /avatar-soft-walk|avatar-walk-bob/);
   assert.doesNotMatch(html, /\.avatar-head|\.avatar-body|\.avatar-leg|\.avatar-arm/);
   assert.match(html, /id="study-flower"/);
   assert.match(html, /data-stage="0"/);
