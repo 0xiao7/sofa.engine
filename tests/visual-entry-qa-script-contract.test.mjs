@@ -53,6 +53,17 @@ test('visual entry QA catches dashboard responsive overflow and recent-row regre
   assert.match(script, /sofa-visual-dashboard-responsive-\$\{viewport\.name\}\.png/);
 });
 
+test('visual entry QA catches search result row vertical squeeze regressions', () => {
+  assert.match(script, /searchResultsResponsiveLayoutCase/);
+  assert.match(script, /#search-results \.res-row/);
+  assert.match(script, /國土計畫法/);
+  assert.match(script, /res-row article label is not horizontal/);
+  assert.match(script, /res-row article label appears vertically squeezed/);
+  assert.match(script, /res-row title overflowed its card/);
+  assert.match(script, /res-row duplicated article label/);
+  assert.match(script, /sofa-visual-search-results-\$\{viewport\.name\}\.png/);
+});
+
 test('visual entry QA checks quiz post-answer actions and article deep link', () => {
   assert.match(script, /quizCase/);
   assert.match(script, /#view-article-btn/);

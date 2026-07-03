@@ -157,6 +157,35 @@ function apiPayload(url) {
       ]
     };
   }
+  if (u.pathname === '/api/articles' && u.searchParams.get('law') === '國土計畫法') {
+    return {
+      law_name: '國土計畫法',
+      count: 3,
+      articles: [
+        {
+          id: 'search-long-27',
+          law_name: '國土計畫法',
+          article_no: '27',
+          title: '§ 27｜使用許可案件審議通過後核發使用許可；公開展覽不少於三十日；許可使用計畫之使用地類別配置項目強度為管制依據',
+          importance: '★★★'
+        },
+        {
+          id: 'search-long-44',
+          law_name: '加值型及非加值型營業稅法施行細則',
+          article_no: '44',
+          title: '§ 44｜查定營業人進項憑證申報扣減規',
+          importance: '★★'
+        },
+        {
+          id: 'search-sub-102-1',
+          law_name: '醫療法',
+          article_no: '102-1',
+          title: '§ 102-1｜違反醫院設置標準之醫院層級加重罰則',
+          importance: '★★'
+        }
+      ]
+    };
+  }
   if (u.pathname === '/api/article/company-law-29') {
     return {
       page_id: 'company-law-29',
@@ -550,6 +579,68 @@ async function dashboardResponsiveLayoutCase(browser, baseUrl) {
     await page.close();
   }
   return { name: 'dashboard-responsive-layout', checks };
+}
+
+async function searchResultsResponsiveLayoutCase(browser, baseUrl) {
+  const viewports = [
+    { name: 'mobile', width: 390, height: 844 },
+    { name: 'tablet', width: 820, height: 1180 },
+    { name: 'desktop', width: 1440, height: 900 }
+  ];
+  const checks = [];
+  for (const viewport of viewports) {
+    const page = await browser.newPage({ viewport, deviceScaleFactor: viewport.width <= 480 ? 2 : 1, isMobile: viewport.width <= 480 });
+    await installApiMocks(page);
+    await page.goto(`${baseUrl}/dashboard.html#search`, { waitUntil: 'domcontentloaded' });
+    await page.fill('#search-law', '國土計畫法');
+    await page.click('#search-btn');
+    await page.waitForSelector('#search-results .res-row', { state: 'visible', timeout: 9000 });
+    await page.locator('#search').scrollIntoViewIfNeeded();
+    await page.waitForTimeout(220);
+    const overflow = await assertNoHorizontalOverflow(page, `search results ${viewport.name}`);
+    const rows = await page.locator('#search-results .res-row').evaluateAll(nodes => nodes.map(node => {
+      const law = node.querySelector('.law');
+      const art = node.querySelector('.art');
+      const title = node.querySelector('.ttl');
+      const rowBox = node.getBoundingClientRect();
+      const artBox = art && art.getBoundingClientRect();
+      const titleBox = title && title.getBoundingClientRect();
+      return {
+        text: node.innerText.replace(/\s+/g, ' ').trim(),
+        row: { left: rowBox.left, right: rowBox.right, width: rowBox.width },
+        lawText: law ? law.textContent.replace(/\s+/g, ' ').trim() : '',
+        artText: art ? art.textContent.replace(/\s+/g, ' ').trim() : '',
+        art: artBox && { left: artBox.left, right: artBox.right, width: artBox.width, height: artBox.height },
+        title: titleBox && { left: titleBox.left, right: titleBox.right, width: titleBox.width, height: titleBox.height },
+        artWritingMode: art ? getComputedStyle(art).writingMode : '',
+        artWhiteSpace: art ? getComputedStyle(art).whiteSpace : '',
+        titleOverflowWrap: title ? getComputedStyle(title).overflowWrap : ''
+      };
+    }));
+    if (!rows.length) throw new Error(`search results ${viewport.name}: mocked res rows did not render`);
+    for (const row of rows) {
+      if (row.artWritingMode && row.artWritingMode !== 'horizontal-tb') {
+        throw new Error(`search results ${viewport.name}: res-row article label is not horizontal (${JSON.stringify(row)})`);
+      }
+      if (row.art && row.art.height > 48) {
+        throw new Error(`search results ${viewport.name}: res-row article label appears vertically squeezed (${JSON.stringify(row)})`);
+      }
+      if (row.title && row.row && row.title.right > row.row.right + 1) {
+        throw new Error(`search results ${viewport.name}: res-row title overflowed its card (${JSON.stringify(row)})`);
+      }
+      if (/[|｜]/.test(row.artText) || /使用許可案件|違反醫院設置標準|查定營業人/.test(row.artText)) {
+        throw new Error(`search results ${viewport.name}: res-row article label still contains title text (${JSON.stringify(row)})`);
+      }
+      if (/§\s*([0-9０-９]+(?:-[0-9０-９]+|之[0-9０-９]+)?)\s+§\s*\1/.test(row.text)) {
+        throw new Error(`search results ${viewport.name}: res-row duplicated article label (${JSON.stringify(row)})`);
+      }
+    }
+    const screenshot = path.join(OUT_DIR, `sofa-visual-search-results-${viewport.name}.png`);
+    await page.screenshot({ path: screenshot, fullPage: false });
+    checks.push({ viewport: viewport.name, screenshot, overflow, rows: rows.map(row => row.text) });
+    await page.close();
+  }
+  return { name: 'search-results-responsive-layout', checks };
 }
 
 async function dashboardCase(browser, baseUrl, name, viewport) {
@@ -1002,6 +1093,7 @@ async function studyPlanFlowCase(browser, baseUrl) {
     results.push(await dashboardCase(browser, baseUrl, 'dashboard-mobile', { width: 390, height: 667 }));
     results.push(await dashboardCase(browser, baseUrl, 'dashboard-desktop', { width: 1440, height: 900 }));
     results.push(await dashboardResponsiveLayoutCase(browser, baseUrl));
+    results.push(await searchResultsResponsiveLayoutCase(browser, baseUrl));
     results.push(await dashboardSidebarScrollCase(browser, baseUrl));
     results.push(await quizCase(browser, baseUrl));
     results.push(await lawPreviewCase(browser, baseUrl));

@@ -270,9 +270,19 @@ test('review due uses compact review cards instead of large library cards', () =
 });
 
 test('article result rows protect long titles from vertical squeeze', () => {
-  assert.match(html, /\.res-row\s*\{[\s\S]*?grid-template-columns:auto auto minmax\(0,1fr\) auto auto auto/);
-  assert.match(html, /\.res-row \.ttl\s*\{[\s\S]*?min-width:0/);
-  assert.match(html, /\.res-row \.ttl\s*\{[\s\S]*?overflow-wrap:anywhere/);
+  const row = cssRule(html, '.res-row');
+  const law = cssRule(html, '.res-row .law');
+  const art = cssRule(html, '.res-row .art');
+  const title = cssRule(html, '.res-row .ttl');
+  assert.match(html, /\.res-row\s*\{[\s\S]*?grid-template-columns:minmax\(92px,160px\) minmax\(64px,118px\) minmax\(12rem,1fr\) auto auto auto/);
+  assert.match(row, /overflow:hidden/);
+  assert.match(law, /text-overflow:ellipsis/);
+  assert.match(art, /white-space:nowrap/);
+  assert.match(art, /word-break:keep-all/);
+  assert.match(title, /min-width:0/);
+  assert.match(title, /-webkit-line-clamp:2/);
+  assert.match(title, /overflow-wrap:break-word/);
+  assert.doesNotMatch(title, /overflow-wrap:anywhere/);
 });
 
 test('article drawer shows when the current article is in the wrong-question bank', () => {
@@ -463,6 +473,11 @@ test('dashboard search result article numbers prefer the leading article label o
     }),
     '102',
   );
+
+  const renderSource = extractFunction(html, '_renderResRows');
+  assert.match(renderSource, /var parts\s*=\s*articleLabelParts\(rawArt,\s*a\.title \|\| ''\)/);
+  assert.match(renderSource, /var artNum\s*=\s*parts\.article_no \|\| _articleNoFromRecord\(a\)/);
+  assert.match(renderSource, /var artTtl\s*=\s*parts\.title \|\| fallbackArticleTitle\(artNum,\s*''\)/);
 });
 
 test('saved article sections use normalized label parts to avoid duplicated titles', () => {
@@ -506,6 +521,7 @@ test('article cards keep article labels horizontal on desktop and mobile', () =>
 });
 
 test('recent query rows stay horizontal and only stack on narrower screens', () => {
+  const recentTitle = cssRule(html, '.rec-row .ttl');
   assert.match(html, /\.recent-list\{[\s\S]*overflow:hidden/);
   assert.match(html, /\.rec-row\{[\s\S]*min-width:0/);
   assert.match(html, /\.rec-row\{[\s\S]*max-width:100%/);
@@ -520,10 +536,10 @@ test('recent query rows stay horizontal and only stack on narrower screens', () 
   assert.match(html, /\.rec-row \.art\{[\s\S]*text-overflow:ellipsis/);
   assert.match(html, /\.rec-row \.ttl\{[\s\S]*grid-area:title/);
   assert.match(html, /\.rec-row \.ttl\{[\s\S]*border-left:0/);
-  assert.match(html, /\.rec-row \.ttl\{[\s\S]*word-break:normal/);
-  assert.match(html, /\.rec-row \.ttl\{[\s\S]*overflow-wrap:anywhere/);
-  assert.match(html, /\.rec-row \.ttl\{[\s\S]*-webkit-line-clamp:2/);
-  assert.doesNotMatch(html, /\.rec-row \.ttl\{[\s\S]*overflow-wrap:break-word/);
+  assert.match(recentTitle, /word-break:normal/);
+  assert.match(recentTitle, /overflow-wrap:break-word/);
+  assert.match(recentTitle, /-webkit-line-clamp:2/);
+  assert.doesNotMatch(recentTitle, /overflow-wrap:anywhere/);
   assert.match(html, /\.rec-row \.time\{[\s\S]*grid-area:time/);
   assert.match(html, /@media \(max-width:1180px\)\{[\s\S]*\.rec-row\{[\s\S]*grid-template-columns:minmax\(64px,132px\) minmax\(0,1fr\)/);
   assert.match(html, /@media \(max-width:1180px\)\{[\s\S]*\.rec-row\{[\s\S]*grid-template-areas:"law time" "art title"/);
