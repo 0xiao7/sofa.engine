@@ -4,6 +4,7 @@
   const FUNNEL_ENDPOINT = 'https://sofa-engine-api.onrender.com/api/funnel-event';
   const ATTR_KEYS = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','gclid','fbclid'];
   const SERVER_EVENT_MAP = new Map([
+    ['quiz_start', 'quiz_start'],
     ['pricing_view', 'pricing_view'],
     ['pricing_select_plan', 'pricing_select_plan'],
     ['checkout_start', 'checkout_start'],
