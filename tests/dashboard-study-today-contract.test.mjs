@@ -590,6 +590,7 @@ test('study next card is direct for active learners and cannot squeeze labels ve
   assert.match(active, /class="study-next-plan-copy"/);
   assert.match(active, /\.study-next-plan-copy\{[\s\S]*min-width:0/);
   assert.match(active, /\.study-next-plan \.k\{[\s\S]*white-space:nowrap/);
+  assert.match(active, /\.study-next-plan span:not\(\.k\)\{[\s\S]*-webkit-line-clamp:2/);
 });
 
 test('study today keeps active learner copy compact and folds lower details', () => {
@@ -867,6 +868,9 @@ test('study plan items show explicit status text for completion tracking', () =>
   assert.match(active, /展開全部/);
   assert.match(active, /已完成/);
   assert.match(active, /改期/);
+  assert.match(active, /\.study-plan-item \.title\{[\s\S]*text-overflow:ellipsis/);
+  assert.match(active, /\.study-plan-item \.meta\{[\s\S]*text-overflow:ellipsis/);
+  assert.match(active, /@media \(max-width:760px\)\{[\s\S]*\.study-plan-item \.title\{[\s\S]*-webkit-line-clamp:2/);
 });
 
 test('study plan items expose learning actions only when item metadata supports them', () => {
