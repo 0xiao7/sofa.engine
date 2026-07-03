@@ -145,8 +145,8 @@ test('quiz usage hint is near the question instead of hidden at the page bottom'
 });
 
 test('mobile quiz keeps secondary mode controls out of the first screen', () => {
-  assert.match(active, /\.free-quiz-notice a\[href="pricing\.html"\]\{display:none!important\}/);
-  assert.match(active, /\.free-quiz-notice a\{min-height:44px/);
+  assert.doesNotMatch(active, /\.free-quiz-notice a\[href="pricing\.html"\]\{display:none!important\}/);
+  assert.match(active, /\.free-quiz-notice a\{[\s\S]*min-height:44px/);
   assert.match(active, /輸入序號保留紀錄 →/);
   assert.match(active, /#btnWrong,#btn-clear-wrong,#btnDaily,#daily-badge,#quiz-streak,\s*#sprint-count-select,#btnSprint,#btnExam,#btnPastExam,#pastExamSubject\{\s*display:none!important;/);
   assert.match(active, /#law-status-bar,#artPickWrap\{display:none!important\}/);
