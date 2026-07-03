@@ -385,7 +385,7 @@ body.locked #side,body.locked #hint,body.locked #mob-bar,body.locked #mob-pom{op
 <div id="banner"><b id="banner-who"></b><span id="banner-msg"></span></div>
 
 <!-- 左下提示 -->
-<div id="hint"><span class="dot"></span>無止盡走路 · 安靜陪讀 · 低 UI</div>
+<div id="hint"><span class="dot"></span>無止盡走路 · 安靜陪讀 · V 切換視角</div>
 
 <!-- 記錄 modal（桌面） -->
 <div id="overlay"></div>
@@ -674,21 +674,21 @@ renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.22;
+renderer.toneMappingExposure = 1.18;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.getElementById('stage').appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(FOG_COLOR);
-scene.fog = new THREE.Fog(FOG_COLOR, 13, 52);
+scene.fog = new THREE.Fog(FOG_COLOR, 14, 60);
 
 const camera = new THREE.PerspectiveCamera(48, innerWidth/innerHeight, 0.1, 200);
 camera.position.set(0, 1.55, 3.2);   // 第一視角，眼睛高度
 
 /* 光：柔和天光 + 從左側窗戶進來的暖陽 */
-scene.add(new THREE.HemisphereLight(0xFFFFFF, 0xE8DFCD, 1.15));
-const sun = new THREE.DirectionalLight(0xFFF4DC, 1.5);
+scene.add(new THREE.HemisphereLight(0xFFFFFF, 0xEDE5D6, 1.25));
+const sun = new THREE.DirectionalLight(0xFFF4DC, 1.3);
 sun.position.set(-9, 11, -3);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
@@ -708,22 +708,22 @@ function woodFloorTexture(){
   const g = c.getContext('2d');
   const rnd = (s => () => (s = (s*1664525 + 1013904223) >>> 0) / 4294967296)(7);
   const NP = 10, PW = S/NP;
-  const tones = ['#DDB378','#D3A768','#E1BA82','#CEA05F','#DAB075','#D1A76A','#E4BE87','#D5A96C','#DEB67B','#CFA263'];
+  const tones = ['#EBD9B2','#E4D0A6','#EFDFBC','#E0CA9C','#E9D6AC','#E2CEA2','#F1E1C0','#E5D1A4','#ECDAB4','#DFC898'];
   for (let i=0;i<NP;i++){
     const x0 = i*PW;
     g.fillStyle = tones[i%tones.length];
     g.fillRect(x0,0,PW,S);
     // 橫向漸層：板緣壓深、受光面提亮，讓每塊板有圓潤立體感
     const lg = g.createLinearGradient(x0,0,x0+PW,0);
-    lg.addColorStop(0,   'rgba(115,76,32,.18)');
-    lg.addColorStop(0.14,'rgba(255,236,200,.10)');
-    lg.addColorStop(0.82,'rgba(255,236,200,.04)');
-    lg.addColorStop(1,   'rgba(105,68,28,.20)');
+    lg.addColorStop(0,   'rgba(115,76,32,.10)');
+    lg.addColorStop(0.14,'rgba(255,240,210,.08)');
+    lg.addColorStop(0.82,'rgba(255,240,210,.03)');
+    lg.addColorStop(1,   'rgba(105,68,28,.11)');
     g.fillStyle = lg; g.fillRect(x0,0,PW,S);
     // 木紋長曲線
     for (let k=0;k<7;k++){
       const gx = x0 + 8 + rnd()*(PW-16);
-      g.strokeStyle = `rgba(146,98,46,${(0.10 + rnd()*0.15).toFixed(3)})`;
+      g.strokeStyle = `rgba(150,106,54,${(0.05 + rnd()*0.08).toFixed(3)})`;
       g.lineWidth = 1 + rnd()*1.8;
       g.beginPath();
       g.moveTo(gx, -12);
@@ -734,15 +734,15 @@ function woodFloorTexture(){
     if (rnd() < 0.55){
       const kx = x0 + PW*(0.3 + rnd()*0.4), ky = rnd()*S, kr = 6 + rnd()*7;
       const rg = g.createRadialGradient(kx,ky,1,kx,ky,kr);
-      rg.addColorStop(0,'rgba(118,76,34,.5)');
+      rg.addColorStop(0,'rgba(126,88,44,.3)');
       rg.addColorStop(1,'rgba(118,76,34,0)');
       g.fillStyle = rg;
       g.beginPath(); g.arc(kx,ky,kr*2,0,Math.PI*2); g.fill();
     }
     // 板間直縫（深 + 一絲亮邊）
-    g.fillStyle = 'rgba(96,64,28,.32)';
+    g.fillStyle = 'rgba(110,78,40,.20)';
     g.fillRect(x0,0,3,S);
-    g.fillStyle = 'rgba(255,238,205,.12)';
+    g.fillStyle = 'rgba(255,242,214,.10)';
     g.fillRect(x0+3,0,2,S);
     // 橫向接縫（錯位）
     for (let s2=0;s2<2;s2++){
@@ -783,8 +783,8 @@ function windowSkyTexture(){
   return t;
 }
 const MAT = {
-  floor: new THREE.MeshStandardMaterial({ map: woodFloorTexture(), color:0xFFF1DC, roughness:.8, metalness:0 }),
-  wall:  new THREE.MeshStandardMaterial({ color:0xFAF6EC, roughness:1 }),   // 暖白牆
+  floor: new THREE.MeshStandardMaterial({ map: woodFloorTexture(), color:0xFFF8EC, roughness:.76, metalness:0 }),
+  wall:  new THREE.MeshStandardMaterial({ color:0xFCF9F2, roughness:1 }),   // 暖白牆
   trim:  new THREE.MeshStandardMaterial({ color:0xF3EDE0, roughness:1 }),
   ceil:  new THREE.MeshStandardMaterial({ color:0xFCFAF3, roughness:1 }),   // 近白天花板
   beam:  new THREE.MeshStandardMaterial({ color:0xFCF9F1, roughness:1 }),   // 格狀天花板白樑
@@ -823,10 +823,10 @@ function shadowify(root){
 }
 /* GLB 原始材質偏深色（深木書櫃、黑辦公椅），照明亮圖書館的調性整批換淺色 */
 const LIFT = {
-  Wood1:0xD8B98C, Wood2:0xCCAC7A, DarkWood:0xBA9668, Wood:0xD8B98C,
+  Wood1:0xE2CCA6, Wood2:0xD8BE94, DarkWood:0xC9AE82, Wood:0xE2CCA6,     // mockup 的淺樺木色
   Cover1:0xC07A66, Cover2:0x7288AE, Cover3:0xCCa863, Cover4:0x86A876, Cover5:0x9DB28D, Cover6:0xAE7E96,
-  Pages:0xF0E7CE, Metal:0xC8B078,
-  Executive:0xC2B49A, Executive__1:0x93805F, Executive__2:0x93805F, Executive__3:0xB2A38A,
+  Pages:0xF3EBD6, Metal:0xD2BE90,
+  Executive:0xD9CDB5, Executive__1:0xB29E7C, Executive__2:0xB29E7C, Executive__3:0xCCBEA2,
 };
 function liftColors(root){
   root.traverse(n=>{
@@ -886,7 +886,7 @@ const rng = seed => () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967
 /* ── Chibi 小人（kawaii 造型移植自 room.html，改成可坐可走） ──
    圓頭 + 髮殼 + 呆毛 + canvas 臉貼圖；origin 在腳底正下方，面向 +z */
 const SKIN_TONES  = [0xF0C8A0, 0xECB88A, 0xF5DEB3, 0xE8C098];
-const HAIR_COLORS = [0x8A6844, 0xA8845C, 0x6E4E30, 0x9A7850, 0x7A5A38, 0x554026];  // 奶茶棕色系，太深會變剪影
+const HAIR_COLORS = [0x7A5A38, 0x8A6844, 0x5E4428, 0x52381E, 0x6E4E30, 0x4A3624];  // 中間調棕色系：太深變剪影、太淺會跟膚色融在一起
 const PANT_COLORS = [0x8A7A66, 0x6E7A88, 0x7A6E5A, 0x5E6A5A];
 const FACE_CACHE = {};
 function faceTexture(skinHex){
@@ -919,7 +919,7 @@ function faceTexture(skinHex){
 }
 function chibiHead(skin, hair, style){
   // 髮色加一點自發光模擬環境反彈，背光面才不會壓成黑剪影
-  const M = hex => new THREE.MeshLambertMaterial({ color: hex, emissive: hex, emissiveIntensity: 0.22 });
+  const M = hex => new THREE.MeshLambertMaterial({ color: hex, emissive: hex, emissiveIntensity: 0.15 });
   const head = new THREE.Group();
   const skull = new THREE.Mesh(new THREE.SphereGeometry(0.30,16,14), M(skin));
   skull.castShadow = true;
@@ -988,11 +988,11 @@ function makeChibi(opts={}){
       bob.add(shoulder);
       parts[sx<0?'armL':'armR'] = shoulder;
     }
-    if (opts.backpack){                   // 小背包
-      const pack = sh(new THREE.Mesh(new THREE.BoxGeometry(0.30,0.36,0.15), M(opts.backpack)));
-      pack.position.set(0,0.66,-0.235);
-      const lid = sh(new THREE.Mesh(new THREE.BoxGeometry(0.30,0.12,0.16), M(opts.backpack)));
-      lid.position.set(0,0.80,-0.23);
+    if (opts.backpack){                   // 小背包（只佔背的一半，露出衣服）
+      const pack = sh(new THREE.Mesh(new THREE.BoxGeometry(0.24,0.28,0.12), M(opts.backpack)));
+      pack.position.set(0,0.60,-0.215);
+      const lid = sh(new THREE.Mesh(new THREE.BoxGeometry(0.24,0.09,0.13), M(opts.backpack)));
+      lid.position.set(0,0.71,-0.21);
       bob.add(pack, lid);
     }
     const head = chibiHead(skin, hair, style);
@@ -1096,7 +1096,7 @@ function makeStudySpot(rand){
   chair.position.set(0, 0, 0.62);
   chair.rotation.y = Math.PI;         // 椅背朝外，人面向桌子
   g.add(chair);
-  if (rand() < 0.85){
+  if (rand() < 0.95){
     const shirt = CHAR_COLORS[Math.floor(rand()*CHAR_COLORS.length)];
     const p = makeChibi({ pose:'sit', shirt,
       skin: SKIN_TONES[Math.floor(rand()*SKIN_TONES.length)],
@@ -1262,25 +1262,23 @@ function buildSegment(index, seed){
     g.add(cap);
   }
 
-  // 左牆窗戶 ×2（高窗 + 十字窗櫺）
-  for (const wz of [-4.2, -11]){
+  // 高窗 + 十字窗櫺（兩側通用；mockup 兩側都有大窗）
+  const tallWindow = (side, wz)=>{
     const win = new THREE.Group();
     const pane = new THREE.Mesh(new THREE.PlaneGeometry(2.1, 3.4), MAT.pane);
-    pane.rotation.y = Math.PI/2;
+    pane.rotation.y = side < 0 ? Math.PI/2 : -Math.PI/2;
     win.add(pane);
-    const fr = new THREE.Mesh(new THREE.BoxGeometry(0.12, 3.7, 2.4), MAT.frame);
-    fr.position.x = -0.03;
-    win.add(fr);
-    // 挖十字窗櫺：改用細條交叉貼在玻璃前
-    fr.visible = false;
-    const mk = (w,h,y,z)=>{ const m = new THREE.Mesh(new THREE.BoxGeometry(0.1,h,w), MAT.frame); m.position.set(0.02,y,z); win.add(m); };
+    const fx = side < 0 ? 0.02 : -0.02;
+    const mk = (w,h,y,z)=>{ const m = new THREE.Mesh(new THREE.BoxGeometry(0.1,h,w), MAT.frame); m.position.set(fx,y,z); win.add(m); };
     mk(2.4, 0.12,  1.75, 0); mk(2.4, 0.12, -1.75, 0);   // 上下框
     mk(0.12, 3.6, 0,  1.16); mk(0.12, 3.6, 0, -1.16);   // 左右框
     mk(0.07, 3.5, 0, 0);                                 // 中櫺
     mk(2.3, 0.07, 0.6, 0);  mk(2.3, 0.07, -0.6, 0);     // 橫櫺
-    win.position.set(-X+0.02, 2.6, wz);
+    win.position.set(side*(X-0.02), 2.6, wz);
     g.add(win);
-  }
+  };
+  tallWindow(-1, -4.2); tallWindow(-1, -11);
+  tallWindow(1, -13.4);
 
   // 書櫃：沿兩側牆連續排列（窗戶與柱子留空），偶爾一組垂直於牆形成小凹間
   const shelfAt = (x, z, rotY)=>{
@@ -1291,7 +1289,8 @@ function buildSegment(index, seed){
   const step = BOOK_W + 0.04;   // 幾乎無縫，書牆連綿
   // 右牆：整排書牆（偶爾留一格空隙透氣）
   for (let z = -1.0 - BOOK_W/2; z > -SEG_LEN + 0.8 + BOOK_W/2; z -= step){
-    if (rand() < 0.88) shelfAt(X-0.62, z, -Math.PI/2);
+    const nearRWin = Math.abs(z + 13.4) < 1.4 + BOOK_W/2;
+    if (!nearRWin && rand() < 0.88) shelfAt(X-0.62, z, -Math.PI/2);
   }
   // 左牆：窗間書牆（避開兩扇窗）
   for (let z = -1.0 - BOOK_W/2; z > -SEG_LEN + 0.8 + BOOK_W/2; z -= step){
@@ -1310,9 +1309,9 @@ function buildSegment(index, seed){
   // 讀書座位：每段 3~4 組，左右交錯
   const spots = [];
   if (rand() < 0.95) spots.push({ x:-X+2.6, z:-3.9 - rand()*1.2, r: Math.PI/2 + (rand()-0.5)*0.5 });
-  if (rand() < 0.9)  spots.push({ x: X-2.7, z:-5.4 - rand()*1.4, r:-Math.PI/2 + (rand()-0.5)*0.5 });
-  if (rand() < 0.9)  spots.push({ x:-X+2.7, z:-8.6 - rand()*1.4, r: Math.PI/2 + (rand()-0.5)*0.4 });
-  if (rand() < 0.9)  spots.push({ x: X-2.6, z:-11.4 - rand()*1.6, r:-Math.PI/2 + (rand()-0.5)*0.5 });
+  if (rand() < 0.95) spots.push({ x: X-2.7, z:-5.4 - rand()*1.4, r:-Math.PI/2 + (rand()-0.5)*0.5 });
+  if (rand() < 0.95) spots.push({ x:-X+2.7, z:-8.6 - rand()*1.4, r: Math.PI/2 + (rand()-0.5)*0.4 });
+  if (rand() < 0.95) spots.push({ x: X-2.6, z:-11.4 - rand()*1.6, r:-Math.PI/2 + (rand()-0.5)*0.5 });
   if (!alcoveLeft && rand() < 0.4)
     spots.push({ x:-X+2.8, z:-13.2 - rand()*0.8, r: Math.PI/2 + (rand()-0.5)*0.4 });
   for (const sp of spots){
@@ -1335,6 +1334,7 @@ function buildSegment(index, seed){
   if (rand() < 0.6) plantAt( X-1.6, -8.5 - rand()*1.4, 0.65 + rand()*0.45);
   if (rand() < 0.5) plantAt( X-1.5, -14.2 - rand()*0.6, 0.75 + rand()*0.5);
   if (rand() < 0.5) plantAt(-X+1.45, -12.3 - rand()*0.5, 0.55 + rand()*0.4); // 左窗另一側
+  if (rand() < 0.35) plantAt((rand()<0.5?-1:1)*2.15, -2.4 - rand()*10, 1.30 + rand()*0.35); // 走道邊大盆栽（前景感）
 
   // 吊燈：沿走道等距成列，每段 2 盞（各 1 個收斂的暖 PointLight）
   for (const lz of [-SEG_LEN*0.25, -SEG_LEN*0.75]){
@@ -1359,7 +1359,7 @@ function buildSegment(index, seed){
     g.add(art);
   };
   if (rand() < 0.85) artAt( 1, -3.2 - rand()*2,  0.9, 1.1);
-  if (rand() < 0.85) artAt( 1, -11.8 - rand()*2, 1.2, 0.85);
+  if (rand() < 0.85) artAt( 1, -9.6 - rand()*1.4, 1.2, 0.85);
   if (rand() < 0.7)  artAt(-1, -7.4 - rand()*1.0, 0.85, 1.05);   // 左牆窗間
 
   g.position.z = -index * SEG_LEN;
@@ -1368,8 +1368,25 @@ function buildSegment(index, seed){
   return g;
 }
 
-/* 第一視角：鏡頭本身就是走路的人，不放主角模型 */
-function makeWalker(){}
+/* 主角：背書包的 chibi 小孩（mockup 構圖），V 鍵切換第一/第三視角 */
+let walker = null, firstPerson = false;
+function makeWalker(){
+  const p = makeChibi({ pose:'walk',
+    shirt:0xF0E8D8, pants:0x9A8468, skin:0xF0C8A0, hair:0x6E4E30,
+    hairstyle:0, backpack:0x7FA3C4 });
+  walker = p.root;
+  p.head.scale.setScalar(0.72);     // 近拍鏡頭下頭再小一點
+  walker.rotation.y = Math.PI;      // 背對鏡頭走向遠方
+  walker.position.set(0, 0, -1.2);
+  scene.add(walker);
+  walkers.push({ parts:p, phase:0 });
+}
+addEventListener('keydown', e=>{
+  if (e.key === 'v' || e.key === 'V'){
+    firstPerson = !firstPerson;
+    if (walker) walker.visible = !firstPerson;
+  }
+});
 
 /* ── 塵埃微粒（光裡的漂浮感） ── */
 let motes = null;
@@ -1422,7 +1439,7 @@ Promise.all([
     desk:     shadowify(liftColors(normalize(desk.scene,     0.82))),
     chair:    shadowify(liftColors(normalize(chair.scene,    0.95))),
     bookcase: shadowify(liftColors(normalize(bookcase.scene, 2.65))),
-    lamp:     shadowify(normalize(lamp.scene,     0.42)),
+    lamp:     shadowify((r=>{ r.traverse(n=>{ if(n.isMesh){ const ms=Array.isArray(n.material)?n.material:[n.material]; ms.forEach(m=>m&&m.color&&m.color.set(0x9A8C74)); } }); return r; })(normalize(lamp.scene, 0.42))),
     plant:    shadowify(normalize(plant.scene,    1.25)),
   };
   BOOK_W = new THREE.Box3().setFromObject(TPL.bookcase).getSize(new THREE.Vector3()).x;
