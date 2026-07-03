@@ -913,8 +913,8 @@
           <div id="quiz-citation"></div>
           <div id="post-answer-retention" aria-live="polite">
             <span><b>想保留這題和弱點？</b></span>
-            <a class="primary" href="login.html" data-track-event="post_answer_login_click" data-track-label="quiz_post_answer_login" data-plan="retain">輸入序號</a>
-            <a href="pricing.html" data-track-event="post_answer_pricing_click" data-track-label="quiz_post_answer_pricing" data-plan="post_answer">查看方案</a>
+            <a class="primary" href="login.html?utm_source=web_quiz&utm_medium=post_answer&utm_campaign=quiz_post_answer_login" data-track-event="post_answer_login_click" data-track-label="quiz_post_answer_login" data-plan="retain">輸入序號</a>
+            <a href="pricing.html?utm_source=web_quiz&utm_medium=post_answer&utm_campaign=quiz_post_answer_pricing" data-track-event="post_answer_pricing_click" data-track-label="quiz_post_answer_pricing" data-plan="post_answer">查看方案</a>
           </div>
           <button id="view-article-btn" onclick="_openArticleReader()">查看法條</button>
           <button id="view-weakness-btn" onclick="_openWeakness()">看弱點分析</button>
@@ -1257,10 +1257,10 @@ if(isFree){
   bar.style.cssText='background:rgba(231,187,167,.13);border-bottom:1px solid rgba(231,187,167,.3);padding:10px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;';
   bar.innerHTML=isIOSReaderApp()
     ? '<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">免費版 · 進階內容，訂閱者可見</span>'
-      +'<a href="login.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:8px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">輸入序號保留紀錄 →</a>'
+      +'<a href="login.html?utm_source=web_quiz&utm_medium=free_bar&utm_campaign=quiz_free_bar_login" data-track-event="post_answer_login_click" data-track-label="quiz_free_bar_login" data-plan="retain" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:8px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">輸入序號保留紀錄 →</a>'
     : '<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">免費版 · 選擇題範圍有限，答題紀錄不會儲存</span>'
-      +'<a href="login.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:8px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">輸入序號保留紀錄 →</a>'
-      +'<a href="pricing.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:8px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
+      +'<a href="login.html?utm_source=web_quiz&utm_medium=free_bar&utm_campaign=quiz_free_bar_login" data-track-event="post_answer_login_click" data-track-label="quiz_free_bar_login" data-plan="retain" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:8px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">輸入序號保留紀錄 →</a>'
+      +'<a href="pricing.html?utm_source=web_quiz&utm_medium=free_bar&utm_campaign=quiz_free_bar_pricing" data-track-event="locked_content_pricing_click" data-track-label="quiz_free_bar_pricing" data-plan="locked_content" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:8px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
   document.querySelector('.pr-bar').before(bar);
 }
 
@@ -1878,7 +1878,7 @@ function buildSections(sections,isPaid,wrapEl,beforeEl,article){
           +'<div class="sec-lock-cta">進階內容，訂閱者可見</div>'
         : '<div class="sec-label">'+label+'</div>'
           +'<div class="sec-lock-preview">'+(preview?formatSection(preview, articleLawName):'')+'</div>'
-          +'<div class="sec-lock-cta">升級解鎖完整內容 <a href="pricing.html">查看方案 →</a></div>';
+          +'<div class="sec-lock-cta">升級解鎖完整內容 <a href="pricing.html?utm_source=web_quiz&utm_medium=locked_section&utm_campaign=quiz_locked_section_pricing" data-track-event="locked_content_pricing_click" data-track-label="quiz_locked_section_pricing" data-plan="locked_content">查看方案 →</a></div>';
       if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
     }
   });
@@ -4199,7 +4199,7 @@ function _renderWrongList() {
         ? `<div style="margin-top:12px;background:rgba(231,187,167,.07);border:1px solid rgba(231,187,167,.25);border-radius:10px;padding:16px 16px;text-align:center;font-size:13px;color:var(--cream-2);line-height:1.7;">進階內容，訂閱者可見</div>`
         : `<div style="margin-top:12px;background:rgba(231,187,167,.07);border:1px solid rgba(231,187,167,.25);border-radius:10px;padding:16px 16px;text-align:center;">
           <div style="font-size:13px;color:var(--cream-2);line-height:1.7;">完整弱點分析還有 <b style="color:var(--peach-2)">${hidden>0?hidden:'更多'}</b> 條法規的準確率<br>升級後一次看完，知道下一步該補哪裡。</div>
-          <a href="pricing.html" style="display:inline-block;margin-top:14px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:4px;padding:8px 18px;text-transform:uppercase;text-decoration:none;">升級解鎖完整分析 →</a>
+          <a href="pricing.html?utm_source=web_quiz&utm_medium=weakness_locked&utm_campaign=quiz_weakness_locked_pricing" data-track-event="locked_content_pricing_click" data-track-label="quiz_weakness_locked_pricing" data-plan="weakness_locked" style="display:inline-block;margin-top:14px;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:4px;padding:8px 18px;text-transform:uppercase;text-decoration:none;">升級解鎖完整分析 →</a>
         </div>`;
     }
   }

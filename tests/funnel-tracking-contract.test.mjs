@@ -40,6 +40,10 @@ test('server-side funnel forwarding is limited to revenue, recovery, and entry e
   assert.match(analytics, /\['quiz_start', 'quiz_start'\]/);
   assert.match(analytics, /\['pricing_view', 'pricing_view'\]/);
   assert.match(analytics, /\['pricing_select_plan', 'pricing_select_plan'\]/);
+  assert.match(analytics, /\['post_answer_pricing_click', 'post_answer_pricing_click'\]/);
+  assert.match(analytics, /\['post_answer_login_click', 'post_answer_login_click'\]/);
+  assert.match(analytics, /\['locked_content_pricing_click', 'locked_content_pricing_click'\]/);
+  assert.match(analytics, /\['existing_serial_login_click', 'existing_serial_login_click'\]/);
   assert.match(analytics, /\['checkout_start', 'checkout_start'\]/);
   assert.match(analytics, /\['checkout_submit', 'checkout_submit'\]/);
   assert.match(analytics, /\['payment_return_success', 'payment_return_success'\]/);
@@ -49,12 +53,29 @@ test('server-side funnel forwarding is limited to revenue, recovery, and entry e
 });
 
 test('post-answer retention clicks are measurable without storing answer content', () => {
-  assert.match(analytics, /\['post_answer_pricing_click', 'pricing_select_plan'\]/);
-  assert.match(analytics, /\['post_answer_login_click', 'pricing_select_plan'\]/);
+  assert.match(analytics, /\['post_answer_pricing_click', 'post_answer_pricing_click'\]/);
+  assert.match(analytics, /\['post_answer_login_click', 'post_answer_login_click'\]/);
   assert.match(quiz, /data-track-event="post_answer_pricing_click"/);
   assert.match(quiz, /data-track-label="quiz_post_answer_pricing"/);
+  assert.match(quiz, /href="pricing\.html\?utm_source=web_quiz&utm_medium=post_answer&utm_campaign=quiz_post_answer_pricing"/);
   assert.match(quiz, /data-track-event="post_answer_login_click"/);
   assert.match(quiz, /data-track-label="quiz_post_answer_login"/);
+  assert.match(quiz, /href="login\.html\?utm_source=web_quiz&utm_medium=post_answer&utm_campaign=quiz_post_answer_login"/);
+});
+
+test('locked quiz upgrade and existing-serial login CTAs are measurable', () => {
+  assert.match(quiz, /data-track-event="locked_content_pricing_click"/);
+  assert.match(quiz, /data-track-label="quiz_free_bar_pricing"/);
+  assert.match(quiz, /data-track-label="quiz_locked_section_pricing"/);
+  assert.match(quiz, /data-track-label="quiz_weakness_locked_pricing"/);
+  assert.match(pricing, /data-track-event="existing_serial_login_click"/);
+  assert.match(checkout, /data-track-event="existing_serial_login_click"/);
+});
+
+test('successful serial and magic login emit a server-visible verification event', () => {
+  assert.match(login, /sofaTrack\('serial_verify_success'/);
+  assert.match(login, /method: 'serial'/);
+  assert.match(login, /method: 'magic'/);
 });
 
 test('pricing and checkout expose plan selection, checkout start, and payment return signals', () => {
