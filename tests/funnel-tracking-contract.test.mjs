@@ -35,8 +35,9 @@ test('analytics bridge preserves attribution and falls back safely when gtag is 
   assert.match(analytics, /if \(!ATTR_KEYS\.some\(k => !!a\[k\]\)\) return href;/);
 });
 
-test('server-side funnel forwarding is limited to revenue and recovery events', () => {
+test('server-side funnel forwarding is limited to revenue, recovery, and entry events', () => {
   assert.match(analytics, /const SERVER_EVENT_MAP = new Map/);
+  assert.match(analytics, /\['quiz_start', 'quiz_start'\]/);
   assert.match(analytics, /\['pricing_view', 'pricing_view'\]/);
   assert.match(analytics, /\['pricing_select_plan', 'pricing_select_plan'\]/);
   assert.match(analytics, /\['checkout_start', 'checkout_start'\]/);
