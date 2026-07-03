@@ -67,10 +67,10 @@
         },
         {
           "@type": "Offer",
-          "name": "早鳥優惠",
-          "price": "380",
+          "name": "到考日",
+          "price": "1280",
           "priceCurrency": "TWD",
-          "description": "月訂贈 15 日 · 共 45 日"
+          "description": "一次付清,用到 2026/11/30(考後)"
         },
         {
           "@type": "Offer",
@@ -113,7 +113,7 @@
           "name": "SoFa 是什麼樣的學習工具？",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "語氣與節奏。介面上只有你需要的——條文、解析、四種讀法。不催打卡、不倒數計時、沒有焦慮排名；每天讀一條也算數。希望把難啃的法條切小塊，考生是我們的夥伴，一起享用。"
+            "text": "語氣與節奏。介面上只有你需要的——條文、解析、四種讀法。SoFa 會陪你穩住節奏,並且趕上 11/14；每天讀一條也算數，但錯題會回到下一輪。"
           }
         },
         {
@@ -161,7 +161,7 @@
           "name": "S.O.F.A. 這個名字是什麼意思？",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "S.O.F.A. 是 Strategic · Organized · Focused · Academy 的縮寫，也剛好是「沙發」。希望這個工具給你一張可以一直坐回來的沙發；不催、不嚇、不勉強，但隨時都在。"
+            "text": "S.O.F.A. 是 Strategic · Organized · Focused · Academy 的縮寫，也剛好是「沙發」。希望這個工具給你一張可以一直坐回來的沙發；不嚇人，但會提醒你把進度接回考期。"
           }
         }
       ]
@@ -422,6 +422,32 @@
     text-transform:uppercase;
     margin-top:10px;
   }
+  .proof-strip{
+    margin-top:18px;
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:10px;
+    max-width:760px;
+  }
+  .proof-item{
+    border:1px solid var(--line-on-navy);
+    background:rgba(245,240,234,.04);
+    border-radius:4px;
+    padding:12px 14px;
+  }
+  .proof-item .k{
+    font-family:var(--mono);
+    font-size:10px;
+    color:var(--peach);
+    letter-spacing:.12em;
+    text-transform:uppercase;
+  }
+  .proof-item .v{
+    margin-top:5px;
+    color:rgba(245,240,234,.76);
+    font-size:13px;
+    line-height:1.55;
+  }
 
   .cta-row{margin-top:44px;display:flex;align-items:center;gap:18px}
   .btn{
@@ -622,6 +648,41 @@
   .stats-strip .k{
     font-family:var(--mono);font-size:11px;color:var(--cream-2);
     letter-spacing:.12em;text-transform:uppercase;
+  }
+  .testimonial-hold{
+    background:var(--cream);
+    border-bottom:1px solid var(--cream-3);
+    padding:56px 0;
+  }
+  .testimonial-hold .box{
+    display:grid;
+    grid-template-columns:1fr 1.2fr;
+    gap:28px;
+    align-items:center;
+    border:1px solid var(--cream-3);
+    background:#fff;
+    border-radius:5px;
+    padding:28px 32px;
+  }
+  .testimonial-hold .ey{
+    font-family:var(--mono);
+    font-size:11px;
+    color:var(--peach-3);
+    letter-spacing:.18em;
+    text-transform:uppercase;
+    font-weight:700;
+  }
+  .testimonial-hold h2{
+    margin-top:10px;
+    font-family:var(--serif);
+    font-size:30px;
+    line-height:1.3;
+    color:var(--navy);
+  }
+  .testimonial-hold p{
+    color:var(--ink-2);
+    line-height:1.8;
+    font-size:15px;
   }
 
   /* ---------- Section header ---------- */
@@ -1234,6 +1295,34 @@
     font-family:var(--serif);font-weight:500;font-size:17px;color:rgba(245,240,234,.85);
     line-height:1.7;max-width:360px;
   }
+  .ft-trust{
+    margin-top:42px;
+    padding-top:22px;
+    border-top:1px solid var(--line-on-navy);
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:18px;
+  }
+  .ft-trust .trust-card{
+    border:1px solid var(--line-on-navy);
+    border-radius:4px;
+    padding:14px 16px;
+    background:rgba(245,240,234,.03);
+  }
+  .ft-trust .lab{
+    font-family:var(--mono);
+    font-size:10px;
+    color:var(--peach);
+    letter-spacing:.16em;
+    text-transform:uppercase;
+    font-weight:700;
+  }
+  .ft-trust .txt{
+    margin-top:7px;
+    color:rgba(245,240,234,.68);
+    font-size:12.5px;
+    line-height:1.65;
+  }
   .ft-bot{
     margin-top:64px;padding-top:24px;border-top:1px solid var(--line-on-navy);
     display:flex;justify-content:space-between;
@@ -1264,6 +1353,7 @@
     .hero-meta .cell:nth-child(3),.hero-meta .cell:nth-child(4){border-bottom:none}
     .hero-meta .cell:not(:first-child){padding-left:24px}
     .hero-meta .num{font-size:30px}
+    .proof-strip{grid-template-columns:1fr}
 
     .stats-strip .row{padding:28px 48px}
     .stats-strip .item{padding:8px 20px}
@@ -1409,6 +1499,7 @@
     /* footer */
     .ft-grid{grid-template-columns:1fr 1fr;gap:32px}
     .ft-grid > div:first-child{grid-column:1/-1}
+    .ft-trust{grid-template-columns:1fr 1fr}
     .ft-bot{flex-direction:column;align-items:flex-start;gap:8px;font-size:11px}
   }
 
@@ -1431,6 +1522,7 @@
     .hero-meta .cell:not(:first-child){padding-left:16px}
     .hero-meta .num{font-size:24px}
     .hero-meta .lab{font-size:10px;letter-spacing:.08em}
+    .proof-strip{grid-template-columns:1fr}
 
     .btn{padding:14px 20px;font-size:14px}
     .btn-primary .arrow{width:20px;height:20px;font-size:11px}
@@ -1517,6 +1609,7 @@
 
     .ft-grid{grid-template-columns:1fr;gap:28px}
     .ft-grid > div:first-child{grid-column:1}
+    .ft-trust{grid-template-columns:1fr}
     .ft-tagline{font-size:15px}
     .ft-grid h5{margin-bottom:12px}
     .ft-grid a{font-size:13.5px;line-height:1.9}
@@ -1610,9 +1703,8 @@
           <p class="hero-en-tag">Your seat will be there ready for you.</p>
           <p class="lede" style="">
             <span class="em" style="">36,000+ 條法規、567 部法典</span><br>
-            你決定步調，我們陪你把它讀完。</p><div>良心不安的時候，再打開來看一條。<br>
-            滑了手機，但沒白滑（<span class="ok">我很棒</span>）。
-          </div><p></p>
+            穩住節奏,並且趕上 11/14。先做 5 題知道弱點，再把錯題和法條排進每天可完成的進度。
+          </p>
 
           <div class="hero-meta">
             <div class="cell">
@@ -1633,6 +1725,21 @@
             </div>
           </div>
 
+          <div class="proof-strip">
+            <div class="proof-item">
+              <div class="k">題庫與條文規模</div>
+              <div class="v">36,000+ 條法規資料，首頁數字與公開法規清單同步。</div>
+            </div>
+            <div class="proof-item">
+              <div class="k">法規涵蓋</div>
+              <div class="v">567 部法規，涵蓋 172 個國考職能與記帳士主線。</div>
+            </div>
+            <div class="proof-item">
+              <div class="k">付款保障</div>
+              <div class="v">綠界科技 ECPay 處理付款；7 天內且序號未啟用可全額退費。</div>
+            </div>
+          </div>
+
           <div class="exam-bar" id="exam-bar" style="display:none">
             <span class="exam-bar-dot"></span>
             <span id="exam-bar-label"></span>
@@ -1644,7 +1751,7 @@
               做 5 題看弱點
               <span class="arrow">→</span>
             </a>
-            <a class="btn btn-ghost" href="#pricing">保留紀錄與錯題 →</a>
+            <a class="btn btn-ghost" href="pricing.html">看方案 →</a>
           </div>
           <!-- HIDDEN 2026-06-21: 自習室暫時收起，入口先藏不刪 -->
           <!-- <a class="hero-room-link" href="room.html">
@@ -1736,11 +1843,23 @@
         <div class="k">練習模式可組合</div>
       </div>
       <div class="item">
-        <div class="v">105<span class="u">天</span></div>
-        <div class="k">季訂含早鳥最長</div>
+        <div class="v">11/30<span class="u">後</span></div>
+        <div class="k">到考日全包效期</div>
       </div>
     </div>
   </div>
+
+  <section class="testimonial-hold" aria-label="學員見證">
+    <div class="container">
+      <div class="box">
+        <div>
+          <div class="ey">STUDENT PROOF</div>
+          <h2>學員見證</h2>
+        </div>
+        <p>等待第一批真實上榜回饋。這個區塊先保留結構；未取得可公開姓名、考科與授權前，不放未驗證比例、不放假心得，也不把單一使用感受包裝成保證。</p>
+      </div>
+    </div>
+  </section>
 
   <!-- ============ MODES (4 practice modes) ============ -->
   <section class="modes" id="modes" data-screen-label="Modes">
@@ -1749,7 +1868,7 @@
         <div class="left">
           <span class="sec-eyebrow">SECTION 01 — TOOLS</span>
           <h2 class="sec-title">四種方式讀進去，<br><em style="white-space:nowrap">哪一種對你今天有用</em>，就用哪一種。</h2>
-          <p class="sec-sub">每種模式單獨可用，也能組合：上午查條文、下午打字練、晚上做選擇題、睡前用 LINE 查一條。沒有規定，沒有壓力。</p>
+          <p class="sec-sub">每種模式單獨可用，也能組合：上午查條文、下午打字練、晚上做選擇題、睡前用 LINE 查一條。今天做得到的先做，明天再接回 11/14 的節奏。</p>
         </div>
         <div class="right">
           <span class="idx">04</span>
@@ -1801,11 +1920,11 @@
             <span class="mode-ix">MODE · 03</span>
           </div>
           <div class="mode-name">填空練習</div>
-          <p class="mode-desc">挖空 3–5 個關鍵字，用記憶補回。難度自動依命中率調整，提示用掉會扣分但不會把答案蓋住，幫你練「卡住的那一字」。</p>
+          <p class="mode-desc">挖空 3–5 個關鍵字，用記憶補回。難度自動依答題準確度調整，提示用掉會扣分但不會把答案蓋住，幫你練「卡住的那一字」。</p>
           <div class="mode-tags">
             <span class="t fill">關鍵字</span>
             <span class="t">自適應</span>
-            <span class="t">命中率追蹤</span>
+            <span class="t">準確度追蹤</span>
             <span class="t">無罰扣分</span>
           </div>
           <div class="mode-foot">
@@ -1931,8 +2050,8 @@
         <div class="step">
           <div class="n">01<span class="of">/ 03</span></div>
           <h4>購買序號 · 啟用帳號</h4>
-          <p>選擇月訂或季訂方案。付款後序號寄到信箱，登入後即可使用——沒有自動續扣。</p>
-          <span class="tag">30 / 90 日</span>
+          <p>選擇到考日、月費或季費方案。付款後序號寄到信箱，登入後即可使用——沒有自動續扣。</p>
+          <span class="tag">到考後 / 30 / 90 日</span>
         </div>
         <div class="step">
           <div class="n">02<span class="of">/ 03</span></div>
@@ -1956,8 +2075,8 @@
       <div class="sec-head reveal">
         <div class="left">
           <span class="sec-eyebrow">SECTION 03 — PRICING</span>
-          <h2 class="sec-title">用多久、付多久，<br><em>不綁約。</em></h2>
-          <p class="sec-sub">沒有自動續扣。先免費做題，看出弱點；升級後保留答題紀錄、錯題重練、弱點分析與 SRS 複習排程。修法同步更新。</p>
+          <h2 class="sec-title">到考日全包，<br><em>一路用到考後。</em></h2>
+          <p class="sec-sub">沒有自動續扣。先免費做題，看出弱點；升級後保留答題紀錄、錯題重練、弱點分析與 SRS 複習排程。穩住節奏,並且趕上 11/14。</p>
         </div>
         <div class="right">
           <span class="idx">04</span>
@@ -1997,34 +2116,34 @@
         </div>
 
         <div class="plan plan-feat">
-          <span class="plan-flag">BEST · 最划算</span>
+          <span class="plan-flag">MAIN · 主打方案</span>
           <span class="plan-tag">PLAN · 02</span>
-          <h3>季訂閱</h3>
-          <div class="plan-meta">90 日 · 平均 NT$11／日</div>
-          <div class="plan-num"><span class="c">NT$</span>990<span class="per">／ 90 日</span></div>
+          <h3>到考日</h3>
+          <div class="plan-meta">一次付清,用到 2026/11/30(考後)</div>
+          <div class="plan-num"><span class="c">NT$</span>1280<span class="per">／ 到考後</span></div>
           <ul>
             <li>月訂方案內容<b>全包</b></li>
-            <li>連用 90 日，<b>省下 NT$150</b></li>
-            <li>適合衝刺期、模擬考前</li>
-            <li>90 日內可使用答題紀錄、弱點分析與錯題重練</li>
-            <li>序號到期可再購買延長</li>
+            <li>一次處理整段備考週期</li>
+            <li>適合一路準備到 11/14</li>
+            <li>答題紀錄、弱點分析、錯題重練與 SRS 全開</li>
+            <li>用到 2026/11/30，考後仍可回看整理</li>
           </ul>
-          <a href="pricing.html" class="btn btn-primary plan-cta">查看方案 →</a>
+          <a href="checkout.html?plan=到考日" class="btn btn-primary plan-cta">選到考日 →</a>
         </div>
 
         <div class="plan">
           <span class="plan-tag">PLAN · 03</span>
-          <h3>月訂閱</h3>
-          <div class="plan-meta">30 日 · 彈性訂閱</div>
-          <div class="plan-num"><span class="c">NT$</span>380</div>
+          <h3>季訂閱</h3>
+          <div class="plan-meta">90 日 · 彈性備選</div>
+          <div class="plan-num"><span class="c">NT$</span>990<span class="per">／ 90 日</span></div>
           <ul>
-            <li>全六段 AI 解析</li>
-            <li>打字練習 + 選擇題 + 填空題</li>
-            <li>答錯自動回頭考你（SRS）</li>
-            <li>完整弱點分析與錯題重練</li>
+            <li>到考日方案內容相同</li>
+            <li>90 天答題紀錄與跨裝置進度</li>
+            <li>適合已經有讀書節奏、只補一段衝刺期</li>
+            <li>完整弱點分析、錯題重練與 SRS</li>
             <li>序號到期可再購買延長</li>
           </ul>
-          <a href="pricing.html" class="btn btn-primary plan-cta alt">查看方案 →</a>
+          <a href="pricing.html" class="btn btn-primary plan-cta alt">比較方案 →</a>
         </div>
 
       </div>
@@ -2082,7 +2201,7 @@
             </summary>
             <div class="ans" style="">
               <span class="label">— 簡短答</span>
-              語氣與節奏。介面上只有你需要的——條文、解析、四種讀法。不催打卡、不倒數計時、沒有焦慮排名；每天讀一條也算數。希望把難啃的法條切小塊，考生是我們的夥伴，一起享用。
+              語氣與節奏。介面上只有你需要的——條文、解析、四種讀法。SoFa 會陪你穩住節奏,並且趕上 11/14；每天讀一條也算數，但錯題會回到下一輪。
             </div>
           </details>
 
@@ -2154,7 +2273,7 @@
             </summary>
             <div class="ans">
               <span class="label">— 簡短答</span>
-              S.O.F.A. 是 Strategic · Organized · Focused · Academy 的縮寫，也剛好是「沙發」。希望這個工具給你一張可以一直坐回來的沙發；不催、不嚇、不勉強，但隨時都在。
+              S.O.F.A. 是 Strategic · Organized · Focused · Academy 的縮寫，也剛好是「沙發」。希望這個工具給你一張可以一直坐回來的沙發；不嚇人，但會提醒你把進度接回考期。
             </div>
           </details>
 
@@ -2227,6 +2346,24 @@
           <a href="terms.html">隱私政策</a>
         </div>
       </div>
+      <div class="ft-trust" aria-label="信任與付款資訊">
+        <div class="trust-card">
+          <div class="lab">營業資訊</div>
+          <div class="txt">SoFa Engine · sofaengine.org。統一編號以電子發票資訊為準；需抬頭或補件請來信。</div>
+        </div>
+        <div class="trust-card">
+          <div class="lab">付款安全</div>
+          <div class="txt">付款由綠界科技 ECPay 處理，SoFa Engine 不接觸、不儲存信用卡資訊。</div>
+        </div>
+        <div class="trust-card">
+          <div class="lab">電子發票</div>
+          <div class="txt">電子發票與付款憑證依付款流程提供；如需公司抬頭，請附購買信箱聯繫客服。</div>
+        </div>
+        <div class="trust-card">
+          <div class="lab">退費政策</div>
+          <div class="txt">數位內容服務不適用 7 天鑑賞期；購買後 7 天內且序號未啟用，可申請全額退費。</div>
+        </div>
+      </div>
       <div class="ft-bot">
         <span>© 2026 SoFa Engine · sofaengine.org</span>
         <span>Made for 台灣考生 · v3.1.0 · 2026.05</span>
@@ -2238,24 +2375,6 @@
 
 
 <script>
-// ── 早鳥邏輯（6/15 前贈 15 天）────────────────────────
-(function(){
-  var EB_END = new Date('2026-06-15T23:59:59+08:00');
-  var ebCard = document.querySelector('.plan.plan-feat');
-  if(new Date() >= EB_END){
-    // 早鳥已截止：隱藏早鳥卡，避免混淆
-    if(ebCard) ebCard.style.display = 'none';
-    return;
-  }
-  // 早鳥期間：更新季訂閱文字
-  var meta  = document.getElementById('idx-q-meta');
-  var li    = document.getElementById('idx-q-li');
-  var eb    = document.getElementById('idx-q-eb');
-  if(meta) meta.textContent = '105 日 · 早鳥 +15 天 · 平均 NT$9.4／日';
-  if(li)   li.innerHTML    = '連用 105 日，<b>省下 NT$150</b>';
-  if(eb)   eb.style.display = '';
-})();
-
 // ── FAQ accordion ─────────────────────────────────────────
 document.querySelectorAll('.qa').forEach(function(qa){
   var q = qa.querySelector('.q');
