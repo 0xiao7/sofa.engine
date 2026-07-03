@@ -925,6 +925,13 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     if (typeof window.sofaTrack === 'function') {
       window.sofaTrack('checkout_submit', { plan: sel.plan, amount: sel.amount });
     }
+    const checkoutPayload = {
+      plan: sel.plan,
+      email,
+      attribution: window.sofaGetAttribution?.() || {},
+      session_id: window.sofaGetSessionId?.() || '',
+      page_path: location.pathname + location.search
+    };
     const original = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = "處理中，請稍候…";
@@ -933,7 +940,7 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: sel.plan, email })
+        body: JSON.stringify(checkoutPayload)
       });
       if (!res.ok){
         let msg = `付款服務暫時無法回應（${res.status}），請稍後再試一次。`;

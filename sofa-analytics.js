@@ -164,10 +164,13 @@
   }
 
   window.sofaTrack = track;
+  window.sofaGetAttribution = attributionPayload;
+  window.sofaGetSessionId = sessionId;
   window.sofaAttribution = {
     capture: captureAttribution,
     decorateLinks: decorateLinks,
-    payload: attributionPayload
+    payload: attributionPayload,
+    sessionId: sessionId
   };
 
   captureAttribution();

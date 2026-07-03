@@ -87,6 +87,11 @@ test('pricing and checkout expose plan selection, checkout start, and payment re
   assert.match(analytics, /payment_return_success/);
   assert.doesNotMatch(analytics, /purchase_completed/);
   assert.match(checkout, /sofaTrack\('checkout_submit', \{ plan: sel\.plan, amount: sel\.amount \}\)/);
+  assert.match(checkout, /const checkoutPayload = \{/);
+  assert.match(checkout, /attribution: window\.sofaGetAttribution\?\.\(\) \|\| \{\}/);
+  assert.match(checkout, /session_id: window\.sofaGetSessionId\?\.\(\) \|\| ''/);
+  assert.match(checkout, /page_path: location\.pathname \+ location\.search/);
+  assert.match(checkout, /body: JSON\.stringify\(checkoutPayload\)/);
   assert.doesNotMatch(checkout, /data-track-event="checkout_submit"/, 'checkout submit should not double-count through generic click tracking');
 });
 
