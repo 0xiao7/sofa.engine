@@ -15,3 +15,14 @@ test('room v2 target plate is a moving layered scene, not a dead pasted mockup',
   assert.match(html, /--floor-y/);
   assert.match(html, /updatePainterlyMotion\(t\)/);
 });
+
+test('room v2 has quiet companion and study-time flower layers', () => {
+  assert.match(html, /id="soft-avatar"/);
+  assert.match(html, /class="soft-avatar"/);
+  assert.match(html, /id="study-flower"/);
+  assert.match(html, /data-stage="0"/);
+  assert.match(html, /function\s+updateStudyFlower/);
+  assert.match(html, /quietMinutes/);
+  assert.match(html, /USERS\[0\]\?\.min/);
+  assert.doesNotMatch(html, /weekPts|rank|leaderboard|score/i);
+});

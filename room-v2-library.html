@@ -108,6 +108,115 @@ body.painterly-plate-mode #stage canvas{
   background-size:120px 120px,180px 180px;
   transform:translate3d(calc(var(--plate-x) * -.18), calc(var(--light-y) * -.45), 0);
 }
+.soft-avatar{
+  position:absolute;left:50%;bottom:7.5%;z-index:4;width:78px;height:138px;
+  transform:translateX(-50%);
+  transform-origin:50% 100%;
+  animation:avatar-walk-bob 1.25s ease-in-out infinite;
+  filter:drop-shadow(0 18px 12px rgba(96,70,35,.20));
+}
+.soft-avatar .avatar-shadow{
+  position:absolute;left:50%;bottom:0;width:56px;height:15px;border-radius:50%;
+  transform:translateX(-50%);background:rgba(92,70,44,.20);filter:blur(5px);
+}
+.soft-avatar .avatar-head{
+  position:absolute;left:50%;top:8px;width:50px;height:52px;border-radius:50%;
+  transform:translateX(-50%);
+  background:linear-gradient(150deg,#7A5638 0 48%,#5E3D25 49% 100%);
+  box-shadow:inset 10px 8px 0 rgba(255,255,255,.10);
+}
+.soft-avatar .avatar-neck{
+  position:absolute;left:50%;top:56px;width:18px;height:16px;border-radius:8px;
+  transform:translateX(-50%);background:#E9C39E;
+}
+.soft-avatar .avatar-body{
+  position:absolute;left:50%;top:62px;width:54px;height:50px;border-radius:25px 25px 18px 18px;
+  transform:translateX(-50%);
+  background:linear-gradient(180deg,#F1E8D6,#DDCFB9);
+}
+.soft-avatar .avatar-backpack{
+  position:absolute;left:50%;top:67px;width:36px;height:47px;border-radius:13px 13px 10px 10px;
+  transform:translateX(-50%);
+  background:linear-gradient(180deg,#86AAC4,#668DAA);
+  box-shadow:inset 0 6px 0 rgba(255,255,255,.18),0 1px 0 rgba(70,90,110,.15);
+}
+.soft-avatar .avatar-arm{
+  position:absolute;top:72px;width:13px;height:42px;border-radius:999px;background:#EEE3CE;
+  transform-origin:50% 8px;
+}
+.soft-avatar .avatar-arm.left{left:5px;animation:avatar-arm-left 1.25s ease-in-out infinite;}
+.soft-avatar .avatar-arm.right{right:5px;animation:avatar-arm-right 1.25s ease-in-out infinite;}
+.soft-avatar .avatar-leg{
+  position:absolute;top:108px;width:15px;height:28px;border-radius:999px;background:#9E8567;
+  transform-origin:50% 0;
+}
+.soft-avatar .avatar-leg.left{left:23px;animation:avatar-leg-left 1.25s ease-in-out infinite;}
+.soft-avatar .avatar-leg.right{right:23px;animation:avatar-leg-right 1.25s ease-in-out infinite;}
+.soft-avatar .avatar-shoe{
+  position:absolute;top:132px;width:21px;height:8px;border-radius:8px;background:#EDE9DE;
+}
+.soft-avatar .avatar-shoe.left{left:18px;animation:avatar-shoe-left 1.25s ease-in-out infinite;}
+.soft-avatar .avatar-shoe.right{right:18px;animation:avatar-shoe-right 1.25s ease-in-out infinite;}
+@keyframes avatar-walk-bob{0%,100%{translate:0 0;scale:1}.5%{scale:1}50%{translate:0 -4px;scale:1.012}}
+@keyframes avatar-arm-left{0%,100%{rotate:10deg}50%{rotate:-8deg}}
+@keyframes avatar-arm-right{0%,100%{rotate:-10deg}50%{rotate:8deg}}
+@keyframes avatar-leg-left{0%,100%{rotate:-7deg}50%{rotate:9deg}}
+@keyframes avatar-leg-right{0%,100%{rotate:7deg}50%{rotate:-9deg}}
+@keyframes avatar-shoe-left{0%,100%{translate:-1px 0}50%{translate:3px -1px}}
+@keyframes avatar-shoe-right{0%,100%{translate:1px -1px}50%{translate:-3px 0}}
+
+.study-flower{
+  position:absolute;left:12.4%;bottom:27.5%;z-index:4;width:62px;height:86px;
+  transform:translate3d(calc(var(--plate-x) * .24), calc(var(--plate-y) * .10), 0);
+  transform-origin:50% 100%;
+  filter:drop-shadow(0 10px 10px rgba(105,78,43,.16));
+}
+.study-flower .pot{
+  position:absolute;left:50%;bottom:0;width:34px;height:26px;border-radius:8px 8px 13px 13px;
+  transform:translateX(-50%);
+  background:linear-gradient(180deg,#F8F0E3,#D9C7AE);
+  box-shadow:inset 0 4px 0 rgba(255,255,255,.35);
+}
+.study-flower .stem{
+  position:absolute;left:50%;bottom:22px;width:4px;height:30px;border-radius:999px;
+  transform:translateX(-50%) scaleY(.55);transform-origin:50% 100%;
+  background:#7FA272;transition:transform .8s ease;
+}
+.study-flower .leaf{
+  position:absolute;bottom:36px;width:20px;height:11px;border-radius:999px 2px 999px 2px;
+  background:#9BB98D;opacity:.78;transition:transform .8s ease,opacity .8s ease;
+}
+.study-flower .leaf.left{left:16px;transform:rotate(-34deg) scale(.62);}
+.study-flower .leaf.right{right:15px;transform:scaleX(-1) rotate(-34deg) scale(.62);}
+.study-flower .bloom{
+  position:absolute;left:50%;bottom:52px;width:31px;height:31px;
+  transform:translateX(-50%) scale(.08);transform-origin:50% 50%;
+  transition:transform .9s cubic-bezier(.2,1.4,.3,1),opacity .7s ease;opacity:.08;
+}
+.study-flower .bloom span{
+  position:absolute;left:50%;top:50%;width:15px;height:21px;border-radius:999px;
+  background:linear-gradient(180deg,#F8C4CF,#E8A8B7);
+  transform-origin:50% 100%;
+}
+.study-flower .bloom span:nth-child(1){transform:translate(-50%,-95%) rotate(0deg)}
+.study-flower .bloom span:nth-child(2){transform:translate(-50%,-95%) rotate(72deg)}
+.study-flower .bloom span:nth-child(3){transform:translate(-50%,-95%) rotate(144deg)}
+.study-flower .bloom span:nth-child(4){transform:translate(-50%,-95%) rotate(216deg)}
+.study-flower .bloom span:nth-child(5){transform:translate(-50%,-95%) rotate(288deg)}
+.study-flower .bloom::after{
+  content:'';position:absolute;left:50%;top:50%;width:12px;height:12px;border-radius:50%;
+  transform:translate(-50%,-50%);background:#E8C86F;
+}
+.study-flower[data-stage="1"] .stem{transform:translateX(-50%) scaleY(.72)}
+.study-flower[data-stage="2"] .stem{transform:translateX(-50%) scaleY(.90)}
+.study-flower[data-stage="2"] .leaf.left{transform:rotate(-34deg) scale(.86)}
+.study-flower[data-stage="2"] .leaf.right{transform:scaleX(-1) rotate(-34deg) scale(.86)}
+.study-flower[data-stage="3"] .stem,.study-flower[data-stage="4"] .stem{transform:translateX(-50%) scaleY(1)}
+.study-flower[data-stage="3"] .leaf.left,.study-flower[data-stage="4"] .leaf.left{opacity:1;transform:rotate(-34deg) scale(1)}
+.study-flower[data-stage="3"] .leaf.right,.study-flower[data-stage="4"] .leaf.right{opacity:1;transform:scaleX(-1) rotate(-34deg) scale(1)}
+.study-flower[data-stage="3"] .bloom{opacity:.85;transform:translateX(-50%) scale(.72)}
+.study-flower[data-stage="4"] .bloom{opacity:1;transform:translateX(-50%) scale(1);animation:flower-breathe 2.8s ease-in-out infinite}
+@keyframes flower-breathe{0%,100%{scale:1}50%{scale:1.06}}
 
 /* ── loader ── */
 #loader{
@@ -280,6 +389,8 @@ body.locked #side,body.locked #hint,body.locked #mob-bar,body.locked #mob-pom{op
 #mob-pom,#mob-bar,#sheet{display:none;}
 
 @media (max-width:760px){
+  .soft-avatar{width:92px;height:162px;bottom:17.5%;scale:.86;}
+  .study-flower{left:7.5%;bottom:33%;scale:.82;}
   #side,#hint{display:none;}
   #topbar{top:10px;left:10px;right:10px;}
   .brand .sep,.brand .who{display:none;}
@@ -362,6 +473,26 @@ body.locked #side,body.locked #hint,body.locked #mob-bar,body.locked #mob-pom{op
   <div class="plate"></div>
   <div class="light"></div>
   <div class="floor"></div>
+  <div class="study-flower" id="study-flower" data-stage="0">
+    <div class="stem"></div>
+    <div class="leaf left"></div>
+    <div class="leaf right"></div>
+    <div class="bloom"><span></span><span></span><span></span><span></span><span></span></div>
+    <div class="pot"></div>
+  </div>
+  <div class="soft-avatar" id="soft-avatar">
+    <div class="avatar-shadow"></div>
+    <div class="avatar-leg left"></div>
+    <div class="avatar-leg right"></div>
+    <div class="avatar-shoe left"></div>
+    <div class="avatar-shoe right"></div>
+    <div class="avatar-arm left"></div>
+    <div class="avatar-arm right"></div>
+    <div class="avatar-body"></div>
+    <div class="avatar-backpack"></div>
+    <div class="avatar-neck"></div>
+    <div class="avatar-head"></div>
+  </div>
   <div class="haze"></div>
   <div class="grain"></div>
 </div>
@@ -595,7 +726,16 @@ document.querySelectorAll('.seg-tab').forEach(b=>b.addEventListener('click',()=>
 }));
 renderLists();
 // 自己的時數每分鐘 +1（陪讀感）
-setInterval(()=>{ USERS[0].min++; renderLists(); }, 60000);
+setInterval(()=>{ USERS[0].min++; renderLists(); updateStudyFlower(); }, 60000);
+
+function updateStudyFlower(){
+  const flower = document.getElementById('study-flower');
+  if (!flower) return;
+  const focusedSeconds = pom?.mode === 'focus' ? Math.max(0, POM_FOCUS - pom.remaining) : POM_FOCUS;
+  const quietMinutes = (USERS[0]?.min || 0) + Math.floor(focusedSeconds / 60);
+  const stage = Math.max(0, Math.min(4, Math.floor(quietMinutes / 55)));
+  flower.dataset.stage = String(stage);
+}
 
 /* ── 番茄鐘（focus 25 → break 5，同步三個顯示點） ── */
 const POM_FOCUS = 25*60, POM_BREAK = 5*60;
@@ -609,6 +749,7 @@ function pomRender(){
   document.getElementById('pom-state').textContent =
     pom.running ? (pom.mode==='focus' ? '專注中 — 大家陪你一起讀' : '休息中 — 站起來走走 🍵')
                 : '25 分鐘專注 → 5 分鐘休息';
+  updateStudyFlower();
 }
 function pomToggle(){
   pom.running = !pom.running;
