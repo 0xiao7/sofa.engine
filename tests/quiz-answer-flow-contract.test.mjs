@@ -41,6 +41,23 @@ test('post-answer actions place next question next to view article', () => {
   assert.doesNotMatch(active.slice(footStart, footEnd), /id="btnFlag"/, 'do not leave a second flag button below the fold');
 });
 
+test('post-answer retention prompt is compact and only shown for free learners', () => {
+  const start = active.indexOf('id="quiz-answer-actions"');
+  const end = active.indexOf('id="explainBox"', start);
+  assert.ok(start >= 0 && end > start, 'quiz answer action row must exist before explanation box');
+  const actionRow = active.slice(start, end);
+
+  assert.match(actionRow, /id="post-answer-retention"/);
+  assert.match(actionRow, /想保留這題和弱點/);
+  assert.match(actionRow, /data-track-event="post_answer_login_click"/);
+  assert.match(actionRow, /data-track-event="post_answer_pricing_click"/);
+  assert.match(actionRow, /href="login\.html"/);
+  assert.match(actionRow, /href="pricing\.html"/);
+  assert.match(active, /function updatePostAnswerRetention\(\)/);
+  assert.match(active, /retention\.style\.display = isFree \? 'flex' : 'none'/);
+  assert.match(active, /updatePostAnswerRetention\(\)/);
+});
+
 test('post-answer action buttons keep mobile tap targets', () => {
   assert.match(active, /#view-article-btn\s*\{[\s\S]*min-height:\s*44px/);
   assert.match(active, /#view-weakness-btn\s*\{[\s\S]*min-height:\s*44px/);
@@ -51,6 +68,7 @@ test('post-answer action buttons keep mobile tap targets', () => {
   assert.match(active, /function showQuizAnswerActions\(\)/);
   assert.match(active, /actions\.classList\.add\('show'\)/);
   assert.match(active, /scrollIntoView\(\{block:'center', behavior:'auto'\}\)/);
+  assert.match(active, /#post-answer-retention a\s*\{[\s\S]*min-height:\s*44px/);
 });
 
 test('mobile post-answer actions stay inside the iOS viewport', () => {
