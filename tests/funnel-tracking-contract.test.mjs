@@ -92,6 +92,26 @@ test('free entry CTAs are measurable before users reach the practice tools', () 
   assert.match(free, /data-track-label="practice"/);
 });
 
+test('public free-quiz entry links carry a measurable campaign path', () => {
+  const publicPages = new Map([
+    ['index.html', index],
+    ['pricing.html', pricing],
+    ['login.html', login],
+  ]);
+  for (const [file, html] of publicPages) {
+    assert.match(
+      html,
+      /quiz\.html\?free=1&start=1&utm_source=site&utm_medium=web&utm_campaign=free_quiz_entry/,
+      `${file} should send free-quiz CTA through the measured web entry path`,
+    );
+    assert.doesNotMatch(
+      html,
+      /href=["'](?:\/)?quiz\.html\?free=1["']/,
+      `${file} still has an unmeasured naked free quiz link`,
+    );
+  }
+});
+
 test('expired learner recovery choices are measurable before renewal', () => {
   assert.match(dashboard, /data-track-event="expire_feedback_click"/);
   assert.match(dashboard, /data-track-label="feedback_10_days"/);

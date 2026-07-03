@@ -22,7 +22,7 @@ test('public law counts use the current rounded live total', () => {
 
 test('public growth funnel leads with web practice and saved learning value', () => {
   assert.match(source['index.html'], /做 5 題看弱點/);
-  assert.match(source['index.html'], /href="quiz\.html\?free=1"/);
+  assert.match(source['index.html'], /href="quiz\.html\?free=1&start=1&utm_source=site&utm_medium=web&utm_campaign=free_quiz_entry"/);
   assert.match(source['pricing.html'], /保留答題紀錄/);
   assert.match(source['pricing.html'], /弱點分析/);
   assert.match(source['pricing.html'], /錯題重練/);
