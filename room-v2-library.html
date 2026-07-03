@@ -38,6 +38,11 @@ button{font-family:var(--sans);}
 /* ── three.js canvas ── */
 #stage{position:fixed;inset:0;z-index:0;}
 #stage canvas{display:block;}
+body.painterly-plate-mode #stage canvas{
+  opacity:.26;
+  filter:saturate(.72) brightness(1.04) blur(.15px);
+  mix-blend-mode:soft-light;
+}
 /* 極淡 vignette + 暖色調層：四角稍暗、畫面聚焦走道盡頭 */
 #stage::after{
   content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
@@ -45,6 +50,63 @@ button{font-family:var(--sans);}
     radial-gradient(120% 95% at 50% 44%, rgba(0,0,0,0) 54%, rgba(72,56,36,.09) 79%, rgba(58,44,28,.20) 100%),
     linear-gradient(rgba(255,216,166,.045), rgba(255,206,150,.03));
   mix-blend-mode:multiply;
+}
+
+/* Painterly motion plate:
+   the generated target is not the whole app; it is a moving art plate that
+   carries the soft product feel while Three.js keeps walk/future interaction. */
+#painterly-scene{
+  position:fixed;inset:0;z-index:2;pointer-events:none;overflow:hidden;
+  --plate-x:0px;--plate-y:0px;--light-y:0px;--floor-y:0px;--breath:1.055;
+  background:#F8F5EC;
+}
+#painterly-scene .plate,
+#painterly-scene .light,
+#painterly-scene .floor,
+#painterly-scene .haze,
+#painterly-scene .grain{position:absolute;inset:-4%;}
+#painterly-scene .plate{
+  background-image:url('previews/room-v2-target-library-empty.png');
+  background-size:cover;
+  background-position:center center;
+  transform:translate3d(var(--plate-x),var(--plate-y),0) scale(var(--breath));
+  transform-origin:50% 54%;
+  transition:filter .4s ease;
+  filter:saturate(.98) brightness(1.02) contrast(.98);
+}
+#painterly-scene .light{
+  opacity:.50;
+  mix-blend-mode:screen;
+  background:
+    linear-gradient(112deg, transparent 0 22%, rgba(255,248,220,.32) 30%, transparent 43%),
+    linear-gradient(108deg, transparent 0 34%, rgba(255,232,180,.22) 42%, transparent 58%),
+    radial-gradient(55% 42% at 50% 50%, rgba(255,248,222,.55), transparent 70%);
+  transform:translate3d(calc(var(--plate-x) * -.38), calc(var(--light-y) * -1), 0);
+}
+#painterly-scene .floor{
+  inset:42% -8% -10%;
+  opacity:.34;
+  mix-blend-mode:soft-light;
+  background:
+    repeating-linear-gradient(90deg, rgba(255,244,207,.0) 0 74px, rgba(255,244,207,.26) 90px, rgba(255,244,207,0) 132px),
+    repeating-linear-gradient(0deg, rgba(144,112,66,.0) 0 54px, rgba(144,112,66,.10) 56px, rgba(144,112,66,0) 72px);
+  clip-path:polygon(30% 0, 70% 0, 104% 100%, -4% 100%);
+  transform:translate3d(0,var(--floor-y),0) perspective(700px) rotateX(58deg);
+  transform-origin:50% 0;
+}
+#painterly-scene .haze{
+  background:
+    radial-gradient(42% 54% at 52% 47%, rgba(255,255,245,.74), rgba(255,255,245,.24) 42%, transparent 68%),
+    linear-gradient(90deg, rgba(255,255,255,.34), transparent 24%, transparent 76%, rgba(255,255,255,.30)),
+    radial-gradient(120% 90% at 50% 42%, transparent 45%, rgba(86,65,42,.12) 100%);
+}
+#painterly-scene .grain{
+  opacity:.18;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(255,255,255,.45) 0 1px, transparent 1.5px),
+    radial-gradient(circle at 70% 62%, rgba(255,255,255,.34) 0 1px, transparent 1.5px);
+  background-size:120px 120px,180px 180px;
+  transform:translate3d(calc(var(--plate-x) * -.18), calc(var(--light-y) * -.45), 0);
 }
 
 /* ── loader ── */
@@ -293,9 +355,16 @@ body.locked #side,body.locked #hint,body.locked #mob-bar,body.locked #mob-pom{op
 }
 </style>
 </head>
-<body>
+<body class="painterly-plate-mode">
 
 <div id="stage"></div>
+<div id="painterly-scene" aria-hidden="true">
+  <div class="plate"></div>
+  <div class="light"></div>
+  <div class="floor"></div>
+  <div class="haze"></div>
+  <div class="grain"></div>
+</div>
 
 <!-- loader -->
 <div id="loader">
@@ -1659,6 +1728,18 @@ function makeMotes(){
 /* ── 啟動 ── */
 const clock = new THREE.Clock();
 let mouseX = 0, mouseY = 0;
+const painterlyScene = document.getElementById('painterly-scene');
+function updatePainterlyMotion(time){
+  if (!painterlyScene) return;
+  const walk = time * WALK_SPEED;
+  const sway = Math.sin(time * 0.82) * 1.8;
+  const breath = 1.055 + Math.sin(time * 0.22) * 0.006;
+  painterlyScene.style.setProperty('--plate-x', `${(-mouseX * 12) + sway}px`);
+  painterlyScene.style.setProperty('--plate-y', `${(-mouseY * 7) + Math.sin(time * 1.4) * 2.2}px`);
+  painterlyScene.style.setProperty('--light-y', `${(walk * 11) % 96}px`);
+  painterlyScene.style.setProperty('--floor-y', `${(walk * 22) % 118}px`);
+  painterlyScene.style.setProperty('--breath', breath.toFixed(4));
+}
 addEventListener('pointermove', e=>{
   mouseX = (e.clientX/innerWidth - 0.5)*2;
   mouseY = (e.clientY/innerHeight - 0.5)*2;
@@ -1717,6 +1798,7 @@ function animate(){
   const dt = Math.min(clock.getDelta(), 0.05);
   t += dt;
   const dz = WALK_SPEED * dt;
+  updatePainterlyMotion(t);
 
   // 世界往 +z 流動；走出鏡頭後回收到最前面
   for (const seg of segments){
