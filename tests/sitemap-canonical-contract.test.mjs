@@ -30,3 +30,13 @@ test('sitemap html pages declare canonical targets or explicit noindex', () => {
 
   assert.deepEqual(missing, [], `missing canonical/noindex: ${missing.join(', ')}`);
 });
+
+test('law preview declares canonical URL for dynamic article pages', () => {
+  const html = readFileSync(new URL('law-preview.html', root), 'utf8');
+
+  assert.match(html, /<link\b[^>]*\brel=["']canonical["'][^>]*>/i);
+  assert.match(html, /function\s+updateCanonicalUrl\(/);
+  assert.match(html, /canonical\.searchParams\.set\('law',\s*lawName\)/);
+  assert.match(html, /canonical\.searchParams\.set\('art',\s*artNo\)/);
+  assert.match(html, /canonical\.searchParams\.set\('id',\s*articleId\)/);
+});
