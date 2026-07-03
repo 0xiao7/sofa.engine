@@ -38,6 +38,14 @@ button{font-family:var(--sans);}
 /* ── three.js canvas ── */
 #stage{position:fixed;inset:0;z-index:0;}
 #stage canvas{display:block;}
+/* 極淡 vignette + 暖色調層：四角稍暗、畫面聚焦走道盡頭 */
+#stage::after{
+  content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+  background:
+    radial-gradient(120% 95% at 50% 44%, rgba(0,0,0,0) 54%, rgba(72,56,36,.09) 79%, rgba(58,44,28,.20) 100%),
+    linear-gradient(rgba(255,216,166,.045), rgba(255,206,150,.03));
+  mix-blend-mode:multiply;
+}
 
 /* ── loader ── */
 #loader{
@@ -659,28 +667,28 @@ setTimeout(()=>document.getElementById('hint').classList.add('off'), 9000);
    ════════════════════════════════════════════════════════════ */
 const SEG_LEN = 16, NUM_SEG = 6, HALL_W = 11, CEIL_H = 6.6;
 const WALK_SPEED = 1.15;               // m/s，悠閒步伐
-const FOG_COLOR = 0xF2EEE2;
+const FOG_COLOR = 0xF8F5EC;           // 亮暖白：遠端走廊像發光
 
 const renderer = new THREE.WebGLRenderer({ antialias:true });
 renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
 renderer.setSize(innerWidth, innerHeight);
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
-renderer.toneMappingExposure = 1.12;
+renderer.toneMappingExposure = 1.22;
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 document.getElementById('stage').appendChild(renderer.domElement);
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(FOG_COLOR);
-scene.fog = new THREE.Fog(FOG_COLOR, 14, 58);
+scene.fog = new THREE.Fog(FOG_COLOR, 13, 52);
 
-const camera = new THREE.PerspectiveCamera(52, innerWidth/innerHeight, 0.1, 200);
-camera.position.set(0, 1.58, 3.2);   // 第一視角，眼睛高度
+const camera = new THREE.PerspectiveCamera(48, innerWidth/innerHeight, 0.1, 200);
+camera.position.set(0, 1.55, 3.2);   // 第一視角，眼睛高度
 
 /* 光：柔和天光 + 從左側窗戶進來的暖陽 */
-scene.add(new THREE.HemisphereLight(0xFFFDF4, 0xC9B896, 0.85));
-const sun = new THREE.DirectionalLight(0xFFF2D8, 1.35);
+scene.add(new THREE.HemisphereLight(0xFFFFFF, 0xE8DFCD, 1.15));
+const sun = new THREE.DirectionalLight(0xFFF4DC, 1.5);
 sun.position.set(-9, 11, -3);
 sun.castShadow = true;
 sun.shadow.mapSize.set(2048, 2048);
@@ -688,47 +696,104 @@ sun.shadow.camera.left = -18; sun.shadow.camera.right = 18;
 sun.shadow.camera.top = 18;   sun.shadow.camera.bottom = -18;
 sun.shadow.camera.far = 50;
 sun.shadow.bias = -0.0004;
+sun.shadow.radius = 4;        // 影子柔化
 scene.add(sun);
 scene.add(sun.target);
 
 /* ── 材質 ── */
 function woodFloorTexture(){
-  const c = document.createElement('canvas'); c.width = c.height = 512;
+  // 蜜糖色橡木：板間色差 + 立體漸層 + 木紋 + 節眼，對齊 mockup 的暖木地板
+  const S = 1024;
+  const c = document.createElement('canvas'); c.width = c.height = S;
   const g = c.getContext('2d');
-  g.fillStyle = '#D9BF97'; g.fillRect(0,0,512,512);
-  const PW = 512/6;
-  for (let i=0;i<6;i++){
-    const tint = 8 - Math.floor(Math.sin(i*3.7)*8);
-    g.fillStyle = `rgba(120,90,50,${0.04 + (i%3)*0.02})`;
-    g.fillRect(i*PW,0,PW,512);
-    g.fillStyle = 'rgba(100,75,45,.28)';
-    g.fillRect(i*PW,0,2,512);
-    // 木紋細線
-    g.strokeStyle = 'rgba(120,92,55,.10)'; g.lineWidth = 1;
-    for (let k=0;k<5;k++){
+  const rnd = (s => () => (s = (s*1664525 + 1013904223) >>> 0) / 4294967296)(7);
+  const NP = 10, PW = S/NP;
+  const tones = ['#DDB378','#D3A768','#E1BA82','#CEA05F','#DAB075','#D1A76A','#E4BE87','#D5A96C','#DEB67B','#CFA263'];
+  for (let i=0;i<NP;i++){
+    const x0 = i*PW;
+    g.fillStyle = tones[i%tones.length];
+    g.fillRect(x0,0,PW,S);
+    // 橫向漸層：板緣壓深、受光面提亮，讓每塊板有圓潤立體感
+    const lg = g.createLinearGradient(x0,0,x0+PW,0);
+    lg.addColorStop(0,   'rgba(115,76,32,.18)');
+    lg.addColorStop(0.14,'rgba(255,236,200,.10)');
+    lg.addColorStop(0.82,'rgba(255,236,200,.04)');
+    lg.addColorStop(1,   'rgba(105,68,28,.20)');
+    g.fillStyle = lg; g.fillRect(x0,0,PW,S);
+    // 木紋長曲線
+    for (let k=0;k<7;k++){
+      const gx = x0 + 8 + rnd()*(PW-16);
+      g.strokeStyle = `rgba(146,98,46,${(0.10 + rnd()*0.15).toFixed(3)})`;
+      g.lineWidth = 1 + rnd()*1.8;
       g.beginPath();
-      const x = i*PW + 8 + Math.abs((i*37+k*61)%Math.floor(PW-16));
-      g.moveTo(x, 0); g.bezierCurveTo(x+4,140, x-4,320, x+2,512); g.stroke();
+      g.moveTo(gx, -12);
+      g.bezierCurveTo(gx+(rnd()-0.5)*20, S*0.3, gx+(rnd()-0.5)*20, S*0.7, gx+(rnd()-0.5)*14, S+12);
+      g.stroke();
     }
-    // 橫向接縫
-    const seamY = ((i*197)%512);
-    g.fillStyle = 'rgba(100,75,45,.22)';
-    g.fillRect(i*PW, seamY, PW, 2);
+    // 節眼（偶爾）
+    if (rnd() < 0.55){
+      const kx = x0 + PW*(0.3 + rnd()*0.4), ky = rnd()*S, kr = 6 + rnd()*7;
+      const rg = g.createRadialGradient(kx,ky,1,kx,ky,kr);
+      rg.addColorStop(0,'rgba(118,76,34,.5)');
+      rg.addColorStop(1,'rgba(118,76,34,0)');
+      g.fillStyle = rg;
+      g.beginPath(); g.arc(kx,ky,kr*2,0,Math.PI*2); g.fill();
+    }
+    // 板間直縫（深 + 一絲亮邊）
+    g.fillStyle = 'rgba(96,64,28,.32)';
+    g.fillRect(x0,0,3,S);
+    g.fillStyle = 'rgba(255,238,205,.12)';
+    g.fillRect(x0+3,0,2,S);
+    // 橫向接縫（錯位）
+    for (let s2=0;s2<2;s2++){
+      const sy = (i*397 + s2*512) % S;
+      g.fillStyle = 'rgba(96,64,28,.28)';
+      g.fillRect(x0, sy, PW, 3);
+      g.fillStyle = 'rgba(255,238,205,.12)';
+      g.fillRect(x0, sy+3, PW, 2);
+    }
   }
   const t = new THREE.CanvasTexture(c);
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
   t.colorSpace = THREE.SRGBColorSpace;
-  t.repeat.set(2.2, 3.2);
+  t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  t.repeat.set(2.6, 3.4);
+  return t;
+}
+function windowSkyTexture(){
+  // 窗景：上緣淡天藍 → 下緣暖白，加非常淡的綠色圓斑暗示窗外樹影
+  const c = document.createElement('canvas'); c.width = 256; c.height = 512;
+  const g = c.getContext('2d');
+  const grad = g.createLinearGradient(0,0,0,512);
+  grad.addColorStop(0,   '#BFDCEE');
+  grad.addColorStop(0.45,'#E9F2F3');
+  grad.addColorStop(1,   '#FFF8E9');
+  g.fillStyle = grad; g.fillRect(0,0,256,512);
+  const rnd = (s => () => (s = (s*1664525 + 1013904223) >>> 0) / 4294967296)(11);
+  for (let i=0;i<14;i++){
+    const x = rnd()*256, y = 130 + rnd()*320, r = 26 + rnd()*48;
+    const rg = g.createRadialGradient(x,y,0,x,y,r);
+    rg.addColorStop(0,'rgba(148,188,138,.15)');
+    rg.addColorStop(1,'rgba(148,188,138,0)');
+    g.fillStyle = rg;
+    g.beginPath(); g.arc(x,y,r,0,Math.PI*2); g.fill();
+  }
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
   return t;
 }
 const MAT = {
-  floor: new THREE.MeshStandardMaterial({ map: woodFloorTexture(), roughness:.85, metalness:0 }),
-  wall:  new THREE.MeshStandardMaterial({ color:0xF2ECDD, roughness:1 }),
-  trim:  new THREE.MeshStandardMaterial({ color:0xE9E2CF, roughness:1 }),
-  ceil:  new THREE.MeshStandardMaterial({ color:0xF7F2E6, roughness:1 }),
-  frame: new THREE.MeshStandardMaterial({ color:0xE5DECB, roughness:.9 }),
-  pane:  new THREE.MeshBasicMaterial({ color:0xFFFEF8 }),          // 亮到像天光
+  floor: new THREE.MeshStandardMaterial({ map: woodFloorTexture(), color:0xFFF1DC, roughness:.8, metalness:0 }),
+  wall:  new THREE.MeshStandardMaterial({ color:0xFAF6EC, roughness:1 }),   // 暖白牆
+  trim:  new THREE.MeshStandardMaterial({ color:0xF3EDE0, roughness:1 }),
+  ceil:  new THREE.MeshStandardMaterial({ color:0xFCFAF3, roughness:1 }),   // 近白天花板
+  beam:  new THREE.MeshStandardMaterial({ color:0xFCF9F1, roughness:1 }),   // 格狀天花板白樑
+  frame: new THREE.MeshStandardMaterial({ color:0xF0EADB, roughness:.9 }),
+  pane:  new THREE.MeshBasicMaterial({ map: windowSkyTexture() }),          // 天光漸層 + 樹影
   shade: new THREE.MeshStandardMaterial({ color:0xF5EFE0, roughness:.7, side:THREE.DoubleSide }),
+  glass: new THREE.MeshStandardMaterial({                          // 吊燈白玻璃罩
+    color:0xFFFDF5, roughness:.3, metalness:0, transparent:true, opacity:.88,
+    side:THREE.DoubleSide, emissive:0xFFEEcf, emissiveIntensity:.55 }),
   cord:  new THREE.MeshBasicMaterial({ color:0x9A8A70 }),
   book:  new THREE.MeshStandardMaterial({ color:0xFDFBF2, roughness:.9 }),
 };
@@ -772,17 +837,56 @@ function liftColors(root){
   return root;
 }
 
+/* ── 左窗光束：斜插的 additive 半透明平面，非常淡、邊緣柔 ── */
+function beamTexture(){
+  const c = document.createElement('canvas'); c.width = 128; c.height = 256;
+  const g = c.getContext('2d');
+  const h = g.createLinearGradient(0,0,128,0);       // 橫向：兩側淡出
+  h.addColorStop(0,  'rgba(255,253,240,0)');
+  h.addColorStop(0.5,'rgba(255,253,240,1)');
+  h.addColorStop(1,  'rgba(255,253,240,0)');
+  g.fillStyle = h; g.fillRect(0,0,128,256);
+  g.globalCompositeOperation = 'destination-out';    // 縱向：往地板淡出
+  const v = g.createLinearGradient(0,0,0,256);
+  v.addColorStop(0,   'rgba(0,0,0,0)');
+  v.addColorStop(0.6, 'rgba(0,0,0,.25)');
+  v.addColorStop(1,   'rgba(0,0,0,.9)');
+  g.fillStyle = v; g.fillRect(0,0,128,256);
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
+const SHAFT_MAT = new THREE.MeshBasicMaterial({
+  map: beamTexture(), transparent:true, opacity:0.08,
+  blending:THREE.AdditiveBlending, depthWrite:false, side:THREE.DoubleSide, fog:false,
+});
+const SHAFT_MAT_SOFT = SHAFT_MAT.clone();
+SHAFT_MAT_SOFT.opacity = 0.05;
+function addLightShafts(g, X){
+  for (const wz of [-4.2, -11]){
+    const beam = new THREE.Mesh(new THREE.PlaneGeometry(1.8, 6.5), SHAFT_MAT);
+    beam.rotation.z = 0.7;                    // 上端貼窗、下端斜落到走道
+    beam.position.set(-X+2.3, 2.0, wz);
+    g.add(beam);
+    const beam2 = new THREE.Mesh(new THREE.PlaneGeometry(1.1, 6.5), SHAFT_MAT_SOFT);
+    beam2.rotation.z = 0.7;
+    beam2.position.set(-X+2.5, 2.1, wz + 0.9);
+    g.add(beam2);
+  }
+}
+
 /* ── 段落生成 ── */
 
 const segments = [];
 let TPL = {};          // 標準化後的模板
+let BOOK_W = 1.5;      // 書櫃寬度（載入後量測，供沿牆連續排列用）
 
 const rng = seed => () => (seed = (seed * 1664525 + 1013904223) >>> 0) / 4294967296;
 
 /* ── Chibi 小人（kawaii 造型移植自 room.html，改成可坐可走） ──
    圓頭 + 髮殼 + 呆毛 + canvas 臉貼圖；origin 在腳底正下方，面向 +z */
 const SKIN_TONES  = [0xF0C8A0, 0xECB88A, 0xF5DEB3, 0xE8C098];
-const HAIR_COLORS = [0x2A1608, 0x1A1208, 0x4A2A10, 0x6B4A26, 0x3A2A18, 0x14100A];
+const HAIR_COLORS = [0x8A6844, 0xA8845C, 0x6E4E30, 0x9A7850, 0x7A5A38, 0x554026];  // 奶茶棕色系，太深會變剪影
 const PANT_COLORS = [0x8A7A66, 0x6E7A88, 0x7A6E5A, 0x5E6A5A];
 const FACE_CACHE = {};
 function faceTexture(skinHex){
@@ -814,7 +918,8 @@ function faceTexture(skinHex){
   return tex;
 }
 function chibiHead(skin, hair, style){
-  const M = hex => new THREE.MeshLambertMaterial({ color: hex });
+  // 髮色加一點自發光模擬環境反彈，背光面才不會壓成黑剪影
+  const M = hex => new THREE.MeshLambertMaterial({ color: hex, emissive: hex, emissiveIntensity: 0.22 });
   const head = new THREE.Group();
   const skull = new THREE.Mesh(new THREE.SphereGeometry(0.30,16,14), M(skin));
   skull.castShadow = true;
@@ -842,7 +947,7 @@ function chibiHead(skin, hair, style){
       polygonOffset:true, polygonOffsetFactor:-4, polygonOffsetUnits:-4 }));
   face.position.set(0,0.01,0.315);
   head.add(face);
-  head.scale.setScalar(0.85);
+  head.scale.setScalar(0.80);
   return head;
 }
 const SEAT_H = 0.44;   // 坐姿臀部高度（對齊 chair.glb 椅面，截圖校準）
@@ -924,9 +1029,67 @@ function makeChibi(opts={}){
 const walkers = [];   // {parts, phase}
 const sitters = [];   // {parts, phase}
 
+/* ── 桌面雜物 / 地毯 共用資源（幾何與材質共用，clone 不增加記憶體） ── */
+const PROP = {
+  bookMats: [0xC07A66,0x7288AE,0x86A876,0xCCA863,0xAE7E96,0x9DB28D].map(c=>new THREE.MeshLambertMaterial({ color:c })),
+  paperMat: new THREE.MeshLambertMaterial({ color:0xFFFDF4 }),
+  rugMats:  [0xDCCFC0,0xC9D2C5,0xCCC4D2,0xD8C6BE].map(c=>new THREE.MeshStandardMaterial({ color:c, roughness:1 })),
+  bookGeo:  new THREE.BoxGeometry(0.20, 0.035, 0.145),
+  paperGeo: new THREE.PlaneGeometry(0.19, 0.26),
+  rugGeo:   new THREE.CylinderGeometry(0.98, 0.98, 0.022, 24),
+};
+
+/* ── 掛畫：小張 canvas 畫作（3 款共用，柔和吉卜力調） ── */
+const ART_MATS = (()=>{
+  const mk = draw=>{
+    const c = document.createElement('canvas'); c.width = 96; c.height = 120;
+    draw(c.getContext('2d'), 96, 120);
+    const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
+    return new THREE.MeshBasicMaterial({ map: t });
+  };
+  return [
+    mk((g,w,h)=>{                       // 綠丘與天空
+      const s = g.createLinearGradient(0,0,0,h);
+      s.addColorStop(0,'#DCE8E4'); s.addColorStop(1,'#EFE9D6');
+      g.fillStyle = s; g.fillRect(0,0,w,h);
+      g.fillStyle = '#F2E7C8'; g.beginPath(); g.arc(w*0.72,h*0.22,9,0,Math.PI*2); g.fill();
+      g.fillStyle = '#A8BFA0'; g.beginPath(); g.ellipse(w*0.35,h*0.85,w*0.55,h*0.30,0,0,Math.PI*2); g.fill();
+      g.fillStyle = '#8FAE8C'; g.beginPath(); g.ellipse(w*0.78,h*0.95,w*0.50,h*0.28,0,0,Math.PI*2); g.fill();
+    }),
+    mk((g,w,h)=>{                       // 靜湖與遠山
+      const s = g.createLinearGradient(0,0,0,h);
+      s.addColorStop(0,'#E4DED2'); s.addColorStop(1,'#CDD8D4');
+      g.fillStyle = s; g.fillRect(0,0,w,h);
+      g.fillStyle = '#AEB8B4';
+      g.beginPath(); g.moveTo(0,h*0.56); g.lineTo(w*0.30,h*0.32); g.lineTo(w*0.60,h*0.56); g.closePath(); g.fill();
+      g.fillStyle = '#BCC6BE';
+      g.beginPath(); g.moveTo(w*0.40,h*0.56); g.lineTo(w*0.72,h*0.36); g.lineTo(w,h*0.56); g.closePath(); g.fill();
+      g.fillStyle = '#D3DCD8'; g.fillRect(0,h*0.56,w,h*0.44);
+    }),
+    mk((g,w,h)=>{                       // 抽象枝葉
+      g.fillStyle = '#EDE4D3'; g.fillRect(0,0,w,h);
+      g.strokeStyle = '#9DB28D'; g.lineWidth = 4; g.lineCap = 'round';
+      g.beginPath(); g.moveTo(w*0.5,h*0.9); g.quadraticCurveTo(w*0.42,h*0.5,w*0.55,h*0.16); g.stroke();
+      g.fillStyle = '#B3C4A6';
+      for (let i=0;i<5;i++){
+        const ty = 0.24 + i*0.14;
+        g.beginPath();
+        g.ellipse(w*(0.5 + (i%2 ? 0.15 : -0.15)), h*ty, 11, 5.5, i%2 ? -0.6 : 0.6, 0, Math.PI*2);
+        g.fill();
+      }
+    }),
+  ];
+})();
+
 /* 桌 + 椅 + 讀書的人（面向 rotY 方向） */
 function makeStudySpot(rand){
   const g = new THREE.Group();
+  // 淡色圓地毯（莫蘭迪色，界定一個閱讀角落）
+  const rug = new THREE.Mesh(PROP.rugGeo, PROP.rugMats[Math.floor(rand()*PROP.rugMats.length)]);
+  rug.position.y = 0.011;
+  rug.scale.setScalar(0.85 + rand()*0.2);   // 最大半徑約 1.03，桌位 |x|≥2.6，不侵入中央走道
+  rug.receiveShadow = true;
+  g.add(rug);
   const desk = TPL.desk.clone(true);
   g.add(desk);
   const chair = TPL.chair.clone(true);
@@ -955,7 +1118,92 @@ function makeStudySpot(rand){
   bookL.rotation.z = 0.09; bookL.position.set(-0.09, 0.80, 0.12);
   const bookR = bookL.clone(); bookR.rotation.z = -0.09; bookR.position.x = 0.09;
   g.add(bookL, bookR);
+  // 桌面雜物：小書堆（彩色小方塊疊 2~3 本）
+  const nb = 2 + Math.floor(rand()*2);
+  const stackX = (rand() < 0.5 ? -1 : 1) * (0.40 + rand()*0.08);
+  for (let i=0;i<nb;i++){
+    const b = new THREE.Mesh(PROP.bookGeo, PROP.bookMats[Math.floor(rand()*PROP.bookMats.length)]);
+    b.position.set(stackX + (rand()-0.5)*0.03, 0.808 + i*0.037, -0.04 + (rand()-0.5)*0.05);
+    b.rotation.y = (rand()-0.5)*0.55;
+    b.castShadow = true;
+    g.add(b);
+  }
+  // 攤開的紙（白色薄片）
+  if (rand() < 0.8){
+    const paper = new THREE.Mesh(PROP.paperGeo, PROP.paperMat);
+    paper.rotation.x = -Math.PI/2;
+    paper.rotation.z = (rand()-0.5)*0.9;
+    paper.position.set(-stackX*0.7, 0.793, 0.12);
+    g.add(paper);
+  }
   return g;
+}
+
+/* ── 白色格狀天花板（coffered）：共享幾何，每段 縱樑×5 + 橫樑×7 ── */
+const COFFER_GEO = {
+  long:  new THREE.BoxGeometry(0.16, 0.22, SEG_LEN),
+  cross: new THREE.BoxGeometry(HALL_W+1.4, 0.22, 0.16),
+  edge:  new THREE.BoxGeometry(0.30, 0.20, SEG_LEN),
+};
+function addCofferedCeiling(g){
+  // 內凹白色面板
+  const panel = new THREE.Mesh(new THREE.PlaneGeometry(HALL_W+3, SEG_LEN), MAT.ceil);
+  panel.rotation.x = Math.PI/2;
+  panel.position.set(0, CEIL_H, -SEG_LEN/2);
+  g.add(panel);
+  const beamY = CEIL_H - 0.11;
+  // 縱樑（沿走道方向）
+  for (const bx of [-4.4, -2.2, 0, 2.2, 4.4]){
+    const b = new THREE.Mesh(COFFER_GEO.long, MAT.beam);
+    b.position.set(bx, beamY, -SEG_LEN/2);
+    g.add(b);
+  }
+  // 橫樑（每 2m 一根；z=0/-16 交界處由拱門收邊）
+  for (let z = -2; z > -SEG_LEN; z -= 2){
+    const b = new THREE.Mesh(COFFER_GEO.cross, MAT.beam);
+    b.position.set(0, beamY, z);
+    g.add(b);
+  }
+  // 貼牆邊樑（天花板與牆交接的收邊帶）
+  for (const side of [-1, 1]){
+    const e = new THREE.Mesh(COFFER_GEO.edge, MAT.beam);
+    e.position.set(side*(HALL_W/2 - 0.13), CEIL_H - 0.10, -SEG_LEN/2);
+    g.add(e);
+  }
+}
+
+/* ── 精緻吊燈：細吊繩 + 白玻璃鐘形罩 + 暖色燈泡微光 ── */
+const PENDANT_GEO = {
+  cap:   new THREE.CylinderGeometry(0.045, 0.06, 0.06, 12),
+  cord:  new THREE.CylinderGeometry(0.008, 0.008, 1, 6),
+  neck:  new THREE.CylinderGeometry(0.032, 0.055, 0.07, 12),
+  shade: new THREE.SphereGeometry(0.235, 20, 14, 0, Math.PI*2, 0, Math.PI*0.68),  // 鐘形，開口朝下
+  bulb:  new THREE.SphereGeometry(0.06, 12, 10),
+};
+const PENDANT_BULB_MAT = new THREE.MeshBasicMaterial({ color:0xFFF1D2 });
+function makePendantLamp(withLight){
+  const CORD_L = 1.12;
+  const lampG = new THREE.Group();
+  const cap = new THREE.Mesh(PENDANT_GEO.cap, MAT.cord);
+  cap.position.y = CEIL_H - 0.14;
+  const cord = new THREE.Mesh(PENDANT_GEO.cord, MAT.cord);
+  cord.scale.y = CORD_L;
+  cord.position.y = CEIL_H - CORD_L/2 - 0.1;
+  const shadeY = CEIL_H - CORD_L - 0.12;
+  const neck = new THREE.Mesh(PENDANT_GEO.neck, MAT.cord);
+  neck.position.y = shadeY + 0.10;
+  const shade = new THREE.Mesh(PENDANT_GEO.shade, MAT.glass);
+  shade.position.y = shadeY;
+  const bulb = new THREE.Mesh(PENDANT_GEO.bulb, PENDANT_BULB_MAT);
+  bulb.position.y = shadeY - 0.06;
+  lampG.add(cap, cord, neck, shade, bulb);
+  if (withLight){
+    // 收斂的暖光：小 distance + decay 2，不染黃天花板
+    const glow = new THREE.PointLight(0xFFDFAE, 1.25, 4.6, 2);
+    glow.position.y = shadeY - 0.32;
+    lampG.add(glow);
+  }
+  return lampG;
 }
 
 function buildSegment(index, seed){
@@ -969,11 +1217,8 @@ function buildSegment(index, seed){
   floor.receiveShadow = true;
   g.add(floor);
 
-  // 天花板
-  const ceil = new THREE.Mesh(new THREE.PlaneGeometry(HALL_W+3, SEG_LEN), MAT.ceil);
-  ceil.rotation.x = Math.PI/2;
-  ceil.position.set(0, CEIL_H, -SEG_LEN/2);
-  g.add(ceil);
+  // 天花板：白色格狀（coffered）
+  addCofferedCeiling(g);
 
   // 兩側牆
   for (const side of [-1,1]){
@@ -986,6 +1231,20 @@ function buildSegment(index, seed){
     const skirt = new THREE.Mesh(new THREE.BoxGeometry(0.08, 0.35, SEG_LEN), MAT.trim);
     skirt.position.set(side*(X-0.03), 0.175, -SEG_LEN/2);
     g.add(skirt);
+  }
+
+  // 右牆高窗（clerestory）：書櫃上方透光，平衡右側亮度
+  {
+    const hw = new THREE.Group();
+    const hpane = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 1.35), MAT.pane);
+    hpane.rotation.y = -Math.PI/2;
+    hw.add(hpane);
+    const mkh = (w,h,y,z)=>{ const m = new THREE.Mesh(new THREE.BoxGeometry(0.1,h,w), MAT.frame); m.position.set(-0.02,y,z); hw.add(m); };
+    mkh(2.5, 0.1,  0.72, 0); mkh(2.5, 0.1, -0.72, 0);
+    mkh(0.1, 1.5, 0,  1.25); mkh(0.1, 1.5, 0, -1.25);
+    mkh(0.07, 1.4, 0, 0);
+    hw.position.set(X-0.02, 4.85, -7.5);
+    g.add(hw);
   }
 
   // 拱門 + 柱（段落交界）
@@ -1023,21 +1282,39 @@ function buildSegment(index, seed){
     g.add(win);
   }
 
-  // 書櫃：右牆 ×2、左牆窗間 ×1
+  // 書櫃：沿兩側牆連續排列（窗戶與柱子留空），偶爾一組垂直於牆形成小凹間
   const shelfAt = (x, z, rotY)=>{
     const s = shadowify(TPL.bookcase.clone(true));
     s.position.set(x, 0, z); s.rotation.y = rotY;
     g.add(s);
   };
-  shelfAt( X-0.65, -3.5 - rand()*1.5, -Math.PI/2);
-  shelfAt( X-0.65, -9.5 - rand()*2,   -Math.PI/2);
-  shelfAt(-X+0.65, -7.6, Math.PI/2);
+  const step = BOOK_W + 0.04;   // 幾乎無縫，書牆連綿
+  // 右牆：整排書牆（偶爾留一格空隙透氣）
+  for (let z = -1.0 - BOOK_W/2; z > -SEG_LEN + 0.8 + BOOK_W/2; z -= step){
+    if (rand() < 0.88) shelfAt(X-0.62, z, -Math.PI/2);
+  }
+  // 左牆：窗間書牆（避開兩扇窗）
+  for (let z = -1.0 - BOOK_W/2; z > -SEG_LEN + 0.8 + BOOK_W/2; z -= step){
+    const nearWin = Math.abs(z + 4.2) < 1.4 + BOOK_W/2 || Math.abs(z + 11) < 1.4 + BOOK_W/2;
+    if (!nearWin && rand() < 0.9) shelfAt(-X+0.62, z, Math.PI/2);
+  }
+  // 垂直於牆的凹間書櫃（避開座位帶）
+  let alcoveLeft = false;
+  if (rand() < 0.55){
+    const side = rand() < 0.5 ? -1 : 1;
+    if (side < 0) alcoveLeft = true;
+    const az = side < 0 ? -13.6 : -2.3;
+    shelfAt(side*(X - 1.1 - BOOK_W/2), az, 0);   // 面向 +z，走近時看見書
+  }
 
-  // 讀書座位：左右交錯
+  // 讀書座位：每段 3~4 組，左右交錯
   const spots = [];
-  if (rand() < 0.9) spots.push({ x:-X+2.6, z:-4.2 - rand()*1.2, r: Math.PI/2 + (rand()-0.5)*0.5 });
-  if (rand() < 0.9) spots.push({ x: X-2.6, z:-10 - rand()*2.5,  r:-Math.PI/2 + (rand()-0.5)*0.5 });
-  if (rand() < 0.45) spots.push({ x: X-2.8, z:-4.5 - rand()*1.5, r:-Math.PI/2 + (rand()-0.5)*0.4 });
+  if (rand() < 0.95) spots.push({ x:-X+2.6, z:-3.9 - rand()*1.2, r: Math.PI/2 + (rand()-0.5)*0.5 });
+  if (rand() < 0.9)  spots.push({ x: X-2.7, z:-5.4 - rand()*1.4, r:-Math.PI/2 + (rand()-0.5)*0.5 });
+  if (rand() < 0.9)  spots.push({ x:-X+2.7, z:-8.6 - rand()*1.4, r: Math.PI/2 + (rand()-0.5)*0.4 });
+  if (rand() < 0.9)  spots.push({ x: X-2.6, z:-11.4 - rand()*1.6, r:-Math.PI/2 + (rand()-0.5)*0.5 });
+  if (!alcoveLeft && rand() < 0.4)
+    spots.push({ x:-X+2.8, z:-13.2 - rand()*0.8, r: Math.PI/2 + (rand()-0.5)*0.4 });
   for (const sp of spots){
     const spot = makeStudySpot(rand);
     spot.position.set(sp.x, 0, sp.z);
@@ -1045,41 +1322,45 @@ function buildSegment(index, seed){
     g.add(spot);
   }
 
-  // 植物（柱邊）
-  if (rand() < 0.75){
+  // 植物：柱邊 + 牆邊，大小有變化
+  const plantAt = (x, z, sc)=>{
     const p = shadowify(TPL.plant.clone(true));
-    const side = rand() < 0.5 ? -1 : 1;
-    p.position.set(side*(X-1.15), 0, -0.9);
+    p.position.set(x, 0, z);
     p.rotation.y = rand()*Math.PI*2;
+    p.scale.multiplyScalar(sc);
     g.add(p);
+  };
+  for (const side of [-1,1]) if (rand() < 0.8) plantAt(side*(X-1.25), -0.95, 0.8 + rand()*0.55);
+  if (rand() < 0.7) plantAt(-X+1.45, -5.7 - rand()*0.7, 0.6 + rand()*0.4);   // 左窗邊小盆栽
+  if (rand() < 0.6) plantAt( X-1.6, -8.5 - rand()*1.4, 0.65 + rand()*0.45);
+  if (rand() < 0.5) plantAt( X-1.5, -14.2 - rand()*0.6, 0.75 + rand()*0.5);
+  if (rand() < 0.5) plantAt(-X+1.45, -12.3 - rand()*0.5, 0.55 + rand()*0.4); // 左窗另一側
+
+  // 吊燈：沿走道等距成列，每段 2 盞（各 1 個收斂的暖 PointLight）
+  for (const lz of [-SEG_LEN*0.25, -SEG_LEN*0.75]){
+    const lamp = makePendantLamp(true);
+    lamp.position.z = lz;
+    g.add(lamp);
   }
 
-  // 吊燈（燈罩 + 暖光）
-  const lampG = new THREE.Group();
-  const cord = new THREE.Mesh(new THREE.CylinderGeometry(0.015,0.015,1.5), MAT.cord);
-  cord.position.y = CEIL_H - 0.75;
-  const shade = new THREE.Mesh(new THREE.ConeGeometry(0.34, 0.3, 20, 1, true), MAT.shade);
-  shade.position.y = CEIL_H - 1.55;
-  const bulb = new THREE.Mesh(new THREE.SphereGeometry(0.07), new THREE.MeshBasicMaterial({ color:0xFFE8C0 }));
-  bulb.position.y = CEIL_H - 1.62;
-  const glow = new THREE.PointLight(0xFFE6C2, 3.2, 6.5, 2);
-  glow.position.y = CEIL_H - 1.7;
-  lampG.add(cord, shade, bulb, glow);
-  lampG.position.z = -SEG_LEN/2;
-  g.add(lampG);
+  // 左窗光束
+  addLightShafts(g, X);
 
-  // 右牆掛畫
-  if (rand() < 0.6){
+  // 掛畫：兩側牆高處多幅（書櫃上方），共用 3 款柔和畫作
+  const artAt = (side, z, w, h)=>{
     const art = new THREE.Group();
-    const mat = new THREE.MeshBasicMaterial({ color: [0xD8E4DC,0xE8DCC8,0xD8DCE8][Math.floor(rand()*3)] });
-    const canvasM = new THREE.Mesh(new THREE.PlaneGeometry(0.9, 1.15), mat);
-    canvasM.rotation.y = -Math.PI/2;
-    const frame = new THREE.Mesh(new THREE.BoxGeometry(0.05, 1.3, 1.05), MAT.frame);
+    const mat = ART_MATS[Math.floor(rand()*ART_MATS.length)];
+    const canvasM = new THREE.Mesh(new THREE.PlaneGeometry(w, h), mat);
+    canvasM.rotation.y = side>0 ? -Math.PI/2 : Math.PI/2;
+    canvasM.position.x = side * -0.035;
+    const frame = new THREE.Mesh(new THREE.BoxGeometry(0.05, h+0.16, w+0.16), MAT.frame);
     art.add(frame, canvasM);
-    canvasM.position.x = -0.035;
-    art.position.set(X-0.05, 3.1, -13.5);
+    art.position.set(side*(X-0.05), 3.55 + rand()*0.35, z);
     g.add(art);
-  }
+  };
+  if (rand() < 0.85) artAt( 1, -3.2 - rand()*2,  0.9, 1.1);
+  if (rand() < 0.85) artAt( 1, -11.8 - rand()*2, 1.2, 0.85);
+  if (rand() < 0.7)  artAt(-1, -7.4 - rand()*1.0, 0.85, 1.05);   // 左牆窗間
 
   g.position.z = -index * SEG_LEN;
   g.userData.recycles = 0;
@@ -1093,10 +1374,11 @@ function makeWalker(){}
 /* ── 塵埃微粒（光裡的漂浮感） ── */
 let motes = null;
 function makeMotes(){
-  const N = 140, pos = new Float32Array(N*3);
+  const N = 170, pos = new Float32Array(N*3);
   for (let i=0;i<N;i++){
-    pos[i*3]   = (Math.random()-0.5)*9;
-    pos[i*3+1] = 0.4 + Math.random()*4.6;
+    // 靠窗側（-x）略多：約 6 成聚在左半，像陽光裡的浮塵
+    pos[i*3]   = Math.random() < 0.6 ? (-4.8 + Math.random()*4.3) : (Math.random()-0.5)*9;
+    pos[i*3+1] = 0.5 + Math.random()*4.3;
     pos[i*3+2] = 6 - Math.random()*50;
   }
   const geo = new THREE.BufferGeometry();
@@ -1104,11 +1386,13 @@ function makeMotes(){
   const c = document.createElement('canvas'); c.width=c.height=32;
   const g = c.getContext('2d');
   const gr = g.createRadialGradient(16,16,0,16,16,16);
-  gr.addColorStop(0,'rgba(255,250,235,.9)'); gr.addColorStop(1,'rgba(255,250,235,0)');
+  gr.addColorStop(0,'rgba(255,250,235,.7)');
+  gr.addColorStop(0.45,'rgba(255,248,232,.22)');
+  gr.addColorStop(1,'rgba(255,250,235,0)');
   g.fillStyle = gr; g.fillRect(0,0,32,32);
   const tex = new THREE.CanvasTexture(c);
   motes = new THREE.Points(geo, new THREE.PointsMaterial({
-    map:tex, size:0.09, transparent:true, opacity:.55, depthWrite:false,
+    map:tex, size:0.05, transparent:true, opacity:.42, depthWrite:false,
     blending:THREE.AdditiveBlending, sizeAttenuation:true,
   }));
   scene.add(motes);
@@ -1141,6 +1425,7 @@ Promise.all([
     lamp:     shadowify(normalize(lamp.scene,     0.42)),
     plant:    shadowify(normalize(plant.scene,    1.25)),
   };
+  BOOK_W = new THREE.Box3().setFromObject(TPL.bookcase).getSize(new THREE.Vector3()).x;
   for (let i=0;i<NUM_SEG;i++) segments.push(buildSegment(i, i+7));
   makeWalker();
   makeMotes();
@@ -1176,11 +1461,11 @@ function animate(){
     }
     p.needsUpdate = true;
   }
-  // 第一視角：緩慢前行的步伐微晃 + 滑鼠環顧
-  const drift = Math.sin(t*0.16)*0.5;                 // 沿走道輕微左右漂移
-  camera.position.x += ((drift + mouseX*0.5) - camera.position.x)*0.04;
-  camera.position.y += ((1.58 + Math.sin(t*1.9)*0.022 - mouseY*0.18) - camera.position.y)*0.08;
-  camera.lookAt(drift*0.4 + mouseX*2.4, 1.5 - mouseY*0.9, -10);
+  // 第一視角：緩慢前行的步伐微晃 + 滑鼠環顧（幅度收小，走起來不暈）
+  const drift = Math.sin(t*0.16)*0.45;                // 沿走道輕微左右漂移
+  camera.position.x += ((drift + mouseX*0.45) - camera.position.x)*0.04;
+  camera.position.y += ((1.55 + Math.sin(t*2.1)*0.013 - mouseY*0.14) - camera.position.y)*0.07;
+  camera.lookAt(drift*0.4 + mouseX*2.0, 1.52 - mouseY*0.75, -10);
 
   // chibi 動畫：走路擺腿甩手，坐著呼吸點頭
   for (const w of walkers){
