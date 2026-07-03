@@ -19,6 +19,8 @@ test('room v2 target plate is a moving layered scene, not a dead pasted mockup',
 test('room v2 has quiet companion and study-time flower layers', () => {
   assert.match(html, /id="soft-avatar"/);
   assert.match(html, /class="soft-avatar"/);
+  assert.match(html, /assets\/room-v2-companion-back\.png/);
+  assert.doesNotMatch(html, /\.avatar-head|\.avatar-body|\.avatar-leg|\.avatar-arm/);
   assert.match(html, /id="study-flower"/);
   assert.match(html, /data-stage="0"/);
   assert.match(html, /function\s+updateStudyFlower/);

@@ -109,61 +109,23 @@ body.painterly-plate-mode #stage canvas{
   transform:translate3d(calc(var(--plate-x) * -.18), calc(var(--light-y) * -.45), 0);
 }
 .soft-avatar{
-  position:absolute;left:50%;bottom:7.5%;z-index:4;width:78px;height:138px;
+  position:absolute;left:50%;bottom:6.5%;z-index:4;width:92px;height:218px;
   transform:translateX(-50%);
   transform-origin:50% 100%;
-  animation:avatar-walk-bob 1.25s ease-in-out infinite;
-  filter:drop-shadow(0 18px 12px rgba(96,70,35,.20));
+  animation:avatar-soft-walk 1.55s ease-in-out infinite;
 }
-.soft-avatar .avatar-shadow{
-  position:absolute;left:50%;bottom:0;width:56px;height:15px;border-radius:50%;
-  transform:translateX(-50%);background:rgba(92,70,44,.20);filter:blur(5px);
+.soft-avatar::after{
+  content:'';position:absolute;left:50%;bottom:4px;width:62px;height:16px;border-radius:50%;
+  transform:translateX(-50%);background:rgba(92,70,44,.16);filter:blur(7px);
 }
-.soft-avatar .avatar-head{
-  position:absolute;left:50%;top:8px;width:50px;height:52px;border-radius:50%;
-  transform:translateX(-50%);
-  background:linear-gradient(150deg,#7A5638 0 48%,#5E3D25 49% 100%);
-  box-shadow:inset 10px 8px 0 rgba(255,255,255,.10);
+.soft-avatar img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+  filter:drop-shadow(0 18px 14px rgba(96,70,35,.16));
 }
-.soft-avatar .avatar-neck{
-  position:absolute;left:50%;top:56px;width:18px;height:16px;border-radius:8px;
-  transform:translateX(-50%);background:#E9C39E;
+@keyframes avatar-soft-walk{
+  0%,100%{translate:0 0;rotate:-.5deg;scale:1}
+  50%{translate:0 -4px;rotate:.5deg;scale:1.008}
 }
-.soft-avatar .avatar-body{
-  position:absolute;left:50%;top:62px;width:54px;height:50px;border-radius:25px 25px 18px 18px;
-  transform:translateX(-50%);
-  background:linear-gradient(180deg,#F1E8D6,#DDCFB9);
-}
-.soft-avatar .avatar-backpack{
-  position:absolute;left:50%;top:67px;width:36px;height:47px;border-radius:13px 13px 10px 10px;
-  transform:translateX(-50%);
-  background:linear-gradient(180deg,#86AAC4,#668DAA);
-  box-shadow:inset 0 6px 0 rgba(255,255,255,.18),0 1px 0 rgba(70,90,110,.15);
-}
-.soft-avatar .avatar-arm{
-  position:absolute;top:72px;width:13px;height:42px;border-radius:999px;background:#EEE3CE;
-  transform-origin:50% 8px;
-}
-.soft-avatar .avatar-arm.left{left:5px;animation:avatar-arm-left 1.25s ease-in-out infinite;}
-.soft-avatar .avatar-arm.right{right:5px;animation:avatar-arm-right 1.25s ease-in-out infinite;}
-.soft-avatar .avatar-leg{
-  position:absolute;top:108px;width:15px;height:28px;border-radius:999px;background:#9E8567;
-  transform-origin:50% 0;
-}
-.soft-avatar .avatar-leg.left{left:23px;animation:avatar-leg-left 1.25s ease-in-out infinite;}
-.soft-avatar .avatar-leg.right{right:23px;animation:avatar-leg-right 1.25s ease-in-out infinite;}
-.soft-avatar .avatar-shoe{
-  position:absolute;top:132px;width:21px;height:8px;border-radius:8px;background:#EDE9DE;
-}
-.soft-avatar .avatar-shoe.left{left:18px;animation:avatar-shoe-left 1.25s ease-in-out infinite;}
-.soft-avatar .avatar-shoe.right{right:18px;animation:avatar-shoe-right 1.25s ease-in-out infinite;}
-@keyframes avatar-walk-bob{0%,100%{translate:0 0;scale:1}.5%{scale:1}50%{translate:0 -4px;scale:1.012}}
-@keyframes avatar-arm-left{0%,100%{rotate:10deg}50%{rotate:-8deg}}
-@keyframes avatar-arm-right{0%,100%{rotate:-10deg}50%{rotate:8deg}}
-@keyframes avatar-leg-left{0%,100%{rotate:-7deg}50%{rotate:9deg}}
-@keyframes avatar-leg-right{0%,100%{rotate:7deg}50%{rotate:-9deg}}
-@keyframes avatar-shoe-left{0%,100%{translate:-1px 0}50%{translate:3px -1px}}
-@keyframes avatar-shoe-right{0%,100%{translate:1px -1px}50%{translate:-3px 0}}
 
 .study-flower{
   position:absolute;left:12.4%;bottom:27.5%;z-index:4;width:62px;height:86px;
@@ -389,7 +351,7 @@ body.locked #side,body.locked #hint,body.locked #mob-bar,body.locked #mob-pom{op
 #mob-pom,#mob-bar,#sheet{display:none;}
 
 @media (max-width:760px){
-  .soft-avatar{width:92px;height:162px;bottom:17.5%;scale:.86;}
+  .soft-avatar{width:92px;height:220px;bottom:14.5%;scale:.88;}
   .study-flower{left:7.5%;bottom:33%;scale:.82;}
   #side,#hint{display:none;}
   #topbar{top:10px;left:10px;right:10px;}
@@ -481,17 +443,7 @@ body.locked #side,body.locked #hint,body.locked #mob-bar,body.locked #mob-pom{op
     <div class="pot"></div>
   </div>
   <div class="soft-avatar" id="soft-avatar">
-    <div class="avatar-shadow"></div>
-    <div class="avatar-leg left"></div>
-    <div class="avatar-leg right"></div>
-    <div class="avatar-shoe left"></div>
-    <div class="avatar-shoe right"></div>
-    <div class="avatar-arm left"></div>
-    <div class="avatar-arm right"></div>
-    <div class="avatar-body"></div>
-    <div class="avatar-backpack"></div>
-    <div class="avatar-neck"></div>
-    <div class="avatar-head"></div>
+    <img src="assets/room-v2-companion-back.png" alt=""/>
   </div>
   <div class="haze"></div>
   <div class="grain"></div>
