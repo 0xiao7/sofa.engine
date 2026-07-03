@@ -30,3 +30,14 @@ test('room v2 library has seated study companion and study-time flower layers', 
   assert.match(html, /USERS\[0\]\?\.min/);
   assert.doesNotMatch(html, /weekPts|rank|leaderboard|score/i);
 });
+
+test('room v2 separates library reading from island walking', () => {
+  assert.match(html, /data-scene="library"/);
+  assert.match(html, /id="btn-scene"/);
+  assert.match(html, /function\s+setSceneMode/);
+  assert.match(html, /room-v2-target-island-empty\.png/);
+  assert.match(html, /id="island-walker"/);
+  assert.match(html, /assets\/room-v2-companion-back\.png/);
+  assert.match(html, /body\[data-scene="library"\][\s\S]*#island-walker\{display:none/);
+  assert.match(html, /body\[data-scene="island"\][\s\S]*#seated-reader\{display:none/);
+});

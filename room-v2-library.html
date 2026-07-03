@@ -66,14 +66,27 @@ body.painterly-plate-mode #stage canvas{
 #painterly-scene .haze,
 #painterly-scene .grain{position:absolute;inset:-4%;}
 #painterly-scene .plate{
-  background-image:url('previews/room-v2-target-library-empty.png');
   background-size:cover;
   background-position:center center;
   transform:translate3d(var(--plate-x),var(--plate-y),0) scale(var(--breath));
   transform-origin:50% 54%;
-  transition:filter .4s ease;
+  transition:opacity .65s ease, filter .4s ease;
   filter:saturate(.98) brightness(1.02) contrast(.98);
 }
+#painterly-scene .plate.library{
+  background-image:url('previews/room-v2-target-library-empty.png');
+  opacity:1;
+}
+#painterly-scene .plate.island{
+  background-image:url('previews/room-v2-target-island-empty.png');
+  opacity:0;
+}
+body[data-scene="island"] #painterly-scene .plate.library{opacity:0;}
+body[data-scene="island"] #painterly-scene .plate.island{opacity:1;}
+body[data-scene="island"] #painterly-scene .floor{opacity:.16;clip-path:none;}
+body[data-scene="library"] #island-walker{display:none}
+body[data-scene="island"] #seated-reader{display:none}
+body[data-scene="island"] #study-flower{display:none}
 #painterly-scene .light{
   opacity:.50;
   mix-blend-mode:screen;
@@ -122,9 +135,27 @@ body.painterly-plate-mode #stage canvas{
   position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
   filter:drop-shadow(0 18px 18px rgba(96,70,35,.13));
 }
+.island-walker{
+  position:absolute;left:50%;bottom:13.5%;z-index:4;width:104px;height:230px;
+  transform:translateX(-50%);
+  transform-origin:50% 100%;
+  animation:island-walker-breathe 1.8s ease-in-out infinite;
+}
+.island-walker::after{
+  content:'';position:absolute;left:50%;bottom:12px;width:76px;height:20px;border-radius:50%;
+  transform:translateX(-50%);background:rgba(70,92,54,.14);filter:blur(8px);
+}
+.island-walker img{
+  position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+  filter:drop-shadow(0 15px 14px rgba(62,78,48,.13));
+}
 @keyframes reader-soft-breathe{
   0%,100%{translate:0 0;scale:1}
   50%{translate:0 -1.5px;scale:1.004}
+}
+@keyframes island-walker-breathe{
+  0%,100%{translate:0 0;scale:1}
+  50%{translate:0 -3px;scale:1.012}
 }
 
 .study-flower{
@@ -352,11 +383,13 @@ body.locked #side,body.locked #hint,body.locked #mob-bar,body.locked #mob-pom{op
 
 @media (max-width:760px){
   .seated-reader{left:-8%;bottom:24%;width:205px;height:232px;opacity:.92;}
+  .island-walker{bottom:20%;width:86px;height:190px;}
   .study-flower{left:7.5%;bottom:34%;scale:.74;}
   #side,#hint{display:none;}
   #topbar{top:10px;left:10px;right:10px;}
+  .brand{gap:7px;font-size:.9rem;white-space:nowrap;}
   .brand .sep,.brand .who{display:none;}
-  #btn-lock span,#btn-leave span{display:none;}
+  #count-pill span,#btn-scene span,#btn-lock span,#btn-leave span{display:none;}
   .pill-btn{padding:8px 11px;}
 
   /* 浮動番茄鐘 pill */
@@ -428,11 +461,12 @@ body.locked #side,body.locked #hint,body.locked #mob-bar,body.locked #mob-pom{op
 }
 </style>
 </head>
-<body class="painterly-plate-mode">
+<body class="painterly-plate-mode" data-scene="library">
 
 <div id="stage"></div>
 <div id="painterly-scene" aria-hidden="true">
-  <div class="plate"></div>
+  <div class="plate library"></div>
+  <div class="plate island"></div>
   <div class="light"></div>
   <div class="floor"></div>
   <div class="study-flower" id="study-flower" data-stage="0">
@@ -444,6 +478,9 @@ body.locked #side,body.locked #hint,body.locked #mob-bar,body.locked #mob-pom{op
   </div>
   <div class="seated-reader" id="seated-reader">
     <img src="assets/room-v2-seated-reader-girl.png" alt=""/>
+  </div>
+  <div class="island-walker" id="island-walker">
+    <img src="assets/room-v2-companion-back.png" alt=""/>
   </div>
   <div class="haze"></div>
   <div class="grain"></div>
@@ -470,6 +507,10 @@ body.locked #side,body.locked #hint,body.locked #mob-bar,body.locked #mob-pom{op
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="8" r="3.4"/><path d="M3.5 19c.6-3.2 2.9-5 5.5-5s4.9 1.8 5.5 5"/><circle cx="16.5" cy="9" r="2.6"/><path d="M16 14.2c2.3.2 4 1.8 4.5 4.3"/></svg>
       <span id="count-txt">20 人在場</span>
     </div>
+    <button class="pill-btn" id="btn-scene" aria-label="切換到小島">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17c2.2-2.4 4.5-3.6 7-3.6s4.8 1.2 7 3.6"/><path d="M8 13c.6-3.8 2.2-6 4-6s3.4 2.2 4 6"/><path d="M12 7V4"/><path d="M9 4h6"/></svg>
+      <span id="scene-label">圖書館</span>
+    </button>
     <button class="pill-btn" id="btn-lock">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
       <span>鎖定</span>
@@ -811,7 +852,23 @@ document.querySelectorAll('.mob-btn').forEach(b=>b.addEventListener('click',()=>
   else openSheet(b.dataset.pane);
 }));
 
-/* ── 鎖定 = 低 UI 專注模式；離開 = 預覽提示 ── */
+/* ── 場景 = 圖書館坐讀 / 小島散步；鎖定 = 低 UI 專注模式 ── */
+const SCENE_KEY = 'sofa-room-v2-scene';
+function setSceneMode(mode, announce=false){
+  const next = mode === 'island' ? 'island' : 'library';
+  document.body.dataset.scene = next;
+  try { localStorage.setItem(SCENE_KEY, next); } catch {}
+  const label = document.getElementById('scene-label');
+  if (label) label.textContent = next === 'island' ? '小島' : '圖書館';
+  const btn = document.getElementById('btn-scene');
+  if (btn) btn.setAttribute('aria-label', next === 'island' ? '切換到圖書館' : '切換到小島');
+  if (announce) showBanner('場景', next === 'island' ? '小島散步模式' : '圖書館陪讀模式');
+}
+document.getElementById('btn-scene').addEventListener('click',()=>{
+  setSceneMode(document.body.dataset.scene === 'island' ? 'library' : 'island');
+});
+try { setSceneMode(localStorage.getItem(SCENE_KEY) || 'library'); } catch { setSceneMode('library'); }
+
 document.getElementById('btn-lock').addEventListener('click',function(){
   document.body.classList.toggle('locked');
   const on = document.body.classList.contains('locked');
