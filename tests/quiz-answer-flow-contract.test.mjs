@@ -51,8 +51,8 @@ test('post-answer retention prompt is compact and only shown for free learners',
   assert.match(actionRow, /想保留這題和弱點/);
   assert.match(actionRow, /data-track-event="post_answer_login_click"/);
   assert.match(actionRow, /data-track-event="post_answer_pricing_click"/);
-  assert.match(actionRow, /href="login\.html"/);
-  assert.match(actionRow, /href="pricing\.html"/);
+  assert.match(actionRow, /href="login\.html\?utm_source=web_quiz&utm_medium=post_answer&utm_campaign=quiz_post_answer_login"/);
+  assert.match(actionRow, /href="pricing\.html\?utm_source=web_quiz&utm_medium=post_answer&utm_campaign=quiz_post_answer_pricing"/);
   assert.match(active, /function updatePostAnswerRetention\(\)/);
   assert.match(active, /retention\.style\.display = isFree \? 'flex' : 'none'/);
   assert.match(active, /updatePostAnswerRetention\(\)/);

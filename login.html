@@ -998,6 +998,9 @@ serialEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); })
     }
     localStorage.setItem('sofa_uid', data.uid);
     if (data.token) localStorage.setItem('sofa_token', data.token);
+    if (typeof window.sofaTrack === 'function') {
+      window.sofaTrack('serial_verify_success', { method: 'magic', plan: 'existing_serial' });
+    }
     markStudyLocalProgressForLogin();
     // 清掉 URL 上的 token 避免被分享 / 留在瀏覽紀錄
     history.replaceState({}, '', location.pathname);
@@ -1048,6 +1051,9 @@ async function doLogin() {
     if (!res.ok) { showErr(data.detail || '序號無效，請確認後再試'); return; }
     localStorage.setItem('sofa_uid', data.uid);
     if (data.token) localStorage.setItem('sofa_token', data.token);
+    if (typeof window.sofaTrack === 'function') {
+      window.sofaTrack('serial_verify_success', { method: 'serial', plan: 'existing_serial' });
+    }
     markStudyLocalProgressForLogin();
     window.location.href = 'dashboard.html';
   } catch {
