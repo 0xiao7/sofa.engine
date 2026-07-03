@@ -11,7 +11,9 @@
     ['payment_return_success', 'payment_return_success'],
     ['expire_feedback_click', 'expiry_feedback_start'],
     ['expire_share_click', 'share_extension_start'],
-    ['expire_renew_click', 'pricing_select_plan']
+    ['expire_renew_click', 'pricing_select_plan'],
+    ['post_answer_pricing_click', 'pricing_select_plan'],
+    ['post_answer_login_click', 'pricing_select_plan']
   ]);
   const CARRY_PATHS = new Set([
     '/pricing.html','/checkout.html','/login.html','/quiz.html','/fill.html',

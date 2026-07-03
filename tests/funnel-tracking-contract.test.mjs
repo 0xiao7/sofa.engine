@@ -47,6 +47,15 @@ test('server-side funnel forwarding is limited to revenue and recovery events', 
   assert.doesNotMatch(analytics, /SERVER_EVENT_MAP[\s\S]*answer_submitted/);
 });
 
+test('post-answer retention clicks are measurable without storing answer content', () => {
+  assert.match(analytics, /\['post_answer_pricing_click', 'pricing_select_plan'\]/);
+  assert.match(analytics, /\['post_answer_login_click', 'pricing_select_plan'\]/);
+  assert.match(quiz, /data-track-event="post_answer_pricing_click"/);
+  assert.match(quiz, /data-track-label="quiz_post_answer_pricing"/);
+  assert.match(quiz, /data-track-event="post_answer_login_click"/);
+  assert.match(quiz, /data-track-label="quiz_post_answer_login"/);
+});
+
 test('pricing and checkout expose plan selection, checkout start, and payment return signals', () => {
   assert.match(pricing, /pricing_select_plan/);
   assert.match(pricing, /data-plan="月費"/);

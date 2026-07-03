@@ -407,6 +407,7 @@
     }
     #quiz-answer-actions.show{display:grid}
     #quiz-answer-actions #quiz-citation{grid-column:1 / -1;max-width:100%;min-width:0}
+    #quiz-answer-actions #post-answer-retention{grid-column:1 / -1}
     #quiz-answer-actions button{width:100%;min-width:0;padding:10px 9px;font-size:13px}
     #quiz-answer-actions #btnNext,#quiz-answer-actions #btnFlag{min-width:0}
   }
@@ -445,6 +446,44 @@
   #quiz-citation.show{display:block;}
   #quiz-citation a{color:var(--peach);text-decoration:none;}
   @keyframes fadeInUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+
+  #post-answer-retention {
+    display: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid rgba(231,187,167,.22);
+    border-radius: 16px;
+    background: rgba(26,46,61,.42);
+    color: rgba(245,240,234,.7);
+    font-size: 12px;
+  }
+  #post-answer-retention b {
+    color: var(--peach-2);
+    font-weight: 700;
+  }
+  #post-answer-retention a {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 13px;
+    border: 1px solid rgba(231,187,167,.32);
+    border-radius: 14px;
+    color: var(--peach);
+    text-decoration: none;
+    font-size: 12px;
+    line-height: 1.2;
+  }
+  #post-answer-retention a.primary {
+    background: var(--peach);
+    color: var(--navy);
+    border-color: var(--peach);
+    font-weight: 700;
+  }
 
   /* ── Wave 68: 查看法條按鈕 ── */
   #quiz-answer-actions {
@@ -871,6 +910,11 @@
         <div id="streak-badge"></div>
         <div id="quiz-answer-actions">
           <div id="quiz-citation"></div>
+          <div id="post-answer-retention" aria-live="polite">
+            <span><b>想保留這題和弱點？</b></span>
+            <a class="primary" href="login.html" data-track-event="post_answer_login_click" data-track-label="quiz_post_answer_login" data-plan="retain">輸入序號</a>
+            <a href="pricing.html" data-track-event="post_answer_pricing_click" data-track-label="quiz_post_answer_pricing" data-plan="post_answer">查看方案</a>
+          </div>
           <button id="view-article-btn" onclick="_openArticleReader()">查看法條</button>
           <button id="view-weakness-btn" onclick="_openWeakness()">看弱點分析</button>
           <button class="btn btn-ghost" id="btnFlag">⚑ 標記</button>
@@ -2640,6 +2684,7 @@ function _feedbackAnim(btn, isCorrect, elapsedSec){
 function showQuizAnswerActions(){
   const actions = document.getElementById('quiz-answer-actions');
   if(actions) actions.classList.add('show');
+  updatePostAnswerRetention();
   document.getElementById('view-article-btn').style.display = 'inline-flex';
   document.getElementById('view-weakness-btn').style.display = 'inline-flex';
   document.getElementById('btnFlag').style.display = 'inline-flex';
@@ -2647,6 +2692,11 @@ function showQuizAnswerActions(){
   if(window.matchMedia && window.matchMedia('(max-width:760px)').matches && actions){
     requestAnimationFrame(()=>actions.scrollIntoView({block:'center', behavior:'auto'}));
   }
+}
+function updatePostAnswerRetention(){
+  const retention = document.getElementById('post-answer-retention');
+  if(!retention) return;
+  retention.style.display = isFree ? 'flex' : 'none';
 }
 
 function _clearQuizReturnState(){
