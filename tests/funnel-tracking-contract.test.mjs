@@ -166,13 +166,19 @@ test('analytics decorator supplies a safe internal fallback for naked payment li
 
 test('checkout copy explains the payment handoff without burying the primary action', () => {
   assert.match(checkout, /回來繼續做題/);
-  assert.match(checkout, /付款後流程/);
-  assert.match(checkout, /前往綠界付款/);
-  assert.match(checkout, /序號通常 5 分鐘內寄到信箱/);
+  assert.match(checkout, /看月訂閱 NT\$380/);
+  assert.match(checkout, /class="plan-switch-link"/);
+  assert.match(checkout, /class="pay-handoff compact"/);
+  assert.match(checkout, /綠界付款，不儲存信用卡；序號通常 5 分鐘內寄到信箱。/);
+  assert.doesNotMatch(checkout, /<div><b>01 ECPAY<\/b>/);
   assert.match(checkout, /class="ck-quote"/);
   assert.match(checkout, /class="ck-proof-strip"/);
   assert.match(checkout, /不用重填資料/);
   assert.doesNotMatch(checkout, /class="incl"/, 'checkout should not repeat landing-page feature inventory after users decided to pay');
+  assert.ok(
+    checkout.indexOf('class="plan-switch-link"') < checkout.indexOf('class="email-card"'),
+    'secondary monthly option should be visible before the email field'
+  );
   assert.ok(
     checkout.indexOf('id="ck-submit"') < checkout.indexOf('id="plans"'),
     'primary payment button should appear before secondary plan switching'

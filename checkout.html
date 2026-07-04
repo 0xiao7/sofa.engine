@@ -410,6 +410,14 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     font-family:var(--serif);font-size:15px;color:var(--cream);font-weight:500;
     display:block;margin-top:4px;letter-spacing:.005em;
   }
+  .plan-switch-link{
+    display:inline-flex;align-items:center;gap:6px;
+    margin-top:7px;
+    font-family:var(--mono);font-size:10.5px;font-weight:600;
+    letter-spacing:.08em;color:var(--peach);
+    opacity:.88;transition:.18s;
+  }
+  .plan-switch-link:hover{opacity:1;color:var(--cream)}
   .summary .tot{text-align:right}
   .summary .tot .tlab{
     font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;
@@ -444,6 +452,23 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     gap:10px;
     margin:14px 0 16px;
   }
+  .pay-handoff.compact{
+    display:block;
+    margin:14px 0 10px;
+    padding:10px 12px;
+    border:1px solid var(--line);
+    background:rgba(255,255,255,.03);
+    border-radius:3px;
+    font-size:12.5px;line-height:1.6;
+    color:rgba(245,240,234,.7);
+  }
+  .pay-handoff.compact b{
+    display:inline;
+    margin:0 6px 0 0;
+    font-family:var(--sans);font-size:12.5px;letter-spacing:0;
+    color:var(--cream);text-transform:none;
+  }
+  .pay-handoff.compact span{display:inline;color:inherit}
   .pay-handoff div{
     border:1px solid var(--line);
     background:rgba(255,255,255,.03);
@@ -716,6 +741,7 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
           <div>
             <div class="lab">本次購買</div>
             <span class="planName" id="ck-sum-plan">到考日 · 用到考上</span>
+            <a class="plan-switch-link" href="#plans">想先試 30 天？看月訂閱 NT$380</a>
           </div>
           <div class="tot">
             <div class="tlab">應付金額</div>
@@ -737,10 +763,8 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
           <div class="field-hint" id="ck-email-hint">請確認信箱正確，序號僅寄送一次。</div>
         </div>
 
-        <div class="pay-handoff" aria-label="付款後流程">
-          <div><b>01 ECPAY</b><span>前往綠界付款，SoFa 不儲存信用卡。</span></div>
-          <div><b>02 EMAIL</b><span>序號通常 5 分鐘內寄到信箱。</span></div>
-          <div><b>03 LOGIN</b><span>輸入序號，接回答題紀錄與弱點。</span></div>
+        <div class="pay-handoff compact" aria-label="付款後流程">
+          <b>付款後流程</b><span>綠界付款，不儲存信用卡；序號通常 5 分鐘內寄到信箱。</span>
         </div>
         <p class="ck-encourage">15 分鐘後仍未收到，請來信附購買信箱與付款畫面截圖。</p>
         <button class="ck-cta" id="ck-submit" type="button">前往付款 <span class="arrow">⟶</span></button>
