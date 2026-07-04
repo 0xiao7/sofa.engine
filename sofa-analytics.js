@@ -4,6 +4,7 @@
   const FUNNEL_ENDPOINT = 'https://sofa-engine-api.onrender.com/api/funnel-event';
   const ATTR_KEYS = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','gclid','fbclid'];
   const SERVER_EVENT_MAP = new Map([
+    ['landing_view', 'landing_view'],
     ['quiz_start', 'quiz_start'],
     ['pricing_view', 'pricing_view'],
     ['pricing_select_plan', 'pricing_select_plan'],
@@ -208,6 +209,7 @@
   document.addEventListener('DOMContentLoaded', () => {
     decorateLinks();
     const path = location.pathname.replace(/\/+$/, '') || '/';
+    if (path === '/' || path.endsWith('/index.html')) track('landing_view');
     if (path.endsWith('/pricing.html')) track('pricing_view');
     if (path.endsWith('/checkout.html')) track('checkout_start', { plan: queryPlan() || '到考日' });
     const qs = params();
