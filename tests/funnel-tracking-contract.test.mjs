@@ -51,7 +51,9 @@ test('server-side funnel forwarding is limited to revenue, recovery, and entry e
   assert.match(analytics, /\['locked_content_pricing_click', 'locked_content_pricing_click'\]/);
   assert.match(analytics, /\['existing_serial_login_click', 'existing_serial_login_click'\]/);
   assert.match(analytics, /\['checkout_start', 'checkout_start'\]/);
+  assert.match(analytics, /\['checkout_attempt', 'checkout_attempt'\]/);
   assert.match(analytics, /\['checkout_submit', 'checkout_submit'\]/);
+  assert.match(analytics, /\['checkout_api_error', 'checkout_api_error'\]/);
   assert.match(analytics, /\['payment_return_success', 'payment_return_success'\]/);
   assert.match(analytics, /\['expire_feedback_click', 'expiry_feedback_start'\]/);
   assert.match(analytics, /\['expire_share_click', 'share_extension_start'\]/);
@@ -98,7 +100,21 @@ test('pricing and checkout expose plan selection, checkout start, and payment re
   assert.match(analytics, /track\('checkout_start', \{ plan: queryPlan\(\) \|\| '到考日' \}\)/);
   assert.match(analytics, /payment_return_success/);
   assert.doesNotMatch(analytics, /purchase_completed/);
+  assert.match(checkout, /sofaTrack\('checkout_attempt', \{ plan: sel\.plan, amount: sel\.amount \}\)/);
   assert.match(checkout, /sofaTrack\('checkout_submit', \{ plan: sel\.plan, amount: sel\.amount \}\)/);
+  assert.match(checkout, /sofaTrack\('checkout_api_error'/);
+  assert.ok(
+    checkout.indexOf("sofaTrack('checkout_attempt'") < checkout.indexOf('const res = await fetch'),
+    'checkout attempt should measure valid payment intent before the API call'
+  );
+  assert.ok(
+    checkout.indexOf("if (!res.ok)") < checkout.indexOf("sofaTrack('checkout_submit'"),
+    'checkout submit should only be tracked after the checkout API accepts the order'
+  );
+  assert.ok(
+    checkout.indexOf("sofaTrack('checkout_submit'") < checkout.indexOf('document.open()'),
+    'checkout submit should be recorded immediately before the ECPay handoff'
+  );
   assert.match(checkout, /const checkoutPayload = \{/);
   assert.match(checkout, /attribution: window\.sofaGetAttribution\?\.\(\) \|\| \{\}/);
   assert.match(checkout, /session_id: window\.sofaGetSessionId\?\.\(\) \|\| ''/);
