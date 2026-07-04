@@ -4,15 +4,23 @@ import test from 'node:test';
 
 const index = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 
-test('homepage hero balances trust, urgency, and a clear plan path', () => {
+test('homepage hero balances brand trust and a clear practice path', () => {
   const hero = index.slice(index.indexOf('<section class="hero"'), index.indexOf('<!-- ============ COMPASS WIDGET', index.indexOf('<section class="hero"')));
 
-  assert.match(hero, /穩住節奏,並且趕上 11\/14/);
+  assert.match(hero, /國考與專技備考 · 法規、題目、弱點整理/);
+  assert.match(hero, /免登入可練習；啟用後保留紀錄/);
+  assert.match(hero, /法規備考，/);
+  assert.match(hero, /把條文、題目、錯題/);
+  assert.match(hero, /整理成<em>下一步<\/em>/);
+  assert.match(hero, /沒有啟用時，答題紀錄只留在當下，不做跨裝置保存/);
+  assert.match(hero, /開始練習/);
   assert.match(hero, /href="pricing\.html\?utm_source=homepage&utm_medium=hero&utm_campaign=homepage_pricing"/);
-  assert.match(hero, /看方案/);
+  assert.match(hero, /保留紀錄與錯題/);
   assert.match(hero, /36,000\+ 條/);
   assert.match(hero, /567 部/);
   assert.match(hero, /172 個國考職能/);
+  assert.match(hero, /記帳士、地政士等專技考科只是其中幾條主線/);
+  assert.doesNotMatch(hero, /免費做 5 題|先刷 5 題|免費刷題看弱點/);
 });
 
 test('homepage exposes honest social proof and a future testimonial structure', () => {

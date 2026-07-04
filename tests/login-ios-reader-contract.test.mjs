@@ -38,8 +38,11 @@ test('desktop login keeps the first screen compact and moves long support copy i
 });
 
 test('login points trial users to web quiz before LINE', () => {
-  assert.match(html, /還沒準備購買？先免費做題，看弱點/);
+  assert.match(html, /還沒準備購買？免登入先練習，答完再看整理/);
+  assert.match(html, /免登入開始練習/);
+  assert.match(html, /免登入練習/);
   assert.match(html, /href="quiz\.html\?free=1&start=1&utm_source=site&utm_medium=web&utm_campaign=free_quiz_entry"/);
+  assert.doesNotMatch(html, /先免費做題|免費做題，看弱點/);
   assert.doesNotMatch(html, /加入 LINE 索取體驗序號/);
 });
 
