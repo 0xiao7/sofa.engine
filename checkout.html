@@ -975,7 +975,7 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
 
     const sel = getSelected();
     if (typeof window.sofaTrack === 'function') {
-      window.sofaTrack('checkout_submit', { plan: sel.plan, amount: sel.amount });
+      window.sofaTrack('checkout_attempt', { plan: sel.plan, amount: sel.amount });
     }
     const checkoutPayload = {
       plan: sel.plan,
@@ -997,12 +997,20 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
       if (!res.ok){
         let msg = `付款服務暫時無法回應（${res.status}），請稍後再試一次。`;
         try { const d = await res.json(); msg = d.error || d.message || d.detail || msg; } catch(_){}
-        throw new Error(msg);
+        const apiError = new Error(msg);
+        apiError.checkoutStatus = res.status;
+        throw apiError;
       }
       const html = await res.text();
+      if (typeof window.sofaTrack === 'function') {
+        window.sofaTrack('checkout_submit', { plan: sel.plan, amount: sel.amount });
+      }
       document.open(); document.write(html); document.close();
       return;
     } catch (err) {
+      if (typeof window.sofaTrack === 'function') {
+        window.sofaTrack('checkout_api_error', { plan: sel.plan, amount: sel.amount, status: err && err.checkoutStatus ? err.checkoutStatus : '', message: (err && err.message ? err.message : 'network error').slice(0, 120) });
+      }
       showError(err && err.message ? err.message : "連線發生問題，請確認網路後再試一次。");
       submitBtn.disabled = false;
       submitBtn.innerHTML = original;
