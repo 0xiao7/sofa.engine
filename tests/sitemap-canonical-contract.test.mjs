@@ -40,3 +40,30 @@ test('law preview declares canonical URL for dynamic article pages', () => {
   assert.match(html, /canonical\.searchParams\.set\('art',\s*artNo\)/);
   assert.match(html, /canonical\.searchParams\.set\('id',\s*articleId\)/);
 });
+
+test('sitemap law pages use the same encoded URL in canonical metadata', () => {
+  const sitemap = readFileSync(new URL('sitemap.xml', root), 'utf8');
+  const locs = Array.from(sitemap.matchAll(/<loc>(https:\/\/sofaengine\.org\/law\/[^<]+\.html)<\/loc>/g), (match) => match[1])
+    .filter((loc) => !loc.endsWith('/law/index.html'));
+  const mismatched = [];
+
+  for (const loc of locs) {
+    const relPath = pagePathFromLoc(loc);
+    const pageUrl = new URL(relPath, root);
+    if (!existsSync(pageUrl)) continue;
+
+    const html = readFileSync(pageUrl, 'utf8');
+    const canonical = html.match(/<link\b[^>]*\brel=["']canonical["'][^>]*\bhref=["']([^"']+)["'][^>]*>/i)?.[1];
+    const jsonLdUrl = html.match(/"url"\s*:\s*"([^"]+)"/)?.[1];
+
+    if (canonical !== loc || jsonLdUrl !== loc) {
+      mismatched.push(`${relPath}: canonical=${canonical || '(missing)'}, jsonLd=${jsonLdUrl || '(missing)'}, sitemap=${loc}`);
+    }
+  }
+
+  assert.equal(
+    mismatched.length,
+    0,
+    `law canonical URLs must match sitemap URLs exactly: ${mismatched.slice(0, 8).join('; ')}`
+  );
+});
