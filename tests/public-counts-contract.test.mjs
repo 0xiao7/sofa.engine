@@ -37,3 +37,15 @@ test('public growth funnel leads with web practice and saved learning value', ()
     assert.doesNotMatch(source[file], /LEARNING LOOP|mode-code">WEAK|4 種練習模式[\s\S]{0,60}弱點分析/, `${file} uses off-brand or inaccurate funnel labels`);
   }
 });
+
+test('homepage speaks to bookkeeper exam takers before the broad law database', () => {
+  assert.match(source['index.html'], /記帳士考古題刷題｜免費做 5 題看弱點/);
+  assert.match(source['index.html'], /不用登入、不用加 LINE/);
+  assert.match(source['index.html'], /記帳士考古題，先刷 5 題/);
+  assert.match(source['index.html'], /做完立刻看答案、解析、錯題與弱點/);
+  assert.match(source['index.html'], /免費刷題看弱點/);
+  assert.ok(
+    source['index.html'].indexOf('class="cta-row"') < source['index.html'].indexOf('class="hero-meta"'),
+    'primary CTA should appear before broad database stats in the hero markup',
+  );
+});
