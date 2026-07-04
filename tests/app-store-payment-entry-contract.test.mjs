@@ -28,7 +28,8 @@ test('study room retain modal keeps web checkout but sends native iOS users to l
   assert.match(room, /onclick="goSerialFromRetain\(\)"/);
   assert.match(room, /window\.Capacitor/);
   assert.match(room, /Capacitor\.getPlatform\(\) === 'ios'[\s\S]*window\.location\.href = 'login\.html'/);
-  assert.match(room, /window\.location\.href = 'checkout\.html'/);
+  assert.match(room, /const checkoutHref = 'checkout\.html\?plan=到考日&utm_source=room&utm_medium=retain_modal&utm_campaign=room_checkout'/);
+  assert.match(room, /window\.location\.href = window\.sofaDecorateHref \? window\.sofaDecorateHref\(checkoutHref\) : checkoutHref/);
 });
 
 test('study room retain modal hides external LINE and trial-email paths in native iOS reader app', () => {

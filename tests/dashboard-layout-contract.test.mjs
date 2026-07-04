@@ -629,7 +629,7 @@ test('expire overlay explains feedback and sharing extension rules', () => {
 test('member card surfaces renewal before expiry without hiding payment', () => {
   assert.match(html, /id="mc-renewal-nudge"/);
   assert.match(html, /保留弱點分析、今日複習和會員期限明細/);
-  assert.match(html, /href="pricing\.html"[\s\S]*續用方案/);
+  assert.match(html, /href="pricing\.html\?utm_source=dashboard&utm_medium=member_card&utm_campaign=renewal_pricing"[\s\S]*續用方案/);
   assert.match(html, /function renderMembershipRenewalNudge/);
   assert.match(html, /daysLeft <= 10/);
 });

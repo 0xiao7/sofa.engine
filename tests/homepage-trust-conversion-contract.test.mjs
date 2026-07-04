@@ -8,7 +8,7 @@ test('homepage hero balances trust, urgency, and a clear plan path', () => {
   const hero = index.slice(index.indexOf('<section class="hero"'), index.indexOf('<!-- ============ COMPASS WIDGET', index.indexOf('<section class="hero"')));
 
   assert.match(hero, /穩住節奏,並且趕上 11\/14/);
-  assert.match(hero, /href="pricing\.html"/);
+  assert.match(hero, /href="pricing\.html\?utm_source=homepage&utm_medium=hero&utm_campaign=homepage_pricing"/);
   assert.match(hero, /看方案/);
   assert.match(hero, /36,000\+ 條/);
   assert.match(hero, /567 部/);
