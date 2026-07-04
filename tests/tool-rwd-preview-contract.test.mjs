@@ -14,7 +14,11 @@ test('practice tools allow local preview from localhost, 127.0.0.1, ::1, and fil
     assert.match(html, /location\.hostname\s*===\s*'127\.0\.0\.1'/);
     assert.match(html, /location\.hostname\s*===\s*'::1'/);
     assert.match(html, /location\.protocol\s*===\s*'file:'/);
-    assert.match(html, /isPreviewHost\(\)\s*\?\s*'PREVIEW'\s*:\s*null/);
+    if (file === 'quiz.html') {
+      assert.match(html, /\(isPreviewHost\(\)\s*&&\s*!freeParam\)\s*\?\s*'PREVIEW'\s*:\s*null/);
+    } else {
+      assert.match(html, /isPreviewHost\(\)\s*\?\s*'PREVIEW'\s*:\s*null/);
+    }
   }
 });
 

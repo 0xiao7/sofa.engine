@@ -87,7 +87,7 @@ test('visual entry QA opens the law reader deep link and checks native-safe cont
   assert.match(script, /\.section\.locked\[data-seg="5"\]/);
   assert.match(script, /law preview paid teaser is missing section 5 value cue/);
   assert.match(script, /\.section\.locked\[data-seg="5"\] \.section-locked-preview/);
-  assert.match(script, /\.section\.locked\[data-seg="5"\] a\[href="pricing\.html"\]/);
+  assert.match(script, /\.section\.locked\[data-seg="5"\] a\[href\^="pricing\.html"\]/);
   assert.match(script, /sofa-visual-law-preview-mobile\.png/);
   assert.match(script, /width:\s*820,\s*height:\s*1180/);
   assert.match(script, /\.section\.locked\[data-seg="6"\] a\.crossref/);
@@ -121,8 +121,10 @@ test('visual entry QA round-trips from quiz to reader cross reference and back',
 
 test('visual entry QA checks free retention serial entry on mobile', () => {
   assert.match(script, /freeRetentionCase/);
+  assert.match(script, /localStorage\.setItem\('sofa_free', 'FREE'\)/);
   assert.match(script, /quiz\.html\?free=1/);
   assert.match(script, /輸入序號保留紀錄/);
+  assert.match(script, /a\[href\^="login\.html"\]/);
   assert.match(script, /dashboard\.html/);
   assert.match(script, /輸入序號保留進度/);
   assert.match(script, /sofa-visual-free-retention-mobile\.png/);

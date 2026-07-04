@@ -649,14 +649,14 @@ async function dashboardCase(browser, baseUrl, name, viewport) {
   await page.goto(`${baseUrl}/dashboard.html`, { waitUntil: 'domcontentloaded' });
   await page.waitForSelector('#study-cockpit-recap', { state: 'visible', timeout: 7000 });
   const checks = [];
-  checks.push(['#study-cockpit-recap .study-action-group.primary a[href="quiz.html?open=weakness"]', 'today weakness CTA']);
+  checks.push(['#study-cockpit-recap .study-action-group.primary a[href="quiz.html?open=weakness"], #study-cockpit-recap .study-action-group.primary a[href="/quiz.html?open=weakness"]', 'today weakness CTA']);
   if (viewport.width <= 768) {
-    checks.push(['#mobile-daily-bar a[href="quiz.html?open=weakness"]', 'mobile weakness quick entry']);
+    checks.push(['#mobile-daily-bar a[href="quiz.html?open=weakness"], #mobile-daily-bar a[href="/quiz.html?open=weakness"]', 'mobile weakness quick entry']);
     checks.push(['#mobile-daily-bar a[href="#review-due"]', 'mobile review quick entry']);
   } else {
-    checks.push(['.top-mid a[href="quiz.html?open=weakness"]', 'desktop top weakness entry']);
+    checks.push(['.top-mid a[href="quiz.html?open=weakness"], .top-mid a[href="/quiz.html?open=weakness"]', 'desktop top weakness entry']);
     checks.push(['.top-mid a[href="#review-due"]', 'desktop top review entry']);
-    checks.push(['aside.side a[href="quiz.html?open=weakness"]', 'desktop sidebar weakness entry']);
+    checks.push(['aside.side a[href="quiz.html?open=weakness"], aside.side a[href="/quiz.html?open=weakness"]', 'desktop sidebar weakness entry']);
   }
   const boxes = {};
   boxes.brand = await assertTapTarget(page, '.topbar .brand', `${name} brand`);
@@ -669,7 +669,7 @@ async function dashboardCase(browser, baseUrl, name, viewport) {
   if (viewport.width <= 768) {
     await assertNotCoveredBy(page, '#study-next-plan', '#mobile-daily-bar', `${name} next study card`);
     await assertAllNotCoveredBy(page, '#study-cockpit-recap .study-actions .study-action-link', '#mobile-daily-bar', `${name} study action buttons`);
-    await assertNotCoveredBy(page, '#study-cockpit-recap .study-action-group.primary a[href="quiz.html?open=weakness"]', '#mobile-daily-bar', `${name} weakness CTA`);
+    await assertNotCoveredBy(page, '#study-cockpit-recap .study-action-group.primary a[href="quiz.html?open=weakness"], #study-cockpit-recap .study-action-group.primary a[href="/quiz.html?open=weakness"]', '#mobile-daily-bar', `${name} weakness CTA`);
     await page.locator('#study-weak-brief').scrollIntoViewIfNeeded();
     await page.evaluate(() => window.scrollBy(0, 96));
     await assertNotCoveredBy(page, '#study-weak-brief .study-weak-brief-row, #study-weak-brief .study-weak-empty', '#mobile-daily-bar', `${name} first weakness row`);
@@ -797,7 +797,7 @@ async function lawPreviewCase(browser, baseUrl) {
     throw new Error(`law preview paid teaser is missing section 5 value cue: ${lockedText}`);
   }
   boxes.lockedSection = await assertClickable(freePage, '.section.locked[data-seg="5"] .section-locked-preview', 'law preview free locked section');
-  boxes.pricing = await assertTapTarget(freePage, '.section.locked[data-seg="5"] a[href="pricing.html"]', 'law preview pricing CTA');
+  boxes.pricing = await assertTapTarget(freePage, '.section.locked[data-seg="5"] a[href^="pricing.html"], .section.locked[data-seg="5"] a[href^="/pricing.html"]', 'law preview pricing CTA');
   const screenshot = path.join(OUT_DIR, 'sofa-visual-law-preview-mobile.png');
   await freePage.screenshot({ path: screenshot, fullPage: false });
   await freePage.close();
@@ -914,12 +914,18 @@ async function quizReaderRoundTripCase(browser, baseUrl) {
 
 async function freeRetentionCase(browser, baseUrl) {
   const page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, isMobile: true });
+  await page.addInitScript(() => {
+    localStorage.removeItem('sofa_uid');
+    localStorage.removeItem('sofa_token');
+    localStorage.removeItem('sofa_nickname');
+    localStorage.setItem('sofa_free', 'FREE');
+  });
   await page.goto(`${baseUrl}/quiz.html?free=1`, { waitUntil: 'domcontentloaded' });
   const quizText = await page.locator('body').innerText();
   if (!/輸入序號保留紀錄/.test(quizText)) {
     throw new Error('free quiz retention CTA text is missing');
   }
-  const quizBox = await assertTapTarget(page, 'a[href="login.html"]', 'free quiz serial retention CTA');
+  const quizBox = await assertTapTarget(page, 'a[href^="login.html"], a[href^="/login.html"]', 'free quiz serial retention CTA');
 
   await page.goto(`${baseUrl}/dashboard.html`, { waitUntil: 'domcontentloaded' });
   await page.evaluate(() => {
@@ -932,7 +938,7 @@ async function freeRetentionCase(browser, baseUrl) {
   if (!/輸入序號保留進度/.test(stripText) || !/免費版可以先試做/.test(stripText)) {
     throw new Error(`free dashboard retention CTA text is missing: ${stripText}`);
   }
-  const dashboardBox = await assertTapTarget(page, '#free-retention-strip a[href="login.html"]', 'free dashboard serial retention CTA');
+  const dashboardBox = await assertTapTarget(page, '#free-retention-strip a[href^="login.html"], #free-retention-strip a[href^="/login.html"]', 'free dashboard serial retention CTA');
   const screenshot = path.join(OUT_DIR, 'sofa-visual-free-retention-mobile.png');
   await page.screenshot({ path: screenshot, fullPage: false });
   await page.close();

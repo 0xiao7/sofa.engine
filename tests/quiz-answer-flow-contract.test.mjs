@@ -177,6 +177,13 @@ test('mobile quiz keeps secondary mode controls out of the first screen', () => 
   assert.match(active, /\.pr-chips\{flex-wrap:nowrap;overflow-x:auto/);
 });
 
+test('free quiz entry bypasses local preview identity so retention CTA can be verified', () => {
+  assert.match(active, /const _searchParams = new URLSearchParams\(location\.search\)/);
+  assert.match(active, /const freeParam = _searchParams\.get\('free'\) === '1'/);
+  assert.match(active, /const uid = localStorage\.getItem\('sofa_uid'\) \|\| \(\(isPreviewHost\(\) && !freeParam\) \? 'PREVIEW' : null\)/);
+  assert.match(active, /if \(freeParam && !uid && !tok\) \{[\s\S]*localStorage\.setItem\('sofa_free', 'FREE'\)/);
+});
+
 test('law deep links bypass the exam picker banner', () => {
   assert.match(active, /function _shouldShowQzExamBanner\(examKey\)/);
   assert.match(active, /return !examKey && !_lawParamFromUrl\(\) && !_articleParamFromUrl\(\) && !_drillParam && !_pastExamMode && !_startQuizParam/);
