@@ -41,6 +41,14 @@ test('law preview declares canonical URL for dynamic article pages', () => {
   assert.match(html, /canonical\.searchParams\.set\('id',\s*articleId\)/);
 });
 
+test('law preview is an app reader, not a public indexed law landing page', () => {
+  const html = readFileSync(new URL('law-preview.html', root), 'utf8');
+  const sitemap = readFileSync(new URL('sitemap.xml', root), 'utf8');
+
+  assert.match(html, /<meta\b[^>]*\bname=["']robots["'][^>]*\bcontent=["']noindex,\s*follow["'][^>]*>/i);
+  assert.doesNotMatch(sitemap, /law-preview\.html/);
+});
+
 test('sitemap law pages use the same encoded URL in canonical metadata', () => {
   const sitemap = readFileSync(new URL('sitemap.xml', root), 'utf8');
   const locs = Array.from(sitemap.matchAll(/<loc>(https:\/\/sofaengine\.org\/law\/[^<]+\.html)<\/loc>/g), (match) => match[1])
