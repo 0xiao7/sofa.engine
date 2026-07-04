@@ -383,10 +383,12 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     width:16px;font-family:var(--mono);font-size:14px;
     color:rgba(31,56,72,.4);flex-shrink:0;
   }
-  .ck-field input{
+  .ck-field input,
+  .ck-field select{
     background:transparent;border:none;outline:none;width:100%;
     font-size:14.5px;color:var(--navy);
   }
+  .ck-field select{appearance:none;cursor:pointer}
   .ck-field input::placeholder{color:rgba(31,56,72,.32)}
   .field-hint{
     margin-top:10px;font-family:var(--mono);font-size:10.5px;
@@ -751,11 +753,28 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
 
         <div class="email-card">
           <span class="pill">序號收件處</span>
+          <div class="ask">付款完成後，序號會自動寄到信箱。</div>
           <div class="field-row">
+            <span>EXAM · 到考日依這個計算</span>
+            <span style="color:rgba(31,56,72,.42);font-weight:500">必填</span>
+          </div>
+          <div class="ck-field">
+            <span class="ic">§</span>
+            <select id="ck-exam-target" aria-label="考試目標">
+              <option value="bookkeeper">記帳士</option>
+              <option value="landadmin">地政士</option>
+              <option value="realestate">不動產經紀人</option>
+              <option value="tax-admin">稅務行政</option>
+              <option value="tax-law">財稅法務</option>
+              <option value="elem-admin">初等行政</option>
+              <option value="post-acc">郵政會計</option>
+            </select>
+          </div>
+          <div class="field-hint">到考日方案會依這裡的考試目標計算，不共用記帳士日期。</div>
+          <div class="field-row" style="margin-top:14px">
             <span>EMAIL · 序號寄到這裡</span>
             <span style="color:rgba(31,56,72,.42);font-weight:500">必填</span>
           </div>
-          <div class="ask">付款完成後，序號會自動寄到信箱。</div>
           <div class="ck-field">
             <span class="ic">@</span>
             <input id="ck-email-input" type="email" autocomplete="email" inputmode="email" placeholder="your@email.com" />
@@ -811,7 +830,7 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
                 <span class="meta">／ 一次付清</span>
                 <span class="badge save">主打方案</span>
               </div>
-              <div class="desc">一次付清,用到 2026/11/30(考後)。適合從現在一路穩住節奏，考前不用再補繳。</div>
+              <div class="desc">一次付清，依你選的考試目標計算到考後緩衝日。適合從現在一路穩住節奏，考前不用再補繳。</div>
             </div>
             <div class="price">
               <div class="n"><span class="c">NT$</span>1280</div>
@@ -879,6 +898,7 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
   const sumPlan   = document.getElementById("ck-sum-plan");
   const sumAmount = document.getElementById("ck-sum-amount");
   const emailEl   = document.getElementById("ck-email-input");
+  const examTargetEl = document.getElementById("ck-exam-target");
   const hintEl    = document.getElementById("ck-email-hint");
   const submitBtn = document.getElementById("ck-submit");
   const errorEl   = document.getElementById("ck-error");
@@ -926,8 +946,39 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     if (qEbBadge) qEbBadge.style.display = "";
   })();
 
+  const EXAM_TARGETS = {
+    bookkeeper: { label: "記帳士" },
+    landadmin: { label: "地政士" },
+    realestate: { label: "不動產經紀人" },
+    "tax-admin": { label: "稅務行政" },
+    "tax-law": { label: "財稅法務" },
+    "elem-admin": { label: "初等行政" },
+    "post-acc": { label: "郵政會計" }
+  };
+  const DEFAULT_EXAM_KEY = "bookkeeper";
+  function selectedExamKey(){
+    const params = new URLSearchParams(location.search);
+    const candidate = (
+      params.get("exam_key") ||
+      params.get("exam") ||
+      params.get("track") ||
+      localStorage.getItem("sofa_exam_key") ||
+      DEFAULT_EXAM_KEY
+    ).trim();
+    return EXAM_TARGETS[candidate] ? candidate : DEFAULT_EXAM_KEY;
+  }
+  function selectedExamTarget(){
+    return EXAM_TARGETS[selectedExamKey()] || EXAM_TARGETS[DEFAULT_EXAM_KEY];
+  }
+  function currentExamKey(){
+    return EXAM_TARGETS[examTargetEl?.value] ? examTargetEl.value : selectedExamKey();
+  }
+  function examDayPlanText(){
+    return "到考日 · 依考試目標";
+  }
+
   const PLAN_TEXT = {
-    "到考日": "到考日 · 用到考上",
+    "到考日": examDayPlanText,
     "月費": isEarlyBird ? "月訂閱 · 45 天（含早鳥 +15 天）" : "月訂閱 · 30 天",
     "季費": isEarlyBird ? "季訂閱 · 135 天（含早鳥 +45 天）" : "季訂閱 · 90 天"
   };
@@ -939,7 +990,8 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
   }
   function refreshSummary(){
     const s = getSelected();
-    sumPlan.textContent = PLAN_TEXT[s.plan] || s.plan;
+    const label = PLAN_TEXT[s.plan];
+    sumPlan.textContent = typeof label === "function" ? label() : (label || s.plan);
     if (sumAmount.textContent !== s.amount){
       sumAmount.textContent = s.amount;
       const totEl = sumAmount.parentElement;
@@ -956,6 +1008,14 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
       clearError();
     });
   });
+  if (examTargetEl) {
+    examTargetEl.value = selectedExamKey();
+    examTargetEl.addEventListener("change", () => {
+      localStorage.setItem("sofa_exam_key", currentExamKey());
+      refreshSummary();
+      clearError();
+    });
+  }
 
   function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
@@ -1018,6 +1078,7 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     const checkoutPayload = {
       plan: sel.plan,
       email,
+      exam_key: currentExamKey(),
       attribution: window.sofaGetAttribution?.() || {},
       session_id: window.sofaGetSessionId?.() || '',
       page_path: location.pathname + location.search
