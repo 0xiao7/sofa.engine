@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex, follow">
 <title>法本試讀 · SoFa Engine</title>
+<link rel="canonical" href="https://sofaengine.org/law-preview.html">
 <link rel="preconnect" href="https://sofa-engine-api.onrender.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
@@ -331,6 +333,7 @@ const API = 'https://sofa-engine-api.onrender.com';
 const params = new URLSearchParams(location.search);
 const lawName = params.get('law') || '記帳士法';
 const targetId = params.get('id');
+const targetArtNo = params.get('art') || '';
 
 const listBody = document.getElementById('listBody');
 const detail = document.getElementById('detail');
@@ -342,6 +345,16 @@ const listLabel = document.getElementById('listLabel');
 document.title = `${lawName} · SoFa 法本試讀`;
 lawTitle.textContent = lawName;
 crumb.textContent = `SoFa 法本 · ${lawName}`;
+
+function updateCanonicalUrl(lawName, artNo, articleId){
+  const canonicalTag = document.querySelector('link[rel="canonical"]');
+  if(!canonicalTag) return;
+  const canonical = new URL('/law-preview.html', location.origin);
+  canonical.searchParams.set('law', lawName);
+  if(artNo) canonical.searchParams.set('art', artNo);
+  if(articleId) canonical.searchParams.set('id', articleId);
+  canonicalTag.href = canonical.toString();
+}
 
 async function fetchJSON(url){
   const r = await fetch(url);
@@ -426,6 +439,8 @@ function renderDetail(d){
   const stars = (d.importance || '').match(/★/g)?.join('') || '';
   const chapter = d.chapter ? `<div class="detail-chapter">${d.chapter}</div>` : '';
   const sections = d.sections || {};
+  const artNo = d.article_no || d.articleNo || d.article || targetArtNo || d.title?.match(/§\s*(\S+?)(?:｜|\s|$)/)?.[1] || '';
+  updateCanonicalUrl(lawName, artNo, d.id || targetId || '');
   const sectionHtml = Object.entries(sections).map(([label, body]) => `
     <div class="section">
       <div class="section-label">${label}</div>
