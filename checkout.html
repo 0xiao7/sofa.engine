@@ -367,6 +367,35 @@
   }
   .field-hint.err{color:var(--bad);font-weight:600}
 
+  .exam-target-card{
+    background:rgba(245,240,234,.035);
+    border:1px solid var(--line);
+    border-radius:3px;
+    padding:16px 18px;
+  }
+  .exam-target-card[hidden]{display:none}
+  .exam-target-card .target-title{
+    font-family:var(--serif);font-size:16px;font-weight:600;
+    color:var(--cream);margin-bottom:6px;
+  }
+  .exam-target-card .target-copy{
+    font-size:12.5px;line-height:1.65;color:rgba(245,240,234,.62);
+    margin-bottom:12px;
+  }
+  .exam-target-card select{
+    width:100%;background:var(--navy-2);border:1px solid var(--line-2);
+    color:var(--cream);border-radius:3px;padding:13px 14px;
+    font-family:var(--sans);font-size:14.5px;outline:none;
+  }
+  .exam-target-card select:focus{
+    border-color:var(--peach);
+    box-shadow:0 0 0 3px rgba(231,187,167,.14);
+  }
+  .exam-target-card .target-hint{
+    margin-top:10px;font-family:var(--mono);font-size:10.5px;
+    letter-spacing:.05em;color:rgba(245,240,234,.55);line-height:1.6;
+  }
+
   /* === summary line === */
   .summary{
     margin-top:6px;padding:16px 20px;
@@ -706,10 +735,23 @@
         </div>
       </div>
 
+      <!-- ───────── SECTION 02 — 考試目標 ───────── -->
+      <div class="sec" id="ck-exam-target-section" hidden>
+        <div class="sec-lab">
+          <span class="num">02</span><span>考試目標</span><span class="line"></span>
+        </div>
+        <div class="exam-target-card">
+          <div class="target-title">到考日依你的考試計算。</div>
+          <p class="target-copy">請選你要準備的考試；考期未設定的考試不會偷套記帳士日期，後端會擋下避免算錯。</p>
+          <select id="ck-exam-target" aria-label="考試目標"></select>
+          <div class="target-hint" id="ck-exam-target-hint">考期未設定時，建議先選月費或季費。</div>
+        </div>
+      </div>
+
       <!-- ───────── SECTION 02 — 信箱 ───────── -->
       <div class="sec">
         <div class="sec-lab">
-          <span class="num">02</span><span>收件信箱</span><span class="line"></span>
+          <span class="num">03</span><span>收件信箱</span><span class="line"></span>
         </div>
 
         <div class="email-card">
@@ -730,7 +772,7 @@
       <!-- ───────── SECTION 03 — 確認與付款 ───────── -->
       <div class="sec">
         <div class="sec-lab">
-          <span class="num">03</span><span>確認與付款</span><span class="line"></span>
+          <span class="num">04</span><span>確認與付款</span><span class="line"></span>
         </div>
 
         <div class="summary">
@@ -792,6 +834,9 @@
   const sumAmount = document.getElementById("ck-sum-amount");
   const emailEl   = document.getElementById("ck-email-input");
   const hintEl    = document.getElementById("ck-email-hint");
+  const examTargetSection = document.getElementById("ck-exam-target-section");
+  const examTargetEl = document.getElementById("ck-exam-target");
+  const examTargetHintEl = document.getElementById("ck-exam-target-hint");
   const submitBtn = document.getElementById("ck-submit");
   const errorEl   = document.getElementById("ck-error");
   const queryParams = new URLSearchParams(location.search);
@@ -832,6 +877,7 @@
           session_id: checkoutSessionId,
           plan: sel.plan,
           amount: sel.amount,
+          exam_key: getCheckoutExamKey(),
           page_path: pagePath
         }, extra || {})
       };
@@ -863,13 +909,57 @@
   };
   const DEFAULT_HINT = "請確認信箱正確，序號僅寄送一次。";
 
+  function initExamTargetSelect(){
+    if (!examTargetEl || !window.SoFaExamTargets) return;
+    const targets = window.SoFaExamTargets.TARGETS || {};
+    const selectedKey = (
+      queryParams.get("exam_key") ||
+      queryParams.get("target") ||
+      (window.SoFaExamTargets.resolveTarget() || {}).key ||
+      "bookkeeper"
+    );
+    examTargetEl.innerHTML = Object.keys(targets).map((key) => {
+      const t = targets[key] || {};
+      const date = t.examDisplay || "考期未設定";
+      return `<option value="${key}">${t.label || key} · ${date}</option>`;
+    }).join("");
+    if (targets[selectedKey]) examTargetEl.value = selectedKey;
+    updateExamTargetHint();
+  }
+
+  function getCheckoutExamKey(){
+    if (examTargetEl && examTargetEl.value) return examTargetEl.value;
+    try { return (window.SoFaExamTargets.resolveTarget() || {}).key || "bookkeeper"; } catch (_) {}
+    return "bookkeeper";
+  }
+
+  function getCheckoutExamLabel(){
+    const api = window.SoFaExamTargets;
+    const target = api && api.TARGETS ? api.TARGETS[getCheckoutExamKey()] : null;
+    if (!target) return "目標考試 · 考期未設定";
+    return `${target.label || "目標考試"} · ${target.examDisplay || "考期未設定"}`;
+  }
+
+  function updateExamTargetHint(){
+    if (!examTargetHintEl || !window.SoFaExamTargets) return;
+    const target = window.SoFaExamTargets.TARGETS[getCheckoutExamKey()];
+    if (target && target.examDisplay) {
+      examTargetHintEl.textContent = `會以 ${target.examDisplay} 作為考試目標，實際可用期限由後端考期設定計算。`;
+    } else {
+      examTargetHintEl.textContent = "考期未設定：付款送出後後端會擋下，避免把其他考試誤算成記帳士。";
+    }
+  }
+
   function getSelected(){
     const el = plansEl.querySelector(".plan.selected");
     return { plan: el.dataset.plan, amount: el.dataset.amount };
   }
   function refreshSummary(){
     const s = getSelected();
-    sumPlan.textContent = PLAN_TEXT[s.plan] || s.plan;
+    const examMode = s.plan === "到考日";
+    if (examTargetSection) examTargetSection.hidden = !examMode;
+    updateExamTargetHint();
+    sumPlan.textContent = examMode ? `${PLAN_TEXT[s.plan]} · ${getCheckoutExamLabel()}` : (PLAN_TEXT[s.plan] || s.plan);
     if (sumAmount.textContent !== s.amount){
       sumAmount.textContent = s.amount;
       const totEl = sumAmount.parentElement;
@@ -890,8 +980,8 @@
 
   function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
-  // ── Query string prefill：?plan=月費&email=xxx ──────────────
-  // 從 LINE bot 帶過來的連結會自動選方案 + 預填信箱，省去重輸
+  // ── Query string prefill：?plan=月費&email=xxx&exam_key=bookkeeper ─────
+  // 從 LINE bot 帶過來的連結會自動選方案、考試目標與信箱，省去重輸
   (function prefillFromQuery(){
     const qs = new URLSearchParams(location.search);
     const rawPlanParam  = (qs.get("plan")  || "").trim();
@@ -902,6 +992,7 @@
     };
     const planParam = planAliases[rawPlanParam.toLowerCase()] || rawPlanParam;
     const emailParam = (qs.get("email") || "").trim();
+    const examKeyParam = (qs.get("exam_key") || qs.get("target") || "").trim();
     if (planParam) {
       const target = plansEl.querySelector('.plan[data-plan="' + planParam.replace(/"/g, '') + '"]');
       if (target && !target.classList.contains("selected")) {
@@ -912,6 +1003,11 @@
     }
     if (emailParam && isEmail(emailParam) && !emailEl.value) {
       emailEl.value = emailParam;
+    }
+    if (examKeyParam && examTargetEl && window.SoFaExamTargets?.TARGETS?.[examKeyParam]) {
+      examTargetEl.value = examKeyParam;
+      updateExamTargetHint();
+      refreshSummary();
     }
   })();
   function showError(msg){ errorEl.textContent = msg; errorEl.classList.add("show"); }
@@ -927,6 +1023,13 @@
     emailEl.dataset.focusTracked = "1";
     trackCheckout("checkout_email_focus");
   });
+  if (examTargetEl) {
+    examTargetEl.addEventListener("change", () => {
+      updateExamTargetHint();
+      refreshSummary();
+      trackCheckout("checkout_exam_target_select", { exam_key: getCheckoutExamKey() });
+    });
+  }
 
   submitBtn.addEventListener("click", async () => {
     clearError();
@@ -952,7 +1055,7 @@
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: sel.plan, email })
+        body: JSON.stringify({ plan: sel.plan, email, exam_key: getCheckoutExamKey() })
       });
       if (!res.ok){
         let msg = `付款服務暫時無法回應（${res.status}），請稍後再試一次。`;
@@ -971,6 +1074,7 @@
     }
   });
 
+  initExamTargetSelect();
   refreshSummary();
   trackCheckout("checkout_start");
 })();
