@@ -858,6 +858,7 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
   const hintEl    = document.getElementById("ck-email-hint");
   const submitBtn = document.getElementById("ck-submit");
   const errorEl   = document.getElementById("ck-error");
+  let emailFocusTracked = false;
 
   // Early bird: +15 days on monthly plan before 2026-06-15
   const EB_END = new Date("2026-06-15T23:59:59+08:00");
@@ -955,6 +956,13 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
   function showError(msg){ errorEl.textContent = msg; errorEl.classList.add("show"); }
   function clearError(){ errorEl.textContent = ""; errorEl.classList.remove("show"); }
 
+  emailEl.addEventListener("focus", () => {
+    if (emailFocusTracked || typeof window.sofaTrack !== 'function') return;
+    const sel = getSelected();
+    window.sofaTrack('checkout_email_focus', { plan: sel.plan, amount: sel.amount });
+    emailFocusTracked = true;
+  });
+
   emailEl.addEventListener("input", () => {
     hintEl.textContent = DEFAULT_HINT;
     hintEl.classList.remove("err");
@@ -964,16 +972,22 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
   submitBtn.addEventListener("click", async () => {
     clearError();
     const email = emailEl.value.trim();
+    const sel = getSelected();
     if (!email){
       hintEl.textContent = "請輸入信箱地址。";
+      if (typeof window.sofaTrack === 'function') {
+        window.sofaTrack('checkout_invalid_email', { plan: sel.plan, amount: sel.amount, reason: 'empty' });
+      }
       hintEl.classList.add("err"); emailEl.focus(); return;
     }
     if (!isEmail(email)){
       hintEl.textContent = "信箱格式看起來不太對，再檢查一次。";
+      if (typeof window.sofaTrack === 'function') {
+        window.sofaTrack('checkout_invalid_email', { plan: sel.plan, amount: sel.amount, reason: 'format' });
+      }
       hintEl.classList.add("err"); emailEl.focus(); return;
     }
 
-    const sel = getSelected();
     if (typeof window.sofaTrack === 'function') {
       window.sofaTrack('checkout_attempt', { plan: sel.plan, amount: sel.amount });
     }

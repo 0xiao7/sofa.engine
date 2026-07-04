@@ -10,6 +10,8 @@
     ['pricing_view', 'pricing_view'],
     ['pricing_select_plan', 'pricing_select_plan'],
     ['checkout_start', 'checkout_start'],
+    ['checkout_email_focus', 'checkout_email_focus'],
+    ['checkout_invalid_email', 'checkout_invalid_email'],
     ['checkout_attempt', 'checkout_attempt'],
     ['checkout_submit', 'checkout_submit'],
     ['checkout_api_error', 'checkout_api_error'],
