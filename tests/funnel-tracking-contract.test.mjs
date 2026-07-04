@@ -53,6 +53,8 @@ test('server-side funnel forwarding is limited to revenue, recovery, and entry e
   assert.match(analytics, /\['locked_content_pricing_click', 'locked_content_pricing_click'\]/);
   assert.match(analytics, /\['existing_serial_login_click', 'existing_serial_login_click'\]/);
   assert.match(analytics, /\['checkout_start', 'checkout_start'\]/);
+  assert.match(analytics, /\['checkout_email_focus', 'checkout_email_focus'\]/);
+  assert.match(analytics, /\['checkout_invalid_email', 'checkout_invalid_email'\]/);
   assert.match(analytics, /\['checkout_attempt', 'checkout_attempt'\]/);
   assert.match(analytics, /\['checkout_submit', 'checkout_submit'\]/);
   assert.match(analytics, /\['checkout_api_error', 'checkout_api_error'\]/);
@@ -102,6 +104,10 @@ test('pricing and checkout expose plan selection, checkout start, and payment re
   assert.match(analytics, /track\('checkout_start', \{ plan: queryPlan\(\) \|\| '到考日' \}\)/);
   assert.match(analytics, /payment_return_success/);
   assert.doesNotMatch(analytics, /purchase_completed/);
+  assert.match(checkout, /let emailFocusTracked = false/);
+  assert.match(checkout, /sofaTrack\('checkout_email_focus', \{ plan: sel\.plan, amount: sel\.amount \}\)/);
+  assert.match(checkout, /sofaTrack\('checkout_invalid_email', \{ plan: sel\.plan, amount: sel\.amount, reason: 'empty' \}\)/);
+  assert.match(checkout, /sofaTrack\('checkout_invalid_email', \{ plan: sel\.plan, amount: sel\.amount, reason: 'format' \}\)/);
   assert.match(checkout, /sofaTrack\('checkout_attempt', \{ plan: sel\.plan, amount: sel\.amount \}\)/);
   assert.match(checkout, /sofaTrack\('checkout_submit', \{ plan: sel\.plan, amount: sel\.amount \}\)/);
   assert.match(checkout, /sofaTrack\('checkout_api_error'/);
