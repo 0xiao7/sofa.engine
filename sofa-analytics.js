@@ -1,6 +1,7 @@
 (function(){
   const ATTR_KEY = 'sofa_attribution_v1';
   const SESSION_KEY = 'sofa_session_v1';
+  const TRACKING_VERSION = '20260704-revenue-v1';
   const FUNNEL_ENDPOINT = 'https://sofa-engine-api.onrender.com/api/funnel-event';
   const ATTR_KEYS = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','gclid','fbclid'];
   const SERVER_EVENT_MAP = new Map([
@@ -89,7 +90,8 @@
   function normalizePayload(data){
     const payload = Object.assign({
       page_path: location.pathname,
-      page_title: document.title || ''
+      page_title: document.title || '',
+      tracking_version: TRACKING_VERSION
     }, attributionPayload(), data || {});
     Object.keys(payload).forEach(k => {
       if (payload[k] === undefined || payload[k] === null || payload[k] === '') delete payload[k];

@@ -18,13 +18,15 @@ const room = readFileSync(new URL('../room.html', import.meta.url), 'utf8');
 
 test('core funnel pages load the shared analytics bridge', () => {
   for (const html of [index, dashboard, login, quiz, fill, practice, free, pricing, checkout]) {
-    assert.match(html, /<script src="sofa-analytics\.js" defer><\/script>/);
+    assert.match(html, /<script src="sofa-analytics\.js\?v=20260704-revenue-v1" defer><\/script>/);
   }
 });
 
 test('analytics bridge preserves attribution and falls back safely when gtag is unavailable', () => {
   assert.match(analytics, /const ATTR_KEY = 'sofa_attribution_v1'/);
   assert.match(analytics, /const SESSION_KEY = 'sofa_session_v1'/);
+  assert.match(analytics, /const TRACKING_VERSION = '20260704-revenue-v1'/);
+  assert.match(analytics, /tracking_version: TRACKING_VERSION/);
   assert.match(analytics, /const FUNNEL_ENDPOINT = 'https:\/\/sofa-engine-api\.onrender\.com\/api\/funnel-event'/);
   assert.match(analytics, /utm_source/);
   assert.match(analytics, /utm_campaign/);
