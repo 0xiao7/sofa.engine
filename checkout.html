@@ -127,6 +127,14 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     font-family:var(--mono);font-size:11px;letter-spacing:.16em;
     color:var(--peach);
   }
+  .ck-return-note{
+    margin-top:18px;
+    display:grid;gap:8px;
+    font-size:13px;line-height:1.65;
+    color:rgba(245,240,234,.66);
+    max-width:460px;
+  }
+  .ck-return-note b{color:var(--cream);font-weight:600}
 
   .ck-foot{
     position:relative;z-index:2;margin-top:28px;
@@ -429,6 +437,28 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     color:rgba(231,187,167,.55);
     text-align:center;letter-spacing:.05em;
   }
+  .pay-handoff{
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+    margin:14px 0 16px;
+  }
+  .pay-handoff div{
+    border:1px solid var(--line);
+    background:rgba(255,255,255,.03);
+    border-radius:3px;
+    padding:12px 12px 11px;
+  }
+  .pay-handoff b{
+    display:block;margin-bottom:5px;
+    font-family:var(--mono);font-size:10px;letter-spacing:.14em;
+    color:var(--peach);text-transform:uppercase;
+  }
+  .pay-handoff span{
+    display:block;
+    font-size:12px;line-height:1.55;
+    color:rgba(245,240,234,.68);
+  }
   .ck-cta{
     margin-top:12px;width:100%;padding:17px 22px;
     background:var(--peach);color:var(--navy);border-radius:3px;
@@ -493,6 +523,14 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     margin-top:20px;padding:0;
     display:flex;flex-direction:column;gap:9px;
   }
+  .legal summary{
+    cursor:pointer;
+    color:rgba(245,240,234,.68);
+    font-family:var(--mono);font-size:11px;letter-spacing:.12em;
+    text-transform:uppercase;
+  }
+  .legal summary::-webkit-details-marker{color:var(--peach)}
+  .legal[open] summary{margin-bottom:10px;color:var(--peach)}
   .legal p{
     font-size:12.5px;color:rgba(245,240,234,.62);line-height:1.8;
   }
@@ -588,6 +626,7 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     .summary .tot{text-align:left}
     .ck-r .bottom{flex-direction:column;gap:10px;align-items:flex-start}
     .pay-strip{flex-direction:column;align-items:flex-start;gap:10px}
+    .pay-handoff{grid-template-columns:1fr}
   }
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
@@ -611,10 +650,12 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
 
     <div class="ck-hero">
       <div class="eb">CHECKOUT · 完成購買</div>
-      <h1>選方案，<br/>留下信箱，<br/><em>就這樣。</em></h1>
-      <p>付款完成後，序號會自動寄到你的信箱。
-沒有自動續扣—期間用完，需要再買就再買；不需要，就放著。
-</p>
+      <h1>付款後收到序號，<br/><em>回來繼續做題。</em></h1>
+      <p>選方案、填信箱，會前往綠界付款。付款完成後序號通常 5 分鐘內寄到信箱；登入後會接回你的答題紀錄與弱點資料。</p>
+      <div class="ck-return-note">
+        <span><b>已經有序號：</b>不用重買，請回登入頁輸入序號。</span>
+        <span><b>還在試用：</b>升級後保留答題紀錄、弱點分析、錯題重練與複習排程。</span>
+      </div>
 
       <ul class="incl">
         <li><span class="ix">01</span><span><b>567 部法規 · 36,000+ 條文</b>——172 職能國考完整法條資料庫，修法後盡快同步更新。</span></li>
@@ -623,8 +664,7 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
         <li><span class="ix">04</span><span><b>上榜退 30% / 分享退 40%</b>——憑榜單退款；公開分享心得加 10%。</span></li>
       </ul>
 
-      <div class=”ck-quote”>”讀不完沒關係。考試當天你只需要想起來。<br/>備考不是衝刺。是每天都還在。<br/>不記得了沒關係。記過一次，就比沒讀過好一點。”
-</div>
+      <div class="ck-quote">讀不完沒關係，先把今天會用到的那幾條穩住。<span>SOFA ENGINE · EXAM PREP</span></div>
     </div>
 
     <div class="ck-foot">
@@ -650,8 +690,8 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
 
     <form class="form" onsubmit="event.preventDefault();" novalidate>
       <div class="eb">STEP 01 / 01</div>
-      <h2>選擇方案，<br/><em>輸入信箱。</em></h2>
-      <p class="sub">序號通常會在付款確認後 5 分鐘內寄到你填的信箱；輸入序號即可開始備考。</p>
+      <h2>確認方案，<br/><em>序號寄到這裡。</em></h2>
+      <p class="sub">填你收信最穩的信箱。付款成功後用序號登入，進度會接回同一個帳號。</p>
 
       <!-- ───────── SECTION 01 — 方案 ───────── -->
       <div class="sec">
@@ -761,7 +801,12 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
           </div>
         </div>
 
-        <p class="ck-encourage">付款後通常 5 分鐘內寄出序號。15 分鐘後仍未收到，請來信附購買信箱與付款畫面截圖。</p>
+        <div class="pay-handoff" aria-label="付款後流程">
+          <div><b>01 ECPAY</b><span>前往綠界付款，SoFa 不儲存信用卡。</span></div>
+          <div><b>02 EMAIL</b><span>序號通常 5 分鐘內寄到信箱。</span></div>
+          <div><b>03 LOGIN</b><span>輸入序號，接回答題紀錄與弱點。</span></div>
+        </div>
+        <p class="ck-encourage">15 分鐘後仍未收到，請來信附購買信箱與付款畫面截圖。</p>
         <button class="ck-cta" id="ck-submit" type="button">前往付款 <span class="arrow">⟶</span></button>
         <div class="ck-error" id="ck-error"></div>
 
@@ -774,11 +819,12 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
           </span>
         </div>
 
-        <div class="legal">
+        <details class="legal">
+          <summary>退費、上榜保障與付款安全</summary>
           <p><span class="ix">§ 01</span>數位內容服務不適用 7 天鑑賞期。購買後 7 天內且序號未啟用，可申請全額退費；已啟用後不退費。</p>
           <p><span class="ix">§ 02</span><b>上榜退款保障</b>——考試上榜後憑榜單截圖，退還實際付款費用 <b>30%</b>；若同時公開分享使用心得，退還 <b>40%</b>。</p>
           <p><span class="ix">§ 03</span>付款由<b>綠界科技 ECPay</b>處理，SoFa Engine 不接觸、不儲存你的信用卡資訊。</p>
-        </div>
+        </details>
       </div>
     </form>
 

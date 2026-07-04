@@ -188,7 +188,7 @@
     decorateLinks();
     const path = location.pathname.replace(/\/+$/, '') || '/';
     if (path.endsWith('/pricing.html')) track('pricing_view');
-    if (path.endsWith('/checkout.html')) track('checkout_start', { plan: queryPlan() || '季費' });
+    if (path.endsWith('/checkout.html')) track('checkout_start', { plan: queryPlan() || '到考日' });
     const qs = params();
     const success = ['paid','success'].some(k => qs.get(k) === '1') || /success|paid|completed/i.test(qs.get('status') || qs.get('payment') || '');
     // URL return params only prove the browser came back from payment; verified revenue is server-side only.
