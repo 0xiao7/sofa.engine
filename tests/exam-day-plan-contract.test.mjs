@@ -25,9 +25,14 @@ test('checkout defaults to the exam-day plan and keeps required checkout fields'
   assert.match(checkout, /id="ck-exam-target"/);
   assert.match(checkout, /function selectedExamKey\(\)/);
   assert.match(checkout, /function currentExamKey\(\)/);
+  assert.match(checkout, /function examCycleState\(\)/);
+  assert.match(checkout, /function refreshExamTargetState\(\)/);
+  assert.match(checkout, /saleOpenDays:\s*180/);
+  assert.match(checkout, /checkout_exam_day_unavailable/);
   assert.match(checkout, /exam_key: currentExamKey\(\)/);
   assert.match(checkout, /依你選的考試目標計算/);
   assert.match(checkout, /到考日方案會依這裡的考試目標計算，不共用記帳士日期/);
+  assert.doesNotMatch(checkout, /const EXAM = new Date\('2026-11-14T00:00:00\+08:00'\)/);
   assert.match(checkout, /"到考日": examDayPlanText/);
   assert.match(checkout, /const checkoutPayload = \{/);
   assert.match(checkout, /plan: sel\.plan/);

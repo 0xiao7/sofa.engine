@@ -328,6 +328,13 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     transition:color .25s;
   }
   .plan.selected .price .n{color:var(--peach)}
+  .plan.unavailable{
+    opacity:.58;
+  }
+  .plan.unavailable .badge{
+    color:rgba(245,240,234,.52);
+    border-color:rgba(245,240,234,.22);
+  }
   .plan .price .n .c{
     font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.5);
     font-weight:500;letter-spacing:.04em;margin-right:3px;
@@ -770,7 +777,7 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
               <option value="post-acc">郵政會計</option>
             </select>
           </div>
-          <div class="field-hint">到考日方案會依這裡的考試目標計算，不共用記帳士日期。</div>
+          <div class="field-hint" id="ck-exam-hint">到考日方案會依這裡的考試目標計算，不共用記帳士日期。</div>
           <div class="field-row" style="margin-top:14px">
             <span>EMAIL · 序號寄到這裡</span>
             <span style="color:rgba(31,56,72,.42);font-weight:500">必填</span>
@@ -899,6 +906,7 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
   const sumAmount = document.getElementById("ck-sum-amount");
   const emailEl   = document.getElementById("ck-email-input");
   const examTargetEl = document.getElementById("ck-exam-target");
+  const examHintEl = document.getElementById("ck-exam-hint");
   const hintEl    = document.getElementById("ck-email-hint");
   const submitBtn = document.getElementById("ck-submit");
   const errorEl   = document.getElementById("ck-error");
@@ -907,14 +915,6 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
   // Early bird: +15 days on monthly plan before 2026-06-15
   const EB_END = new Date("2026-06-15T23:59:59+08:00");
   const isEarlyBird = new Date() < EB_END;
-
-  // ── 動態考試倒數（左側面板）──────────────────────
-  (function(){
-    const EXAM = new Date('2026-11-14T00:00:00+08:00');
-    const days = Math.max(Math.ceil((EXAM - new Date()) / 86400000), 0);
-    const el = document.getElementById('ck-exam-days');
-    if(el) el.innerHTML = days + '<em>d</em>';
-  })();
 
   (function setupEarlyBird(){
     const banner    = document.getElementById("eb-banner");
@@ -947,7 +947,12 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
   })();
 
   const EXAM_TARGETS = {
-    bookkeeper: { label: "記帳士" },
+    bookkeeper: {
+      label: "記帳士",
+      examDate: "2026-11-14",
+      accessUntil: "2026-11-30",
+      saleOpenDays: 180
+    },
     landadmin: { label: "地政士" },
     realestate: { label: "不動產經紀人" },
     "tax-admin": { label: "稅務行政" },
@@ -956,6 +961,19 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     "post-acc": { label: "郵政會計" }
   };
   const DEFAULT_EXAM_KEY = "bookkeeper";
+  const EXAM_DAY_PLAN = "到考日";
+  function todayStart(){
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }
+  function dateFromISO(iso){
+    return iso ? new Date(iso + "T00:00:00+08:00") : null;
+  }
+  function formatDateZh(iso){
+    if (!iso) return "";
+    const parts = iso.split("-");
+    return parts.length === 3 ? `${Number(parts[0])}/${Number(parts[1])}/${Number(parts[2])}` : iso;
+  }
   function selectedExamKey(){
     const params = new URLSearchParams(location.search);
     const candidate = (
@@ -973,8 +991,52 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
   function currentExamKey(){
     return EXAM_TARGETS[examTargetEl?.value] ? examTargetEl.value : selectedExamKey();
   }
+  function currentExamTarget(){
+    return EXAM_TARGETS[currentExamKey()] || EXAM_TARGETS[DEFAULT_EXAM_KEY];
+  }
+  function examCycleState(){
+    const target = currentExamTarget();
+    if (!target.examDate || !target.accessUntil) {
+      return {
+        target,
+        available: false,
+        reason: "not_configured",
+        message: `${target.label} 的到考日週期尚未開放；可先用月費或季費。`
+      };
+    }
+    const examDate = dateFromISO(target.examDate);
+    const today = todayStart();
+    const daysUntilExam = Math.ceil((examDate - today) / 86400000);
+    if (daysUntilExam < 0) {
+      return {
+        target,
+        available: false,
+        reason: "closed",
+        message: `${target.label} 這一梯考試已結束；請改選下一個考試週期或先用月費。`
+      };
+    }
+    const saleOpenDays = Number(target.saleOpenDays || 180);
+    if (daysUntilExam > saleOpenDays) {
+      return {
+        target,
+        available: false,
+        reason: "too_early",
+        daysUntilExam,
+        message: `${target.label} 距離考試還有 ${daysUntilExam} 天；到考日方案考前 ${saleOpenDays} 天內開放，現在建議先用月費或季費。`
+      };
+    }
+    return {
+      target,
+      available: true,
+      reason: "open",
+      daysUntilExam,
+      message: `${target.label} 到考日可購買，用到 ${formatDateZh(target.accessUntil)}。`
+    };
+  }
   function examDayPlanText(){
-    return "到考日 · 依考試目標";
+    const state = examCycleState();
+    if (!state.available) return `到考日 · ${state.target.label} 尚未開放`;
+    return `到考日 · ${state.target.label} · 用到 ${formatDateZh(state.target.accessUntil)}`;
   }
 
   const PLAN_TEXT = {
@@ -983,6 +1045,22 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     "季費": isEarlyBird ? "季訂閱 · 135 天（含早鳥 +45 天）" : "季訂閱 · 90 天"
   };
   const DEFAULT_HINT = "請確認信箱正確，序號僅寄送一次。";
+  function refreshExamTargetState(){
+    const state = examCycleState();
+    const examDayCard = plansEl.querySelector(`.plan[data-plan="${EXAM_DAY_PLAN}"]`);
+    if (examHintEl) {
+      examHintEl.textContent = state.message;
+      examHintEl.classList.toggle("err", !state.available);
+    }
+    const daysEl = document.getElementById("ck-exam-days");
+    if (daysEl) {
+      daysEl.innerHTML = state.available ? state.daysUntilExam + "<em>d</em>" : "—<em>d</em>";
+    }
+    if (examDayCard) {
+      examDayCard.classList.toggle("unavailable", !state.available);
+      examDayCard.setAttribute("aria-disabled", String(!state.available));
+    }
+  }
 
   function getSelected(){
     const el = plansEl.querySelector(".plan.selected");
@@ -992,6 +1070,7 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     const s = getSelected();
     const label = PLAN_TEXT[s.plan];
     sumPlan.textContent = typeof label === "function" ? label() : (label || s.plan);
+    refreshExamTargetState();
     if (sumAmount.textContent !== s.amount){
       sumAmount.textContent = s.amount;
       const totEl = sumAmount.parentElement;
@@ -1057,6 +1136,14 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     clearError();
     const email = emailEl.value.trim();
     const sel = getSelected();
+    const examState = examCycleState();
+    if (sel.plan === EXAM_DAY_PLAN && !examState.available) {
+      if (typeof window.sofaTrack === 'function') {
+        window.sofaTrack('checkout_exam_day_unavailable', { exam_key: currentExamKey(), reason: examState.reason });
+      }
+      showError(examState.message);
+      return;
+    }
     if (!email){
       hintEl.textContent = "請輸入信箱地址。";
       if (typeof window.sofaTrack === 'function') {
