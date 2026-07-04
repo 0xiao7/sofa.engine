@@ -84,6 +84,7 @@ test('pricing and checkout expose plan selection, checkout start, and payment re
   assert.match(pricing, /data-plan="季費"/);
   assert.match(analytics, /pricing_view/);
   assert.match(analytics, /checkout_start/);
+  assert.match(analytics, /track\('checkout_start', \{ plan: queryPlan\(\) \|\| '到考日' \}\)/);
   assert.match(analytics, /payment_return_success/);
   assert.doesNotMatch(analytics, /purchase_completed/);
   assert.match(checkout, /sofaTrack\('checkout_submit', \{ plan: sel\.plan, amount: sel\.amount \}\)/);
@@ -93,6 +94,19 @@ test('pricing and checkout expose plan selection, checkout start, and payment re
   assert.match(checkout, /page_path: location\.pathname \+ location\.search/);
   assert.match(checkout, /body: JSON\.stringify\(checkoutPayload\)/);
   assert.doesNotMatch(checkout, /data-track-event="checkout_submit"/, 'checkout submit should not double-count through generic click tracking');
+});
+
+test('checkout copy explains the payment handoff without burying the primary action', () => {
+  assert.match(checkout, /回來繼續做題/);
+  assert.match(checkout, /付款後流程/);
+  assert.match(checkout, /前往綠界付款/);
+  assert.match(checkout, /序號通常 5 分鐘內寄到信箱/);
+  assert.match(checkout, /class="ck-quote"/);
+  assert.doesNotMatch(checkout, /class=”ck-quote”/);
+  assert.match(checkout, /<details class="legal">/);
+  assert.match(checkout, /<summary>退費、上榜保障與付款安全<\/summary>/);
+  assert.match(pricing, /pricing_footer_login"[^>]*>已有序號？登入<\/a>/);
+  assert.doesNotMatch(pricing, /pricing_footer_login"[^>]*>先免費試用<\/a>/);
 });
 
 test('quiz tracks question starts and submitted answers across normal and wrong-review modes', () => {
