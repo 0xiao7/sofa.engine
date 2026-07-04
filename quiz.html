@@ -1045,10 +1045,10 @@ function isPreviewHost(){
     || location.hostname === '::1'
     || location.protocol === 'file:';
 }
-const uid = localStorage.getItem('sofa_uid') || (isPreviewHost() ? 'PREVIEW' : null);
-const tok = localStorage.getItem('sofa_token') || '';
 const _searchParams = new URLSearchParams(location.search);
 const freeParam = _searchParams.get('free') === '1';
+const uid = localStorage.getItem('sofa_uid') || ((isPreviewHost() && !freeParam) ? 'PREVIEW' : null);
+const tok = localStorage.getItem('sofa_token') || '';
 const _drillParam = _searchParams.get('drill') === '1';
 const _startQuizParam = _searchParams.get('start') === '1';
 const _PAST_EXAM_SUBJECTS = ['記帳相關法規概要', '稅務相關法規概要'];
