@@ -22,6 +22,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="sofa.css" />
 <style>
+  :root{--tool-topbar-offset:81px}
+  body{padding-top:var(--tool-topbar-offset)}
+  .topbar{position:fixed;top:0;left:0;right:0;z-index:80}
   .pr-bar{
     background:var(--navy-2);border-bottom:1px solid var(--line);
     padding:16px 40px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;
@@ -309,6 +312,7 @@
     .rail-card{flex:1;min-width:240px}
   }
   @media (max-width:760px){
+    :root{--tool-topbar-offset:calc(64px + env(safe-area-inset-top, 0px))}
     html,body{overflow-x:hidden}          /* 手機 390 頂部列略寬造成的橫向溢出收掉（內容不受影響）*/
     .pr-bar{padding:12px 18px;gap:12px;flex-wrap:wrap}
     .pr-meta{gap:14px;font-size:11px}
@@ -519,7 +523,13 @@
 const API = 'https://sofa-engine-api.onrender.com';
 function isIOSReaderApp(){try{return !!(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='ios');}catch(e){return false;}}
 if(isIOSReaderApp()) document.documentElement.classList.add('ios-reader-app');
-const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
+function isPreviewHost(){
+  return location.hostname === 'localhost'
+    || location.hostname === '127.0.0.1'
+    || location.hostname === '::1'
+    || location.protocol === 'file:';
+}
+const uid = localStorage.getItem('sofa_uid') || (isPreviewHost() ? 'PREVIEW' : null);
 const tok = localStorage.getItem('sofa_token') || '';
 const _fillSearchParams = new URLSearchParams(location.search);
 const freeParam = _fillSearchParams.get('free') === '1';
