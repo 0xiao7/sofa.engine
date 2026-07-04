@@ -12,6 +12,9 @@ const dashboard = readFileSync(new URL('../dashboard.html', import.meta.url), 'u
 const login = readFileSync(new URL('../login.html', import.meta.url), 'utf8');
 const fill = readFileSync(new URL('../fill.html', import.meta.url), 'utf8');
 const practice = readFileSync(new URL('../practice.html', import.meta.url), 'utf8');
+const lawPreview = readFileSync(new URL('../law-preview.html', import.meta.url), 'utf8');
+const notes = readFileSync(new URL('../notes.html', import.meta.url), 'utf8');
+const room = readFileSync(new URL('../room.html', import.meta.url), 'utf8');
 
 test('core funnel pages load the shared analytics bridge', () => {
   for (const html of [index, dashboard, login, quiz, fill, practice, free, pricing, checkout]) {
@@ -32,7 +35,10 @@ test('analytics bridge preserves attribution and falls back safely when gtag is 
   assert.match(analytics, /keepalive: true/);
   assert.match(analytics, /decorateLinks/);
   assert.match(analytics, /CARRY_PATHS/);
-  assert.match(analytics, /if \(!ATTR_KEYS\.some\(k => !!a\[k\]\)\) return href;/);
+  assert.match(analytics, /MONETIZATION_PATHS/);
+  assert.match(analytics, /fallbackCampaign/);
+  assert.match(analytics, /fallbackContent/);
+  assert.match(analytics, /window\.sofaDecorateHref = decorateHref/);
 });
 
 test('server-side funnel forwarding is limited to revenue, recovery, and entry events', () => {
@@ -99,6 +105,39 @@ test('pricing and checkout expose plan selection, checkout start, and payment re
   assert.match(checkout, /page_path: location\.pathname \+ location\.search/);
   assert.match(checkout, /body: JSON\.stringify\(checkoutPayload\)/);
   assert.doesNotMatch(checkout, /data-track-event="checkout_submit"/, 'checkout submit should not double-count through generic click tracking');
+});
+
+test('internal monetization links carry CTA-level attribution instead of becoming unknown source', () => {
+  const expectedLinks = [
+    [index, /pricing\.html\?utm_source=homepage&utm_medium=hero&utm_campaign=homepage_pricing/],
+    [index, /pricing\.html\?utm_source=homepage&utm_medium=plan_card&utm_campaign=homepage_monthly_pricing/],
+    [index, /checkout\.html\?plan=到考日&utm_source=homepage&utm_medium=plan_card&utm_campaign=homepage_exam_day/],
+    [index, /pricing\.html\?utm_source=homepage&utm_medium=plan_card&utm_campaign=homepage_quarterly_pricing/],
+    [dashboard, /pricing\.html\?utm_source=dashboard&utm_medium=free_retention&utm_campaign=dashboard_pricing/],
+    [dashboard, /pricing\.html\?utm_source=dashboard&utm_medium=member_card&utm_campaign=renewal_pricing/],
+    [dashboard, /pricing\.html\?utm_source=dashboard&utm_medium=locked_analysis&utm_campaign=dashboard_pricing/],
+    [dashboard, /pricing\.html\?utm_source=dashboard&utm_medium=member_card_free&utm_campaign=dashboard_pricing/],
+    [dashboard, /pricing\.html\?utm_source=dashboard&utm_medium=free_nudge&utm_campaign=dashboard_pricing/],
+    [dashboard, /\/pricing\.html\?utm_source=dashboard&utm_medium=expired_modal&utm_campaign=renew_pricing/],
+    [fill, /pricing\.html\?utm_source=fill&utm_medium=free_bar&utm_campaign=fill_pricing/],
+    [fill, /pricing\.html\?utm_source=fill&utm_medium=locked_section&utm_campaign=fill_pricing/],
+    [practice, /pricing\.html\?utm_source=practice&utm_medium=free_bar&utm_campaign=practice_pricing/],
+    [practice, /pricing\.html\?utm_source=practice&utm_medium=locked_section&utm_campaign=practice_pricing/],
+    [lawPreview, /pricing\.html\?utm_source=law_preview&utm_medium=locked_section&utm_campaign=law_preview_pricing/],
+    [notes, /pricing\.html\?utm_source=notes&utm_medium=empty_state&utm_campaign=notes_pricing/],
+    [room, /checkout\.html\?plan=到考日&utm_source=room&utm_medium=retain_modal&utm_campaign=room_checkout/],
+  ];
+  for (const [html, pattern] of expectedLinks) {
+    assert.match(html, pattern);
+  }
+  assert.match(room, /window\.sofaDecorateHref \? window\.sofaDecorateHref\(checkoutHref\) : checkoutHref/);
+});
+
+test('analytics decorator supplies a safe internal fallback for naked payment links', () => {
+  assert.match(analytics, /if \(!url\.searchParams\.has\('utm_source'\)\) url\.searchParams\.set\('utm_source', 'site'\)/);
+  assert.match(analytics, /if \(!url\.searchParams\.has\('utm_medium'\)\) url\.searchParams\.set\('utm_medium', 'internal'\)/);
+  assert.match(analytics, /if \(!url\.searchParams\.has\('utm_campaign'\)\) url\.searchParams\.set\('utm_campaign', fallbackCampaign\(url\.pathname\)\)/);
+  assert.match(analytics, /if \(!url\.searchParams\.has\('utm_content'\)\) url\.searchParams\.set\('utm_content', fallbackContent\(\)\)/);
 });
 
 test('checkout copy explains the payment handoff without burying the primary action', () => {

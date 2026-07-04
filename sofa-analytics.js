@@ -23,6 +23,7 @@
     '/pricing.html','/checkout.html','/login.html','/quiz.html','/fill.html',
     '/practice.html','/dashboard.html','/free.html'
   ]);
+  const MONETIZATION_PATHS = new Set(['/pricing.html','/checkout.html','/login.html']);
 
   function nowIso(){
     try { return new Date().toISOString(); } catch(e) { return ''; }
@@ -143,11 +144,28 @@
     if (url.origin !== location.origin) return href;
     if (!CARRY_PATHS.has(url.pathname)) return href;
     const a = readStored();
-    if (!ATTR_KEYS.some(k => !!a[k])) return href;
+    const hasStoredAttribution = ATTR_KEYS.some(k => !!a[k]);
     ATTR_KEYS.forEach(k => {
       if (a[k] && !url.searchParams.has(k)) url.searchParams.set(k, a[k]);
     });
+    if (!hasStoredAttribution && MONETIZATION_PATHS.has(url.pathname)) {
+      if (!url.searchParams.has('utm_source')) url.searchParams.set('utm_source', 'site');
+      if (!url.searchParams.has('utm_medium')) url.searchParams.set('utm_medium', 'internal');
+      if (!url.searchParams.has('utm_campaign')) url.searchParams.set('utm_campaign', fallbackCampaign(url.pathname));
+      if (!url.searchParams.has('utm_content')) url.searchParams.set('utm_content', fallbackContent());
+    }
     return url.pathname + url.search + url.hash;
+  }
+
+  function fallbackCampaign(pathname){
+    if (pathname === '/checkout.html') return 'checkout_entry';
+    if (pathname === '/login.html') return 'serial_login';
+    return 'pricing_entry';
+  }
+
+  function fallbackContent(){
+    const path = (location.pathname || '/').replace(/^\/+|\.html$/g, '').replace(/[^\w-]+/g, '_');
+    return path || 'home';
   }
 
   function decorateLinks(){
@@ -166,6 +184,7 @@
   window.sofaTrack = track;
   window.sofaGetAttribution = attributionPayload;
   window.sofaGetSessionId = sessionId;
+  window.sofaDecorateHref = decorateHref;
   window.sofaAttribution = {
     capture: captureAttribution,
     decorateLinks: decorateLinks,

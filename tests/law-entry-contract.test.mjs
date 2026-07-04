@@ -333,7 +333,7 @@ test('law preview teases paid fifth and sixth sections instead of hiding the val
   assert.match(preview, /class="section-lock-badge" aria-label="付費解鎖">LOCKED<\/span>/);
   assert.match(preview, /class="section-locked-preview"/);
   assert.match(preview, /第 \$\{seg\} 段留給完整會員閱讀/);
-  assert.match(preview, /href="pricing\.html">查看方案 →/);
+  assert.match(preview, /href="pricing\.html\?utm_source=law_preview&utm_medium=locked_section&utm_campaign=law_preview_pricing">查看方案 →/);
   assert.match(preview, /\.section\.locked/);
   assert.match(preview, /\.section-lock-badge::before/);
   assert.match(preview, /\.section-lock-badge::after/);
