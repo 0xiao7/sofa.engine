@@ -940,13 +940,19 @@
     return `${target.label || "目標考試"} · ${target.examDisplay || "考期未設定"}`;
   }
 
+  function isCheckoutExamTargetConfigured(){
+    const api = window.SoFaExamTargets;
+    const target = api && api.TARGETS ? api.TARGETS[getCheckoutExamKey()] : null;
+    return !!(target && target.examDisplay);
+  }
+
   function updateExamTargetHint(){
     if (!examTargetHintEl || !window.SoFaExamTargets) return;
     const target = window.SoFaExamTargets.TARGETS[getCheckoutExamKey()];
     if (target && target.examDisplay) {
       examTargetHintEl.textContent = `會以 ${target.examDisplay} 作為考試目標，實際可用期限由後端考期設定計算。`;
     } else {
-      examTargetHintEl.textContent = "考期未設定：付款送出後後端會擋下，避免把其他考試誤算成記帳士。";
+      examTargetHintEl.textContent = "考期未設定：這個考試的到考日方案尚未開放，請先選月費或季費。";
     }
   }
 
@@ -1047,6 +1053,12 @@
     }
 
     const sel = getSelected();
+    if (sel.plan === "到考日" && !isCheckoutExamTargetConfigured()) {
+      trackCheckout("checkout_exam_target_unavailable", { exam_key: getCheckoutExamKey() });
+      showError("這個考試的到考日方案尚未開放。請先選月費或季費，或等我們補上正式考期。");
+      try { examTargetSection.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (_) {}
+      return;
+    }
     const original = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = "處理中，請稍候…";
