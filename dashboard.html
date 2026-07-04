@@ -7227,6 +7227,24 @@ function _readArticle(btn, text) {
     box.classList.add('on');
   }
 
+  function profileFromEntitlementData(data){
+    if(!data || data.error) return null;
+    var plan = data.current_plan || '';
+    var expire = data.current_expiry || '';
+    var suffix = data.serial_suffix || '';
+    if(!plan && !expire && !suffix) return null;
+    var PLAN_LABEL = {'月費':'準榜生','季費':'準榜生','體驗':'試讀生','免費':'讀友','Admin':'帳號擁有者'};
+    var planBadge = PLAN_LABEL[plan] || plan || '會員';
+    return {
+      name: planBadge,
+      default_nickname: planBadge,
+      plan: plan,
+      expire: expire,
+      serial: suffix,
+      entitlement_only: true
+    };
+  }
+
   function renderDashboardLoadingFallbacks(){
     if(window.__dashboardDataLoaded) return;
     var recent = document.getElementById('recent-list');
@@ -7267,38 +7285,40 @@ function _readArticle(btn, text) {
     _entitlementState.error = entitlementRes && entitlementRes.error ? entitlementRes.detail || entitlementRes.error : null;
     refreshEntitlementPanelIfOpen();
     renderStudyToday(studyTodayRes || null);
-    if(window._sofaAuthIssue && !profile){
+    var memberCardProfile = profile || profileFromEntitlementData(_entitlementState.data);
+    if(window._sofaAuthIssue && !memberCardProfile){
       renderStudyAuthIssue();
       return;
     }
 
     // ── 會員卡 ──
-    if(profile){
-      var plan   = profile.plan || '';
-      var expire = profile.expire || '';
+    if(memberCardProfile){
+      var plan   = memberCardProfile.plan || '';
+      var expire = memberCardProfile.expire || '';
       var isExpired = expire && new Date(expire) < new Date();
+      var entitlementOnly = !!memberCardProfile.entitlement_only;
 
       // 方案 → 代稱
       var PLAN_LABEL = {'月費':'準榜生','季費':'準榜生','體驗':'試讀生','免費':'讀友','Admin':'帳號擁有者'};
       var planBadge = PLAN_LABEL[plan] || plan || '讀友';
 
       // 暱稱：有設就用，否則用方案預設代稱
-      var name   = profile.name || profile.default_nickname || planBadge;
-      var serial = profile.serial || '';
+      var name   = memberCardProfile.name || memberCardProfile.default_nickname || planBadge;
+      var serial = memberCardProfile.serial || '';
 
       if(name) localStorage.setItem('sofa_nickname', name);
 
       // 序號遮擋
-      _fullSerial = serial;
+      _fullSerial = entitlementOnly ? '' : serial;
 
       setText('mc-name-text', name);
-      setText('mc-serial', serial ? _maskSerial(serial) : '——');
+      setText('mc-serial', entitlementOnly && serial ? ('後 4 碼 ' + serial) : (serial ? _maskSerial(serial) : '——'));
       setText('mc-plan', planBadge);
       setText('mc-status', isExpired ? 'EXPIRED' : 'ACTIVE');
       setText('mc-expire', expire ? fmtDate(expire) : '永久有效');
       setText('mc-avatar', (name || '—').charAt(0).toUpperCase());
       setText('mc-who', (name || '—').toUpperCase());
-      renderMembershipRenewalNudge(profile, isExpired);
+      renderMembershipRenewalNudge(memberCardProfile, isExpired);
 
       // P0-C：已到期且非 Admin → 顯示覆蓋層
       if(isExpired && plan !== 'Admin' && !isIOSReaderApp()){
@@ -9936,6 +9956,11 @@ updateActiveNavFromScroll();
       text-decoration:none;margin-bottom:0.75rem;">
       立即續訂
     </a>
+    <button onclick="openExpireEntitlementPanel()" data-track-event="expire_entitlement_detail_click" data-track-label="ledger_detail" style="display:block;width:100%;
+      background:rgba(245,240,234,0.06);border:1px solid rgba(231,187,167,0.44);color:var(--peach);
+      border-radius:8px;padding:0.75rem 1.5rem;font-size:0.9rem;font-weight:700;cursor:pointer;margin-bottom:0.75rem;">
+      查看期限明細
+    </button>
     <button onclick="switchToFree()" data-track-event="expire_free_switch" data-track-label="switch_free" style="display:block;width:100%;
       background:transparent;border:1px solid rgba(245,240,234,0.35);color:#F5F0EA;
       border-radius:8px;padding:0.75rem 1.5rem;font-size:0.9rem;cursor:pointer;">
@@ -9948,6 +9973,11 @@ function showExpireOverlay(){
   if(isIOSReaderApp()) return;
   var el=document.getElementById('expire-overlay');
   if(el){ el.style.display='flex'; }
+}
+function openExpireEntitlementPanel(){
+  var el=document.getElementById('expire-overlay');
+  if(el) el.style.display='none';
+  openEntitlementPanel();
 }
 function switchToFree(){
   localStorage.removeItem('sofa_uid');

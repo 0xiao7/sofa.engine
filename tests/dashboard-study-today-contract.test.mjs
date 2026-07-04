@@ -988,7 +988,8 @@ test('signed-in auth failures are not rendered as empty weakness data', () => {
   assert.doesNotMatch(active, /登入狀態異常/);
   assert.doesNotMatch(active, /請重新登入/);
   assert.doesNotMatch(active, /請附序號後 4 碼聯絡我們/);
-  assert.match(active, /if\(window\._sofaAuthIssue && !profile\)\{[\s\S]*renderStudyAuthIssue\(\);[\s\S]*return;/);
+  assert.match(active, /var memberCardProfile = profile \|\| profileFromEntitlementData\(_entitlementState\.data\)/);
+  assert.match(active, /if\(window\._sofaAuthIssue && !memberCardProfile\)\{[\s\S]*renderStudyAuthIssue\(\);[\s\S]*return;/);
 });
 
 test('study planning saves translate schema-pending responses into a readable preparing state', () => {
