@@ -3,15 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#142836">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="SoFa">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23244658'/%3E%3Ctext x='16' y='23.5' font-size='21' font-family='Georgia,serif' font-weight='700' text-anchor='middle' fill='%23E7BBA7'%3ES%3C/text%3E%3C/svg%3E">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <title>完整考試地圖 · SoFa Engine</title>
-<link rel="canonical" href="https://sofaengine.org/tree.html" />
 <link rel="preload" href="exam-data.js?v=chip1" as="script">
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -120,21 +112,10 @@ html, body {
   box-shadow: 0 10px 22px rgba(31,58,92,0.12);
   border-color: #1F3A5C;
 }
-.lv1-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 42px;
-  height: 30px;
+.lv1-emoji {
+  font-size: 32px;
   margin-bottom: 12px;
-  border: 1px solid rgba(201,122,78,.45);
-  border-radius: 8px;
-  color: #C97A4E;
-  background: rgba(201,122,78,.08);
-  font-family: "JetBrains Mono", "Consolas", monospace;
-  font-size: 11px;
-  font-weight: 800;
-  letter-spacing: .08em;
+  display: block;
 }
 .lv1-name {
   font-size: 22px;
@@ -420,11 +401,11 @@ html, body {
 .detail-non-moex {
   margin-top: 10px;
   padding: 8px 12px;
-  background: var(--sofa-cream-2);
-  border-left: 4px solid var(--sofa-peach-3);
+  background: #F3E8FF;
+  border-left: 4px solid #8E44AD;
   border-radius: 4px;
   font-size: 13px;
-  color: var(--sofa-ink);
+  color: #5B2C6F;
   font-weight: 600;
   line-height: 1.7;
 }
@@ -1422,7 +1403,7 @@ function renderHome() {
 
   let cards = '';
   for (const s of SECTIONS) {
-    const code = SEC_CODE[s] || 'LAW';
+    const emoji = SEC_EMOJI[s] || '📁';
     const count = SEC_COUNTS[s];
     const hits = highlightSecs.get(s);
     const cls = hits ? 'lv1-card lv1-card--from-compass' : 'lv1-card';
@@ -1433,7 +1414,7 @@ function renderHome() {
       <div class="${cls}" onclick="enterSection('${s.replace(/'/g, "&#39;")}')">
         ${tag}
         <span class="lv1-dash"></span>
-        <span class="lv1-mark">${code}</span>
+        <span class="lv1-emoji">${emoji}</span>
         <div class="lv1-name">${s}</div>
         <div class="lv1-meta">${count} 個方向</div>
         <span class="lv1-arrow">→</span>
@@ -1552,15 +1533,16 @@ function renderDetail(nid) {
   let lawsHtml = '';
   if (node.laws && node.laws.length > 0) {
     lawsHtml = node.laws.map((l) => {
-      // 法規名 → 對照序列號 → 進 SoFa reader；是否已上線由下方 click handler 即時判斷。
+      // 法規名 → 對照序列號 → 啟動該序號的連結；找不到則用搜尋頁 fallback
       const lawName = l.replace(/（[^）]*）/g, '').replace(/\([^)]*\)/g, '').trim();
       const rec = LAW_LINKS[l] || LAW_LINKS[lawName];
       const sid = rec ? rec.id : '—';
-      const url = SOFA_READ_URL(lawName);
+      const url = rec ? rec.url
+        : `https://law.moj.gov.tw/LawClass/LawSearchResult.aspx?q=${encodeURIComponent(lawName)}`;
       return `
       <div class="law-item">
         <span class="law-num">${sid}</span>
-        <a class="law-link" href="${url}">${l}</a>
+        <a class="law-link" href="${url}" target="_blank" rel="noopener">${l}</a>
       </div>
     `;}).join('');
   } else {
@@ -1613,7 +1595,7 @@ function renderDetail(nid) {
             ┠ 應考法規 共 <b>${lawCount}</b> 部
           </div>
           ${node.note ? `<div class="detail-note">┠ 注：${node.note}</div>` : ''}
-          ${node.non_moex_reason ? `<div class="detail-non-moex">非考選部國考：${node.non_moex_reason}</div>` : ''}
+          ${node.non_moex_reason ? `<div class="detail-non-moex">⚠ 非考選部國考：${node.non_moex_reason}</div>` : ''}
         </div>
         <button class="nav-arrow" onclick="${hasNext ? `jumpDetail('${nextId}')` : ''}" ${hasNext ? '' : 'disabled'}>→</button>
       </section>
@@ -1649,7 +1631,7 @@ function renderSalary(node) {
       ┠ 起薪<span class="stat-sep">｜</span><b>${d.approx}</b><span class="stat-sep">｜</span>${d.grade}
       ${effLine}
       <div class="salary-src">來源：${srcLinks}</div>
-      <div class="salary-note">說明：${d.note}</div>
+      <div class="salary-note">⚠ ${d.note}</div>
     </div>
   `;
 }
@@ -1794,14 +1776,14 @@ function populateModal(title, excludeIds, callbackName) {
   for (const sec of SECTIONS) {
     const items = SEC_NODES[sec].filter(n => !exSet.has(n.id));
     if (items.length === 0) continue;
-    const code = SEC_CODE[sec] || 'LAW';
+    const emoji = SEC_EMOJI[sec] || '📁';
     let opts = '';
     for (const item of items) {
       opts += `<button class="modal-option" onclick="${callbackName}('${item.id}')">${item.name}</button>`;
     }
     html += `
       <div class="modal-section">
-        <div class="modal-section-title"><span class="lv1-mark">${code}</span> ${sec}</div>
+        <div class="modal-section-title">${emoji} ${sec}</div>
         <div class="modal-options">${opts}</div>
       </div>
     `;
@@ -1944,12 +1926,10 @@ function triggerAutoReset() {
 render();
 
 // SoFa: 法本 item 點擊行為
-//   已上線 → 直接在同一個閱讀脈絡進法本試讀頁(無登入門檻)
+//   已上線(SoFa 33 部) → 直接 window.open 新分頁去法本試讀頁(無登入門檻)
 //   未上線 → toast 預告「即將上線」
 // 試讀頁直接從 Supabase API 拉條文 + 六段,使用者不會被 dashboard auth gate 擋
-function SOFA_READ_URL(lawName) {
-  return `law-preview.html?law=${encodeURIComponent(lawName)}&from=tree&back=tree.html`;
-}
+const SOFA_READ_URL = (lawName) => `https://sofaengine.org/law-preview.html?law=${encodeURIComponent(lawName)}`;
 
 (function() {
   const origRenderDetail = window.renderDetail;
@@ -1961,17 +1941,15 @@ function SOFA_READ_URL(lawName) {
         link.removeAttribute('href');
         link.removeAttribute('target');
         link.style.cursor = 'pointer';
-        // 在點擊當下即時查 set（而非裝飾當下捕捉），避免動態 hydrate 還沒
-        // 回來時把實際已上線的法條誤標成未上線。
-        const isOnline = () => SOFA_ONLINE_LAWS.has(lawName);
-        link.setAttribute('title', isOnline()
+        const isOnline = SOFA_ONLINE_LAWS.has(lawName);
+        link.setAttribute('title', isOnline
           ? `「${lawName}」已在 SoFa,點此前往閱讀`
           : `「${lawName}」即將在 SoFa 上線`);
         link.addEventListener('click', (e) => {
           e.preventDefault();
-          if (isOnline()) {
-            // 已上線:保留在同一個 app/browser 脈絡，讀完可以回考試地圖。
-            location.href = SOFA_READ_URL(lawName);
+          if (isOnline) {
+            // 已上線:直接跳新分頁
+            window.open(SOFA_READ_URL(lawName), '_blank', 'noopener');
           } else {
             // 未上線:toast 預告
             showLawToast(lawName);
@@ -1981,8 +1959,8 @@ function SOFA_READ_URL(lawName) {
     }, 0);
   };
 
-  // SoFa 已上線法條 set —— 下方陣列只是離線 fallback（2026-06-05 當時 211 部）。
-  // 啟動時會用 live /api/laws 動態覆蓋成現況（566+ 部），不再手動維護這份清單。
+  // SoFa 已上線法條 set — 直接對應 Supabase statutes 表（2026-06-05，211 部）
+  // 更新方式: 查 Supabase statutes?select=name 後替換下方陣列
   const SOFA_ONLINE_LAWS = new Set([
     "不動產估價師法","不動產估價師法施行細則","不動產估價技術規則",
     "不動產經紀業管理條例","不動產經紀業管理條例施行細則",
@@ -2056,19 +2034,6 @@ function SOFA_READ_URL(lawName) {
     "預算法","食品安全衛生管理法"
   ]);
 
-  // 啟動時用 live /api/laws 動態覆蓋上線清單（硬編 211 部已過時，實際 566+）。
-  // 失敗則沿用上方 fallback 陣列，頁面照常運作。
-  (function hydrateOnlineLaws() {
-    fetch('https://sofa-engine-api.onrender.com/api/laws')
-      .then(r => r.ok ? r.json() : null)
-      .then(d => {
-        if (!d || !Array.isArray(d.laws) || !d.laws.length) return;
-        SOFA_ONLINE_LAWS.clear();
-        d.laws.forEach(l => { if (l && l.name) SOFA_ONLINE_LAWS.add(l.name); });
-      })
-      .catch(() => {});
-  })();
-
   window.showLawToast = function(lawName) {
     const toast = document.getElementById('plannerToast');
     if (!toast) return;
@@ -2078,9 +2043,8 @@ function SOFA_READ_URL(lawName) {
     const iconEl = toast.querySelector('.planner-toast-icon');
     if (isOnline) {
       // SoFa 已上線:鼓勵點進去讀
-      const readHref = SOFA_READ_URL(lawName);
       if (titleEl) titleEl.textContent = `「${lawName}」`;
-      if (subEl) subEl.innerHTML = '✓ 已在 SoFa 陪你讀 · <a href="' + readHref + '" style="color:var(--sofa-peach);text-decoration:underline;font-weight:600;">前往閱讀 →</a>';
+      if (subEl) subEl.innerHTML = '✓ 已在 SoFa 陪你讀 · <a href="https://sofaengine.org/?intent=read&law=' + encodeURIComponent(lawName) + '" target="_blank" rel="noopener" style="color:var(--sofa-peach);text-decoration:underline;font-weight:600;">前往閱讀 →</a>';
       if (iconEl) iconEl.textContent = '✓';
     } else {
       // 未上線:預告

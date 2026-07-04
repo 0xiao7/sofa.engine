@@ -3,33 +3,15 @@
 <head>
 <meta charset="utf-8" />
 <title>SoFa Engine — 結帳</title>
-<link rel="canonical" href="https://sofaengine.org/checkout.html" />
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
-<script src="sofa-analytics.js?v=20260704-revenue-v1" defer></script>
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<script>
-(function(){
-  function mark(){try{if(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='ios'){document.documentElement.classList.add('ios-reader-app');}}catch(e){}}
-  mark(); document.addEventListener('DOMContentLoaded',mark); setTimeout(mark,120);
-})();
-</script>
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#142836">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="SoFa">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23244658'/%3E%3Ctext x='16' y='23.5' font-size='21' font-family='Georgia,serif' font-weight='700' text-anchor='middle' fill='%23E7BBA7'%3ES%3C/text%3E%3C/svg%3E">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="sofa.css" />
 <style>
-html.ios-reader-app body{display:flex!important;align-items:center;justify-content:center;min-height:100vh!important;padding:24px!important;background:#142836!important;color:#F5F0EA!important;overflow:hidden!important}
-html.ios-reader-app body>*{display:none!important}
-html.ios-reader-app body::before{content:"進階內容，訂閱者可見";display:block;font-family:"Noto Serif TC",serif;font-size:20px;letter-spacing:.08em;text-align:center}
   html,body{height:100%;background:var(--navy-3)}
   body{overflow:hidden}
 
@@ -97,22 +79,21 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     color:rgba(245,240,234,.65);max-width:440px;
   }
 
-  .ck-proof-strip{
-    margin-top:24px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;
-    max-width:500px;
+  /* sales-side bulletted "what's included" */
+  .incl{
+    margin-top:28px;display:flex;flex-direction:column;gap:11px;
+    list-style:none;max-width:460px;
   }
-  .ck-proof{
-    min-height:88px;padding:14px 15px;border:1px solid rgba(245,240,234,.14);
-    background:rgba(245,240,234,.035);border-radius:3px;
+  .incl li{
+    display:flex;align-items:flex-start;gap:14px;
+    font-size:14.5px;color:rgba(245,240,234,.78);line-height:1.65;
   }
-  .ck-proof .k{
-    font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:var(--peach);
-    text-transform:uppercase;margin-bottom:8px;
+  .incl li .ix{
+    font-family:var(--mono);font-size:10.5px;font-weight:600;
+    color:var(--peach);letter-spacing:.16em;flex-shrink:0;
+    width:30px;padding-top:3px;
   }
-  .ck-proof .v{
-    font-size:13.5px;line-height:1.55;color:rgba(245,240,234,.76);
-  }
-  .ck-proof .v b{color:var(--cream);font-weight:600}
+  .incl li b{color:var(--cream);font-weight:500}
 
   .ck-quote{
     margin-top:32px;padding:20px 24px;
@@ -128,14 +109,6 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     font-family:var(--mono);font-size:11px;letter-spacing:.16em;
     color:var(--peach);
   }
-  .ck-return-note{
-    margin-top:18px;
-    display:grid;gap:8px;
-    font-size:13px;line-height:1.65;
-    color:rgba(245,240,234,.66);
-    max-width:460px;
-  }
-  .ck-return-note b{color:var(--cream);font-weight:600}
 
   .ck-foot{
     position:relative;z-index:2;margin-top:28px;
@@ -328,13 +301,6 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     transition:color .25s;
   }
   .plan.selected .price .n{color:var(--peach)}
-  .plan.unavailable{
-    opacity:.58;
-  }
-  .plan.unavailable .badge{
-    color:rgba(245,240,234,.52);
-    border-color:rgba(245,240,234,.22);
-  }
   .plan .price .n .c{
     font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.5);
     font-weight:500;letter-spacing:.04em;margin-right:3px;
@@ -390,12 +356,10 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     width:16px;font-family:var(--mono);font-size:14px;
     color:rgba(31,56,72,.4);flex-shrink:0;
   }
-  .ck-field input,
-  .ck-field select{
+  .ck-field input{
     background:transparent;border:none;outline:none;width:100%;
     font-size:14.5px;color:var(--navy);
   }
-  .ck-field select{appearance:none;cursor:pointer}
   .ck-field input::placeholder{color:rgba(31,56,72,.32)}
   .field-hint{
     margin-top:10px;font-family:var(--mono);font-size:10.5px;
@@ -419,14 +383,6 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     font-family:var(--serif);font-size:15px;color:var(--cream);font-weight:500;
     display:block;margin-top:4px;letter-spacing:.005em;
   }
-  .plan-switch-link{
-    display:inline-flex;align-items:center;gap:6px;
-    margin-top:7px;
-    font-family:var(--mono);font-size:10.5px;font-weight:600;
-    letter-spacing:.08em;color:var(--peach);
-    opacity:.88;transition:.18s;
-  }
-  .plan-switch-link:hover{opacity:1;color:var(--cream)}
   .summary .tot{text-align:right}
   .summary .tot .tlab{
     font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;
@@ -449,53 +405,13 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
   }
 
   /* === CTA === */
-  .ck-encourage{
-    margin-top:20px;margin-bottom:4px;
-    font-family:var(--serif);font-size:13px;font-weight:600;
-    color:rgba(231,187,167,.55);
-    text-align:center;letter-spacing:.05em;
-  }
-  .pay-handoff{
-    display:grid;
-    grid-template-columns:repeat(3,minmax(0,1fr));
-    gap:10px;
-    margin:14px 0 16px;
-  }
-  .pay-handoff.compact{
-    display:block;
-    margin:14px 0 10px;
-    padding:10px 12px;
-    border:1px solid var(--line);
-    background:rgba(255,255,255,.03);
-    border-radius:3px;
-    font-size:12.5px;line-height:1.6;
-    color:rgba(245,240,234,.7);
-  }
-  .pay-handoff.compact b{
-    display:inline;
-    margin:0 6px 0 0;
-    font-family:var(--sans);font-size:12.5px;letter-spacing:0;
-    color:var(--cream);text-transform:none;
-  }
-  .pay-handoff.compact span{display:inline;color:inherit}
-  .pay-handoff div{
-    border:1px solid var(--line);
-    background:rgba(255,255,255,.03);
-    border-radius:3px;
-    padding:12px 12px 11px;
-  }
-  .pay-handoff b{
-    display:block;margin-bottom:5px;
-    font-family:var(--mono);font-size:10px;letter-spacing:.14em;
-    color:var(--peach);text-transform:uppercase;
-  }
-  .pay-handoff span{
-    display:block;
-    font-size:12px;line-height:1.55;
-    color:rgba(245,240,234,.68);
+  .sticky-pay{
+    position:sticky;bottom:0;z-index:3;
+    margin-top:16px;padding:10px 0 0;
+    background:linear-gradient(180deg, rgba(20,40,54,0), var(--navy-4) 28%);
   }
   .ck-cta{
-    margin-top:12px;width:100%;padding:17px 22px;
+    width:100%;padding:17px 22px;
     background:var(--peach);color:var(--navy);border-radius:3px;
     font-family:var(--sans);font-size:15.5px;font-weight:600;letter-spacing:.05em;
     display:flex;align-items:center;justify-content:center;gap:12px;
@@ -515,6 +431,11 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     font-family:var(--mono);font-size:14px;transition:transform .25s ease;
   }
   .ck-cta:hover:not(:disabled) .arrow{transform:translateX(5px)}
+  .sticky-pay .trust{
+    display:block;margin-top:8px;text-align:center;
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;
+    color:rgba(245,240,234,.58);
+  }
 
   .ck-error{
     margin-top:12px;padding:11px 14px;border-radius:3px;
@@ -558,14 +479,6 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     margin-top:20px;padding:0;
     display:flex;flex-direction:column;gap:9px;
   }
-  .legal summary{
-    cursor:pointer;
-    color:rgba(245,240,234,.68);
-    font-family:var(--mono);font-size:11px;letter-spacing:.12em;
-    text-transform:uppercase;
-  }
-  .legal summary::-webkit-details-marker{color:var(--peach)}
-  .legal[open] summary{margin-bottom:10px;color:var(--peach)}
   .legal p{
     font-size:12.5px;color:rgba(245,240,234,.62);line-height:1.8;
   }
@@ -610,7 +523,7 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     padding:14px 22px;background:var(--navy-2);
     border-bottom:1px solid var(--line);
     align-items:center;justify-content:space-between;gap:14px;
-    position:fixed;top:0;left:0;right:0;z-index:80;
+    position:sticky;top:0;z-index:50;
   }
   .ck-mb-brand .b{
     font-family:var(--mono);font-weight:500;font-size:14px;letter-spacing:.16em;
@@ -632,8 +545,7 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     .ck-l{padding:36px 32px 40px}
     .ck-hero h1{font-size:34px}
     .ck-hero p{font-size:14.5px}
-    .ck-proof-strip{grid-template-columns:1fr}
-    .ck-proof{min-height:auto}
+    .incl li{font-size:13.5px}
     .ck-quote{font-size:15px;padding:16px 18px;margin-top:24px}
     .ck-stats{gap:22px}
     .ck-stats .s .v{font-size:22px}
@@ -642,23 +554,14 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
   /* phone — hide left panel, show only checkout flow */
   @media (max-width:780px){
     html,body{height:auto}
-    body{overflow:auto}
-    .ck{grid-template-columns:1fr;min-height:auto;padding-top:64px}
+    body{overflow:auto;padding-bottom:118px}
+    .ck{grid-template-columns:1fr;min-height:auto}
     .ck-l{display:none}
     .ck-mb-brand{display:flex}
-    .ck-r{padding:22px 20px 34px;max-height:none}
+    .ck-r{padding:28px 22px 36px;max-height:none}
     .form{margin-top:18px}
-    .form h2{font-size:24px;line-height:1.35}
-    .form .sub{font-size:13px;line-height:1.6;margin-top:8px}
-    .sec{margin-top:18px}
-    .sec-lab{margin-bottom:12px}
-    .summary{padding:13px 15px;gap:8px}
-    .summary .planName{font-size:14px}
-    .summary .tot .n{font-size:22px}
-    .email-card{padding:18px 18px 16px;animation:none}
-    .email-card .ask{font-size:15.5px;margin:6px 0 10px}
-    .ck-field{padding:12px 14px}
-    .field-hint{margin-top:8px;font-size:10px}
+    .form > *{animation:none;transform:none}
+    .form h2{font-size:26px}
     .plan{grid-template-columns:22px 1fr;padding:16px 16px 14px 18px}
     .plan .price{
       grid-column:1 / -1;
@@ -670,11 +573,13 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     .plan .price .n{font-size:22px}
     .summary{flex-direction:column;align-items:flex-start;gap:10px}
     .summary .tot{text-align:left}
+    .sticky-pay{
+      position:fixed;left:22px;right:22px;bottom:calc(env(safe-area-inset-bottom) + 12px);
+      z-index:80;margin-top:0;padding:10px 0 0;
+      background:linear-gradient(180deg, rgba(20,40,54,0), rgba(20,40,54,.94) 32%, var(--navy-4) 100%);
+    }
     .ck-r .bottom{flex-direction:column;gap:10px;align-items:flex-start}
-    .pay-handoff,.ck-encourage{display:none}
-    .ck-cta{margin-top:14px;padding:15px 20px}
     .pay-strip{flex-direction:column;align-items:flex-start;gap:10px}
-    .legal{margin-top:14px}
   }
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
@@ -698,26 +603,26 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
 
     <div class="ck-hero">
       <div class="eb">CHECKOUT · 完成購買</div>
-      <h1>付款後收到序號，<br/><em>回來繼續做題。</em></h1>
-      <p>選方案、填信箱，送到綠界刷卡。付款成功後序號通常 5 分鐘內寄到信箱，回來輸入序號就能接上原本進度。</p>
-      <div class="ck-return-note">
-        <span><b>已經有序號：</b>不用重買，請回登入頁輸入序號。</span>
-        <span><b>還在試用：</b>升級後保留答題紀錄、弱點分析、錯題重練與複習排程。</span>
-      </div>
+      <h1>選方案，<br/>留下信箱，<br/><em>就這樣。</em></h1>
+      <p>付款完成後，序號會自動寄到你的信箱。
+沒有自動續扣—期間用完，需要再買就再買；不需要，就放著。
+</p>
 
-      <div class="ck-proof-strip" aria-label="付款信任資訊">
-        <div class="ck-proof"><div class="k">PAYMENT</div><div class="v"><b>綠界付款</b><br/>SoFa 不儲存信用卡。</div></div>
-        <div class="ck-proof"><div class="k">SERIAL</div><div class="v"><b>5 分鐘內寄送</b><br/>序號寄到你的信箱。</div></div>
-        <div class="ck-proof"><div class="k">PROGRESS</div><div class="v"><b>不用重填資料</b><br/>登入後接回答題紀錄。</div></div>
-      </div>
+      <ul class="incl">
+        <li><span class="ix">01</span><span><b>33 部法規 · 2,000+ 條文</b>——記帳士國考完整資料庫，修法後 7 天內同步更新。</span></li>
+        <li><span class="ix">02</span><span><b>4 種練習模式</b>——TYPE 打字／QUIZ 選擇／FILL 填空／LINE 隨身查，依當天節奏挑著用。</span></li>
+        <li><span class="ix">03</span><span><b>智能排程錯題複習（SRS）</b>——答錯自動進排程，於 1 / 3 / 7 / 14 天回考。</span></li>
+        <li><span class="ix">04</span><span><b>上榜退 30% / 分享退 40%</b>——憑榜單退款；公開分享心得加 10%。</span></li>
+      </ul>
 
-      <div class="ck-quote">讀不完沒關係，先把今天會用到的那幾條穩住。<span>SOFA ENGINE · EXAM PREP</span></div>
+      <div class=”ck-quote”>”讀不完沒關係。考試當天你只需要想起來。<br/>備考不是衝刺。是每天都還在。<br/>不記得了沒關係。記過一次，就比沒讀過好一點。”
+</div>
     </div>
 
     <div class="ck-foot">
       <div class="ck-stats">
-        <div class="s"><div class="v">36,000<em>+</em></div><div class="k">ARTICLES</div></div>
-        <div class="s"><div class="v">567</div><div class="k">STATUTES</div></div>
+        <div class="s"><div class="v">14,000<em>+</em></div><div class="k">ARTICLES</div></div>
+        <div class="s"><div class="v">145</div><div class="k">STATUTES</div></div>
         <div class="s"><div class="v" id="ck-exam-days">—<em>d</em></div><div class="k">UNTIL EXAM</div></div>
       </div>
       <div>© 2026 · <b>SOFA ENGINE</b> · v1.3.0</div>
@@ -731,119 +636,29 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     <div class="top">
       <span>CHECKOUT — 結帳</span>
       <span class="step">
-        <a href="login.html?utm_source=checkout&utm_medium=topbar&utm_campaign=existing_serial_login" data-track-event="existing_serial_login_click" data-track-label="checkout_existing_serial_login" data-plan="existing_serial">已有序號？登入 →</a>
+        <a href="login.html">已有序號？登入 →</a>
       </span>
     </div>
 
     <form class="form" onsubmit="event.preventDefault();" novalidate>
       <div class="eb">STEP 01 / 01</div>
-      <h2>確認方案，<br/><em>序號寄到這裡。</em></h2>
-      <p class="sub">填你收信最穩的信箱。付款成功後用序號登入，進度會接回同一個帳號。</p>
+      <h2>選擇方案，<br/><em>輸入信箱。</em></h2>
+      <p class="sub">序號會在付款確認後 1–3 分鐘內寄到你填的信箱；輸入序號即可開始備考。</p>
 
-      <!-- ───────── SECTION 01 — 付款資料 ───────── -->
+      <!-- ───────── SECTION 01 — 方案 ───────── -->
       <div class="sec">
         <div class="sec-lab">
-          <span class="num">01</span><span>付款資料</span><span class="line"></span>
-        </div>
-
-        <div class="summary">
-          <div>
-            <div class="lab">本次購買</div>
-            <span class="planName" id="ck-sum-plan">到考日 · 用到考上</span>
-            <a class="plan-switch-link" href="#plans">想先試 30 天？看月訂閱 NT$380</a>
-          </div>
-          <div class="tot">
-            <div class="tlab">應付金額</div>
-            <div class="n"><span class="c">NT$</span><span id="ck-sum-amount">1280</span></div>
-          </div>
-        </div>
-
-        <div class="email-card">
-          <span class="pill">序號收件處</span>
-          <div class="ask">付款完成後，序號會自動寄到信箱。</div>
-          <div class="field-row">
-            <span>EXAM · 到考日依這個計算</span>
-            <span style="color:rgba(31,56,72,.42);font-weight:500">必填</span>
-          </div>
-          <div class="ck-field">
-            <span class="ic">§</span>
-            <select id="ck-exam-target" aria-label="考試目標">
-              <option value="bookkeeper">記帳士</option>
-              <option value="landadmin">地政士</option>
-              <option value="realestate">不動產經紀人</option>
-              <option value="tax-admin">稅務行政</option>
-              <option value="tax-law">財稅法務</option>
-              <option value="elem-admin">初等行政</option>
-              <option value="post-acc">郵政會計</option>
-            </select>
-          </div>
-          <div class="field-hint" id="ck-exam-hint">到考日方案會依這裡的考試目標計算，不共用記帳士日期。</div>
-          <div class="field-row" style="margin-top:14px">
-            <span>EMAIL · 序號寄到這裡</span>
-            <span style="color:rgba(31,56,72,.42);font-weight:500">必填</span>
-          </div>
-          <div class="ck-field">
-            <span class="ic">@</span>
-            <input id="ck-email-input" type="email" autocomplete="email" inputmode="email" placeholder="your@email.com" />
-          </div>
-          <div class="field-hint" id="ck-email-hint">請確認信箱正確，序號僅寄送一次。</div>
-        </div>
-
-        <div class="pay-handoff compact" aria-label="付款後流程">
-          <b>付款後流程</b><span>綠界付款，不儲存信用卡；序號通常 5 分鐘內寄到信箱。</span>
-        </div>
-        <p class="ck-encourage">15 分鐘後仍未收到，請來信附購買信箱與付款畫面截圖。</p>
-        <button class="ck-cta" id="ck-submit" type="button">前往付款 <span class="arrow">⟶</span></button>
-        <div class="ck-error" id="ck-error"></div>
-
-        <div class="pay-strip">
-          <span class="lock">SSL 加密 · ECPAY 處理</span>
-          <span class="methods">
-            <span class="m">VISA</span>
-            <span class="m">MasterCard</span>
-            <span class="m">JCB</span>
-          </span>
-        </div>
-
-        <details class="legal">
-          <summary>退費、上榜保障與付款安全</summary>
-          <p><span class="ix">§ 01</span>數位內容服務不適用 7 天鑑賞期。購買後 7 天內且序號未啟用，可申請全額退費；已啟用後不退費。</p>
-          <p><span class="ix">§ 02</span><b>上榜退款保障</b>——考試上榜後憑榜單截圖，退還實際付款費用 <b>30%</b>；若同時公開分享使用心得，退還 <b>40%</b>。</p>
-          <p><span class="ix">§ 03</span>付款由<b>綠界科技 ECPay</b>處理，SoFa Engine 不接觸、不儲存你的信用卡資訊。</p>
-        </details>
-      </div>
-
-      <!-- ───────── SECTION 02 — 方案 ───────── -->
-      <div class="sec">
-        <div class="sec-lab">
-          <span class="num">02</span><span>要換方案</span><span class="line"></span>
+          <span class="num">01</span><span>選擇方案</span><span class="line"></span>
         </div>
 
         <!-- early bird banner — hidden after 2026-06-15 -->
         <div class="eb-banner" id="eb-banner">
           <span class="ic">EARLY</span>
-          <span class="tx"><b>早鳥活動已於 2026/6/15 結束</b>；既有訂單依購買當時條件計算。</span>
+          <span class="tx"><b>6/15 前限定</b>：購買月費方案自動延長 +15 天，30 天變 <b>45 天</b>，同樣價格。</span>
           <span class="cd" id="eb-countdown"></span>
         </div>
 
         <div class="plans" id="plans">
-
-          <!-- 到考日 -->
-          <div class="plan selected" data-plan="到考日" data-amount="1280" data-days="150">
-            <span class="radio"></span>
-            <div class="body">
-              <div class="name-row">
-                <span class="name">到考日全包</span>
-                <span class="meta">／ 一次付清</span>
-                <span class="badge save">主打方案</span>
-              </div>
-              <div class="desc">一次付清，依你選的考試目標計算到考後緩衝日。適合從現在一路穩住節奏，考前不用再補繳。</div>
-            </div>
-            <div class="price">
-              <div class="n"><span class="c">NT$</span>1280</div>
-              <div class="per">到考後</div>
-            </div>
-          </div>
 
           <!-- 月費 -->
           <div class="plan" data-plan="月費" data-amount="380" data-days="30">
@@ -851,10 +666,10 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
             <div class="body">
               <div class="name-row">
                 <span class="name">月訂閱</span>
-                <span class="meta" id="monthly-meta">／ 30 天</span>
-                <span class="badge" id="monthly-eb" style="display:none">EARLY +15d</span>
+                <span class="meta" id="monthly-meta">／ 45 天</span>
+                <span class="badge" id="monthly-eb">EARLY +15d</span>
               </div>
-              <div class="desc" id="monthly-desc">30 天完整功能。若原本期限還沒結束，新購買天數會從既有到期日接續計算。</div>
+              <div class="desc" id="monthly-desc">早鳥限定：30 天 + 贈 15 天 = <b>共 45 天</b>。適合先試試節奏的你。</div>
             </div>
             <div class="price">
               <div class="n"><span class="c">NT$</span>380</div>
@@ -863,7 +678,7 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
           </div>
 
           <!-- 季費 -->
-          <div class="plan" data-plan="季費" data-amount="990" data-days="90">
+          <div class="plan selected" data-plan="季費" data-amount="990" data-days="90">
             <span class="radio"></span>
             <div class="body">
               <div class="name-row">
@@ -882,6 +697,67 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
 
         </div>
       </div>
+
+      <!-- ───────── SECTION 02 — 信箱 ───────── -->
+      <div class="sec">
+        <div class="sec-lab">
+          <span class="num">02</span><span>收件信箱</span><span class="line"></span>
+        </div>
+
+        <div class="email-card">
+          <span class="pill">序號收件處</span>
+          <div class="field-row">
+            <span>EMAIL · 序號寄到這裡</span>
+            <span style="color:rgba(31,56,72,.42);font-weight:500">必填</span>
+          </div>
+          <div class="ask">付款完成後，序號會自動寄到信箱。</div>
+          <div class="ck-field">
+            <span class="ic">@</span>
+            <input id="ck-email-input" type="email" autocomplete="email" inputmode="email" placeholder="your@email.com" />
+          </div>
+          <div class="field-hint" id="ck-email-hint">請確認信箱正確，序號僅寄送一次。</div>
+        </div>
+      </div>
+
+      <!-- ───────── SECTION 03 — 確認與付款 ───────── -->
+      <div class="sec">
+        <div class="sec-lab">
+          <span class="num">03</span><span>確認與付款</span><span class="line"></span>
+        </div>
+
+        <div class="summary">
+          <div>
+            <div class="lab">本次購買</div>
+            <span class="planName" id="ck-sum-plan">季訂閱 · 90 天</span>
+          </div>
+          <div class="tot">
+            <div class="tlab">應付金額</div>
+            <div class="n"><span class="c">NT$</span><span id="ck-sum-amount">990</span></div>
+          </div>
+        </div>
+
+        <div class="sticky-pay">
+          <button class="ck-cta" id="ck-submit" type="button">立即前往付款 <span class="arrow">⟶</span></button>
+          <span class="trust">綠界刷卡 · 不儲存信用卡 · 序號寄到信箱</span>
+        </div>
+        <div class="ck-error" id="ck-error"></div>
+
+        <div class="pay-strip">
+          <span class="lock">SSL 加密 · ECPAY 處理</span>
+          <span class="methods">
+            <span class="m">VISA</span>
+            <span class="m">MasterCard</span>
+            <span class="m">JCB</span>
+            <span class="m">ATM</span>
+          </span>
+        </div>
+
+        <div class="legal">
+          <p><span class="ix">§ 01</span>數位服務不適用消費者保護法第十九條之七天鑑賞期，購買前請確認方案內容。<b>序號寄出後 30 日內須啟用</b>，逾期序號失效。</p>
+          <p><span class="ix">§ 02</span><b>上榜退款保障</b>——考試上榜後憑榜單截圖，退還實際付款費用 <b>30%</b>；若同時公開分享使用心得，退還 <b>40%</b>。</p>
+          <p><span class="ix">§ 03</span>付款由<b>綠界科技 ECPay</b>處理，SoFa Engine 不接觸、不儲存你的信用卡資訊。</p>
+        </div>
+      </div>
     </form>
 
     <div class="bottom">
@@ -896,25 +772,85 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
   </div>
 </div>
 
+<script src="exam-targets.js?v=1"></script>
 <script>
 (function(){
   const API_URL = "https://sofa-engine-api.onrender.com/api/checkout";
+  const FUNNEL_API_URL = "https://sofa-engine-api.onrender.com/api/funnel-event";
 
   const plansEl   = document.getElementById("plans");
   const cards     = plansEl.querySelectorAll(".plan");
   const sumPlan   = document.getElementById("ck-sum-plan");
   const sumAmount = document.getElementById("ck-sum-amount");
   const emailEl   = document.getElementById("ck-email-input");
-  const examTargetEl = document.getElementById("ck-exam-target");
-  const examHintEl = document.getElementById("ck-exam-hint");
   const hintEl    = document.getElementById("ck-email-hint");
   const submitBtn = document.getElementById("ck-submit");
   const errorEl   = document.getElementById("ck-error");
-  let emailFocusTracked = false;
+  const queryParams = new URLSearchParams(location.search);
+  const checkoutSessionId = (() => {
+    const key = "sofa_checkout_session";
+    try {
+      const existing = sessionStorage.getItem(key);
+      if (existing) return existing;
+      const next = "checkout-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 8);
+      sessionStorage.setItem(key, next);
+      return next;
+    } catch (_) {
+      return "checkout-" + Date.now().toString(36);
+    }
+  })();
+
+  function checkoutAttribution(){
+    const out = {};
+    ["utm_source", "utm_medium", "utm_campaign", "utm_content"].forEach((key) => {
+      const value = queryParams.get(key);
+      if (value) out[key] = value;
+    });
+    return out;
+  }
+
+  function trackCheckout(eventName, extra){
+    try {
+      const sel = getSelected();
+      const pagePath = location.pathname + location.search;
+      const payload = {
+        event_name: eventName,
+        session_id: checkoutSessionId,
+        plan: sel.plan,
+        page_path: pagePath,
+        page_title: document.title,
+        attribution: checkoutAttribution(),
+        payload: Object.assign({
+          session_id: checkoutSessionId,
+          plan: sel.plan,
+          amount: sel.amount,
+          page_path: pagePath
+        }, extra || {})
+      };
+      fetch(FUNNEL_API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+        keepalive: true
+      }).catch(() => {});
+    } catch (_) {}
+  }
+
+  function focusEmailError(){
+    try { emailEl.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (_) {}
+    emailEl.focus();
+  }
 
   // Early bird: +15 days on monthly plan before 2026-06-15
   const EB_END = new Date("2026-06-15T23:59:59+08:00");
   const isEarlyBird = new Date() < EB_END;
+
+  // ── 動態考試倒數（左側面板）：依 target 顯示，未設定考期不套記帳士 ──────
+  (function(){
+    const api = window.SoFaExamTargets;
+    if(!api) return;
+    api.renderCountdown({ days: '#ck-exam-days', htmlDays: '<em>d</em>', emptyDaysText: '—' });
+  })();
 
   (function setupEarlyBird(){
     const banner    = document.getElementById("eb-banner");
@@ -942,125 +878,15 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
     if (countdown) countdown.textContent = "還剩 " + daysLeft + " 天";
     // 季費早鳥 +45天
     if (qMeta)    qMeta.textContent  = "／ 135 天";
-    if (qDesc)    qDesc.innerHTML    = '活動期間：90 天 + 贈 45 天 = <b>共 135 天</b>。既有訂單依購買當時條件計算。';
+    if (qDesc)    qDesc.innerHTML    = '早鳥限定：90 天 + 贈 45 天 = <b>共 135 天</b>。適合進入備考節奏的你。';
     if (qEbBadge) qEbBadge.style.display = "";
   })();
 
-  const EXAM_TARGETS = {
-    bookkeeper: {
-      label: "記帳士",
-      examDate: "2026-11-14",
-      accessUntil: "2026-11-30",
-      saleOpenDays: 180
-    },
-    landadmin: { label: "地政士" },
-    realestate: { label: "不動產經紀人" },
-    "tax-admin": { label: "稅務行政" },
-    "tax-law": { label: "財稅法務" },
-    "elem-admin": { label: "初等行政" },
-    "post-acc": { label: "郵政會計" }
-  };
-  const DEFAULT_EXAM_KEY = "bookkeeper";
-  const EXAM_DAY_PLAN = "到考日";
-  function todayStart(){
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  }
-  function dateFromISO(iso){
-    return iso ? new Date(iso + "T00:00:00+08:00") : null;
-  }
-  function formatDateZh(iso){
-    if (!iso) return "";
-    const parts = iso.split("-");
-    return parts.length === 3 ? `${Number(parts[0])}/${Number(parts[1])}/${Number(parts[2])}` : iso;
-  }
-  function selectedExamKey(){
-    const params = new URLSearchParams(location.search);
-    const candidate = (
-      params.get("exam_key") ||
-      params.get("exam") ||
-      params.get("track") ||
-      localStorage.getItem("sofa_exam_key") ||
-      DEFAULT_EXAM_KEY
-    ).trim();
-    return EXAM_TARGETS[candidate] ? candidate : DEFAULT_EXAM_KEY;
-  }
-  function selectedExamTarget(){
-    return EXAM_TARGETS[selectedExamKey()] || EXAM_TARGETS[DEFAULT_EXAM_KEY];
-  }
-  function currentExamKey(){
-    return EXAM_TARGETS[examTargetEl?.value] ? examTargetEl.value : selectedExamKey();
-  }
-  function currentExamTarget(){
-    return EXAM_TARGETS[currentExamKey()] || EXAM_TARGETS[DEFAULT_EXAM_KEY];
-  }
-  function examCycleState(){
-    const target = currentExamTarget();
-    if (!target.examDate || !target.accessUntil) {
-      return {
-        target,
-        available: false,
-        reason: "not_configured",
-        message: `${target.label} 的到考日週期尚未開放；可先用月費或季費。`
-      };
-    }
-    const examDate = dateFromISO(target.examDate);
-    const today = todayStart();
-    const daysUntilExam = Math.ceil((examDate - today) / 86400000);
-    if (daysUntilExam < 0) {
-      return {
-        target,
-        available: false,
-        reason: "closed",
-        message: `${target.label} 這一梯考試已結束；請改選下一個考試週期或先用月費。`
-      };
-    }
-    const saleOpenDays = Number(target.saleOpenDays || 180);
-    if (daysUntilExam > saleOpenDays) {
-      return {
-        target,
-        available: false,
-        reason: "too_early",
-        daysUntilExam,
-        message: `${target.label} 距離考試還有 ${daysUntilExam} 天；到考日方案考前 ${saleOpenDays} 天內開放，現在建議先用月費或季費。`
-      };
-    }
-    return {
-      target,
-      available: true,
-      reason: "open",
-      daysUntilExam,
-      message: `${target.label} 到考日可購買，用到 ${formatDateZh(target.accessUntil)}。`
-    };
-  }
-  function examDayPlanText(){
-    const state = examCycleState();
-    if (!state.available) return `到考日 · ${state.target.label} 尚未開放`;
-    return `到考日 · ${state.target.label} · 用到 ${formatDateZh(state.target.accessUntil)}`;
-  }
-
   const PLAN_TEXT = {
-    "到考日": examDayPlanText,
     "月費": isEarlyBird ? "月訂閱 · 45 天（含早鳥 +15 天）" : "月訂閱 · 30 天",
     "季費": isEarlyBird ? "季訂閱 · 135 天（含早鳥 +45 天）" : "季訂閱 · 90 天"
   };
   const DEFAULT_HINT = "請確認信箱正確，序號僅寄送一次。";
-  function refreshExamTargetState(){
-    const state = examCycleState();
-    const examDayCard = plansEl.querySelector(`.plan[data-plan="${EXAM_DAY_PLAN}"]`);
-    if (examHintEl) {
-      examHintEl.textContent = state.message;
-      examHintEl.classList.toggle("err", !state.available);
-    }
-    const daysEl = document.getElementById("ck-exam-days");
-    if (daysEl) {
-      daysEl.innerHTML = state.available ? state.daysUntilExam + "<em>d</em>" : "—<em>d</em>";
-    }
-    if (examDayCard) {
-      examDayCard.classList.toggle("unavailable", !state.available);
-      examDayCard.setAttribute("aria-disabled", String(!state.available));
-    }
-  }
 
   function getSelected(){
     const el = plansEl.querySelector(".plan.selected");
@@ -1068,9 +894,7 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
   }
   function refreshSummary(){
     const s = getSelected();
-    const label = PLAN_TEXT[s.plan];
-    sumPlan.textContent = typeof label === "function" ? label() : (label || s.plan);
-    refreshExamTargetState();
+    sumPlan.textContent = PLAN_TEXT[s.plan] || s.plan;
     if (sumAmount.textContent !== s.amount){
       sumAmount.textContent = s.amount;
       const totEl = sumAmount.parentElement;
@@ -1085,16 +909,9 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
       c.classList.add("selected");
       refreshSummary();
       clearError();
+      trackCheckout("pricing_select_plan");
     });
   });
-  if (examTargetEl) {
-    examTargetEl.value = selectedExamKey();
-    examTargetEl.addEventListener("change", () => {
-      localStorage.setItem("sofa_exam_key", currentExamKey());
-      refreshSummary();
-      clearError();
-    });
-  }
 
   function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
 
@@ -1102,7 +919,12 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
   // 從 LINE bot 帶過來的連結會自動選方案 + 預填信箱，省去重輸
   (function prefillFromQuery(){
     const qs = new URLSearchParams(location.search);
-    const planParam  = (qs.get("plan")  || "").trim();
+    const rawPlanParam  = (qs.get("plan")  || "").trim();
+    const planAliases = {
+      "monthly": "月費", "month": "月費", "30": "月費", "月訂閱": "月費",
+      "quarterly": "季費", "quarter": "季費", "season": "季費", "90": "季費", "季訂閱": "季費"
+    };
+    const planParam = planAliases[rawPlanParam.toLowerCase()] || rawPlanParam;
     const emailParam = (qs.get("email") || "").trim();
     if (planParam) {
       const target = plansEl.querySelector('.plan[data-plan="' + planParam.replace(/"/g, '') + '"]');
@@ -1119,57 +941,33 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
   function showError(msg){ errorEl.textContent = msg; errorEl.classList.add("show"); }
   function clearError(){ errorEl.textContent = ""; errorEl.classList.remove("show"); }
 
-  emailEl.addEventListener("focus", () => {
-    if (emailFocusTracked || typeof window.sofaTrack !== 'function') return;
-    const sel = getSelected();
-    window.sofaTrack('checkout_email_focus', { plan: sel.plan, amount: sel.amount });
-    emailFocusTracked = true;
-  });
-
   emailEl.addEventListener("input", () => {
     hintEl.textContent = DEFAULT_HINT;
     hintEl.classList.remove("err");
     clearError();
   });
+  emailEl.addEventListener("focus", () => {
+    if (emailEl.dataset.focusTracked) return;
+    emailEl.dataset.focusTracked = "1";
+    trackCheckout("checkout_email_focus");
+  });
 
   submitBtn.addEventListener("click", async () => {
     clearError();
+    trackCheckout("checkout_attempt");
     const email = emailEl.value.trim();
-    const sel = getSelected();
-    const examState = examCycleState();
-    if (sel.plan === EXAM_DAY_PLAN && !examState.available) {
-      if (typeof window.sofaTrack === 'function') {
-        window.sofaTrack('checkout_exam_day_unavailable', { exam_key: currentExamKey(), reason: examState.reason });
-      }
-      showError(examState.message);
-      return;
-    }
     if (!email){
       hintEl.textContent = "請輸入信箱地址。";
-      if (typeof window.sofaTrack === 'function') {
-        window.sofaTrack('checkout_invalid_email', { plan: sel.plan, amount: sel.amount, reason: 'empty' });
-      }
-      hintEl.classList.add("err"); emailEl.focus(); return;
+      trackCheckout("checkout_invalid_email", { reason: "empty" });
+      hintEl.classList.add("err"); focusEmailError(); return;
     }
     if (!isEmail(email)){
       hintEl.textContent = "信箱格式看起來不太對，再檢查一次。";
-      if (typeof window.sofaTrack === 'function') {
-        window.sofaTrack('checkout_invalid_email', { plan: sel.plan, amount: sel.amount, reason: 'format' });
-      }
-      hintEl.classList.add("err"); emailEl.focus(); return;
+      trackCheckout("checkout_invalid_email", { reason: "format" });
+      hintEl.classList.add("err"); focusEmailError(); return;
     }
 
-    if (typeof window.sofaTrack === 'function') {
-      window.sofaTrack('checkout_attempt', { plan: sel.plan, amount: sel.amount });
-    }
-    const checkoutPayload = {
-      plan: sel.plan,
-      email,
-      exam_key: currentExamKey(),
-      attribution: window.sofaGetAttribution?.() || {},
-      session_id: window.sofaGetSessionId?.() || '',
-      page_path: location.pathname + location.search
-    };
+    const sel = getSelected();
     const original = submitBtn.innerHTML;
     submitBtn.disabled = true;
     submitBtn.innerHTML = "處理中，請稍候…";
@@ -1178,25 +976,19 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(checkoutPayload)
+        body: JSON.stringify({ plan: sel.plan, email })
       });
       if (!res.ok){
         let msg = `付款服務暫時無法回應（${res.status}），請稍後再試一次。`;
         try { const d = await res.json(); msg = d.error || d.message || d.detail || msg; } catch(_){}
-        const apiError = new Error(msg);
-        apiError.checkoutStatus = res.status;
-        throw apiError;
+        trackCheckout("checkout_api_error", { status: res.status });
+        throw new Error(msg);
       }
       const html = await res.text();
-      if (typeof window.sofaTrack === 'function') {
-        window.sofaTrack('checkout_submit', { plan: sel.plan, amount: sel.amount });
-      }
+      trackCheckout("checkout_submit");
       document.open(); document.write(html); document.close();
       return;
     } catch (err) {
-      if (typeof window.sofaTrack === 'function') {
-        window.sofaTrack('checkout_api_error', { plan: sel.plan, amount: sel.amount, status: err && err.checkoutStatus ? err.checkoutStatus : '', message: (err && err.message ? err.message : 'network error').slice(0, 120) });
-      }
       showError(err && err.message ? err.message : "連線發生問題，請確認網路後再試一次。");
       submitBtn.disabled = false;
       submitBtn.innerHTML = original;
@@ -1204,6 +996,7 @@ html.ios-reader-app body::before{content:"進階內容，訂閱者可見";displa
   });
 
   refreshSummary();
+  trackCheckout("checkout_start");
 })();
 </script>
 </body>

@@ -3,28 +3,18 @@
 <head>
 <meta charset="utf-8" />
 <title>SoFa Engine — 填空練習</title>
-<meta name="description" content="填入法條關鍵詞，強化對條文細節的記憶。SoFa Engine 填空模式，涵蓋記帳士、地政士等 36,000+ 條國考法規，免費使用。" />
-<link rel="canonical" href="https://sofaengine.org/fill.html" />
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
-<script src="sofa-analytics.js?v=20260704-revenue-v1" defer></script>
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#1F3848">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <meta name="apple-mobile-web-app-title" content="SoFa Engine">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23244658'/%3E%3Ctext x='16' y='23.5' font-size='21' font-family='Georgia,serif' font-weight='700' text-anchor='middle' fill='%23E7BBA7'%3ES%3C/text%3E%3C/svg%3E">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="sofa.css" />
 <style>
-  :root{--tool-topbar-offset:81px}
-  body{padding-top:var(--tool-topbar-offset)}
-  .topbar{position:fixed;top:0;left:0;right:0;z-index:80}
   .pr-bar{
     background:var(--navy-2);border-bottom:1px solid var(--line);
     padding:16px 40px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;
@@ -43,8 +33,6 @@
   }
   .pr-bar .title .art{font-family:var(--serif);font-weight:600;font-size:18px;color:var(--cream)}
   .pr-bar .title .sub{color:rgba(245,240,234,.6);font-size:13.5px}
-
-  /* 自製法規下拉樣式已移至 sofa.css（.law-dd*），全站共用 */
   .pr-meta{
     display:flex;align-items:center;gap:22px;
     font-family:var(--mono);font-size:12px;letter-spacing:.08em;
@@ -60,7 +48,7 @@
   }
 
   .stage{
-    padding:28px 64px 56px;background:var(--navy-3);
+    padding:48px 64px 96px;background:var(--navy-3);
     position:relative;min-height:calc(100vh - 70px - 60px - 2px);
   }
   .stage::before{
@@ -74,7 +62,7 @@
   }
   .inner{max-width:1080px;margin:0 auto;position:relative;display:grid;grid-template-columns:1fr 300px;gap:32px}
 
-  .ar-head{margin-bottom:14px}
+  .ar-head{margin-bottom:24px}
   .ar-head .eb{
     font-family:var(--mono);font-size:11px;color:var(--peach);
     letter-spacing:.22em;text-transform:uppercase;
@@ -82,13 +70,13 @@
   }
   .ar-head .eb::before{content:"";width:18px;height:1px;background:var(--peach)}
   .ar-head h2{
-    font-family:var(--serif);font-weight:600;font-size:27px;
-    margin-top:8px;color:var(--cream);
+    font-family:var(--serif);font-weight:600;font-size:32px;
+    margin-top:12px;color:var(--cream);
     display:flex;align-items:baseline;gap:18px;
   }
-  .ar-head h2 .n{font-size:38px;color:var(--peach);font-weight:600;letter-spacing:-.02em}
+  .ar-head h2 .n{font-size:48px;color:var(--peach);font-weight:600;letter-spacing:-.02em}
   .ar-head .row{
-    margin-top:10px;display:flex;gap:18px;align-items:center;
+    margin-top:14px;display:flex;gap:18px;align-items:center;
     font-family:var(--mono);font-size:11.5px;letter-spacing:.1em;
     color:rgba(245,240,234,.55);text-transform:uppercase;flex-wrap:wrap;
   }
@@ -99,8 +87,8 @@
 
   .fill-card{
     background:var(--navy-2);border:1px solid var(--line);border-radius:4px;
-    padding:28px 44px;
-    font-family:var(--serif);font-size:21px;line-height:2.0;
+    padding:42px 48px;
+    font-family:var(--serif);font-size:21px;line-height:2.15;
     color:var(--cream);letter-spacing:.02em;position:relative;
     word-break:keep-all;overflow-wrap:break-word;
   }
@@ -118,7 +106,6 @@
 
   .blank{
     display:inline-block;min-width:5.5em;
-    max-width:100%;box-sizing:border-box;
     padding:2px 14px;margin:0 3px;
     border:none;border-bottom:2px solid var(--peach);
     background:rgba(231,187,167,.06);
@@ -140,16 +127,6 @@
   .blank.empty::placeholder{
     color:rgba(245,240,234,.22);
     font-family:var(--mono);font-size:13px;letter-spacing:.04em;
-  }
-  .handwrite-mode .blank{
-    min-height:48px;min-width:160px!important;max-width:100%;
-    font-size:22px;padding:6px 16px;
-    vertical-align:middle;border-radius:6px;
-  }
-  #btn-handwrite.active{
-    background:rgba(231,187,167,.15)!important;
-    border-color:var(--peach)!important;
-    color:var(--peach)!important;
   }
   .blank-tag{
     font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;
@@ -189,30 +166,6 @@
     display:flex;justify-content:space-between;align-items:center;
   }
   .rail-h .ct{color:rgba(245,240,234,.4);font-weight:500;letter-spacing:.1em}
-  .fill-empty-state{
-    display:inline-flex;
-    align-items:center;
-    gap:10px;
-    flex-wrap:wrap;
-    font-size:13px;
-    color:rgba(245,240,234,.58);
-    line-height:1.7;
-  }
-  .fill-empty-action{
-    min-height:40px;
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    padding:8px 14px;
-    border:1px solid rgba(231,187,167,.42);
-    border-radius:10px;
-    background:rgba(231,187,167,.08);
-    color:var(--peach);
-    font-weight:700;
-    text-decoration:none;
-    white-space:nowrap;
-  }
-  .fill-empty-action:hover{background:rgba(231,187,167,.14);border-color:var(--peach)}
 
   .score-row{display:flex;align-items:flex-end;justify-content:space-between;gap:8px}
   .score{
@@ -232,21 +185,6 @@
   }
   .pill.good{color:var(--good);border-color:rgba(159,184,159,.4)}
   .pill.bad{color:var(--bad);border-color:rgba(199,123,106,.4)}
-
-  /* Wave 52 — difficulty badge */
-  #diff-badge {
-    display:inline-flex;align-items:center;gap:6px;
-    padding:3px 10px;border-radius:12px;font-size:12px;
-    font-weight:600;vertical-align:middle;
-    transition:all 0.3s;font-family:var(--mono);letter-spacing:.04em;
-  }
-  #diff-badge .d{width:7px;height:7px;border-radius:50%;flex:none}
-  #diff-badge.easy   { background:rgba(159,184,159,.14); color:var(--good); border:1px solid rgba(159,184,159,.32); }
-  #diff-badge.easy   .d{ background:var(--good) }
-  #diff-badge.medium { background:rgba(217,176,132,.14); color:var(--warn); border:1px solid rgba(217,176,132,.32); }
-  #diff-badge.medium .d{ background:var(--warn) }
-  #diff-badge.hard   { background:rgba(199,123,106,.14); color:var(--bad);  border:1px solid rgba(199,123,106,.32); }
-  #diff-badge.hard   .d{ background:var(--bad) }
 
   /* blank list */
   .blank-list{display:flex;flex-direction:column;gap:8px}
@@ -288,21 +226,16 @@
   .sec-block{margin-top:16px;padding-top:14px;border-top:1px dashed rgba(31,56,72,.15)}
   .sec-label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--peach-3);font-weight:600;margin-bottom:6px}
   .sec-text{font-size:13px;line-height:1.85;color:rgba(31,56,72,.78)}
-  .sec-text .crossref{display:inline-flex;align-items:center;max-width:100%;margin:0 3px 4px 0;padding:1px 6px;border:1px solid rgba(213,154,120,.45);border-radius:3px;background:rgba(231,187,167,.14);color:var(--peach-3);text-decoration:none;text-underline-offset:3px;white-space:nowrap;line-height:1.55;vertical-align:baseline}
-  .sec-text .crossref:hover{background:rgba(231,187,167,.24);color:var(--navy)}
   .sec-text .sec-h{margin:10px 0 4px;color:var(--navy);font-weight:600}
   .sec-text .sec-h:first-child{margin-top:0}
-  .sec-text .sec-i{position:relative;margin:8px 0 8px 26px;padding:8px 12px 8px 34px;border-left:4px solid rgba(231,187,167,.68);background:rgba(231,187,167,.13);border-radius:4px}
-  .sec-text .sec-i::before{content:'';position:absolute;left:11px;top:1.02em;width:7px;height:7px;border:1.5px solid var(--peach-3);border-radius:50%;box-sizing:border-box;background:rgba(245,240,234,.75)}
-  .sec-empty{margin-top:14px;padding:13px 15px;background:rgba(231,187,167,.12);border:1px dashed rgba(213,154,120,.32);border-radius:4px;color:rgba(31,56,72,.62);font-size:13px;line-height:1.8}
+  .sec-text .sec-i{position:relative;padding-left:18px;margin:3px 0}
+  .sec-text .sec-i::before{content:'◦';position:absolute;left:4px;top:-.04em;color:var(--peach-3);font-weight:700}
   .sec-lock{margin-top:16px;border-top:1px dashed rgba(31,56,72,.15)}
-  .sec-lock .sec-label::after{content:"";font-size:11px;opacity:.65}
+  .sec-lock .sec-label::after{content:" 🔒";font-size:11px;opacity:.65}
   .sec-lock-preview{position:relative;max-height:80px;overflow:hidden;padding:10px 0 0;pointer-events:none;user-select:none;font-size:13.5px;line-height:1.8;color:rgba(31,56,72,.72)}
   .sec-lock-preview::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(245,240,234,0) 15%,var(--cream) 82%);pointer-events:none}
   .sec-lock-cta{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px;padding:10px 16px;font-size:12.5px;color:rgba(31,56,72,.72);background:rgba(231,187,167,.1);border:1px dashed rgba(213,154,120,.4);border-radius:4px}
   .sec-lock-cta a{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--peach);text-decoration:none;padding:5px 14px;border:1px solid rgba(213,154,120,.4);border-radius:2px;white-space:nowrap}
-  .cpi-note{margin-top:16px;padding:14px 16px;background:rgba(217,176,132,.12);border:1px solid rgba(217,176,132,.38);border-left:3px solid var(--peach);border-radius:4px;color:var(--navy);font-size:14px;line-height:1.75;white-space:pre-line}
-  .cpi-note b{display:block;margin-bottom:4px;color:var(--navy);font-family:var(--sans);font-weight:700}
 
   @media (max-width:1100px){
     .pr-bar{padding:14px 24px}
@@ -312,25 +245,16 @@
     .rail-card{flex:1;min-width:240px}
   }
   @media (max-width:760px){
-    :root{--tool-topbar-offset:calc(64px + env(safe-area-inset-top, 0px))}
-    html,body{overflow-x:hidden}          /* 手機 390 頂部列略寬造成的橫向溢出收掉（內容不受影響）*/
-    .pr-bar{padding:12px 18px;gap:12px;flex-wrap:wrap}
+    .pr-bar{padding:12px 18px;gap:12px}
     .pr-meta{gap:14px;font-size:11px}
     .stage{padding:24px 18px 60px}
     .ar-head h2{font-size:24px}
     .ar-head h2 .n{font-size:36px}
     .fill-card{padding:24px 22px;font-size:18px;line-height:2}
-    .sec-text .sec-i{margin:7px 0 7px 12px;padding:7px 10px 7px 28px;border-left-width:3px}
-    .sec-text .sec-i::before{left:9px;width:6px;height:6px}
     .blank{font-size:17px;min-width:4.5em;padding:2px 10px}
     .fill-actions{flex-direction:column;align-items:stretch}
-    .fill-actions .l{display:none}     /* 鍵盤快捷提示在觸控手機無意義，收起 */
     .fill-actions .r{flex-direction:column}
     .rail{flex-direction:column}
-    #kb-hint{display:none}             /* 浮動鍵盤提示列手機收起 */
-  }
-  @media (max-width:760px){
-    html.ios-reader-app .stage{padding-bottom:calc(96px + env(safe-area-inset-bottom, 0px))}
   }
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
@@ -346,29 +270,12 @@
   .pr-sub.show{display:flex}
   .pr-sub select{background:var(--navy-3);border:1px solid var(--line-2);border-radius:3px;color:var(--cream);font-family:var(--mono);font-size:11.5px;padding:5px 10px;cursor:pointer;outline:none}
   @media (max-width:760px){.pr-chips{padding:10px 18px}}
-
-  /* ── Wave 62: 鍵盤提示徽章 ── */
-  #kb-hint{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(26,46,61,0.85);color:var(--cream-3);font-size:12px;padding:5px 14px;border-radius:12px;pointer-events:none;transition:opacity 0.5s;z-index:100;font-family:var(--mono);letter-spacing:.06em;}
-
-  /* ── Wave 93: 每日填空挑戰 ── */
-  #btnFillDaily {
-    padding: 8px 14px; border-radius: 8px;
-    background: rgba(231,187,167,0.12);
-    border: 1px solid rgba(231,187,167,0.55); color: var(--peach);
-    font-size: 12px; cursor: pointer; transition: all 0.2s;
-    font-family: var(--mono); letter-spacing: .04em;
-  }
-  #btnFillDaily:hover { background: rgba(231,187,167,0.2); }
-  #btnFillDaily.done { border-color: rgba(159,184,159,.55); color: var(--good); background: rgba(159,184,159,.12); }
-  #fill-daily-badge { font-size: 11px; color: var(--good); margin-left: 4px; display: none; }
 </style>
 </head>
 <body>
 
-  <div id="kb-hint">Tab 切換空格 · Enter 確認，全對才換下一篇</div>
-
   <header class="topbar">
-    <a class="brand" href="dashboard.html"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
+    <a class="brand" href="index.html"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
     <nav class="top-mid">
       <a href="dashboard.html">會員中心</a>
       <a href="practice.html">打字</a>
@@ -377,8 +284,8 @@
     </nav>
     <div class="top-right">
       <span class="user-pill"><span class="live"></span><span id="navUid">—</span></span>
-      <button class="btn-out" onclick="localStorage.removeItem('sofa_uid');localStorage.removeItem('sofa_token');localStorage.removeItem('sofa_free');localStorage.removeItem('sofa_nickname');window.location.href='login.html'">登出</button>
-      <button class="menu-btn" aria-label="開啟導覽" aria-expanded="false" onclick="document.body.classList.toggle('mobile-nav-open');this.setAttribute('aria-expanded',document.body.classList.contains('mobile-nav-open')?'true':'false')"><span></span></button>
+      <button class="btn-out" onclick="localStorage.removeItem('sofa_uid');localStorage.removeItem('sofa_token');window.location.href='login.html'">登出</button>
+      <button class="menu-btn"><span></span></button>
     </div>
   </header>
 
@@ -387,47 +294,21 @@
       <a href="dashboard.html" class="back">← BACK</a>
       <div class="title">
         <span class="law">LAW</span>
-        <select id="lawSelect" style="display:none"><option value="">全部法規</option></select>
-        <div class="law-dd" id="lawDD">
-          <button type="button" class="law-dd-btn" id="lawDDBtn"><span id="lawDDLabel">全部法規</span><span class="cv">▾</span></button>
-          <div class="law-dd-pop" id="lawDDPop"></div>
-        </div>
-        <span id="fill-scope-label" style="font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--peach);white-space:nowrap;display:none"></span>
+        <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:600;font-size:18px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none"><option value="">全部法規</option></select>
       </div>
-      <div id="fill-status-bar" style="
-        margin-top:4px;padding:6px 10px;
-        background:rgba(255,255,255,0.04);
-        border-radius:6px;border:1px solid rgba(231,187,167,0.15);
-        font-size:11px;color:var(--cream-3);min-height:28px;
-        transition:opacity 0.2s;display:none
-      "></div>
       <div class="title" id="artPickWrap" style="display:none">
         <span class="law">§</span>
         <input id="artNumInput" list="artDatalist" placeholder="條號"
           style="background:transparent;border:none;outline:none;font-family:var(--mono);font-size:14px;color:var(--cream);width:64px;cursor:text">
         <datalist id="artDatalist"></datalist>
       </div>
-      <button id="btnNext" class="btn btn-sec" style="padding:8px 16px;font-size:13px">開始填空</button>
-      <button id="btnFillSession" class="btn btn-sec" style="padding:8px 14px;font-size:12px;display:none;background:rgba(231,187,167,0.15);border-color:rgba(231,187,167,0.6)">連刷模式</button>
-      <button onclick="openFillStats()" title="個人填空統計" style="background:none;border:1px solid rgba(231,187,167,0.3);color:var(--peach);border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">統計</button>
-      <button id="btn-handwrite" onclick="_toggleHandwrite(this)" title="iPad 手寫模式（放大輸入格）" style="background:none;border:1px solid rgba(245,240,234,.25);color:rgba(245,240,234,.6);border-radius:8px;padding:5px 10px;font-size:13px;cursor:pointer">手寫</button>
-      <button id="btnFillDaily" onclick="startFillDailyChallenge()">今日填空</button>
-      <span id="fill-daily-badge"></span>
-      <div id="fill-streak" style="
-        display:none;
-        font-size:13px;color:var(--peach);font-weight:600;
-        padding:3px 8px;background:rgba(217,176,132,0.12);
-        border:1px solid rgba(217,176,132,0.3);border-radius:12px;
-        margin-left:8px
-      "></div>
+      <button id="btnNext" class="btn btn-sec" style="padding:8px 16px;font-size:13px">換一條</button>
     </div>
     <div class="pr-meta">
       <div class="seg">已填 <b id="filled">— / —</b></div>
       <div class="seg">正確 <b id="metaRight" style="color:var(--good)">0</b></div>
       <div class="seg">提示 <b id="metaHint">0</b></div>
       <div class="seg">TIME <b id="metaTime">00:00</b></div>
-      <div class="seg">篇時 <b><span id="fill-timer" style="color:var(--peach)">--</span></b></div>
-      <div class="seg" id="fillSessionWrap" style="display:none">連刷 <b id="fillSessionProg">0 / 0</b></div>
     </div>
   </div>
   <div class="pr-chips">
@@ -446,20 +327,20 @@
       <div>
         <div class="ar-head">
           <span class="eb">FILL-IN · 關鍵字填空</span>
-          <h2><span class="n" id="artNum">—</span><span id="artTitle">選擇法規後點「開始填空」開始</span></h2>
+          <h2><span class="n" id="artNum">—</span><span id="artTitle">選擇法規後換一條開始</span></h2>
           <div class="row">
             <span class="pill" id="lawName" style="display:none"></span>
-            <span id="diff-badge"></span>
+            <span class="pill" id="diffPill">—</span>
             <span id="blankCount">—</span>
           </div>
         </div>
 
         <div class="fill-card" id="fillCard" data-label="FILL">
-          <div id="fillText"><span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.35);letter-spacing:.1em">選擇法規後點「開始填空」開始</span></div>
+          <div id="fillText"><span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.35);letter-spacing:.1em">選擇法規後點「換一條」開始</span></div>
           <div id="resultMsg" style="display:none;margin-top:16px;font-family:var(--mono);font-size:13px;letter-spacing:.1em"></div>
           <div id="sourceBox" style="display:none;margin-top:8px;font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.5);letter-spacing:.08em"></div>
-          <button id="fillSourceLink" style="display:none;margin-top:10px;background:transparent;border:1px solid var(--peach-dim);color:var(--peach);font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:6px 12px;border-radius:2px;cursor:pointer">展開原文 ↓</button>
-          <div id="fillArtInline" style="display:none;margin-top:12px;padding:14px 16px;background:rgba(245,240,234,.04);border-left:2px solid var(--peach);font-family:'Songti TC','Noto Serif TC',serif;font-size:14.5px;line-height:1.95;color:var(--cream);white-space:pre-wrap"></div>
+          <button id="fillSourceLink" style="display:none;margin-top:10px;background:transparent;border:1px solid var(--peach-dim);color:var(--peach);font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:6px 12px;border-radius:2px;cursor:pointer">查看完整條文 →</button>
+          <div id="fillArtInline" style="display:none;margin-top:12px;padding:14px 16px;background:rgba(245,240,234,.04);border-left:2px solid var(--peach);font-size:14.5px;line-height:1.95;color:var(--cream);white-space:pre-wrap"></div>
         </div>
 
         <div class="fill-actions">
@@ -504,7 +385,7 @@
           <div class="hint-row">
             <button class="hint-btn" id="hintFirst">首字<b>顯</b></button>
             <button class="hint-btn" id="hintCount">字數<b id="hintCountVal">?</b></button>
-            <button class="hint-btn" id="hintReveal">看答案</button>
+            <button class="hint-btn" id="hintReveal">看答<b>★</b></button>
           </div>
         </div>
 
@@ -521,21 +402,8 @@
 
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
-function isIOSReaderApp(){try{return !!(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='ios');}catch(e){return false;}}
-if(isIOSReaderApp()) document.documentElement.classList.add('ios-reader-app');
-function isPreviewHost(){
-  return location.hostname === 'localhost'
-    || location.hostname === '127.0.0.1'
-    || location.hostname === '::1'
-    || location.protocol === 'file:';
-}
-const uid = localStorage.getItem('sofa_uid') || (isPreviewHost() ? 'PREVIEW' : null);
+const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
 const tok = localStorage.getItem('sofa_token') || '';
-const _fillSearchParams = new URLSearchParams(location.search);
-const freeParam = _fillSearchParams.get('free') === '1';
-if (freeParam && !uid && !tok) {
-  localStorage.setItem('sofa_free', 'FREE');
-}
 function formatLawText(raw){
   if(!raw) return '';
   let t=String(raw).replace(/\r\n?/g,'\n').trim();
@@ -551,78 +419,31 @@ function _authH(extra) {
   else if (uid) h['X-Sofa-UID'] = uid;
   return h;
 }
-const isFree = !uid && (freeParam || localStorage.getItem('sofa_free') === 'FREE');
+const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
 if (!uid && !isFree) { window.location.href = 'login.html?redirect=fill.html'; }
 document.getElementById('navUid').textContent = isFree ? '免費版' : (localStorage.getItem('sofa_nickname') || uid);
 if(isFree){
   const bar=document.createElement('div');
   bar.style.cssText='background:rgba(231,187,167,.13);border-bottom:1px solid rgba(231,187,167,.3);padding:10px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;';
-  bar.innerHTML=isIOSReaderApp()
-    ? '<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">免費版 · 進階內容，訂閱者可見</span>'
-    : '<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">免費版 · 免登入可練習，練習紀錄不會儲存</span>'
-      +'<a href="pricing.html?utm_source=fill&utm_medium=free_bar&utm_campaign=fill_pricing" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:5px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級保留紀錄 →</a>';
+  bar.innerHTML='<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">🔒 免費版 · 填空範圍有限，練習紀錄不會儲存</span>'
+    +'<a href="checkout.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:5px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
   document.querySelector('.pr-bar').before(bar);
 }
 
-// 中文數字正規化：二年→2年、三十日→30日、一百二十日→120日
+// 中文數字正規化：二年→2年、三十日→30日
 function normLegalNum(s){
-  const d={'零':0,'〇':0,'○':0,'一':1,'二':2,'兩':2,'两':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9};
-  const units={'十':10,'百':100,'千':1000};
-  const parseNum=t=>{
-    if(!/[十百千萬万]/.test(t))return t.replace(/[零〇○一二兩两三四五六七八九]/g,c=>String(d[c]));
-    let total=0, section=0, num=0;
-    [...t].forEach(c=>{
-      if(c in d){num=d[c];return;}
-      if(c in units){section+=(num||1)*units[c];num=0;return;}
-      if(c==='萬'||c==='万'){total+=(section+num||1)*10000;section=0;num=0;}
-    });
-    return String(total+section+num);
-  };
-  let r=String(s||'').normalize('NFKC');
-  r=r.replace(/(\d+(?:\.\d+)?)\s*[萬万]/g,(_,n)=>String(Number(n)*10000));
-  r=r.replace(/(\d+(?:\.\d+)?)\s*千/g,(_,n)=>String(Number(n)*1000));
-  r=r.replace(/(\d+(?:\.\d+)?)\s*百/g,(_,n)=>String(Number(n)*100));
-  r=r.replace(/[零〇○一二兩两三四五六七八九十百千萬万]+/g,parseNum);
+  const d={'一':'1','二':'2','三':'3','四':'4','五':'5','六':'6','七':'7','八':'8','九':'9'};
+  let r=s;
+  r=r.replace(/[一二三四五六七八九]十[一二三四五六七八九]/g,m=>String(+d[m[0]]*10+ +d[m[2]]));
+  r=r.replace(/[一二三四五六七八九]十/g,m=>String(+d[m[0]]*10));
+  r=r.replace(/十[一二三四五六七八九]/g,m=>String(10+ +d[m[1]]));
+  r=r.replace(/十/g,'10');
+  r=r.replace(/[一二三四五六七八九]/g,c=>d[c]);
   return r;
 }
-function normalizeFillArticleNo(raw){
-  let text=String(raw||'').normalize('NFKC')
-    .replace(/^第\s*/,'')
-    .replace(/\s*條$/,'')
-    .replace(/^§+/,'')
-    .replace(/\s+/g,'')
-    .trim();
-  text=text.replace(/條之/g,'之');
-  const m=text.match(/^([0-9一二三四五六七八九十百千零兩两]+)(?:條)?(?:之([0-9一二三四五六七八九十百千零兩两]+))?$/);
-  if(!m)return text;
-  return normLegalNum(m[1])+(m[2]?'之'+normLegalNum(m[2]):'');
-}
-function fillArticleNoFromRecord(a){
-  if(!a)return '';
-  if(a.article_no)return normalizeFillArticleNo(a.article_no);
-  if(a.article)return normalizeFillArticleNo(a.article);
-  if(a.no)return normalizeFillArticleNo(a.no);
-  const title=String(a.title||'');
-  let m=title.match(/第\s*([0-9０-９一二三四五六七八九十百千零兩两]+)\s*條?\s*之\s*([0-9０-９一二三四五六七八九十百千零兩两]+)\s*條?/);
-  if(m)return normalizeFillArticleNo(m[1]+'之'+m[2]);
-  m=title.match(/第\s*([0-9０-９一二三四五六七八九十百千零兩两]+(?:之[0-9０-９一二三四五六七八九十百千零兩两]+)?)\s*條/);
-  return m?normalizeFillArticleNo(m[1]):'';
-}
-function findFillArticleByNo(articles,raw){
-  const target=normalizeFillArticleNo(raw);
-  return (articles||[]).find(a=>fillArticleNoFromRecord(a)===target)||null;
-}
-function fillUrlLawParam(){return (_fillSearchParams.get('law')||_fillSearchParams.get('q')||'').trim();}
-function fillUrlArticleParam(){return (_fillSearchParams.get('art')||_fillSearchParams.get('article')||'').trim();}
-function fillUrlPageIdParam(){return (_fillSearchParams.get('page_id')||_fillSearchParams.get('id')||_fillSearchParams.get('open')||'').trim();}
-let _fillUrlTargetPending = !!(fillUrlPageIdParam() || (fillUrlLawParam() && fillUrlArticleParam()));
-let _fillUrlTargetResolving = false;
-let _skipFillLawPersistOnce = false;
 
 // ── 計時器 ──────────────────────────────────────────
 let _fillTimerIv=null, _fillStart=null, _sessionRight=0, _sessionHint=0;
-// Wave 107: per-article response time
-let _fillStartTime=0, _fillTimerInterval=null;
 let _sessionHistory=[], _sessionCount=0;
 
 function fillTimerStart(){
@@ -654,139 +475,18 @@ function pushHistory(law, title){
   ).join('')||'<span style="color:rgba(245,240,234,.25)">—</span>';
 }
 
-// ── 考科 → 法規對應表（NODES.json n72/n74/n83）─────────────────
-const _EXAM_LAWS = {
-  bookkeeper: ['記帳士法','記帳士職業倫理道德規範','中華民國記帳士職業道德規範','記帳士法第三十五條規定之管理辦法','記帳士暨記帳及報稅代理人防制洗錢與打擊資恐辦法','記帳士懲戒委員會與懲戒覆審委員會組織及審議規則','公司法','公司登記辦法','商業登記法','商業登記申請辦法','商業會計法','商業會計處理準則','商業使用電子方式處理會計資料辦法','行政程序法','稅捐稽徵法','稅捐稽徵法施行細則','納稅者權利保護法','納稅者權利保護法施行細則','所得稅法','所得稅法施行細則','所得基本稅額條例','所得基本稅額條例施行細則','各類所得扣繳率標準','營利事業所得稅查核準則','加值型及非加值型營業稅法','加值型及非加值型營業稅法施行細則','兼營營業人營業稅額計算辦法','統一發票使用辦法','統一發票給獎辦法','遺產及贈與稅法','遺產及贈與稅法施行細則','特種貨物及勞務稅條例','特種貨物及勞務稅條例施行細則'],
-  landadmin:  ['民法','信託法','土地法','土地法施行法','平均地權條例','平均地權條例施行細則','土地徵收條例','土地徵收條例施行細則','地政士法','地政士法施行細則','土地登記規則','地籍測量實施規則','土地稅法','土地稅法施行細則','遺產及贈與稅法','遺產及贈與稅法施行細則','契稅條例','房屋稅條例','稅捐稽徵法','稅捐稽徵法施行細則','工程受益費徵收條例','所得稅法','所得稅法施行細則'],
-  realestate: ['民法','土地法','平均地權條例','平均地權條例施行細則','土地徵收條例','非都市土地使用管制規則','區域計畫法','都市計畫法','土地稅法','土地稅法施行細則','契稅條例','房屋稅條例','所得稅法','所得稅法施行細則','不動產經紀業管理條例','不動產經紀業管理條例施行細則','公平交易法','消費者保護法','公寓大廈管理條例'],
-  'tax-admin': ['民法','稅捐稽徵法','稅捐稽徵法施行細則','納稅者權利保護法','納稅者權利保護法施行細則','所得稅法','所得稅法施行細則','所得基本稅額條例','所得基本稅額條例施行細則','加值型及非加值型營業稅法','加值型及非加值型營業稅法施行細則','土地稅法','土地稅法施行細則','房屋稅條例','契稅條例','貨物稅條例','印花稅法','使用牌照稅法','遺產及贈與稅法','遺產及贈與稅法施行細則'],
-  'tax-law': ['中華民國憲法','中華民國憲法增修條文','行政程序法','行政罰法','行政執行法','訴願法','行政訴訟法','國家賠償法','公務員服務法','公務人員任用法','稅捐稽徵法','稅捐稽徵法施行細則','所得稅法','加值型及非加值型營業稅法','遺產及贈與稅法','土地稅法','民法','刑法','納稅者權利保護法'],
-  'elem-admin': ['中華民國憲法','公務員服務法','公務人員任用法','民法','刑法','行政程序法','行政罰法','行政執行法','訴願法','行政訴訟法','國家賠償法'],
-  'post-acc': ['會計法','預算法','決算法','郵政法','公司法','商業會計法','稅捐稽徵法','所得稅法','加值型及非加值型營業稅法','個人資料保護法'],
-};
-const _EXAM_NAMES = {bookkeeper:'記帳士',landadmin:'地政士',realestate:'不動產經紀人','tax-admin':'財稅行政','tax-law':'財稅法務','elem-admin':'初等一般行政','post-acc':'中華郵政會計'};
-let _allLoadedFillLaws = [];
-
-function _filterLawsForExam(laws, key) {
-  const set = _EXAM_LAWS[key] ? new Set(_EXAM_LAWS[key]) : null;
-  return set ? laws.filter(l => set.has(l.name)) : laws;
-}
-
-function _saveAndApplyFillExam(key) {
-  localStorage.setItem('sofa_exam_key', key);
-  if(uid && key!=='all') fetch(`${API}/api/me/profile`,{method:'PATCH',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({exam_key:key})}).catch(()=>{});
-  const bar=document.getElementById('_exam-picker-fill');
-  if(bar) bar.remove();
-  const filtered = _filterLawsForExam(_allLoadedFillLaws, key);
-  const sel = document.getElementById('lawSelect');
-  // Remove existing law options (keep __ special ones)
-  Array.from(sel.options).forEach(o => { if(!o.value.startsWith('__')&&!o.disabled)sel.removeChild(o); });
-  _allFillLawNames = [];
-  filtered.forEach(l => { _allFillLawNames.push(l.name); const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o); });
-  const first = filtered[0];
-  if(first&&sel){ sel.value=first.name; sel.dispatchEvent(new Event('change')); _updateFillStatusBar(first.name); loadNew(); }
-}
-
-function _showFillExamBanner() {
-  if(document.getElementById('_exam-picker-fill')) return;
-  const bar=document.createElement('div');
-  bar.id='_exam-picker-fill';
-  bar.style.cssText='background:var(--navy-4);border-bottom:2px solid rgba(231,187,167,.35);padding:11px 32px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:56px;z-index:200;';
-  bar.innerHTML='<span style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:rgba(231,187,167,.9);white-space:nowrap">你要備考哪一科？</span>'
-    +Object.entries(_EXAM_NAMES).map(([k,n])=>`<button onclick="_saveAndApplyFillExam('${k}')" style="font-family:var(--mono);font-size:11px;padding:5px 14px;border:1px solid rgba(231,187,167,.5);border-radius:2px;background:transparent;color:var(--cream);cursor:pointer">${n}</button>`).join('')
-    +'<button onclick="_saveAndApplyFillExam(\'all\')" style="font-family:var(--mono);font-size:11px;padding:5px 14px;border:1px solid rgba(245,240,234,.15);border-radius:2px;background:transparent;color:rgba(245,240,234,.4);cursor:pointer">先看全部</button>';
-  const nav=document.querySelector('.pr-bar')||document.querySelector('.top-bar')||document.body;
-  nav.before ? nav.before(bar) : document.body.prepend(bar);
-}
-
 (async()=>{
   const sel = document.getElementById('lawSelect');
   if(uid){
-    [['__starred__','重點法條'],['__bookmarks__','我的收藏'],['__mastered__','已熟記'],['__review__','待複習']].forEach(([v,t])=>{
+    [['__starred__','★ 重點法條'],['__bookmarks__','♥ 我的收藏'],['__mastered__','✓ 已熟記'],['__review__','⏰ 待複習']].forEach(([v,t])=>{
       const o=document.createElement('option');o.value=v;o.textContent=t;sel.appendChild(o);
     });
     const sep=document.createElement('option');sep.disabled=true;sep.textContent='──────';sel.appendChild(sep);
   }
-  // Wave 110: replace the blank 全部法規 option with the explicit __all__ option
-  const _blankOpt=sel.querySelector('option[value=""]');
-  if(_blankOpt){_blankOpt.value='__all__';_blankOpt.textContent='全部法規';}
-  else{const oAll=document.createElement('option');oAll.value='__all__';oAll.textContent='全部法規';sel.insertBefore(oAll,sel.firstChild);}
   try {
     const d = await fetch(`${API}/api/laws`).then(r=>r.json());
-    _allLoadedFillLaws = d.laws || [];
-    const examKey = localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || '';
-    if(examKey) localStorage.setItem('sofa_exam_key', examKey);
-    if(!examKey) _showFillExamBanner();
-    const lawsToShow = _filterLawsForExam(_allLoadedFillLaws, examKey);
-    lawsToShow.forEach(l=>{
-      const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);
-      _allFillLawNames.push(l.name);  // Wave 110: collect for random pick
-    });
+    (d.laws||[]).forEach(l=>{const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);});
   } catch{}
-  const _urlFillLaw = fillUrlLawParam();
-  if(_urlFillLaw){
-    let opt = sel.querySelector(`option[value="${CSS.escape(_urlFillLaw)}"]`);
-    if(!opt && _allLoadedFillLaws.some(l=>l.name===_urlFillLaw)){
-      opt=document.createElement('option');
-      opt.value=_urlFillLaw;
-      opt.textContent=_urlFillLaw;
-      sel.appendChild(opt);
-      if(!_allFillLawNames.includes(_urlFillLaw))_allFillLawNames.push(_urlFillLaw);
-    }
-    if(opt){
-      _skipFillLawPersistOnce = true;
-      sel.value = _urlFillLaw;
-      sel.dispatchEvent(new Event('change'));
-      const art = fillUrlArticleParam();
-      const artInput = document.getElementById('artNumInput');
-      if(artInput)artInput.value=normalizeFillArticleNo(art);
-      _updateFillStatusBar(sel.value);
-      _updateFillScopeLabel();
-      loadNew();
-      return;
-    }
-  }
-  // Wave 74: restore saved law preference and auto-load; default to 記帳士法 for first-time visitors
-  const _savedFillLaw = localStorage.getItem('sofa_fill_law');
-  if(_savedFillLaw&&sel.querySelector(`option[value="${CSS.escape(_savedFillLaw)}"]`)){
-    sel.value = _savedFillLaw;
-    sel.dispatchEvent(new Event('change'));
-    _updateFillStatusBar(sel.value);
-    loadNew();
-  } else {
-    const _defFillOpt = sel.querySelector('option[value="記帳士法"]') || sel.querySelector('option:not([disabled]):not([value^="__"])');
-    if(_defFillOpt){ sel.value = _defFillOpt.value; sel.dispatchEvent(new Event('change')); _updateFillStatusBar(_defFillOpt.value); loadNew(); }
-  }
-  _updateFillScopeLabel();
-})();
-
-// 自製法規下拉：以隱藏的 <select id="lawSelect"> 為真實狀態，自畫選單只負責顯示與品牌色高亮
-(function(){
-  const sel=document.getElementById('lawSelect');
-  const dd=document.getElementById('lawDD');
-  const btn=document.getElementById('lawDDBtn');
-  const pop=document.getElementById('lawDDPop');
-  const label=document.getElementById('lawDDLabel');
-  if(!sel||!dd||!btn||!pop||!label) return;
-  function syncLabel(){ const o=sel.selectedOptions[0]; label.textContent=o?o.textContent:'全部法規'; }
-  function buildPop(){
-    pop.innerHTML='';
-    Array.from(sel.options).forEach(o=>{
-      if(o.disabled){ const s=document.createElement('div');s.className='law-dd-sep';pop.appendChild(s);return; }
-      const it=document.createElement('div');
-      it.className='law-dd-item'+(o.value===sel.value?' sel':'');
-      it.textContent=o.textContent;
-      it.addEventListener('click',()=>{ sel.value=o.value; sel.dispatchEvent(new Event('change')); syncLabel(); close(); });
-      pop.appendChild(it);
-    });
-  }
-  function open(){ buildPop(); dd.classList.add('open'); const s=pop.querySelector('.sel'); if(s)s.scrollIntoView({block:'nearest'}); }
-  function close(){ dd.classList.remove('open'); }
-  btn.addEventListener('click',e=>{ e.stopPropagation(); dd.classList.contains('open')?close():open(); });
-  document.addEventListener('click',e=>{ if(!dd.contains(e.target))close(); });
-  document.addEventListener('keydown',e=>{ if(e.key==='Escape')close(); });
-  sel.addEventListener('change',syncLabel);
-  syncLabel();
 })();
 
 let _artCache = {};
@@ -838,33 +538,13 @@ document.addEventListener('DOMContentLoaded',function(){
   if(_lawSel)_lawSel.addEventListener('change',_updateChipLock);
   var _subSel=document.getElementById('prSubSel');
   if(_subSel)_subSel.addEventListener('change',_updateChipLock);
-  _renderFillStreak(); // Wave 125: 每日連刷天數
-  try { localStorage.setItem('sofa_last_tool', 'fill'); } catch(e) {}
-  if(localStorage.getItem('sofa_fill_handwrite')==='1'){
-    document.body.classList.add('handwrite-mode');
-    const _hbtn=document.getElementById('btn-handwrite');
-    if(_hbtn) _hbtn.classList.add('active');
-  }
 });
 document.getElementById('lawSelect').addEventListener('change', async function(){
-  // Wave 74: persist law selection to localStorage
-  if(_skipFillLawPersistOnce)_skipFillLawPersistOnce = false;
-  else localStorage.setItem('sofa_fill_law', this.value);
-  // Wave 118: update law proficiency status bar
-  _updateFillStatusBar(this.value);
-  // 範圍標籤跟著選單即時更新
-  _updateFillScopeLabel();
-  const sfBtn = document.getElementById('btnFillSession');
-  // Wave 110: __all__ is a valid practice mode — show session button; other __ values hide it
-  if(sfBtn) sfBtn.style.display = (this.value && (!this.value.startsWith('__') || this.value==='__all__')) ? '' : 'none';
   const law = this.value;
   const wrap = document.getElementById('artPickWrap');
   const dl   = document.getElementById('artDatalist');
   const inp  = document.getElementById('artNumInput');
-  const urlArt = fillUrlArticleParam();
-  const keepUrlArticle = _fillUrlTargetPending && fillUrlLawParam() === this.value && !!urlArt;
-  dl.innerHTML = '';
-  if(!keepUrlArticle) inp.value = '';
+  dl.innerHTML = ''; inp.value = '';
   const realLaw = law && !law.startsWith('__');
   wrap.style.display = realLaw ? '' : 'none';
   if (!realLaw) return;
@@ -875,81 +555,16 @@ document.getElementById('lawSelect').addEventListener('change', async function()
     } catch { _artCache[law] = []; }
   }
   _artCache[law].forEach(a => {
-    const artNo = fillArticleNoFromRecord(a);
-    if (!artNo) return;
+    const m = (a.title||'').match(/第(\d+(?:之\d+)?)條/);
+    if (!m) return;
     const opt = document.createElement('option');
-    opt.value = artNo;
+    opt.value = m[1];
     opt.label = a.title.replace(/第[\d之]+條\s*/,'').trim();
     dl.appendChild(opt);
   });
-  if(keepUrlArticle) inp.value = normalizeFillArticleNo(urlArt);
 });
 
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-
-// Wave 118: law proficiency status bar
-function _updateFillStatusBar(lawName) {
-  const bar = document.getElementById('fill-status-bar');
-  if (!bar) return;
-
-  if (!lawName || lawName.startsWith('__')) {
-    if (lawName === '__all__') {
-      bar.style.display = 'block';
-      bar.innerHTML = '<span style="color:var(--peach)">全部法規混練模式</span>';
-    } else {
-      bar.style.display = 'none';
-    }
-    return;
-  }
-
-  const s = JSON.parse(localStorage.getItem('sofa_fill_stats_v1') || '{}');
-  const d = (s.byLaw || {})[lawName];
-
-  if (!d || d.total === 0) {
-    bar.style.display = 'block';
-    bar.innerHTML = '<span style="color:var(--cream-3)">尚未練習此法規</span>';
-    return;
-  }
-
-  const count = d.total;
-  const color = count >= 15 ? 'var(--good)' : count >= 5 ? 'var(--warn)' : 'var(--peach)';
-  const label = count >= 15 ? '熟練' : count >= 5 ? '練習中' : '起步中';
-  const barPct = Math.min(100, Math.round(count / 20 * 100)); // 20 articles = full bar
-
-  bar.style.display = 'block';
-  bar.innerHTML = `
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px">
-      <span>已練 <b style="color:var(--cream-3)">${count}</b> 篇填空</span>
-      <span style="color:${color};font-weight:600">${label}</span>
-    </div>
-    <div style="background:rgba(255,255,255,0.1);border-radius:3px;height:4px">
-      <div style="background:${color};border-radius:3px;height:4px;width:${barPct}%;transition:width 0.4s"></div>
-    </div>
-  `;
-}
-
-// ── 填空範圍標籤：{考科顯示名}＿全部法規（N 部）／或單一法規名 ──────────
-function _updateFillScopeLabel() {
-  const el = document.getElementById('fill-scope-label');
-  if (!el) return;
-  const sel = document.getElementById('lawSelect');
-  const v = sel ? sel.value : '';
-  const examKey = localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || '';
-  const examName = _EXAM_NAMES[examKey] || '';
-  // 全部法規 / 未選具體法規 → 顯示「{考科}＿全部法規（N 部）」
-  if (v === '' || v === '__all__') {
-    const n = _allFillLawNames.length;
-    const scope = examName ? `${examName}＿全部法規` : '全部法規';
-    el.textContent = n ? `${scope}（${n} 部）` : scope;
-    el.style.display = 'inline';
-    return;
-  }
-  // 特殊清單（收藏 / 重點 / 已熟記 / 待複習）→ 不顯示範圍標籤
-  if (v.startsWith('__')) { el.style.display = 'none'; return; }
-  // 指定單一法規 → 顯示該法規名
-  el.textContent = v;
-  el.style.display = 'inline';
-}
 
 const _FREE_SECS=[
   '章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示','核心摘要與記憶策略',
@@ -959,85 +574,7 @@ const _LOCKED_SECS=[
   {name:'修法與聯覺備註',  label:'修法與聯覺備註'},
   {name:'相關法規及注意事項',label:'相關法規及注意事項'}
 ];
-function cleanVisibleSpeechCueText(text){
-  return String(text || '')
-    .replace(/[\[【（(]\s*(重音|強調|輕讀|慢讀|快讀)\s*[\]】）)]/g, '')
-    .replace(/[\[【（(]\s*停頓\s*[\]】）)]/g, '，')
-    .replace(/\[(\/?emphasis)\]/gi, '')
-    .replace(/\[break[^\]]*\]/gi, '，')
-    .replace(/<\s*\/?\s*(em|strong|mark)\s*>/gi, '')
-    .replace(/<\s*break[^>]*>/gi, '，')
-    .replace(/[，,]\s*[，,]+/g, '，')
-    .trim();
-}
-function cleanCrossRefLawName(lawName){
-  return String(lawName || '')
-    .replace(/^.*?(?:可看|請看|請參照|請見|另參照|另見)/, '')
-    .replace(/^(搭配|參照|依|按|見|與)+/, '')
-    .replace(/[，。、；：\s]+$/, '')
-    .trim();
-}
-function currentFillReturnTarget(){
-  try{ return 'fill.html' + (location.search || '') + (location.hash || ''); }catch(e){}
-  return 'fill.html';
-}
-function linkifyLawRefs(escapedText,currentLawName){
-  let lastLaw = null;
-  const linkedAnchors = [];
-  function stashLinked(html){
-    const key = '@@SOFA_XREF_' + linkedAnchors.length + '@@';
-    linkedAnchors.push(html);
-    return key;
-  }
-  function hrefFor(law, art){
-    const safeLaw = encodeURIComponent(String(law || '').replace(/\\/g, ''));
-    const safeArt = encodeURIComponent(String(art || ''));
-    const safeBack = encodeURIComponent(currentFillReturnTarget() || 'fill.html');
-    return `law-preview.html?law=${safeLaw}&art=${safeArt}&from=fill&back=${safeBack}`;
-  }
-  function normalizeArtLabel(value){
-    return String(value || '').replace(/\s+/g, '').replace(/條?之/g, '之').replace(/-/g, '之').replace(/^第/, '').replace(/條$/, '');
-  }
-  function splitLawPrefix(rawLaw, law){
-    const raw = String(rawLaw || '');
-    return raw.endsWith(law) ? raw.slice(0, raw.length - law.length) : '';
-  }
-  const lawTypes = '(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)';
-  const lawPat = '(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\\s《》()（）;；]{1,40}' + lawTypes + '))';
-  const numPat = '[0-9０-９一二三四五六七八九十百千零兩两]+(?:\\s*(?:條?之|-)\\s*[0-9０-９一二三四五六七八九十百千零兩两]+)?';
-  const articleSeq = new RegExp(lawPat + '第?\\s*(' + numPat + '(?:\\s*(?:、|,|，|及|和|與)\\s*第?\\s*' + numPat + ')+)\\s*條', 'g');
-  const sequenced = String(escapedText || '').replace(articleSeq, (match, bracketLaw, plainLaw, nums) => {
-    const rawLaw = bracketLaw || plainLaw || '';
-    const law = cleanCrossRefLawName(rawLaw);
-    if(!law || law === '同法' || law === '本法') return match;
-    lastLaw = law;
-    const prefix = bracketLaw ? '' : splitLawPrefix(rawLaw, law);
-    const tokens = nums.split(/(、|,|，|及|和|與)/);
-    let first = true;
-    const linked = tokens.map(token => {
-      if(/^(、|,|，|及|和|與)$/.test(token)) return token;
-      const cleanToken = String(token).trim();
-      const art = normalizeArtLabel(cleanToken);
-      if(!art) return token;
-      const label = first ? law + (cleanToken.startsWith('第') ? cleanToken : art) + '條' : (cleanToken.startsWith('第') ? cleanToken : art + '條');
-      first = false;
-      return `<a class="crossref" href="${hrefFor(law, art)}" data-law="${encodeURIComponent(law)}" data-art="${encodeURIComponent(art)}">${label}</a>`;
-    }).join('');
-    return prefix + stashLinked(linked);
-  });
-  return sequenced.replace(/(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\s《》()（）;；]{1,40}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第?(\d+)條(?:之(\d+))?/g, (match, bracketLaw, plainLaw, sameLaw, art, sub)=>{
-    const law = cleanCrossRefLawName(bracketLaw || plainLaw || '');
-    if(law && law !== '同法' && law !== '本法') lastLaw = law;
-    else if((sameLaw || law === '同法' || law === '本法') && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
-    if(!lastLaw) return match;
-    const fullArt = art + (sub ? '之' + sub : '');
-    const prefixMatch = match.match(/^(.+?(?:可看|請看|請參照|請見|另參照|另見)|搭配|參照|依|按|見|與)(.+)$/);
-    const prefix = prefixMatch ? prefixMatch[1] : '';
-    const label = prefixMatch ? prefixMatch[2] : match;
-    return `${prefix}<a class="crossref" href="${hrefFor(lastLaw, fullArt)}" data-law="${encodeURIComponent(lastLaw)}" data-art="${encodeURIComponent(fullArt)}">${label}</a>`;
-  }).replace(/@@SOFA_XREF_(\d+)@@/g, (match, idx) => linkedAnchors[Number(idx)] || match);
-}
-function formatSection(text,currentLawName){
+function formatSection(text){
   if(!text) return '';
   var lines=String(text).replace(/\r\n?/g,'\n').split('\n'),out='';
   lines.forEach(function(raw){
@@ -1046,49 +583,20 @@ function formatSection(text,currentLawName){
     var bm=body.match(/^([•◦‣·▪])\s*/);
     if(bm){isSub=(bm[1]==='◦');body=body.slice(bm[0].length);}
     else if(lead.length>=2||/　/.test(lead)){isSub=true;}
-    body=cleanVisibleSpeechCueText(body.trim());if(!body)return;
+    body=body.trim();if(!body)return;
     var esc=body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     esc=esc.replace(/^([^：:]{1,14}[：:])/,'<b>$1</b>');
-    out+='<p class="'+(isSub?'sec-i':'sec-h')+'">'+linkifyLawRefs(esc,currentLawName)+'</p>';
+    out+='<p class="'+(isSub?'sec-i':'sec-h')+'">'+esc+'</p>';
   });
   return out;
 }
-function buildCpiAdjustmentNote(article,sections){
-  const lawName=article?.law_name||(document.getElementById('lawSelect')||{}).value||'';
-  const articleText=[article?.title,article?.article_no,article?.original_text,JSON.stringify(sections||{})].join('\n');
-  const artNo=String(article?.article_no||article?.title||'');
-  const hasCpiText=/CPI|消費者物價指數|物價指數|公告調整|按.*物價/.test(articleText);
-  const isBasicTax=lawName.includes('所得基本稅額條例') && /(^|第|\D)13(條|$|\D)/.test(artNo);
-  const estateGiftAmountArticle=/12\s*[-之]\s*1|十二條之一|第十二條之一|(^|第|\D)(13|17|18|19|20|22)(條|$|\D)/.test(artNo);
-  const estateGiftAmountText=/免稅額|扣除額|配偶|直系血親卑親屬|父母|喪葬費|殘障|扶養|課稅級距|贈與稅|遺產稅|萬|元/.test(articleText);
-  const isEstateGift=lawName.includes('遺產及贈與稅法') && (estateGiftAmountArticle || hasCpiText || estateGiftAmountText);
-  if(!hasCpiText && !isBasicTax && !isEstateGift) return '';
-  if(isBasicTax){
-    return '這題條文寫六百萬元，但 113 年度起個人基本所得額扣除額已調整為 750 萬元；115 年度沿用 750 萬元。題目仍可考條文基準或比例，考前請以當年度公告額為準。';
-  }
-  if(isEstateGift){
-    return '條文原文、舊題數字和當年度公告額要分開看。\n115 / 114 現行：遺產稅免稅額 1,333 萬；不計入遺產總額的日常器具 100 萬、職業工具 56 萬；配偶扣除 553 萬；直系血親卑親屬每人 56 萬；父母、喪葬費各 138 萬；重度以上身心障礙 693 萬；扶養兄弟姊妹、祖父母每人 56 萬；贈與稅免稅額 244 萬 / 年。\n舊題常見差異：職業工具條文舊基準 40 萬，113 年度起已公告為 56 萬；級距 113 年仍為遺產 5,000 萬 / 1 億、贈與稅 2,500 萬 / 5,000 萬，114 / 115 已為遺產 5,621 萬 / 1 億 1,242 萬、贈與稅 2,811 萬 / 5,621 萬。\n題目仍可考條文基準或比例，作答時以考試年度與財政部公告額為準。';
-  }
-  return '這類金額會受 CPI / 財政部公告調整。115 年度與 113 年度是否相同，要看各稅目公告；題目仍可考條文基準或比例，考前請以當年度公告額為準。';
-}
-function appendCpiAdjustmentNote(wrapEl,beforeEl,article,sections){
-  wrapEl.querySelectorAll('.cpi-note').forEach(e=>e.remove());
-  const note=buildCpiAdjustmentNote(article,sections);
-  if(!note)return;
-  const d=document.createElement('div');
-  d.className='cpi-note';
-  d.innerHTML='<b>CPI / 公告額提醒</b>'+esc(note);
-  if(beforeEl)wrapEl.insertBefore(d,beforeEl);else wrapEl.appendChild(d);
-}
-function buildSections(sections,isPaid,wrapEl,beforeEl,article){
-  wrapEl.querySelectorAll('.sec-block,.sec-lock,.sec-empty,.cpi-note').forEach(e=>e.remove());
-  appendCpiAdjustmentNote(wrapEl,beforeEl,article,sections);
-  const articleLawName=article?.law_name||(document.getElementById('lawSelect')||{}).value||'';
+function buildSections(sections,isPaid,wrapEl,beforeEl){
+  wrapEl.querySelectorAll('.sec-block,.sec-lock').forEach(e=>e.remove());
   _FREE_SECS.forEach(name=>{
     if(!sections[name])return;
     const d=document.createElement('div');d.className='sec-block';
     const lb=document.createElement('div');lb.className='sec-label';lb.textContent=name;
-    const tx=document.createElement('div');tx.className='sec-text';tx.innerHTML=formatSection(sections[name], articleLawName);
+    const tx=document.createElement('div');tx.className='sec-text';tx.innerHTML=formatSection(sections[name]);
     d.append(lb,tx);
     if(beforeEl)wrapEl.insertBefore(d,beforeEl);else wrapEl.appendChild(d);
   });
@@ -1096,400 +604,16 @@ function buildSections(sections,isPaid,wrapEl,beforeEl,article){
     _LOCKED_SECS.forEach(({name,label})=>{
       const lk=document.createElement('div');lk.className='sec-lock';
       const preview=sections[name]||'';
-      lk.innerHTML=isIOSReaderApp()
-        ? '<div class="sec-label">'+label+'</div><div class="sec-lock-cta">進階內容，訂閱者可見</div>'
-        : '<div class="sec-label">'+label+'</div>'
-          +'<div class="sec-lock-preview">'+(preview?formatSection(preview, articleLawName):'')+'</div>'
-          +'<div class="sec-lock-cta">升級解鎖完整內容 <a href="pricing.html?utm_source=fill&utm_medium=locked_section&utm_campaign=fill_pricing">查看方案 →</a></div>';
+      lk.innerHTML='<div class="sec-label">'+label+'</div>'
+        +'<div class="sec-lock-preview">'+(preview?formatSection(preview):'')+'</div>'
+        +'<div class="sec-lock-cta">🔒 升級解鎖完整內容 <a href="checkout.html">查看方案 →</a></div>';
       if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
     });
   }
 }
-function showFillSectionsLoading(panel){
-  if(!panel)return;
-  panel.innerHTML='<div class="sec-hd">條文解析</div><div class="sec-empty">條文解析載入中...</div>';
-  panel.style.display='block';
-}
-function renderFillSections(panel,sections,isPaid,article){
-  if(!panel)return;
-  panel.innerHTML='<div class="sec-hd">條文解析</div>';
-  panel.style.display='block';
-  buildSections(sections||{},isPaid,panel,null,article);
-  if(!panel.querySelector('.sec-block,.sec-lock')){
-    const empty=document.createElement('div');
-    empty.className='sec-empty';
-    empty.textContent='這條暫時沒有解析；先看原文，或直接換下一條練習。';
-    panel.appendChild(empty);
-  }
-}
-
-let _allFillLawNames = [];  // Wave 110: all real law names for 全部法規
-let _fillSession = false, _fillSessionTotal = 0, _fillSessionDone = 0;
-let _sessionStats = [];   // Wave 40: per-article stats
-let _currentHintUsed = false;
-let _fillStreak = 0;      // Wave 87: consecutive perfect-fill streak
-
-// Wave 93: 每日填空挑戰
-const _fillToday = new Date().toISOString().slice(0,10);
-const _fillDailyKey = 'sofa_fill_daily_' + _fillToday;
-let _isFillDailyMode = false;
-let _lastFillPerfect = false;  // 全對才允許 Enter 直接跳下一題
-let _fillEmptyRetry = 0;       // 出到沒有空格的條文時自動換下一條的重試計數
-
-function _getFillDailyResult() {
-  try { return JSON.parse(localStorage.getItem(_fillDailyKey)||'null'); } catch { return null; }
-}
-function _updateFillDailyBtn() {
-  const btn = document.getElementById('btnFillDaily');
-  const badge = document.getElementById('fill-daily-badge');
-  if (!btn) return;
-  const r = _getFillDailyResult();
-  // 容錯：舊版 localStorage 可能沒有 pct，改用 score/total 推算；
-  // 仍算不出（壞掉的舊資料）就當作沒紀錄，徽章整個藏起來，等真的跑完一輪才出現
-  const pct = !r ? null
-            : (typeof r.pct === 'number') ? r.pct
-            : (r.total ? Math.round((r.score / r.total) * 100) : null);
-  if (pct != null) {
-    btn.classList.add('done');
-    if (badge) { badge.textContent = `✓ ${pct}%`; badge.style.display='inline'; }
-  } else {
-    btn.classList.remove('done');
-    if (badge) badge.style.display='none';
-  }
-}
-function startFillDailyChallenge() {
-  _isFillDailyMode = true;
-  startFillSession(5);
-}
-
-// Wave 55: cumulative fill stats (localStorage)
-const FILL_STATS_KEY = 'sofa_fill_stats_v1';
-function _loadFillStats() { try { return JSON.parse(localStorage.getItem(FILL_STATS_KEY) || '{}'); } catch(e){ return {}; } }
-function _saveFillStats(s) { try { localStorage.setItem(FILL_STATS_KEY, JSON.stringify(s)); } catch(e){} }
-
-function _buildFillCalendar() {
-  const today = new Date();
-  const days = [];
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date(today);
-    d.setDate(d.getDate() - i);
-    const key = d.toLocaleDateString('zh-TW', {
-      timeZone: 'Asia/Taipei',
-      year: 'numeric', month: '2-digit', day: '2-digit'
-    }).replace(/\//g, '-');
-    const count = parseInt(localStorage.getItem(`sofa_fill_daily_${key}`) || '0');
-    days.push({ count, isToday: i === 0 });
-  }
-
-  const maxCount = Math.max(...days.map(d => d.count), 1);
-
-  let html = `<div style="margin-top:12px">
-    <div style="font-size:10px;color:var(--cream-3);margin-bottom:6px">近 30 日填空</div>
-    <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:3px">`;
-
-  days.forEach(({ count, isToday }) => {
-    const intensity = count === 0 ? 0 : Math.max(0.15, count / maxCount);
-    const bg = count === 0
-      ? 'rgba(255,255,255,0.06)'
-      : `rgba(231,187,167,${intensity})`;
-    const border = isToday ? '1px solid var(--peach)' : '1px solid transparent';
-    html += `<div title="${count}篇" style="
-      aspect-ratio:1;border-radius:3px;
-      background:${bg};border:${border}
-    "></div>`;
-  });
-
-  html += `</div>
-    <div style="display:flex;justify-content:space-between;font-size:9px;color:var(--cream-3);margin-top:4px">
-      <span>30天前</span><span>今日</span>
-    </div>
-  </div>`;
-
-  return html;
-}
-
-function _recordFillStat(correctBlanks, totalBlanks, usedHint, lawName, fillElapsed) {
-  const _fillD = new Date().toISOString().slice(0,10);
-  const _fillDKey = 'sofa_fill_daily_' + _fillD;
-  localStorage.setItem(_fillDKey, String(parseInt(localStorage.getItem(_fillDKey)||'0',10)+1));
-  const s = _loadFillStats();
-  const today = new Date().toISOString().slice(0,10);
-  s.total = (s.total||0) + totalBlanks;
-  s.correct = (s.correct||0) + correctBlanks;
-  if(s.today !== today){ s.today=today; s.todayTotal=0; s.todayCorrect=0; }
-  s.todayTotal = (s.todayTotal||0) + totalBlanks;
-  s.todayCorrect = (s.todayCorrect||0) + correctBlanks;
-  s.clean = (s.clean||0) + (!usedHint && correctBlanks===totalBlanks ? 1 : 0);
-  s.articles = (s.articles||0) + 1;
-  // Wave 107: per-article response time tracking
-  if(fillElapsed > 0){
-    s.totalTimeSec = (s.totalTimeSec||0) + fillElapsed;
-    s.timedArticles = (s.timedArticles||0) + 1;
-  }
-  if(lawName){
-    s.byLaw = s.byLaw||{};
-    s.byLaw[lawName] = s.byLaw[lawName]||{total:0,correct:0,clean:0};
-    s.byLaw[lawName].total += totalBlanks;
-    s.byLaw[lawName].correct += correctBlanks;
-    if(!usedHint && correctBlanks===totalBlanks) s.byLaw[lawName].clean++;
-  }
-  _saveFillStats(s);
-  // Wave 125: update and render daily cross-session streak
-  _updateFillDailyStreak();
-  _renderFillStreak();
-}
-
-// Wave 125: Daily cross-session fill streak (sofa_fill_streak)
-// NOTE: distinct from _fillStreak (Wave 87 within-session blank streak)
-function _getFillToday() {
-  return new Date().toLocaleDateString('zh-TW', {
-    timeZone: 'Asia/Taipei',
-    year: 'numeric', month: '2-digit', day: '2-digit'
-  }).replace(/\//g, '-');
-}
-
-function _getFillYesterday() {
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  return d.toLocaleDateString('zh-TW', {
-    timeZone: 'Asia/Taipei',
-    year: 'numeric', month: '2-digit', day: '2-digit'
-  }).replace(/\//g, '-');
-}
-
-function _updateFillDailyStreak() {
-  const STREAK_KEY = 'sofa_fill_streak';
-  const today = _getFillToday();
-  const s = JSON.parse(localStorage.getItem(STREAK_KEY) || '{"count":0,"lastDate":""}');
-
-  if (s.lastDate === today) return s.count; // already updated today
-
-  const yStr = _getFillYesterday();
-
-  if (s.lastDate === yStr) {
-    s.count += 1; // extend streak
-  } else if (s.lastDate === '') {
-    s.count = 1; // first time
-  } else {
-    s.count = 1; // streak broken, restart
-  }
-
-  s.lastDate = today;
-  localStorage.setItem(STREAK_KEY, JSON.stringify(s));
-  return s.count;
-}
-
-function _getFillStreak() {
-  const s = JSON.parse(localStorage.getItem('sofa_fill_streak') || '{"count":0,"lastDate":""}');
-  if (!s.lastDate || s.lastDate < _getFillYesterday()) return 0;
-  return s.count;
-}
-
-function _renderFillStreak() {
-  const el = document.getElementById('fill-streak');
-  if (!el) return;
-  const count = _getFillStreak();
-  if (count >= 2) {
-    el.style.display = 'inline-block';
-    el.textContent = `${count}日連刷`;
-  } else {
-    el.style.display = 'none';
-  }
-}
-
-function startFillSession(n){
-  _fillSession = true; _fillSessionTotal = n; _fillSessionDone = 0;
-  _sessionStats = [];   // Wave 40: reset stats
-  _fillStreak = 0;      // Wave 87: reset streak on session start
-  document.getElementById('fillSessionModal').style.display = 'none';
-  document.getElementById('fillSessionWrap').style.display = '';
-  _updateFillSessionProg();
-  loadNew();
-}
-function _updateFillSessionProg(){
-  const el = document.getElementById('fillSessionProg');
-  if(el) el.textContent = `${_fillSessionDone} / ${_fillSessionTotal}`;
-}
-function _onFillDone(){
-  if(!_fillSession) return;
-  _fillSessionDone++;
-  _updateFillSessionProg();
-  if(_fillSessionDone >= _fillSessionTotal){
-    _fillSession = false;
-    document.getElementById('fillSessionWrap').style.display = 'none';
-    setTimeout(()=>showFillResults(), 800);  // Wave 40: show results modal
-  }
-}
-
-// Wave 40: Fill session results functions
-function showFillResults() {
-  const total = _sessionStats.length;
-  const totalBlanks = _sessionStats.reduce((s,a)=>s+a.totalBlanks,0);
-  const correctBlanks = _sessionStats.reduce((s,a)=>s+a.correctBlanks,0);
-  const cleanCount = _sessionStats.filter(a=>!a.usedHint && a.correctBlanks===a.totalBlanks).length;
-  const pct = totalBlanks > 0 ? Math.round(correctBlanks/totalBlanks*100) : 0;
-  // Wave 93: save daily challenge result
-  if (_isFillDailyMode && _sessionStats.length > 0) {
-    const totalCorrect = correctBlanks;
-    const pctSave = pct;
-    localStorage.setItem(_fillDailyKey, JSON.stringify({pct: pctSave, articles: _sessionStats.length}));
-    _updateFillDailyBtn();
-    _isFillDailyMode = false;
-  }
-  const gradeLabel = pct >= 80 ? '穩定' : pct >= 60 ? '練習中' : '待加強';
-  document.getElementById('fill-res-score').textContent = correctBlanks + ' / ' + totalBlanks + ' 格';
-  document.getElementById('fill-res-sub').textContent = gradeLabel + ' · 答對率 ' + pct + '%　全對無提示: ' + cleanCount + '/' + total + ' 篇';
-  const list = document.getElementById('fill-res-list');
-  list.innerHTML = '';
-  _sessionStats.forEach((s,i) => {
-    const perfect = s.correctBlanks === s.totalBlanks && !s.usedHint;
-    const ok = s.correctBlanks === s.totalBlanks;
-    const color = perfect ? '#9FB89F' : ok ? 'var(--peach)' : 'var(--bad)';
-    const icon = perfect ? '✓' : ok ? '△' : '✗';
-    const div = document.createElement('div');
-    div.style.cssText = 'background:var(--navy-3);border-radius:8px;padding:10px 12px;border-left:3px solid '+color;
-    div.innerHTML = '<span style="color:'+color+';font-weight:700">'+icon+'</span> <span style="color:var(--peach);font-size:13px">第 '+(i+1)+' 題　'+s.correctBlanks+'/'+s.totalBlanks+'格'+(s.usedHint?' · 使用提示':'')+'</span>';
-    list.appendChild(div);
-  });
-  document.getElementById('fill-results').style.display = 'block';
-}
-
-function exitFillResults() {
-  document.getElementById('fill-results').style.display = 'none';
-}
-
-// Wave 137: fill result share
-function _showFillShareToast(msg) {
-  const t = document.getElementById('fill-share-toast');
-  if (t) {
-    t.textContent = msg;
-    t.style.opacity = '1';
-    clearTimeout(t._tid);
-    t._tid = setTimeout(() => { t.style.opacity = '0'; }, 2000);
-  } else {
-    alert(msg);
-  }
-}
-
-async function _shareFillResult() {
-  const total = _sessionStats ? _sessionStats.length : 0;
-  const totalBlanks = _sessionStats ? _sessionStats.reduce((s,a)=>s+a.totalBlanks,0) : 0;
-  const correctBlanks = _sessionStats ? _sessionStats.reduce((s,a)=>s+a.correctBlanks,0) : 0;
-  const cleanCount = _sessionStats ? _sessionStats.filter(a => a.correctBlanks===a.totalBlanks && !a.usedHint).length : 0;
-  const pct = totalBlanks > 0 ? Math.round(correctBlanks / totalBlanks * 100) : 0;
-  const grade = pct >= 90 ? '高穩定' : pct >= 80 ? '穩定' : pct >= 70 ? '接近穩定' : pct >= 60 ? '練習中' : '待加強';
-
-  const sel = document.getElementById('lawSelect');
-  const lawName = (sel && sel.value && sel.value !== '__all__')
-    ? sel.value
-    : '全部法規混練';
-
-  const lines = [
-    `${grade} · SoFa 填空成績`,
-    `法規：${lawName}`,
-    `✓ 完成：${total} 篇填空　共 ${totalBlanks} 格`,
-    `答對率：${pct}%（${correctBlanks}/${totalBlanks} 格）`,
-    cleanCount > 0 ? `全對無提示：${cleanCount} 篇` : null,
-    `━━━━━━━━━━`,
-    `記帳士備考 | SoFa Engine`,
-  ].filter(Boolean).join('\n');
-
-  try {
-    await navigator.clipboard.writeText(lines);
-    _showFillShareToast('成績已複製到剪貼板');
-  } catch(e) {
-    prompt('複製以下文字分享成績：', lines);
-  }
-}
-
-function restartFillSession() {
-  exitFillResults();
-  const n = _fillSessionTotal || 10;
-  startFillSession(n);
-}
 
 let fillData = null;
 let hintsLeft = 3;
-
-// ── Wave 38: Web Audio feedback ──────────────────────────────────────────────
-let _fillAudioCtx = null;
-function _getFillAudio() {
-  if(!_fillAudioCtx) _fillAudioCtx = new (window.AudioContext||window.webkitAudioContext)();
-  if(_fillAudioCtx.state === 'suspended') _fillAudioCtx.resume();
-  return _fillAudioCtx;
-}
-function _fillSoundPerfect() {
-  try {
-    const ctx = _getFillAudio();
-    [0, 0.18].forEach((d, i) => {
-      const osc = ctx.createOscillator(); const env = ctx.createGain();
-      osc.connect(env); env.connect(ctx.destination);
-      osc.type = 'sine';
-      osc.frequency.setValueAtTime(i===0 ? 520 : 780, ctx.currentTime+d);
-      env.gain.setValueAtTime(0.16, ctx.currentTime+d);
-      env.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+d+0.3);
-      osc.start(ctx.currentTime+d); osc.stop(ctx.currentTime+d+0.31);
-    });
-  } catch(e){}
-}
-function _fillSoundPartial() {
-  try {
-    const ctx = _getFillAudio();
-    const osc = ctx.createOscillator(); const env = ctx.createGain();
-    osc.connect(env); env.connect(ctx.destination);
-    osc.type = 'sine'; osc.frequency.value = 440;
-    env.gain.setValueAtTime(0.12, ctx.currentTime);
-    env.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+0.4);
-    osc.start(ctx.currentTime); osc.stop(ctx.currentTime+0.41);
-  } catch(e){}
-}
-function _fillSoundWrong() {
-  try {
-    const ctx = _getFillAudio();
-    [0, 0.13].forEach(d => {
-      const osc = ctx.createOscillator(); const env = ctx.createGain();
-      osc.connect(env); env.connect(ctx.destination);
-      osc.type = 'sawtooth'; osc.frequency.value = 160;
-      env.gain.setValueAtTime(0.10, ctx.currentTime+d);
-      env.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime+d+0.09);
-      osc.start(ctx.currentTime+d); osc.stop(ctx.currentTime+d+0.10);
-    });
-  } catch(e){}
-}
-// ── Wave 87: streak milestone sounds ─────────────────────────────────────────
-function _playFillStreakMilestone(streak) {
-  const ctx = _getFillAudio();
-  if (!ctx) return;
-  const sequences = {
-    3:  [[523,0.0],[659,0.1],[784,0.2]],
-    5:  [[523,0.0],[659,0.08],[784,0.16],[1047,0.25],[1319,0.35]],
-    10: [[523,0],[659,0.07],[784,0.14],[1047,0.21],[1319,0.29],[1047,0.4],[1319,0.5],[1568,0.6]]
-  };
-  const seq = sequences[streak];
-  if (!seq) return;
-  seq.forEach(([freq, delay]) => {
-    const o = ctx.createOscillator(); const g = ctx.createGain();
-    o.type = 'sine'; o.frequency.value = freq;
-    g.gain.setValueAtTime(0, ctx.currentTime+delay);
-    g.gain.linearRampToValueAtTime(0.15, ctx.currentTime+delay+0.02);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+delay+0.35);
-    o.connect(g); g.connect(ctx.destination);
-    o.start(ctx.currentTime+delay); o.stop(ctx.currentTime+delay+0.4);
-  });
-}
-function _playFillStreakBroken(prev) {
-  if (prev < 3) return;
-  const ctx = _getFillAudio(); if (!ctx) return;
-  [[392,0],[294,0.15]].forEach(([freq,delay]) => {
-    const o = ctx.createOscillator(); const g = ctx.createGain();
-    o.type='sine'; o.frequency.value=freq;
-    g.gain.setValueAtTime(0.12, ctx.currentTime+delay);
-    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+delay+0.4);
-    o.connect(g); g.connect(ctx.destination);
-    o.start(ctx.currentTime+delay); o.stop(ctx.currentTime+delay+0.5);
-  });
-}
-// ─────────────────────────────────────────────────────────────────────────────
 
 function updateHintUI(){
   const el=document.getElementById('hintRemain');
@@ -1511,39 +635,11 @@ function useHint(fn){
   fn();
   updateHintUI();
   incMetaHint();
-  _currentHintUsed = true;  // Wave 40: track hint usage per article
-}
-
-// Wave 52: difficulty badge — 1-2 blanks=easy, 3-4=medium, 5+=hard
-function _updateDiffBadge(blankCount){
-  const badge = document.getElementById('diff-badge');
-  if(!badge) return;
-  badge.className = '';
-  if(blankCount <= 2){
-    badge.className = 'easy';
-    badge.innerHTML = '<span class="d"></span>基礎 ' + blankCount + '格';
-    badge.title = blankCount + ' 個填空';
-  } else if(blankCount <= 4){
-    badge.className = 'medium';
-    badge.innerHTML = '<span class="d"></span>進階 ' + blankCount + '格';
-    badge.title = blankCount + ' 個填空';
-  } else {
-    badge.className = 'hard';
-    badge.innerHTML = '<span class="d"></span>挑戰 ' + blankCount + '格';
-    badge.title = blankCount + ' 個填空';
-  }
 }
 
 function renderFill(){
   fillTimerReset();
   fillTimerStart();
-  // Wave 107: start per-article timer
-  _fillStartTime = Date.now();
-  clearInterval(_fillTimerInterval);
-  _fillTimerInterval = setInterval(()=>{
-    const el = document.getElementById('fill-timer');
-    if(el && _fillStartTime > 0) el.textContent = ((Date.now()-_fillStartTime)/1000).toFixed(0)+'s';
-  }, 1000);
   document.getElementById('fillProg').style.width='0%';
   const box = document.getElementById('fillText');
   document.getElementById('resultMsg').style.display='none';
@@ -1570,7 +666,7 @@ function renderFill(){
       if(para[i]==='＿'){
         let b='';while(i<para.length&&para[i]==='＿'){b+=para[i];i++;}
         const lbl=String.fromCharCode(65+blankIdx);
-        ph+=`<input class="blank empty" id="fb_${blankIdx}" data-idx="${blankIdx}" data-ans="${esc((fillData.answers||[])[blankIdx]||'')}" style="width:min(${Math.max(b.length*1.1,2.5)}em, 100%)" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="　"/><span class="blank-tag">${lbl}</span>`;
+        ph+=`<input class="blank empty" id="fb_${blankIdx}" data-idx="${blankIdx}" data-ans="${esc((fillData.answers||[])[blankIdx]||'')}" style="min-width:${Math.max(b.length*1.1,2.5)}em" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="　"/><span class="blank-tag">${lbl}</span>`;
         blankIdx++;
       } else { ph+=esc(para[i]);i++; }
     }
@@ -1583,25 +679,17 @@ function renderFill(){
       if(text[i]==='＿'){
         let b='';while(i<text.length&&text[i]==='＿'){b+=text[i];i++;}
         const lbl=String.fromCharCode(65+blankIdx);
-        ph+=`<input class="blank empty" id="fb_${blankIdx}" data-idx="${blankIdx}" data-ans="${esc((fillData.answers||[])[blankIdx]||'')}" style="width:min(${Math.max(b.length*1.1,2.5)}em, 100%)" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="　"/><span class="blank-tag">${lbl}</span>`;
+        ph+=`<input class="blank empty" id="fb_${blankIdx}" data-idx="${blankIdx}" data-ans="${esc((fillData.answers||[])[blankIdx]||'')}" style="min-width:${Math.max(b.length*1.1,2.5)}em" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="　"/><span class="blank-tag">${lbl}</span>`;
         blankIdx++;
       } else { ph+=esc(text[i]);i++; }
     }
     allHtml=`<p>${ph}</p>`;
   }
-  const idx=blankIdx;
-  // 防呆：若這條算不出任何空格（偶發的空白/異常條文），自動換下一條，最多重試 6 次，
-  // 不要把空卡片留在畫面上讓使用者以為「沒有自動出題」
-  if(idx===0 && !_isFillDailyMode){
-    if(_fillEmptyRetry < 6){ _fillEmptyRetry++; loadNew(); return; }
-  } else {
-    _fillEmptyRetry = 0;
-  }
   box.innerHTML=allHtml;
+  const idx=blankIdx;
   // 更新 data-label
   document.getElementById('fillCard').dataset.label=`FILL · ${idx} BLANK${idx>1?'S':''}`;
   document.getElementById('blankCount').textContent=idx+' 個空格';
-  _updateDiffBadge(idx);  // Wave 52
   document.getElementById('filled').textContent='0 / '+idx;
   updateBlankList();
   box.querySelectorAll('input').forEach((inp,i,all)=>{
@@ -1618,10 +706,9 @@ function renderFill(){
     });
     inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(all[i+1])all[i+1].focus();else checkAnswers();}});
   });
-  if(!isIOSReaderApp()&&box.querySelector('input'))box.querySelector('input').focus();
+  if(box.querySelector('input'))box.querySelector('input').focus();
   hintsLeft=3;
   updateHintUI();
-  _currentHintUsed = false;  // Wave 40: reset per-article hint flag
 }
 
 function updateBlankList(){
@@ -1643,30 +730,6 @@ function answerMatch(val, ans){
   const v=val.trim(), a=ans.trim();
   return v===a || normLegalNum(v)===normLegalNum(a);
 }
-function fillArticleNo(data){
-  const raw = String((data && (data.article_no || data.article || data.title)) || '')
-    .replace(/｜.*$/,'')
-    .replace(/^§\s*/,'')
-    .replace(/\s+/g,'')
-    .trim();
-  const ch = '[0-9０-９一二三四五六七八九十百千零兩两]+';
-  let m = raw.match(new RegExp('^第?(' + ch + ')條?之(' + ch + ')條?'));
-  if(m) return m[1] + '之' + m[2];
-  m = raw.match(new RegExp('^第?(' + ch + ')條?'));
-  return m ? m[1] : raw;
-}
-function fillArticleReaderHref(data){
-  const law = String((data && data.law_name) || '');
-  const art = fillArticleNo(data);
-  let href = 'law-preview.html?law=' + encodeURIComponent(law);
-  if(data && data.id){
-    href += '&id=' + encodeURIComponent(data.id);
-  }
-  href += (art ? '&art=' + encodeURIComponent(art) : '');
-  let back = 'fill.html';
-  try{ back = 'fill.html' + (location.search || '') + (location.hash || ''); }catch(e){}
-  return href + '&from=fill&back=' + encodeURIComponent(back);
-}
 
 function checkAnswers(){
   const box=document.getElementById('fillText');
@@ -1679,42 +742,6 @@ function checkAnswers(){
     if(answerMatch(inp.value,ans)){inp.classList.add('ok');cor++;}
     else{inp.classList.add('bad');const sp=document.createElement('span');sp.textContent=`（${ans}）`;sp.style.cssText='color:var(--good);font-size:.78rem;font-family:var(--mono);margin-left:.3rem;';inp.after(sp);}
   });
-  _lastFillPerfect = (cor === inputs.length);  // 記住本題是否全對
-  // Wave 38: play audio feedback based on score
-  if(cor === inputs.length) _fillSoundPerfect();
-  else if(cor > 0) _fillSoundPartial();
-  else _fillSoundWrong();
-  // Wave 107: capture per-article elapsed time and stop live timer
-  const _fillElapsed = _fillStartTime > 0 ? (Date.now() - _fillStartTime) / 1000 : 0;
-  _fillStartTime = 0;
-  clearInterval(_fillTimerInterval);
-  const _timerEl = document.getElementById('fill-timer');
-  if(_timerEl) _timerEl.textContent = _fillElapsed > 0 ? _fillElapsed.toFixed(0)+'s' : '--';
-  // Wave 55: persist to cumulative stats
-  _recordFillStat(cor, inputs.length, _currentHintUsed, fillData?.law_name || '', _fillElapsed);
-  if (typeof window.sofaTrack === 'function') {
-    window.sofaTrack('answer_submitted', {
-      mode: 'fill',
-      law_name: fillData?.law_name || '',
-      page_id: fillData?.id || '',
-      is_correct: (cor === inputs.length && inputs.length > 0),
-      elapsed_sec: Math.round(_fillElapsed || 0)
-    });
-  }
-
-  // Wave 87: streak tracking — must run after sound calls above
-  const _wasPerfect = (cor === inputs.length && !_currentHintUsed);
-  const _prevStreak = _fillStreak;
-  if (_wasPerfect) {
-    _fillStreak++;
-    if ([3,5,10].includes(_fillStreak)) {
-      setTimeout(() => _playFillStreakMilestone(_fillStreak), 150);
-    }
-  } else {
-    _fillStreak = 0;
-    setTimeout(() => _playFillStreakBroken(_prevStreak), 150);
-  }
-
   const msg=document.getElementById('resultMsg');
   msg.style.display='block';
   msg.style.color=cor===inputs.length?'var(--good)':'var(--warn)';
@@ -1731,43 +758,22 @@ function checkAnswers(){
   updateBlankList();
   if(fillData.id&&fillData.title){
     const src=document.getElementById('sourceBox');
-    src.innerHTML=`出自 <a href="${fillArticleReaderHref(fillData)}" style="color:var(--peach)">《${esc(fillData.law_name||'')}》${esc(fillData.title)}</a>`;
+    src.innerHTML=`出自 <a href="dashboard.html?open=${encodeURIComponent(fillData.id)}&art=${encodeURIComponent(fillData.title)}" style="color:var(--peach)">《${esc(fillData.law_name||'')}》${esc(fillData.title)}</a>`;
     src.style.display='block';
   }
   // 寫入練習紀錄
   if(fillData.id&&uid&&uid!=='PREVIEW'&&!isFree){
     fetch(`${API}/api/me/history`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({page_id:fillData.id,law_name:fillData.law_name||'',article:fillData.title||''})}).catch(()=>{});
-    // 跨裝置答題紀錄：填空全對才算答對該條，並留下可讀題目給統計/弱點/最近作答。
-    const fillQuestion=(fillData.masked_text||fillData.title||'填空練習').replace(/\s+/g,' ').trim();
-    fetch(`${API}/api/me/answer`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({
-      article_id:fillData.id,
-      is_correct:(cor===inputs.length&&inputs.length>0),
-      mode:'fill',
-      question:fillQuestion,
-      options:fillData.answers||[],
-      explanation:`${fillData.law_name||''} ${fillData.title||''}`.trim()
-    })}).catch(()=>{});
-  }
-  // Auto-advance after perfect score (2s delay with countdown)
-  if(cor === inputs.length && inputs.length > 0){
-    const msg2 = document.getElementById('resultMsg');
-    let secs = 2;
-    const countdown = setInterval(()=>{
-      secs--;
-      if(msg2) msg2.textContent = `✓ 全對！${cor}/${inputs.length} — ${secs}s 後自動換題…`;
-      if(secs <= 0){ clearInterval(countdown); loadNew(); }
-    }, 1000);
-    // Cancel auto-advance if user clicks Next manually
-    document.getElementById('btnNext')?.addEventListener('click', ()=>clearInterval(countdown), {once:true});
   }
   // 載入條文解析 sections
   if(fillData.id){
     const panel=document.getElementById('sectionsBox');
-    showFillSectionsLoading(panel);
+    panel.innerHTML='<div class="sec-hd">條文解析</div>';
+    panel.style.display='block';
     const srcBtn=document.getElementById('fillSourceLink');
     const srcPanel=document.getElementById('fillArtInline');
     srcBtn.style.display='inline-block';
-    srcBtn.textContent='展開原文 ↓';
+    srcBtn.textContent='查看完整條文 →';
     srcPanel.style.display='none';
     srcPanel.textContent='';
     (async()=>{
@@ -1775,19 +781,10 @@ function checkAnswers(){
         const h=_authH();
         const art=await fetch(`${API}/api/article/${fillData.id}`,{headers:h}).then(r=>r.json());
         srcPanel.textContent=formatLawText(art.original_text);
-        renderFillSections(panel, art.sections||{}, art._plan!=='free', art);
-      }catch(e){
-        renderFillSections(panel, {}, true);
-      }
+        buildSections(art.sections||{},art._plan!=='free',panel);
+      }catch(e){}
     })();
   }
-  // Wave 40: record per-article stats for session results
-  if(_fillSession){
-    _sessionStats.push({ correctBlanks: cor, totalBlanks: inputs.length, usedHint: _currentHintUsed });
-  }
-  _onFillDone();
-  // Wave 118: refresh status bar with updated stats
-  _updateFillStatusBar(document.getElementById('lawSelect').value);
 }
 
 document.getElementById('fillSourceLink').addEventListener('click',()=>{
@@ -1795,19 +792,11 @@ document.getElementById('fillSourceLink').addEventListener('click',()=>{
   const btn=document.getElementById('fillSourceLink');
   const open=panel.style.display==='none'||!panel.style.display;
   panel.style.display=open?'block':'none';
-  btn.textContent=open?'收起原文 ↑':'展開原文 ↓';
+  btn.textContent=open?'收起條文 ↑':'查看完整條文 →';
 });
 
 async function loadNew(){
-  if(_fillUrlTargetResolving) return;
-  document.getElementById('btnNext').textContent = '下一篇';
   fillData=null;
-  _lastFillPerfect = false;
-  // Wave 107: reset per-article timer on new load
-  _fillStartTime = 0;
-  clearInterval(_fillTimerInterval);
-  const _timerEl0 = document.getElementById('fill-timer');
-  if(_timerEl0) _timerEl0.textContent = '--';
   fillTimerReset();
   document.getElementById('fillText').innerHTML='<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.4);letter-spacing:.1em">載入中…</span>';
   document.getElementById('artNum').textContent='—';
@@ -1818,37 +807,10 @@ async function loadNew(){
   const sp=document.getElementById('sectionsBox');sp.innerHTML='';sp.style.display='none';
   const srcBtn0=document.getElementById('fillSourceLink');if(srcBtn0)srcBtn0.style.display='none';
   const srcP0=document.getElementById('fillArtInline');if(srcP0){srcP0.style.display='none';srcP0.textContent='';}
-  let law=document.getElementById('lawSelect').value;
-  // Wave 110: resolve 全部法規 to a random real law
-  if(law==='__all__'){
-    law=_allFillLawNames.length>0?_allFillLawNames[Math.floor(Math.random()*_allFillLawNames.length)]:'';
-  }
+  const law=document.getElementById('lawSelect').value;
   try{
     let url;
-    if(_fillUrlTargetPending){
-      const targetPid = fillUrlPageIdParam();
-      const targetLaw = fillUrlLawParam();
-      const targetArt = fillUrlArticleParam();
-      _fillUrlTargetResolving = true;
-      try{
-        if(targetPid){
-          url=`${API}/api/fill?page_id=${encodeURIComponent(targetPid)}`;
-        }else if(targetLaw && targetArt){
-          if(!_artCache[targetLaw]){
-            try{
-              const r=await fetch(`${API}/api/articles?law=${encodeURIComponent(targetLaw)}`,{headers:_authH()}).then(r=>r.json());
-              _artCache[targetLaw]=r.articles||r.items||[];
-            }catch{_artCache[targetLaw]=[];}
-          }
-          const match=findFillArticleByNo(_artCache[targetLaw],targetArt);
-          if(match)url=`${API}/api/fill?page_id=${encodeURIComponent(match.id||match.page_id)}`;
-        }
-      }finally{
-        _fillUrlTargetPending = false;
-        _fillUrlTargetResolving = false;
-      }
-    }
-    if(!url && law==='__starred__'){
+    if(law==='__starred__'){
       const sl=await fetch(`${API}/api/starred?min_stars=5`,{headers:_authH()}).then(r=>r.json());
       const arts=(sl.articles||[]);
       if(!arts.length){
@@ -1857,7 +819,7 @@ async function loadNew(){
       }
       const pick=arts[Math.floor(Math.random()*arts.length)];
       url=`${API}/api/fill?page_id=${encodeURIComponent(pick.id)}`;
-    } else if(!url && law==='__bookmarks__'){
+    } else if(law==='__bookmarks__'){
       const bm=await fetch(`${API}/api/me/bookmarks`,{headers:_authH()}).then(r=>r.json());
       const ids=(bm.bookmarks||[]);
       if(!ids.length){
@@ -1866,7 +828,7 @@ async function loadNew(){
       }
       const pick=ids[Math.floor(Math.random()*ids.length)];
       url=`${API}/api/fill?page_id=${encodeURIComponent(pick)}`;
-    } else if(!url && (law==='__mastered__'||law==='__review__')){
+    } else if(law==='__mastered__'||law==='__review__'){
       const wantStatus=law==='__mastered__'?'mastered':'review';
       const mr=await fetch(`${API}/api/me/mastery`,{headers:_authH()}).then(r=>r.json());
       const items=(mr.items||[]).filter(m=>m.status===wantStatus&&m.page_id);
@@ -1877,10 +839,10 @@ async function loadNew(){
       }
       const pick=items[Math.floor(Math.random()*items.length)];
       url=`${API}/api/fill?page_id=${encodeURIComponent(pick.page_id)}`;
-    } else if(!url) {
+    } else {
       const artNum = (document.getElementById('artNumInput')||{}).value?.trim();
       if(artNum && law && _artCache[law]){
-        const match=findFillArticleByNo(_artCache[law],artNum);
+        const match=_artCache[law].find(a=>{const m=(a.title||'').match(/第(\d+(?:之\d+)?)條/);return m&&m[1]===artNum;});
         if(match){ url=`${API}/api/fill?page_id=${encodeURIComponent(match.id)}`; }
       }
       if(!url && _curPrChip!=='all' && law && _artCache[law]){
@@ -1900,33 +862,11 @@ async function loadNew(){
         }
       }
     }
-    let resp=await fetch(url,{headers:_authH()});
+    const resp=await fetch(url,{headers:_authH()});
     fillData=await resp.json();
-    // 8.8% 條文無數字可挖空：API 對指定 page_id 會 404（body 是 {detail}，非 {error}），
-    // 舊版會略過守門直接 render 出壞掉的空白題。改為優雅換題：
-    //   指定條文/收藏/熟記等 page_id 路徑挖不了空 → 退回「同一部法」挑挖得了的；
-    //   真的整組都沒數字 → 顯示「換一題」而不是壞掉。
-    if(!resp.ok || !fillData || !fillData.masked_text){
-      const wasPageId = url.indexOf('page_id=')>=0;
-      const realLaw = law && !law.startsWith('__');
-      if(wasPageId && realLaw){
-        try{
-          const r2=await fetch(`${API}/api/fill?law=${encodeURIComponent(law)}`,{headers:_authH()});
-          const d2=await r2.json();
-          if(r2.ok && d2 && d2.masked_text){ fillData=d2; }
-        }catch{}
-      }
-      if(!fillData || !fillData.masked_text){
-        document.getElementById('fillText').innerHTML='<span class="fill-empty-state">這組條件下沒有可以挖空的數字 <a class="fill-empty-action" href="#" onclick="loadNew();return false;">換一題</a></span>';
-        document.getElementById('artTitle').textContent='—';
-        return;
-      }
-    }
     // 補上前端已知的法規名（若 API 未回傳）
-    // Wave 110: law is already resolved (never '__all__' at this point), use resolved law name directly
     if(!fillData.law_name&&law&&!law.startsWith('__')){
-      const _selText=document.getElementById('lawSelect').selectedOptions[0]?.value;
-      fillData.law_name=(_selText&&_selText!=='__all__'&&!_selText.startsWith('__'))?_selText:law;
+      fillData.law_name=document.getElementById('lawSelect').selectedOptions[0]?.text||law;
     }
     renderFill();
   }catch{
@@ -1952,48 +892,6 @@ document.getElementById('hintReveal').addEventListener('click',()=>useHint(()=>{
 }));
 document.getElementById('btnCheck').addEventListener('click',checkAnswers);
 document.getElementById('btnNext').addEventListener('click',loadNew);
-
-// ── Wave 62: Enter 鍵 — 確認答案或換下一篇 ──────────────────────────────────
-function _fillKeyHandler(e) {
-  if (e.key !== 'Enter') return;
-  // If focus is inside a blank input, only handle when all blanks are disabled (results showing)
-  const inputs = [...document.getElementById('fillText').querySelectorAll('input')];
-  const resultsShowing = inputs.length > 0 && inputs.every(inp => inp.disabled);
-  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
-    // Let the per-input Enter handler manage check; only intercept when results are showing
-    if (!resultsShowing) return;
-  }
-  // Results are showing → 只有全對才用 Enter 直接跳下一題；答錯時停留讓使用者看訂正
-  if (resultsShowing) {
-    e.preventDefault();
-    if (_lastFillPerfect) document.getElementById('btnNext')?.click();
-    return;
-  }
-  // No blanks yet (no article loaded) → do nothing
-  if (!inputs.length) return;
-  // Blanks present and not yet checked → trigger check
-  const checkBtn = document.getElementById('btnCheck');
-  if (checkBtn && !checkBtn.disabled) {
-    e.preventDefault();
-    checkBtn.click();
-  }
-}
-document.addEventListener('keydown', _fillKeyHandler);
-// ─────────────────────────────────────────────────────────────────────────────
-
-// Global keyboard shortcuts (H/C/R/N) — skip when typing in an input
-document.addEventListener('keydown', function(e){
-  if(e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA') return;
-  if(e.metaKey||e.ctrlKey||e.altKey) return;
-  const k = e.key.toLowerCase();
-  if(k==='h'){ document.getElementById('hintFirst')?.click(); }
-  else if(k==='c'){ document.getElementById('hintCount')?.click(); }
-  else if(k==='r'){ document.getElementById('hintReveal')?.click(); }
-  else if(k==='n'){ document.getElementById('btnNext')?.click(); }
-});
-document.getElementById('btnFillSession')?.addEventListener('click', ()=>{
-  document.getElementById('fillSessionModal').style.display = 'flex';
-});
 document.getElementById('btnReset').addEventListener('click',()=>{
   document.getElementById('fillText').querySelectorAll('input').forEach(inp=>{inp.disabled=false;inp.value='';inp.classList.remove('ok','bad');inp.classList.add('empty');});
   document.getElementById('resultMsg').style.display='none';
@@ -2011,260 +909,7 @@ document.getElementById('btnReveal').addEventListener('click',()=>{
   });
   updateBlankList();
 });
-(function(){
-  if(_fillUrlTargetPending) return;
-  var law=document.getElementById('lawSelect').value;
-  if(law){
-    loadNew();
-  } else {
-    document.getElementById('fillText').innerHTML='<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.4);letter-spacing:.1em">請先選擇法規，再開始練習</span>';
-    document.getElementById('artTitle').textContent='—';
-  }
-})();
-
-// ── Wave 62: 鍵盤提示自動淡出（4秒後）──
-setTimeout(() => {
-  const h = document.getElementById('kb-hint');
-  if (h) {
-    h.style.opacity = '0';
-    setTimeout(() => h?.remove(), 500);
-  }
-}, 4000);
-
-// Wave 93: init daily challenge button state on page load
-_updateFillDailyBtn();
+loadNew();
 </script>
-<!-- Wave 137: fill share toast -->
-<div id="fill-share-toast" style="position:fixed;bottom:72px;left:50%;transform:translateX(-50%);
-  background:#9FB89F;color:#0A1F14;padding:8px 20px;border-radius:20px;font-size:13px;
-  font-weight:600;z-index:300;opacity:0;transition:opacity 0.3s;pointer-events:none;white-space:nowrap"></div>
-
-<!-- Wave 40: Fill session results modal -->
-<div id="fill-results" style="display:none; position:fixed; inset:0; background:rgba(4,13,20,0.95); z-index:200; overflow-y:auto; padding:24px 16px;">
-  <div style="max-width:640px; margin:0 auto;">
-    <div style="text-align:center; margin-bottom:24px;">
-      <div id="fill-res-score" style="font-size:48px; font-weight:700; color:var(--warn); font-family:var(--serif);"></div>
-      <div id="fill-res-sub" style="color:var(--peach); margin-top:8px; font-size:14px;"></div>
-    </div>
-    <div id="fill-res-list" style="display:grid; grid-template-columns:1fr 1fr; gap:10px;"></div>
-    <div style="text-align:center; margin-top:28px; display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
-      <button onclick="_shareFillResult()"
-        style="background:rgba(231,187,167,0.2);border:1px solid rgba(231,187,167,0.4);
-               color:var(--peach);border-radius:20px;padding:10px 20px;font-size:14px;cursor:pointer;">
-        分享
-      </button>
-      <button onclick="restartFillSession()" style="background:var(--navy-2); border:1px solid var(--peach); color:var(--peach); padding:10px 28px; border-radius:20px; font-size:14px; cursor:pointer;">再來一次</button>
-      <button onclick="exitFillResults()" style="background:var(--warn); border:none; color:#040D14; padding:10px 28px; border-radius:20px; font-size:14px; font-weight:600; cursor:pointer;">完成</button>
-    </div>
-  </div>
-</div>
-
-<!-- Wave 55: personal fill stats panel -->
-<div id="fill-stats-panel" style="display:none; position:fixed; inset:0; background:rgba(4,13,20,0.96); z-index:210; overflow-y:auto; padding:24px 16px;">
-  <div style="max-width:540px; margin:0 auto;">
-    <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:16px;">
-      <h2 style="color:var(--cream); font-family:var(--serif); margin:0; font-size:20px">填空成績統計</h2>
-      <button onclick="closeFillStats()" style="background:none; border:1px solid rgba(231,187,167,0.4); color:var(--peach); border-radius:50%; width:32px; height:32px; cursor:pointer; font-size:16px">✕</button>
-    </div>
-    <!-- Wave 145: Tab bar -->
-    <div id="fill-stats-tab-bar" style="display:flex;gap:6px;margin-bottom:16px;">
-      <button id="fill-tab-btn-stats" onclick="_switchFillStatsTab('stats')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:var(--navy-2);color:var(--cream);font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:600;transition:background 0.2s">統計</button>
-      <button id="fill-tab-btn-wrong" onclick="_switchFillStatsTab('wrong')" style="flex:1;padding:8px 0;border-radius:20px;border:none;background:rgba(255,255,255,0.06);color:rgba(245,240,234,0.45);font-size:13px;cursor:pointer;font-family:var(--sans);font-weight:400;transition:background 0.2s">弱點清單</button>
-    </div>
-    <!-- Tab: 統計 -->
-    <div id="fill-stats-tab-stats">
-      <div id="fill-stats-content"></div>
-    </div>
-    <!-- Tab: 弱點清單 (Wave 145) -->
-    <div id="fill-stats-tab-wrong" style="display:none;">
-      <div id="fill-wrong-panel"></div>
-    </div>
-  </div>
-</div>
-<script>
-// Wave 55: open/close fill stats panel
-function _getWeakestFillLaw(stats) {
-  if (!stats.byLaw) return null;
-  let worst = null, worstRatio = 1;
-  for (const [name, d] of Object.entries(stats.byLaw)) {
-    if (d.total < 3) continue;
-    const ratio = d.correct / d.total;
-    if (ratio < worstRatio) { worstRatio = ratio; worst = name; }
-  }
-  return worst;
-}
-
-function _drillWeakFillLaw(lawName) {
-  const sel = document.getElementById('lawSelect');
-  if (sel) {
-    sel.value = lawName;
-    sel.dispatchEvent(new Event('change'));
-    localStorage.setItem('sofa_fill_law', lawName);
-  }
-  closeFillStats();
-  startFillSession && startFillSession(1);
-}
-
-function _toggleHandwrite(btn){
-  const on = document.body.classList.toggle('handwrite-mode');
-  btn.classList.toggle('active', on);
-  try { localStorage.setItem('sofa_fill_handwrite', on ? '1' : '0'); } catch(e) {}
-}
-
-function openFillStats() {
-  const s = _loadFillStats();
-  const total = s.total||0, correct = s.correct||0;
-  const pct = total > 0 ? Math.round(correct/total*100) : 0;
-  const todayPct = s.todayTotal > 0 ? Math.round((s.todayCorrect||0)/s.todayTotal*100) : 0;
-  const cleanRate = s.articles > 0 ? Math.round((s.clean||0)/s.articles*100) : 0;
-  let byLawHtml = '';
-  if(s.byLaw){
-    const laws = Object.entries(s.byLaw).sort((a,b)=>b[1].total-a[1].total).slice(0,8);
-    byLawHtml = '<div style="margin-top:16px"><div style="color:var(--peach);font-size:12px;margin-bottom:8px">各法填空準確率</div>' +
-      laws.map(([name,d])=>{
-        const p = d.total>0?Math.round(d.correct/d.total*100):0;
-        return `<div style="background:var(--navy-3);border-radius:8px;padding:10px 12px;margin-bottom:6px"><div style="display:flex;justify-content:space-between;font-size:13px"><span style="color:var(--peach)">${name}</span><span style="color:var(--peach)">${d.correct}/${d.total}格 (${p}%)</span></div><div style="height:3px;background:rgba(231,187,167,0.1);border-radius:2px;margin-top:6px"><div style="width:${p}%;height:100%;background:${p>=80?'#9FB89F':p>=60?'var(--peach)':'var(--bad)'};border-radius:2px"></div></div></div>`;
-      }).join('') + '</div>';
-  }
-  const weakLaw = _getWeakestFillLaw(s);
-  const weakHtml = weakLaw ? `
-    <div style="margin-top:12px;border-top:1px solid rgba(255,255,255,0.15);padding-top:10px">
-      <div style="font-size:11px;color:var(--cream-3);margin-bottom:6px">弱點法規</div>
-      <div style="font-size:13px;color:var(--peach);margin-bottom:8px">${weakLaw}</div>
-      <button onclick="_drillWeakFillLaw('${weakLaw.replace(/'/g, "\\'")}')"
-        style="background:rgba(231,187,167,.14);color:var(--peach);border:1px solid rgba(231,187,167,.38);border-radius:6px;padding:6px 12px;font-size:12px;cursor:pointer">
-        練習此法規
-      </button>
-    </div>` : '';
-  // Wave 107: compute average response time
-  const avgSec = (s.timedArticles||0) > 0 ? (s.totalTimeSec / s.timedArticles).toFixed(1) : '--';
-  document.getElementById('fill-stats-content').innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:12px">
-      <div style="background:var(--navy-3);border-radius:10px;padding:14px;text-align:center">
-        <div style="font-size:28px;font-weight:700;color:var(--warn)">${pct}%</div>
-        <div style="color:var(--peach);font-size:11px;margin-top:3px">累計準確率</div>
-        <div style="color:var(--cream-3);font-size:10px">${correct}/${total}格</div>
-      </div>
-      <div style="background:var(--navy-3);border-radius:10px;padding:14px;text-align:center">
-        <div style="font-size:28px;font-weight:700;color:var(--peach)">${todayPct}%</div>
-        <div style="color:var(--peach);font-size:11px;margin-top:3px">今日準確率</div>
-        <div style="color:var(--cream-3);font-size:10px">${s.todayCorrect||0}/${s.todayTotal||0}格</div>
-      </div>
-      <div style="background:var(--navy-3);border-radius:10px;padding:14px;text-align:center">
-        <div style="font-size:28px;font-weight:700;color:#9FB89F">${cleanRate}%</div>
-        <div style="color:var(--peach);font-size:11px;margin-top:3px">全對無提示率</div>
-        <div style="color:var(--cream-3);font-size:10px">${s.clean||0}/${s.articles||0}篇</div>
-      </div>
-      <div style="background:var(--navy-3);border-radius:10px;padding:14px;text-align:center;grid-column:1/-1">
-        <div style="font-size:20px;font-weight:700;color:var(--peach)">${avgSec}s</div>
-        <div style="font-size:10px;color:var(--cream-3);margin-top:2px">平均完成時間</div>
-      </div>
-    </div>${byLawHtml}${weakHtml}
-    <div style="text-align:center;margin-top:16px">
-      <button onclick="if(confirm('確定清除所有填空統計？')){localStorage.removeItem(FILL_STATS_KEY);closeFillStats();}" style="background:none;border:1px solid rgba(199,123,106,0.3);color:var(--bad);border-radius:16px;padding:6px 16px;font-size:12px;cursor:pointer">清除紀錄</button>
-    </div>
-    ${_buildFillCalendar()}`;
-  // Wave 145: reset to 統計 tab each time panel opens
-  _switchFillStatsTab('stats');
-  document.getElementById('fill-stats-panel').style.display = 'block';
-}
-
-function closeFillStats() {
-  document.getElementById('fill-stats-panel').style.display = 'none';
-}
-
-// ── Wave 145: 填空統計面板 Tab 切換 ────────────────────────────────────
-function _switchFillStatsTab(tab) {
-  const statsDiv = document.getElementById('fill-stats-tab-stats');
-  const wrongDiv = document.getElementById('fill-stats-tab-wrong');
-  const btnStats = document.getElementById('fill-tab-btn-stats');
-  const btnWrong = document.getElementById('fill-tab-btn-wrong');
-  if (tab === 'stats') {
-    statsDiv.style.display = '';
-    wrongDiv.style.display = 'none';
-    btnStats.style.background = 'var(--navy-2)';
-    btnStats.style.color = 'var(--cream)';
-    btnStats.style.fontWeight = '600';
-    btnWrong.style.background = 'rgba(255,255,255,0.06)';
-    btnWrong.style.color = 'rgba(245,240,234,0.45)';
-    btnWrong.style.fontWeight = '400';
-  } else {
-    statsDiv.style.display = 'none';
-    wrongDiv.style.display = '';
-    btnWrong.style.background = 'var(--navy-2)';
-    btnWrong.style.color = 'var(--cream)';
-    btnWrong.style.fontWeight = '600';
-    btnStats.style.background = 'rgba(255,255,255,0.06)';
-    btnStats.style.color = 'rgba(245,240,234,0.45)';
-    btnStats.style.fontWeight = '400';
-    _renderFillWrongList();
-  }
-}
-
-// ── Wave 145: 弱點法條清單渲染 ──────────────────────────────────────────
-function _renderFillWrongList() {
-  const panel = document.getElementById('fill-wrong-panel');
-  if (!panel) return;
-  const s = _loadFillStats();
-  const byLaw = s.byLaw || {};
-  const MIN_BLANKS = 5;
-
-  const lawWrongs = Object.entries(byLaw)
-    .filter(([, d]) => (d.total || 0) >= MIN_BLANKS)
-    .map(([name, d]) => ({ name, wrong: (d.total || 0) - (d.correct || 0), total: d.total || 0 }))
-    .filter(l => l.wrong > 0)
-    .sort((a, b) => b.wrong - a.wrong);
-
-  if (lawWrongs.length === 0) {
-    panel.innerHTML = '<div style="text-align:center;padding:40px 0;color:rgba(245,240,234,0.4);font-size:14px">✓ 目前沒有錯誤紀錄</div>';
-    return;
-  }
-
-  let html = '<div style="display:flex;flex-direction:column;gap:8px;">';
-  lawWrongs.forEach(({ name, wrong, total }) => {
-    const pct = Math.round((total - wrong) / total * 100);
-    const color = pct >= 80 ? '#9FB89F' : pct >= 60 ? 'var(--peach)' : 'var(--bad)';
-    const safeName = name.replace(/'/g, "\\'");
-    html += `<div style="background:var(--navy-3);border-radius:10px;padding:12px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">
-      <div style="flex:1;min-width:0;">
-        <div style="color:var(--peach);font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${name}</div>
-        <div style="color:var(--bad);font-size:11px;margin-top:2px;font-family:var(--mono);">✗ ${wrong}格錯 &nbsp;•&nbsp; <span style="color:${color}">${pct}%正確</span></div>
-      </div>
-      <button onclick="_drillFillWeakLaw('${safeName}')" style="flex-shrink:0;background:rgba(231,187,167,0.12);border:1px solid rgba(231,187,167,0.35);color:var(--peach);border-radius:12px;padding:5px 12px;font-size:12px;cursor:pointer;white-space:nowrap;">重練</button>
-    </div>`;
-  });
-  html += '</div>';
-  panel.innerHTML = html;
-}
-
-// ── Wave 145: 一鍵重練弱點法規 ──────────────────────────────────────────
-function _drillFillWeakLaw(lawName) {
-  const sel = document.getElementById('lawSelect');
-  if (sel) {
-    const opt = Array.from(sel.options).find(o => o.value === lawName || o.text === lawName);
-    if (opt) {
-      sel.value = opt.value;
-    } else {
-      sel.value = lawName;
-    }
-    sel.dispatchEvent(new Event('change'));
-    localStorage.setItem('sofa_fill_law', lawName);
-  }
-  closeFillStats();
-  if (typeof loadArticle === 'function') loadArticle();
-}
-</script>
-
-<div id="fillSessionModal" style="display:none;position:fixed;inset:0;background:rgba(7,13,20,0.8);align-items:center;justify-content:center;z-index:50;" onclick="if(event.target===this)this.style.display='none'">
-  <div style="background:var(--navy-2,var(--navy-3));border:1px solid rgba(231,187,167,0.3);border-radius:8px;padding:28px 32px;min-width:240px;text-align:center" onclick="event.stopPropagation()">
-    <div style="font-family:var(--mono);font-size:11px;letter-spacing:.2em;color:var(--peach);margin-bottom:16px">選擇篇數</div>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px">
-      <button class="btn btn-sec" onclick="startFillSession(10)">10 篇</button>
-      <button class="btn btn-sec" onclick="startFillSession(20)">20 篇</button>
-      <button class="btn btn-sec" onclick="startFillSession(30)">30 篇</button>
-    </div>
-    <button class="btn btn-ghost" onclick="document.getElementById('fillSessionModal').style.display='none'">取消</button>
-  </div>
-</div>
 </body>
 </html>

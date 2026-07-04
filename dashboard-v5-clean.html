@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>會員中心 — SoFa Engine</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='5' fill='%23244658'/%3E%3Ctext x='16' y='23' font-size='17' font-family='serif' font-weight='bold' text-anchor='middle' fill='%23e7bba7'%3E索%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Noto+Serif+TC:wght@400;600;700&family=JetBrains+Mono:wght@400;500&family=Noto+Sans+TC:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:      #1A1A2E;
+  --card:    #22223a;
+  --card2:   #2a2a42;
+  --accent:  #e7bba7;
+  --accent2: #9EB3C2;
+  --text:    #F0EDE8;
+  --muted:   #a8a8b8;
+  --border:  rgba(231,187,167,0.12);
+  --mono:    'JetBrains Mono', monospace;
+  --serif:   'Noto Serif TC', serif;
+  --sans:    'Noto Sans TC', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+:focus-visible { outline: 2px solid var(--accent2); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration:0.01ms !important; transition-duration:0.01ms !important; } }
+body {
+  background: var(--bg); color: var(--text);
+  font-family: var(--sans); font-weight: 300;
+  min-height: 100vh; overflow-x: hidden;
+}
+body::before {
+  content: ''; position: fixed; inset: 0;
+  background:
+    radial-gradient(ellipse 70% 50% at 10% 0%, rgba(42,42,66,0.55) 0%, transparent 60%),
+    radial-gradient(ellipse 60% 70% at 85% 95%, rgba(231,187,167,0.03) 0%, transparent 55%);
+  pointer-events: none; z-index: 0;
+}
+
+/* NAV */
+nav {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+  padding: 1.1rem 2.5rem;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(26,26,46,0.96); backdrop-filter: blur(18px);
+  border-bottom: 1px solid rgba(231,187,167,0.18);
+}
+.nav-brand { font-family: var(--mono); font-size: .9rem; letter-spacing: .14em; color: var(--accent); text-decoration: none; }
+.nav-right { display: flex; align-items: center; gap: 1.8rem; }
+.nav-user { font-family: var(--mono); font-size: .72rem; letter-spacing: .1em; color: var(--muted); }
+.nav-logout {
+  font-family: var(--mono); font-size: .72rem; letter-spacing: .12em;
+  color: var(--muted); background: none; border: 1px solid var(--border);
+  padding: .3rem .9rem; cursor: pointer; transition: color .2s, border-color .2s, transform .15s;
+}
+.nav-logout:hover { color: var(--text); border-color: var(--accent2); transform: translateY(-1px); }
+.nav-logout:active { transform: scale(.97); }
+
+/* LAYOUT */
+.container { max-width: 860px; margin: 0 auto; padding: 0 2rem; position: relative; z-index: 1; }
+main { padding-top: 6rem; padding-bottom: 5rem; }
+
+/* SECTION */
+.section { margin-bottom: 2rem; }
+.section-label {
+  font-family: var(--mono); font-size: .68rem;
+  letter-spacing: .25em; color: var(--accent2);
+  text-transform: uppercase; margin-bottom: 1rem;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 2rem;
+}
+
+/* STATS ROW */
+.stats-row {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  border-bottom: 1px solid var(--border); margin-bottom: 1.8rem;
+}
+.stat-item { padding: 1rem 0; text-align: center; border-right: 1px solid var(--border); }
+.stat-item:last-child { border-right: none; }
+.stat-num { font-family: var(--mono); font-size: 2rem; font-weight: 500; color: var(--accent); display: block; line-height: 1; }
+.stat-label { display: block; margin-top: .4rem; font-size: .72rem; letter-spacing: .1em; color: var(--muted); }
+
+/* PROGRESS BARS */
+.law-row { display: flex; align-items: center; gap: 1rem; margin-bottom: .8rem; }
+.law-name { font-size: .78rem; color: var(--muted); min-width: 130px; flex-shrink: 0; letter-spacing: .02em; }
+.bar-wrap { flex: 1; background: rgba(255,255,255,0.05); height: 4px; }
+.bar-fill { height: 100%; background: var(--accent); transition: width .7s ease; }
+.bar-count { font-family: var(--mono); font-size: .68rem; color: var(--muted); min-width: 40px; text-align: right; }
+
+/* BOOKMARKS */
+.bm-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--border); }
+.bm-item {
+  background: var(--card2); padding: .9rem 1rem;
+  display: flex; justify-content: space-between; align-items: center;
+  transition: background .2s, border-left-color .2s;
+  border-left: 2px solid transparent; cursor: default;
+}
+.bm-item:hover { background: #253d52; border-left-color: var(--accent); }
+.bm-art { font-family: var(--mono); font-size: .8rem; color: var(--accent); }
+.bm-law { font-size: .72rem; color: var(--muted); margin-top: .15rem; }
+.bm-date { font-family: var(--mono); font-size: .65rem; color: var(--muted); opacity: .5; }
+
+/* TOOLS */
+.tools-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1px; background: var(--border); }
+.tool-item {
+  background: var(--card2); padding: 1.4rem 1rem;
+  text-align: center; text-decoration: none;
+  transition: background .2s; cursor: pointer; border: none;
+}
+.tool-item:hover { background: var(--card2); }
+.tool-icon { font-size: 1.4rem; display: block; margin-bottom: .5rem; }
+.tool-label { font-size: .76rem; color: var(--muted); letter-spacing: .04em; }
+
+/* HISTORY */
+.hist-list { display: flex; flex-direction: column; gap: 1px; background: var(--border); }
+.hist-item {
+  background: var(--card2); padding: .8rem 1rem;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.hist-main { font-size: .84rem; color: var(--text); }
+.hist-time { font-family: var(--mono); font-size: .68rem; color: var(--muted); opacity: .6; }
+
+/* EMPTY / LOADING */
+.empty { font-size: .82rem; color: var(--muted); padding: 1.5rem 0; opacity: .7; }
+.loading { font-family: var(--mono); font-size: .75rem; color: var(--muted); padding: 1.2rem 0; letter-spacing: .1em; opacity: .5; }
+
+/* PLAN BADGE */
+.plan-badge {
+  font-family: var(--mono); font-size: .62rem; letter-spacing: .1em;
+  background: rgba(231,187,167,0.12); color: var(--accent);
+  padding: .15rem .6rem; margin-left: .6rem;
+}
+
+@media (max-width: 600px) {
+  nav { padding: 1rem 1.2rem; }
+  .container { padding: 0 1rem; }
+  .bm-grid, .tools-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-row { grid-template-columns: repeat(3, 1fr); }
+  .law-name { min-width: 90px; font-size: .7rem; }
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-brand">SOFA ENGINE</a>
+  <div class="nav-right">
+    <span class="nav-user" id="nav-user">—</span>
+    <button class="nav-logout" onclick="doLogout()">登出</button>
+  </div>
+</nav>
+
+<main>
+<div class="container">
+
+  <!-- 學習進度 -->
+  <div class="section">
+    <div class="section-label">學習進度</div>
+    <div class="card">
+      <div class="stats-row">
+        <div class="stat-item">
+          <span class="stat-num" id="stat-arts">—</span>
+          <span class="stat-label">已查條文</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num" id="stat-laws">—</span>
+          <span class="stat-label">涵蓋法規</span>
+        </div>
+        <div class="stat-item">
+          <span class="stat-num" id="stat-bm">—</span>
+          <span class="stat-label">已收藏</span>
+        </div>
+      </div>
+      <div id="progress-list"><div class="loading">loading...</div></div>
+    </div>
+  </div>
+
+  <!-- 我的收藏 -->
+  <div class="section">
+    <div class="section-label">我的收藏</div>
+    <div id="bookmark-wrap"><div class="card"><div class="loading">loading...</div></div></div>
+  </div>
+
+  <!-- 備考工具 -->
+  <div class="section">
+    <div class="section-label">備考工具</div>
+    <div class="tools-grid">
+      <a href="https://sofaengine.org/practice" class="tool-item">
+        <span class="tool-icon" style="font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;color:var(--accent)">TYPE</span>
+        <span class="tool-label">打字練習</span>
+      </a>
+      <a href="https://sofaengine.org/quiz" class="tool-item">
+        <span class="tool-icon" style="font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;color:var(--accent)">QUIZ</span>
+        <span class="tool-label">選擇題</span>
+      </a>
+      <a href="https://sofaengine.org/fill" class="tool-item">
+        <span class="tool-icon" style="font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;color:var(--accent)">FILL</span>
+        <span class="tool-label">填空練習</span>
+      </a>
+      <a href="https://lin.ee/zUeMwo4" class="tool-item" target="_blank">
+        <span class="tool-icon" style="font-family:var(--mono);font-size:.72rem;letter-spacing:.18em;color:var(--accent)">LINE</span>
+        <span class="tool-label">LINE 查法條</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- 最近查詢 -->
+  <div class="section">
+    <div class="section-label">最近查詢</div>
+    <div id="history-wrap"><div class="card"><div class="loading">loading...</div></div></div>
+  </div>
+
+</div>
+</main>
+
+<script>
+const API = 'https://sofa-engine-api.onrender.com';
+
+async function init() {
+  const [prog, bm, hist] = await Promise.allSettled([
+    fetch(`${API}/api/me/progress`,        { credentials: 'include' }).then(r => r.ok ? r.json() : Promise.reject(r.status)),
+    fetch(`${API}/api/me/bookmarks`,       { credentials: 'include' }).then(r => r.ok ? r.json() : Promise.reject(r.status)),
+    fetch(`${API}/api/me/history?limit=10`,{ credentials: 'include' }).then(r => r.ok ? r.json() : Promise.reject(r.status)),
+  ]);
+
+  if ([prog, bm, hist].every(r => r.reason === 401)) {
+    window.location.href = '/login.html'; return;
+  }
+
+  if (prog.status === 'fulfilled') renderProgress(prog.value);
+  if (bm.status === 'fulfilled')   renderBookmarks(bm.value);
+  if (hist.status === 'fulfilled') renderHistory(hist.value);
+}
+
+function animateCount(el, target, duration=900){
+  const pref = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(pref || isNaN(target)){ el.textContent = target; return; }
+  const t0 = performance.now();
+  function tick(now){
+    const p = Math.min((now-t0)/duration,1);
+    const ease = 1-Math.pow(1-p,3);
+    el.textContent = Math.round(target*ease);
+    if(p<1) requestAnimationFrame(tick); else el.textContent=target;
+  }
+  requestAnimationFrame(tick);
+}
+
+function renderProgress(data) {
+  animateCount(document.getElementById('stat-arts'), data.total_articles);
+  animateCount(document.getElementById('stat-laws'), data.total_laws);
+  document.getElementById('nav-user').textContent  = `${data.total_articles} 條已查`;
+
+  const laws = data.by_law || [];
+  if (!laws.length) {
+    document.getElementById('progress-list').innerHTML = '<div class="empty">還沒有查詢紀錄，從 LINE 開始查第一條吧。</div>';
+    return;
+  }
+  const max = laws[0].count;
+  document.getElementById('progress-list').innerHTML = laws.slice(0, 12).map(l => `
+    <div class="law-row">
+      <div class="law-name">${l.law}</div>
+      <div class="bar-wrap"><div class="bar-fill" style="width:${Math.round(l.count/max*100)}%"></div></div>
+      <div class="bar-count">${l.count}</div>
+    </div>
+  `).join('');
+}
+
+function renderBookmarks(data) {
+  animateCount(document.getElementById('stat-bm'), data.total || 0);
+  const el = document.getElementById('bookmark-wrap');
+  if (!data.bookmarks || !data.bookmarks.length) {
+    el.innerHTML = '<div class="card"><div class="empty">還沒有收藏。查詢法條後點「⭐ 收藏」加入清單。</div></div>';
+    return;
+  }
+  const items = data.bookmarks.slice(0, 16).map(b => `
+    <div class="bm-item">
+      <div>
+        <div class="bm-art">§${b.article}</div>
+        <div class="bm-law">${b.law_name}</div>
+      </div>
+      <div class="bm-date">${(b.bookmarked_at||'').slice(5,10)}</div>
+    </div>
+  `).join('');
+  el.innerHTML = `<div class="bm-grid">${items}</div>`;
+  if (data.total > 16) {
+    el.innerHTML += `<div style="margin-top:.8rem;font-family:var(--mono);font-size:.68rem;color:var(--muted);letter-spacing:.08em">共 ${data.total} 條 · LINE 傳「複習收藏」一次推播全部</div>`;
+  }
+}
+
+function renderHistory(data) {
+  const el = document.getElementById('history-wrap');
+  if (!data.history || !data.history.length) {
+    el.innerHTML = '<div class="card"><div class="empty">還沒有查詢紀錄。</div></div>';
+    return;
+  }
+  const items = data.history.map(h => `
+    <div class="hist-item">
+      <div class="hist-main">${h.law_name} §${h.article}</div>
+      <div class="hist-time">${(h.queried_at||'').slice(5)}</div>
+    </div>
+  `).join('');
+  el.innerHTML = `<div class="hist-list">${items}</div>`;
+}
+
+async function doLogout() {
+  await fetch(`${API}/api/logout`, { method: 'POST', credentials: 'include' });
+  window.location.href = '/login.html';
+}
+
+init();
+</script>
+</body>
+</html>

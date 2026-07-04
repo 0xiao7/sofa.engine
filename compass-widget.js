@@ -7,9 +7,6 @@
   'use strict';
 
   let plannerSelected = [];  // 預設空白，等使用者自行選擇
-  // 法庫覆蓋現況（2026-06-22 全庫查核）：考試樹 172 職能中 153 個法規 100% 在庫、
-  // 其餘 ≥85%、無 0% → 法庫整體已上線，不再分「陸續上線」
-  let onSetGoalCb = null;                  // 登入儀表板時：把選的證照設成目標的 callback
 
   // 7 篇上線週公告 target slug → NODE ID (跟 index.html PROFILES 同源)
   const TARGET_TO_NODE = {
@@ -21,9 +18,6 @@
     'elem-admin':  'n23',  // 初等考試一般行政
     'post-acc':    'n89'   // 中華郵政會計類
   };
-
-  const NODE_TO_TARGET = {};
-  Object.keys(TARGET_TO_NODE).forEach(k => { NODE_TO_TARGET[TARGET_TO_NODE[k]] = k; });
 
   function initialChipsFromURL() {
     try {
@@ -137,21 +131,11 @@
       }).join('');
     }
 
-    // 法庫整體已上線（全庫查核無空科）→ 固定誠實文案；CTA 限 7 主考科（dashboard pickExam 可設目標）
-    const onlyKey = (plannerSelected.length === 1) ? NODE_TO_TARGET[plannerSelected[0]] : null;
-    const statusText = '法條庫已上線，可直接對照練習';
-    let ctaHtml = '';
-    if (onlyKey && onSetGoalCb) {
-      const nm = (window.NODES[plannerSelected[0]] || {}).name || '';
-      ctaHtml = `<button class="planner-goal-btn" data-cw-action="setgoal" data-cw-key="${escapeAttr(onlyKey)}" data-cw-name="${escapeAttr(nm)}" type="button">設成我的目標，開始練習 →</button>`;
-    }
-
     resultEl.innerHTML = `
       <div class="planner-result">
         <div class="want-coverage">
-          <span class="want-check">✓</span> ${coverageLabel} <span class="planner-result-count">${unionCount}</span> 部法規 · ${statusText}
+          <span class="want-check">✓</span> ${coverageLabel} <span class="planner-result-count">${unionCount}</span> 部法規 · 法條庫對照中,陸續上線
         </div>
-        ${ctaHtml}
         ${topHtml}
       </div>
     `;
@@ -213,7 +197,6 @@
     else if (action === 'remove'){ e.preventDefault(); removeChip(nid); }
     else if (action === 'reset') { e.preventDefault(); resetAll(); }
     else if (action === 'pick')  { e.preventDefault(); addChip(nid); }
-    else if (action === 'setgoal'){ e.preventDefault(); if (onSetGoalCb) onSetGoalCb(target.getAttribute('data-cw-key'), target.getAttribute('data-cw-name'), target); }
   }
 
   function onModalBgClick(e) {
@@ -258,9 +241,6 @@
       if (fromURL) initial = fromURL;
     }
     if (initial && initial.length > 0) plannerSelected = initial;
-
-    // 可選：設成目標 callback（登入儀表板才傳）
-    if (typeof opts.onSetGoal === 'function') onSetGoalCb = opts.onSetGoal;
 
     mountEl.innerHTML = `
       <section class="planner" id="cwPlannerBlock">

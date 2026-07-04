@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>登入 — SoFa Engine</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%231A1A2E'/%3E%3Crect x='5' y='8' width='22' height='11' rx='3' fill='%23e7bba7'/%3E%3Crect x='4' y='13' width='5' height='10' rx='2.5' fill='%23d4a090'/%3E%3Crect x='23' y='13' width='5' height='10' rx='2.5' fill='%23d4a090'/%3E%3Crect x='9' y='18' width='14' height='5' rx='2' fill='%23c4907a'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:   #1F3848;
+  --navy-2: #19303E;
+  --navy-3: #142836;
+  --peach:  #E7BBA7;
+  --peach-3:#C89580;
+  --cream:  #F5F0EA;
+  --line:   rgba(245,240,234,.14);
+  --serif:  'Noto Serif TC', serif;
+  --mono:   'JetBrains Mono', monospace;
+  --sans:   'Noto Sans TC', sans-serif;
+}
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:focus-visible { outline: 2px solid var(--peach); outline-offset: 3px; }
+@keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
+@keyframes errFade { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration:0.01ms !important; transition-duration:0.01ms !important; } }
+
+body {
+  background: var(--navy-3);
+  font-family: var(--sans);
+  font-weight: 300;
+  min-height: 100vh;
+  display: flex;
+  color: var(--cream);
+}
+
+/* ── LEFT PANEL ── */
+.auth-l {
+  flex: 1;
+  background: var(--navy-2);
+  border-right: 1px solid var(--line);
+  padding: 56px 64px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+}
+.auth-brand {
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .22em;
+  color: var(--cream);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.auth-brand .dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--peach);
+}
+.auth-hero { margin-top: auto; padding-bottom: 48px; }
+.auth-hero .eb {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--peach);
+  letter-spacing: .22em;
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 28px;
+}
+.auth-hero .eb::before {
+  content: "";
+  width: 18px; height: 1px;
+  background: var(--peach);
+}
+.auth-hero h1 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 44px;
+  line-height: 1.2;
+  letter-spacing: .005em;
+  color: var(--cream);
+  margin-bottom: 20px;
+}
+.auth-hero p {
+  font-size: 15px;
+  line-height: 1.85;
+  color: rgba(245,240,234,.65);
+  max-width: 400px;
+}
+.auth-quote {
+  margin-top: 36px;
+  padding: 22px 24px;
+  border-left: 3px solid var(--peach);
+  background: rgba(245,240,234,.04);
+  font-family: var(--serif);
+  font-size: 16px;
+  line-height: 1.75;
+  color: rgba(245,240,234,.82);
+}
+.auth-quote span {
+  display: block;
+  margin-top: 10px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: .2em;
+  color: var(--peach-3);
+  text-transform: uppercase;
+}
+.auth-foot {
+  padding-top: 36px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.auth-stats {
+  display: flex;
+  gap: 32px;
+}
+.auth-stats .s .v {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 28px;
+  color: var(--peach);
+  line-height: 1;
+}
+.auth-stats .s .k {
+  margin-top: 6px;
+  font-family: var(--mono);
+  font-size: 9.5px;
+  letter-spacing: .18em;
+  color: rgba(245,240,234,.4);
+  text-transform: uppercase;
+}
+.auth-foot-copy {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: rgba(245,240,234,.3);
+  letter-spacing: .08em;
+}
+
+/* ── RIGHT PANEL ── */
+.auth-r {
+  width: 480px;
+  flex-shrink: 0;
+  padding: 56px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+}
+.auth-r .top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: .12em;
+  color: rgba(245,240,234,.45);
+}
+.auth-r .top a {
+  color: var(--peach);
+  text-decoration: none;
+}
+.auth-r .top a:hover { text-decoration: underline; }
+.auth-form {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 40px 0;
+}
+.auth-form .eb {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  color: var(--peach-3);
+  letter-spacing: .2em;
+  text-transform: uppercase;
+  margin-bottom: 18px;
+}
+.auth-form h2 {
+  font-family: var(--serif);
+  font-weight: 600;
+  font-size: 34px;
+  line-height: 1.3;
+  color: var(--cream);
+  margin-bottom: 12px;
+}
+.auth-form .greet-sub {
+  font-size: 14.5px;
+  line-height: 1.8;
+  color: rgba(245,240,234,.58);
+  margin-bottom: 36px;
+}
+.field-lab {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: .18em;
+  color: rgba(245,240,234,.45);
+  text-transform: uppercase;
+  margin-bottom: 8px;
+}
+.serial-wrap {
+  display: flex;
+  align-items: stretch;
+  border: 1px solid var(--line);
+  background: rgba(245,240,234,.03);
+  transition: border-color .2s;
+}
+.serial-wrap:focus-within {
+  border-color: var(--peach);
+  box-shadow: 0 0 0 3px rgba(231,187,167,.1);
+}
+.serial-prefix {
+  padding: .75rem 1rem;
+  background: rgba(231,187,167,.08);
+  color: var(--peach);
+  font-family: var(--mono);
+  font-size: .95rem;
+  letter-spacing: .12em;
+  user-select: none;
+  border-right: 1px solid var(--line);
+  display: flex;
+  align-items: center;
+}
+.serial-wrap input {
+  flex: 1;
+  padding: .75rem 1rem;
+  background: transparent;
+  border: none;
+  color: var(--cream);
+  font-family: var(--mono);
+  font-size: .95rem;
+  letter-spacing: .18em;
+  text-transform: uppercase;
+  outline: none;
+  width: 0;
+}
+.serial-wrap input::placeholder {
+  color: rgba(245,240,234,.25);
+  font-size: .85rem;
+  letter-spacing: .1em;
+}
+.auth-cta {
+  width: 100%;
+  margin-top: 20px;
+  padding: 15px 24px;
+  background: var(--peach);
+  color: var(--navy);
+  font-family: var(--sans);
+  font-size: .9rem;
+  font-weight: 500;
+  letter-spacing: .06em;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  transition: opacity .2s, transform .18s;
+}
+.auth-cta:hover:not(:disabled) { opacity: .9; transform: translateY(-2px); }
+.auth-cta:disabled { opacity: .4; cursor: not-allowed; transform: none; }
+.auth-cta .arrow { font-size: 1.1rem; }
+.error {
+  margin-top: 12px;
+  padding: 10px 14px;
+  background: rgba(229,100,100,.08);
+  border: 1px solid rgba(229,100,100,.2);
+  color: #e57373;
+  font-size: .8rem;
+  display: none;
+  animation: errFade .25s ease;
+}
+.shake { animation: shake .35s ease !important; }
+.auth-hint {
+  margin-top: 28px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+  font-size: 13px;
+  line-height: 1.9;
+  color: rgba(245,240,234,.45);
+}
+.auth-hint a { color: var(--peach); text-decoration: none; }
+.auth-hint a:hover { text-decoration: underline; }
+.auth-r .bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: rgba(245,240,234,.25);
+  letter-spacing: .08em;
+}
+.auth-r .bottom a { color: inherit; text-decoration: none; }
+.auth-r .bottom a:hover { color: rgba(245,240,234,.5); }
+
+@media (max-width: 900px) {
+  .auth-l { display: none; }
+  .auth-r { width: 100%; padding: 40px 28px; }
+}
+</style>
+</head>
+<body>
+
+<!-- LEFT PANEL -->
+<div class="auth-l">
+  <a href="/" class="auth-brand"><span class="dot"></span>SOFA&nbsp;ENGINE</a>
+
+  <div class="auth-hero">
+    <div class="eb">BACK FOR ANOTHER ARTICLE</div>
+    <h1>坐下來，<br/>一條一條來。</h1>
+    <p>良心不安的時候，打開來看一條。2,000+ 條法規、33 部法典——你決定步調，我們陪你把它讀完。</p>
+    <div class="auth-quote">
+      「今天讀一條也算數。<br/>讀十條很好，讀一條一樣很好。」
+      <span>SOFA · MANIFESTO</span>
+    </div>
+  </div>
+
+  <div class="auth-foot">
+    <div class="auth-stats">
+      <div class="s"><div class="v">2,138</div><div class="k">ARTICLES</div></div>
+      <div class="s"><div class="v">33</div><div class="k">STATUTES</div></div>
+      <div class="s"><div class="v">187d</div><div class="k">UNTIL EXAM</div></div>
+    </div>
+    <div class="auth-foot-copy">© 2026 · SOFA ENGINE</div>
+  </div>
+</div>
+
+<!-- RIGHT PANEL -->
+<div class="auth-r">
+  <div class="top">
+    <span>MEMBER ACCESS</span>
+    <span>還沒有序號？<a href="https://lin.ee/zUeMwo4" target="_blank">加入 LINE 免費試用 →</a></span>
+  </div>
+
+  <form class="auth-form" onsubmit="event.preventDefault(); doLogin();">
+    <div class="eb">STEP 01 / 01</div>
+    <h2>歡迎回來，<br/>繼續上次的進度。</h2>
+    <p class="greet-sub">輸入購買後收到的序號，即可登入。上次學習進度會自動接續——你不用記在哪一條。</p>
+
+    <div class="field-lab"><span>SERIAL / 序號</span></div>
+    <div class="serial-wrap">
+      <span class="serial-prefix">SOFA-</span>
+      <input id="serial" type="text" placeholder="XXXX-XXXX" maxlength="9"
+        autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text">
+    </div>
+
+    <button class="auth-cta" id="btn" type="submit">
+      開始備考 <span class="arrow">⟶</span>
+    </button>
+    <div class="error" id="err"></div>
+
+    <div class="auth-hint">
+      序號問題請聯絡 <a href="mailto:hi@sofaengine.org">hi@sofaengine.org</a>
+      或透過 <a href="https://lin.ee/zUeMwo4" target="_blank">LINE 官方帳號</a> 留言。<br>
+      退費申請請寄信並附上序號，7 天內未啟用可全額退費。<br><br>
+      <a href="/">← 回主頁</a>
+    </div>
+  </form>
+
+  <div class="bottom">
+    <span>v1.0 · 2026.05</span>
+    <div style="display:flex;gap:16px">
+      <a href="#">服務條款</a>
+      <a href="#">隱私政策</a>
+      <a href="mailto:hi@sofaengine.org">聯絡我們</a>
+    </div>
+  </div>
+</div>
+
+<script>
+const API = 'https://sofa-engine-api.onrender.com';
+
+document.getElementById('serial').addEventListener('input', function() {
+  let raw = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 8);
+  if (!raw) { this.value = ''; return; }
+  this.value = raw.length > 4 ? raw.slice(0, 4) + '-' + raw.slice(4) : raw;
+});
+
+async function doLogin() {
+  const btn = document.getElementById('btn');
+  const err = document.getElementById('err');
+  const raw = document.getElementById('serial').value.replace(/[^A-Za-z0-9]/g, '').toUpperCase();
+  err.style.display = 'none';
+  if (raw.length < 8) { showErr('請輸入完整的 8 位序號'); return; }
+  const serial = 'SOFA-' + raw.slice(0, 4) + '-' + raw.slice(4, 8);
+  btn.disabled = true; btn.textContent = '驗證中…';
+  try {
+    const res = await fetch(`${API}/api/verify-serial`, {
+      method: 'POST', credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ serial }),
+    });
+    const data = await res.json();
+    if (!res.ok) { showErr(data.detail || '序號無效，請確認後再試'); return; }
+    localStorage.setItem('sofa_uid', data.uid);
+    window.location.href = '/dashboard.html';
+  } catch { showErr('連線失敗，請稍後再試'); }
+  finally { btn.disabled = false; btn.textContent = '開始備考 ⟶'; }
+}
+
+function showErr(msg) {
+  const e = document.getElementById('err');
+  e.textContent = msg; e.style.display = 'block';
+  const wrap = document.querySelector('.serial-wrap');
+  if (wrap) {
+    wrap.classList.remove('shake');
+    void wrap.offsetWidth;
+    wrap.classList.add('shake');
+    setTimeout(() => wrap.classList.remove('shake'), 400);
+  }
+}
+
+document.getElementById('serial').addEventListener('keydown', e => {
+  if (e.key === 'Enter') doLogin();
+});
+</script>
+</body>
+</html>

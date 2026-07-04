@@ -559,7 +559,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <div class="toast" id="toast"></div>
 
-<script src="exam-targets.js?v=1"></script>
 <script>
 // ══════════════════════════════════════════════
 // 資料庫
@@ -706,26 +705,21 @@ function renderDash(){
 }
 
 function daysLeft(){
-  const api = window.SoFaExamTargets;
-  const d = api ? api.daysUntil(api.resolveTarget()) : null;
-  return d === null ? '—' : d;
+  return Math.max(0,Math.ceil((new Date('2026-11-14T09:00:00+08:00')-new Date())/864e5));
 }
 
 // ══════════════════════════════════════════════
 // 弱點
 // ══════════════════════════════════════════════
 function renderWeak(){
-  const list = document.getElementById('weakList');
-  const sug = document.getElementById('weakSug');
-  if(!list || !sug) return;
   const mx=WEAK_DATA[0].err;
-  list.innerHTML=WEAK_DATA.map(w=>`
+  document.getElementById('weakList').innerHTML=WEAK_DATA.map(w=>`
     <div class="wl">
       <div class="wl-n">${w.name}</div>
       <div class="wl-b"><div class="wl-f" style="width:${Math.round(w.err/mx*100)}%"></div></div>
       <div class="wl-p">${w.err}%</div>
     </div>`).join('');
-  sug.innerHTML=
+  document.getElementById('weakSug').innerHTML=
     `本週最弱：<strong>稅捐稽徵法 §21 核課期間</strong>（錯誤率 72%）<br>
     建議今日優先安排 30 分鐘複習，配合計時模式英打加深記憶錨點。<br>
     同類陷阱：§24 移送強制執行期間、§35 申請復查期間——三條一起讀效率最高。<br><br>
@@ -1069,8 +1063,7 @@ function init(){
   nextText();
   renderStar5();
   renderWeak();
-  const gasInput = document.getElementById('gasURL');
-  if(gasInput) gasInput.value=ST.gasURL;
+  document.getElementById('gasURL').value=ST.gasURL;
   setInterval(updateNow,30000);
 }
 

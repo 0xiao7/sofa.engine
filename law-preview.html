@@ -2,17 +2,8 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <link rel="manifest" href="/manifest.json">
-  <meta name="theme-color" content="#142836">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="SoFa">
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23244658'/%3E%3Ctext x='16' y='23.5' font-size='21' font-family='Georgia,serif' font-weight='700' text-anchor='middle' fill='%23E7BBA7'%3ES%3C/text%3E%3C/svg%3E">
-  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>法本試讀 · SoFa Engine</title>
-<meta name="robots" content="noindex, follow">
-<link rel="canonical" href="https://sofaengine.org/law-preview.html">
 <link rel="preconnect" href="https://sofa-engine-api.onrender.com">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
@@ -32,8 +23,8 @@
   --line:rgba(245,240,234,.08);
   --line-2:rgba(245,240,234,.16);
   --line-3:rgba(245,240,234,.28);
-  --serif:"Songti TC","Noto Serif TC","PMingLiU",serif;
-  --sans:var(--serif);
+  --serif:"Noto Serif TC","Songti TC",serif;
+  --sans:"Noto Sans TC",system-ui,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{background:var(--navy-3);min-height:100%}
@@ -41,7 +32,7 @@ body{
   font-family:var(--sans);color:var(--cream);
   font-size:15px;line-height:1.75;
   -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
-  padding-bottom:calc(96px + env(safe-area-inset-bottom, 0px)); /* leave room for sticky CTA */
+  padding-bottom:80px; /* leave room for sticky CTA */
 }
 a{color:inherit;text-decoration:none}
 
@@ -50,25 +41,16 @@ a{color:inherit;text-decoration:none}
   position:sticky;top:0;z-index:10;
   background:rgba(20,40,54,.92);backdrop-filter:blur(10px);
   border-bottom:1px solid var(--line-2);
-  padding-top:calc(14px + env(safe-area-inset-top, 0px));
-  padding-right:28px;
-  padding-bottom:14px;
-  padding-left:28px;
+  padding:14px 28px;
   display:flex;align-items:center;gap:16px;
 }
 .back-link{
-  min-height:40px;
-  display:inline-flex;
-  align-items:center;
-  padding:0 12px;
-  border:1px solid transparent;
-  border-radius:4px;
   font-family:var(--sans);font-size:13px;letter-spacing:.05em;
-  color:var(--peach-dim);transition:color .2s,border-color .2s,background .2s;
+  color:var(--peach-dim);transition:color .2s;
 }
-.back-link:hover{color:var(--peach);border-color:var(--line-2);background:rgba(231,187,167,.06)}
+.back-link:hover{color:var(--peach)}
 .brand{
-  font-family:var(--sans);font-size:11px;letter-spacing:.04em;
+  font-family:var(--sans);font-size:11px;letter-spacing:.4em;
   color:var(--cream-2);opacity:.6;text-transform:uppercase;
   margin-left:auto;
 }
@@ -125,8 +107,7 @@ a{color:inherit;text-decoration:none}
 .sort-btn{
   background:none;border:none;cursor:pointer;
   font-family:var(--sans);font-size:12px;letter-spacing:.05em;
-  min-height:40px;
-  color:var(--peach-dim);padding:8px 12px;
+  color:var(--peach-dim);padding:6px 10px;
   border-bottom:2px solid transparent;
   transition:color .15s,border-color .15s;
 }
@@ -138,7 +119,7 @@ a{color:inherit;text-decoration:none}
 /* ── 考古題 chip(未來 quiz_count 進來自動顯示) ── */
 .quiz-chip{
   display:inline-block;padding:1px 6px;margin-left:6px;
-  background:rgba(217,176,132,.12);color:var(--warn);
+  background:rgba(217,176,132,.12);color:#D9B084;
   border-radius:2px;font-size:10px;font-family:var(--sans);
   letter-spacing:.05em;vertical-align:middle;
 }
@@ -166,13 +147,11 @@ a{color:inherit;text-decoration:none}
   color:var(--peach-dim);text-transform:uppercase;
 }
 .list-item{
-  display:grid;grid-template-columns:minmax(44px,max-content) minmax(0,1fr) auto;
-  align-items:center;gap:10px;
+  display:flex;align-items:center;gap:10px;
   padding:11px 24px;cursor:pointer;
   border-left:2px solid transparent;
   transition:background .15s,border-color .15s;
   font-size:14px;
-  min-width:0;
 }
 .list-item:hover{background:rgba(231,187,167,.04)}
 .list-item.active{
@@ -183,16 +162,14 @@ a{color:inherit;text-decoration:none}
 .list-num{
   font-family:var(--serif);font-size:13px;
   color:var(--peach-dim);min-width:44px;
-  white-space:nowrap;
 }
 .list-item.active .list-num{color:var(--peach)}
 .list-title{
-  min-width:0;color:var(--cream-2);
+  flex:1;color:var(--cream-2);
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
 }
 .list-stars{
   font-size:10px;color:var(--peach-3);letter-spacing:-.1em;
-  white-space:nowrap;
 }
 
 /* ── 右:條文詳細 ────────────────────────── */
@@ -235,147 +212,8 @@ a{color:inherit;text-decoration:none}
 }
 .section-body{
   font-size:14.5px;line-height:1.85;color:var(--cream-2);
-  white-space:normal;
-}
-.section-body .preview-line,
-.section-locked-preview .preview-line{
-  margin:8px 0;
-}
-.section-body .preview-head,
-.section-locked-preview .preview-head{
-  padding-left:1.35em;
-  text-indent:-1.35em;
-}
-.section-body .preview-sub,
-.section-locked-preview .preview-sub{
-  margin-left:4em;
-  margin-top:10px;
-  margin-bottom:10px;
-  padding:10px 16px 10px 3.85em;
-  text-indent:-1.45em;
-  border-left:6px solid rgba(231,187,167,.78);
-  border-radius:4px;
-  background:rgba(231,187,167,.12);
-  color:rgba(245,240,234,.72);
-}
-.section.locked{
-  border:1px solid rgba(231,187,167,.24);
-  border-radius:6px;
-  padding:18px 20px 16px;
-  background:rgba(13,28,40,.38);
-}
-.section-locked-head{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  margin-bottom:8px;
-}
-.section.locked .section-label::after{
-  content:" · 付費解鎖";
-  margin-left:8px;
-  font-size:12px;
-  color:var(--peach-dim);
-}
-.section-lock-badge{
-  min-height:28px;
-  display:inline-flex;
-  align-items:center;
-  gap:7px;
-  border:1px solid rgba(231,187,167,.38);
-  border-radius:999px;
-  padding:4px 9px;
-  color:var(--peach);
-  background:rgba(231,187,167,.08);
-  font-family:var(--mono);
-  font-size:11px;
-  letter-spacing:.12em;
-  white-space:nowrap;
-}
-.section-lock-badge::before{
-  content:"";
-  width:10px;
-  height:8px;
-  border:1.5px solid currentColor;
-  border-radius:2px;
-  box-sizing:border-box;
-}
-.section-lock-badge::after{
-  content:"";
-  width:8px;
-  height:6px;
-  border:1.5px solid currentColor;
-  border-bottom:0;
-  border-radius:8px 8px 0 0;
-  margin-left:-23px;
-  margin-top:-10px;
-  box-sizing:border-box;
-}
-.section-locked-preview{
-  position:relative;
-  max-height:96px;
-  overflow:hidden;
-  color:rgba(245,240,234,.58);
-  font-size:14.5px;
-  line-height:1.85;
   white-space:pre-wrap;
 }
-.section-locked-preview::after{
-  content:"";
-  position:absolute;
-  left:0;right:0;bottom:0;height:58px;
-  background:linear-gradient(180deg,rgba(13,28,40,0),rgba(13,28,40,.96));
-  pointer-events:none;
-}
-.section-lock-cta{
-  margin-top:14px;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:12px;
-  border-top:1px dashed rgba(231,187,167,.28);
-  padding-top:12px;
-  color:var(--peach-dim);
-  font-size:13px;
-}
-.section-lock-cta a{
-  min-height:44px;
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  color:var(--peach);
-  border:1px solid rgba(231,187,167,.45);
-  border-radius:4px;
-  padding:8px 12px;
-  font-size:12px;
-  white-space:nowrap;
-}
-.section-lock-cta a:hover{background:rgba(231,187,167,.12)}
-.crossref{
-  display:inline-flex;
-  align-items:center;
-  max-width:100%;
-  margin:0 3px 4px 0;
-  color:var(--peach);
-  text-decoration:underline;
-  text-decoration-thickness:2px;
-  text-underline-offset:4px;
-  border-radius:3px;
-  background:rgba(231,187,167,.14);
-  padding:1px 6px;
-  line-height:1.35;
-  white-space:nowrap;
-  vertical-align:baseline;
-  box-shadow:inset 0 -1px rgba(231,187,167,.32);
-}
-.crossref:hover{color:var(--peach-2)}
-.cpi-note{
-  margin:0 0 28px;padding:16px 18px;
-  background:rgba(217,176,132,.10);border:1px solid rgba(217,176,132,.35);
-  border-left:3px solid var(--peach);border-radius:6px;
-  color:var(--cream);font-size:14px;line-height:1.8;white-space:pre-line;
-}
-.cpi-note b{display:block;margin-bottom:6px;color:var(--peach);font-weight:700}
 
 /* loading + error */
 .loading,.error{
@@ -390,10 +228,7 @@ a{color:inherit;text-decoration:none}
   background:linear-gradient(180deg,rgba(20,40,54,.4),rgba(13,28,40,.96));
   backdrop-filter:blur(12px);
   border-top:1px solid var(--line-2);
-  padding-top:18px;
-  padding-right:28px;
-  padding-bottom:calc(18px + env(safe-area-inset-bottom, 0px));
-  padding-left:28px;
+  padding:18px 28px;
   display:flex;align-items:center;justify-content:center;gap:14px;
   z-index:20;
 }
@@ -402,9 +237,7 @@ a{color:inherit;text-decoration:none}
   letter-spacing:.02em;
 }
 .cta-btn{
-  min-height:44px;
-  display:inline-flex;align-items:center;justify-content:center;
-  padding:9px 20px;
+  display:inline-block;padding:9px 20px;
   background:var(--peach);color:var(--navy-3);
   font-family:var(--sans);font-size:13.5px;font-weight:500;
   letter-spacing:.05em;border-radius:4px;
@@ -422,12 +255,7 @@ a{color:inherit;text-decoration:none}
 
 /* ── 手機 ──────────────────────────────── */
 @media (max-width:768px){
-  .topbar{
-    padding-top:calc(12px + env(safe-area-inset-top, 0px));
-    padding-right:18px;
-    padding-bottom:12px;
-    padding-left:18px;
-  }
+  .topbar{padding:12px 18px}
   .law-header{padding:28px 18px 20px}
   .law-header h1{font-size:26px}
   .context-bar{gap:14px 24px;padding-top:14px;margin-top:14px}
@@ -445,20 +273,7 @@ a{color:inherit;text-decoration:none}
   .detail h2{font-size:22px}
   .original-block{padding:18px 20px}
   .original-text{font-size:15.5px}
-  .section-body .preview-sub,
-  .section-locked-preview .preview-sub{
-    margin-left:1.8em;
-    padding:8px 10px 8px 2.65em;
-    text-indent:-1.25em;
-  }
-  .cta-bar{
-    padding-top:14px;
-    padding-right:18px;
-    padding-bottom:calc(14px + env(safe-area-inset-bottom, 0px));
-    padding-left:18px;
-    flex-direction:column;
-    gap:10px;
-  }
+  .cta-bar{padding:14px 18px;flex-direction:column;gap:10px}
   .cta-text{font-size:14px;text-align:center}
 }
 </style>
@@ -466,7 +281,7 @@ a{color:inherit;text-decoration:none}
 <body>
 
 <div class="topbar">
-  <a class="back-link" href="dashboard.html#laws">← 回法規目錄</a>
+  <a class="back-link" href="/">← 回 SoFa</a>
   <span class="brand">SoFa Engine · 法本試讀</span>
 </div>
 
@@ -507,84 +322,15 @@ a{color:inherit;text-decoration:none}
 <div class="copyright">© SoFa Engine · 引用須註明來源 · 想你考上</div>
 
 <div class="cta-bar">
-  <span class="cta-text" id="cta-text">讀完前四段，就開始練習</span>
-  <a class="cta-btn" href="quiz.html?free=1&amp;start=1">開始選擇題 →</a>
+  <span class="cta-text">想 SoFa 也記得你</span>
+  <a class="cta-btn" href="https://lin.ee/zUeMwo4" target="_blank" rel="noopener">加入 LINE →</a>
 </div>
 
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
 const params = new URLSearchParams(location.search);
-const hasExplicitLawParam = params.has('law');
-let lawName = params.get('law') || '記帳士法';
-let targetId = params.get('id') || params.get('articleId');
-let targetArticleNo = params.get('art') || params.get('article');
-const returnFrom = params.get('from') || '';
-const backTarget = params.get('back') || '';
-const backLink = document.querySelector('.back-link');
-const uid = localStorage.getItem('sofa_uid') || '';
-const tok = localStorage.getItem('sofa_token') || '';
-let readerPaid = !!(uid || tok);
-let currentArticle = null;
-const PAID_READER_PLANS = new Set(['月費','季費','買斷','體驗','Admin','monthly','quarterly','trial']);
-const FREE_READER_PLANS = new Set(['免費','free']);
-
-function readerModeLabel(){
-  return readerPaid ? '法本閱讀' : '法本試讀';
-}
-
-function _authH(extra){
-  const h = extra ? {...extra} : {};
-  if(tok) h['Authorization'] = 'Bearer ' + tok;
-  else if(uid) h['X-Sofa-UID'] = uid;
-  return h;
-}
-
-function _todayISO(){
-  const n = new Date();
-  return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
-}
-
-function shouldLockAdvancedSections(){
-  return !readerPaid;
-}
-
-function _profileMeansPaid(profile){
-  if(!profile) return true;
-  if(profile.is_admin) return true;
-  const plan = String(profile.plan || '').trim();
-  if(PAID_READER_PLANS.has(plan)){
-    const expire = String(profile.expire || '').slice(0, 10);
-    if(/^\d{4}-\d{2}-\d{2}$/.test(expire) && expire < _todayISO()) return false;
-    return true;
-  }
-  if(FREE_READER_PLANS.has(plan)) return false;
-  const expire = String(profile.expire || '').slice(0, 10);
-  if(/^\d{4}-\d{2}-\d{2}$/.test(expire) && expire < _todayISO()) return false;
-  return true;
-}
-
-function resolveReaderEntitlement(){
-  if(!uid && !tok) return Promise.resolve(readerPaid);
-  const ctrl = (typeof AbortController !== 'undefined') ? new AbortController() : null;
-  const timer = ctrl ? setTimeout(() => ctrl.abort(), 6000) : null;
-  return fetch(`${API}/api/me/profile`, { headers:_authH(), signal: ctrl ? ctrl.signal : undefined })
-    .then(r => r.ok ? r.json() : null)
-    .then(profile => {
-      if(timer) clearTimeout(timer);
-      const next = _profileMeansPaid(profile);
-      if(next !== readerPaid){
-        readerPaid = next;
-        updateLawHeader();
-        updateReaderModeCopy();
-        if(currentArticle) renderDetail(currentArticle);
-      }
-      return readerPaid;
-    })
-    .catch(() => {
-      if(timer) clearTimeout(timer);
-      return readerPaid || true;
-    });
-}
+const lawName = params.get('law') || '記帳士法';
+const targetId = params.get('id');
 
 const listBody = document.getElementById('listBody');
 const detail = document.getElementById('detail');
@@ -592,71 +338,13 @@ const lawTitle = document.getElementById('lawTitle');
 const lawMeta = document.getElementById('lawMeta');
 const crumb = document.getElementById('crumb');
 const listLabel = document.getElementById('listLabel');
-const ctaText = document.getElementById('cta-text');
 
-function updateCanonicalUrl(lawName, artNo, articleId){
-  const canonical = new URL('/law-preview.html', 'https://sofaengine.org');
-  if(lawName) canonical.searchParams.set('law', lawName);
-  if(artNo) canonical.searchParams.set('art', artNo);
-  if(articleId) canonical.searchParams.set('id', articleId);
-  let link = document.querySelector('link[rel="canonical"]');
-  if(!link){
-    link = document.createElement('link');
-    link.rel = 'canonical';
-    document.head.appendChild(link);
-  }
-  link.href = canonical.toString();
-}
-
-function updateLawHeader(){
-  document.title = `${lawName} · SoFa ${readerModeLabel()}`;
-  document.querySelector('.brand').textContent = `SoFa Engine · ${readerModeLabel()}`;
-  lawTitle.textContent = lawName;
-  crumb.textContent = `SoFa 法本 · ${lawName}`;
-  updateCanonicalUrl(lawName, targetArticleNo, targetId);
-}
-function updateReaderModeCopy(){
-  if(lawMeta){
-    lawMeta.textContent = readerPaid ? '點清單任一條可閱讀完整內容' : '前四段可試讀；第 5、6 段露重點並上鎖';
-  }
-  if(ctaText){
-    ctaText.textContent = readerPaid ? '讀完這條，就開始練習' : '讀完前四段，就開始練習';
-  }
-}
-updateLawHeader();
-updateReaderModeCopy();
-
-function isSafeBackUrl(value){
-  try {
-    const url = new URL(value, location.href);
-    return url.origin === location.origin && !url.pathname.endsWith('/law-preview.html');
-  } catch(e){
-    return false;
-  }
-}
-
-function configureBackLink(){
-  if(!backLink) return;
-  backLink.href = 'dashboard.html#laws';
-  backLink.textContent = '← 回法規目錄';
-  if(returnFrom === 'quiz' || /\/quiz\.html(?:$|[?#])/.test(document.referrer || '')){
-    backLink.href = isSafeBackUrl(backTarget) ? backTarget : 'quiz.html';
-    backLink.textContent = '← 回到題目';
-  }else if(returnFrom === 'tree'){
-    backLink.href = isSafeBackUrl(backTarget) ? backTarget : 'tree.html';
-    backLink.textContent = '← 回考試地圖';
-  }else if(isSafeBackUrl(document.referrer)){
-    backLink.href = document.referrer;
-    backLink.textContent = '← 回上一頁';
-  }else if(isSafeBackUrl(backTarget)){
-    backLink.href = backTarget;
-    backLink.textContent = '← 回上一頁';
-  }
-}
-configureBackLink();
+document.title = `${lawName} · SoFa 法本試讀`;
+lawTitle.textContent = lawName;
+crumb.textContent = `SoFa 法本 · ${lawName}`;
 
 async function fetchJSON(url){
-  const r = await fetch(url, { headers:_authH() });
+  const r = await fetch(url);
   if(!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 }
@@ -664,116 +352,6 @@ async function fetchJSON(url){
 // ── 重要性 helper ────────────────────────
 function starsCount(imp){ return (imp || '').match(/★/g)?.length || 0; }
 function starsStr(n){ return '★'.repeat(n); }
-function normalizeArticleNo(value){
-  function partToArabic(part){
-    const s = String(part || '').replace(/[０-９]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0));
-    if(/^\d+$/.test(s)) return String(Number(s));
-    const map = {零:0,〇:0,一:1,二:2,兩:2,两:2,三:3,四:4,五:5,六:6,七:7,八:8,九:9};
-    if(!/[十百千]/.test(s)){
-      const direct = s.split('').map(ch => map[ch]);
-      return direct.every(n => typeof n === 'number') ? String(Number(direct.join(''))) : s;
-    }
-    let total = 0;
-    let current = 0;
-    let valid = true;
-    s.split('').forEach(ch => {
-      if(typeof map[ch] === 'number'){
-        current = map[ch];
-      }else if(ch === '千' || ch === '百' || ch === '十'){
-        const unit = ch === '千' ? 1000 : (ch === '百' ? 100 : 10);
-        total += (current || 1) * unit;
-        current = 0;
-      }else{
-        valid = false;
-      }
-    });
-    return valid ? String(total + current) : s;
-  }
-  let raw = String(value || '').trim();
-  raw = raw.replace(/^§\s*/, '').split(/[｜|]/)[0].trim();
-  raw = raw.replace(/[０-９Ａ-Ｚａ-ｚ]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0));
-  raw = raw.replace(/^第\s*/, '').replace(/\s+/g, '').replace(/[－–—-]/g, '之');
-  const ch = '[0-9一二三四五六七八九十百千零兩两]+';
-  let m = raw.match(new RegExp('^(' + ch + ')條?之(' + ch + ')'));
-  if(m) return partToArabic(m[1]) + '之' + partToArabic(m[2]);
-  m = raw.match(new RegExp('^(' + ch + ')條'));
-  if(m) return partToArabic(m[1]);
-  m = raw.match(/^([0-9]+Q[0-9]+)/i);
-  if(m) return m[1].toUpperCase();
-  m = raw.match(new RegExp('^(' + ch + ')(?:之(' + ch + '))?$'));
-  return m ? partToArabic(m[1]) + (m[2] ? '之' + partToArabic(m[2]) : '') : raw;
-}
-function articleMatchesTarget(article, normalizedTargetArticle){
-  if(!normalizedTargetArticle) return false;
-  return [article?.title, article?.article_no, article?.article, article?.no]
-    .some(value => normalizeArticleNo(value) === normalizedTargetArticle);
-}
-
-function displayArticleNoFromRaw(value){
-  let raw = String(value || '').trim();
-  raw = raw.replace(/^§\s*/, '').split(/[｜|]/)[0].trim();
-  raw = raw.replace(/[０-９Ａ-Ｚａ-ｚ]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0));
-  raw = raw.replace(/^第\s*/, '').replace(/條/g, '').replace(/\s+/g, '');
-  if(/^[0-9]+-[0-9]+$/i.test(raw)) return raw.toUpperCase();
-  return normalizeArticleNo(value);
-}
-
-function articleTitleParts(article){
-  article = article || {};
-  const rawNo = article.article_no || article.article || article.no || '';
-  let articleNo = displayArticleNoFromRaw(rawNo);
-  let title = String(article.title || article.display_name || article.name || '').trim();
-
-  function stripOneLeadingLabel(value){
-    let text = String(value || '').trim();
-    if(!text) return { no:'', title:'' };
-    let match = text.match(/^§\s*([^|｜]+?)\s*[|｜]\s*(.*)$/);
-    if(match) return { no:displayArticleNoFromRaw(match[1]), title:match[2].trim() };
-    match = text.match(/^第\s*([0-9０-９一二三四五六七八九十百千零兩两]+)\s*(?:條)?\s*(?:之\s*([0-9０-９一二三四五六七八九十百千零兩两]+))?\s*[|｜]\s*(.*)$/);
-    if(match){
-      const raw = '第' + match[1] + (match[2] ? '條之' + match[2] : '條');
-      return { no:normalizeArticleNo(raw), title:match[3].trim() };
-    }
-    match = text.match(/^第\s*([0-9０-９一二三四五六七八九十百千零兩两]+)\s*(?:條)?\s*(?:之\s*([0-9０-９一二三四五六七八九十百千零兩两]+))?\s+(.+)$/);
-    if(match){
-      const raw = '第' + match[1] + (match[2] ? '條之' + match[2] : '條');
-      return { no:normalizeArticleNo(raw), title:match[3].trim() };
-    }
-    return { no:'', title:text };
-  }
-
-  let guard = 0;
-  while(title && guard < 4){
-    const parsed = stripOneLeadingLabel(title);
-    if(parsed.no && (!articleNo || parsed.no === articleNo)){
-      articleNo = articleNo || parsed.no;
-      title = parsed.title;
-      guard += 1;
-      continue;
-    }
-    break;
-  }
-
-  const repeatedFull = articleNo ? new RegExp('^(?:§\\s*' + articleNo.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*[|｜]?\\s*)+', 'i') : null;
-  if(repeatedFull) title = title.replace(repeatedFull, '').trim();
-  const repeatedArticle = articleNo ? new RegExp('^(?:第\\s*' + articleNo.replace('之', '\\s*(?:條)?\\s*之\\s*').replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*(?:條)?\\s*)+', 'i') : null;
-  if(repeatedArticle) title = title.replace(repeatedArticle, '').trim();
-
-  return { article_no: articleNo, title };
-}
-
-async function resolveArticleIdBeforeLawList(){
-  if(targetId && !hasExplicitLawParam){
-    const article = await fetchJSON(`${API}/api/article/${encodeURIComponent(targetId)}`);
-    lawName = article.law_name || article.law || lawName;
-    updateLawHeader();
-    if(articleMatchesTarget(article, targetArticleNo) || article.id === targetId){
-      renderDetail(article);
-    }
-    return article;
-  }
-  return null;
-}
 
 // ── 整部平均星數 ────────────────────────
 function calcAvgStars(articles){
@@ -827,133 +405,45 @@ function renderList(articles, activeId){
   listLabel.textContent = `條文清單 · 共 ${sorted.length} 條`;
   listBody.innerHTML = sorted.map(a => {
     const stars = starsStr(starsCount(a.importance));
-    const parts = articleTitleParts(a);
-    const num = parts.article_no ? `§ ${parts.article_no}` : '';
-    const text = parts.title || a.title || '';
+    const numMatch = a.title.match(/§\s*(\S+?)｜/);
+    const num = numMatch ? `§${numMatch[1]}` : '';
+    const text = a.title.replace(/§\s*\S+?｜/, '');
     const active = a.id === activeId ? 'active' : '';
     // 預留 quiz_count(未來考古題 API 加上即自動 render)
     const quizChip = a.quiz_count > 0 ? `<span class="quiz-chip">考${a.quiz_count}</span>` : '';
-    const current = a.id === activeId ? 'true' : 'false';
-    return `<div class="list-item ${active}" data-id="${a.id}" role="button" tabindex="0" aria-current="${current}">
+    return `<div class="list-item ${active}" data-id="${a.id}">
       <span class="list-num">${num}</span>
       <span class="list-title">${text}${quizChip}</span>
       <span class="list-stars">${stars}</span>
     </div>`;
   }).join('');
   listBody.querySelectorAll('.list-item').forEach(el => {
-    const open = () => loadArticle(el.dataset.id, true);
-    el.addEventListener('click', open);
-    el.addEventListener('keydown', ev => {
-      if(ev.key === 'Enter' || ev.key === ' '){
-        ev.preventDefault();
-        open();
-      }
-    });
+    el.addEventListener('click', () => loadArticle(el.dataset.id, true));
   });
-  scrollActiveListItem(activeId, 'center');
-}
-
-function scrollActiveListItem(id, block='nearest'){
-  if(!id) return;
-  const active = listBody.querySelector(`.list-item[data-id="${CSS.escape(id)}"]`);
-  if(active) active.scrollIntoView({block, inline:'nearest'});
 }
 
 function renderDetail(d){
-  currentArticle = d;
   const stars = (d.importance || '').match(/★/g)?.join('') || '';
   const chapter = d.chapter ? `<div class="detail-chapter">${d.chapter}</div>` : '';
   const sections = d.sections || {};
-  const parts = articleTitleParts(d);
-  const activeLawName = d.law_name || d.law || lawName;
-  updateCanonicalUrl(activeLawName, parts.article_no || targetArticleNo, d.id || targetId);
-  const cpiHtml = buildCpiAdjustmentNote(d, sections);
-  const sectionHtml = renderPreviewSections(sections, d.law_name || lawName);
+  const sectionHtml = Object.entries(sections).map(([label, body]) => `
+    <div class="section">
+      <div class="section-label">${label}</div>
+      <div class="section-body">${escapeHtml(body || '')}</div>
+    </div>
+  `).join('');
   detail.innerHTML = `
     ${chapter}
-    <h2 id="detailTitle">${escapeHtml(d.title || '')}</h2>
+    <h2>${escapeHtml(d.title || '')}</h2>
     <div class="detail-meta"><span class="stars">${stars}</span></div>
     <div class="original-block">
       <div class="original-label">條文原文</div>
-      <div class="original-text" id="originalText">${escapeHtml(d.original_text || '')}</div>
+      <div class="original-text">${escapeHtml(d.original_text || '')}</div>
     </div>
-    ${cpiHtml}
     ${sectionHtml}
   `;
   detail.scrollTo?.(0, 0);
-  scrollReaderIntoView();
-}
-const PREVIEW_SECTION_NAMES = [
-  '章節標題與戰略權重',
-  '規範意旨與條文解析',
-  '執業要點與考情提示',
-  '核心摘要與記憶策略',
-  '修法與聯覺備註',
-  '相關法規及注意事項'
-];
-const PREVIEW_LOCK_LEADS = {
-  5: '這裡會整理最新修法、考點變動和容易被舊題數字誤導的地方。',
-  6: '這裡會串起相關條文、函釋和常見混淆點，讓你知道讀這條時還要一起看哪裡。'
-};
-function renderPreviewSections(sections,currentLawName){
-  return PREVIEW_SECTION_NAMES.map((label, idx) => {
-    const seg = idx + 1;
-    const body = sections[label] || '';
-    if(!body && seg <= 4) return '';
-    const visibleText = cleanVisibleSpeechCueText(body || PREVIEW_LOCK_LEADS[seg] || '');
-    const html = formatPreviewSectionBody(visibleText, currentLawName);
-    if(shouldLockAdvancedSections() && seg >= 5){
-      return `
-        <div class="section locked" data-seg="${seg}">
-          <div class="section-locked-head">
-            <div class="section-label">第 ${seg} 段｜${label}</div>
-            <span class="section-lock-badge" aria-label="付費解鎖">LOCKED</span>
-          </div>
-          <div class="section-locked-preview">${html}</div>
-          <div class="section-lock-cta">
-            <span>第 ${seg} 段留給完整會員閱讀</span>
-            <a href="pricing.html?utm_source=law_preview&utm_medium=locked_section&utm_campaign=law_preview_pricing">查看方案 →</a>
-          </div>
-        </div>
-      `;
-    }
-    const unlocked = seg >= 5 ? ' data-unlocked="true"' : '';
-    if(!visibleText) return '';
-    return `
-      <div class="section"${unlocked} data-seg="${seg}">
-        <div class="section-label">第 ${seg} 段｜${label}</div>
-        <div class="section-body">${html}</div>
-      </div>
-    `;
-  }).join('');
-}
-
-function formatPreviewSectionBody(text,currentLawName){
-  const lines = String(text || '').replace(/\r\n?/g, '\n').split('\n');
-  const out = lines.map(raw => {
-    if(!raw || !raw.trim()) return '';
-    const lead = (raw.match(/^[ \t　]*/) || [''])[0];
-    let body = raw.slice(lead.length).trim();
-    let isSub = lead.length >= 2 || /　/.test(lead);
-    const bullet = body.match(/^([•◦‣·▪])\s*/);
-    if(bullet){
-      isSub = bullet[1] === '◦';
-      body = body.slice(bullet[0].length).trim();
-    }
-    const visibleText = body;
-    const html = linkifyLawRefs(escapeHtml(visibleText), currentLawName);
-    if(!html) return '';
-    const marker = isSub ? '◦ ' : '• ';
-    return '<p class="preview-line ' + (isSub ? 'preview-sub' : 'preview-head') + '">' + marker + html + '</p>';
-  }).filter(Boolean);
-  if(out.length) return out.join('');
-  const visibleText = String(text || '').trim();
-  return linkifyLawRefs(escapeHtml(visibleText), currentLawName);
-}
-
-function scrollReaderIntoView(){
-  const main = document.querySelector('.main');
-  if(main) main.scrollIntoView({block:'start', inline:'nearest', behavior:'smooth'});
+  window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
 function escapeHtml(s){
@@ -961,109 +451,8 @@ function escapeHtml(s){
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   })[c]);
 }
-function readerHrefFor(lawName, articleNo){
-  const url = new URL('law-preview.html', location.href);
-  url.searchParams.set('law', String(lawName || '').replace(/\\/g, ''));
-  url.searchParams.set('art', articleNo);
-  if(returnFrom) url.searchParams.set('from', returnFrom);
-  if(backTarget && isSafeBackUrl(backTarget)) url.searchParams.set('back', backTarget);
-  return url.pathname.split('/').pop() + url.search;
-}
-function cleanCrossRefLawName(lawName){
-  return String(lawName || '')
-    .replace(/^.*?(?:可看|請看|請參照|請見|另參照|另見)/, '')
-    .replace(/^(搭配|參照|依|按|見|與)+/, '')
-    .replace(/[，。、；：\s]+$/, '')
-    .trim();
-}
-function linkifyLawRefs(escapedText,currentLawName){
-  let lastLaw = null;
-  const linkedAnchors = [];
-  function stashLinked(html){
-    const key = '@@SOFA_XREF_' + linkedAnchors.length + '@@';
-    linkedAnchors.push(html);
-    return key;
-  }
-  const lawTypes = '(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)';
-  const lawPat = '(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\\s《》()（）;；]{1,40}' + lawTypes + '))';
-  const numPat = '[0-9０-９一二三四五六七八九十百千零兩两]+(?:\\s*(?:條?之|-)\\s*[0-9０-９一二三四五六七八九十百千零兩两]+)?';
-  const articleSeq = new RegExp(lawPat + '第?\\s*(' + numPat + '(?:\\s*(?:、|,|，|及|和|與)\\s*第?\\s*' + numPat + ')+)\\s*條', 'g');
-  function splitLawPrefix(rawLaw, law){
-    const raw = String(rawLaw || '');
-    return raw.endsWith(law) ? raw.slice(0, raw.length - law.length) : '';
-  }
-  function articleHref(law, art){
-    return (typeof readerHrefFor === 'function'
-      ? readerHrefFor(law, art)
-      : 'law-preview.html?law=' + encodeURIComponent(law.replace(/\\/g, '')) + '&art=' + encodeURIComponent(art)
-    ).replace(/&/g, '&amp;');
-  }
-  function normalizeArtLabel(value){
-    return String(value || '').replace(/\s+/g, '').replace(/條?之/g, '之').replace(/-/g, '之').replace(/^第/, '').replace(/條$/, '');
-  }
-  const sequenced = String(escapedText || '').replace(articleSeq, (match, bracketLaw, plainLaw, nums) => {
-    const rawLaw = bracketLaw || plainLaw || '';
-    const law = cleanCrossRefLawName(rawLaw);
-    if(!law || law === '同法' || law === '本法') return match;
-    lastLaw = law;
-    const prefix = bracketLaw ? '' : splitLawPrefix(rawLaw, law);
-    const tokens = nums.split(/(、|,|，|及|和|與)/);
-    let first = true;
-    const linked = tokens.map(token => {
-      if(/^(、|,|，|及|和|與)$/.test(token)) return token;
-      const art = normalizeArtLabel(token);
-      if(!art) return token;
-      const label = first ? law + (String(token).trim().startsWith('第') ? String(token).trim() : art) + '條' : (String(token).trim().startsWith('第') ? String(token).trim() : art + '條');
-      first = false;
-      return '<a class="crossref" href="' + articleHref(law, art) + '">' + label + '</a>';
-    }).join('');
-    return prefix + stashLinked(linked);
-  });
-  return sequenced.replace(/(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\s《》()（）;；]{1,40}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第?(\d+)條(?:之(\d+))?/g, (match, bracketLaw, plainLaw, sameLaw, art, sub) => {
-    const law = cleanCrossRefLawName(bracketLaw || plainLaw || '');
-    if(law && law !== '同法' && law !== '本法') lastLaw = law;
-    else if((sameLaw || law === '同法' || law === '本法') && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
-    if(!lastLaw) return match;
-    const fullArt = art + (sub ? '之' + sub : '');
-    const href = articleHref(lastLaw, fullArt);
-    const prefixMatch = match.match(/^(.+?(?:可看|請看|請參照|請見|另參照|另見)|搭配|參照|依|按|見|與)(.+)$/);
-    const prefix = prefixMatch ? prefixMatch[1] : '';
-    const label = prefixMatch ? prefixMatch[2] : match;
-    return prefix + '<a class="crossref" href="' + href + '">' + label + '</a>';
-  }).replace(/@@SOFA_XREF_(\d+)@@/g, (match, idx) => linkedAnchors[Number(idx)] || match);
-}
-function buildCpiAdjustmentNote(article,sections){
-  const articleLawName = article?.law_name || lawName || '';
-  const articleText = [article?.title, article?.article_no, article?.original_text, JSON.stringify(sections || {})].join('\n');
-  const artNo = String(article?.article_no || article?.title || '');
-  const hasCpiText = /CPI|消費者物價指數|物價指數|公告調整|按.*物價/.test(articleText);
-  const isBasicTax = articleLawName.includes('所得基本稅額條例') && /(^|第|\D)13(條|$|\D)/.test(artNo);
-  const estateGiftAmountArticle = /12\s*[-之]\s*1|十二條之一|第十二條之一|(^|第|\D)(13|17|18|19|20|22)(條|$|\D)/.test(artNo);
-  const estateGiftAmountText = /免稅額|扣除額|配偶|直系血親卑親屬|父母|喪葬費|殘障|扶養|課稅級距|贈與稅|遺產稅|萬|元/.test(articleText);
-  const isEstateGift = articleLawName.includes('遺產及贈與稅法') && (estateGiftAmountArticle || hasCpiText || estateGiftAmountText);
-  if(!hasCpiText && !isBasicTax && !isEstateGift) return '';
-  if(isBasicTax){
-    return '<div class="cpi-note"><b>CPI / 公告額提醒</b>' + escapeHtml('這題條文寫六百萬元，但 113 年度起個人基本所得額扣除額已調整為 750 萬元；115 年度沿用 750 萬元。題目仍可考條文基準或比例，考前請以當年度公告額為準。') + '</div>';
-  }
-  if(isEstateGift){
-    return '<div class="cpi-note"><b>CPI / 公告額提醒</b>' + escapeHtml('條文原文、舊題數字和當年度公告額要分開看。\n115 / 114 現行：遺產稅免稅額 1,333 萬；不計入遺產總額的日常器具 100 萬、職業工具 56 萬；配偶扣除 553 萬；直系血親卑親屬每人 56 萬；父母、喪葬費各 138 萬；重度以上身心障礙 693 萬；扶養兄弟姊妹、祖父母每人 56 萬；贈與稅免稅額 244 萬 / 年。\n舊題常見差異：職業工具條文舊基準 40 萬，113 年度起已公告為 56 萬；級距 113 年仍為遺產 5,000 萬 / 1 億、贈與稅 2,500 萬 / 5,000 萬，114 / 115 已為遺產 5,621 萬 / 1 億 1,242 萬、贈與稅 2,811 萬 / 5,621 萬。\n題目仍可考條文基準或比例，作答時以考試年度與財政部公告額為準。') + '</div>';
-  }
-  return '<div class="cpi-note"><b>CPI / 公告額提醒</b>' + escapeHtml('這類金額會受 CPI / 財政部公告調整。115 年度與 113 年度是否相同，要看各稅目公告；題目仍可考條文基準或比例，考前請以當年度公告額為準。') + '</div>';
-}
-function cleanVisibleSpeechCueText(text){
-  return String(text || '')
-    .replace(/[\[【（(]\s*(重音|強調|輕讀|慢讀|快讀)\s*[\]】）)]/g, '')
-    .replace(/[\[【（(]\s*停頓\s*[\]】）)]/g, '，')
-    .replace(/\[(\/?emphasis)\]/gi, '')
-    .replace(/\[break[^\]]*\]/gi, '，')
-    .replace(/<\s*\/?\s*(em|strong|mark)\s*>/gi, '')
-    .replace(/<\s*break[^>]*>/gi, '，')
-    .replace(/[，,]\s*[，,]+/g, '，')
-    .trim();
-}
 
 let articlesCache = [];
-let _sortControlsBound = false;
 
 async function loadArticle(id, pushUrl){
   detail.innerHTML = '<div class="loading">載入條文⋯</div>';
@@ -1071,14 +460,10 @@ async function loadArticle(id, pushUrl){
     const d = await fetchJSON(`${API}/api/article/${id}`);
     renderDetail(d);
     document.querySelectorAll('.list-item').forEach(el => {
-      const active = el.dataset.id === id;
-      el.classList.toggle('active', active);
-      el.setAttribute('aria-current', active ? 'true' : 'false');
+      el.classList.toggle('active', el.dataset.id === id);
     });
-    scrollActiveListItem(id, 'nearest');
     if(pushUrl){
       const u = new URL(location.href);
-      u.searchParams.set('law', lawName);
       u.searchParams.set('id', id);
       history.replaceState(null, '', u.toString());
     }
@@ -1087,28 +472,8 @@ async function loadArticle(id, pushUrl){
   }
 }
 
-function bindSortControlsOnce(){
-  if(_sortControlsBound) return;
-  _sortControlsBound = true;
-  document.querySelectorAll('.sort-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b === btn));
-      sortMode = btn.dataset.sort;
-      const currentActiveId = document.querySelector('.list-item.active')?.dataset.id || articlesCache[0]?.id;
-      renderList(articlesCache, currentActiveId);
-    });
-  });
-}
-
-async function loadLawReader(nextLaw, opts){
-  opts = opts || {};
+(async () => {
   try {
-    lawName = nextLaw || lawName;
-    targetId = opts.id || '';
-    targetArticleNo = opts.art || '';
-    updateLawHeader();
-    detail.innerHTML = '<div class="loading">載入條文⋯</div>';
-    const resolvedArticle = await resolveArticleIdBeforeLawList();
     const list = await fetchJSON(`${API}/api/articles?law=${encodeURIComponent(lawName)}`);
     if(!list.articles?.length){
       detail.innerHTML = `<div class="error">尚未收錄「${escapeHtml(lawName)}」⋯ 加入 LINE 告訴 SoFa 你想看哪部?</div>`;
@@ -1116,7 +481,7 @@ async function loadLawReader(nextLaw, opts){
       return;
     }
     articlesCache = list.articles;
-    updateReaderModeCopy();
+    lawMeta.innerHTML = `點清單任一條可試讀完整六段`;
 
     // ── context bar:立刻能算的(重要性 / 條數) ──
     const ctxBar = document.getElementById('ctxBar');
@@ -1127,28 +492,19 @@ async function loadLawReader(nextLaw, opts){
       : '—';
     document.getElementById('readEstimate').textContent = estimateReadTime(articlesCache.length);
 
-    bindSortControlsOnce();
+    // ── sort toggle handler ──
+    document.querySelectorAll('.sort-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.sort-btn').forEach(b => b.classList.toggle('active', b === btn));
+        sortMode = btn.dataset.sort;
+        const currentActiveId = document.querySelector('.list-item.active')?.dataset.id || articlesCache[0].id;
+        renderList(articlesCache, currentActiveId);
+      });
+    });
 
-    const normalizedTargetArticle = normalizeArticleNo(targetArticleNo);
-    const articleMatch = normalizedTargetArticle
-      ? articlesCache.find(a => articleMatchesTarget(a, normalizedTargetArticle))
-      : null;
-    const firstId = targetId && articlesCache.find(a => a.id === targetId)
-      ? targetId
-      : (articleMatch ? articleMatch.id : articlesCache[0].id);
+    const firstId = targetId && articlesCache.find(a => a.id === targetId) ? targetId : articlesCache[0].id;
     renderList(articlesCache, firstId);
-    if(opts.pushUrl){
-      const u = new URL(location.href);
-      u.searchParams.set('law', lawName);
-      if(targetArticleNo) u.searchParams.set('art', targetArticleNo);
-      else u.searchParams.delete('art');
-      if(firstId) u.searchParams.set('id', firstId);
-      history.pushState(null, '', u.toString());
-    }
-    const shouldRenderResolved = resolvedArticle
-      && (resolvedArticle.id === firstId || articleMatchesTarget(resolvedArticle, normalizeArticleNo(targetArticleNo)));
-    if(shouldRenderResolved) renderDetail(resolvedArticle);
-    else await loadArticle(firstId, false);
+    await loadArticle(firstId, false);
 
     // ── 非阻塞:fetch exam-data.js 反查應考職能,完成後填 chip ──
     findExamTags(lawName).then(tags => {
@@ -1160,25 +516,7 @@ async function loadLawReader(nextLaw, opts){
   } catch(e){
     detail.innerHTML = `<div class="error">載入失敗:${e.message}<br>請稍後再試或回 <a href="/" style="color:var(--peach);text-decoration:underline;">SoFa 首頁</a></div>`;
   }
-}
-
-detail.addEventListener('click', ev => {
-  const link = ev.target && ev.target.closest ? ev.target.closest('a.crossref') : null;
-  if(!link) return;
-  const href = link.getAttribute('href') || '';
-  let url;
-  try { url = new URL(href, location.href); } catch(e) { return; }
-  if(url.origin !== location.origin || !url.pathname.endsWith('/law-preview.html')) return;
-  ev.preventDefault();
-  loadLawReader(url.searchParams.get('law') || lawName, {
-    id: url.searchParams.get('id') || '',
-    art: url.searchParams.get('art') || url.searchParams.get('article') || '',
-    pushUrl: true
-  });
-});
-
-loadLawReader(lawName, { id: targetId, art: targetArticleNo, pushUrl:false });
-resolveReaderEntitlement();
+})();
 </script>
 
 </body>
