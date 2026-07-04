@@ -82,6 +82,11 @@ test('pricing and checkout expose plan selection, checkout start, and payment re
   assert.match(pricing, /pricing_select_plan/);
   assert.match(pricing, /data-plan="月費"/);
   assert.match(pricing, /data-plan="季費"/);
+  assert.match(pricing, /href="\/checkout\.html\?plan=到考日&utm_source=pricing&utm_medium=topbar&utm_campaign=pricing_exam_day"/);
+  assert.match(pricing, /href="\/checkout\.html\?plan=月費&utm_source=pricing&utm_medium=plan_card&utm_campaign=pricing_monthly"/);
+  assert.match(pricing, /href="\/checkout\.html\?plan=到考日&utm_source=pricing&utm_medium=plan_card&utm_campaign=pricing_exam_day"/);
+  assert.match(pricing, /href="\/checkout\.html\?plan=季費&utm_source=pricing&utm_medium=plan_card&utm_campaign=pricing_quarterly"/);
+  assert.match(pricing, /href="\/checkout\.html\?plan=到考日&utm_source=pricing&utm_medium=footer&utm_campaign=pricing_exam_day"/);
   assert.match(analytics, /pricing_view/);
   assert.match(analytics, /checkout_start/);
   assert.match(analytics, /track\('checkout_start', \{ plan: queryPlan\(\) \|\| '到考日' \}\)/);

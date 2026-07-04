@@ -18,10 +18,10 @@ test('checkout defaults to the exam-day plan and keeps required checkout fields'
 
 test('pricing presents exam-day as the featured plan and keeps monthly as the low-cost entry', () => {
   assert.match(pricing, /data-plan="到考日"/);
-  assert.match(pricing, /href="\/checkout\.html\?plan=到考日"/);
+  assert.match(pricing, /href="\/checkout\.html\?plan=到考日&utm_source=pricing&utm_medium=plan_card&utm_campaign=pricing_exam_day"/);
   assert.match(pricing, /NT\$\s*1280/);
   assert.match(pricing, /一次付清,用到 2026\/11\/30\(考後\)/);
   assert.match(pricing, /class="plan-card featured"[\s\S]*到考日/);
-  assert.match(pricing, /href="\/checkout\.html\?plan=月費"/);
+  assert.match(pricing, /href="\/checkout\.html\?plan=月費&utm_source=pricing&utm_medium=plan_card&utm_campaign=pricing_monthly"/);
   assert.match(pricing, /data-plan="月費"/);
 });
