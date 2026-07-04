@@ -107,6 +107,13 @@ test('checkout copy explains the payment handoff without burying the primary act
   assert.match(checkout, /前往綠界付款/);
   assert.match(checkout, /序號通常 5 分鐘內寄到信箱/);
   assert.match(checkout, /class="ck-quote"/);
+  assert.match(checkout, /class="ck-proof-strip"/);
+  assert.match(checkout, /不用重填資料/);
+  assert.doesNotMatch(checkout, /class="incl"/, 'checkout should not repeat landing-page feature inventory after users decided to pay');
+  assert.ok(
+    checkout.indexOf('id="ck-submit"') < checkout.indexOf('id="plans"'),
+    'primary payment button should appear before secondary plan switching'
+  );
   assert.doesNotMatch(checkout, /class=”ck-quote”/);
   assert.match(checkout, /<details class="legal">/);
   assert.match(checkout, /<summary>退費、上榜保障與付款安全<\/summary>/);

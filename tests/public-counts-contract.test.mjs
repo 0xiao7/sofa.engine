@@ -15,7 +15,8 @@ test('public law counts use the current rounded live total', () => {
   assert.match(source['dashboard.html'], /36,000\+ 條 · 567 部/);
   assert.match(source['dashboard.html'], /共 <b>567<\/b> 部 · <b>36,000\+<\/b> 條/);
   assert.match(source['login.html'], /36,000\+ 條法規、567 部法典/);
-  assert.match(source['checkout.html'], /567 部法規 · 36,000\+ 條文/);
+  assert.match(source['checkout.html'], /36,000<em>\+<\/em>/);
+  assert.match(source['checkout.html'], /<div class="v">567<\/div><div class="k">STATUTES<\/div>/);
   assert.match(source['free.html'], /567 部法規、36,000\+ 條文/);
   assert.match(source['terms.html'], /567 部法規、共 36,000\+ 條文/);
 });
@@ -28,7 +29,9 @@ test('public growth funnel leads with web practice and saved learning value', ()
   assert.match(source['pricing.html'], /錯題重練/);
   assert.match(source['quiz.html'], /輸入序號保留紀錄/);
   assert.match(source['free.html'], /弱點分析與錯題重練/);
-  assert.match(source['checkout.html'], /3 種練習 \+ 弱點分析/);
+  assert.match(source['checkout.html'], /綠界付款/);
+  assert.match(source['checkout.html'], /不用重填資料/);
+  assert.doesNotMatch(source['checkout.html'], /3 種練習 \+ 弱點分析/);
   for (const file of ['index.html', 'pricing.html', 'free.html', 'checkout.html']) {
     assert.doesNotMatch(source[file], /lin\.ee|每日 LINE|加入 LINE|LINE Bot 法條推播/, `${file} still promotes LINE as a primary funnel`);
     assert.doesNotMatch(source[file], /LEARNING LOOP|mode-code">WEAK|4 種練習模式[\s\S]{0,60}弱點分析/, `${file} uses off-brand or inaccurate funnel labels`);
