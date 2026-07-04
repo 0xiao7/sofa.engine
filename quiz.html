@@ -1404,6 +1404,10 @@ function _showQzExamBanner() {
 function _shouldShowQzExamBanner(examKey) {
   return !examKey && !_lawParamFromUrl() && !_articleParamFromUrl() && !_drillParam && !_pastExamMode && !_startQuizParam;
 }
+function _defaultExamForQuizStart(examKey) {
+  if (examKey || !_startQuizParam || _lawParamFromUrl() || _articleParamFromUrl() || _drillParam || _pastExamMode) return examKey;
+  return 'bookkeeper';
+}
 
 let _currentLawName = '';
 let _currentPageId = '';
@@ -1429,7 +1433,8 @@ let sessionHistory=[]; // [{num, correct:null|true|false, flagged:false, law:'',
   try{
     const d=await fetch(`${API}/api/laws`).then(r=>r.json());
     _allLoadedQzLaws = d.laws || [];
-    const examKey = localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || '';
+    let examKey = localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || '';
+    examKey = _defaultExamForQuizStart(examKey);
     if(examKey) localStorage.setItem('sofa_exam_key', examKey);
     if(_shouldShowQzExamBanner(examKey)) _showQzExamBanner();
     // Wave 109: insert 全部法規 as first real option (after special __ options)
