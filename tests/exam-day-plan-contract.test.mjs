@@ -4,6 +4,14 @@ import test from 'node:test';
 
 const pricing = readFileSync(new URL('../pricing.html', import.meta.url), 'utf8');
 const checkout = readFileSync(new URL('../checkout.html', import.meta.url), 'utf8');
+const homepage = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
+
+test('homepage does not advertise one fixed bookkeeper exam-day date', () => {
+  assert.doesNotMatch(homepage, /2026\/11\/30|11\/30/);
+  assert.match(homepage, /依考試目標用到考後緩衝日/);
+  assert.match(homepage, /依你的考試目標用到考後緩衝日/);
+  assert.match(homepage, /依考試目標計算期限/);
+});
 
 test('checkout defaults to the exam-day plan and keeps required checkout fields', () => {
   assert.match(checkout, /POST https:\/\/sofa-engine-api\.onrender\.com\/api\/checkout|const API_URL = "https:\/\/sofa-engine-api\.onrender\.com\/api\/checkout"/);
