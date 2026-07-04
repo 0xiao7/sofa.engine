@@ -615,7 +615,7 @@
         <li><span class="ix">04</span><span><b>上榜退 30% / 分享退 40%</b>——憑榜單退款；公開分享心得加 10%。</span></li>
       </ul>
 
-      <div class=”ck-quote”>”讀不完沒關係。考試當天你只需要想起來。<br/>備考不是衝刺。是每天都還在。<br/>不記得了沒關係。記過一次，就比沒讀過好一點。”
+      <div class="ck-quote">讀不完沒關係。考試當天你只需要想起來。<br/>備考不是衝刺。是每天都還在。<br/>不記得了沒關係。記過一次，就比沒讀過好一點。
 </div>
     </div>
 
@@ -651,13 +651,6 @@
           <span class="num">01</span><span>選擇方案</span><span class="line"></span>
         </div>
 
-        <!-- early bird banner — hidden after 2026-06-15 -->
-        <div class="eb-banner" id="eb-banner">
-          <span class="ic">EARLY</span>
-          <span class="tx"><b>6/15 前限定</b>：購買月費方案自動延長 +15 天，30 天變 <b>45 天</b>，同樣價格。</span>
-          <span class="cd" id="eb-countdown"></span>
-        </div>
-
         <div class="plans" id="plans">
 
           <!-- 月費 -->
@@ -666,14 +659,30 @@
             <div class="body">
               <div class="name-row">
                 <span class="name">月訂閱</span>
-                <span class="meta" id="monthly-meta">／ 45 天</span>
-                <span class="badge" id="monthly-eb">EARLY +15d</span>
+                <span class="meta">／ 30 天</span>
               </div>
-              <div class="desc" id="monthly-desc">早鳥限定：30 天 + 贈 15 天 = <b>共 45 天</b>。適合先試試節奏的你。</div>
+              <div class="desc">30 天無限使用，適合先試試節奏的你。</div>
             </div>
             <div class="price">
               <div class="n"><span class="c">NT$</span>380</div>
               <div class="per">每月</div>
+            </div>
+          </div>
+
+          <!-- 到考日 -->
+          <div class="plan" data-plan="到考日" data-amount="1280" data-days="exam">
+            <span class="radio"></span>
+            <div class="body">
+              <div class="name-row">
+                <span class="name">到考日方案</span>
+                <span class="meta">／ 讀到考試日</span>
+                <span class="badge">EXAM</span>
+              </div>
+              <div class="desc">依你設定的考試目標使用到考試日。適合一路準備到上場的你。</div>
+            </div>
+            <div class="price">
+              <div class="n" aria-label="NT$1280"><span class="c">NT$</span>1280</div>
+              <div class="per">到考日</div>
             </div>
           </div>
 
@@ -683,11 +692,10 @@
             <div class="body">
               <div class="name-row">
                 <span class="name">季訂閱</span>
-                <span class="meta" id="quarterly-meta">／ 90 天</span>
+                <span class="meta">／ 90 天</span>
                 <span class="badge save">省 NT$ 150</span>
-                <span class="badge" id="quarterly-eb" style="display:none">EARLY +45d</span>
               </div>
-              <div class="desc" id="quarterly-desc">90 天無限使用，平均 <b>NT$11／日</b>。適合準備進入備考節奏的你。</div>
+              <div class="desc">90 天無限使用，平均 <b>NT$11／日</b>。適合準備進入備考節奏的你。</div>
             </div>
             <div class="price">
               <div class="n"><span class="c">NT$</span>990</div>
@@ -841,10 +849,6 @@
     emailEl.focus();
   }
 
-  // Early bird: +15 days on monthly plan before 2026-06-15
-  const EB_END = new Date("2026-06-15T23:59:59+08:00");
-  const isEarlyBird = new Date() < EB_END;
-
   // ── 動態考試倒數（左側面板）：依 target 顯示，未設定考期不套記帳士 ──────
   (function(){
     const api = window.SoFaExamTargets;
@@ -852,39 +856,10 @@
     api.renderCountdown({ days: '#ck-exam-days', htmlDays: '<em>d</em>', emptyDaysText: '—' });
   })();
 
-  (function setupEarlyBird(){
-    const banner    = document.getElementById("eb-banner");
-    const countdown = document.getElementById("eb-countdown");
-    // 月費
-    const meta      = document.getElementById("monthly-meta");
-    const desc      = document.getElementById("monthly-desc");
-    const ebBadge   = document.getElementById("monthly-eb");
-    // 季費
-    const qMeta     = document.getElementById("quarterly-meta");
-    const qDesc     = document.getElementById("quarterly-desc");
-    const qEbBadge  = document.getElementById("quarterly-eb");
-
-    if (!isEarlyBird) {
-      if (banner)   banner.style.display  = "none";
-      if (meta)     meta.textContent      = "／ 30 天";
-      if (desc)     desc.innerHTML        = "30 天無限使用，適合先試試節奏的你。";
-      if (ebBadge)  ebBadge.style.display = "none";
-      if (qMeta)    qMeta.textContent     = "／ 90 天";
-      if (qEbBadge) qEbBadge.style.display= "none";
-      return;
-    }
-    // 早鳥期間
-    const daysLeft = Math.ceil((EB_END - new Date()) / 86400000);
-    if (countdown) countdown.textContent = "還剩 " + daysLeft + " 天";
-    // 季費早鳥 +45天
-    if (qMeta)    qMeta.textContent  = "／ 135 天";
-    if (qDesc)    qDesc.innerHTML    = '早鳥限定：90 天 + 贈 45 天 = <b>共 135 天</b>。適合進入備考節奏的你。';
-    if (qEbBadge) qEbBadge.style.display = "";
-  })();
-
   const PLAN_TEXT = {
-    "月費": isEarlyBird ? "月訂閱 · 45 天（含早鳥 +15 天）" : "月訂閱 · 30 天",
-    "季費": isEarlyBird ? "季訂閱 · 135 天（含早鳥 +45 天）" : "季訂閱 · 90 天"
+    "月費": "月訂閱 · 30 天",
+    "到考日": "到考日方案 · 讀到考試日",
+    "季費": "季訂閱 · 90 天"
   };
   const DEFAULT_HINT = "請確認信箱正確，序號僅寄送一次。";
 
@@ -922,6 +897,7 @@
     const rawPlanParam  = (qs.get("plan")  || "").trim();
     const planAliases = {
       "monthly": "月費", "month": "月費", "30": "月費", "月訂閱": "月費",
+      "exam_day": "到考日", "exam-day": "到考日", "exam": "到考日", "until_exam": "到考日", "until-exam": "到考日", "1280": "到考日", "到考日": "到考日", "到考日方案": "到考日",
       "quarterly": "季費", "quarter": "季費", "season": "季費", "90": "季費", "季訂閱": "季費"
     };
     const planParam = planAliases[rawPlanParam.toLowerCase()] || rawPlanParam;
