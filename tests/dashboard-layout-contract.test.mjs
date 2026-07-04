@@ -624,6 +624,10 @@ test('expire overlay explains feedback and sharing extension rules', () => {
   assert.match(html, /幾個帳號就加幾次/);
   assert.match(html, /你的 SoFa 帳號/);
   assert.match(html, /隔天依信任制自動補登體驗天數/);
+  assert.match(html, /data-track-event="expire_entitlement_detail_click"/);
+  assert.match(html, /查看期限明細/);
+  assert.match(html, /function openExpireEntitlementPanel/);
+  assert.match(html, /openExpireEntitlementPanel\(\)\{[\s\S]*expire-overlay[\s\S]*style\.display='none'[\s\S]*openEntitlementPanel\(\)/);
 });
 
 test('member card surfaces renewal before expiry without hiding payment', () => {
@@ -638,6 +642,14 @@ test('entitlement panel refreshes if ledger data arrives after the panel opens',
   assert.match(html, /function refreshEntitlementPanelIfOpen/);
   assert.match(html, /backdrop && backdrop\.classList\.contains\('on'\)/);
   assert.match(html, /refreshEntitlementPanelIfOpen\(\);\s*renderStudyToday/);
+});
+
+test('expired members can read their membership card from entitlement data when profile is gated', () => {
+  assert.match(html, /function profileFromEntitlementData/);
+  assert.match(html, /var memberCardProfile = profile \|\| profileFromEntitlementData\(_entitlementState\.data\)/);
+  assert.match(html, /if\(memberCardProfile\)\{/);
+  assert.match(html, /var entitlementOnly = !!memberCardProfile\.entitlement_only/);
+  assert.match(html, /entitlementOnly && serial \? \('後 4 碼 ' \+ serial\) : \(serial \? _maskSerial\(serial\) : '——'\)/);
 });
 
 test('expiry copy reassures records continue after renewal', () => {
