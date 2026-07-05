@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<title>SoFa Engine — 考古題</title>
+<link rel="canonical" href="https://sofaengine.org/exam.html" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="sofa.css" />
+<style>
+  body{background:var(--navy-3);color:var(--cream)}
+  .exam-wrap{min-height:100vh;padding:34px 48px 96px;position:relative}
+  .exam-wrap::before{content:"";position:fixed;inset:0;background-image:linear-gradient(rgba(245,240,234,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(245,240,234,.018) 1px,transparent 1px);background-size:60px 60px;pointer-events:none}
+  .exam-inner{max-width:1120px;margin:0 auto;position:relative}
+  .exam-top{display:flex;align-items:flex-start;justify-content:space-between;gap:24px;border-bottom:1px solid var(--line);padding-bottom:22px;margin-bottom:28px}
+  .back{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:rgba(245,240,234,.55);text-decoration:none}
+  .eyebrow{font-family:var(--mono);font-size:12px;letter-spacing:.18em;color:var(--peach);text-transform:uppercase;margin-bottom:10px}
+  h1{font-family:var(--serif);font-weight:600;font-size:42px;line-height:1.15;margin:0}
+  .meta{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:rgba(245,240,234,.55);text-align:right;line-height:1.8}
+  .filters{display:grid;grid-template-columns:1fr 1fr auto;gap:12px;margin-bottom:24px}
+  select,.btn{border:1px solid var(--line-2);background:var(--navy-2);color:var(--cream);border-radius:4px;padding:14px 16px;font-family:var(--sans);font-size:15px}
+  .btn{cursor:pointer;font-weight:700}
+  .btn.primary{background:var(--peach);border-color:var(--peach);color:var(--navy)}
+  .btn.ghost{background:transparent}
+  .panel{border:1px solid var(--line);background:var(--navy-2);border-radius:6px;padding:24px;margin-bottom:18px}
+  .qhead{display:flex;align-items:flex-start;justify-content:space-between;gap:20px;margin-bottom:18px}
+  .qno{font-family:var(--serif);font-size:44px;line-height:1;color:var(--cream)}
+  .qsrc{font-family:var(--mono);font-size:12px;letter-spacing:.08em;color:var(--peach);text-align:right;line-height:1.7}
+  .stem{font-family:var(--serif);font-size:21px;line-height:1.9;color:rgba(245,240,234,.88);border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:5px;padding:24px;margin-bottom:18px}
+  .opts{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .opt{display:flex;align-items:flex-start;gap:14px;border:1px solid var(--line);background:rgba(255,255,255,.025);border-radius:5px;padding:18px;cursor:pointer;min-height:74px}
+  .opt .key{width:34px;height:34px;border:1px solid var(--line-2);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-weight:700;flex:none}
+  .opt .txt{font-family:var(--serif);font-size:17px;line-height:1.6}
+  .opt.right{border-color:var(--good);background:rgba(159,184,159,.09)}
+  .opt.right .key{background:var(--good);border-color:var(--good);color:var(--navy)}
+  .opt.wrong{border-color:var(--bad);background:rgba(199,123,106,.1)}
+  .opt.wrong .key{background:var(--bad);border-color:var(--bad);color:var(--cream)}
+  .explain{display:none;background:var(--cream);color:var(--navy);border-left:4px solid var(--peach-3);border-radius:5px;padding:20px 24px;margin-top:18px}
+  .explain .label{font-family:var(--mono);font-size:12px;letter-spacing:.12em;color:var(--peach-3);font-weight:700;margin-bottom:8px}
+  .explain p{font-size:15px;line-height:1.85;color:rgba(31,56,72,.82);margin:8px 0}
+  .law-note{font-size:13px;color:rgba(31,56,72,.65)}
+  .actions{display:flex;gap:12px;justify-content:flex-end;flex-wrap:wrap;margin-top:18px}
+  .empty{border:1px dashed var(--line);border-radius:5px;padding:28px;color:rgba(245,240,234,.55);font-family:var(--sans)}
+  @media (max-width:760px){
+    .exam-wrap{padding:24px 16px 72px}
+    .exam-top{display:block}.meta{text-align:left;margin-top:14px}
+    h1{font-size:34px}.filters{grid-template-columns:1fr}
+    .opts{grid-template-columns:1fr}.stem{font-size:18px;padding:18px}
+    .panel{padding:18px}.qhead{display:block}.qsrc{text-align:left;margin-top:10px}
+  }
+</style>
+</head>
+<body>
+<main class="exam-wrap">
+  <div class="exam-inner">
+    <div class="exam-top">
+      <div>
+        <a class="back" href="dashboard.html">← 回會員中心</a>
+        <div class="eyebrow" style="margin-top:22px">PAST EXAM · VERIFIED QUESTIONS</div>
+        <h1>考古題</h1>
+      </div>
+      <div class="meta" id="metaBox">載入題庫中…</div>
+    </div>
+
+    <div class="filters">
+      <select id="subjectSelect" aria-label="考科"></select>
+      <select id="yearSelect" aria-label="年度"></select>
+      <button class="btn primary" id="loadBtn">開始刷題</button>
+    </div>
+
+    <section class="panel" id="examPanel">
+      <div class="empty">先選年度與考科。這裡只出真實歷屆題；答錯會併入弱點分析。</div>
+    </section>
+  </div>
+</main>
+
+<script>
+const API = "https://sofa-engine-api.onrender.com";
+const uid = localStorage.getItem("sofa_uid") || (location.hostname === "localhost" || location.protocol === "file:" ? "PREVIEW" : null);
+const tok = localStorage.getItem("sofa_token") || "";
+const isFree = !uid && localStorage.getItem("sofa_free") === "FREE";
+if (!uid && !isFree) window.location.href = "login.html?redirect=exam.html";
+function esc(s){return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+function authHeaders(extra){
+  const h = extra ? {...extra} : {};
+  if (tok) h.Authorization = "Bearer " + tok;
+  else if (uid) h["X-Sofa-UID"] = uid;
+  return h;
+}
+let questions = [];
+let idx = 0;
+let answered = false;
+const answer_source = "past-exam";
+
+async function loadMeta(){
+  const meta = await fetch(`${API}/api/past-exam/meta`).then(r => r.json());
+  document.getElementById("metaBox").textContent = `目前 ${meta.total || 0} 題 · ${((meta.subjects || []).length)} 科 · ${((meta.years || []).join("、"))}`;
+  const subjectSelect = document.getElementById("subjectSelect");
+  const yearSelect = document.getElementById("yearSelect");
+  subjectSelect.innerHTML = (meta.subjects || []).map(s => `<option value="${esc(s)}">${esc(s)}</option>`).join("");
+  yearSelect.innerHTML = (meta.years || []).map(y => `<option value="${esc(y)}">${esc(y)} 年</option>`).join("");
+}
+
+async function loadSet(){
+  const subject = document.getElementById("subjectSelect").value;
+  const year = document.getElementById("yearSelect").value;
+  const panel = document.getElementById("examPanel");
+  panel.innerHTML = '<div class="empty">載入真題中…</div>';
+  const data = await fetch(`${API}/api/past-exam/set?subject=${encodeURIComponent(subject)}&year=${encodeURIComponent(year)}&limit=40`).then(r => r.json());
+  questions = (data.questions || []).filter(q => (q.article_ids || []).length);
+  idx = 0;
+  if(!questions.length){
+    panel.innerHTML = '<div class="empty">這組題目目前沒有可連到法條的題目，先換年份或考科。</div>';
+    return;
+  }
+  renderQuestion();
+}
+
+function renderQuestion(){
+  answered = false;
+  const q = questions[idx];
+  const labels = ["A","B","C","D"];
+  const opts = (q.options || []).map((o, i) => `
+    <button class="opt" type="button" data-key="${esc(o.key || labels[i])}" data-index="${i}">
+      <span class="key">${esc(o.key || labels[i])}</span>
+      <span class="txt">${esc(o.text || "")}</span>
+    </button>
+  `).join("");
+  document.getElementById("examPanel").innerHTML = `
+    <div class="qhead">
+      <div class="qno">${idx + 1}<span style="font-size:18px;color:rgba(245,240,234,.4)"> / ${questions.length}</span></div>
+      <div class="qsrc">${esc(q.roc_year)} 年<br>${esc(q.subject)}<br>第 ${esc(q.question_no)} 題</div>
+    </div>
+    <div class="stem">${esc(q.stem)}</div>
+    <div class="opts">${opts}</div>
+    <div class="explain" id="explainBox">
+      <div class="label" id="resultLabel">—</div>
+      <p>${esc(q.explanation || "尚無解析。")}</p>
+      ${q.law_change_note ? `<p class="law-note">修法提醒：${esc(q.law_change_note)}</p>` : ""}
+      <p class="law-note">答案來源：官方 ${esc(q.official_answer || q.answer)}；現行驗證 ${esc(q.verified_answer || q.answer)}。</p>
+      <div class="actions">
+        <a class="btn ghost" href="quiz.html">一般選擇題</a>
+        <button class="btn primary" id="nextBtn" type="button">下一題</button>
+      </div>
+    </div>
+  `;
+  document.querySelectorAll(".opt").forEach(btn => btn.addEventListener("click", () => choose(btn)));
+}
+
+async function choose(btn){
+  if(answered) return;
+  answered = true;
+  const q = questions[idx];
+  const picked = btn.dataset.key;
+  const correct = q.verified_answer || q.answer || q.official_answer;
+  const isCorrect = picked === correct;
+  document.querySelectorAll(".opt").forEach(o => {
+    o.disabled = true;
+    if(o.dataset.key === correct) o.classList.add("right");
+  });
+  if(!isCorrect) btn.classList.add("wrong");
+  document.getElementById("resultLabel").textContent = isCorrect ? "答對了" : `答錯了，正確答案是 ${correct}`;
+  document.getElementById("explainBox").style.display = "block";
+  document.getElementById("nextBtn").addEventListener("click", () => {
+    idx = (idx + 1) % questions.length;
+    renderQuestion();
+  });
+  if(uid && uid !== "PREVIEW" && !isFree && (q.article_ids || [])[0]){
+    const correctIdx = (q.options || []).findIndex(o => (o.key || "") === correct);
+    const choiceIdx = Number(btn.dataset.index || 0);
+    fetch(`${API}/api/me/answer`, {
+      method: "POST",
+      headers: authHeaders({"Content-Type":"application/json"}),
+      body: JSON.stringify({
+        article_id: q.article_ids[0],
+        is_correct: isCorrect,
+        mode: "past-exam",
+        question: q.stem,
+        options: (q.options || []).map(o => o.text || ""),
+        correct_idx: Math.max(0, correctIdx),
+        choice: choiceIdx,
+        explanation: q.explanation || "",
+        answer_source
+      })
+    }).catch(() => {});
+  }
+}
+
+document.getElementById("loadBtn").addEventListener("click", loadSet);
+loadMeta().catch(() => {
+  document.getElementById("metaBox").textContent = "題庫暫時讀取失敗";
+});
+</script>
+</body>
+</html>
