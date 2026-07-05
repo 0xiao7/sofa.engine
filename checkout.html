@@ -954,31 +954,39 @@
   function initExamTargetSelect(){
     if (!examTargetEl || !window.SoFaExamTargets) return;
     const targets = window.SoFaExamTargets.TARGETS || {};
-    const selectedKey = (
-      queryParams.get("exam_key") ||
-      queryParams.get("target") ||
-      (window.SoFaExamTargets.resolveTarget() || {}).key ||
-      "bookkeeper"
-    );
-    examTargetEl.innerHTML = Object.keys(targets).map((key) => {
+    const selectedKey = getExplicitCheckoutExamKey();
+    const options = Object.keys(targets).map((key) => {
       const t = targets[key] || {};
       const date = t.examDisplay || "考期未設定";
       return `<option value="${key}">${t.label || key} · ${date}</option>`;
     }).join("");
+    examTargetEl.innerHTML = `<option value="">請先選你的考試目標</option>${options}`;
     if (targets[selectedKey]) examTargetEl.value = selectedKey;
     updateExamTargetHint();
   }
 
+  function getExplicitCheckoutExamKey(){
+    const fromQuery = (queryParams.get("exam_key") || queryParams.get("target") || "").trim();
+    if (fromQuery) return fromQuery;
+    try {
+      return (
+        localStorage.getItem("sofa_exam_target") ||
+        localStorage.getItem("sofa.target") ||
+        ""
+      ).trim();
+    } catch (_) {}
+    return "";
+  }
+
   function getCheckoutExamKey(){
     if (examTargetEl && examTargetEl.value) return examTargetEl.value;
-    try { return (window.SoFaExamTargets.resolveTarget() || {}).key || "bookkeeper"; } catch (_) {}
-    return "bookkeeper";
+    return getExplicitCheckoutExamKey();
   }
 
   function getCheckoutExamLabel(){
     const api = window.SoFaExamTargets;
     const target = api && api.TARGETS ? api.TARGETS[getCheckoutExamKey()] : null;
-    if (!target) return "目標考試 · 考期未設定";
+    if (!target) return "請先選你的考試目標";
     return `${target.label || "目標考試"} · ${target.examDisplay || "考期未設定"}`;
   }
 
@@ -991,7 +999,9 @@
   function updateExamTargetHint(){
     if (!examTargetHintEl || !window.SoFaExamTargets) return;
     const target = window.SoFaExamTargets.TARGETS[getCheckoutExamKey()];
-    if (target && target.examDisplay) {
+    if (!getCheckoutExamKey()) {
+      examTargetHintEl.textContent = "請先選你的考試目標；到考日不會預設成記帳士。";
+    } else if (target && target.examDisplay) {
       examTargetHintEl.textContent = `會以 ${target.examDisplay} 作為考試目標，實際可用期限由後端考期設定計算。`;
     } else {
       examTargetHintEl.textContent = "考期未設定：這個考試的到考日方案尚未開放，請先選月費或季費。";
@@ -1073,6 +1083,12 @@
   });
   if (examTargetEl) {
     examTargetEl.addEventListener("change", () => {
+      try {
+        if (examTargetEl.value) {
+          localStorage.setItem("sofa_exam_target", examTargetEl.value);
+          localStorage.setItem("sofa.target", examTargetEl.value);
+        }
+      } catch (_) {}
       updateExamTargetHint();
       refreshSummary();
       trackCheckout("checkout_exam_target_select", { exam_key: getCheckoutExamKey() });
@@ -1095,6 +1111,12 @@
     }
 
     const sel = getSelected();
+    if (sel.plan === "到考日" && !getCheckoutExamKey()) {
+      trackCheckout("checkout_exam_target_missing");
+      showError("請先選你的考試目標。到考日方案會依各考試日期計算，不會預設套用記帳士。");
+      try { examTargetSection.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (_) {}
+      return;
+    }
     if (sel.plan === "到考日" && !isCheckoutExamTargetConfigured()) {
       trackCheckout("checkout_exam_target_unavailable", { exam_key: getCheckoutExamKey() });
       showError("這個考試的到考日方案尚未開放。請先選月費或季費，或等我們補上正式考期。");
