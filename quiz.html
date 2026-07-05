@@ -303,6 +303,17 @@
         <option value="記帳相關法規概要">記帳法規</option>
         <option value="稅務相關法規概要">稅務法規</option>
       </select>
+      <select id="pastExamYear" onchange="if(_pastExamMode) loadQuiz()"
+        style="display:none;background:var(--navy-3);border:1px solid rgba(231,187,167,0.35);
+               border-radius:8px;color:var(--cream);font-size:12px;padding:6px 10px;">
+        <option value="">全部年度</option>
+        <option value="114">114 年</option>
+        <option value="113">113 年</option>
+        <option value="112">112 年</option>
+        <option value="111">111 年</option>
+        <option value="110">110 年</option>
+        <option value="109">109 年</option>
+      </select>
     </div>
     <div class="pr-meta">
       <div class="seg">第 <b id="qNum">—</b></div>
@@ -430,6 +441,7 @@ function _setPastExamMode(on, opts){
   _pastExamMode = !!on;
   const btn = document.getElementById('btnPastExam');
   const sub = document.getElementById('pastExamSubject');
+  const year = document.getElementById('pastExamYear');
   const lawSelect = document.getElementById('lawSelect');
   const chips = document.querySelector('.pr-chips');
   if(btn){
@@ -438,6 +450,7 @@ function _setPastExamMode(on, opts){
     btn.style.color = _pastExamMode ? 'var(--navy)' : 'var(--peach)';
   }
   if(sub) sub.style.display = _pastExamMode ? '' : 'none';
+  if(year) year.style.display = _pastExamMode ? '' : 'none';
   if(lawSelect) lawSelect.style.display = _pastExamMode ? 'none' : '';
   if(chips) chips.style.display = _pastExamMode ? 'none' : '';
   if(!(opts&&opts.noHistory)){
@@ -691,14 +704,38 @@ function _normalizePastExamQuestion(raw) {
     verify_status: raw.verify_status || '',
     _past_exam: true,
     _past_exam_key: _pastExamQuestionKey(raw),
+    _past_exam_subject: raw.subject || '',
+    _past_exam_year: raw.roc_year || '',
+    _past_exam_question_no: raw.question_no || '',
   };
+}
+
+function recordQuizAnswer(data,pageId,isCorrect,choiceIndex,correctIdx){
+  if(!pageId||!uid||uid==='PREVIEW'||isFree)return;
+  fetch(`${API}/api/me/answer`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({
+    article_id:pageId,
+    mode:data._past_exam?'past_exam':'quiz',
+    source:data._past_exam?'past_exam':'quiz',
+    is_correct:isCorrect,
+    choice:choiceIndex,
+    correct_idx:Math.max(0, correctIdx),
+    question:data.question||'',
+    options:Array.isArray(data.options)?data.options:[],
+    explanation:data.explanation||'',
+    exam_subject:data._past_exam_subject||'',
+    exam_year:data._past_exam_year||'',
+    exam_question_no:data._past_exam_question_no||''
+  })}).catch(()=>{});
 }
 
 async function _fetchPastExamQuestion() {
   const sel = document.getElementById('pastExamSubject');
   const subject = (sel && sel.value) || _PAST_EXAM_SUBJECTS[0];
+  const yearSel = document.getElementById('pastExamYear');
+  const year = (yearSel && yearSel.value) || '';
+  const yearPart = year ? `&year=${encodeURIComponent(year)}` : '';
   for(let attempt=0;attempt<5;attempt++){
-    const data = await fetch(`${API}/api/past-exam?subject=${encodeURIComponent(subject)}`, {headers:_authH()}).then(r=>r.json());
+    const data = await fetch(`${API}/api/past-exam?subject=${encodeURIComponent(subject)}${yearPart}`, {headers:_authH()}).then(r=>r.json());
     if(data.error || data.detail) return data;
     if(!isRecentPastExamQuestion(data) || attempt===4){
       rememberRecentPastExamQuestion(data);
@@ -800,6 +837,7 @@ async function loadQuiz(){
     // 舊格式：options=[{snippet, is_correct, id}], question=...
     const isNewFmt = typeof (data.options||[])[0] !== 'object';
     const correctAnswer = isNewFmt ? data.answer : null;
+    const correctIdx = isNewFmt ? (data.options||[]).findIndex(opt=>opt===correctAnswer) : (data.options||[]).findIndex(opt=>!!opt?.is_correct);
     const pageId = data.page_id || data.correct_id || null;
 
     const lawName=data.law_name||(law&&law!=='__starred__'?document.getElementById('lawSelect').selectedOptions[0]?.text:'');
@@ -838,6 +876,7 @@ async function loadQuiz(){
         if(!isCorrect){btn.classList.add('wrong');wrong++;}else{right++;}
         cur.correct=isCorrect;
         updateScore();
+        recordQuizAnswer(data,pageId,isCorrect,i,correctIdx);
         // 寫入練習紀錄
         if(pageId&&uid&&uid!=='PREVIEW'&&!isFree){
           fetch(`${API}/api/me/history`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({page_id:pageId,law_name:lawName,article:artTitle})}).catch(()=>{});

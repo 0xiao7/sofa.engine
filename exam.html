@@ -90,7 +90,7 @@ function authHeaders(extra){
 let questions = [];
 let idx = 0;
 let answered = false;
-const answer_source = "past-exam";
+const answer_source = "past_exam";
 
 async function loadMeta(){
   const meta = await fetch(`${API}/api/past-exam/meta`).then(r => r.json());
@@ -174,7 +174,7 @@ async function choose(btn){
       body: JSON.stringify({
         article_id: q.article_ids[0],
         is_correct: isCorrect,
-        mode: "past-exam",
+        mode: "past_exam",
         question: q.stem,
         options: (q.options || []).map(o => o.text || ""),
         correct_idx: Math.max(0, correctIdx),

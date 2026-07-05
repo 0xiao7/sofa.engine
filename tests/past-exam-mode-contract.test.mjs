@@ -1,13 +1,31 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
+import vm from 'node:vm';
 
 const quiz = readFileSync(new URL('../quiz.html', import.meta.url), 'utf8');
 const dashboard = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
 const radar = readFileSync(new URL('../past-exam-radar.html', import.meta.url), 'utf8');
+const bookkeeper = readFileSync(new URL('../bookkeeper.html', import.meta.url), 'utf8');
 const activeQuiz = quiz.replace(/<!--[\s\S]*?-->/g, '');
 const activeDashboard = dashboard.replace(/<!--[\s\S]*?-->/g, '');
 const activeRadar = radar.replace(/<!--[\s\S]*?-->/g, '');
+const activeBookkeeper = bookkeeper.replace(/<!--[\s\S]*?-->/g, '');
+
+function extractFunction(source, name) {
+  let start = source.indexOf(`function ${name}`);
+  assert.ok(start >= 0, `${name} must exist`);
+  const brace = source.indexOf('{', start);
+  let depth = 0;
+  for (let i = brace; i < source.length; i++) {
+    if (source[i] === '{') depth++;
+    if (source[i] === '}') {
+      depth--;
+      if (depth === 0) return source.slice(start, i + 1);
+    }
+  }
+  throw new Error(`${name} function did not close`);
+}
 
 test('dashboard past-exam card opens the real past-exam mode', () => {
   const cardStart = activeDashboard.indexOf('考古題練習');
@@ -31,9 +49,78 @@ test('dashboard keeps normal quiz and past-exam entries separate', () => {
 test('quiz has a real past-exam mode backed by the past-exam API', () => {
   assert.match(activeQuiz, /mode'\)\s*===\s*'past-exam'/);
   assert.match(activeQuiz, /id="pastExamSubject"/);
+  assert.match(activeQuiz, /id="pastExamYear"/);
   assert.match(activeQuiz, /function _normalizePastExamQuestion/);
   assert.match(activeQuiz, /\/api\/past-exam\?subject=/);
+  assert.match(activeQuiz, /year=\$\{encodeURIComponent\(year\)\}/);
   assert.match(activeQuiz, /\.find\(o=>o\.key===raw\.answer\)/);
+});
+
+test('past-exam answers write formal answer ledger rows with exam context', () => {
+  const fn = extractFunction(activeQuiz, 'recordQuizAnswer');
+  assert.match(fn, /\/api\/me\/answer/);
+  assert.match(fn, /article_id:pageId/);
+  assert.match(fn, /mode:data\._past_exam\?'past_exam':'quiz'/);
+  assert.match(fn, /source:data\._past_exam\?'past_exam':'quiz'/);
+  assert.match(fn, /is_correct:isCorrect/);
+  assert.match(fn, /choice:choiceIndex/);
+  assert.match(fn, /correct_idx:Math\.max\(0, correctIdx\)/);
+  assert.match(fn, /question:data\.question\|\|''/);
+  assert.match(fn, /options:Array\.isArray\(data\.options\)\?data\.options:\[\]/);
+  assert.match(fn, /exam_subject:data\._past_exam_subject\|\|''/);
+  assert.match(fn, /exam_year:data\._past_exam_year\|\|''/);
+  assert.match(fn, /exam_question_no:data\._past_exam_question_no\|\|''/);
+  const loadQuiz = activeQuiz.slice(activeQuiz.indexOf('async function loadQuiz'), activeQuiz.indexOf('function doFlag'));
+  assert.match(loadQuiz, /recordQuizAnswer\(data,pageId,isCorrect,i,correctIdx\)/);
+});
+
+test('past-exam answer ledger payload is emitted from the real helper', () => {
+  const fn = extractFunction(activeQuiz, 'recordQuizAnswer');
+  const sandbox = {
+    uid: 'USER-1',
+    isFree: false,
+    API: 'https://api.example.test',
+    captured: null,
+    _authH: (headers) => ({...headers, Authorization: 'Bearer t'}),
+    fetch: (url, init) => {
+      sandbox.captured = {url, init};
+      return {catch() {}};
+    },
+  };
+  vm.runInNewContext(`${fn}; recordQuizAnswer({
+    _past_exam:true,
+    question:'stem',
+    options:['A','B','C','D'],
+    explanation:'why',
+    _past_exam_subject:'記帳相關法規概要',
+    _past_exam_year:114,
+    _past_exam_question_no:33
+  }, 'article-1', false, 2, 1);`, sandbox);
+
+  assert.equal(sandbox.captured.url, 'https://api.example.test/api/me/answer');
+  const body = JSON.parse(sandbox.captured.init.body);
+  assert.deepEqual(body, {
+    article_id: 'article-1',
+    mode: 'past_exam',
+    source: 'past_exam',
+    is_correct: false,
+    choice: 2,
+    correct_idx: 1,
+    question: 'stem',
+    options: ['A', 'B', 'C', 'D'],
+    explanation: 'why',
+    exam_subject: '記帳相關法規概要',
+    exam_year: 114,
+    exam_question_no: 33,
+  });
+});
+
+test('legacy exam set page uses the same past-exam answer source bucket', () => {
+  assert.match(bookkeeper + quiz, /past-exam/);
+  const exam = readFileSync(new URL('../exam.html', import.meta.url), 'utf8').replace(/<!--[\s\S]*?-->/g, '');
+  assert.match(exam, /const answer_source = "past_exam"/);
+  assert.match(exam, /mode: "past_exam"/);
+  assert.doesNotMatch(exam, /answer_source = "past-exam"|mode: "past-exam"/);
 });
 
 test('loadQuiz routes to past-exam questions before generated law questions', () => {
@@ -71,6 +158,14 @@ test('dashboard exposes a separate past-exam radar entry', () => {
   assert.match(card, /href="past-exam-radar\.html"/);
   assert.match(card, /看範圍/);
   assert.doesNotMatch(card, /mode=past-exam/);
+});
+
+test('bookkeeper resource page exposes practice and radar as bookkeeper-scoped actions', () => {
+  assert.match(activeBookkeeper, /href="\/quiz\.html\?mode=past-exam"/);
+  assert.match(activeBookkeeper, /href="\/past-exam-radar\.html"/);
+  assert.match(activeBookkeeper, /考古題練習/);
+  assert.match(activeBookkeeper, /考古題雷達/);
+  assert.match(activeBookkeeper, /只看目前可追蹤到法條的題/);
 });
 
 test('past-exam radar states bookkeeper-only scope and trackable-question boundary', () => {
