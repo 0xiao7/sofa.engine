@@ -1655,7 +1655,7 @@ function _renderDrawer(d){
         + '<div class="acc-locked-body">'
         + (!text ? '<div class="acc-locked-lead">'+(LEADS[seg]||'')+'</div>' : '')
         + blurContent
-        + '<div class="acc-locked-cta">🔒 升級解鎖完整內容<a href="checkout.html">查看方案 →</a></div>'
+        + '<div class="acc-locked-cta">🔒 升級解鎖完整內容<a href="checkout.html?utm_source=locked_content&utm_medium=dashboard&utm_campaign=upgrade">查看方案 →</a></div>'
         + '</div></div>';
     } else if(text){
       accHtml += '<div class="acc-item'+(seg===1?' open':'')+'" data-seg="'+seg+'" onclick="this.classList.toggle(\'open\')">'
@@ -1779,7 +1779,7 @@ function closeDrawer(){
   if(isFree){
     var memberCard = document.querySelector('.member-card');
     if(memberCard){
-      memberCard.innerHTML = '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版 · 完整會員資訊在升級後解鎖<br><a href="checkout.html" style="color:var(--peach);margin-top:8px;display:inline-block;">查看方案 →</a></div>';
+      memberCard.innerHTML = '<div style="padding:32px 24px;text-align:center;opacity:.6;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版 · 完整會員資訊在升級後解鎖<br><a href="checkout.html?utm_source=free_member_card&utm_medium=dashboard&utm_campaign=upgrade" style="color:var(--peach);margin-top:8px;display:inline-block;">查看方案 →</a></div>';
     }
     var progCard = document.querySelector('.prog-card');
     if(progCard){
@@ -1801,7 +1801,7 @@ function closeDrawer(){
         'font-family:var(--sans);font-size:.85rem;display:flex;align-items:center;'+
         'justify-content:center;gap:12px;';
       nudge.innerHTML = '你已使用免費版 '+daysSince+' 天，升級解鎖完整學習紀錄與全段內容。'+
-        '<a href="checkout.html" style="color:#E8A598;font-weight:700;white-space:nowrap;">查看方案 →</a>'+
+        '<a href="checkout.html?utm_source=free_30d_nudge&utm_medium=dashboard&utm_campaign=upgrade" style="color:#E8A598;font-weight:700;white-space:nowrap;">查看方案 →</a>'+
         '<button onclick="this.parentNode.remove()" style="background:none;border:none;'+
         'color:rgba(245,240,234,.5);cursor:pointer;font-size:1rem;line-height:1;">✕</button>';
       document.body.prepend(nudge);
