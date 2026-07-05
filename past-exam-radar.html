@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>記帳士考古題雷達｜SoFa Engine</title>
+  <meta name="description" content="先看記帳士考古題可追蹤範圍、資料品質與練習入口。">
+  <link rel="stylesheet" href="sofa.css">
+  <style>
+    :root{--navy:#0e2433;--navy-2:#132f42;--navy-3:#18394f;--cream:#f5f0ea;--muted:rgba(245,240,234,.66);--line:rgba(245,240,234,.12);--peach:#e7bba7;--peach-2:#d89a82;--warn:#f0c36d}
+    body{margin:0;background:var(--navy);color:var(--cream);font-family:var(--serif, "Noto Serif TC", serif);letter-spacing:0}
+    a{color:inherit}
+    .page{max-width:1120px;margin:0 auto;padding:28px 20px 56px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:28px}
+    .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-size:13px;color:var(--muted);font-family:var(--mono, ui-monospace, monospace);letter-spacing:.12em}
+    .dot{width:9px;height:9px;border-radius:50%;background:var(--peach)}
+    .back{font-size:13px;color:var(--muted);text-decoration:none}
+    .hero{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(280px,.8fr);gap:24px;align-items:end;border-bottom:1px solid var(--line);padding:24px 0 28px}
+    h1{font-size:clamp(34px,6vw,68px);line-height:1;margin:0 0 16px;font-weight:600;letter-spacing:0}
+    .truth{font-size:17px;line-height:1.8;color:var(--muted);max-width:680px}
+    .truth b{color:var(--cream);font-weight:600}
+    .actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
+    .btn{min-height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:4px;padding:0 16px;text-decoration:none;font-size:14px;background:transparent;color:var(--cream)}
+    .btn.primary{background:var(--peach);border-color:var(--peach);color:var(--navy);font-weight:700}
+    .panel{border:1px solid var(--line);background:var(--navy-2);border-radius:4px;padding:18px}
+    .panel .k{font-family:var(--mono, ui-monospace, monospace);font-size:11px;letter-spacing:.14em;color:rgba(245,240,234,.48);text-transform:uppercase;margin-bottom:8px}
+    .scope-list{display:grid;gap:8px;margin:0;padding:0;list-style:none}
+    .scope-list li{display:flex;justify-content:space-between;gap:12px;border-bottom:1px dashed var(--line);padding:8px 0;color:var(--muted);font-size:14px}
+    .scope-list li:last-child{border-bottom:0}
+    .scope-list b{color:var(--cream);font-weight:600}
+    .metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:22px 0}
+    .metric{border:1px solid var(--line);background:rgba(245,240,234,.035);border-radius:4px;padding:18px}
+    .metric .n{font-family:var(--mono, ui-monospace, monospace);font-size:26px;color:var(--peach);line-height:1}
+    .metric .label{margin-top:9px;color:var(--muted);font-size:13px}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:18px}
+    .card{border:1px solid var(--line);background:var(--navy-2);border-radius:4px;padding:18px}
+    .card h2{font-size:20px;margin:0 0 10px;font-weight:600}
+    .card p{margin:0;color:var(--muted);font-size:14px;line-height:1.8}
+    .list{margin-top:14px;display:grid;gap:10px}
+    .row{border-top:1px dashed var(--line);padding-top:10px;color:var(--muted);font-size:13px;line-height:1.7}
+    .row b{display:block;color:var(--cream);font-size:14px}
+    .tag{display:inline-flex;align-items:center;min-height:24px;border:1px solid rgba(231,187,167,.35);color:var(--peach);border-radius:3px;padding:0 8px;font-family:var(--mono, ui-monospace, monospace);font-size:11px;letter-spacing:.06em;margin-right:6px}
+    .warn{color:var(--warn)}
+    .quiet{color:rgba(245,240,234,.48)}
+    .error{color:#f0a08f}
+    @media(max-width:760px){
+      .page{padding:20px 14px 42px}
+      .hero,.grid{grid-template-columns:1fr}
+      .metrics{grid-template-columns:1fr}
+      h1{font-size:40px}
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <nav class="top" aria-label="頁面導覽">
+      <a class="brand" href="dashboard.html"><span class="dot"></span>SOFA ENGINE</a>
+      <a class="back" href="dashboard.html">回會員中心</a>
+    </nav>
+
+    <section class="hero">
+      <div>
+        <h1>記帳士考古題雷達</h1>
+        <div class="truth">
+          <b>目前先看記帳士兩科官方選擇題</b>；只顯示能追蹤到法條的題。
+          這個頁面讀現有 API，不做題庫匯入，也不代表全考科都已產品化。
+        </div>
+        <div class="actions">
+          <a class="btn primary" href="quiz.html?mode=past-exam">開始考古題練習</a>
+          <a class="btn" href="#subjects">看常考範圍</a>
+          <a class="btn" href="#quality">看資料品質</a>
+        </div>
+      </div>
+      <aside class="panel" aria-label="目前範圍">
+        <div class="k">CURRENT SCOPE</div>
+        <ul class="scope-list">
+          <li><span>產品範圍</span><b>記帳士兩科</b></li>
+          <li><span>題目邊界</span><b>trackable only</b></li>
+          <li><span>正式練習</span><b>quiz.html?mode=past-exam</b></li>
+        </ul>
+      </aside>
+    </section>
+
+    <section class="metrics" aria-label="考古題雷達數字">
+      <div class="metric"><div class="n" id="radar-total">讀取中</div><div class="label">Live API 可服務題數</div></div>
+      <div class="metric"><div class="n">2</div><div class="label">本頁先看的記帳士科目</div></div>
+      <div class="metric"><div class="n" id="radar-years">讀取中</div><div class="label">API 年度範圍</div></div>
+    </section>
+
+    <section class="grid" id="subjects">
+      <article class="card">
+        <h2>記帳士兩科</h2>
+        <p>先把練習範圍收在記帳士目前可追蹤的兩科，不用非記帳士 live drift 當公開賣點。</p>
+        <div class="list" id="subject-preview-list">
+          <div class="row quiet">正在讀取兩科範例題...</div>
+        </div>
+      </article>
+      <article class="card">
+        <h2>歷屆高頻</h2>
+        <p>高頻法條應由 `article_exam_frequency` 或專用 radar API 提供；本頁先不假造排行。</p>
+        <div class="list">
+          <div class="row"><b>下一段要接的資料</b>exam_count、subjects、years、官方來源標籤。</div>
+          <div class="row"><b>現在可做的事</b>先進考古題練習；答錯會回到弱點與複習路徑。</div>
+        </div>
+      </article>
+      <article class="card" id="quality">
+        <h2>資料品質</h2>
+        <p>只把有 `article_ids` 的題送進練習，讓答案可以寫回同一套弱點紀錄。排除題不是消失，是暫時不拿來建立不可靠的弱點歷史。</p>
+        <div class="list" id="quality-list">
+          <div class="row quiet">正在讀取 live meta...</div>
+        </div>
+      </article>
+      <article class="card">
+        <h2>Live Scope Drift</h2>
+        <p>目前 live `/api/past-exam/meta` 可能含非記帳士科目。本頁會列出偵測到的科目，但 public copy 不把它說成全考科上線。</p>
+        <div class="list" id="live-subject-list">
+          <div class="row quiet">正在讀取 live subjects...</div>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <script>
+    const API = window.SOFA_API || 'https://sofa-engine-api.onrender.com';
+    const BOOKKEEPER_SUBJECTS = ['稅務相關法規概要', '記帳相關法規概要'];
+
+    function esc(s){
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+        '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+      }[c]));
+    }
+
+    function renderRadarMeta(meta){
+      const total = document.getElementById('radar-total');
+      const years = document.getElementById('radar-years');
+      if(total) total.textContent = Number(meta && meta.total || 0).toLocaleString('zh-TW');
+      if(years){
+        const ys = Array.isArray(meta && meta.years) ? meta.years : [];
+        years.textContent = ys.length ? `${Math.min(...ys)}-${Math.max(...ys)}` : '未確認';
+      }
+      const quality = document.getElementById('quality-list');
+      if(quality){
+        quality.innerHTML = [
+          `<div class="row"><b>可服務題數</b>${esc((meta && meta.total) || '未確認')} 題；仍需用 trackable guard 保證有法條對應。</div>`,
+          '<div class="row"><b>排除規則</b>沒有 article_ids 的題不進正式練習，不拿來寫弱點。</div>'
+        ].join('');
+      }
+      const live = document.getElementById('live-subject-list');
+      if(live){
+        const subjects = Array.isArray(meta && meta.subjects) ? meta.subjects : [];
+        live.innerHTML = subjects.length
+          ? subjects.map(s => `<div class="row"><span class="tag">${BOOKKEEPER_SUBJECTS.includes(s) ? 'BOOKKEEPER' : 'LIVE DRIFT'}</span>${esc(s)}</div>`).join('')
+          : '<div class="row quiet">live subjects 暫時讀不到。</div>';
+      }
+    }
+
+    function renderSubjectPreview(results){
+      const el = document.getElementById('subject-preview-list');
+      if(!el) return;
+      const rows = results.filter(Boolean).map(q => {
+        const articleCount = Array.isArray(q.article_ids) ? q.article_ids.length : 0;
+        const conflict = q.answer_conflict ? '<span class="warn">答案需複核</span>' : '答案已對齊';
+        return `<div class="row"><b>${esc(q.subject || '未命名科目')}</b>${esc(q.roc_year || '-')} 年第 ${esc(q.question_no || '-')} 題 · article_ids ${articleCount} · ${conflict}</div>`;
+      });
+      el.innerHTML = rows.length ? rows.join('') : '<div class="row quiet">兩科範例題暫時讀不到；可先進練習頁。</div>';
+    }
+
+    async function loadRadar(){
+      try{
+        const meta = await fetch(`${API}/api/past-exam/meta`).then(r => r.ok ? r.json() : Promise.reject(new Error('meta ' + r.status)));
+        renderRadarMeta(meta);
+      }catch(err){
+        const quality = document.getElementById('quality-list');
+        if(quality) quality.innerHTML = `<div class="row error">live meta 暫時讀不到：${esc(err.message)}</div>`;
+      }
+      const previews = await Promise.all(BOOKKEEPER_SUBJECTS.map(subject =>
+        fetch(`${API}/api/past-exam?subject=${encodeURIComponent(subject)}`)
+          .then(r => r.ok ? r.json() : null)
+          .catch(() => null)
+      ));
+      renderSubjectPreview(previews);
+    }
+
+    document.addEventListener('DOMContentLoaded', loadRadar);
+  </script>
+</body>
+</html>

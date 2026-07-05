@@ -4,8 +4,10 @@ import test from 'node:test';
 
 const quiz = readFileSync(new URL('../quiz.html', import.meta.url), 'utf8');
 const dashboard = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
+const radar = readFileSync(new URL('../past-exam-radar.html', import.meta.url), 'utf8');
 const activeQuiz = quiz.replace(/<!--[\s\S]*?-->/g, '');
 const activeDashboard = dashboard.replace(/<!--[\s\S]*?-->/g, '');
+const activeRadar = radar.replace(/<!--[\s\S]*?-->/g, '');
 
 test('dashboard past-exam card opens the real past-exam mode', () => {
   const cardStart = activeDashboard.indexOf('考古題練習');
@@ -59,4 +61,33 @@ test('past-exam mode remembers recent questions and retries duplicates', () => {
   assert.match(fn, /for\(let attempt=0;attempt<5;attempt\+\+\)/);
   assert.match(fn, /if\(!isRecentPastExamQuestion\(data\) \|\| attempt===4\)/);
   assert.match(fn, /rememberRecentPastExamQuestion\(data\)/);
+});
+
+test('dashboard exposes a separate past-exam radar entry', () => {
+  const radarStart = activeDashboard.indexOf('考古題雷達');
+  assert.ok(radarStart > -1, 'dashboard must expose the past-exam radar entry');
+  const card = activeDashboard.slice(Math.max(0, radarStart - 260), radarStart + 360);
+
+  assert.match(card, /href="past-exam-radar\.html"/);
+  assert.match(card, /看範圍/);
+  assert.doesNotMatch(card, /mode=past-exam/);
+});
+
+test('past-exam radar states bookkeeper-only scope and trackable-question boundary', () => {
+  assert.match(activeRadar, /記帳士考古題雷達/);
+  assert.match(activeRadar, /目前先看記帳士兩科官方選擇題/);
+  assert.match(activeRadar, /只顯示能追蹤到法條的題/);
+  assert.match(activeRadar, /不代表全考科都已產品化/);
+  assert.match(activeRadar, /稅務相關法規概要/);
+  assert.match(activeRadar, /記帳相關法規概要/);
+  assert.doesNotMatch(activeRadar, /不動產經紀人已上線|地政士已上線|全考科已上線/);
+});
+
+test('past-exam radar uses current APIs without creating imports or migrations', () => {
+  assert.match(activeRadar, /\/api\/past-exam\/meta/);
+  assert.match(activeRadar, /\/api\/past-exam\?subject=/);
+  assert.match(activeRadar, /quiz\.html\?mode=past-exam/);
+  assert.match(activeRadar, /renderRadarMeta/);
+  assert.match(activeRadar, /renderSubjectPreview/);
+  assert.doesNotMatch(activeRadar, /INSERT INTO|ALTER TABLE|CREATE TABLE|\/api\/admin/);
 });
