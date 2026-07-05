@@ -35,3 +35,11 @@ test('checkout mobile brand strip stays visible instead of scrolling away', () =
   assert.match(html, /\.ck-mb-brand\{[\s\S]*position:fixed;top:0;left:0;right:0;z-index:80/);
   assert.match(html, /@media \(max-width:780px\)\{[\s\S]*\.ck\{[\s\S]*padding-top:64px/);
 });
+
+test('checkout mobile shows email and payment before the long plan list', () => {
+  const html = read('checkout.html');
+  assert.match(html, /@media \(max-width:780px\)\{[\s\S]*\.checkout-action-column\{[\s\S]*order:1/);
+  assert.match(html, /@media \(max-width:780px\)\{[\s\S]*\.checkout-options-column\{[\s\S]*order:2/);
+  assert.match(html, /@media \(max-width:780px\)\{[\s\S]*\.sticky-pay\{[\s\S]*position:fixed;left:0;right:0;bottom:0/);
+  assert.match(html, /<div class="checkout-action-column">[\s\S]*id="ck-exam-target-section"[\s\S]*class="email-card"/);
+});
