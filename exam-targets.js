@@ -77,6 +77,14 @@
     }catch(e){}
   }
 
+  const UNKNOWN_TARGET = {
+    key: '',
+    label: '目標考試',
+    laws: '—',
+    articles: '—',
+    highlight: '先選你的考試目標，倒數才會開始計算。'
+  };
+
   function resolveTarget(){
     const fromUrl = getSearchTarget();
     if(fromUrl && TARGETS[fromUrl]){
@@ -85,7 +93,7 @@
     }
     const stored = readStoredTarget();
     if(stored && TARGETS[stored]) return TARGETS[stored];
-    return TARGETS.bookkeeper;
+    return UNKNOWN_TARGET;
   }
 
   function daysUntil(target){
@@ -131,6 +139,7 @@
 
   window.SoFaExamTargets = {
     TARGETS,
+    UNKNOWN_TARGET,
     resolveTarget,
     daysUntil,
     textForDays,
