@@ -763,6 +763,64 @@
   }
   .tool .arrow .glyph{transition:transform .2s}
   .tool:hover .arrow .glyph{transform:translateX(4px)}
+  .tool-button{text-align:left;width:100%}
+  .focus-panel{
+    display:none;
+    margin-top:18px;
+    border:1px solid var(--line-2);
+    border-radius:4px;
+    background:rgba(245,240,234,.035);
+    padding:18px;
+    scroll-margin-top:calc(96px + env(safe-area-inset-top, 0px));
+    scroll-margin-bottom:calc(104px + env(safe-area-inset-bottom, 0px));
+  }
+  .focus-panel.on{display:block}
+  .focus-head{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+  .focus-title span{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--peach)}
+  .focus-title b{display:block;font-family:var(--serif);font-size:18px;margin-top:3px;color:var(--cream)}
+  .focus-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .focus-tools button{
+    min-height:42px;
+    border:1px solid rgba(231,187,167,.42);
+    border-radius:4px;
+    padding:9px 14px;
+    background:rgba(231,187,167,.12);
+    color:var(--peach);
+    font-weight:700;
+  }
+  .focus-status{
+    margin-bottom:12px;
+    border:1px solid rgba(231,187,167,.18);
+    background:rgba(231,187,167,.055);
+    border-radius:4px;
+    padding:10px 12px;
+    font-size:13px;
+    color:rgba(245,240,234,.76);
+  }
+  .focus-list{display:grid;gap:10px}
+  .focus-item{border-top:1px dashed rgba(231,187,167,.18);padding-top:10px;display:grid;gap:5px}
+  .focus-item:first-child{border-top:0;padding-top:0}
+  .focus-item.is-speaking{border-left:2px solid var(--peach);padding-left:10px;background:rgba(231,187,167,.04)}
+  .focus-item .meta{font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;color:var(--peach)}
+  .focus-item .title{font-family:var(--serif);font-size:15px;font-weight:600;color:var(--cream)}
+  .focus-item .text{font-size:13px;line-height:1.7;color:rgba(245,240,234,.65);overflow-wrap:anywhere}
+  .focus-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:2px}
+  .focus-actions a,.focus-actions button{
+    min-height:34px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--line-2);
+    border-radius:3px;
+    padding:6px 11px;
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.08em;
+    color:rgba(245,240,234,.76);
+    background:rgba(255,255,255,.025);
+  }
+  .focus-actions a.primary,.focus-actions button.primary{background:rgba(231,187,167,.12);border-color:rgba(231,187,167,.42);color:var(--peach)}
+  .focus-empty{padding:16px;text-align:center;color:rgba(245,240,234,.48);font-size:13px}
 
   /* === 08 LAWS — table-of-contents === */
   .laws-head{
@@ -1371,7 +1429,7 @@
               <span class="idx">07</span>
               <h2>備考工具</h2>
             </div>
-            <div class="r"><span class="eb">5 種模式</span></div>
+            <div class="r"><span class="eb">6 種工具</span></div>
           </div>
 
           <div class="tool-grid">
@@ -1411,8 +1469,17 @@
               <p class="desc">歷屆試題模式；<br/>答錯也進弱點。</p>
               <span class="arrow">開始 <span class="glyph">→</span></span>
             </a>
-            <a class="tool" href="https://lin.ee/zUeMwo4">
+            <button class="tool tool-button" type="button" onclick="openStudyPlaylistPanel()" data-study-panel-trigger="playlist" aria-expanded="false">
               <div class="num">05</div>
+              <div>
+                <div class="code">FOCUS</div>
+                <div class="name" style="margin-top:6px">重點朗讀</div>
+              </div>
+              <p class="desc">文字重點清單；<br/>可朗讀、單刷、看法條。</p>
+              <span class="arrow">整理 <span class="glyph">→</span></span>
+            </button>
+            <a class="tool" href="https://lin.ee/zUeMwo4">
+              <div class="num">06</div>
               <div>
                 <div class="code">LINE</div>
                 <div class="name" style="margin-top:6px">LINE 查法條</div>
@@ -1420,6 +1487,21 @@
               <p class="desc">手機直接查、<br/>每日 08:00 推播。</p>
               <span class="arrow">加入 <span class="glyph">→</span></span>
             </a>
+          </div>
+          <div class="focus-panel" id="study-playlist-panel" aria-label="通勤重點朗讀清單">
+            <div class="focus-head">
+              <div class="focus-title">
+                <span>FOCUS</span>
+                <b>重點清單，能朗讀也能單刷</b>
+              </div>
+              <div class="focus-tools">
+                <button class="primary" id="study-playlist-playall" type="button" onclick="playStudyPlaylistAll(this)">朗讀全部</button>
+              </div>
+            </div>
+            <div class="focus-status" id="study-playlist-status">清單產生後，可以逐則朗讀、單刷，或回去看原文。</div>
+            <div class="focus-list" id="study-playlist-list">
+              <div class="focus-empty">重點清單尚未載入。</div>
+            </div>
           </div>
         </section>
 
@@ -2630,6 +2712,178 @@ function searchLaw(name){
   if(inp){ inp.value = name; }
   doSearch();
 }
+
+// ── 重點朗讀 / 重點清單 ─────────────────────────────────────
+var __studyPlaylistItems = [];
+var __studyPlaylistLoaded = false;
+var __studyPlaylistSpeakingIndex = -1;
+
+function _cleanStudySpeechCue(text){
+  return String(text || '')
+    .replace(/\[(重音|停頓|長停頓|break)\]/g, '，')
+    .replace(/<[^>]+>/g, '')
+    .replace(/，+/g, '，')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+function _studyArticleNo(raw){
+  return String(raw || '').replace(/^§\s*/, '').replace(/^0+(\d)/, '$1').trim();
+}
+
+function _studyReaderHref(item){
+  var law = encodeURIComponent(item.law_name || '');
+  var art = encodeURIComponent(_studyArticleNo(item.article_no || ''));
+  var id = encodeURIComponent(item.id || '');
+  return 'law-preview.html?law=' + law + (id ? '&id=' + id : '') + (art ? '&art=' + art : '');
+}
+
+function _studyDrillHref(item){
+  var law = encodeURIComponent(item.law_name || '');
+  var art = encodeURIComponent(_studyArticleNo(item.article_no || ''));
+  return 'quiz.html?law=' + law + (art ? '&art=' + art : '') + '&drill=1';
+}
+
+function _setStudyPlaylistStatus(message){
+  var el = document.getElementById('study-playlist-status');
+  if(el) el.textContent = message;
+}
+
+function _setStudyPlaylistSpeakingIndex(idx){
+  __studyPlaylistSpeakingIndex = idx;
+  document.querySelectorAll('.focus-item').forEach(function(el, i){
+    el.classList.toggle('is-speaking', i === idx);
+  });
+}
+
+function _renderStudyPlaylist(items){
+  var list = document.getElementById('study-playlist-list');
+  if(!list) return;
+  __studyPlaylistItems = (items || []).slice(0, 8);
+  if(!__studyPlaylistItems.length){
+    list.innerHTML = '<div class="focus-empty">重點清單目前還空；先做一題，答題紀錄會變成可朗讀、可單刷的重點。</div>';
+    _setStudyPlaylistStatus('今天還沒有弱點或題庫重點可朗讀；選擇題仍可先開始。');
+    return;
+  }
+  list.innerHTML = __studyPlaylistItems.map(function(item, idx){
+    var art = _studyArticleNo(item.article_no || '');
+    var label = (item.law_name || '重點') + (art ? ' 第 ' + art + ' 條' : '');
+    var title = item.title || label;
+    var text = _cleanStudySpeechCue(item.text || title);
+    return '<div class="focus-item" data-playlist-index="' + idx + '">'
+      + '<div class="meta">' + esc(item.importance || 'FOCUS') + '</div>'
+      + '<div class="title">' + esc(title) + '</div>'
+      + '<div class="text">' + esc(text.slice(0, 160)) + (text.length > 160 ? '…' : '') + '</div>'
+      + '<div class="focus-actions">'
+      + '<button class="primary" type="button" onclick="playStudyPlaylistItem(this,' + idx + ')">朗讀</button>'
+      + '<a href="' + _studyDrillHref(item) + '">單刷</a>'
+      + '<a href="' + _studyReaderHref(item) + '">看法條</a>'
+      + '</div>'
+      + '</div>';
+  }).join('');
+  _setStudyPlaylistStatus('已準備 ' + __studyPlaylistItems.length + ' 則文字重點；可以逐則朗讀、單刷，或回去看原文。');
+}
+
+function loadStudyPlaylist(){
+  var list = document.getElementById('study-playlist-list');
+  if(list) list.innerHTML = '<div class="focus-empty">讀取重點清單中…</div>';
+  _setStudyPlaylistStatus('正在更新文字重點清單。');
+  return fetch(API + '/api/playlist?track=bookkeeper')
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(data){
+      var items = data && Array.isArray(data.items) ? data.items : [];
+      __studyPlaylistLoaded = true;
+      _renderStudyPlaylist(items);
+    })
+    .catch(function(){
+      __studyPlaylistLoaded = true;
+      if(list) list.innerHTML = '<div class="focus-empty">重點清單暫時讀不到；不影響答題和讀書計畫。</div>';
+      _setStudyPlaylistStatus('重點清單暫時讀不到；不影響答題和讀書計畫。');
+    });
+}
+
+function openStudyPlaylistPanel(ev){
+  if(ev && ev.preventDefault) ev.preventDefault();
+  var panel = document.getElementById('study-playlist-panel');
+  var trigger = document.querySelector('[data-study-panel-trigger="playlist"]');
+  if(!panel) return false;
+  var willOpen = !panel.classList.contains('on');
+  panel.classList.toggle('on', willOpen);
+  if(trigger) trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+  if(willOpen){
+    if(!__studyPlaylistLoaded) loadStudyPlaylist();
+    setTimeout(function(){
+      var target = document.getElementById('study-playlist-playall') || panel;
+      target.scrollIntoView({behavior:'smooth', block:'start'});
+    }, 30);
+  }
+  return false;
+}
+
+function _speakStudyPlaylistText(button, text, fallbackLabel, meta){
+  if(!('speechSynthesis' in window) || typeof SpeechSynthesisUtterance === 'undefined'){
+    _setStudyPlaylistStatus('這個瀏覽器不支援朗讀，請先看文字清單、單刷或看法條。');
+    return;
+  }
+  window.speechSynthesis.cancel();
+  var utt = new SpeechSynthesisUtterance(_cleanStudySpeechCue(text));
+  utt.lang = 'zh-TW';
+  var started = false;
+  utt.onstart = function(){
+    started = true;
+    _setStudyPlaylistStatus(meta && meta.label ? ('正在朗讀：' + meta.label) : '正在朗讀全部重點。');
+    if(button) button.textContent = '停止';
+  };
+  utt.onend = function(){
+    _setStudyPlaylistSpeakingIndex(-1);
+    _setStudyPlaylistStatus('已停止朗讀。');
+    if(button) button.textContent = fallbackLabel || '朗讀';
+  };
+  utt.onerror = function(){
+    _setStudyPlaylistSpeakingIndex(-1);
+    _setStudyPlaylistStatus('朗讀沒有啟動；文字、單刷和看法條仍可用。');
+    if(button) button.textContent = fallbackLabel || '朗讀';
+  };
+  window.speechSynthesis.speak(utt);
+  if(window.speechSynthesis.resume) window.speechSynthesis.resume();
+  setTimeout(function(){
+    if(!started){
+      _setStudyPlaylistStatus('朗讀沒有啟動；文字、單刷和看法條仍可用。');
+      if(button) button.textContent = fallbackLabel || '朗讀';
+    }
+  }, 1200);
+}
+
+function playStudyPlaylistItem(button, idx){
+  var item = __studyPlaylistItems[idx];
+  if(!item) return;
+  _setStudyPlaylistSpeakingIndex(idx);
+  var art = _studyArticleNo(item.article_no || '');
+  var label = (item.law_name || '重點') + (art ? ' 第 ' + art + ' 條' : '');
+  _speakStudyPlaylistText(button, item.text || item.title || label, '朗讀', {label:label});
+}
+
+function playStudyPlaylistAll(button){
+  if(!__studyPlaylistItems.length){
+    _setStudyPlaylistStatus('重點清單目前還空；先做一題，答題紀錄會變成可朗讀、可單刷的重點。');
+    return;
+  }
+  _setStudyPlaylistSpeakingIndex(0);
+  var text = __studyPlaylistItems.map(function(item){
+    var art = _studyArticleNo(item.article_no || '');
+    var label = (item.law_name || '重點') + (art ? ' 第 ' + art + ' 條' : '');
+    return label + '。' + (item.text || item.title || '');
+  }).join('。');
+  _speakStudyPlaylistText(button, text, '朗讀全部', {label:'全部 ' + __studyPlaylistItems.length + ' 則重點'});
+}
+
+function _openStudyPlaylistFromHash(){
+  if(location.hash !== '#study-playlist') return;
+  var panel = document.getElementById('study-playlist-panel');
+  if(panel && !panel.classList.contains('on')) openStudyPlaylistPanel();
+}
+if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', _openStudyPlaylistFromHash);
+else _openStudyPlaylistFromHash();
 
 // active nav on scroll
 const navLinks = document.querySelectorAll('.nav-list a');
