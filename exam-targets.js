@@ -1,10 +1,12 @@
 (function(){
+  const DEFAULT_EXAM_DAY_SALE_OPEN_DAYS = 180;
   const TARGETS = {
     bookkeeper: {
       key: 'bookkeeper',
       label: '記帳士',
       examDate: '2026-11-14T00:00:00+08:00',
       examDisplay: '2026 / 11 / 14',
+      saleOpenDays: DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
       laws: '33',
       articles: '2,157',
       highlight: '營利事業所得稅查核準則 143 條（記帳士獨家）'
@@ -98,9 +100,39 @@
 
   function daysUntil(target){
     const t = target || resolveTarget();
-    if(!t || !t.examDate) return null;
-    const diff = new Date(t.examDate) - new Date();
-    return Math.max(Math.ceil(diff / 86400000), 0);
+    const raw = rawDaysUntil(t);
+    return raw === null ? null : Math.max(raw, 0);
+  }
+
+  function hasExamDate(target){
+    return !!(target && target.examDate && target.examDisplay);
+  }
+
+  function rawDaysUntil(target, now){
+    const t = target || resolveTarget();
+    if(!hasExamDate(t)) return null;
+    const base = now ? new Date(now) : new Date();
+    const diff = new Date(t.examDate) - base;
+    return Math.ceil(diff / 86400000);
+  }
+
+  function examDayPlanState(target, now){
+    const t = target || resolveTarget();
+    if(!t || !t.key){
+      return { state: 'missing_target', canBuy: false, reason: '請先選你的考試目標。' };
+    }
+    if(!hasExamDate(t)){
+      return { state: 'unconfigured', canBuy: false, reason: '考期未設定，暫不開放到考日方案。' };
+    }
+    const d = rawDaysUntil(t, now);
+    const saleOpenDays = Number.isFinite(Number(t.saleOpenDays)) ? Number(t.saleOpenDays) : DEFAULT_EXAM_DAY_SALE_OPEN_DAYS;
+    if(d < 0){
+      return { state: 'closed', canBuy: false, daysUntil: d, saleOpenDays, reason: '這個考期已結束。' };
+    }
+    if(d > saleOpenDays){
+      return { state: 'not_open', canBuy: false, daysUntil: d, saleOpenDays, reason: `還有 ${d} 天，考前 ${saleOpenDays} 天開放到考日方案。` };
+    }
+    return { state: 'open', canBuy: true, daysUntil: d, saleOpenDays, reason: `已進入考前 ${saleOpenDays} 天窗口。` };
   }
 
   function textForDays(target, suffix){
@@ -140,8 +172,12 @@
   window.SoFaExamTargets = {
     TARGETS,
     UNKNOWN_TARGET,
+    DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
     resolveTarget,
+    hasExamDate,
     daysUntil,
+    rawDaysUntil,
+    examDayPlanState,
     textForDays,
     renderCountdown
   };

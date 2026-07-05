@@ -780,7 +780,7 @@
         </div>
         <div class="exam-target-card">
           <div class="target-title">到考日依你的考試計算。</div>
-          <p class="target-copy">請選你要準備的考試；考期未設定的考試不會偷套記帳士日期，後端會擋下避免算錯。</p>
+          <p class="target-copy">先選考試目標；有正式考期且進入開放窗口，才會送出到考日付款。</p>
           <select id="ck-exam-target" aria-label="考試目標"></select>
           <div class="target-hint" id="ck-exam-target-hint">考期未設定時，建議先選月費或季費。</div>
         </div>
@@ -993,18 +993,23 @@
   function isCheckoutExamTargetConfigured(){
     const api = window.SoFaExamTargets;
     const target = api && api.TARGETS ? api.TARGETS[getCheckoutExamKey()] : null;
-    return !!(target && target.examDisplay);
+    const state = api && api.examDayPlanState ? api.examDayPlanState(target) : null;
+    return !!(state && state.canBuy);
   }
 
   function updateExamTargetHint(){
     if (!examTargetHintEl || !window.SoFaExamTargets) return;
-    const target = window.SoFaExamTargets.TARGETS[getCheckoutExamKey()];
+    const api = window.SoFaExamTargets;
+    const target = api.TARGETS[getCheckoutExamKey()];
+    const state = api.examDayPlanState ? api.examDayPlanState(target) : null;
     if (!getCheckoutExamKey()) {
       examTargetHintEl.textContent = "請先選你的考試目標；到考日不會預設成記帳士。";
-    } else if (target && target.examDisplay) {
-      examTargetHintEl.textContent = `會以 ${target.examDisplay} 作為考試目標，實際可用期限由後端考期設定計算。`;
+    } else if (state && state.canBuy) {
+      examTargetHintEl.textContent = `${target.label || "目標考試"} · ${target.examDisplay}，${state.reason} 實際可用期限由後端考期設定計算。`;
+    } else if (state && state.state === "not_open") {
+      examTargetHintEl.textContent = `${target.label || "目標考試"} · ${target.examDisplay}，${state.reason}`;
     } else {
-      examTargetHintEl.textContent = "考期未設定：這個考試的到考日方案尚未開放，請先選月費或季費。";
+      examTargetHintEl.textContent = state?.reason || "考期未設定：這個考試的到考日方案尚未開放，請先選月費或季費。";
     }
   }
 
@@ -1118,8 +1123,11 @@
       return;
     }
     if (sel.plan === "到考日" && !isCheckoutExamTargetConfigured()) {
-      trackCheckout("checkout_exam_target_unavailable", { exam_key: getCheckoutExamKey() });
-      showError("這個考試的到考日方案尚未開放。請先選月費或季費，或等我們補上正式考期。");
+      const api = window.SoFaExamTargets;
+      const target = api && api.TARGETS ? api.TARGETS[getCheckoutExamKey()] : null;
+      const state = api && api.examDayPlanState ? api.examDayPlanState(target) : null;
+      trackCheckout("checkout_exam_target_unavailable", { exam_key: getCheckoutExamKey(), state: state?.state || "unknown" });
+      showError(state?.reason || "這個考試的到考日方案尚未開放。請先選月費或季費，或等我們補上正式考期。");
       try { examTargetSection.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (_) {}
       return;
     }
