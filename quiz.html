@@ -292,6 +292,17 @@
         <datalist id="artDatalist"></datalist>
       </div>
       <button id="btnNew" class="btn btn-sec" style="padding:8px 16px;font-size:13px">出題</button>
+      <button id="btnPastExam" onclick="_setPastExamMode(!_pastExamMode)"
+        style="background:rgba(231,187,167,0.12);border:1px solid rgba(231,187,167,0.42);
+               color:var(--peach);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;">
+        考古題
+      </button>
+      <select id="pastExamSubject" onchange="if(_pastExamMode) loadQuiz()"
+        style="display:none;background:var(--navy-3);border:1px solid rgba(231,187,167,0.35);
+               border-radius:8px;color:var(--cream);font-size:12px;padding:6px 10px;">
+        <option value="記帳相關法規概要">記帳法規</option>
+        <option value="稅務相關法規概要">稅務法規</option>
+      </select>
     </div>
     <div class="pr-meta">
       <div class="seg">第 <b id="qNum">—</b></div>
@@ -330,6 +341,7 @@
 
         <div class="explain" id="explainBox" style="display:none">
           <span class="eb">答對了</span>
+          <p id="answerExplain" style="display:none"></p>
           <div class="src" id="sourceBox">
             <span>—</span>
             <button id="sourceLink">查看完整條文 →</button>
@@ -380,6 +392,14 @@
 const API = 'https://sofa-engine-api.onrender.com';
 const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
 const tok = localStorage.getItem('sofa_token') || '';
+const _searchParams = new URLSearchParams(location.search);
+const freeParam = _searchParams.get('free') === '1';
+const _PAST_EXAM_SUBJECTS = ['記帳相關法規概要', '稅務相關法規概要'];
+const RECENT_PAST_EXAM_QUESTIONS_KEY = 'sofa_recent_past_exam_questions_v1';
+let _pastExamMode = _searchParams.get('mode') === 'past-exam';
+if ((freeParam || _pastExamMode) && !uid && !tok) {
+  localStorage.setItem('sofa_free', 'FREE');
+}
 function formatLawText(raw){
   if(!raw) return '';
   let t=String(raw).replace(/\r\n?/g,'\n').trim();
@@ -395,7 +415,7 @@ function _authH(extra) {
   else if (uid) h['X-Sofa-UID'] = uid;
   return h;
 }
-const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
+const isFree = !uid && (freeParam || _pastExamMode || localStorage.getItem('sofa_free') === 'FREE');
 if (!uid && !isFree) { window.location.href = 'login.html?redirect=quiz.html'; }
 document.getElementById('navUid').textContent = isFree ? '免費版' : (localStorage.getItem('sofa_nickname') || uid);
 if(isFree){
@@ -406,6 +426,29 @@ if(isFree){
   document.querySelector('.pr-bar').before(bar);
 }
 
+function _setPastExamMode(on, opts){
+  _pastExamMode = !!on;
+  const btn = document.getElementById('btnPastExam');
+  const sub = document.getElementById('pastExamSubject');
+  const lawSelect = document.getElementById('lawSelect');
+  const chips = document.querySelector('.pr-chips');
+  if(btn){
+    btn.textContent = _pastExamMode ? '考古題中' : '考古題';
+    btn.style.background = _pastExamMode ? 'var(--peach)' : 'rgba(231,187,167,0.12)';
+    btn.style.color = _pastExamMode ? 'var(--navy)' : 'var(--peach)';
+  }
+  if(sub) sub.style.display = _pastExamMode ? '' : 'none';
+  if(lawSelect) lawSelect.style.display = _pastExamMode ? 'none' : '';
+  if(chips) chips.style.display = _pastExamMode ? 'none' : '';
+  if(!(opts&&opts.noHistory)){
+    const url = new URL(location.href);
+    if(_pastExamMode) url.searchParams.set('mode', 'past-exam');
+    else url.searchParams.delete('mode');
+    if(isFree) url.searchParams.set('free', '1');
+    history.replaceState(null, '', url.toString());
+  }
+}
+
 (async()=>{
   const sel=document.getElementById('lawSelect');
   if(uid){
@@ -414,11 +457,15 @@ if(isFree){
     });
     const sep=document.createElement('option');sep.disabled=true;sep.textContent='──────';sel.appendChild(sep);
   }
-  try{
-    const d=await fetch(`${API}/api/laws`).then(r=>r.json());
-    (d.laws||[]).forEach(l=>{const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);});
-  }catch{}
-})();
+	  try{
+	    const d=await fetch(`${API}/api/laws`).then(r=>r.json());
+	    (d.laws||[]).forEach(l=>{const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);});
+	  }catch{}
+  if(_pastExamMode){
+    _setPastExamMode(true, {noHistory:true});
+    loadQuiz();
+  }
+	})();
 
 let _artCache = {};
 
@@ -601,6 +648,65 @@ function updateScore(){
   document.getElementById('quizProg').style.width=prog+'%';
 }
 
+function _pastExamQuestionKey(raw) {
+  return [raw.subject || '', raw.roc_year || '', raw.question_no || '', raw.id || ''].join(':');
+}
+
+function recentPastExamQuestionKeys() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem(RECENT_PAST_EXAM_QUESTIONS_KEY) || '[]');
+    return Array.isArray(parsed) ? parsed.filter(Boolean).slice(-30) : [];
+  } catch {
+    return [];
+  }
+}
+
+function rememberRecentPastExamQuestion(raw) {
+  const key = _pastExamQuestionKey(raw);
+  if (!key.trim()) return;
+  const next = recentPastExamQuestionKeys().filter(k => k !== key);
+  next.push(key);
+  localStorage.setItem(RECENT_PAST_EXAM_QUESTIONS_KEY, JSON.stringify(next.slice(-30)));
+}
+
+function isRecentPastExamQuestion(raw) {
+  return recentPastExamQuestionKeys().includes(_pastExamQuestionKey(raw));
+}
+
+function _normalizePastExamQuestion(raw) {
+  const opts = Array.isArray(raw.options) ? raw.options : [];
+  const correctOpt = opts.find(o=>o.key===raw.answer);
+  return {
+    question: `【歷屆試題】${raw.roc_year || ''} 年第 ${raw.question_no || ''} 題\n${raw.stem || ''}`.trim(),
+    options: opts.map(o=>o.text || ''),
+    answer: correctOpt ? (correctOpt.text || '') : '',
+    page_id: (raw.article_ids || [])[0] || '',
+    law_name: raw.subject || '歷屆試題',
+    title: `${raw.roc_year || ''} Q${raw.question_no || ''}${raw.answer_conflict ? '｜修法提醒' : ''}`,
+    explanation: raw.explanation || '',
+    official_answer: raw.official_answer || '',
+    verified_answer: raw.verified_answer || '',
+    answer_conflict: !!raw.answer_conflict,
+    law_change_note: raw.law_change_note || '',
+    verify_status: raw.verify_status || '',
+    _past_exam: true,
+    _past_exam_key: _pastExamQuestionKey(raw),
+  };
+}
+
+async function _fetchPastExamQuestion() {
+  const sel = document.getElementById('pastExamSubject');
+  const subject = (sel && sel.value) || _PAST_EXAM_SUBJECTS[0];
+  for(let attempt=0;attempt<5;attempt++){
+    const data = await fetch(`${API}/api/past-exam?subject=${encodeURIComponent(subject)}`, {headers:_authH()}).then(r=>r.json());
+    if(data.error || data.detail) return data;
+    if(!isRecentPastExamQuestion(data) || attempt===4){
+      rememberRecentPastExamQuestion(data);
+      return _normalizePastExamQuestion(data);
+    }
+  }
+}
+
 async function loadQuiz(){
   answered=false; total++;
   // 新增到 sessionHistory
@@ -611,13 +717,20 @@ async function loadQuiz(){
   document.getElementById('questionBox').style.opacity='.45';
   document.getElementById('optionsBox').innerHTML='';
   document.getElementById('explainBox').style.display='none';
+  const answerExplain = document.getElementById('answerExplain');
+  if(answerExplain){ answerExplain.style.display='none'; answerExplain.textContent=''; }
   document.getElementById('qSrc').innerHTML='—';
   updateScore();
 
   let law=document.getElementById('lawSelect').value;
   try{
+    let data;
+    if(_pastExamMode){
+      data=await _fetchPastExamQuestion();
+      law='';
+    }
     let pickedPageId='';
-    if(law==='__starred__'){
+    if(!_pastExamMode && law==='__starred__'){
       const sl=await fetch(`${API}/api/starred?min_stars=5`,{headers:_authH()}).then(r=>r.json());
       const arts=(sl.articles||[]).filter(a=>a.law);
       if(!arts.length){
@@ -626,7 +739,7 @@ async function loadQuiz(){
         return;
       }
       law=arts[Math.floor(Math.random()*arts.length)].law;
-    } else if(law==='__bookmarks__'){
+    } else if(!_pastExamMode && law==='__bookmarks__'){
       const bm=await fetch(`${API}/api/me/bookmarks`,{headers:_authH()}).then(r=>r.json());
       const ids=(bm.bookmarks||[]);
       if(!ids.length){
@@ -636,7 +749,7 @@ async function loadQuiz(){
       }
       pickedPageId=ids[Math.floor(Math.random()*ids.length)];
       law='';
-    } else if(law==='__mastered__'||law==='__review__'){
+    } else if(!_pastExamMode && (law==='__mastered__'||law==='__review__')){
       const wantStatus=law==='__mastered__'?'mastered':'review';
       const mr=await fetch(`${API}/api/me/mastery`,{headers:_authH()}).then(r=>r.json());
       const items=(mr.items||[]).filter(m=>m.status===wantStatus&&m.page_id);
@@ -651,7 +764,9 @@ async function loadQuiz(){
     }
     const artNum = (document.getElementById('artNumInput')||{}).value?.trim();
     let url;
-    if(pickedPageId){
+    if(_pastExamMode){
+      // data already loaded from the real past-exam endpoint.
+    } else if(pickedPageId){
       url=`${API}/api/quiz?page_id=${encodeURIComponent(pickedPageId)}`;
     } else if(artNum && law && _artCache[law]){
       const match=_artCache[law].find(a=>{const m=(a.title||'').match(/第(\d+(?:之\d+)?)條/);return m&&m[1]===artNum;});
@@ -672,7 +787,7 @@ async function loadQuiz(){
         url+=(url.indexOf('?')>=0?'&':'?')+'chip='+encodeURIComponent(_curPrChip)+'&sub='+encodeURIComponent(_subVal);
       }
     }
-    const data=await fetch(url,{headers:_authH()}).then(r=>r.json());
+    if(!_pastExamMode) data=await fetch(url,{headers:_authH()}).then(r=>r.json());
     if(data.error||data.detail){
       document.getElementById('questionBox').textContent=data.error||data.detail;
       document.getElementById('questionBox').style.opacity='1';
@@ -733,6 +848,10 @@ async function loadQuiz(){
         if(pageId){
           document.getElementById('sourceBox').querySelector('span').textContent='查看該條完整原文 →';
           document.getElementById('sourceLink').textContent='查看完整條文 →';
+        }
+        if(answerExplain && data.explanation){
+          answerExplain.textContent=data.explanation;
+          answerExplain.style.display='block';
         }
         document.getElementById('artInline').style.display='none';
         document.getElementById('explainBox').style.display='block';
