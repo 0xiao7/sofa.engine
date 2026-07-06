@@ -16,10 +16,12 @@ test('homepage hero balances brand trust and a clear practice path', () => {
   assert.match(hero, /開始練習/);
   assert.match(hero, /href="pricing\.html\?utm_source=homepage&utm_medium=hero&utm_campaign=homepage_pricing"/);
   assert.match(hero, /保留紀錄與錯題/);
-  assert.match(hero, /36,000\+ 條/);
-  assert.match(hero, /567 部/);
-  assert.match(hero, /172 個國考職能/);
+  assert.match(hero, /答題紀錄/);
+  assert.match(hero, /弱點分析/);
+  assert.match(hero, /錯題重練/);
+  assert.match(hero, /跨裝置/);
   assert.match(hero, /記帳士、地政士等專技考科只是其中幾條主線/);
+  assert.doesNotMatch(hero, /36,000\+|567 部|2,000\+|145 部|172 個國考職能|172 職能/);
   assert.doesNotMatch(hero, /免費做 5 題|先刷 5 題|免費刷題看弱點/);
 });
 

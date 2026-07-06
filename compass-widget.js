@@ -112,7 +112,7 @@
     const top = scored.slice(0, 3);
 
     const isSingle = plannerSelected.length === 1;
-    const coverageLabel = isSingle ? '這張要準備' : '累積';
+    const coverageLabel = isSingle ? '這張路徑' : '這組路徑';
     const extendLabel = isSingle ? '考完還能延伸' : '下一張最高效';
 
     let topHtml = '';
@@ -123,10 +123,10 @@
         const rankClass = i === 1 ? 'rank-2' : (i === 2 ? 'rank-3' : '');
         const crossClass = !item.sameSec ? 'cross-section' : '';
         const overlapAttr = escapeAttr('重複的法規\n' + item.overlapList.map(l => '· ' + l).join('\n'));
-        const missingAttr = escapeAttr('還缺的法規\n' + item.missingList.map(l => '· ' + l).join('\n'));
+        const missingAttr = escapeAttr('還可以補的法規\n' + item.missingList.map(l => '· ' + l).join('\n'));
         const detail = isSingle
-          ? `因為有 <span class="planner-result-count planner-tip" data-tip="${overlapAttr}">${item.overlap}</span> 部法規重複!`
-          : `已會 <span class="planner-result-count planner-tip" data-tip="${overlapAttr}">${item.overlap}</span> 部,還缺 <span class="planner-result-count planner-tip" data-tip="${missingAttr}">${item.stillNeed}</span> 部`;
+          ? `<span class="planner-tip" data-tip="${overlapAttr}">因為有共同科目與法規基礎</span>,可接著規劃`
+          : `<span class="planner-tip" data-tip="${overlapAttr}">已有共同基礎</span>,<span class="planner-tip" data-tip="${missingAttr}">可再補下一段</span>`;
         return `<div class="planner-result-line ${crossClass}"><span class="planner-result-rank" ${crossClass ? 'title="跨體系建議:這張不同分類但有共同法規,適合想轉軌的考生"' : ''}>${rankLabel}</span>我可以再去考「<span class="planner-result-target ${rankClass}">${rec.name}</span>」 ${detail}</div>`;
       }).join('');
     }
@@ -134,7 +134,7 @@
     resultEl.innerHTML = `
       <div class="planner-result">
         <div class="want-coverage">
-          <span class="want-check">✓</span> ${coverageLabel} <span class="planner-result-count">${unionCount}</span> 部法規 · 法條庫對照中,陸續上線
+          <span class="want-check">✓</span> ${coverageLabel}會依考試目標整理可用範圍 · 法條庫對照中,陸續上線
         </div>
         ${topHtml}
       </div>

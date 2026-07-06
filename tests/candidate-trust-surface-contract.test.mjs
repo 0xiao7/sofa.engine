@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-const files = ['index.html', 'free.html', 'pricing.html', 'checkout.html'];
+const files = ['index.html', 'free.html', 'pricing.html', 'checkout.html', 'login.html', 'terms.html'];
 const source = Object.fromEntries(files.map((file) => [
   file,
   readFileSync(new URL(`../${file}`, import.meta.url), 'utf8').replace(/<!--[\s\S]*?-->/g, ''),
@@ -10,9 +10,10 @@ const source = Object.fromEntries(files.map((file) => [
 
 test('candidate entry surfaces lead with continuity instead of unstable scale claims', () => {
   for (const file of files) {
-    assert.doesNotMatch(source[file], /14,000\+ 條法規、145 部法典|567 部法規、36,000\+ 條文/, `${file} still leads with unstable scale copy`);
-    assert.doesNotMatch(source[file], /33 部法規 · 2,000\+ 條文|14,000<em>\+<\/em>|<div class="v">145<\/div>|完整資料庫，修法後 7 天內同步更新/, `${file} still uses brittle checkout scale proof`);
-    assert.doesNotMatch(source[file], /加入 LINE Bot|每日 LINE Bot 法條推播|每天 08:00 推播一條|lin\.ee\/zUeMwo4/, `${file} still uses LINE as a primary public funnel`);
+    assert.doesNotMatch(source[file], /14,000\+ 條(?:文|法規)|145 部(?:法規|法典)|567 部(?:法規|法典)|36,000\+ 條文?/, `${file} still leads with unstable scale copy`);
+    assert.doesNotMatch(source[file], /33 部(?:法規|法典)|2,000\+ 條(?:文|法規)?|172 個國考職能|172 職能/, `${file} still uses stale public inventory proof`);
+    assert.doesNotMatch(source[file], /完整(?:法條)?資料庫|完整 145 部法規|修法後 7 天內同步更新/, `${file} still overclaims database completeness`);
+    assert.doesNotMatch(source[file], /加入 LINE Bot|每日 LINE Bot 法條推播|每日 08:00 LINE Bot 推播|每天 08:00 推播一條|每日 08:00 推播|lin\.ee\/zUeMwo4/, `${file} still uses LINE as a primary public funnel`);
   }
 
   assert.match(source['index.html'], /免登入可練習；啟用後保留紀錄/);
