@@ -33,11 +33,12 @@
     --mono:"JetBrains Mono",ui-monospace,monospace;
   }
   *{box-sizing:border-box;margin:0;padding:0}
-  html{background:var(--navy-3)}
+  html{background:var(--navy-3);max-width:100%;overflow-x:hidden}
   body{
     font-family:var(--sans);color:var(--ink);
     font-size:16px;line-height:1.75;
     -webkit-font-smoothing:antialiased;
+    max-width:100%;overflow-x:hidden;
   }
   a{color:inherit;text-decoration:none}
   ::selection{background:var(--peach);color:var(--navy)}
@@ -128,6 +129,21 @@
     font-family:var(--mono);font-size:10px;letter-spacing:.22em;
     color:var(--peach-3);text-transform:uppercase;
     display:flex;align-items:center;gap:10px;
+  }
+  @media (max-width:760px){
+    .topbar{padding:16px 20px;gap:16px}
+    .brand{min-width:0;font-size:13px;letter-spacing:.12em;white-space:nowrap}
+    .topbar-links{gap:12px;flex-wrap:wrap;justify-content:flex-end}
+    .topbar-links a{font-size:11px}
+    .container{padding:0 22px}
+    .hero-bar{padding:42px 0 40px}
+    .hero-bar h1{font-size:30px}
+    .body-grid{display:block;padding:0 22px;max-width:100%}
+    .toc{position:static;border-right:0;border-bottom:1px solid var(--line);padding:22px 0 18px;display:flex;flex-wrap:wrap;gap:8px}
+    .toc-lab,.toc-divider{display:none}
+    .toc a{margin:0;padding:7px 10px;border:1px solid var(--line);border-radius:3px}
+    .content{padding:34px 0 72px}
+    footer{padding-left:22px;padding-right:22px}
   }
   .sec-eyebrow::before{content:"";width:14px;height:1px;background:var(--peach-3)}
   .sec h2{
@@ -248,7 +264,7 @@
       <section class="sec" id="service">
         <div class="sec-eyebrow">01 — SERVICE</div>
         <h2>服務說明</h2>
-        <p>SoFa Engine 是針對台灣國家考試（記帳士、地政士、不動產經紀人、財稅行政、財稅法務、初等一般行政、中華郵政會計類等）設計的法條備考輔助系統，提供結構化條文瀏覽、每日 LINE 推播、練習題組與學習進度追蹤。</p>
+        <p>SoFa Engine 是針對台灣國家考試（記帳士、地政士、不動產經紀人、財稅行政、財稅法務、初等一般行政、中華郵政會計類等）設計的法條備考輔助系統，提供結構化條文瀏覽、網站練習題組與學習進度追蹤。</p>
         <p>本服務由個人開發者運營，非學習補習班或出版機構，<strong>不提供考試保證、不代辦任何行政事務</strong>，亦不對考試結果負責。</p>
 
         <div class="note-box">
@@ -256,8 +272,8 @@
           目前收錄 145 部法規、14,000+ 條文，並依不同考試目標整理可用範圍。內容來源為政府公開法規資料庫，經結構化處理後呈現。法規如有修正，系統將定期更新，但不保證即時同步立法院最新修正。
         </div>
 
-        <p>SoFa Engine 使用序號制度管理會員資格，無需帳號密碼。序號由系統產生並於購買後由 LINE Bot 或 Email 發送，輸入序號即可啟用儀表板功能。</p>
-        <p>免費用戶可透過 LINE Bot 接收每日法條推播，付費序號啟用後另可使用完整儀表板、練習區及進度追蹤。</p>
+        <p>SoFa Engine 使用序號制度管理會員資格，無需帳號密碼。序號由系統產生並於購買後寄到購買信箱，輸入序號即可啟用儀表板功能。</p>
+        <p>免費用戶可透過網站進行免登入練習；付費序號啟用後另可使用完整儀表板、練習區及進度追蹤。</p>
       </section>
 
       <!-- 02 付費與序號 -->
@@ -276,14 +292,14 @@
           <strong>到考日方案</strong>：依你在系統內設定的考試目標計算期限。若尚未設定考試日，系統會提示先補齊目標日期。
         </div>
 
-        <p>付款透過綠界科技（ECPay）信用卡金流處理，SoFa Engine 不儲存您的信用卡資訊。付款成功後，序號由系統自動產生並透過 LINE Bot 發送。</p>
+        <p>付款透過綠界科技（ECPay）信用卡金流處理，SoFa Engine 不儲存您的信用卡資訊。付款成功後，序號由系統自動產生並寄到購買信箱。</p>
 
         <p><strong>序號使用規則：</strong></p>
         <ul>
           <li>序號啟用後開始計算使用期限，未啟用序號不計日期</li>
           <li>序號綁定使用裝置與瀏覽器，建議由本人使用</li>
           <li>序號不可轉讓、不可分享，違規使用可能導致序號停用</li>
-          <li>使用期限到期後儀表板功能停用，LINE 推播維持免費額度</li>
+          <li>使用期限到期後儀表板功能停用，免登入練習仍可使用</li>
         </ul>
       </section>
 
@@ -347,15 +363,15 @@
         <div class="faq-list">
 
           <div class="faq-item open">
-            <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">免費 LINE Bot 和付費序號的功能差在哪？</div>
+            <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">免費模式和付費序號的功能差在哪？</div>
             <div class="faq-a">
-              免費用戶可透過 LINE Bot 接收每日 08:00 法條推播，但無法進入儀表板。<br/>
+              免費用戶可透過網站免登入練習，但不保留完整跨裝置紀錄。<br/>
               付費序號啟用後，可以使用：<br/>
               · 完整儀表板（瀏覽全部 14,000+ 條）<br/>
               · 練習區（挖空 / 選擇 / 是非 / 配對）<br/>
               · 進度追蹤（已讀 / 已熟記 / 待複習）<br/>
               · 重點法條標星與收藏<br/>
-              · 每日推播（同免費）
+              · 弱點分析與今日複習
             </div>
           </div>
 
@@ -370,8 +386,8 @@
           <div class="faq-item">
             <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">付款後多久收到序號？</div>
             <div class="faq-a">
-              付款完成後通常在 1–5 分鐘內，LINE Bot 會自動傳送序號給你。<br/>
-              如果超過 10 分鐘還沒收到，請聯絡 <a href="mailto:hi@sofaengine.org">hi@sofaengine.org</a> 並附上付款憑證。
+              付款完成後通常在 1–5 分鐘內，序號會寄到購買信箱。<br/>
+              如果超過 10 分鐘還沒收到，請先檢查垃圾信件匣，或聯絡 <a href="mailto:hi@sofaengine.org">hi@sofaengine.org</a> 並附上付款憑證。
             </div>
           </div>
 
