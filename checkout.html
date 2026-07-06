@@ -957,19 +957,34 @@
     trackCheckout(eventName, extra);
   }
 
-  function observeCheckoutSignal(el, eventName){
+  function observeCheckoutSignal(el, eventName, options){
     if (!el) return;
+    const threshold = options?.threshold ?? 0.35;
+    const minPixels = options?.minPixels ?? 28;
     const send = () => trackCheckoutOnce(eventName);
+    const checkGeometry = () => {
+      try {
+        const rect = el.getBoundingClientRect();
+        const viewH = window.innerHeight || document.documentElement.clientHeight || 0;
+        const viewW = window.innerWidth || document.documentElement.clientWidth || 0;
+        const visibleH = Math.min(rect.bottom, viewH) - Math.max(rect.top, 0);
+        const visibleW = Math.min(rect.right, viewW) - Math.max(rect.left, 0);
+        if (visibleH >= minPixels && visibleW >= minPixels) send();
+      } catch (_) {}
+    };
     if (!("IntersectionObserver" in window)) {
-      setTimeout(send, 0);
+      setTimeout(checkGeometry, 0);
       return;
     }
     const observer = new IntersectionObserver((entries) => {
       if (!entries.some((entry) => entry.isIntersecting)) return;
       send();
       observer.disconnect();
-    }, { threshold: 0.4 });
+    }, { threshold });
     observer.observe(el);
+    requestAnimationFrame(checkGeometry);
+    window.addEventListener("scroll", checkGeometry, { passive: true, once: true });
+    window.addEventListener("resize", checkGeometry, { passive: true, once: true });
   }
 
   function focusEmailError(){
@@ -1205,8 +1220,8 @@
 
   initExamTargetSelect();
   refreshSummary();
-  observeCheckoutSignal(document.querySelector("form.form"), "checkout_form_visible");
-  observeCheckoutSignal(submitBtn, "checkout_cta_viewed");
+  observeCheckoutSignal(document.querySelector(".email-card"), "checkout_form_visible", { threshold: 0.2, minPixels: 36 });
+  observeCheckoutSignal(submitBtn, "checkout_cta_viewed", { threshold: 0.25, minPixels: 36 });
   trackCheckout("checkout_start");
 })();
 </script>
