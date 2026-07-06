@@ -1472,7 +1472,7 @@
                 <span class="ic">§</span>
                 <input id="search-art" placeholder="條號（選填）" type="text" inputmode="numeric" />
               </div>
-              <button id="search-btn" onclick="doSearch()" style="background:var(--peach);color:var(--navy);border:none;border-radius:3px;padding:0 28px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:.18s;letter-spacing:.04em;flex-shrink:0" onmouseover="this.style.background='var(--peach-2)'" onmouseout="this.style.background='var(--peach)'">搜尋</button>
+              <button id="search-btn" onclick="doSearch()" style="background:var(--peach);color:var(--navy);border:none;border-radius:3px;padding:0 28px;min-height:44px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:.18s;letter-spacing:.04em;flex-shrink:0" onmouseover="this.style.background='var(--peach-2)'" onmouseout="this.style.background='var(--peach)'">搜尋</button>
             </div>
             <div class="chip-row">
               <button class="chip on" onclick="setChip(this,'all')">全部</button>
@@ -2451,8 +2451,8 @@ function _renderSrPage(){
   var slice = _srArts.slice(start, start + _srSize);
   var html = _renderResRows(slice, _srLaw);
   // 分頁列
-  var btnS = 'padding:5px 14px;border-radius:3px;border:1px solid rgba(245,240,234,.2);background:transparent;color:rgba(245,240,234,.65);cursor:pointer;font-family:var(--mono);font-size:11.5px';
-  var disS = 'padding:5px 14px;border-radius:3px;border:1px solid rgba(245,240,234,.07);background:transparent;color:rgba(245,240,234,.2);font-family:var(--mono);font-size:11.5px;cursor:default';
+  var btnS = 'min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:5px 14px;border-radius:3px;border:1px solid rgba(245,240,234,.2);background:transparent;color:rgba(245,240,234,.65);cursor:pointer;font-family:var(--mono);font-size:11.5px';
+  var disS = 'min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:5px 14px;border-radius:3px;border:1px solid rgba(245,240,234,.07);background:transparent;color:rgba(245,240,234,.2);font-family:var(--mono);font-size:11.5px;cursor:default';
   html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-top:1px solid rgba(245,240,234,.08)">'
     + '<span style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.38)">' + (start+1) + '–' + (start+slice.length) + ' / 共 ' + total + ' 條</span>'
     + '<div style="display:flex;gap:6px">'
@@ -2512,8 +2512,8 @@ function _renderLawsToc(page){
     if(totalPg <= 1){
       pagerEl.innerHTML = '';
     } else {
-      var btnStyle = 'padding:6px 16px;border-radius:4px;border:1px solid rgba(245,240,234,.2);background:transparent;color:rgba(245,240,234,.7);cursor:pointer;font-family:var(--mono);font-size:12px;transition:.15s';
-      var disStyle = 'padding:6px 16px;border-radius:4px;border:1px solid rgba(245,240,234,.07);background:transparent;color:rgba(245,240,234,.2);font-family:var(--mono);font-size:12px;cursor:default';
+      var btnStyle = 'min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:6px 16px;border-radius:4px;border:1px solid rgba(245,240,234,.2);background:transparent;color:rgba(245,240,234,.7);cursor:pointer;font-family:var(--mono);font-size:12px;transition:.15s';
+      var disStyle = 'min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:6px 16px;border-radius:4px;border:1px solid rgba(245,240,234,.07);background:transparent;color:rgba(245,240,234,.2);font-family:var(--mono);font-size:12px;cursor:default';
       pagerEl.innerHTML =
         (_lawsPage > 0
           ? '<button style="'+btnStyle+'" onclick="_renderLawsToc('+(_lawsPage-1)+')">‹ 上頁</button>'
