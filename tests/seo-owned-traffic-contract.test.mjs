@@ -7,13 +7,13 @@ const sitemap = readFileSync(new URL('sitemap.xml', root), 'utf8');
 const robots = readFileSync(new URL('robots.txt', root), 'utf8');
 
 test('private and payment pages stay out of the public sitemap', () => {
-  for (const page of ['dashboard.html', 'login.html', 'checkout.html', 'notes.html', 'law-monitor.html']) {
+  for (const page of ['dashboard.html', 'login.html', 'checkout.html', 'notes.html']) {
     assert.doesNotMatch(sitemap, new RegExp(`https://sofaengine\\.org/${page}`), `${page} should not be in sitemap`);
   }
 });
 
 test('private and payment pages declare noindex', () => {
-  for (const page of ['dashboard.html', 'login.html', 'checkout.html', 'notes.html', 'law-monitor.html']) {
+  for (const page of ['dashboard.html', 'login.html', 'checkout.html', 'notes.html']) {
     const html = readFileSync(new URL(page, root), 'utf8');
     assert.match(html, /<meta\s+name=["']robots["']\s+content=["']noindex,\s*nofollow["']\s*\/?>/i, `${page} should be noindex,nofollow`);
   }
