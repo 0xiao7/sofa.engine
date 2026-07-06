@@ -22,9 +22,10 @@ test('dashboard focus list keeps executable actions and API loading', () => {
   assert.match(html, /function playStudyPlaylistAll/);
   assert.match(html, /function playStudyPlaylistItem/);
   assert.match(html, /function _speakStudyPlaylistText/);
-  assert.match(html, /href="\s*'\s*\+ _studyDrillHref\(item\)/);
-  assert.match(html, /href="\s*'\s*\+ _studyReaderHref\(item\)/);
+  assert.match(html, /var practiceHref = 'quiz\.html\?law=' \+ encodeURIComponent\(law\)/);
+  assert.match(html, /var readerHref = articleReaderHref\(law, articleNo, itemId\)/);
+  assert.match(html, /href="' \+ esc\(practiceHref\) \+ '">單刷/);
+  assert.match(html, /href="' \+ esc\(readerHref\) \+ '">看法條/);
   assert.match(html, /朗讀沒有啟動/);
   assert.match(html, /#study-playlist/);
 });
-
