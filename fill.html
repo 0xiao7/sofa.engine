@@ -16,6 +16,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="sofa.css" />
 <style>
+  html,body{max-width:100%;overflow-x:hidden}
   .pr-bar{
     background:var(--navy-2);border-bottom:1px solid var(--line);
     padding:16px 40px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;
@@ -246,9 +247,16 @@
     .rail-card{flex:1;min-width:240px}
   }
   @media (max-width:760px){
+    .topbar{max-width:100vw;gap:10px;overflow:hidden}
+    .brand{min-width:0;font-size:14px;letter-spacing:.12em;white-space:nowrap}
+    .top-right{gap:10px;min-width:0}
+    .user-pill{display:none}
     .pr-bar{padding:12px 18px;gap:12px}
-    .pr-meta{gap:14px;font-size:11px}
+    .pr-bar,.pr-bar .l,.pr-meta{min-width:0;max-width:100%}
+    .pr-meta{gap:14px;font-size:11px;overflow:hidden}
+    .pr-meta .seg{white-space:nowrap}
     .stage{padding:24px 18px 60px}
+    .stage,.inner,.fill-card,.rail-card{max-width:100%;min-width:0}
     .ar-head h2{font-size:24px}
     .ar-head h2 .n{font-size:36px}
     .fill-card{padding:24px 22px;font-size:18px;line-height:2}
@@ -270,7 +278,10 @@
   .pr-sub{display:none;align-items:center;gap:8px;margin-left:6px}
   .pr-sub.show{display:flex}
   .pr-sub select{background:var(--navy-3);border:1px solid var(--line-2);border-radius:3px;color:var(--cream);font-family:var(--mono);font-size:11.5px;padding:5px 10px;cursor:pointer;outline:none}
-  @media (max-width:760px){.pr-chips{padding:10px 18px}}
+  @media (max-width:760px){
+    .pr-chips{padding:10px 18px;max-width:100vw;overflow:hidden}
+    .pr-chip{min-height:34px;padding:7px 12px}
+  }
 </style>
 </head>
 <body>
