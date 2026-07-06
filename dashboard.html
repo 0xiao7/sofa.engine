@@ -327,6 +327,93 @@
   .tn .v.peach{color:var(--peach)}
   .tn .v.good{color:var(--good)}
 
+  /* candidate first screen */
+  .candidate-study-cockpit{
+    margin:28px 0 46px;
+    border:1px solid var(--line-2);
+    background:linear-gradient(135deg, rgba(231,187,167,.07), rgba(31,56,72,.64));
+    border-radius:4px;
+    padding:24px;
+    display:grid;
+    grid-template-columns:minmax(0,1.05fr) minmax(260px,.95fr);
+    gap:22px;
+    align-items:stretch;
+  }
+  .candidate-study-cockpit .kicker{
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.22em;
+    color:var(--peach);
+    text-transform:uppercase;
+  }
+  .candidate-study-cockpit h2{
+    margin-top:10px;
+    font-family:var(--serif);
+    font-size:26px;
+    line-height:1.35;
+    color:var(--cream);
+    font-weight:600;
+  }
+  .candidate-study-cockpit .copy{
+    margin-top:10px;
+    color:rgba(245,240,234,.68);
+    font-size:14px;
+    line-height:1.8;
+    max-width:560px;
+  }
+  .candidate-study-actions{
+    margin-top:18px;
+    display:grid;
+    grid-template-columns:repeat(3,minmax(0,1fr));
+    gap:10px;
+  }
+  .candidate-study-action{
+    min-height:44px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--line-2);
+    border-radius:4px;
+    padding:10px 12px;
+    font-family:var(--mono);
+    font-size:11.5px;
+    letter-spacing:.08em;
+    color:rgba(245,240,234,.78);
+    text-align:center;
+    transition:.18s;
+  }
+  .candidate-study-action:hover{border-color:var(--peach);color:var(--cream);background:rgba(245,240,234,.04)}
+  .candidate-study-action.primary{
+    background:var(--peach);
+    border-color:var(--peach);
+    color:var(--navy);
+    font-weight:700;
+  }
+  .candidate-study-cards{
+    display:grid;
+    gap:10px;
+  }
+  .candidate-study-card{
+    border:1px solid var(--line);
+    background:rgba(13,28,40,.42);
+    border-radius:4px;
+    padding:14px 16px;
+  }
+  .candidate-study-card b{
+    display:block;
+    font-family:var(--serif);
+    font-size:16px;
+    color:var(--cream);
+    font-weight:600;
+  }
+  .candidate-study-card span{
+    display:block;
+    margin-top:5px;
+    color:rgba(245,240,234,.6);
+    font-size:12.5px;
+    line-height:1.65;
+  }
+
   /* sections */
   section.block{margin-bottom:80px;scroll-margin-top:90px}
   .sec-head{
@@ -1070,6 +1157,7 @@
     .tonight{grid-template-columns:repeat(2,1fr)}
     .tn:nth-child(2){border-right:none}
     .tn:nth-child(1),.tn:nth-child(2){border-bottom:1px solid var(--line)}
+    .candidate-study-cockpit{grid-template-columns:1fr}
   }
   @media (max-width: 760px){
     .topbar{padding:14px 20px}
@@ -1087,6 +1175,9 @@
     .greet .now{text-align:left}
     .greet .now .t{font-size:30px}
     .tonight{grid-template-columns:1fr 1fr}
+    .candidate-study-cockpit{margin:18px 0 34px;padding:18px;gap:16px}
+    .candidate-study-cockpit h2{font-size:22px}
+    .candidate-study-actions{grid-template-columns:1fr}
     .member-card{grid-template-columns:1fr}
     .member-card .perf{display:none}
     .mc-l{padding:28px 24px}
@@ -1179,7 +1270,8 @@
       <div class="nav-section">
         <div class="lab">導 覽</div>
         <div class="nav-list">
-          <a href="#member" class="on"><span class="num">01</span>會員資訊<span class="ct"></span></a>
+          <a href="#candidate-study-cockpit" class="on"><span class="num">T1</span>今天先做<span class="ct"></span></a>
+          <a href="#member"><span class="num">01</span>會員資訊<span class="ct"></span></a>
           <a href="#progress"><span class="num">02</span>學習進度<span class="ct">6/7</span></a>
           <a href="#search"><span class="num">03</span>法條搜尋<span class="ct"></span></a>
           <a href="#favorites"><span class="num">04</span>我的收藏<span class="ct">1</span></a>
@@ -1240,6 +1332,36 @@
             <div class="v">1 <span class="u">條 · 7 天後</span></div>
           </div>
         </div>
+
+        <section class="candidate-study-cockpit" id="candidate-study-cockpit" aria-label="今天先做">
+          <div>
+            <div class="kicker">TODAY · 今天先做</div>
+            <h2>先做一題，看出弱點，再決定要補哪裡。</h2>
+            <p class="copy">不用在一整套工具裡猜下一步。先從作答、弱點、複習三件事進入；讀書課程和補紀錄只補進度，不會改答題正確率。</p>
+            <div class="candidate-study-actions" aria-label="今日學習入口">
+              <a class="candidate-study-action primary" href="quiz.html">開始選擇題</a>
+              <a class="candidate-study-action" href="quiz.html?open=weakness">看弱點分析</a>
+              <a class="candidate-study-action" href="#review">今日複習</a>
+              <a class="candidate-study-action" href="quiz.html?mode=past-exam">歷屆試題</a>
+              <a class="candidate-study-action" href="#tools">重點朗讀</a>
+              <a class="candidate-study-action" href="#tools">排課 / 補紀錄</a>
+            </div>
+          </div>
+          <div class="candidate-study-cards" aria-label="今日讀書狀態">
+            <div class="candidate-study-card">
+              <b>保存軌跡</b>
+              <span>答題後留下錯題、弱點和複習入口；換天回來不用重新找。</span>
+            </div>
+            <div class="candidate-study-card">
+              <b>弱點優先</b>
+              <span>先補反覆錯的法規與條文，再回到整批法條閱讀。</span>
+            </div>
+            <div class="candidate-study-card">
+              <b>進度誠實</b>
+              <span>補讀書時數和課程進度可以；答對率只來自真的作答。</span>
+            </div>
+          </div>
+        </section>
 
         <!-- ============ 01 MEMBER ============ -->
         <section class="block" id="member">
@@ -1487,15 +1609,6 @@
               <p class="desc">文字重點清單；<br/>可朗讀、單刷、看法條。</p>
               <span class="arrow">整理 <span class="glyph">→</span></span>
             </button>
-            <a class="tool" href="https://lin.ee/zUeMwo4">
-              <div class="num">07</div>
-              <div>
-                <div class="code">LINE</div>
-                <div class="name" style="margin-top:6px">LINE 查法條</div>
-              </div>
-              <p class="desc">手機直接查、<br/>每日 08:00 推播。</p>
-              <span class="arrow">加入 <span class="glyph">→</span></span>
-            </a>
           </div>
           <div class="focus-panel" id="study-playlist-panel" aria-label="通勤重點朗讀清單">
             <div class="focus-head">
@@ -2923,7 +3036,7 @@ sections.forEach(s=>io.observe(s));
       如果哪裡卡、哪裡不好用，我們更想知道哪裡不好用，這會直接變成下一輪改進。
     </p>
     <div style="display:grid;gap:10px;margin:0 0 1rem;text-align:left;">
-      <a href="https://lin.ee/zUeMwo4" target="_blank" rel="noopener"
+      <a href="mailto:hi@sofaengine.org?subject=SoFa%20Engine%20feedback" target="_blank" rel="noopener"
         style="display:block;border:1px solid rgba(231,187,167,0.48);background:rgba(231,187,167,0.08);
         color:#F5F0EA;border-radius:8px;padding:0.78rem 0.95rem;text-decoration:none;">
         <b style="display:block;color:#E8A598;font-size:0.95rem;margin-bottom:0.18rem;">回饋使用體感 · 延長 10 天</b>

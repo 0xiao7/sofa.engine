@@ -15,6 +15,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="sofa.css" />
+<script src="sofa-analytics.js?v=20260704-revenue-v1" defer></script>
 <style>
   .pr-bar{
     background:var(--navy-2);border-bottom:1px solid var(--line);
@@ -160,6 +161,30 @@
   .explain .src button{background:none;border:none;padding:0;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--peach-3);font-weight:600}
   .art-inline{margin-top:14px;padding:16px 20px;background:rgba(31,56,72,.06);border-radius:3px;max-height:380px;overflow-y:auto;font-family:var(--serif);font-size:14.5px;line-height:2;color:rgba(31,56,72,.82);white-space:pre-wrap;display:none}
 
+  #quiz-answer-actions{display:none;margin-top:18px;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+  #quiz-answer-actions.show{display:grid}
+  #quiz-answer-actions button,
+  #quiz-answer-actions a{
+    min-height:44px;display:inline-flex;align-items:center;justify-content:center;
+    border-radius:4px;border:1px solid var(--line);padding:0 14px;
+    font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-decoration:none;
+    color:var(--cream);background:var(--navy-2);cursor:pointer;
+  }
+  #view-article-btn{min-height:44px}
+  #view-weakness-btn{min-height:44px}
+  #quiz-answer-actions #btnNext{min-height:44px;background:var(--peach);border-color:var(--peach);color:var(--navy);font-weight:700}
+  #quiz-answer-actions #btnFlag{min-height:44px}
+  #post-answer-retention{
+    display:none;grid-column:1 / -1;align-items:center;justify-content:space-between;gap:12px;
+    border:1px dashed rgba(231,187,167,.38);border-radius:4px;
+    padding:12px 14px;background:rgba(231,187,167,.08);
+    color:rgba(245,240,234,.82);font-size:13px;line-height:1.6;
+  }
+  #post-answer-retention .retention-copy b{color:var(--cream);font-weight:600}
+  #post-answer-retention .retention-links{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+  #post-answer-retention a{min-height:44px;background:rgba(245,240,234,.06);white-space:nowrap}
+  #post-answer-retention a.primary{background:var(--peach);border-color:var(--peach);color:var(--navy);font-weight:700}
+
   /* section analysis */
   .sec-block{margin-top:16px;padding-top:14px;border-top:1px dashed rgba(31,56,72,.15)}
   .sec-label{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--peach-3);font-weight:600;margin-bottom:6px}
@@ -244,6 +269,15 @@
     .q-foot{flex-direction:column;align-items:stretch}
     .q-foot .r{flex-direction:column}
     .rail{flex-direction:column}
+    .stage{overflow-x:hidden}
+    .inner{max-width:100%}
+    #quiz-answer-actions{display:none;grid-template-columns:1fr}
+    #quiz-answer-actions.show{display:grid}
+    #quiz-answer-actions button{width:100%;min-width:0}
+    #quiz-answer-actions a{width:100%;min-width:0}
+    #quiz-answer-actions #quiz-citation{grid-column:1 / -1}
+    #post-answer-retention{align-items:stretch;flex-direction:column}
+    #post-answer-retention .retention-links{justify-content:stretch}
   }
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
@@ -350,6 +384,25 @@
 
         <div class="opts" id="optionsBox"></div>
 
+        <div id="quiz-answer-actions" aria-label="答題後行動">
+          <span id="quiz-citation" style="display:none"></span>
+          <button type="button" id="view-article-btn" style="display:none">查看法條</button>
+          <a id="view-weakness-btn" href="dashboard.html#weakness" style="display:none">看弱點分析</a>
+          <button class="btn btn-ghost" id="btnFlag" type="button">⚑ 標記</button>
+          <button class="btn btn-pri" id="btnNext" type="button">下一題 <span class="k">↵</span></button>
+          <div id="post-answer-retention">
+            <span class="retention-copy"><b>想保留這題和弱點？</b>登入後可把這輪錯題、標記與弱點接回下次練習。</span>
+            <span class="retention-links">
+              <a href="login.html?utm_source=web_quiz&utm_medium=post_answer&utm_campaign=quiz_post_answer_login"
+                 data-track-event="post_answer_login_click"
+                 data-track-label="quiz_post_answer_login">輸入序號保存</a>
+              <a class="primary" href="pricing.html?utm_source=web_quiz&utm_medium=post_answer&utm_campaign=quiz_post_answer_pricing"
+                 data-track-event="post_answer_pricing_click"
+                 data-track-label="quiz_post_answer_pricing">查看方案</a>
+            </span>
+          </div>
+        </div>
+
         <div class="explain" id="explainBox" style="display:none">
           <span class="eb">答對了</span>
           <p id="answerExplain" style="display:none"></p>
@@ -367,9 +420,7 @@
             <span><kbd>F</kbd>標記</span>
           </div>
           <div class="r">
-            <button class="btn btn-ghost" id="btnFlag">⚑ 標記</button>
             <button class="btn btn-sec">← 上一題</button>
-            <button class="btn btn-pri" id="btnNext">下一題 <span class="k">↵</span></button>
           </div>
         </div>
       </div>
@@ -557,6 +608,32 @@ document.getElementById('lawSelect').addEventListener('change', async function()
 
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 
+function normalizeArticleCore(raw){
+  const value=String(raw||'').replace(/^§\s*/,'').split(/[｜|]/)[0].trim();
+  const m=value.match(/^第?([0-9一二三四五六七八九十百千零兩]+)條?(之[0-9一二三四五六七八九十百千零兩]+)?/);
+  if(m)return {core:m[1],suffix:m[2]||''};
+  const plain=value.match(/^([0-9]+)(之[0-9]+)?$/);
+  if(plain)return {core:plain[1],suffix:plain[2]||''};
+  return {core:value,suffix:''};
+}
+
+function getArticleCitationNo(raw){
+  const n=normalizeArticleCore(raw);
+  return `${n.core}${n.suffix}`;
+}
+
+function formatArticleCitation(raw,lawName){
+  const n=normalizeArticleCore(raw);
+  const law=lawName?` ｜ ${lawName}`:'';
+  return n.core?`第 ${n.core} 條${n.suffix}${law}`:`${lawName||''}`;
+}
+
+function renderQuizCitation(artTitle,lawName){
+  const el=document.getElementById('quiz-citation');
+  if(!el)return;
+  el.textContent=formatArticleCitation(artTitle, lawName);
+}
+
 const _FREE_SECS=[
   '章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示','核心摘要與記憶策略',
   '條文解析','考點整理','記憶技巧','相關條文'
@@ -661,6 +738,28 @@ function updateScore(){
   document.getElementById('quizProg').style.width=prog+'%';
 }
 
+function updatePostAnswerRetention(){
+  const retention=document.getElementById('post-answer-retention');
+  if(!retention)return;
+  retention.style.display = isFree ? 'flex' : 'none';
+}
+
+function hideQuizAnswerActions(){
+  const actions=document.getElementById('quiz-answer-actions');
+  if(actions)actions.classList.remove('show');
+}
+
+function showQuizAnswerActions(){
+  const actions=document.getElementById('quiz-answer-actions');
+  if(!actions)return;
+  document.getElementById('view-article-btn').style.display = 'inline-flex';
+  document.getElementById('view-weakness-btn').style.display = 'inline-flex';
+  updatePostAnswerRetention();
+  actions.classList.add('show');
+  if(typeof window.sofaTrack==='function') window.sofaTrack('post_answer_value_viewed',{surface:'quiz',free:isFree});
+  actions.scrollIntoView({block:'center', behavior:'auto'});
+}
+
 function _pastExamQuestionKey(raw) {
   return [raw.subject || '', raw.roc_year || '', raw.question_no || '', raw.id || ''].join(':');
 }
@@ -754,6 +853,7 @@ async function loadQuiz(){
   document.getElementById('questionBox').style.opacity='.45';
   document.getElementById('optionsBox').innerHTML='';
   document.getElementById('explainBox').style.display='none';
+  hideQuizAnswerActions();
   const answerExplain = document.getElementById('answerExplain');
   if(answerExplain){ answerExplain.style.display='none'; answerExplain.textContent=''; }
   document.getElementById('qSrc').innerHTML='—';
@@ -844,6 +944,7 @@ async function loadQuiz(){
     const artTitle=data.title||data.correct_title||'';
     const cur=sessionHistory[sessionHistory.length-1];
     cur.law=lawName; cur.title=artTitle;
+    renderQuizCitation(artTitle, lawName);
 
     // 顯示法規來源
     if(lawName||artTitle){
@@ -893,6 +994,7 @@ async function loadQuiz(){
           answerExplain.style.display='block';
         }
         document.getElementById('artInline').style.display='none';
+        showQuizAnswerActions();
         document.getElementById('explainBox').style.display='block';
         // 載入條文解析 sections
         if(pageId){
@@ -942,6 +1044,9 @@ document.getElementById('sourceLink').addEventListener('click',()=>{
   const open=panel.style.display==='none'||!panel.style.display;
   panel.style.display=open?'block':'none';
   btn.textContent=open?'收起條文 ↑':'查看完整條文 →';
+});
+document.getElementById('view-article-btn').addEventListener('click',()=>{
+  document.getElementById('sourceLink').click();
 });
 document.getElementById('btnFlag').addEventListener('click',doFlag);
 document.getElementById('btnNew').addEventListener('click',loadQuiz);

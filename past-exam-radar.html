@@ -74,16 +74,17 @@
       <aside class="panel" aria-label="目前範圍">
         <div class="k">CURRENT SCOPE</div>
         <ul class="scope-list">
-          <li><span>產品範圍</span><b>記帳士兩科</b></li>
+          <li><span>產品範圍</span><b>兩科先行</b></li>
           <li><span>題目邊界</span><b>trackable only</b></li>
+          <li><span>其他考科</span><b>不自動判分</b></li>
           <li><span>正式練習</span><b>quiz.html?mode=past-exam</b></li>
         </ul>
       </aside>
     </section>
 
     <section class="metrics" aria-label="考古題雷達數字">
-      <div class="metric"><div class="n" id="radar-total">讀取中</div><div class="label">Live API 可服務題數</div></div>
-      <div class="metric"><div class="n">2</div><div class="label">本頁先看的記帳士科目</div></div>
+      <div class="metric"><div class="n" id="radar-total">讀取中</div><div class="label">正式可練題數</div></div>
+      <div class="metric"><div class="n">2</div><div class="label">兩科先行</div></div>
       <div class="metric"><div class="n" id="radar-years">讀取中</div><div class="label">API 年度範圍</div></div>
     </section>
 
@@ -93,6 +94,15 @@
         <p>先把練習範圍收在記帳士目前可追蹤的兩科，不用非記帳士 live drift 當公開賣點。</p>
         <div class="list" id="subject-preview-list">
           <div class="row quiet">正在讀取兩科範例題...</div>
+        </div>
+      </article>
+      <article class="card">
+        <h2>其他考科狀態</h2>
+        <p>其他考科不自動判分：會計學概要先做官方答案原始整理；國文只收題目，不出答案；租稅申報實務屬於申論與計算題，不放進選擇題自動判分。</p>
+        <div class="list">
+          <div class="row"><b>會計學概要</b>官方答案原始整理中，未完成前不寫弱點判讀。</div>
+          <div class="row"><b>國文只收題目</b>只做保存與閱讀整理，不自動評分。</div>
+          <div class="row"><b>租稅申報實務</b>申論與計算題，需要獨立練習型態。</div>
         </div>
       </article>
       <article class="card">
@@ -141,7 +151,7 @@
       const quality = document.getElementById('quality-list');
       if(quality){
         quality.innerHTML = [
-          `<div class="row"><b>可服務題數</b>${esc((meta && meta.total) || '未確認')} 題；仍需用 trackable guard 保證有法條對應。</div>`,
+          `<div class="row"><b>正式可練題數</b>${esc((meta && meta.total) || '未確認')} 題；仍需用 trackable guard 保證有法條對應。</div>`,
           '<div class="row"><b>排除規則</b>沒有 article_ids 的題不進正式練習，不拿來寫弱點。</div>'
         ].join('');
       }
