@@ -949,6 +949,28 @@
     } catch (_) {}
   }
 
+  const checkoutOnceEvents = new Set();
+  function trackCheckoutOnce(eventName, extra){
+    if (checkoutOnceEvents.has(eventName)) return;
+    checkoutOnceEvents.add(eventName);
+    trackCheckout(eventName, extra);
+  }
+
+  function observeCheckoutSignal(el, eventName){
+    if (!el) return;
+    const send = () => trackCheckoutOnce(eventName);
+    if (!("IntersectionObserver" in window)) {
+      setTimeout(send, 0);
+      return;
+    }
+    const observer = new IntersectionObserver((entries) => {
+      if (!entries.some((entry) => entry.isIntersecting)) return;
+      send();
+      observer.disconnect();
+    }, { threshold: 0.4 });
+    observer.observe(el);
+  }
+
   function focusEmailError(){
     try { emailEl.scrollIntoView({ block: "center", behavior: "smooth" }); } catch (_) {}
     emailEl.focus();
@@ -1050,10 +1072,14 @@
   }
   cards.forEach(c => {
     c.addEventListener("click", () => {
+      const prevPlan = getSelected().plan;
       cards.forEach(x => x.classList.remove("selected"));
       c.classList.add("selected");
       refreshSummary();
       clearError();
+      if (prevPlan !== c.dataset.plan) {
+        trackCheckout("checkout_plan_changed", { from_plan: prevPlan, to_plan: c.dataset.plan });
+      }
       trackCheckout("pricing_select_plan");
     });
   });
@@ -1113,6 +1139,7 @@
       } catch (_) {}
       updateExamTargetHint();
       refreshSummary();
+      trackCheckout("checkout_exam_target_changed", { exam_key: getCheckoutExamKey() });
       trackCheckout("checkout_exam_target_select", { exam_key: getCheckoutExamKey() });
     });
   }
@@ -1177,6 +1204,8 @@
 
   initExamTargetSelect();
   refreshSummary();
+  observeCheckoutSignal(document.querySelector("form.form"), "checkout_form_visible");
+  observeCheckoutSignal(submitBtn, "checkout_cta_viewed");
   trackCheckout("checkout_start");
 })();
 </script>
