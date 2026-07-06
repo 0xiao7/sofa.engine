@@ -21,7 +21,6 @@ const internalOrLegacyPages = [
   'login-v5-clean.html',
   'share.html',
   'share-v2-favicon.html',
-  'law-monitor.html',
   'ig-cards.html',
   'ig-carousel.html',
   'richmenu-preview.html',
@@ -39,4 +38,3 @@ test('legacy, render, and internal root pages are not indexable candidate surfac
     );
   }
 });
-
