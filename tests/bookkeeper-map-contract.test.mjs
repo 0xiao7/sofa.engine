@@ -19,7 +19,7 @@ test('bookkeeper law map keeps proof claims inside verified bookkeeper scope', (
   assert.match(page, /109-114 年/);
   assert.match(page, /記帳相關法規概要/);
   assert.match(page, /稅務相關法規概要/);
-  assert.match(page, /580 題可灌/);
+  assert.match(page, /580 題已重核/);
   assert.match(page, /MOEX 官方答案重核/);
   assert.match(page, /正式可練題數/);
   assert.match(page, /\/api\/past-exam\/meta/);
@@ -34,6 +34,8 @@ test('bookkeeper law map keeps proof claims inside verified bookkeeper scope', (
     /全部科目完整收錄/,
     /會計學概要已可自動判分/,
     /國文(?:[\s\S]{0,12})?答案/,
+    /staging loader/,
+    /可灌題數/,
     /每年都會考/,
     /必考/,
     /保證/,
@@ -45,12 +47,14 @@ test('bookkeeper law map keeps proof claims inside verified bookkeeper scope', (
 
 test('bookkeeper law map uses SoFa conversion CTAs without raw links or study room framing', () => {
   assert.match(page, /href="\/quiz\.html\?mode=past-exam&track=bookkeeper&utm_source=site&utm_medium=law_map&utm_campaign=bookkeeper_past_exam"/);
-  assert.match(page, /href="\/quiz\.html\?open=wrong&utm_source=site&utm_medium=law_map&utm_campaign=bookkeeper_wrong_book"/);
+  assert.match(page, /href="\/dashboard\.html#review"/);
   assert.match(page, /href="https:\/\/line\.me\/R\/ti\/p\/@928oakbo"/);
   assert.match(page, /免費讓你知道卡在哪/);
   assert.match(page, /啟用後保留紀錄/);
+  assert.match(page, /加入 LINE 接收提醒/);
 
   assert.doesNotMatch(page, /room\.html|自習室|陪讀室|像素|PR99|命中率/);
+  assert.doesNotMatch(page, /加入 LINE 保存弱點/);
   assert.doesNotMatch(page, />https?:\/\/[^<]+</);
 });
 

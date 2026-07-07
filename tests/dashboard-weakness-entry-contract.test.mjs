@@ -4,13 +4,13 @@ import test from 'node:test';
 
 const html = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
 
-test('dashboard 待複習區提供「查看弱點分析」入口，指向 quiz.html?open=weakness', () => {
+test('dashboard 待複習區提供「查看弱點分析」入口，指向站內弱點區塊', () => {
   // 入口存在且連到弱點分析頁
   assert.match(html, /id="review-weakness-entry"/);
   assert.match(
     html,
-    /<a id="review-weakness-entry" href="quiz\.html\?open=weakness">/,
-    '弱點入口必須是直接連到 quiz.html?open=weakness 的連結'
+    /<a id="review-weakness-entry" href="#weak-laws-recap">/,
+    '弱點入口必須直接連到 dashboard 內的弱點區塊'
   );
 
   // 入口位於「待複習」區塊的標題列（#review-head-r）內

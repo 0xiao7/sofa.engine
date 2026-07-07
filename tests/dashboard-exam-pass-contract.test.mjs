@@ -26,8 +26,9 @@ test('dashboard exposes daily_review_limit UI', () => {
   assert.match(active, /daily_review_limit/);
 });
 
-test('dashboard offers a quiz.html?open=weakness entry point', () => {
-  assert.match(active, /quiz\.html\?open=weakness/);
+test('dashboard offers an in-page weakness entry point', () => {
+  assert.match(active, /#weak-laws-recap/);
+  assert.doesNotMatch(active, /quiz\.html\?open=weakness/);
 });
 
 test('room.html is not the active entry point for the exam-pass task', () => {

@@ -399,7 +399,7 @@
         <div id="quiz-answer-actions" aria-label="答題後行動">
           <span id="quiz-citation" style="display:none"></span>
           <button type="button" id="view-article-btn" style="display:none">查看法條</button>
-          <a id="view-weakness-btn" href="dashboard.html#weakness" style="display:none">看弱點分析</a>
+          <a id="view-weakness-btn" href="dashboard.html#weak-laws-recap" style="display:none">看弱點分析</a>
           <button class="btn btn-ghost" id="btnFlag" type="button">⚑ 標記</button>
           <button class="btn btn-pri" id="btnNext" type="button">下一題 <span class="k">↵</span></button>
           <div id="post-answer-retention">
@@ -488,6 +488,14 @@ function formatLawText(raw){
   t=t.replace(/[ 　]*(?<!第)([一二三四五六七八九十百千零兩]+、)/g,'\n$1');
   t=t.replace(/[ 　]*(（[一二三四五六七八九十百]+）)/g,'\n　$1');
   return t.replace(/^\n+/,'').replace(/\n{2,}/g,'\n').trim();
+}
+function formatQuizLoadErrorMessage(message){
+  const raw=String(message||'').trim();
+  if(!raw) return _pastExamMode ? '考古題服務暫時不可用，請稍後再試' : '題目暫時載入失敗，請稍後再試';
+  if(/Errno|Resource temporarily unavailable|ECONN|Supabase|PostgREST|Traceback|SQL|timeout|temporarily unavailable/i.test(raw)){
+    return _pastExamMode ? '考古題服務暫時不可用，請稍後再試' : '題目暫時載入失敗，請稍後再試';
+  }
+  return raw;
 }
 function _authH(extra) {
   const h = extra ? {...extra} : {};
@@ -1004,7 +1012,7 @@ async function loadQuiz(){
     }
     if(!_pastExamMode) data=await fetch(url,{headers:_authH()}).then(r=>r.json());
     if(data.error||data.detail){
-      document.getElementById('questionBox').textContent=data.error||data.detail;
+      document.getElementById('questionBox').textContent=formatQuizLoadErrorMessage(data.error||data.detail);
       document.getElementById('questionBox').style.opacity='1';
       sessionHistory.pop(); total--; updateScore(); return;
     }
