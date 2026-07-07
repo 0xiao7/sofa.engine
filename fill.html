@@ -8,7 +8,6 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
-<link rel="icon" href="favicon-32.png" sizes="32x32" type="image/png">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -431,7 +430,11 @@ function _authH(extra) {
   else if (uid) h['X-Sofa-UID'] = uid;
   return h;
 }
-const isFree = !uid && localStorage.getItem('sofa_free') === 'FREE';
+const freeParam = new URLSearchParams(location.search).get('free') === '1';
+if (freeParam && !uid && !tok) {
+  localStorage.setItem('sofa_free', 'FREE');
+}
+const isFree = !uid && (freeParam || localStorage.getItem('sofa_free') === 'FREE');
 if (!uid && !isFree) { window.location.href = 'login.html?redirect=fill.html'; }
 document.getElementById('navUid').textContent = isFree ? '免費版' : (localStorage.getItem('sofa_nickname') || uid);
 if(isFree){
