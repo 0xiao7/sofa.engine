@@ -208,6 +208,13 @@ test('free start entry defaults to bookkeeper scope instead of all laws', () => 
   assert.match(active, /if\(examKey\) localStorage\.setItem\('sofa_exam_key', examKey\)/);
 });
 
+test('free start entry chooses a quiz-ready bookkeeper law first', () => {
+  assert.match(active, /function _preferredStartLaw\(laws\)/);
+  assert.match(active, /'商業會計法','公司法','所得稅法','稅捐稽徵法'/);
+  assert.match(active, /const preferred = _preferredStartLaw\(laws\)/);
+  assert.match(active, /sel\.value = preferred\.name/);
+});
+
 test('question label sits above the stem text instead of overlaying long questions', () => {
   assert.match(active, /\.q-stem\{[\s\S]*padding:56px 36px 32px/);
   assert.match(active, /\.q-stem::before\{[\s\S]*left:36px[\s\S]*right:auto/);

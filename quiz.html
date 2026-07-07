@@ -562,6 +562,11 @@ function _filterLawsForExam(laws, examKey){
   return laws.filter(l => _BOOKKEEPER_LAWS.has(l.name));
 }
 
+function _preferredStartLaw(laws){
+  const preferredNames = ['商業會計法','公司法','所得稅法','稅捐稽徵法'];
+  return preferredNames.map(name => laws.find(l => l.name === name)).find(Boolean) || laws[0];
+}
+
 let _autoLoadQuizStarted = false;
 function _autoLoadQuizOnce(){
   if(_autoLoadQuizStarted) return;
@@ -591,7 +596,8 @@ function _focusQuizQuestionStart(){
     const laws = _filterLawsForExam(d.laws||[], examKey);
     laws.forEach(l=>{const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);});
     if(_startQuizParam && laws.length && !sel.value){
-      sel.value = laws[0].name;
+      const preferred = _preferredStartLaw(laws);
+      sel.value = preferred.name;
       sel.dispatchEvent(new Event('change'));
     }
   }catch{}
