@@ -6,12 +6,22 @@
   const ATTR_KEYS = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','gclid','fbclid'];
   const SERVER_EVENT_MAP = new Map([
     ['landing_view', 'landing_view'],
+    ['free_practice_start', 'free_practice_start'],
+    ['free_mode_select', 'free_mode_select'],
     ['quiz_start', 'quiz_start'],
+    ['post_answer_value_viewed', 'post_answer_value_viewed'],
     ['pricing_view', 'pricing_view'],
     ['pricing_select_plan', 'pricing_select_plan'],
+    ['pricing_free_quiz_click', 'pricing_free_quiz_click'],
     ['checkout_start', 'checkout_start'],
+    ['checkout_form_visible', 'checkout_form_visible'],
+    ['checkout_cta_viewed', 'checkout_cta_viewed'],
     ['checkout_email_focus', 'checkout_email_focus'],
     ['checkout_invalid_email', 'checkout_invalid_email'],
+    ['checkout_exam_target_changed', 'checkout_exam_target_changed'],
+    ['checkout_exam_target_select', 'checkout_exam_target_select'],
+    ['checkout_exam_target_missing', 'checkout_exam_target_missing'],
+    ['checkout_exam_target_unavailable', 'checkout_exam_target_unavailable'],
     ['checkout_attempt', 'checkout_attempt'],
     ['checkout_submit', 'checkout_submit'],
     ['checkout_api_error', 'checkout_api_error'],
@@ -94,6 +104,7 @@
     const payload = Object.assign({
       page_path: location.pathname,
       page_title: document.title || '',
+      entry_surface: currentEntrySurface(),
       tracking_version: TRACKING_VERSION
     }, attributionPayload(), data || {});
     Object.keys(payload).forEach(k => {
@@ -175,6 +186,44 @@
     return path || 'home';
   }
 
+  function currentEntrySurface(){
+    const qs = params();
+    const stored = readStored();
+    return (
+      qs.get('utm_medium') ||
+      qs.get('utm_source') ||
+      stored.utm_medium ||
+      stored.utm_source ||
+      fallbackContent()
+    );
+  }
+
+  function safeDestinationPath(href){
+    if (!href) return '';
+    try {
+      const url = new URL(href, location.href);
+      ['email','serial','token','code'].forEach(k => url.searchParams.delete(k));
+      if (url.origin !== location.origin) return url.origin + url.pathname;
+      return url.pathname + url.search + url.hash;
+    } catch(e) {
+      return '';
+    }
+  }
+
+  function inferEntrySurface(target, destinationPath){
+    const explicit = (target.getAttribute('data-entry-surface') || '').trim();
+    if (explicit) return explicit;
+    if (target.closest && target.closest('#post-answer-retention')) return 'post_answer_card';
+    try {
+      const url = new URL(destinationPath || target.getAttribute('href') || '', location.href);
+      const medium = url.searchParams.get('utm_medium');
+      const source = url.searchParams.get('utm_source');
+      if (medium) return medium;
+      if (source) return source;
+    } catch(e) {}
+    return currentEntrySurface();
+  }
+
   function decorateLinks(){
     document.querySelectorAll('a[href]').forEach(a => {
       const href = a.getAttribute('href') || '';
@@ -204,8 +253,13 @@
   document.addEventListener('click', ev => {
     const target = ev.target && ev.target.closest ? ev.target.closest('[data-track-event]') : null;
     if (!target) return;
+    const label = target.getAttribute('data-track-label') || target.textContent.trim().slice(0, 80);
+    const destinationPath = safeDestinationPath(target.getAttribute('href') || '');
     track(target.getAttribute('data-track-event'), {
-      track_label: target.getAttribute('data-track-label') || target.textContent.trim().slice(0, 80),
+      track_label: label,
+      cta_id: label,
+      entry_surface: inferEntrySurface(target, destinationPath),
+      destination_path: destinationPath,
       plan: target.getAttribute('data-plan') || queryPlan()
     });
   });

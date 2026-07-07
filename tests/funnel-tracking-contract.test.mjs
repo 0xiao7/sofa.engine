@@ -45,16 +45,26 @@ test('analytics bridge preserves attribution and falls back safely when gtag is 
 
 test('server-side funnel forwarding is limited to revenue, recovery, and entry events', () => {
   assert.match(analytics, /const SERVER_EVENT_MAP = new Map/);
+  assert.match(analytics, /\['free_practice_start', 'free_practice_start'\]/);
+  assert.match(analytics, /\['free_mode_select', 'free_mode_select'\]/);
   assert.match(analytics, /\['quiz_start', 'quiz_start'\]/);
+  assert.match(analytics, /\['post_answer_value_viewed', 'post_answer_value_viewed'\]/);
   assert.match(analytics, /\['pricing_view', 'pricing_view'\]/);
   assert.match(analytics, /\['pricing_select_plan', 'pricing_select_plan'\]/);
+  assert.match(analytics, /\['pricing_free_quiz_click', 'pricing_free_quiz_click'\]/);
   assert.match(analytics, /\['post_answer_pricing_click', 'post_answer_pricing_click'\]/);
   assert.match(analytics, /\['post_answer_login_click', 'post_answer_login_click'\]/);
   assert.match(analytics, /\['locked_content_pricing_click', 'locked_content_pricing_click'\]/);
   assert.match(analytics, /\['existing_serial_login_click', 'existing_serial_login_click'\]/);
   assert.match(analytics, /\['checkout_start', 'checkout_start'\]/);
+  assert.match(analytics, /\['checkout_form_visible', 'checkout_form_visible'\]/);
+  assert.match(analytics, /\['checkout_cta_viewed', 'checkout_cta_viewed'\]/);
   assert.match(analytics, /\['checkout_email_focus', 'checkout_email_focus'\]/);
   assert.match(analytics, /\['checkout_invalid_email', 'checkout_invalid_email'\]/);
+  assert.match(analytics, /\['checkout_exam_target_changed', 'checkout_exam_target_changed'\]/);
+  assert.match(analytics, /\['checkout_exam_target_select', 'checkout_exam_target_select'\]/);
+  assert.match(analytics, /\['checkout_exam_target_missing', 'checkout_exam_target_missing'\]/);
+  assert.match(analytics, /\['checkout_exam_target_unavailable', 'checkout_exam_target_unavailable'\]/);
   assert.match(analytics, /\['checkout_attempt', 'checkout_attempt'\]/);
   assert.match(analytics, /\['checkout_submit', 'checkout_submit'\]/);
   assert.match(analytics, /\['checkout_api_error', 'checkout_api_error'\]/);
@@ -62,6 +72,15 @@ test('server-side funnel forwarding is limited to revenue, recovery, and entry e
   assert.match(analytics, /\['expire_feedback_click', 'expiry_feedback_start'\]/);
   assert.match(analytics, /\['expire_share_click', 'share_extension_start'\]/);
   assert.doesNotMatch(analytics, /SERVER_EVENT_MAP[\s\S]*answer_submitted/);
+});
+
+test('server funnel click payload keeps CTA identity and destination without storing sensitive params', () => {
+  assert.match(analytics, /function safeDestinationPath\(href\)/);
+  assert.match(analytics, /\['email','serial','token','code'\]\.forEach\(k => url\.searchParams\.delete\(k\)\)/);
+  assert.match(analytics, /function inferEntrySurface\(target, destinationPath\)/);
+  assert.match(analytics, /cta_id: label/);
+  assert.match(analytics, /entry_surface: inferEntrySurface\(target, destinationPath\)/);
+  assert.match(analytics, /destination_path: destinationPath/);
 });
 
 test('post-answer retention clicks are measurable without storing answer content', () => {
