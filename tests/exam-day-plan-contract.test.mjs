@@ -9,9 +9,11 @@ const examTargets = readFileSync(new URL('../exam-targets.js', import.meta.url),
 
 test('homepage does not advertise one fixed bookkeeper exam-day date', () => {
   assert.doesNotMatch(homepage, /2026\/11\/30|11\/30/);
-  assert.match(homepage, /依考試目標用到考後緩衝日/);
-  assert.match(homepage, /依你的考試目標用到考後緩衝日/);
-  assert.match(homepage, /依考試目標計算期限/);
+  assert.match(homepage, /完整答題紀錄、弱點分析、錯題重練一路保留到考後緩衝日/);
+  assert.match(homepage, /不用每月續買，也不用考前重整理/);
+  assert.equal((homepage.match(/依考試目標用到考後緩衝日/g) || []).length, 0);
+  assert.equal((homepage.match(/依你的考試目標用到考後緩衝日/g) || []).length, 0);
+  assert.equal((homepage.match(/依考試目標計算期限/g) || []).length, 0);
 });
 
 test('checkout defaults to the exam-day plan and keeps required checkout fields', () => {

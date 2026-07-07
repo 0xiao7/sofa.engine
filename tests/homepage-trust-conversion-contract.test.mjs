@@ -25,11 +25,14 @@ test('homepage hero balances brand trust and a clear practice path', () => {
   assert.doesNotMatch(hero, /免費做 5 題|先刷 5 題|免費刷題看弱點/);
 });
 
-test('homepage exposes honest social proof and a future testimonial structure', () => {
+test('homepage proof strip uses verifiable evidence instead of empty testimonials', () => {
   assert.match(index, /class="proof-strip"/);
   assert.match(index, /題庫與條文規模/);
-  assert.match(index, /學員見證/);
-  assert.match(index, /等待第一批真實上榜回饋/);
+  assert.match(index, /官方答案重核/);
+  assert.match(index, /正式可練與整理中/);
+  assert.match(index, /不把未完成內容包成全科承諾/);
+  assert.doesNotMatch(index, /學員見證/);
+  assert.doesNotMatch(index, /等待第一批真實上榜回饋/);
   assert.doesNotMatch(index, /通過率|上榜率|命中率/);
 });
 
