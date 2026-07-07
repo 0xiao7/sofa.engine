@@ -9,12 +9,14 @@ const login = readFileSync(new URL('../login.html', import.meta.url), 'utf8');
 const quiz = readFileSync(new URL('../quiz.html', import.meta.url), 'utf8');
 const dashboard = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
 
-test('homepage and free entry send candidates directly into practice', () => {
+test('homepage and free entry send candidates directly into a no-login practice surface', () => {
   assert.match(index, /class="hero-trial" href="quiz\.html\?free=1&start=1&utm_source=site&utm_medium=hero&utm_campaign=free_quiz_entry"/);
   assert.match(index, /href="quiz\.html\?free=1&start=1&utm_source=home&utm_medium=plan_card&utm_campaign=home_free_quiz_entry"/);
   assert.doesNotMatch(index, /class="hero-trial" href="dashboard\.html"/);
   assert.doesNotMatch(index, /href="dashboard\.html" class="btn btn-primary plan-cta alt"/);
-  assert.match(free, /href="\/practice\.html\?free=1&utm_source=free&utm_medium=hero&utm_campaign=free_practice_entry"/);
+  assert.match(free, /href="\/quiz\.html\?free=1&start=1&utm_source=free&utm_medium=hero&utm_campaign=free_quiz_entry"/);
+  assert.match(free, /href="\/practice\.html\?free=1&utm_source=free&utm_medium=mode_card&utm_campaign=free_practice_entry"/);
+  assert.match(free, /href="\/fill\.html\?free=1&utm_source=free&utm_medium=mode_card&utm_campaign=free_fill_entry"/);
   assert.match(free, /href="\/pricing\.html\?utm_source=free&utm_medium=hero&utm_campaign=free_to_pricing"/);
   assert.doesNotMatch(free, /了解更多功能/);
 });

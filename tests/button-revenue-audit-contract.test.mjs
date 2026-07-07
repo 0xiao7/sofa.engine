@@ -35,3 +35,33 @@ test('mobile drill and legal pages include horizontal overflow guards', () => {
   assert.match(terms, /免費用戶可透過網站進行免登入練習/);
   assert.doesNotMatch(terms, /免費用戶可透過 LINE Bot/);
 });
+
+test('free drill pages honor the free query flag instead of redirecting to login', () => {
+  const free = read('free.html');
+  const practice = read('practice.html');
+  const fill = read('fill.html');
+  assert.match(free, /href="\/quiz\.html\?free=1&start=1&utm_source=free&utm_medium=hero&utm_campaign=free_quiz_entry"/);
+  assert.match(practice, /new URLSearchParams\(location\.search\)\.get\('free'\) === '1'/);
+  assert.match(fill, /new URLSearchParams\(location\.search\)\.get\('free'\) === '1'/);
+});
+
+test('mobile quiz law selector and compact checkout have explicit viewport guards', () => {
+  const quiz = read('quiz.html');
+  const checkout = read('checkout.html');
+  assert.match(quiz, /#lawSelect\{max-width:min\(100%,calc\(100vw - 36px\)\)/);
+  assert.match(checkout, /@media \(min-width:781px\) and \(max-height:820px\)/);
+  assert.match(checkout, /\.ck-compact-pay-note/);
+  assert.ok(
+    checkout.indexOf('class="ck-compact-pay-note"') < checkout.indexOf('id="ck-submit"'),
+    'compact payment note should sit directly before the primary checkout CTA'
+  );
+});
+
+test('public drill favicon references resolve to a committed asset', () => {
+  for (const file of ['practice.html', 'fill.html', 'quiz.html']) {
+    const html = read(file);
+    assert.match(html, /href="favicon\.svg"/);
+    assert.doesNotMatch(html, /favicon-32\.png/);
+  }
+  assert.match(read('favicon.svg'), /<svg[^>]+viewBox="0 0 32 32"/);
+});
