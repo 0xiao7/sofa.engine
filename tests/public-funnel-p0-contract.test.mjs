@@ -10,7 +10,9 @@ const quiz = readFileSync(new URL('../quiz.html', import.meta.url), 'utf8');
 const dashboard = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
 
 test('homepage and free entry send candidates directly into practice', () => {
+  assert.match(index, /class="hero-trial" href="quiz\.html\?free=1&start=1&utm_source=site&utm_medium=hero&utm_campaign=free_quiz_entry"/);
   assert.match(index, /href="quiz\.html\?free=1&start=1&utm_source=home&utm_medium=plan_card&utm_campaign=home_free_quiz_entry"/);
+  assert.doesNotMatch(index, /class="hero-trial" href="dashboard\.html"/);
   assert.doesNotMatch(index, /href="dashboard\.html" class="btn btn-primary plan-cta alt"/);
   assert.match(free, /href="\/practice\.html\?free=1&utm_source=free&utm_medium=hero&utm_campaign=free_practice_entry"/);
   assert.match(free, /href="\/pricing\.html\?utm_source=free&utm_medium=hero&utm_campaign=free_to_pricing"/);
@@ -27,6 +29,13 @@ test('pricing and login labels describe the exact action', () => {
   assert.doesNotMatch(pricing, /一條法規引用哪些其他條文/);
   assert.match(login, /用序號登入/);
   assert.doesNotMatch(login, />\s*開始備考\s*<span class="arrow">/);
+});
+
+test('public CTAs use precise destinations and refund language', () => {
+  assert.match(index, /7 天內且序號未啟用，可申請全額退費/);
+  assert.match(index, /7 天內且序號未啟用可退費/);
+  assert.doesNotMatch(index, /都沒用到，7 天內全額退費/);
+  assert.match(pricing, /href="\/dashboard\.html#search">查法條<\/a>/);
 });
 
 test('quiz surfaces learner-safe service errors instead of backend internals', () => {
