@@ -304,6 +304,7 @@
     .pr-chips{padding:10px 18px;max-width:100vw;overflow:hidden}
     .pr-chip{min-height:34px;padding:7px 12px}
   }
+  html.ios-reader-app .stage{padding-top:calc(34px + env(safe-area-inset-top, 0px))}
 </style>
 </head>
 <body>
@@ -463,14 +464,20 @@
 
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
-const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
-const tok = localStorage.getItem('sofa_token') || '';
 const _searchParams = new URLSearchParams(location.search);
 const freeParam = _searchParams.get('free') === '1';
+function isPreviewHost(){ return location.hostname==='localhost'||location.protocol==='file:'; }
+const uid = localStorage.getItem('sofa_uid') || ((isPreviewHost() && !freeParam) ? 'PREVIEW' : null);
+const tok = localStorage.getItem('sofa_token') || '';
+const _startQuizParam = _searchParams.get('start') === '1';
+const _drillParam = _searchParams.get('drill') === '1';
 const _PAST_EXAM_SUBJECTS = ['記帳相關法規概要', '稅務相關法規概要'];
 const RECENT_PAST_EXAM_QUESTIONS_KEY = 'sofa_recent_past_exam_questions_v1';
 let _pastExamMode = _searchParams.get('mode') === 'past-exam';
-if ((freeParam || _pastExamMode) && !uid && !tok) {
+if (freeParam && !uid && !tok) {
+  localStorage.setItem('sofa_free', 'FREE');
+}
+if (_pastExamMode && !uid && !tok) {
   localStorage.setItem('sofa_free', 'FREE');
 }
 function formatLawText(raw){
@@ -524,6 +531,49 @@ function _setPastExamMode(on, opts){
   }
 }
 
+function _lawParamFromUrl(){ return !!(_searchParams.get('law') || _searchParams.get('q')); }
+function _articleParamFromUrl(){ return !!(_searchParams.get('art') || _searchParams.get('article')); }
+
+function _shouldShowQzExamBanner(examKey){
+  return !examKey && !_lawParamFromUrl() && !_articleParamFromUrl() && !_drillParam && !_pastExamMode && !_startQuizParam;
+}
+
+function _defaultExamForQuizStart(examKey){
+  if (examKey || !_startQuizParam || _lawParamFromUrl() || _articleParamFromUrl() || _drillParam || _pastExamMode) return examKey;
+  return 'bookkeeper';
+}
+
+function _showQzExamBanner(){}
+
+const _BOOKKEEPER_LAWS = new Set([
+  '記帳士法','記帳士職業倫理道德規範','中華民國記帳士職業道德規範','記帳士法第三十五條規定之管理辦法',
+  '記帳士暨記帳及報稅代理人防制洗錢與打擊資恐辦法','記帳士懲戒委員會與懲戒覆審委員會組織及審議規則',
+  '公司法','公司登記辦法','商業登記法','商業登記申請辦法','商業會計法','商業會計處理準則',
+  '商業使用電子方式處理會計資料辦法','行政程序法','稅捐稽徵法','稅捐稽徵法施行細則',
+  '納稅者權利保護法','納稅者權利保護法施行細則','所得稅法','所得稅法施行細則',
+  '所得基本稅額條例','所得基本稅額條例施行細則','各類所得扣繳率標準','營利事業所得稅查核準則',
+  '加值型及非加值型營業稅法','加值型及非加值型營業稅法施行細則','兼營營業人營業稅額計算辦法',
+  '統一發票使用辦法','統一發票給獎辦法','遺產及贈與稅法','遺產及贈與稅法施行細則',
+  '特種貨物及勞務稅條例','特種貨物及勞務稅條例施行細則'
+]);
+
+function _filterLawsForExam(laws, examKey){
+  if(examKey !== 'bookkeeper') return laws;
+  return laws.filter(l => _BOOKKEEPER_LAWS.has(l.name));
+}
+
+let _autoLoadQuizStarted = false;
+function _autoLoadQuizOnce(){
+  if(_autoLoadQuizStarted) return;
+  _autoLoadQuizStarted = true;
+  loadQuiz();
+}
+
+function _focusQuizQuestionStart(){
+  const stage = document.querySelector('.stage');
+  if(stage) stage.scrollIntoView({block:'start', behavior:'auto'});
+}
+
 (async()=>{
   const sel=document.getElementById('lawSelect');
   if(uid){
@@ -532,15 +582,26 @@ function _setPastExamMode(on, opts){
     });
     const sep=document.createElement('option');sep.disabled=true;sep.textContent='──────';sel.appendChild(sep);
   }
-	  try{
-	    const d=await fetch(`${API}/api/laws`).then(r=>r.json());
-	    (d.laws||[]).forEach(l=>{const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);});
-	  }catch{}
-  if(_pastExamMode){
-    _setPastExamMode(true, {noHistory:true});
-    loadQuiz();
-  }
-	})();
+  let examKey = localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || '';
+  examKey = _defaultExamForQuizStart(examKey);
+  if(examKey) localStorage.setItem('sofa_exam_key', examKey);
+  if(_shouldShowQzExamBanner(examKey)) _showQzExamBanner();
+  try{
+    const d=await fetch(`${API}/api/laws`).then(r=>r.json());
+    const laws = _filterLawsForExam(d.laws||[], examKey);
+    laws.forEach(l=>{const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);});
+    if(_startQuizParam && laws.length && !sel.value){
+      sel.value = laws[0].name;
+      sel.dispatchEvent(new Event('change'));
+    }
+  }catch{}
+	  if(_pastExamMode){
+	    _setPastExamMode(true, {noHistory:true});
+	    loadQuiz();
+      return;
+	  }
+  if(_startQuizParam){ _autoLoadQuizOnce(); return; }
+		})();
 
 let _artCache = {};
 
@@ -1062,6 +1123,7 @@ document.getElementById('view-article-btn').addEventListener('click',()=>{
 document.getElementById('btnFlag').addEventListener('click',doFlag);
 document.getElementById('btnNew').addEventListener('click',loadQuiz);
 document.getElementById('btnNext').addEventListener('click',loadQuiz);
+if(_startQuizParam) setTimeout(_focusQuizQuestionStart, 80);
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter')loadQuiz();
   if(e.key.toLowerCase()==='f'){doFlag();return;}
