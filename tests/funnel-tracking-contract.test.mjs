@@ -184,8 +184,9 @@ test('checkout copy explains the payment handoff without burying the primary act
     'primary payment button should appear before secondary plan switching'
   );
   assert.doesNotMatch(checkout, /class=”ck-quote”/);
-  assert.match(checkout, /<details class="legal">/);
-  assert.match(checkout, /<summary>退費、上榜保障與付款安全<\/summary>/);
+  assert.match(checkout, /<div class="legal">/);
+  assert.match(checkout, /退費、考後回饋與付款安全/);
+  assert.doesNotMatch(checkout, /上榜保障|上榜退款保障/);
   assert.match(pricing, /pricing_footer_login"[^>]*>已有序號？登入<\/a>/);
   assert.doesNotMatch(pricing, /pricing_footer_login"[^>]*>先免費試用<\/a>/);
 });
