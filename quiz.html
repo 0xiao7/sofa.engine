@@ -189,6 +189,33 @@
   #post-answer-retention .retention-links{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
   #post-answer-retention a{min-height:44px;background:rgba(245,240,234,.06);white-space:nowrap}
   #post-answer-retention a.primary{background:var(--peach);border-color:var(--peach);color:var(--navy);font-weight:700}
+  #session-summary{
+    display:none;margin-top:24px;background:var(--navy-2);border:1px solid rgba(231,187,167,.36);
+    border-radius:4px;padding:22px;color:var(--cream);
+  }
+  #session-summary .eyebrow{
+    font-family:var(--mono);font-size:11px;letter-spacing:.2em;text-transform:uppercase;
+    color:var(--peach);font-weight:600;margin-bottom:8px;
+  }
+  #session-summary h2{font-family:var(--serif);font-size:24px;font-weight:600;margin:0 0 10px}
+  #session-summary p{font-size:14px;line-height:1.8;color:rgba(245,240,234,.72)}
+  #session-summary-stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:18px 0}
+  #session-summary-stats .sum-stat{border:1px solid var(--line);border-radius:4px;padding:12px;background:var(--navy-3)}
+  #session-summary-stats .sum-stat span{display:block;font-family:var(--mono);font-size:10px;letter-spacing:.16em;color:rgba(245,240,234,.45);text-transform:uppercase}
+  #session-summary-stats .sum-stat b{display:block;margin-top:6px;font-family:var(--serif);font-size:24px;color:var(--cream)}
+  .session-actions{display:flex;gap:10px;flex-wrap:wrap}
+  .session-actions a,.session-actions button{
+    min-height:44px;display:inline-flex;align-items:center;justify-content:center;
+    border:1px solid var(--line);border-radius:4px;padding:0 14px;background:var(--navy-3);
+    color:var(--cream);font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-decoration:none;cursor:pointer;
+  }
+  .session-actions .primary{background:var(--peach);border-color:var(--peach);color:var(--navy);font-weight:700}
+  #session-intro{
+    display:none;margin-top:18px;border:1px dashed rgba(231,187,167,.34);border-radius:4px;
+    padding:14px 16px;background:rgba(231,187,167,.07);
+    color:rgba(245,240,234,.78);font-size:13px;line-height:1.75;
+  }
+  #session-intro b{color:var(--cream);font-weight:600}
 
   /* section analysis */
   .sec-block{margin-top:16px;padding-top:14px;border-top:1px dashed rgba(31,56,72,.15)}
@@ -238,6 +265,7 @@
   }
   .qcell:hover{border-color:var(--peach)}
   .qcell.cur{background:var(--peach);color:var(--navy);border-color:var(--peach)}
+  .qcell.done{background:rgba(245,240,234,.08);color:rgba(245,240,234,.65);border-color:rgba(245,240,234,.18)}
   .qcell.ok{background:rgba(159,184,159,.18);color:var(--good);border-color:rgba(159,184,159,.3)}
   .qcell.bad{background:rgba(199,123,106,.18);color:var(--bad);border-color:rgba(199,123,106,.3)}
   .qcell.flag{position:relative}
@@ -293,6 +321,9 @@
     #quiz-answer-actions #quiz-citation{grid-column:1 / -1}
     #post-answer-retention{align-items:stretch;flex-direction:column}
     #post-answer-retention .retention-links{justify-content:stretch}
+    #session-summary-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
+    .session-actions{flex-direction:column}
+    .session-actions a,.session-actions button{width:100%;min-width:0}
   }
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
@@ -350,6 +381,11 @@
                color:var(--peach);border-radius:8px;min-height:44px;padding:0 14px;font-size:13px;cursor:pointer;">
         考古題
       </button>
+      <button id="btnSession" type="button" onclick="startSessionMode()"
+        style="background:rgba(245,240,234,0.04);border:1px solid rgba(245,240,234,0.18);
+               color:rgba(245,240,234,.78);border-radius:8px;min-height:44px;padding:0 14px;font-size:13px;cursor:pointer;">
+        刷題模式
+      </button>
       <select id="pastExamSubject" onchange="if(_pastExamMode) loadQuiz()"
         style="display:none;background:var(--navy-3);border:1px solid rgba(231,187,167,0.35);
                border-radius:8px;color:var(--cream);font-size:12px;padding:6px 10px;min-height:44px;">
@@ -403,6 +439,8 @@
 
         <div class="opts" id="optionsBox"></div>
 
+        <div id="session-intro"><b>刷題模式</b>：先做完這組題目，再一次看結果。免費可先刷題；登入後才會保留完整紀錄與弱點統計。</div>
+
         <div id="quiz-answer-actions" aria-label="答題後行動">
           <span id="quiz-citation" style="display:none"></span>
           <button type="button" id="view-article-btn" style="display:none">查看法條</button>
@@ -431,6 +469,18 @@
           </div>
           <div class="art-inline" id="artInline"></div>
         </div>
+
+        <section id="session-summary" aria-live="polite">
+          <div class="eyebrow">SOFA ENGINE · 刷題模式</div>
+          <h2 id="session-summary-title">這組刷題完成</h2>
+          <p>先做完這組題目，再一次看結果。免費可先刷題；登入後才會保留完整紀錄與弱點統計。</p>
+          <div id="session-summary-stats"></div>
+          <div class="session-actions">
+            <button type="button" onclick="restartSessionMode()">再刷一組</button>
+            <a class="primary" href="login.html?utm_source=web_quiz&utm_medium=session_summary&utm_campaign=quiz_session_save">先登入保存這輪紀錄</a>
+            <a href="pricing.html?utm_source=web_quiz&utm_medium=session_summary&utm_campaign=quiz_session_upgrade">查看方案</a>
+          </div>
+        </section>
 
         <div class="q-foot">
           <div class="l">
@@ -483,6 +533,14 @@ const uid = localStorage.getItem('sofa_uid') || ((isPreviewHost() && !freeParam)
 const tok = localStorage.getItem('sofa_token') || '';
 const _startQuizParam = _searchParams.get('start') === '1';
 const _drillParam = _searchParams.get('drill') === '1';
+const _sessionMode = _searchParams.get('session') === '1' || _searchParams.get('mode') === 'session';
+function parseSessionTargetCount(){
+  const raw = Number.parseInt(_searchParams.get('count') || '10', 10);
+  if(!Number.isFinite(raw)) return 10;
+  return Math.min(30, Math.max(1, raw));
+}
+const _sessionTargetCount = parseSessionTargetCount();
+const SESSION_AUTO_NEXT_DELAY_MS = 260;
 const _PAST_EXAM_SUBJECTS = ['記帳相關法規概要', '稅務相關法規概要'];
 const RECENT_PAST_EXAM_QUESTIONS_KEY = 'sofa_recent_past_exam_questions_v1';
 let _pastExamMode = _searchParams.get('mode') === 'past-exam';
@@ -549,6 +607,18 @@ function _setPastExamMode(on, opts){
     if(isFree) url.searchParams.set('free', '1');
     history.replaceState(null, '', url.toString());
   }
+}
+
+if(_sessionMode){
+  const btn=document.getElementById('btnSession');
+  if(btn){
+    btn.textContent=`刷題模式 ${_sessionTargetCount} 題`;
+    btn.style.background='var(--peach)';
+    btn.style.color='var(--navy)';
+    btn.style.borderColor='var(--peach)';
+  }
+  const intro=document.getElementById('session-intro');
+  if(intro) intro.style.display='block';
 }
 
 function _lawParamFromUrl(){ return !!(_searchParams.get('law') || _searchParams.get('q')); }
@@ -780,6 +850,8 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
 
 let answered=false,right=0,wrong=0,total=0,flagged=0;
 let quizData=null;
+let sessionFinished=false;
+const wrongMode = false;
 // 本次作答紀錄
 let sessionHistory=[]; // [{num, correct:null|true|false, flagged:false, law:'', title:''}]
 // 計時器
@@ -803,6 +875,7 @@ function rebuildSetMap(){
   grid.innerHTML=sessionHistory.map(q=>{
     let cls='qcell';
     if(q.num===total&&q.correct===null)cls+=' cur';
+    else if(_sessionMode&&!sessionFinished&&q.correct!==null)cls+=' done';
     else if(q.correct===true)cls+=' ok';
     else if(q.correct===false)cls+=' bad';
     if(q.flagged)cls+=' flag';
@@ -811,6 +884,10 @@ function rebuildSetMap(){
 }
 
 function rebuildErrorList(){
+  if(_sessionMode&&!sessionFinished){
+    document.getElementById('errorList').innerHTML='<span style="color:rgba(245,240,234,.3)">完成後顯示</span>';
+    return;
+  }
   const errors=sessionHistory.filter(q=>q.correct===false);
   document.getElementById('errorList').innerHTML=errors.length
     ?errors.map(e=>`<div>Q${e.num}${e.law?' · '+e.law:''}${e.title?' '+e.title:''}</div>`).join('')
@@ -820,20 +897,79 @@ function rebuildErrorList(){
 function updateScore(){
   document.getElementById('qNum').textContent=total;
   document.getElementById('qNumBig').textContent=total;
-  document.getElementById('scoreRight').textContent=right;
-  document.getElementById('scoreWrong').textContent=wrong;
+  const deferStats = _sessionMode && !sessionFinished;
+  document.getElementById('scoreRight').textContent=deferStats?'—':right;
+  document.getElementById('scoreWrong').textContent=deferStats?'—':wrong;
   document.getElementById('railTotal').textContent=sessionHistory.filter(q=>q.correct!==null).length;
-  document.getElementById('railWrong').textContent=wrong;
+  document.getElementById('railWrong').textContent=deferStats?'—':wrong;
   document.getElementById('railFlagged').textContent=flagged;
   const answered_n=sessionHistory.filter(q=>q.correct!==null).length;
   const acc=answered_n>0?Math.round(right/answered_n*100):0;
-  document.getElementById('railAcc').textContent=answered_n>0?acc+'%':'—';
+  document.getElementById('railAcc').textContent=deferStats?'完成後顯示':(answered_n>0?acc+'%':'—');
   rebuildSetMap();
   rebuildErrorList();
   // 進度條：以命中率為寬度（有作答才顯示）
   const prog_n=sessionHistory.filter(q=>q.correct!==null).length;
   const prog=prog_n>0?Math.round(right/prog_n*100):0;
   document.getElementById('quizProg').style.width=prog+'%';
+}
+
+function hideSessionSummary(){
+  const box=document.getElementById('session-summary');
+  if(box)box.style.display='none';
+}
+
+function startSessionMode(){
+  const url = new URL(location.href);
+  url.searchParams.set('session','1');
+  url.searchParams.delete('mode');
+  if(isFree) url.searchParams.set('free','1');
+  if(!url.searchParams.get('count')) url.searchParams.set('count','10');
+  window.location.href = url.toString();
+}
+
+function restartSessionMode(){
+  sessionFinished=false;
+  answered=false;right=0;wrong=0;total=0;flagged=0;
+  sessionHistory=[];
+  hideSessionSummary();
+  updateScore();
+  loadQuiz();
+}
+
+function onAnswerDone(isCorrect, loader){
+  if (!_sessionMode) return false;
+  if(sessionHistory.filter(q=>q.correct!==null).length >= _sessionTargetCount){
+    showSessionSummary();
+    return true;
+  }
+  setTimeout(() => { wrongMode ? loadWrongQuiz() : loadQuiz(); }, SESSION_AUTO_NEXT_DELAY_MS);
+  return true;
+}
+
+function showSessionSummary(){
+  sessionFinished=true;
+  hideQuizAnswerActions();
+  document.getElementById('explainBox').style.display='none';
+  const answered_n=sessionHistory.filter(q=>q.correct!==null).length;
+  const acc=answered_n>0?Math.round(right/answered_n*100):0;
+  const stats=document.getElementById('session-summary-stats');
+  if(stats){
+    stats.innerHTML=[
+      ['已作答', answered_n],
+      ['正確', right],
+      ['錯誤', wrong],
+      ['答對率', answered_n>0?acc+'%':'—']
+    ].map(([label,value])=>`<div class="sum-stat"><span>${label}</span><b>${value}</b></div>`).join('');
+  }
+  const title=document.getElementById('session-summary-title');
+  if(title) title.textContent=`這組 ${answered_n} 題刷完了`;
+  const box=document.getElementById('session-summary');
+  if(box){
+    box.style.display='block';
+    box.scrollIntoView({block:'center', behavior:'auto'});
+  }
+  updateScore();
 }
 
 function updatePostAnswerRetention(){
@@ -943,6 +1079,7 @@ async function _fetchPastExamQuestion() {
 
 async function loadQuiz(){
   answered=false; total++;
+  if(!sessionFinished) hideSessionSummary();
   // 新增到 sessionHistory
   sessionHistory.push({num:total, correct:null, flagged:false, law:'', title:''});
   startSessionTimer();
@@ -1069,10 +1206,12 @@ async function loadQuiz(){
           b.style.pointerEvents='none';b.style.cursor='default';
           const jOpt=data.options[j];
           const jCorrect=isNewFmt?(jOpt===correctAnswer):!!jOpt?.is_correct;
-          if(jCorrect)b.classList.add('right');
+          if(!_sessionMode&&jCorrect)b.classList.add('right');
         });
         const isCorrect=isOptCorrect;
-        if(!isCorrect){btn.classList.add('wrong');wrong++;}else{right++;}
+        if(_sessionMode) btn.classList.add('sel');
+        else if(!isCorrect) btn.classList.add('wrong');
+        if(!isCorrect){wrong++;}else{right++;}
         cur.correct=isCorrect;
         updateScore();
         recordQuizAnswer(data,pageId,isCorrect,i,correctIdx);
@@ -1080,6 +1219,7 @@ async function loadQuiz(){
         if(pageId&&uid&&uid!=='PREVIEW'&&!isFree){
           fetch(`${API}/api/me/history`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({page_id:pageId,law_name:lawName,article:artTitle})}).catch(()=>{});
         }
+        if(onAnswerDone(isCorrect, loadQuiz)) return;
         // 顯示說明框
         const eb=document.querySelector('#explainBox .eb');
         if(eb)eb.textContent=isCorrect?'✓ 答對了':'✗ 答錯了，正確答案已標綠';
