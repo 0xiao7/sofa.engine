@@ -22,6 +22,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700;900&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <style>
   :root{
+    --topbar-offset:71px;
+    --free-retention-offset:70px;
     --navy:#1F3848;
     --navy-2:#19303E;
     --navy-3:#142836;
@@ -137,6 +139,10 @@
   }
   @keyframes rpulse{0%,100%{box-shadow:0 0 0 0 rgba(231,187,167,.5);}50%{box-shadow:0 0 0 4px rgba(231,187,167,.0);}}
   .btn-out{
+    min-height:44px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
     border:1px solid var(--line-2);
     padding:8px 18px;border-radius:2px;
     font-family:var(--mono);font-size:11px;letter-spacing:.16em;
@@ -144,7 +150,7 @@
     transition:.2s;
   }
   .btn-out:hover{background:rgba(245,240,234,.06);color:var(--cream);border-color:var(--cream)}
-  .menu-btn{position:relative;display:flex;width:36px;height:36px;border:1px solid var(--line-2);border-radius:2px;align-items:center;justify-content:center}
+  .menu-btn{position:relative;display:flex;width:44px;height:44px;border:1px solid var(--line-2);border-radius:2px;align-items:center;justify-content:center}
   .menu-btn span{display:block;width:16px;height:1.5px;background:var(--cream);position:relative}
   .menu-btn span::before,.menu-btn span::after{content:"";position:absolute;left:0;width:16px;height:1.5px;background:var(--cream)}
   .menu-btn span::before{top:-5px}
@@ -173,7 +179,7 @@
     white-space:nowrap;
   }
   .side-mode-btn{
-    min-height:32px;
+    min-height:44px;
     display:inline-flex;
     align-items:center;
     justify-content:center;
@@ -218,13 +224,27 @@
 
   .free-retention-strip{
     display:none;
+    position:fixed;
+    top:var(--topbar-offset);
+    left:0;
+    right:0;
     background:linear-gradient(90deg,rgba(231,187,167,.16),rgba(31,56,72,.96));
     border-bottom:1px solid rgba(231,187,167,.28);
     padding:12px 44px;
-    position:relative;
     z-index:45;
   }
   .free-retention-strip.on{display:block}
+  body.free-retention-on .shell{
+    margin-top:calc(var(--topbar-offset) + var(--free-retention-offset));
+    min-height:calc(100vh - var(--topbar-offset) - var(--free-retention-offset));
+  }
+  body.free-retention-on .shell::before{
+    top:calc(var(--topbar-offset) + var(--free-retention-offset));
+  }
+  body.free-retention-on aside.side{
+    top:calc(var(--topbar-offset) + var(--free-retention-offset));
+    height:calc(100dvh - var(--topbar-offset) - var(--free-retention-offset));
+  }
   .free-retention-inner{
     max-width:1180px;
     margin:0 auto;
@@ -258,7 +278,7 @@
     flex-shrink:0;
   }
   .free-retention-btn{
-    min-height:40px;
+    min-height:44px;
     display:inline-flex;
     align-items:center;
     justify-content:center;
@@ -296,7 +316,7 @@
   body.side-collapsed .shell::before{display:none}
   .shell::before{
     content:"";
-    position:fixed;top:71px;bottom:0;left:0;width:280px;
+    position:fixed;top:var(--topbar-offset);bottom:0;left:0;width:280px;
     background:var(--navy-2);
     border-right:1px solid var(--line);
     pointer-events:none;
@@ -308,8 +328,8 @@
     background:var(--navy-2);
     border-right:1px solid var(--line);
     padding:36px 30px 48px;
-    position:fixed;top:71px;bottom:0;left:0;width:280px;
-    height:calc(100dvh - 71px);
+    position:fixed;top:var(--topbar-offset);bottom:0;left:0;width:280px;
+    height:calc(100dvh - var(--topbar-offset));
     overflow-y:auto;
     z-index:31;
     transition:transform .22s ease;
@@ -715,7 +735,7 @@
   .study-empty{font-size:13px;color:rgba(245,240,234,.52);padding-top:2px}
   .study-empty-action{
     display:inline-flex;align-items:center;justify-content:center;
-    min-height:36px;margin-top:10px;padding:6px 12px;border:1px solid rgba(231,187,167,.36);
+    min-height:44px;margin-top:10px;padding:6px 12px;border:1px solid rgba(231,187,167,.36);
     color:var(--peach);text-decoration:none;background:rgba(231,187,167,.08)
   }
   .study-empty-action:hover{background:rgba(231,187,167,.14)}
@@ -832,7 +852,7 @@
   }
   .study-next-plan a,
   .study-next-plan button{
-    min-height:36px;
+    min-height:44px;
     display:inline-flex;
     align-items:center;
     justify-content:center;
@@ -1116,7 +1136,10 @@
     flex-wrap:wrap;
   }
   .study-time-actions button{
-    min-height:40px;
+    min-height:44px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
     border:1px solid rgba(231,187,167,.32);
     color:var(--peach);
     border-radius:4px;
@@ -1899,7 +1922,7 @@
   .study-plan-actions{grid-column:1 / -1;display:flex;gap:7px;flex-wrap:wrap}
   .study-plan-actions a,
   .study-plan-actions button{
-    min-height:32px;
+    min-height:44px;
     display:inline-flex;
     align-items:center;
     justify-content:center;
@@ -1972,9 +1995,9 @@
       grid-template-columns:1fr;
       justify-content:stretch;
     }
-    .study-next-plan a,.study-next-plan button{
-      width:100%;
-      min-height:40px;
+  .study-next-plan a,.study-next-plan button{
+    width:100%;
+      min-height:44px;
       padding:7px 10px;
     }
     @media (max-height:720px){
@@ -2457,6 +2480,7 @@
 
   .chip-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
   .chip{
+    min-height:44px;display:inline-flex;align-items:center;justify-content:center;
     padding:7px 16px;border-radius:100px;
     font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;
     border:1px solid var(--line-2);
@@ -2795,6 +2819,10 @@
     white-space:nowrap;
   }
   .toc-action{
+    min-height:44px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
     border:1px solid rgba(245,240,234,.18);background:rgba(255,255,255,.02);
     color:rgba(245,240,234,.68);border-radius:3px;
     padding:7px 10px;font-family:var(--serif);font-size:13px;
@@ -3104,6 +3132,7 @@
   #bk-toggle {
     position: fixed; right: 16px; bottom: 80px; z-index: 151;
     background: var(--navy-4); border: 1px solid var(--peach-dim); color: var(--peach);
+    min-width:44px;min-height:44px;justify-content:center;
     border-radius: 3px; padding: 8px 14px; font-size: 13px;
     font-family: var(--mono); letter-spacing: .04em;
     cursor: pointer; box-shadow: 0 2px 12px rgba(0,0,0,0.4);
@@ -3147,6 +3176,10 @@
     .mc-renewal-nudge{align-items:flex-start;flex-direction:column}
   }
   @media (max-width: 760px){
+    :root{
+      --topbar-offset:65px;
+      --free-retention-offset:138px;
+    }
     body{
       font-size:15px;
       line-height:1.58;
@@ -3210,6 +3243,7 @@
     .menu-btn{display:flex;min-width:44px;height:44px;border-color:rgba(23,50,68,.22);background:#fff;border-radius:8px}
     .menu-btn span,.menu-btn span::before,.menu-btn span::after{background:#173244}
     .free-retention-strip{
+      top:var(--topbar-offset);
       padding:10px 12px;
       background:#173244;
       border-bottom:1px solid rgba(231,187,167,.22);
@@ -3482,7 +3516,7 @@
     .toc-row .nm .leader{display:none}
     .toc-row .nm .star-mark{font-size:9px;padding:1px 5px}
     .toc-actions{justify-content:flex-start;padding-left:40px}
-    .toc-action{font-size:12px;padding:6px 8px}
+    .toc-action{font-size:12px;min-height:44px;padding:0 12px}
     .recent-list{padding:8px 0}
     .rec-group{padding:0 14px}
     .rec-date-head{padding:12px 2px 8px;font-size:10px;color:rgba(23,50,68,.48)}
@@ -4306,7 +4340,7 @@
               </div>
               <!-- Wave 119+: 搜尋 + 隨機法條 同格，骰子貼在搜尋旁不另佔一行 -->
               <div style="display:flex;gap:8px;min-width:0">
-                <button id="search-btn" onclick="doSearch()" style="flex:1;background:var(--peach);color:var(--navy);border:none;border-radius:3px;padding:0 20px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:.18s;letter-spacing:.04em" onmouseover="this.style.background='var(--peach-2)'" onmouseout="this.style.background='var(--peach)'">搜尋</button>
+                <button id="search-btn" onclick="doSearch()" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;flex:1;background:var(--peach);color:var(--navy);border:none;border-radius:3px;padding:0 20px;font-family:var(--sans);font-size:14px;font-weight:600;cursor:pointer;transition:.18s;letter-spacing:.04em" onmouseover="this.style.background='var(--peach-2)'" onmouseout="this.style.background='var(--peach)'">搜尋</button>
                 <button id="random-article-btn" onclick="loadRandomArticle()" title="隨機法條"
                   style="background:rgba(255,255,255,0.07);border:1px solid var(--line);
                          color:var(--peach);border-radius:3px;width:44px;flex-shrink:0;font-size:16px;cursor:pointer;
@@ -7076,6 +7110,7 @@ function _readArticle(btn, text) {
   const freeRetentionStrip = document.getElementById('free-retention-strip');
   const freeRetentionPricing = document.getElementById('free-retention-pricing');
   if(isFree){
+    document.body.classList.add('free-retention-on');
     if(freeRetentionStrip){
       freeRetentionStrip.classList.add('on');
     }
@@ -7091,14 +7126,14 @@ function _readArticle(btn, text) {
     var memberCard = document.querySelector('.member-card');
     if(memberCard){
       memberCard.innerHTML = isIOSReaderApp()
-        ? '<div style="padding:32px 24px;text-align:center;opacity:.72;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版 · 進階內容，訂閱者可見<br><a href="login.html" style="color:var(--peach);margin-top:8px;display:inline-block;">輸入序號保留進度 →</a></div>'
-        : '<div style="padding:32px 24px;text-align:center;opacity:.72;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版 · 完整會員資訊在升級後解鎖<br><a href="login.html" style="color:var(--peach);margin-top:8px;display:inline-block;">輸入序號保留進度 →</a><br><a href="pricing.html?utm_source=dashboard&utm_medium=member_card_free&utm_campaign=dashboard_pricing" style="color:rgba(231,187,167,.72);margin-top:4px;display:inline-block;">查看方案 →</a></div>';
+        ? '<div style="padding:32px 24px;text-align:center;opacity:.72;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版 · 進階內容，訂閱者可見<br><a href="login.html" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;color:var(--peach);margin-top:8px;">輸入序號保留進度 →</a></div>'
+        : '<div style="padding:32px 24px;text-align:center;opacity:.72;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版 · 完整會員資訊在升級後解鎖<br><a href="login.html" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;color:var(--peach);margin-top:8px;">輸入序號保留進度 →</a><br><a href="pricing.html?utm_source=dashboard&utm_medium=member_card_free&utm_campaign=dashboard_pricing" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;color:rgba(231,187,167,.72);margin-top:4px;">查看方案 →</a></div>';
     }
     var progCard = document.querySelector('.prog-card');
     if(progCard){
       progCard.innerHTML = isIOSReaderApp()
-        ? '<div style="padding:32px 24px;text-align:center;opacity:.72;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">進階內容，訂閱者可見<br><a href="login.html" style="color:var(--peach);margin-top:8px;display:inline-block;">已有序號就登入保存 →</a></div>'
-        : '<div style="padding:32px 24px;text-align:center;opacity:.72;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版不儲存學習紀錄<br><span style="opacity:.72;font-size:.8em;">已有序號就登入保存；沒有序號再看方案。</span><br><a href="login.html" style="color:var(--peach);margin-top:8px;display:inline-block;">已有序號就登入保存 →</a></div>';
+        ? '<div style="padding:32px 24px;text-align:center;opacity:.72;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">進階內容，訂閱者可見<br><a href="login.html" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;color:var(--peach);margin-top:8px;">已有序號就登入保存 →</a></div>'
+        : '<div style="padding:32px 24px;text-align:center;opacity:.72;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版不儲存學習紀錄<br><span style="opacity:.72;font-size:.8em;">已有序號就登入保存；沒有序號再看方案。</span><br><a href="login.html" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;color:var(--peach);margin-top:8px;">已有序號就登入保存 →</a></div>';
     }
 
     // ── 免費版 30 天 nudge banner ────────────────────
@@ -7116,7 +7151,7 @@ function _readArticle(btn, text) {
         'font-family:var(--sans);font-size:.85rem;display:flex;align-items:center;'+
         'justify-content:center;gap:12px;';
       nudge.innerHTML = '你已使用免費版 '+daysSince+' 天，升級解鎖完整學習紀錄與全段內容。'+
-        '<a href="pricing.html?utm_source=dashboard&utm_medium=free_nudge&utm_campaign=dashboard_pricing" style="color:var(--peach-3);font-weight:600;white-space:nowrap;">查看方案 →</a>'+
+        '<a href="pricing.html?utm_source=dashboard&utm_medium=free_nudge&utm_campaign=dashboard_pricing" style="min-height:44px;display:inline-flex;align-items:center;color:var(--peach-3);font-weight:600;white-space:nowrap;">查看方案 →</a>'+
         '<button onclick="this.parentNode.remove()" style="background:none;border:none;'+
         'color:rgba(245,240,234,.5);cursor:pointer;font-size:1rem;line-height:1;">✕</button>';
       document.body.prepend(nudge);
@@ -9186,8 +9221,8 @@ function _renderSrPage(){
   var slice = _srArts.slice(start, start + _srSize);
   var html = _renderResRows(slice, _srLaw);
   // 分頁列
-  var btnS = 'padding:5px 14px;border-radius:3px;border:1px solid rgba(245,240,234,.2);background:transparent;color:rgba(245,240,234,.65);cursor:pointer;font-family:var(--mono);font-size:11.5px';
-  var disS = 'padding:5px 14px;border-radius:3px;border:1px solid rgba(245,240,234,.07);background:transparent;color:rgba(245,240,234,.2);font-family:var(--mono);font-size:11.5px;cursor:default';
+  var btnS = 'min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:5px 14px;border-radius:3px;border:1px solid rgba(245,240,234,.2);background:transparent;color:rgba(245,240,234,.65);cursor:pointer;font-family:var(--mono);font-size:11.5px';
+  var disS = 'min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:5px 14px;border-radius:3px;border:1px solid rgba(245,240,234,.07);background:transparent;color:rgba(245,240,234,.2);font-family:var(--mono);font-size:11.5px;cursor:default';
   html += '<div style="display:flex;justify-content:space-between;align-items:center;padding:11px 16px;border-top:1px solid rgba(245,240,234,.08)">'
     + '<span style="font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.38)">' + (start+1) + '–' + (start+slice.length) + ' / 共 ' + total + ' 條</span>'
     + '<div style="display:flex;gap:6px">'
@@ -9305,8 +9340,8 @@ function _renderLawsToc(page){
     if(totalPg <= 1){
       pagerEl.innerHTML = '';
     } else {
-      var btnStyle = 'padding:6px 16px;border-radius:4px;border:1px solid rgba(245,240,234,.2);background:transparent;color:rgba(245,240,234,.7);cursor:pointer;font-family:var(--mono);font-size:12px;transition:.15s';
-      var disStyle = 'padding:6px 16px;border-radius:4px;border:1px solid rgba(245,240,234,.07);background:transparent;color:rgba(245,240,234,.2);font-family:var(--mono);font-size:12px;cursor:default';
+      var btnStyle = 'min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:6px 16px;border-radius:4px;border:1px solid rgba(245,240,234,.2);background:transparent;color:rgba(245,240,234,.7);cursor:pointer;font-family:var(--mono);font-size:12px;transition:.15s';
+      var disStyle = 'min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:6px 16px;border-radius:4px;border:1px solid rgba(245,240,234,.07);background:transparent;color:rgba(245,240,234,.2);font-family:var(--mono);font-size:12px;cursor:default';
       pagerEl.innerHTML =
         (_lawsPage > 0
           ? '<button style="'+btnStyle+'" onclick="_renderLawsToc('+(_lawsPage-1)+')">‹ 上頁</button>'

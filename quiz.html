@@ -16,12 +16,17 @@
 <link rel="stylesheet" href="sofa.css" />
 <script src="sofa-analytics.js?v=20260704-revenue-v1" defer></script>
 <style>
+  :root{--tool-topbar-offset:74px}
   html,body{max-width:100%;overflow-x:hidden}
+  body{padding-top:var(--tool-topbar-offset)}
+  .topbar{position:fixed;top:0;left:0;right:0;z-index:80}
   .pr-bar{
     background:var(--navy-2);border-bottom:1px solid var(--line);
     padding:16px 40px;display:flex;align-items:center;justify-content:space-between;gap:24px;flex-wrap:wrap;
   }
   .pr-bar .l{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+  .pr-bar :is(a,button,select,input){min-height:44px}
+  .pr-bar :is(a,button){display:inline-flex;align-items:center;justify-content:center}
   .pr-bar .back{
     font-family:var(--mono);font-size:11px;letter-spacing:.16em;
     color:rgba(245,240,234,.55);text-transform:uppercase;
@@ -255,6 +260,7 @@
     .rail-card{flex:1;min-width:240px}
   }
   @media (max-width:760px){
+    :root{--tool-topbar-offset:72px}
     .topbar{max-width:100vw;gap:10px;overflow:hidden}
     .brand{min-width:0;font-size:14px;letter-spacing:.12em;white-space:nowrap}
     .top-right{gap:10px;min-width:0}
@@ -292,7 +298,7 @@
   p{text-wrap:pretty;}
   .pr-chips{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 40px;background:var(--navy-2);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11.5px;letter-spacing:.08em}
   .pr-chips .lab{color:rgba(245,240,234,.4);text-transform:uppercase;margin-right:4px}
-  .pr-chip{padding:6px 12px;border:1px solid var(--line-2);border-radius:100px;background:transparent;color:rgba(245,240,234,.55);cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.06em;transition:.18s}
+  .pr-chip{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border:1px solid var(--line-2);border-radius:100px;background:transparent;color:rgba(245,240,234,.55);cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.06em;transition:.18s}
   .pr-chip:hover{border-color:var(--peach-dim);color:var(--cream)}
   .pr-chip.on{background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:600}
   .pr-chips.is-locked .pr-chip{opacity:.4;cursor:not-allowed;border-color:var(--line-2)!important;color:rgba(245,240,234,.35)!important;background:transparent!important}
@@ -300,10 +306,10 @@
   .pr-chips.is-locked .lock-hint{display:inline-block}
   .pr-sub{display:none;align-items:center;gap:8px;margin-left:6px}
   .pr-sub.show{display:flex}
-  .pr-sub select{background:var(--navy-3);border:1px solid var(--line-2);border-radius:3px;color:var(--cream);font-family:var(--mono);font-size:11.5px;padding:5px 10px;cursor:pointer;outline:none}
+  .pr-sub select{min-height:44px;background:var(--navy-3);border:1px solid var(--line-2);border-radius:3px;color:var(--cream);font-family:var(--mono);font-size:11.5px;padding:5px 10px;cursor:pointer;outline:none}
   @media (max-width:760px){
     .pr-chips{padding:10px 18px;max-width:100vw;overflow:hidden}
-    .pr-chip{min-height:34px;padding:7px 12px}
+    .pr-chip{min-height:44px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center}
   }
   html.ios-reader-app .stage{padding-top:calc(34px + env(safe-area-inset-top, 0px))}
 </style>
@@ -321,7 +327,7 @@
     <div class="top-right">
       <span class="user-pill"><span class="live"></span><span id="navUid">—</span></span>
       <button class="btn-out" onclick="localStorage.removeItem('sofa_uid');localStorage.removeItem('sofa_token');window.location.href='login.html'">登出</button>
-      <button class="menu-btn"><span></span></button>
+      <button class="menu-btn" aria-label="開啟導覽" aria-expanded="false" onclick="document.body.classList.toggle('mobile-nav-open');this.setAttribute('aria-expanded',document.body.classList.contains('mobile-nav-open')?'true':'false')"><span></span></button>
     </div>
   </header>
 
@@ -330,7 +336,7 @@
       <a href="dashboard.html" class="back">← BACK</a>
       <div class="title">
         <span class="lab">LAW</span>
-        <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:600;font-size:17px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none"><option value="">全部法規</option></select>
+        <select id="lawSelect" style="min-height:44px;background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:600;font-size:17px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none"><option value="">全部法規</option></select>
       </div>
       <div class="title" id="artPickWrap" style="display:none">
         <span class="lab">§</span>
@@ -341,18 +347,18 @@
       <button id="btnNew" class="btn btn-sec" style="padding:8px 16px;font-size:13px">出題</button>
       <button id="btnPastExam" onclick="_setPastExamMode(!_pastExamMode)"
         style="background:rgba(231,187,167,0.12);border:1px solid rgba(231,187,167,0.42);
-               color:var(--peach);border-radius:8px;padding:6px 12px;font-size:13px;cursor:pointer;">
+               color:var(--peach);border-radius:8px;min-height:44px;padding:0 14px;font-size:13px;cursor:pointer;">
         考古題
       </button>
       <select id="pastExamSubject" onchange="if(_pastExamMode) loadQuiz()"
         style="display:none;background:var(--navy-3);border:1px solid rgba(231,187,167,0.35);
-               border-radius:8px;color:var(--cream);font-size:12px;padding:6px 10px;">
+               border-radius:8px;color:var(--cream);font-size:12px;padding:6px 10px;min-height:44px;">
         <option value="記帳相關法規概要">記帳法規</option>
         <option value="稅務相關法規概要">稅務法規</option>
       </select>
       <select id="pastExamYear" onchange="if(_pastExamMode) loadQuiz()"
         style="display:none;background:var(--navy-3);border:1px solid rgba(231,187,167,0.35);
-               border-radius:8px;color:var(--cream);font-size:12px;padding:6px 10px;">
+               border-radius:8px;color:var(--cream);font-size:12px;padding:6px 10px;min-height:44px;">
         <option value="">全部年度</option>
         <option value="114">114 年</option>
         <option value="113">113 年</option>
@@ -467,7 +473,12 @@
 const API = 'https://sofa-engine-api.onrender.com';
 const _searchParams = new URLSearchParams(location.search);
 const freeParam = _searchParams.get('free') === '1';
-function isPreviewHost(){ return location.hostname==='localhost'||location.protocol==='file:'; }
+function isPreviewHost(){
+  return location.hostname === 'localhost'
+    || location.hostname === '127.0.0.1'
+    || location.hostname === '::1'
+    || location.protocol === 'file:';
+}
 const uid = localStorage.getItem('sofa_uid') || ((isPreviewHost() && !freeParam) ? 'PREVIEW' : null);
 const tok = localStorage.getItem('sofa_token') || '';
 const _startQuizParam = _searchParams.get('start') === '1';
@@ -511,7 +522,7 @@ if(isFree){
   const bar=document.createElement('div');
   bar.style.cssText='background:rgba(231,187,167,.13);border-bottom:1px solid rgba(231,187,167,.3);padding:10px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;';
   bar.innerHTML='<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">🔒 免費版 · 免登入可練習，答題紀錄不會儲存</span>'
-    +'<a href="checkout.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:5px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
+    +'<a href="checkout.html" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:0 16px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
   document.querySelector('.pr-bar').before(bar);
 }
 

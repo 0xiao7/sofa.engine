@@ -15,12 +15,17 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="sofa.css" />
 <style>
+  :root{--tool-topbar-offset:74px}
+  body{padding-top:var(--tool-topbar-offset)}
+  .topbar{position:fixed;top:0;left:0;right:0;z-index:80}
   /* === Practice layout === */
   .pr-bar{
     background:var(--navy-2);border-bottom:1px solid var(--line);
     padding:18px 40px;display:flex;align-items:center;justify-content:space-between;gap:24px;
   }
   .pr-bar .l{display:flex;align-items:center;gap:24px;flex-wrap:wrap}
+  .pr-bar :is(a,button,select,input){min-height:44px}
+  .pr-bar :is(a,button){display:inline-flex;align-items:center;justify-content:center}
   .pr-pick{
     display:flex;align-items:center;gap:10px;
     background:var(--navy-3);border:1px solid var(--line-2);border-radius:3px;
@@ -251,6 +256,7 @@
     .stat:nth-last-child(-n+2){border-bottom:none}
   }
   @media (max-width:760px){
+    :root{--tool-topbar-offset:72px}
     .pr-bar{padding:12px 18px;gap:12px}
     .pr-bar .l{gap:10px}
     .pr-meta{gap:14px;font-size:11px}
@@ -269,7 +275,7 @@
   p{text-wrap:pretty;}
   .pr-chips{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:10px 40px;background:var(--navy-2);border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11.5px;letter-spacing:.08em}
   .pr-chips .lab{color:rgba(245,240,234,.4);text-transform:uppercase;margin-right:4px}
-  .pr-chip{padding:6px 12px;border:1px solid var(--line-2);border-radius:100px;background:transparent;color:rgba(245,240,234,.55);cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.06em;transition:.18s}
+  .pr-chip{min-height:44px;display:inline-flex;align-items:center;justify-content:center;padding:0 14px;border:1px solid var(--line-2);border-radius:100px;background:transparent;color:rgba(245,240,234,.55);cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.06em;transition:.18s}
   .pr-chip:hover{border-color:var(--peach-dim);color:var(--cream)}
   .pr-chip.on{background:var(--peach);color:var(--navy);border-color:var(--peach);font-weight:600}
   .pr-chips.is-locked .pr-chip{opacity:.4;cursor:not-allowed;border-color:var(--line-2)!important;color:rgba(245,240,234,.35)!important;background:transparent!important}
@@ -277,10 +283,10 @@
   .pr-chips.is-locked .lock-hint{display:inline-block}
   .pr-sub{display:none;align-items:center;gap:8px;margin-left:6px}
   .pr-sub.show{display:flex}
-  .pr-sub select{background:var(--navy-3);border:1px solid var(--line-2);border-radius:3px;color:var(--cream);font-family:var(--mono);font-size:11.5px;padding:5px 10px;cursor:pointer;outline:none}
+  .pr-sub select{min-height:44px;background:var(--navy-3);border:1px solid var(--line-2);border-radius:3px;color:var(--cream);font-family:var(--mono);font-size:11.5px;padding:5px 10px;cursor:pointer;outline:none}
   @media (max-width:760px){
     .pr-chips{padding:10px 18px;max-width:100vw;overflow:hidden}
-    .pr-chip{min-height:34px;padding:7px 12px}
+    .pr-chip{min-height:44px;padding:0 14px;display:inline-flex;align-items:center;justify-content:center}
   }
 </style>
 </head>
@@ -298,7 +304,7 @@
     <div class="top-right">
       <span class="user-pill"><span class="live"></span><span id="navUid">—</span></span>
       <button class="btn-out" onclick="localStorage.removeItem('sofa_uid');localStorage.removeItem('sofa_token');window.location.href='login.html'">登出</button>
-      <button class="menu-btn"><span></span></button>
+      <button class="menu-btn" aria-label="開啟導覽" aria-expanded="false" onclick="document.body.classList.toggle('mobile-nav-open');this.setAttribute('aria-expanded',document.body.classList.contains('mobile-nav-open')?'true':'false')"><span></span></button>
     </div>
   </header>
 
@@ -309,7 +315,7 @@
 
       <div class="pr-pick">
         <span class="lab">LAW</span>
-        <select id="lawSelect" style="background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:500;font-size:15px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none;min-width:80px;max-width:200px"><option value="">全部法規</option></select>
+        <select id="lawSelect" style="min-height:44px;background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:500;font-size:15px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none;min-width:80px;max-width:200px"><option value="">全部法規</option></select>
         <span class="car">▾</span>
       </div>
       <div class="pr-pick" id="artPickWrap" style="display:none">
@@ -423,7 +429,13 @@
 
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
-const uid = localStorage.getItem('sofa_uid') || (location.hostname==='localhost'||location.protocol==='file:'?'PREVIEW':null);
+function isPreviewHost(){
+  return location.hostname === 'localhost'
+    || location.hostname === '127.0.0.1'
+    || location.hostname === '::1'
+    || location.protocol === 'file:';
+}
+const uid = localStorage.getItem('sofa_uid') || (isPreviewHost() ? 'PREVIEW' : null);
 const tok = localStorage.getItem('sofa_token') || '';
 // 過渡期：有 token 用 Bearer，否則 fallback X-Sofa-UID
 function formatLawText(raw){
@@ -452,7 +464,7 @@ if(isFree){
   const bar=document.createElement('div');
   bar.style.cssText='background:rgba(231,187,167,.13);border-bottom:1px solid rgba(231,187,167,.3);padding:10px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;';
   bar.innerHTML='<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">🔒 免費版 · 免登入可練習，練習紀錄不會儲存</span>'
-    +'<a href="checkout.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:5px 14px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
+    +'<a href="checkout.html" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:0 16px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
   document.querySelector('.pr-bar').before(bar);
 }
 
