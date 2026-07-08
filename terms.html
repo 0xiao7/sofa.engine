@@ -214,6 +214,10 @@
   footer .ft-r a:hover{color:var(--cream)}
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
+  .native-reader-copy{display:none}
+  html.ios-reader-app .native-reader-copy{display:inline}
+  html.ios-reader-app .public-web-copy{display:none}
+  html.ios-reader-app [data-ios-reader-hide]{display:none!important}
 </style>
 </head>
 <body>
@@ -235,8 +239,8 @@
   <div class="hero-bar">
     <div class="container">
       <div class="eyebrow">LEGAL — 服務聲明</div>
-      <h1>服務條款・退費政策・常見問題</h1>
-      <p class="sub">使用 SoFa Engine 前，請先了解我們的服務範圍、付費規則與退費條件。</p>
+      <h1><span class="public-web-copy">服務條款・退費政策・常見問題</span><span class="native-reader-copy">服務條款・隱私與資料說明</span></h1>
+      <p class="sub"><span class="public-web-copy">使用 SoFa Engine 前，請先了解我們的服務範圍、付費規則與退費條件。</span><span class="native-reader-copy">使用 SoFa Engine 前，請先了解我們的服務範圍、資料使用與刪除申請方式。</span></p>
       <div class="updated">最後更新：2026 年 7 月 · v1.1</div>
     </div>
   </div>
@@ -251,7 +255,9 @@
       <a href="#payment">02 · 付費與序號</a>
       <a href="#refund">03 · 退費政策</a>
       <a href="#passback">04 · 考後回饋</a>
-      <a href="#disclaimer">05 · 免責聲明</a>
+      <a href="#privacy">05 · 隱私與資料</a>
+      <a href="#data-deletion">06 · 帳號與資料刪除</a>
+      <a href="#disclaimer">07 · 免責聲明</a>
       <div class="toc-divider"></div>
       <a href="#faq">FAQ · 常見問題</a>
       <div class="toc-divider"></div>
@@ -278,7 +284,7 @@
       </section>
 
       <!-- 02 付費與序號 -->
-      <section class="sec" id="payment">
+      <section class="sec" id="payment" data-ios-reader-hide>
         <div class="sec-eyebrow">02 — PAYMENT</div>
         <h2>付費方案與序號規則</h2>
 
@@ -305,7 +311,7 @@
       </section>
 
       <!-- 03 退費政策 -->
-      <section class="sec" id="refund">
+      <section class="sec" id="refund" data-ios-reader-hide>
         <div class="sec-eyebrow">03 — REFUND</div>
         <h2>退費政策</h2>
 
@@ -366,9 +372,33 @@
         <p><strong>個資與公開使用：</strong>申請資料僅用於資格審核、退款處理與必要帳務留存。若要公開引用心得，會另行取得同意；未經同意不會公開姓名、榜單截圖、聯絡方式或其他可識別個人資料。</p>
       </section>
 
-      <!-- 05 免責聲明 -->
+      <!-- 05 隱私與資料 -->
+      <section class="sec" id="privacy">
+        <div class="sec-eyebrow">05 — PRIVACY</div>
+        <h2>隱私與資料使用</h2>
+
+        <p>SoFa Engine 僅收集提供服務所需的資料，例如購買信箱、序號、LINE user id、考試目標、答題紀錄、收藏、筆記或會員紀錄。</p>
+        <p>這些資料用於序號啟用、付款通知、學習進度保存、弱點分析、客服協助與必要帳務留存。我們不販售個人資料，也不會把你的學習紀錄公開作為行銷素材。</p>
+        <p>如需客服協助，請勿在公開社群張貼完整序號、付款截圖或個人聯絡方式。請改寄信至 <a href="mailto:hi@sofaengine.org">hi@sofaengine.org</a>。</p>
+      </section>
+
+      <!-- 06 帳號與資料刪除 -->
+      <section class="sec" id="data-deletion">
+        <div class="sec-eyebrow">06 — DATA DELETION</div>
+        <h2>帳號與資料刪除</h2>
+
+        <p>如果你希望刪除 SoFa Engine 會員資料，可以寄信至 <a href="mailto:hi@sofaengine.org?subject=SoFa%20帳號與資料刪除">hi@sofaengine.org</a> 申請。請在主旨寫上「SoFa 帳號與資料刪除」，並在信中附上：</p>
+        <ol>
+          <li>購買信箱</li>
+          <li>序號或序號後 4 碼</li>
+          <li>希望刪除的資料範圍，例如答題紀錄、收藏、筆記或會員紀錄</li>
+        </ol>
+        <p>我們通常會在 7 個工作天內回覆。若資料依法令或金流、稅務留存規定需保存一定期間，將於回覆中說明可刪除與需留存的範圍。</p>
+      </section>
+
+      <!-- 07 免責聲明 -->
       <section class="sec" id="disclaimer">
-        <div class="sec-eyebrow">05 — DISCLAIMER</div>
+        <div class="sec-eyebrow">07 — DISCLAIMER</div>
         <h2>免責聲明</h2>
 
         <p>SoFa Engine 提供的法條內容以輔助備考為目的，<strong>不構成法律意見</strong>，亦不能取代律師或專業顧問的建議。</p>
@@ -469,6 +499,13 @@
             </div>
           </div>
 
+          <div class="faq-item">
+            <div class="faq-q" onclick="this.parentElement.classList.toggle('open')">我可以刪除帳號或學習資料嗎？</div>
+            <div class="faq-a">
+              可以。請先看 <a href="#data-deletion">帳號與資料刪除</a>，再寄信至 <a href="mailto:hi@sofaengine.org?subject=SoFa%20帳號與資料刪除">hi@sofaengine.org</a>。主旨請寫「SoFa 帳號與資料刪除」，並附購買信箱、序號或序號後 4 碼，以及想刪除的資料範圍。
+            </div>
+          </div>
+
         </div>
       </section>
 
@@ -489,6 +526,14 @@
 </div><!-- /page -->
 
 <script>
+function markIOSReaderApp(){
+  const params = new URLSearchParams(location.search);
+  if(params.get('surface') === 'ios-reader' || params.get('app') === 'ios-reader' || params.get('reader') === 'ios'){
+    document.documentElement.classList.add('ios-reader-app');
+  }
+}
+markIOSReaderApp();
+
 // TOC active on scroll
 const tocLinks = document.querySelectorAll('.toc a[href^="#"]');
 const secs = document.querySelectorAll('section.sec');

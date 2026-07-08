@@ -21,8 +21,9 @@ test('terms page provides public privacy and account deletion instructions', () 
 });
 
 test('terms table of contents and FAQ link to data deletion', () => {
-  assert.match(terms, /href="#privacy"[\s\S]*04 · 隱私與資料/);
-  assert.match(terms, /href="#data-deletion"[\s\S]*05 · 帳號與資料刪除/);
+  assert.match(terms, /href="#passback"[\s\S]*04 · 考後回饋/);
+  assert.match(terms, /href="#privacy"[\s\S]*05 · 隱私與資料/);
+  assert.match(terms, /href="#data-deletion"[\s\S]*06 · 帳號與資料刪除/);
   assert.match(terms, /我可以刪除帳號或學習資料嗎？/);
   assert.match(terms, /href="#data-deletion"[\s\S]*帳號與資料刪除/);
 });
