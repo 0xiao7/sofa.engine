@@ -571,6 +571,34 @@ function formatQuizLoadErrorMessage(message){
   }
   return raw;
 }
+function isTransientQuizLoadErrorPayload(data){
+  const raw=String((data&&(data.error||data.detail))||'').trim();
+  return /Errno|Resource temporarily unavailable|ECONN|Supabase|PostgREST|Traceback|SQL|timeout|temporarily unavailable/i.test(raw);
+}
+function isPageSpecificQuizUrl(url){
+  return /[?&]page_id=/.test(String(url||''));
+}
+function sleepQuizRetry(ms){
+  return new Promise(resolve=>setTimeout(resolve,ms));
+}
+async function fetchQuizJsonWithRetry(url, opts, attempts, delayMs){
+  const maxAttempts = isPageSpecificQuizUrl(url) ? 1 : Math.max(1, attempts||3);
+  const waitMs = delayMs == null ? 220 : delayMs;
+  let lastData = null;
+  for(let i=0;i<maxAttempts;i++){
+    try{
+      const res = await fetch(url, opts);
+      const data = await res.json().catch(()=>({detail:res.statusText||('HTTP '+res.status)}));
+      lastData = data;
+      if(res.ok || !isTransientQuizLoadErrorPayload(data) || i===maxAttempts-1) return data;
+    }catch(e){
+      lastData = {detail:String((e&&e.message)||e||'Network error')};
+      if(!isTransientQuizLoadErrorPayload(lastData) || i===maxAttempts-1) return lastData;
+    }
+    if(waitMs>0) await sleepQuizRetry(waitMs*(i+1));
+  }
+  return lastData || {detail:'題目暫時載入失敗'};
+}
 function _authH(extra) {
   const h = extra ? {...extra} : {};
   if (tok) h['Authorization'] = 'Bearer ' + tok;
@@ -1195,7 +1223,7 @@ async function loadQuiz(){
         url+=(url.indexOf('?')>=0?'&':'?')+'chip='+encodeURIComponent(_curPrChip)+'&sub='+encodeURIComponent(_subVal);
       }
     }
-    if(!_pastExamMode) data=await fetch(url,{headers:_authH()}).then(r=>r.json());
+    if(!_pastExamMode) data=await fetchQuizJsonWithRetry(url,{headers:_authH()});
     if(data.error||data.detail){
       document.getElementById('questionBox').textContent=formatQuizLoadErrorMessage(data.error||data.detail);
       document.getElementById('questionBox').style.opacity='1';
