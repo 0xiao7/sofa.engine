@@ -477,8 +477,12 @@
           <div id="session-summary-stats"></div>
           <div class="session-actions">
             <button type="button" onclick="restartSessionMode()">再刷一組</button>
-            <a class="primary" href="login.html?utm_source=web_quiz&utm_medium=session_summary&utm_campaign=quiz_session_save">先登入保存這輪紀錄</a>
-            <a href="pricing.html?utm_source=web_quiz&utm_medium=session_summary&utm_campaign=quiz_session_upgrade">查看方案</a>
+            <a class="primary" href="login.html?utm_source=web_quiz&utm_medium=session_summary&utm_campaign=quiz_session_save"
+               data-track-event="quiz_session_save_click"
+               data-track-label="quiz_session_save">先登入保存這輪紀錄</a>
+            <a href="pricing.html?utm_source=web_quiz&utm_medium=session_summary&utm_campaign=quiz_session_upgrade"
+               data-track-event="quiz_session_pricing_click"
+               data-track-label="quiz_session_pricing">查看方案</a>
           </div>
         </section>
 
@@ -584,6 +588,29 @@ if(isFree){
   document.querySelector('.pr-bar').before(bar);
 }
 
+function trackQuizSessionEvent(name, data){
+  const payload = Object.assign({
+    surface: 'quiz',
+    free: isFree,
+    session_mode: _sessionMode,
+    target_count: _sessionTargetCount
+  }, data || {});
+  let tries = 0;
+  const send = () => {
+    tries += 1;
+    if(typeof window.sofaTrack === 'function'){
+      window.sofaTrack(name, payload);
+      return;
+    }
+    if(tries < 10) setTimeout(send, 80);
+  };
+  if(typeof window.sofaTrack !== 'function' && document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', send, {once: true});
+    return;
+  }
+  send();
+}
+
 function _setPastExamMode(on, opts){
   _pastExamMode = !!on;
   const btn = document.getElementById('btnPastExam');
@@ -610,6 +637,7 @@ function _setPastExamMode(on, opts){
 }
 
 if(_sessionMode){
+  trackQuizSessionEvent('quiz_session_start', {target_count: _sessionTargetCount});
   const btn=document.getElementById('btnSession');
   if(btn){
     btn.textContent=`刷題模式 ${_sessionTargetCount} 題`;
@@ -934,6 +962,7 @@ function restartSessionMode(){
   sessionHistory=[];
   hideSessionSummary();
   updateScore();
+  trackQuizSessionEvent('quiz_session_start', {target_count: _sessionTargetCount, restarted: true});
   loadQuiz();
 }
 
@@ -953,6 +982,13 @@ function showSessionSummary(){
   document.getElementById('explainBox').style.display='none';
   const answered_n=sessionHistory.filter(q=>q.correct!==null).length;
   const acc=answered_n>0?Math.round(right/answered_n*100):0;
+  trackQuizSessionEvent('quiz_session_complete', {
+    target_count: _sessionTargetCount,
+    answered: answered_n,
+    correct: right,
+    wrong: wrong,
+    accuracy: acc
+  });
   const stats=document.getElementById('session-summary-stats');
   if(stats){
     stats.innerHTML=[

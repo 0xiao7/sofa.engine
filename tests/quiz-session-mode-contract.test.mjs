@@ -18,7 +18,11 @@ test('session mode has a visible summary card with save actions', () => {
   assert.match(active, /id="session-summary-stats"/);
   assert.match(active, /先登入保存這輪紀錄/);
   assert.match(active, /href="login\.html\?utm_source=web_quiz&utm_medium=session_summary&utm_campaign=quiz_session_save"/);
+  assert.match(active, /data-track-event="quiz_session_save_click"/);
+  assert.match(active, /data-track-label="quiz_session_save"/);
   assert.match(active, /href="pricing\.html\?utm_source=web_quiz&utm_medium=session_summary&utm_campaign=quiz_session_upgrade"/);
+  assert.match(active, /data-track-event="quiz_session_pricing_click"/);
+  assert.match(active, /data-track-label="quiz_session_pricing"/);
 });
 
 test('session answers record progress but defer correctness and explanation', () => {
@@ -39,4 +43,15 @@ test('session mode copy separates free practice from saved records', () => {
   assert.match(active, /刷題模式/);
   assert.match(active, /先做完這組題目，再一次看結果/);
   assert.match(active, /免費可先刷題；登入後才會保留完整紀錄與弱點統計/);
+});
+
+test('session mode tracks start and completion as a measurable funnel', () => {
+  assert.match(active, /function trackQuizSessionEvent\(name, data\)/);
+  assert.match(active, /trackQuizSessionEvent\('quiz_session_start'/);
+  assert.match(active, /trackQuizSessionEvent\('quiz_session_complete'/);
+  assert.match(active, /target_count: _sessionTargetCount/);
+  assert.match(active, /answered: answered_n/);
+  assert.match(active, /correct: right/);
+  assert.match(active, /wrong: wrong/);
+  assert.match(active, /accuracy: acc/);
 });
