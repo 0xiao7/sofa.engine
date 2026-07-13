@@ -41,5 +41,7 @@ test('checkout mobile shows email and payment before the long plan list', () => 
   assert.match(html, /@media \(max-width:780px\)\{[\s\S]*\.checkout-action-column\{[\s\S]*order:1/);
   assert.match(html, /@media \(max-width:780px\)\{[\s\S]*\.checkout-options-column\{[\s\S]*order:2/);
   assert.match(html, /@media \(max-width:780px\)\{[\s\S]*\.sticky-pay\{[\s\S]*position:fixed;left:0;right:0;bottom:0/);
-  assert.match(html, /<div class="checkout-action-column">[\s\S]*id="ck-exam-target-section"[\s\S]*class="email-card"/);
+  assert.match(html, /<div class="checkout-action-column">[\s\S]*id="ck-exam-target-section"[\s\S]*class="email-card"[\s\S]*id="ck-email-input"[\s\S]*class="sticky-pay"[\s\S]*id="ck-submit"/);
+  assert.ok(html.indexOf('id="ck-exam-target-section"') < html.indexOf('id="ck-email-input"'));
+  assert.ok(html.indexOf('id="ck-email-input"') < html.indexOf('id="ck-submit"'));
 });
