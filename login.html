@@ -826,6 +826,10 @@ serialEl.addEventListener('input', function() {
 
 serialEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
+function dashboardTargetAfterLogin() {
+  return location.hash === '#srs-settings' ? 'dashboard.html#srs-settings' : 'dashboard.html';
+}
+
 // Magic-link 自動登入：URL ?t=<token> → POST /api/auth/magic → 存 sofa_uid + sofa_token → 跳 dashboard
 (async function autoLoginFromMagicToken(){
   var params = new URLSearchParams(location.search);
@@ -854,7 +858,7 @@ serialEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); })
     markStudyLocalProgressForLogin();
     // 清掉 URL 上的 token 避免被分享 / 留在瀏覽紀錄
     history.replaceState({}, '', location.pathname);
-    window.location.href = 'dashboard.html';
+    window.location.href = dashboardTargetAfterLogin();
   }catch(e){
     showErr('連線失敗，請改用序號登入');
     btn.disabled = false;
@@ -891,7 +895,7 @@ async function doLogin() {
     if (data.token) localStorage.setItem('sofa_token', data.token);
     if(window.sofaTrack) sofaTrack('serial_verify_success', { method: 'serial' });
     markStudyLocalProgressForLogin();
-    window.location.href = 'dashboard.html';
+    window.location.href = dashboardTargetAfterLogin();
   } catch {
     showErr('連線失敗，請稍後再試');
   } finally {
