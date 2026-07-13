@@ -109,6 +109,7 @@ CARDS = [
     ("pricing.png",  "SOFA ENGINE / PLANS",    "訂閱方案", "Monthly · Quarterly",               "SOFA <b>·</b> PLANS"),
     ("buy.png",      "SOFA ENGINE / CHECKOUT", "立即購買", "Secure Payment · 5 min",            "SOFA <b>·</b> BUY"),
     ("help.png",     "SOFA ENGINE / GUIDE",    "使用說明", "Full Command Reference",            "SOFA <b>·</b> GUIDE"),
+    ("push-settings.png", "SOFA ENGINE / PUSH", "推播設定", "Daily LINE · Review Strategy",      "SOFA <b>·</b> PUSH"),
 ]
 
 async def main():
