@@ -4164,8 +4164,34 @@
               考前凍結會優先保留 3★ 以上條文；每日上限控制今天要消化的複習量。
             </div>
             <div class="srs-controls">
+              <label class="srs-toggle"><input id="srs-push-enabled" type="checkbox" checked> LINE 每日推播</label>
               <label class="srs-toggle"><input id="srs-freeze-mode" type="checkbox"> 考前凍結</label>
               <input class="srs-limit" id="srs-daily-limit" type="number" min="1" max="50" value="10" aria-label="每日複習上限">
+              <select class="srs-select" id="srs-exam-key" aria-label="備考方向">
+                <option value="">尚未設定</option>
+                <option value="bookkeeper">記帳士</option>
+                <option value="landadmin">地政士</option>
+                <option value="realestate">不動產經紀人</option>
+                <option value="tax-admin">稅務行政</option>
+                <option value="tax-law">稅務相關法規</option>
+                <option value="elem-admin">初等一般行政</option>
+                <option value="post-acc">郵政會計</option>
+              </select>
+              <select class="srs-select" id="srs-push-law" aria-label="LINE 每日推播法規">
+                <option value="">依目前進度</option>
+                <option value="商業會計法">商業會計法</option>
+                <option value="商業會計處理準則">商業會計處理準則</option>
+                <option value="記帳士法">記帳士法</option>
+                <option value="公司法">公司法</option>
+                <option value="稅捐稽徵法">稅捐稽徵法</option>
+                <option value="所得稅法">所得稅法</option>
+                <option value="加值型及非加值型營業稅法">加值型及非加值型營業稅法</option>
+              </select>
+              <select class="srs-select" id="srs-push-order" aria-label="LINE 每日推播順序">
+                <option value="law_first">指定法規優先</option>
+                <option value="review_due_first">到期複習優先</option>
+                <option value="importance_first">高重要度優先</option>
+              </select>
               <button class="srs-save" id="srs-save" type="button" onclick="saveSrsSettings()">儲存</button>
               <span class="srs-state" id="srs-save-state"></span>
             </div>
@@ -7665,7 +7691,7 @@ function backdropCloseEntitlement(ev){
 
 // ── 今日複習提醒（SRS）────────────────────────────
 var _reviewDueItems = [];
-var _srsSettings = { freeze_mode:false, daily_review_limit:10 };
+var _srsSettings = { freeze_mode:false, daily_review_limit:10, push_enabled:true, push_law_name:'', push_order:'law_first', exam_key:'' };
 function _safeClickArg(s){
   return String(s || '')
     .replace(/\\/g, '\\\\')
@@ -7678,33 +7704,55 @@ function _safeClickArg(s){
 function renderSrsSettings(settings){
   if(settings) _srsSettings = {
     freeze_mode: !!settings.freeze_mode,
-    daily_review_limit: settings.daily_review_limit || 10
+    daily_review_limit: settings.daily_review_limit || 10,
+    push_enabled: settings.push_enabled !== false,
+    push_law_name: settings.push_law_name || '',
+    push_order: settings.push_order || 'law_first',
+    exam_key: settings.exam_key || ''
   };
+  var pushEnabled = document.getElementById('srs-push-enabled');
   var freeze = document.getElementById('srs-freeze-mode');
   var limit = document.getElementById('srs-daily-limit');
+  var examKey = document.getElementById('srs-exam-key');
+  var pushLaw = document.getElementById('srs-push-law');
+  var pushOrder = document.getElementById('srs-push-order');
   var summary = document.getElementById('srs-settings-summary');
+  if(pushEnabled) pushEnabled.checked = _srsSettings.push_enabled !== false;
   if(freeze) freeze.checked = !!_srsSettings.freeze_mode;
   if(limit) limit.value = String(_srsSettings.daily_review_limit || 10);
+  if(examKey) examKey.value = _srsSettings.exam_key || '';
+  if(pushLaw) pushLaw.value = _srsSettings.push_law_name || '';
+  if(pushOrder) pushOrder.value = _srsSettings.push_order || 'law_first';
   if(summary){
-    summary.textContent = (_srsSettings.freeze_mode ? '3★+ 優先' : '全題到期') + ' · 每日 ' + (_srsSettings.daily_review_limit || 10) + ' 條';
+    var lawText = _srsSettings.push_law_name ? _srsSettings.push_law_name : '依目前進度';
+    var pushText = _srsSettings.push_enabled === false ? '推播關閉' : '推播 ' + lawText;
+    summary.textContent = (_srsSettings.freeze_mode ? '3★+ 優先' : '全題到期') + ' · 每日 ' + (_srsSettings.daily_review_limit || 10) + ' 條 · ' + pushText;
   }
 }
 function saveSrsSettings(){
+  var pushEnabled = document.getElementById('srs-push-enabled');
   var freeze = document.getElementById('srs-freeze-mode');
   var limit = document.getElementById('srs-daily-limit');
+  var examKeyEl = document.getElementById('srs-exam-key');
+  var pushLawEl = document.getElementById('srs-push-law');
+  var pushOrderEl = document.getElementById('srs-push-order');
   var state = document.getElementById('srs-save-state');
   var n = parseInt(limit && limit.value, 10);
   if(!Number.isFinite(n)) n = 10;
   n = Math.max(1, Math.min(50, n));
   if(limit) limit.value = String(n);
+  var examKey = examKeyEl ? examKeyEl.value : '';
+  var pushLaw = pushLawEl ? pushLawEl.value : '';
+  var pushOrder = pushOrderEl ? pushOrderEl.value : 'law_first';
   if(state) state.textContent = '儲存中';
   _fetchJSON(API+'/api/me/srs-settings', {
     method:'POST',
     headers: Object.assign({'Content-Type':'application/json'}, H),
-    body: JSON.stringify({ freeze_mode: !!(freeze && freeze.checked), daily_review_limit:n })
+    body: JSON.stringify({ freeze_mode: !!(freeze && freeze.checked), daily_review_limit:n, push_enabled: !!(!pushEnabled || pushEnabled.checked), exam_key: examKey, push_law_name: pushLaw, push_order: pushOrder })
   }).then(function(res){
     if(res && res.settings){
       renderSrsSettings(res.settings);
+      if(examKey && typeof applyExamFilter === 'function') applyExamFilter(examKey);
       if(state) state.textContent = '已儲存';
       return _fetchJSON(API+'/api/me/review-due',{ headers:H });
     }
