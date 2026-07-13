@@ -7106,7 +7106,8 @@ function _readArticle(btn, text) {
   var params = new URLSearchParams(location.search);
   var magicToken = params.get('t');
   if(magicToken){
-    history.replaceState(null, '', location.pathname);
+    var magicHash = location.hash === '#srs-settings' ? '#srs-settings' : '';
+    history.replaceState(null, '', location.pathname + magicHash);
     fetch('https://sofa-engine-api.onrender.com/api/auth/magic', {
       method: 'POST',
       headers: {'Content-Type':'application/json'},

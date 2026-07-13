@@ -42,6 +42,12 @@ test('dashboard deep-links directly to the adjustable review strategy controls',
   assert.match(active, /hash === '#srs-settings'[\s\S]*retryStudyHashScroll\('srs-settings',\s*30,\s*true\)/);
 });
 
+test('dashboard magic-login preserves the requested settings hash after token exchange', () => {
+  assert.match(active, /var magicHash\s*=\s*location\.hash\s*===\s*'#srs-settings'\s*\?\s*'#srs-settings'\s*:\s*''/);
+  assert.match(active, /history\.replaceState\(null,\s*'',\s*location\.pathname\s*\+\s*magicHash\)/);
+  assert.match(active, /location\.reload\(\)/);
+});
+
 test('mobile dashboard does not expose the desktop fixed-sidebar control', () => {
   assert.match(active, /@media \(max-width:980px\)\{[\s\S]*\.side-guide-controls\{display:none\}/);
 });
