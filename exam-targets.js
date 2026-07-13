@@ -53,6 +53,8 @@
       key: 'elem-admin',
       label: '初等一般行政',
       examDisplay: '下一期未公告',
+      purchaseStatus: 'disabled',
+      purchaseNote: 'LINE 推播尚未支援完整服務，暫不開放到考日方案。',
       laws: '11',
       articles: '2,886',
       highlight: '公務員入門八大法 + 民刑法基底'
@@ -152,6 +154,9 @@
     const t = target || resolveTarget();
     if(!t || !t.key){
       return { state: 'missing_target', canBuy: false, reason: '請先選你的考試目標。' };
+    }
+    if(t.purchaseStatus === 'disabled'){
+      return { state: 'purchase_disabled', canBuy: false, reason: t.purchaseNote || '這個考試暫不開放到考日方案。' };
     }
     if(!hasExamDate(t)){
       return { state: 'unconfigured', canBuy: false, reason: '下一期正式考日尚未公告，暫不開放到考日方案。' };

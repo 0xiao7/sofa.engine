@@ -85,6 +85,26 @@ test('exam-day plan opens from the registration window, not the exam countdown',
   assert.match(api.examDayPlanState(bookkeeper, '2026-07-14T00:00:00+08:00').reason, /報名前一個月/);
 });
 
+test('CXA keeps elem-admin explicitly disabled until LINE bot supports the paid service', () => {
+  assert.match(examTargets, /'elem-admin': \{/);
+  assert.match(examTargets, /purchaseStatus:\s*'disabled'/);
+  assert.match(examTargets, /LINE 推播尚未支援完整服務/);
+  assert.match(checkout, /if\(state\.state === "purchase_disabled"\) return "暫不販售"/);
+
+  const sandbox = { window: {}, URLSearchParams };
+  sandbox.window.location = { search: '' };
+  sandbox.window.localStorage = { getItem: () => '', setItem: () => {} };
+  sandbox.localStorage = sandbox.window.localStorage;
+  vm.runInNewContext(examTargets, sandbox);
+  const api = sandbox.window.SoFaExamTargets;
+  const elemAdmin = api.TARGETS['elem-admin'];
+  const state = api.examDayPlanState(elemAdmin, '2026-07-14T00:00:00+08:00');
+
+  assert.equal(state.state, 'purchase_disabled');
+  assert.equal(state.canBuy, false);
+  assert.match(state.reason, /LINE 推播尚未支援完整服務/);
+});
+
 test('pricing presents exam-day as the featured plan and keeps monthly as the low-cost entry', () => {
   assert.match(pricing, /data-plan="到考日"/);
   assert.match(pricing, /href="\/checkout\.html\?plan=到考日&utm_source=pricing&utm_medium=plan_card&utm_campaign=pricing_exam_day"/);
