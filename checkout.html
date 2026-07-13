@@ -842,7 +842,7 @@
         </div>
         <div class="exam-target-card">
           <div class="target-title">到考日依你的考試計算。</div>
-          <p class="target-copy">NT$1280 是到考日方案固定價；只有考前 180 天內的考試會開放付款。</p>
+          <p class="target-copy">NT$1280 是到考日方案固定價；只有正式考期與報名日已公告、且進入報名前一個月內的考試會開放付款。未公告/已結束考期會顯示但不能付款。</p>
           <select id="ck-exam-target" aria-label="考試目標"></select>
           <div class="target-hint" id="ck-exam-target-hint">請先選考試目標；系統會依正式考期判斷是否可買到考日方案。</div>
         </div>
@@ -926,7 +926,7 @@
   </div>
 </div>
 
-<script src="exam-targets.js?v=20260713-exam-future-only"></script>
+<script src="exam-targets.js?v=20260714-registration-window"></script>
 <script>
 (function(){
   const API_URL = "https://sofa-engine-api.onrender.com/api/checkout";
@@ -1057,11 +1057,26 @@
     const options = Object.keys(targets).map((key) => {
       const t = targets[key] || {};
       const date = t.examDisplay || "下一期未公告";
-      return `<option value="${key}">${t.label || key} · ${date}</option>`;
+      const state = window.SoFaExamTargets.examDayPlanState ? window.SoFaExamTargets.examDayPlanState(t) : null;
+      const disabled = state && !state.canBuy ? ' disabled' : '';
+      const stateLabel = checkoutExamTargetStateLabel(state);
+      return `<option value="${key}"${disabled}>${t.label || key} · ${date} · ${stateLabel}</option>`;
     }).join("");
     examTargetEl.innerHTML = `<option value="">請先選你的考試目標</option>${options}`;
-    if (targets[selectedKey]) examTargetEl.value = selectedKey;
+    if (targets[selectedKey]) {
+      const state = window.SoFaExamTargets.examDayPlanState ? window.SoFaExamTargets.examDayPlanState(targets[selectedKey]) : null;
+      if (state && state.canBuy) examTargetEl.value = selectedKey;
+    }
     updateExamTargetHint();
+  }
+
+  function checkoutExamTargetStateLabel(state){
+    if(!state) return "狀態未確認";
+    if(state.canBuy) return "可購買";
+    if(state.state === "not_open") return "尚未開放";
+    if(state.state === "closed") return "考期已結束";
+    if(state.state === "unconfigured") return "考期未公告";
+    return "不可購買";
   }
 
   function getExplicitCheckoutExamKey(){
@@ -1079,6 +1094,7 @@
 
   function getCheckoutExamKey(){
     if (examTargetEl && examTargetEl.value) return examTargetEl.value;
+    if (examTargetEl) return examTargetEl.value || "";
     return getExplicitCheckoutExamKey();
   }
 

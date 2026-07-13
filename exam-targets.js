@@ -1,12 +1,14 @@
 (function(){
-  const DEFAULT_EXAM_DAY_SALE_OPEN_DAYS = 180;
+  const DEFAULT_EXAM_DAY_REGISTRATION_LEAD_LABEL = '報名前一個月';
   const TARGETS = {
     bookkeeper: {
       key: 'bookkeeper',
       label: '記帳士',
       examDate: '2026-11-14T00:00:00+08:00',
       examDisplay: '2026 / 11 / 14',
-      saleOpenDays: DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
+      registrationStart: '2026-08-04T00:00:00+08:00',
+      registrationDisplay: '2026 / 08 / 04',
+      saleOpenDate: '2026-07-04T00:00:00+08:00',
       laws: '33',
       articles: '2,157',
       highlight: '營利事業所得稅查核準則 143 條（記帳士獨家）'
@@ -15,7 +17,6 @@
       key: 'landadmin',
       label: '地政士',
       examDisplay: '下一期未公告',
-      saleOpenDays: DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
       laws: '23',
       articles: '3,650',
       highlight: '民法 1,439 / 地籍測量規則 324 / 土地登記規則 184'
@@ -25,7 +26,9 @@
       label: '不動產經紀人',
       examDate: '2026-11-14T00:00:00+08:00',
       examDisplay: '2026 / 11 / 14',
-      saleOpenDays: DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
+      registrationStart: '2026-08-04T00:00:00+08:00',
+      registrationDisplay: '2026 / 08 / 04',
+      saleOpenDate: '2026-07-04T00:00:00+08:00',
       laws: '19',
       articles: '3,058',
       highlight: '民法 / 土地法 / 不動產經紀業管理條例'
@@ -34,7 +37,6 @@
       key: 'tax-admin',
       label: '財稅行政（高普考）',
       examDisplay: '下一期未公告',
-      saleOpenDays: DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
       laws: '20',
       articles: '2,590',
       highlight: '貨物稅 / 印花稅 / 使用牌照稅 三細節稅法'
@@ -43,7 +45,6 @@
       key: 'tax-law',
       label: '財稅法務（高考三級）',
       examDisplay: '下一期未公告',
-      saleOpenDays: DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
       laws: '19',
       articles: '3,439',
       highlight: '民法 + 刑法 422 + 行政訴訟法 390 + 全套稅法'
@@ -52,7 +53,6 @@
       key: 'elem-admin',
       label: '初等一般行政',
       examDisplay: '下一期未公告',
-      saleOpenDays: DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
       laws: '11',
       articles: '2,886',
       highlight: '公務員入門八大法 + 民刑法基底'
@@ -60,9 +60,7 @@
     'post-acc': {
       key: 'post-acc',
       label: '中華郵政會計類',
-      examDate: '2026-07-19T00:00:00+08:00',
-      examDisplay: '2026 / 07 / 19',
-      saleOpenDays: DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
+      examDisplay: '下一期未公告',
       laws: '10',
       articles: '1,349',
       highlight: '公司法 / 會計法 / 預算法 / 決算法 / 郵政法'
@@ -122,11 +120,31 @@
     return !!(target && target.examDate && target.examDisplay);
   }
 
+  function hasRegistrationWindow(target){
+    return !!(target && target.registrationStart && target.registrationDisplay && target.saleOpenDate);
+  }
+
   function rawDaysUntil(target, now){
     const t = target || resolveTarget();
     if(!hasExamDate(t)) return null;
     const base = now ? new Date(now) : new Date();
     const diff = new Date(t.examDate) - base;
+    return Math.ceil(diff / 86400000);
+  }
+
+  function rawDaysUntilRegistration(target, now){
+    const t = target || resolveTarget();
+    if(!hasRegistrationWindow(t)) return null;
+    const base = now ? new Date(now) : new Date();
+    const diff = new Date(t.registrationStart) - base;
+    return Math.ceil(diff / 86400000);
+  }
+
+  function rawDaysUntilSaleOpen(target, now){
+    const t = target || resolveTarget();
+    if(!hasRegistrationWindow(t)) return null;
+    const base = now ? new Date(now) : new Date();
+    const diff = new Date(t.saleOpenDate) - base;
     return Math.ceil(diff / 86400000);
   }
 
@@ -139,14 +157,33 @@
       return { state: 'unconfigured', canBuy: false, reason: '下一期正式考日尚未公告，暫不開放到考日方案。' };
     }
     const d = rawDaysUntil(t, now);
-    const saleOpenDays = Number.isFinite(Number(t.saleOpenDays)) ? Number(t.saleOpenDays) : DEFAULT_EXAM_DAY_SALE_OPEN_DAYS;
     if(d < 0){
-      return { state: 'closed', canBuy: false, daysUntil: d, saleOpenDays, reason: '這個考期已結束。' };
+      return { state: 'closed', canBuy: false, daysUntil: d, reason: '這個考期已結束。' };
     }
-    if(d > saleOpenDays){
-      return { state: 'not_open', canBuy: false, daysUntil: d, saleOpenDays, reason: `還有 ${d} 天，考前 ${saleOpenDays} 天開放到考日方案。` };
+    if(!hasRegistrationWindow(t)){
+      return { state: 'unconfigured', canBuy: false, daysUntil: d, reason: '正式報名日尚未設定，暫不開放到考日方案。' };
     }
-    return { state: 'open', canBuy: true, daysUntil: d, saleOpenDays, reason: `已進入考前 ${saleOpenDays} 天窗口。` };
+    const daysUntilSaleOpen = rawDaysUntilSaleOpen(t, now);
+    const daysUntilRegistration = rawDaysUntilRegistration(t, now);
+    if(daysUntilSaleOpen > 0){
+      return {
+        state: 'not_open',
+        canBuy: false,
+        daysUntil: d,
+        daysUntilRegistration,
+        daysUntilSaleOpen,
+        saleOpenDate: t.saleOpenDate,
+        reason: `還有 ${daysUntilSaleOpen} 天，${DEFAULT_EXAM_DAY_REGISTRATION_LEAD_LABEL}才開放到考日方案。`
+      };
+    }
+    return {
+      state: 'open',
+      canBuy: true,
+      daysUntil: d,
+      daysUntilRegistration,
+      saleOpenDate: t.saleOpenDate,
+      reason: `已進入${DEFAULT_EXAM_DAY_REGISTRATION_LEAD_LABEL}窗口。`
+    };
   }
 
   function textForDays(target, suffix){
@@ -186,11 +223,14 @@
   window.SoFaExamTargets = {
     TARGETS,
     UNKNOWN_TARGET,
-    DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
+    DEFAULT_EXAM_DAY_REGISTRATION_LEAD_LABEL,
     resolveTarget,
     hasExamDate,
+    hasRegistrationWindow,
     daysUntil,
     rawDaysUntil,
+    rawDaysUntilRegistration,
+    rawDaysUntilSaleOpen,
     examDayPlanState,
     textForDays,
     renderCountdown

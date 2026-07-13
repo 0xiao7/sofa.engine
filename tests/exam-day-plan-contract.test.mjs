@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
 import test from 'node:test';
 
 const pricing = readFileSync(new URL('../pricing.html', import.meta.url), 'utf8');
@@ -20,21 +21,24 @@ test('checkout defaults to the exam-day plan and keeps required checkout fields'
   assert.match(checkout, /POST https:\/\/sofa-engine-api\.onrender\.com\/api\/checkout|const API_URL = "https:\/\/sofa-engine-api\.onrender\.com\/api\/checkout"/);
   assert.match(checkout, /class="plan selected" data-plan="到考日" data-amount="1280"/);
   assert.doesNotMatch(checkout, /一次付清,用到 2026\/11\/30\(考後\)/);
-  assert.match(checkout, /<script src="exam-targets\.js\?v=20260713-exam-future-only"><\/script>/);
+  assert.match(checkout, /<script src="exam-targets\.js\?v=20260714-registration-window"><\/script>/);
   assert.match(examTargets, /const TARGETS = \{/);
-  assert.match(examTargets, /DEFAULT_EXAM_DAY_SALE_OPEN_DAYS = 180/);
+  assert.match(examTargets, /DEFAULT_EXAM_DAY_REGISTRATION_LEAD_LABEL = '報名前一個月'/);
+  assert.doesNotMatch(examTargets, /DEFAULT_EXAM_DAY_SALE_OPEN_DAYS = 180/);
   for (const key of ['bookkeeper', 'landadmin', 'realestate', 'tax-admin', 'tax-law', 'elem-admin', 'post-acc']) {
     assert.match(examTargets, new RegExp(`${key}:|["']${key}["']:`));
   }
   for (const [key, date] of [
     ['bookkeeper', '2026-11-14T00:00:00+08:00'],
     ['realestate', '2026-11-14T00:00:00+08:00'],
-    ['post-acc', '2026-07-19T00:00:00+08:00'],
   ]) {
     const targetBlock = new RegExp(`key:\\s*'${key}'[\\s\\S]*?examDate:\\s*'${date.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`);
     assert.match(examTargets, targetBlock);
+    assert.match(examTargets, new RegExp(`key:\\s*'${key}'[\\s\\S]*?registrationStart:\\s*'2026-08-04T00:00:00\\+08:00'`));
+    assert.match(examTargets, new RegExp(`key:\\s*'${key}'[\\s\\S]*?registrationDisplay:\\s*'2026 / 08 / 04'`));
+    assert.match(examTargets, new RegExp(`key:\\s*'${key}'[\\s\\S]*?saleOpenDate:\\s*'2026-07-04T00:00:00\\+08:00'`));
   }
-  for (const key of ['landadmin', 'tax-admin', 'tax-law', 'elem-admin']) {
+  for (const key of ['landadmin', 'tax-admin', 'tax-law', 'elem-admin', 'post-acc']) {
     const block = new RegExp(`key:\\s*'${key}'[\\s\\S]*?(?=\\n    [a-z'"]|\\n  \\};)`);
     const match = examTargets.match(block);
     assert.ok(match, `${key} target exists`);
@@ -42,15 +46,21 @@ test('checkout defaults to the exam-day plan and keeps required checkout fields'
     assert.match(match[0], /examDisplay:\s*'下一期未公告'/);
   }
   assert.match(checkout, /NT\$1280 是到考日方案固定價/);
-  assert.match(checkout, /考前 180 天內/);
+  assert.match(checkout, /報名前一個月內/);
+  assert.doesNotMatch(checkout, /考前 180 天內/);
+  assert.match(checkout, /未公告\/已結束考期會顯示但不能付款/);
   assert.match(checkout, /id="ck-exam-target"/);
   assert.match(checkout, /Object\.keys\(targets\)\.map\(\(key\) => \{/);
-  assert.match(checkout, /<option value="\$\{key\}">/);
+  assert.match(checkout, /const disabled = state && !state\.canBuy \? ' disabled' : ''/);
+  assert.match(checkout, /const stateLabel = checkoutExamTargetStateLabel\(state\)/);
+  assert.match(checkout, /<option value="\$\{key\}"\$\{disabled\}>/);
   assert.match(checkout, /window\.SoFaExamTargets/);
   assert.match(checkout, /function getCheckoutExamKey\(\)/);
+  assert.match(checkout, /if \(examTargetEl\) return examTargetEl\.value \|\| ""/);
   assert.match(checkout, /function getExplicitCheckoutExamKey\(\)/);
   assert.match(checkout, /function isCheckoutExamTargetConfigured\(\)/);
   assert.match(checkout, /function updateExamTargetHint\(\)/);
+  assert.match(checkout, /function checkoutExamTargetStateLabel\(state\)/);
   assert.match(checkout, /checkout_exam_target_unavailable/);
   assert.match(checkout, /exam_key: getCheckoutExamKey\(\)/);
   assert.match(checkout, /依你選的考試目標計算/);
@@ -58,6 +68,21 @@ test('checkout defaults to the exam-day plan and keeps required checkout fields'
   assert.doesNotMatch(checkout, /const EXAM = new Date\('2026-11-14T00:00:00\+08:00'\)/);
   assert.match(checkout, /"到考日": "到考日方案 · 讀到考試日"/);
   assert.match(checkout, /body: JSON\.stringify\(\{ plan: sel\.plan, email, exam_key: getCheckoutExamKey\(\) \}\)/);
+});
+
+test('exam-day plan opens from the registration window, not the exam countdown', () => {
+  const sandbox = { window: {}, URLSearchParams };
+  sandbox.window.location = { search: '' };
+  sandbox.window.localStorage = { getItem: () => '', setItem: () => {} };
+  sandbox.localStorage = sandbox.window.localStorage;
+  vm.runInNewContext(examTargets, sandbox);
+  const api = sandbox.window.SoFaExamTargets;
+  const bookkeeper = api.TARGETS.bookkeeper;
+
+  assert.equal(api.examDayPlanState(bookkeeper, '2026-07-03T00:00:00+08:00').canBuy, false);
+  assert.equal(api.examDayPlanState(bookkeeper, '2026-07-04T00:00:00+08:00').canBuy, true);
+  assert.equal(api.examDayPlanState(bookkeeper, '2026-07-14T00:00:00+08:00').canBuy, true);
+  assert.match(api.examDayPlanState(bookkeeper, '2026-07-14T00:00:00+08:00').reason, /報名前一個月/);
 });
 
 test('pricing presents exam-day as the featured plan and keeps monthly as the low-cost entry', () => {
