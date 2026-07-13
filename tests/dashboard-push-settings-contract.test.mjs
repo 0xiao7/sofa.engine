@@ -36,6 +36,16 @@ test('dashboard builds push-law options from the selected exam instead of a tiny
   assert.doesNotMatch(active, /<option value="加值型及非加值型營業稅法">加值型及非加值型營業稅法<\/option>\s*<\/select>/);
 });
 
+test('dashboard deep-links directly to the adjustable review strategy controls', () => {
+  assert.match(active, /id="srs-settings"/);
+  assert.match(active, /hash === '#srs-settings'[\s\S]*closeDashboardSideNav\(\)/);
+  assert.match(active, /hash === '#srs-settings'[\s\S]*retryStudyHashScroll\('srs-settings',\s*30,\s*true\)/);
+});
+
+test('mobile dashboard does not expose the desktop fixed-sidebar control', () => {
+  assert.match(active, /@media \(max-width:980px\)\{[\s\S]*\.side-guide-controls\{display:none\}/);
+});
+
 test('dashboard saves push preferences through the authenticated settings API', () => {
   assert.match(active, /push_enabled:\s*!!/);
   assert.match(active, /exam_key:\s*examKey/);

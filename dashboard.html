@@ -3154,6 +3154,7 @@
   @media (max-width:980px){
     .shell{grid-template-columns:1fr}
     .shell::before{display:none}
+    .side-guide-controls{display:none}
     aside.side{
       position:fixed;top:65px;left:0;width:280px;height:calc(100vh - 65px);
       bottom:auto;transform:translateX(-100%);transition:transform .3s;z-index:40;
@@ -3284,6 +3285,7 @@
     }
     .shell{grid-template-columns:1fr}
     .shell::before{display:none}
+    .side-guide-controls{display:none}
     aside.side{
       position:fixed;top:65px;left:0;width:280px;height:calc(100vh - 65px);
       transform:translateX(-100%);transition:transform .3s;z-index:40;pointer-events:none;
@@ -8090,6 +8092,10 @@ function openStudyPanelFromHash(){
   if(hash === '#study-playlist') {
     openStudyPlaylistPanel(true);
     retryStudyHashScroll('study-playlist-playall', 18, true);
+  }
+  if(hash === '#srs-settings') {
+    closeDashboardSideNav();
+    retryStudyHashScroll('srs-settings', 30, true);
   }
 }
 
