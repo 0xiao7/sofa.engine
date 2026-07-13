@@ -6,9 +6,17 @@ const html = readFileSync(new URL('../login.html', import.meta.url), 'utf8');
 const active = html.replace(/<!--[\s\S]*?-->/g, '');
 
 test('login preserves review strategy hash after automatic magic or serial login', () => {
+  assert.match(active, /const loginTargetHash = location\.hash;/);
   assert.match(active, /function dashboardTargetAfterLogin\(\)/);
-  assert.match(active, /return location\.hash === '#srs-settings'\s*\?\s*'dashboard\.html#srs-settings'\s*:\s*'dashboard\.html'/);
+  assert.match(active, /return loginTargetHash === '#srs-settings'\s*\?\s*'dashboard\.html#srs-settings'\s*:\s*'dashboard\.html'/);
 
   const redirects = active.match(/window\.location\.href = dashboardTargetAfterLogin\(\)/g) || [];
   assert.ok(redirects.length >= 2, 'magic and serial login should both use the hash-preserving dashboard target');
+});
+
+test('login serial query parameter automatically verifies instead of showing the manual serial form', () => {
+  assert.match(active, /function normalizeSerialQueryValue\(value\)/);
+  assert.match(active, /params\.get\('s'\)/);
+  assert.match(active, /serialEl\.value = serialFromQuery/);
+  assert.match(active, /setTimeout\(\(\) => doLogin\(\), 0\)/);
 });

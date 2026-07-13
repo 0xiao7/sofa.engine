@@ -814,6 +814,7 @@ const serialEl = document.getElementById('serial');
 const hintEl   = document.getElementById('hint');
 const btn      = document.getElementById('btn');
 const errEl    = document.getElementById('err');
+const loginTargetHash = location.hash;
 
 serialEl.addEventListener('input', function() {
   let raw = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 8);
@@ -827,7 +828,17 @@ serialEl.addEventListener('input', function() {
 serialEl.addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
 
 function dashboardTargetAfterLogin() {
-  return location.hash === '#srs-settings' ? 'dashboard.html#srs-settings' : 'dashboard.html';
+  return loginTargetHash === '#srs-settings' ? 'dashboard.html#srs-settings' : 'dashboard.html';
+}
+
+function normalizeSerialQueryValue(value) {
+  const raw = String(value || '')
+    .replace(/^SOFA[-\s]?/i, '')
+    .replace(/[^A-Za-z0-9]/g, '')
+    .toUpperCase()
+    .slice(0, 8);
+  if (!raw) return '';
+  return raw.length > 4 ? raw.slice(0, 4) + '-' + raw.slice(4) : raw;
 }
 
 // Magic-link 自動登入：URL ?t=<token> → POST /api/auth/magic → 存 sofa_uid + sofa_token → 跳 dashboard
@@ -903,6 +914,18 @@ async function doLogin() {
     btn.innerHTML = original;
   }
 }
+
+(function autoLoginFromSerialQuery(){
+  const params = new URLSearchParams(location.search);
+  if (params.get('t')) return;
+  const serialFromQuery = normalizeSerialQueryValue(params.get('s'));
+  if (!serialFromQuery || serialFromQuery.replace(/[^A-Za-z0-9]/g, '').length < 8) return;
+  serialEl.value = serialFromQuery;
+  hintEl.textContent = '從 LINE 收到的序號，正在自動登入…';
+  btn.disabled = true;
+  btn.textContent = '自動登入中…';
+  setTimeout(() => doLogin(), 0);
+})();
 
 function showErr(msg) {
   errEl.textContent = msg;
