@@ -76,25 +76,34 @@ test('practice mobile share control avoids the top bar and timer corner', () => 
 test('practice page lets users choose exam before law and filters law scope', () => {
   const barStart = active.indexOf('Practice control bar');
   const lawSelect = active.indexOf('id="lawSelect"', barStart);
-  const examSelect = active.indexOf('id="practiceExamSelect"', barStart);
-  assert.ok(examSelect >= 0, 'practice page must expose an exam selector');
-  assert.ok(lawSelect > examSelect, 'exam selector must appear before law selector');
+  const examInput = active.indexOf('id="practiceExamInput"', barStart);
+  assert.ok(examInput >= 0, 'practice page must expose an exam search input');
+  assert.ok(lawSelect > examInput, 'exam input must appear before law selector');
 
   assert.match(active, /<script src="exam-data\.js\?v=2"><\/script>/);
-  assert.match(active, /var _PRACTICE_EXAM_NODE\s*=\s*\{/);
+  assert.match(active, /id="practiceExamDatalist"/);
+  assert.match(active, /var _PRACTICE_LEGACY_EXAM_NODE\s*=\s*\{/);
   assert.match(active, /bookkeeper:\s*'n72'/);
+  assert.match(active, /function _practiceExamOptions\(\)/);
+  assert.match(active, /Object\.values\(NODES\)/);
+  assert.match(active, /Array\.isArray\(node\.laws\)\s*\|\|\s*!node\.laws\.length/);
+  assert.match(active, /function _normalizePracticeExamKey\(key\)/);
   assert.match(active, /function _practiceExamLawSet\(key\)/);
   assert.match(active, /typeof NODES === 'undefined'/);
   assert.match(active, /return new Set\(node\.laws\)/);
   assert.match(active, /function _filterPracticeLawsForExam\(laws,\s*examKey\)/);
   assert.match(active, /_practiceExamLawSet\(examKey\)/);
+  assert.match(active, /localStorage\.getItem\('sofa_practice_exam_key'\)/);
   assert.match(active, /localStorage\.getItem\('sofa_exam_key'\)/);
   assert.match(active, /localStorage\.getItem\('sofa\.dash\.exam\.pick'\)/);
-  assert.match(active, /localStorage\.setItem\('sofa_exam_key',\s*examKey\)/);
-  assert.match(active, /localStorage\.setItem\('sofa\.dash\.exam\.pick',\s*examKey\)/);
+  assert.match(active, /localStorage\.setItem\('sofa_practice_exam_key',\s*examKey\)/);
+  assert.match(active, /localStorage\.setItem\('sofa_exam_key',\s*legacyKey\)/);
+  assert.match(active, /localStorage\.setItem\('sofa\.dash\.exam\.pick',\s*legacyKey\)/);
   assert.match(active, /populatePracticeLawsForExam\(d\.laws\|\|\[\],\s*examKey\)/);
+  assert.match(active, /getElementById\('practiceExamInput'\)/);
+  assert.match(active, /examInput\.addEventListener\('change'/);
   assert.match(active, /getElementById\('practiceExamSelect'\)/);
-  assert.match(active, /examSelect\.addEventListener\('change'/);
+  assert.doesNotMatch(active, /<option value="landadmin">地政士<\/option>/);
 });
 
 test('practice analysis linkifies cross-law references inside the article reader', () => {

@@ -316,17 +316,11 @@
 
       <div class="pr-pick">
         <span class="lab">EXAM</span>
-        <select id="practiceExamSelect" style="min-height:44px;background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:500;font-size:15px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none;min-width:96px;max-width:200px">
-          <option value="bookkeeper">記帳士</option>
-          <option value="landadmin">地政士</option>
-          <option value="realestate">不動產經紀人</option>
-          <option value="tax-admin">財稅行政</option>
-          <option value="tax-law">財稅法務</option>
-          <option value="elem-admin">初等行政</option>
-          <option value="post-acc">中華郵政會計</option>
-          <option value="all">全部考科</option>
-        </select>
-        <span class="car">▾</span>
+        <input id="practiceExamInput" list="practiceExamDatalist" placeholder="輸入或選考科" autocomplete="off"
+          style="min-height:44px;background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:500;font-size:15px;color:var(--cream);cursor:text;min-width:132px;max-width:220px">
+        <datalist id="practiceExamDatalist"></datalist>
+        <select id="practiceExamSelect" aria-label="考科" hidden></select>
+        <span class="car">⌕</span>
       </div>
       <div class="pr-pick">
         <span class="lab">LAW</span>
@@ -491,7 +485,7 @@ if(isFree){
   document.querySelector('.pr-bar').before(bar);
 }
 
-var _PRACTICE_EXAM_NODE = {
+var _PRACTICE_LEGACY_EXAM_NODE = {
   bookkeeper: 'n72',
   landadmin: 'n74',
   realestate: 'n83',
@@ -500,31 +494,53 @@ var _PRACTICE_EXAM_NODE = {
   'elem-admin': 'n23',
   'post-acc': 'n89'
 };
-var _PRACTICE_EXAM_LABEL = {
-  all: '全部考科',
-  bookkeeper: '記帳士',
-  landadmin: '地政士',
-  realestate: '不動產經紀人',
-  'tax-admin': '財稅行政',
-  'tax-law': '財稅法務',
-  'elem-admin': '初等行政',
-  'post-acc': '中華郵政會計'
-};
+var _PRACTICE_NODE_TO_LEGACY = Object.keys(_PRACTICE_LEGACY_EXAM_NODE).reduce(function(acc, key){
+  acc[_PRACTICE_LEGACY_EXAM_NODE[key]] = key;
+  return acc;
+}, {});
+var _practiceExamInputMap = {};
 var _practiceAllLaws = [];
 
+function _practiceExamOptions(){
+  var out = [{ key:'all', label:'全部考科', section:'', laws:0 }];
+  if(typeof NODES === 'undefined') return out.concat([{ key:'n72', label:'記帳士', section:'財經 / 稅務體系', laws:33 }]);
+  Object.values(NODES).forEach(function(node){
+    if(!node || !node.id || !node.name || !Array.isArray(node.laws)||!node.laws.length) return;
+    out.push({
+      key: node.id,
+      label: node.name,
+      section: node.section || '',
+      laws: node.laws.length
+    });
+  });
+  return out;
+}
+function _normalizePracticeExamKey(key){
+  key = (key || '').trim();
+  if(!key) return 'n72';
+  if(key === 'all') return 'all';
+  if(_PRACTICE_LEGACY_EXAM_NODE[key]) return _PRACTICE_LEGACY_EXAM_NODE[key];
+  if(typeof NODES !== 'undefined' && NODES[key]) return key;
+  return 'n72';
+}
+function _practiceExamLabel(key){
+  key = _normalizePracticeExamKey(key);
+  if(key === 'all') return '全部考科';
+  var node = (typeof NODES !== 'undefined') ? NODES[key] : null;
+  return node && node.name ? node.name : '記帳士';
+}
 function _practiceStoredExamKey(){
   var key = '';
   try{
-    key = localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || '';
+    key = localStorage.getItem('sofa_practice_exam_key') || localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || '';
   }catch(e){}
-  if(key && (key === 'all' || _PRACTICE_EXAM_NODE[key])) return key;
-  return 'bookkeeper';
+  return _normalizePracticeExamKey(key);
 }
 function _practiceExamLawSet(key){
+  key = _normalizePracticeExamKey(key);
   if(key === 'all') return null;
-  var nid = _PRACTICE_EXAM_NODE[key];
-  if(!nid || typeof NODES === 'undefined') return null;
-  var node = NODES[nid];
+  if(typeof NODES === 'undefined') return null;
+  var node = NODES[key];
   if(!node || !node.laws) return null;
   return new Set(node.laws);
 }
@@ -542,6 +558,7 @@ function _appendPracticeSpecialLawOptions(sel){
   }
 }
 function populatePracticeLawsForExam(laws, examKey){
+  examKey = _normalizePracticeExamKey(examKey);
   var sel = document.getElementById('lawSelect');
   if(!sel) return;
   var current = sel.value || '';
@@ -562,26 +579,72 @@ function populatePracticeLawsForExam(laws, examKey){
   else sel.value = '';
   sel.dispatchEvent(new Event('change'));
 }
-function initPracticeExamSelect(){
+function populatePracticeExamOptions(selectedKey){
+  var examInput = document.getElementById('practiceExamInput');
+  var examList = document.getElementById('practiceExamDatalist');
   var examSelect = document.getElementById('practiceExamSelect');
-  if(!examSelect) return 'bookkeeper';
-  var examKey = _practiceStoredExamKey();
-  examSelect.value = examKey;
-  if(!examSelect.value) examSelect.value = 'bookkeeper';
-  examKey = examSelect.value;
+  if(!examInput || !examList || !examSelect) return;
+  _practiceExamInputMap = {};
+  var opts = _practiceExamOptions();
+  examSelect.innerHTML = '';
+  examList.innerHTML = '';
+  opts.forEach(function(opt){
+    var label = opt.label + (opt.section ? ' · ' + opt.section : '');
+    var fullLabel = label + (opt.laws ? ' · ' + opt.laws + ' 法規' : '');
+    var so = document.createElement('option');
+    so.value = opt.key;
+    so.textContent = label;
+    examSelect.appendChild(so);
+    var lo = document.createElement('option');
+    lo.value = label;
+    lo.label = fullLabel;
+    examList.appendChild(lo);
+    _practiceExamInputMap[label] = opt.key;
+    _practiceExamInputMap[opt.label] = opt.key;
+  });
+  selectedKey = _normalizePracticeExamKey(selectedKey);
+  examSelect.value = selectedKey;
+  examInput.value = _practiceExamLabel(selectedKey);
+}
+function setPracticeExamKey(examKey, options){
+  examKey = _normalizePracticeExamKey(examKey);
+  var opts = options || {};
+  var examInput = document.getElementById('practiceExamInput');
+  var examSelect = document.getElementById('practiceExamSelect');
+  if(examSelect) examSelect.value = examKey;
+  if(examInput) examInput.value = _practiceExamLabel(examKey);
   try{
-    localStorage.setItem('sofa_exam_key', examKey);
-    localStorage.setItem('sofa.dash.exam.pick', examKey);
+    localStorage.setItem('sofa_practice_exam_key', examKey);
+    var legacyKey = _PRACTICE_NODE_TO_LEGACY[examKey];
+    if(legacyKey){
+      localStorage.setItem('sofa_exam_key', legacyKey);
+      localStorage.setItem('sofa.dash.exam.pick', legacyKey);
+    }
+    if(!opts.keepLaw) localStorage.removeItem('sofa_practice_law');
   }catch(e){}
+  if(!opts.skipPopulate) populatePracticeLawsForExam(_practiceAllLaws, examKey);
+  _updateChipLock();
+  return examKey;
+}
+function initPracticeExamSelect(){
+  var examInput = document.getElementById('practiceExamInput');
+  var examSelect = document.getElementById('practiceExamSelect');
+  if(!examInput || !examSelect) return 'n72';
+  var examKey = _practiceStoredExamKey();
+  populatePracticeExamOptions(examKey);
+  examKey = setPracticeExamKey(examKey, {keepLaw:true, skipPopulate:true});
+  examInput.addEventListener('change', function(){
+    var raw = this.value.trim();
+    var nextKey = _practiceExamInputMap[raw] || _normalizePracticeExamKey(raw);
+    setPracticeExamKey(nextKey);
+  });
+  examInput.addEventListener('blur', function(){
+    var raw = this.value.trim();
+    var nextKey = _practiceExamInputMap[raw] || _normalizePracticeExamKey(raw);
+    setPracticeExamKey(nextKey);
+  });
   examSelect.addEventListener('change', function(){
-    var nextKey = this.value || 'bookkeeper';
-    try{
-      localStorage.setItem('sofa_exam_key', nextKey);
-      localStorage.setItem('sofa.dash.exam.pick', nextKey);
-      localStorage.removeItem('sofa_practice_law');
-    }catch(e){}
-    populatePracticeLawsForExam(_practiceAllLaws, nextKey);
-    _updateChipLock();
+    setPracticeExamKey(this.value || 'n72');
   });
   return examKey;
 }
