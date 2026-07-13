@@ -1080,21 +1080,32 @@
     return "不可購買";
   }
 
+  function sanitizeCheckoutExamKey(key, options){
+    const raw = (key || "").trim();
+    if (!raw || !window.SoFaExamTargets?.TARGETS?.[raw]) return "";
+    const opts = options || {};
+    if (opts.allowDisabled) return raw;
+    const api = window.SoFaExamTargets;
+    const state = api.examDayPlanState ? api.examDayPlanState(api.TARGETS[raw]) : null;
+    return state && state.canBuy ? raw : "";
+  }
+
   function getExplicitCheckoutExamKey(){
     const fromQuery = (queryParams.get("exam_key") || queryParams.get("target") || "").trim();
-    if (fromQuery) return fromQuery;
+    if (fromQuery) return sanitizeCheckoutExamKey(fromQuery, { allowDisabled: false });
     try {
-      return (
+      const stored = (
         localStorage.getItem("sofa_exam_target") ||
         localStorage.getItem("sofa.target") ||
         ""
       ).trim();
+      return sanitizeCheckoutExamKey(stored, { allowDisabled: false });
     } catch (_) {}
     return "";
   }
 
   function getCheckoutExamKey(){
-    if (examTargetEl && examTargetEl.value) return examTargetEl.value;
+    if (examTargetEl && examTargetEl.value) return sanitizeCheckoutExamKey(examTargetEl.value, { allowDisabled: false });
     if (examTargetEl) return examTargetEl.value || "";
     return getExplicitCheckoutExamKey();
   }
@@ -1187,8 +1198,9 @@
     if (emailParam && isEmail(emailParam) && !emailEl.value) {
       emailEl.value = emailParam;
     }
-    if (examKeyParam && examTargetEl && window.SoFaExamTargets?.TARGETS?.[examKeyParam]) {
-      examTargetEl.value = examKeyParam;
+    const safeExamKeyParam = sanitizeCheckoutExamKey(examKeyParam, { allowDisabled: false });
+    if (safeExamKeyParam && examTargetEl) {
+      examTargetEl.value = safeExamKeyParam;
       updateExamTargetHint();
       refreshSummary();
     }
@@ -1257,10 +1269,11 @@
     submitBtn.innerHTML = "處理中，請稍候…";
 
     try {
+      const examKey = getCheckoutExamKey();
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: sel.plan, email, exam_key: getCheckoutExamKey() })
+        body: JSON.stringify({ plan: sel.plan, email, exam_key: examKey })
       });
       if (!res.ok){
         let msg = `付款服務暫時無法回應（${res.status}），請稍後再試一次。`;
