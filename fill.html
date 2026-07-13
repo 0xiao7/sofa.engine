@@ -7,6 +7,7 @@
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
+<script src="sofa-analytics.js?v=20260704-revenue-v1" defer></script>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -356,7 +357,7 @@
           <div id="fillText"><span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.35);letter-spacing:.1em">選擇法規後點「換一條」開始</span></div>
           <div id="resultMsg" style="display:none;margin-top:16px;font-family:var(--mono);font-size:13px;letter-spacing:.1em"></div>
           <div id="sourceBox" style="display:none;margin-top:8px;font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.5);letter-spacing:.08em"></div>
-          <button id="fillSourceLink" style="display:none;margin-top:10px;background:transparent;border:1px solid var(--peach-dim);color:var(--peach);font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:6px 12px;border-radius:2px;cursor:pointer">查看完整條文 →</button>
+          <button id="fillSourceLink" style="display:none;margin-top:10px;background:transparent;border:1px solid var(--peach-dim);color:var(--peach);font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:6px 12px;border-radius:2px;cursor:pointer">展開原文 ↓</button>
           <div id="fillArtInline" style="display:none;margin-top:12px;padding:14px 16px;background:rgba(245,240,234,.04);border-left:2px solid var(--peach);font-size:14.5px;line-height:1.95;color:var(--cream);white-space:pre-wrap"></div>
         </div>
 
@@ -453,7 +454,7 @@ if(isFree){
   const bar=document.createElement('div');
   bar.style.cssText='background:rgba(231,187,167,.13);border-bottom:1px solid rgba(231,187,167,.3);padding:10px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;';
   bar.innerHTML='<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">🔒 免費版 · 免登入可練習，練習紀錄不會儲存</span>'
-    +'<a href="checkout.html" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:0 16px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
+    +'<a href="pricing.html?utm_source=fill&utm_medium=free_bar&utm_campaign=fill_pricing" data-track-event="locked_content_pricing_click" data-track-label="fill_free_bar_pricing" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:0 16px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
   document.querySelector('.pr-bar').before(bar);
 }
 
@@ -633,7 +634,7 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
       const preview=sections[name]||'';
       lk.innerHTML='<div class="sec-label">'+label+'</div>'
         +'<div class="sec-lock-preview">'+(preview?formatSection(preview):'')+'</div>'
-        +'<div class="sec-lock-cta">🔒 升級解鎖完整內容 <a href="checkout.html">查看方案 →</a></div>';
+        +'<div class="sec-lock-cta">🔒 升級解鎖完整內容 <a href="pricing.html?utm_source=fill&utm_medium=locked_section&utm_campaign=fill_pricing" data-track-event="locked_content_pricing_click" data-track-label="fill_locked_section_pricing">查看方案 →</a></div>';
       if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
     });
   }
@@ -778,6 +779,29 @@ function checkAnswers(){
   updateMetaRight(cor);
   document.getElementById('fillProg').style.width='100%';
   pushHistory(fillData.law_name||'', fillData.title||'');
+  const fillQuestion=(fillData.masked_text||fillData.title||'填空練習');
+  if(typeof window.sofaTrack==='function'){
+    const _elapsed = _fillStart ? (Date.now()-_fillStart)/1000 : 0;
+    sofaTrack('answer_submitted', {
+      mode: 'fill',
+      is_correct: cor===inputs.length,
+      elapsed_sec: Math.round(_elapsed || 0),
+      blanks: inputs.length
+    });
+  }
+  if(fillData.id&&uid&&uid!=='PREVIEW'&&!isFree){
+    fetch(`${API}/api/me/answer`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({
+      article_id:fillData.id,
+      mode:'fill',
+      source:'fill',
+      is_correct:cor===inputs.length,
+      choice:-1,
+      correct_idx:0,
+      question:fillQuestion,
+      options:fillData.answers||[],
+      explanation:''
+    })}).catch(()=>{});
+  }
   const pills=cor===inputs.length
     ?`<span class="pill good">✓ ${cor} 正確</span>`
     :`<span class="pill good">✓ ${cor} 正確</span><span class="pill bad">✗ ${inputs.length-cor} 錯誤</span>`;
@@ -800,7 +824,7 @@ function checkAnswers(){
     const srcBtn=document.getElementById('fillSourceLink');
     const srcPanel=document.getElementById('fillArtInline');
     srcBtn.style.display='inline-block';
-    srcBtn.textContent='查看完整條文 →';
+    srcBtn.textContent='展開原文 ↓';
     srcPanel.style.display='none';
     srcPanel.textContent='';
     (async()=>{
@@ -819,7 +843,7 @@ document.getElementById('fillSourceLink').addEventListener('click',()=>{
   const btn=document.getElementById('fillSourceLink');
   const open=panel.style.display==='none'||!panel.style.display;
   panel.style.display=open?'block':'none';
-  btn.textContent=open?'收起條文 ↑':'查看完整條文 →';
+  btn.textContent=open?'收起原文 ↑':'展開原文 ↓';
 });
 
 async function loadNew(){

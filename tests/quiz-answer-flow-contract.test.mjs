@@ -238,7 +238,7 @@ test('answer options expose button semantics and keyboard activation', () => {
   assert.match(active, /btn\.setAttribute\('tabindex','0'\)/);
   assert.match(active, /btn\.addEventListener\('keydown',\(ev\)=>\{[\s\S]*ev\.key==='Enter'\|\|ev\.key===' '/);
   const occurrences = (active.match(/btn\.setAttribute\('role','button'\)/g) || []).length;
-  assert.ok(occurrences >= 2, 'normal quiz and wrong-review quiz options should both be keyboard-accessible');
+  assert.ok(occurrences >= 1, 'shared quiz option renderer must be keyboard-accessible');
 });
 
 test('quiz weakness rail fetches authenticated weak-laws fallback', () => {
@@ -343,13 +343,7 @@ test('quiz loaders reject concurrent loads so options cannot duplicate', () => {
   assert.match(loadFn, /_quizLoading = true/);
   assert.match(loadFn, /finally\{\s*_quizLoading = false;\s*\}/);
 
-  const wrongStart = active.indexOf('async function loadWrongQuiz');
-  const wrongEnd = active.indexOf('// ── DOMContentLoaded', wrongStart);
-  const wrongFn = active.slice(wrongStart, wrongEnd > wrongStart ? wrongEnd : wrongStart + 7000);
-  assert.match(wrongFn, /if\(_quizLoading\) return/);
-  assert.match(wrongFn, /_quizLoading = true/);
-  assert.match(wrongFn, /if \(!bank\.length\) \{\s*_quizLoading = false;/);
-  assert.match(wrongFn, /finally \{\s*_quizLoading = false;\s*\}/);
+  assert.match(active, /async function loadWrongQuiz\(\)\{\s*return loadQuiz\(\{wrongReview:true\}\)/);
   assert.match(active, /btnNew'\)\.addEventListener\('click',\(\)=>\{[\s\S]*?_quizManualRequested = true;/);
   assert.doesNotMatch(active, /if\(_initialLawApplied\)\{ loadQuiz\(\); return; \}/);
   assert.doesNotMatch(active, /if\(_startQuizParam\)\{ loadQuiz\(\); return; \}/);

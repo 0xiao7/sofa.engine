@@ -24,21 +24,22 @@ test('practice answers record readable question text into shared answer ledger',
 });
 
 test('past-exam answers are not collapsed into generic quiz mode', () => {
-  assert.match(quiz, /mode:data\._past_exam\?'past_exam':'quiz'/);
+  assert.match(quiz, /function quizAnswerMode\(data\)/);
+  assert.match(quiz, /data && data\._past_exam \? 'past_exam' : 'quiz'/);
+  assert.match(quiz, /mode:quizAnswerMode\(data\)/);
   assert.match(quiz, /question:data\.question\|\|''/);
   assert.match(quiz, /options:_opts/);
 });
 
 test('wrong-bank review answers write back into the shared answer ledger', () => {
-  const start = quiz.indexOf('async function loadWrongQuiz');
-  assert.ok(start > -1, 'loadWrongQuiz must exist');
-  const end = quiz.indexOf('// ── Wave 61', start);
-  const fn = quiz.slice(start, end > start ? end : start + 9000);
-
-  assert.match(fn, /\/api\/me\/answer/);
-  assert.match(fn, /mode:'wrong_review'/);
-  assert.match(fn, /question:data\.question\|\|''/);
-  assert.match(fn, /options:_opts/);
+  assert.match(quiz, /async function loadWrongQuiz\(\)/);
+  assert.match(quiz, /return loadQuiz\(\{wrongReview:true\}\)/);
+  assert.match(quiz, /data && data\._wrong_review \? 'wrong_review'/);
+  assert.match(quiz, /activeWrongReview = !!\(options\.wrongReview \|\| wrongMode\)/);
+  assert.match(quiz, /if\(activeWrongReview\)data\._wrong_review=true/);
+  assert.match(quiz, /\/api\/me\/answer/);
+  assert.match(quiz, /mode:quizAnswerMode\(data\)/);
+  assert.match(quiz, /question:data\.question\|\|''/);
 });
 
 test('quiz timeout auto-fail writes back into the shared answer ledger', () => {
@@ -51,6 +52,6 @@ test('quiz timeout auto-fail writes back into the shared answer ledger', () => {
   assert.match(fn, /is_correct:false/);
   assert.match(fn, /choice:-1/);
   assert.match(fn, /typeof\(\(quizData\.options\|\|\[\]\)\[0\]\)!=='object'/);
-  assert.match(fn, /mode:quizData\._past_exam\?'past_exam':'quiz'/);
+  assert.match(fn, /mode:quizAnswerMode\(quizData\)/);
   assert.match(fn, /question:quizData\.question\|\|''/);
 });

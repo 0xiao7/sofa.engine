@@ -7,6 +7,7 @@
 <!-- Google tag (gtag.js) -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
+<script src="sofa-analytics.js?v=20260704-revenue-v1" defer></script>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -408,7 +409,7 @@
         </button>
       </div>
 
-      <button id="prSourceLink" style="display:none;margin-top:14px;background:transparent;border:1px solid var(--peach-dim);color:var(--peach);font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:6px 12px;border-radius:2px;cursor:pointer">查看完整條文 →</button>
+      <a id="prSourceLink" href="law-preview.html" style="display:none;margin-top:14px;background:transparent;border:1px solid var(--peach-dim);color:var(--peach);font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:6px 12px;border-radius:2px;cursor:pointer;text-decoration:none">開完整法條 →</a>
       <div id="prArtInline" style="display:none;margin-top:12px;padding:14px 16px;background:rgba(245,240,234,.04);border-left:2px solid var(--peach);font-size:14.5px;line-height:1.95;color:var(--cream);white-space:pre-wrap"></div>
 
       <div id="sectionsBox" class="sec-panel" style="display:none"></div>
@@ -454,6 +455,13 @@ function _authH(extra) {
   return h;
 }
 const freeParam = new URLSearchParams(location.search).get('free') === '1';
+const _practiceSearchParams = new URLSearchParams(location.search);
+function practiceUrlLawParam(){ return _practiceSearchParams.get('law') || ''; }
+function practiceUrlArticleParam(){ return _practiceSearchParams.get('art') || _practiceSearchParams.get('article') || ''; }
+function practiceUrlPageIdParam(){ return _practiceSearchParams.get('id') || _practiceSearchParams.get('articleId') || ''; }
+let _practiceUrlTargetPending = !!(practiceUrlPageIdParam() || (practiceUrlLawParam() && practiceUrlArticleParam()));
+let _practiceUrlTargetResolving = false;
+let _skipPracticeLawPersistOnce = false;
 if (freeParam && !uid && !tok) {
   localStorage.setItem('sofa_free', 'FREE');
 }
@@ -464,7 +472,7 @@ if(isFree){
   const bar=document.createElement('div');
   bar.style.cssText='background:rgba(231,187,167,.13);border-bottom:1px solid rgba(231,187,167,.3);padding:10px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;';
   bar.innerHTML='<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">🔒 免費版 · 免登入可練習，練習紀錄不會儲存</span>'
-    +'<a href="checkout.html" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:0 16px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
+    +'<a href="pricing.html?utm_source=practice&utm_medium=free_bar&utm_campaign=practice_pricing" data-track-event="locked_content_pricing_click" data-track-label="practice_free_bar_pricing" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:0 16px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
   document.querySelector('.pr-bar').before(bar);
 }
 
@@ -492,10 +500,36 @@ if(isFree){
     const d = await fetch(`${API}/api/laws`).then(r=>r.json());
     (d.laws||[]).forEach(l=>{ const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o); });
   } catch{}
+  const _urlPracticeLaw = practiceUrlLawParam();
+  if(_urlPracticeLaw){
+    const opt=[...sel.options].find(o=>o.value===_urlPracticeLaw);
+    if(opt){ _skipPracticeLawPersistOnce = true; sel.value = _urlPracticeLaw; sel.dispatchEvent(new Event('change')); }
+    const art = practiceUrlArticleParam();
+    if(art){
+      const artInput = document.getElementById('artNumInput');
+      artInput.value = normalizePracticeArticleNo(art);
+    }
+    if(practiceUrlPageIdParam() || art){ loadNew(); return; }
+  }
 })();
 
 // ── 條號選單：選法規後填入 datalist ────────────────────────────
 let _artCache = {};
+
+function normalizePracticeArticleNo(raw){
+  let s=String(raw||'').trim();
+  s=s.replace(/[０-９]/g,ch=>String.fromCharCode(ch.charCodeAt(0)-0xFEE0));
+  s=s.replace(/^§\s*/,'').split(/[｜|]/)[0].replace(/\s+/g,'');
+  s=s.replace(/^第/,'').replace(/條之/g,'之').replace(/條.*$/,'').replace(/-/g,'之');
+  return s.replace(/^0+(\d)/,'$1').replace(/之0+(\d)/g,'之$1');
+}
+function findPracticeArticleByNo(list, artNo){
+  const target=normalizePracticeArticleNo(artNo);
+  return (list||[]).find(a=>{
+    const candidates=[a.article_no,a.articleNo,a.article,a.no,a.title];
+    return candidates.some(v=>normalizePracticeArticleNo(v)===target);
+  });
+}
 
 // ── 練習區 chip 細篩（期限 / 罰則）─────────────────────────
 var _PR_DEADLINE_OPTS=[{l:'全部',v:''},{l:'1日',v:'一日'},{l:'2日',v:'二日'},{l:'3日',v:'三日'},{l:'5日',v:'五日'},{l:'7日',v:'七日'},{l:'10日',v:'十日'},{l:'14日',v:'十四日'},{l:'20日',v:'二十日'},{l:'30日',v:'三十日'},{l:'60日',v:'六十日'},{l:'1個月',v:'一個月'},{l:'2個月',v:'二個月'},{l:'3個月',v:'三個月'},{l:'6個月',v:'六個月'},{l:'1年',v:'一年'},{l:'2年',v:'二年'},{l:'3年',v:'三年'},{l:'5年',v:'五年'},{l:'10年',v:'十年'}];
@@ -551,7 +585,12 @@ document.getElementById('lawSelect').addEventListener('change', async function()
   const wrap = document.getElementById('artPickWrap');
   const dl   = document.getElementById('artDatalist');
   const inp  = document.getElementById('artNumInput');
+  const urlArt = practiceUrlArticleParam();
+  if(_skipPracticeLawPersistOnce)_skipPracticeLawPersistOnce = false;
+  else localStorage.setItem('sofa_practice_law', this.value);
+  const keepUrlArticle = _practiceUrlTargetPending && practiceUrlLawParam() === this.value && !!urlArt;
   dl.innerHTML = ''; inp.value = '';
+  if(keepUrlArticle) inp.value = normalizePracticeArticleNo(urlArt);
   const realLaw = law && !law.startsWith('__');
   wrap.style.display = realLaw ? '' : 'none';
   if (!realLaw) return;
@@ -572,9 +611,46 @@ document.getElementById('lawSelect').addEventListener('change', async function()
 });
 
 let typeText='', typeInput='', startTime=null, timerIv=null;
+let _prQuestionText='', _prArticleId='', _prArtId='', _prAnswerRecorded=false, _prLawName='', _prArtNo='';
 const ti = document.getElementById('ti');
 const ghost = document.getElementById('ghost');
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+function _practiceArticleHref(){
+  const u = new URL('law-preview.html', location.href);
+  const law = _prLawName || document.getElementById('lawSelect').value || '';
+  const art = _prArtNo || document.getElementById('artNumInput').value || '';
+  if(_prArticleId) u.searchParams.set('id', _prArtId);
+  if(law) u.searchParams.set('law', law);
+  if(art) u.searchParams.set('art', art);
+  u.searchParams.set('from', 'practice');
+  u.searchParams.set('back', 'practice.html');
+  return u.pathname.replace(/^\//,'') + '?' + u.searchParams.toString();
+}
+
+function recordPracticeAnswer(isCorrect){
+  if(typeof window.sofaTrack==='function'){
+    const _elapsed = startTime ? (Date.now()-startTime)/1000 : 0;
+    sofaTrack('answer_submitted', {
+      mode: currentMode === 3 ? 'practice_fill' : 'practice',
+      is_correct: isCorrect,
+      elapsed_sec: Math.round(_elapsed || 0)
+    });
+  }
+  if(_prAnswerRecorded||!_prArticleId||!uid||uid==='PREVIEW'||isFree)return;
+  _prAnswerRecorded=true;
+  fetch(`${API}/api/me/answer`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({
+    article_id:_prArticleId,
+    mode:'practice',
+    source:'practice',
+    is_correct:isCorrect,
+    choice:-1,
+    correct_idx:0,
+    question:_prQuestionText||'打字練習',
+    options:[typeText],
+    explanation:''
+  })}).catch(()=>{});
+}
 
 const _FREE_SECS=[
   '章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示','核心摘要與記憶策略',
@@ -616,7 +692,7 @@ function buildSections(sections,isPaid,wrapEl,beforeEl){
       const preview=sections[name]||'';
       lk.innerHTML='<div class="sec-label">'+label+'</div>'
         +'<div class="sec-lock-preview">'+(preview?formatSection(preview):'')+'</div>'
-        +'<div class="sec-lock-cta">🔒 升級解鎖完整內容 <a href="checkout.html">查看方案 →</a></div>';
+        +'<div class="sec-lock-cta">🔒 升級解鎖完整內容 <a href="pricing.html?utm_source=practice&utm_medium=locked_section&utm_campaign=practice_pricing" data-track-event="locked_content_pricing_click" data-track-label="practice_locked_section_pricing">查看方案 →</a></div>';
       if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
     });
   }
@@ -655,6 +731,7 @@ function render(){
   if(typeInput.length>=typeText.length&&typeText.length>0){
     stopTimer();
     ghost.innerHTML+=`<div style="margin-top:16px;font-family:var(--mono);font-size:13px;color:var(--good);letter-spacing:.1em">✓ 完成 · 正確率 ${acc}%</div>`;
+    recordPracticeAnswer(acc>=90);
     const sp=document.getElementById('sectionsBox');
     if(sp.style.display==='none'){
       sp.innerHTML='<div class="sec-hd">條文解析</div>';
@@ -702,7 +779,9 @@ function startTimer(){
 function stopTimer(){ if(timerIv){clearInterval(timerIv);timerIv=null;} }
 
 async function loadNew(){
+  if(_practiceUrlTargetResolving) return;
   stopTimer();startTime=null;typeInput='';typeText='';ti.value='';
+  _prQuestionText='';_prArticleId='';_prArtId='';_prAnswerRecorded=false;
   ghost.innerHTML='<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.4);letter-spacing:.1em">載入中…</span>';
   const sp=document.getElementById('sectionsBox');sp.innerHTML='';sp.style.display='none';
   const _srcBtn=document.getElementById('prSourceLink');if(_srcBtn)_srcBtn.style.display='none';
@@ -715,7 +794,32 @@ async function loadNew(){
   const law=document.getElementById('lawSelect').value;
   try{
     let d, lawMeta='';
-    if(law==='__starred__'){
+    if(_practiceUrlTargetPending){
+      _practiceUrlTargetResolving = true;
+      try{
+        const targetPid = practiceUrlPageIdParam();
+        const targetLaw = practiceUrlLawParam();
+        const targetArt = normalizePracticeArticleNo(practiceUrlArticleParam());
+        if(targetPid){
+          d=await fetch(`${API}/api/article/${encodeURIComponent(targetPid)}`,{headers:_authH()}).then(r=>r.json());
+          lawMeta=d.law_name||targetLaw||'';
+        }else if(targetLaw && targetArt){
+          if(!_artCache[targetLaw]){
+            const r=await fetch(`${API}/api/articles?law=${encodeURIComponent(targetLaw)}`).then(r=>r.json());
+            _artCache[targetLaw]=r.articles||[];
+          }
+          const match=findPracticeArticleByNo(_artCache[targetLaw],targetArt);
+          if(match){
+            d=await fetch(`${API}/api/article/${encodeURIComponent(match.id||match.page_id)}`,{headers:_authH()}).then(r=>r.json());
+            lawMeta=targetLaw;
+          }
+        }
+      }finally{
+        _practiceUrlTargetPending = false;
+        _practiceUrlTargetResolving = false;
+      }
+    }
+    if(!d && law==='__starred__'){
       const sl=await fetch(`${API}/api/starred?min_stars=5`,{headers:_authH()}).then(r=>r.json());
       const arts=(sl.articles||[]);
       if(!arts.length){
@@ -725,7 +829,7 @@ async function loadNew(){
       const pick=arts[Math.floor(Math.random()*arts.length)];
       d=await fetch(`${API}/api/article/${pick.id}`,{headers:_authH()}).then(r=>r.json());
       lawMeta=pick.law||'';
-    } else if(law==='__bookmarks__'){
+    } else if(!d && law==='__bookmarks__'){
       const bm=await fetch(`${API}/api/me/bookmarks`,{headers:_authH()}).then(r=>r.json());
       const ids=(bm.bookmarks||[]);
       if(!ids.length){
@@ -734,7 +838,7 @@ async function loadNew(){
       }
       const pick=ids[Math.floor(Math.random()*ids.length)];
       d=await fetch(`${API}/api/article/${pick}`,{headers:_authH()}).then(r=>r.json());
-    } else if(law==='__mastered__'||law==='__review__'){
+    } else if(!d && (law==='__mastered__'||law==='__review__')){
       const wantStatus=law==='__mastered__'?'mastered':'review';
       const mr=await fetch(`${API}/api/me/mastery`,{headers:_authH()}).then(r=>r.json());
       const items=(mr.items||[]).filter(m=>m.status===wantStatus&&m.page_id);
@@ -746,11 +850,11 @@ async function loadNew(){
       const pick=items[Math.floor(Math.random()*items.length)];
       d=await fetch(`${API}/api/article/${pick.page_id}`,{headers:_authH()}).then(r=>r.json());
       lawMeta=pick.law_name||'';
-    } else {
+    } else if(!d) {
       // 若有指定條號，直接取那條
       const artNum = (document.getElementById('artNumInput')||{}).value?.trim();
       if(artNum && law && _artCache[law]){
-        const match=_artCache[law].find(a=>{const m=(a.title||'').match(/第(\d+(?:之\d+)?)條/);return m&&m[1]===artNum;});
+        const match=findPracticeArticleByNo(_artCache[law],artNum);
         if(match){
           d=await fetch(`${API}/api/article/${match.id}`,{headers:_authH()}).then(r=>r.json());
           lawMeta=law;
@@ -778,9 +882,15 @@ async function loadNew(){
       }
     }
     articleSections=d.sections||{}; articlePlan=d._plan||'free';
+    _prArticleId=d.id||d.page_id||'';
+    _prArtId=_prArticleId;
+    const prLawLabel=lawMeta||d.law_name||'';
+    _prLawName=prLawLabel;
+    _prQuestionText=`打字練習｜${prLawLabel} ${d.title||''}`;
     typeText=(d.original_text||'').replace(/(?<=[一-鿿]) +(?=[一-鿿])/g,'');
     const m=(d.title||'').match(/第(\d+(?:之\d+)?)條/);
     const artNum=m?m[1]:'—';
+    _prArtNo=artNum==='—'?'':artNum;
     document.getElementById('artNum').textContent=artNum;
     document.getElementById('artTitle').textContent=(d.title||'').replace(/第[\d之]+條/,'').trim()||d.title||'—';
     const metaEl=document.getElementById('artMeta');
@@ -884,6 +994,7 @@ function advanceSentence(){
     stopTimer();
     const totalCor=sentDone.filter(Boolean).length;
     ghost.innerHTML+=`<div style="margin-top:16px;font-family:var(--mono);font-size:13px;color:var(--good);letter-spacing:.1em">✓ 完成 · ${totalCor}/${sentences.length} 句正確</div>`;
+    recordPracticeAnswer(totalCor===sentences.length);
     // 顯示條文解析 sections
     const sp=document.getElementById('sectionsBox');
     sp.innerHTML='<div class="sec-hd">條文解析</div>';
@@ -899,19 +1010,10 @@ function showFullArticleBtn(){
   if(!btn||!panel)return;
   panel.textContent=formatLawText(typeText);
   panel.style.display='none';
-  btn.textContent='查看完整條文 →';
+  btn.textContent='開完整法條 →';
+  btn.href = _practiceArticleHref();
   btn.style.display='inline-block';
 }
-document.addEventListener('DOMContentLoaded',()=>{
-  const btn=document.getElementById('prSourceLink');
-  if(!btn)return;
-  btn.addEventListener('click',()=>{
-    const panel=document.getElementById('prArtInline');
-    const open=panel.style.display==='none'||!panel.style.display;
-    panel.style.display=open?'block':'none';
-    btn.textContent=open?'收起條文 ↑':'查看完整條文 →';
-  });
-});
 
 // ── Mode 03 (關鍵字) ──────────────────────────────────────
 function initMode3(){
@@ -1078,7 +1180,7 @@ document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){ ti.blur(); }
 });
 
-loadNew();
+if(!_practiceUrlTargetPending) loadNew();
 </script>
 </body>
 </html>

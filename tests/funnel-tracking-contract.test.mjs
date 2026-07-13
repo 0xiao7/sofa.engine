@@ -123,39 +123,43 @@ test('pricing and checkout expose plan selection, checkout start, and payment re
   assert.match(analytics, /track\('checkout_start', \{ plan: queryPlan\(\) \|\| '到考日' \}\)/);
   assert.match(analytics, /payment_return_success/);
   assert.doesNotMatch(analytics, /purchase_completed/);
-  assert.match(checkout, /let emailFocusTracked = false/);
-  assert.match(checkout, /sofaTrack\('checkout_email_focus', \{ plan: sel\.plan, amount: sel\.amount \}\)/);
-  assert.match(checkout, /sofaTrack\('checkout_invalid_email', \{ plan: sel\.plan, amount: sel\.amount, reason: 'empty' \}\)/);
-  assert.match(checkout, /sofaTrack\('checkout_invalid_email', \{ plan: sel\.plan, amount: sel\.amount, reason: 'format' \}\)/);
-  assert.match(checkout, /sofaTrack\('checkout_attempt', \{ plan: sel\.plan, amount: sel\.amount \}\)/);
-  assert.match(checkout, /sofaTrack\('checkout_submit', \{ plan: sel\.plan, amount: sel\.amount \}\)/);
-  assert.match(checkout, /sofaTrack\('checkout_api_error'/);
+  assert.match(checkout, /function trackCheckout\(eventName, extra\)/);
+  assert.match(checkout, /payload: Object\.assign\(\{/);
+  assert.match(checkout, /amount: sel\.amount/);
+  assert.match(checkout, /exam_key: getCheckoutExamKey\(\)/);
+  assert.match(checkout, /trackCheckout\("checkout_email_focus"\)/);
+  assert.match(checkout, /trackCheckout\("checkout_invalid_email", \{ reason: "empty" \}\)/);
+  assert.match(checkout, /trackCheckout\("checkout_invalid_email", \{ reason: "format" \}\)/);
+  assert.match(checkout, /trackCheckout\("checkout_attempt"\)/);
+  assert.match(checkout, /trackCheckout\("checkout_submit"\)/);
+  assert.match(checkout, /trackCheckout\("checkout_api_error"/);
   assert.ok(
-    checkout.indexOf("sofaTrack('checkout_attempt'") < checkout.indexOf('const res = await fetch'),
+    checkout.indexOf('trackCheckout("checkout_attempt"') < checkout.indexOf('const res = await fetch'),
     'checkout attempt should measure valid payment intent before the API call'
   );
   assert.ok(
-    checkout.indexOf("if (!res.ok)") < checkout.indexOf("sofaTrack('checkout_submit'"),
+    checkout.indexOf("if (!res.ok)") < checkout.indexOf('trackCheckout("checkout_submit"'),
     'checkout submit should only be tracked after the checkout API accepts the order'
   );
   assert.ok(
-    checkout.indexOf("sofaTrack('checkout_submit'") < checkout.indexOf('document.open()'),
+    checkout.indexOf('trackCheckout("checkout_submit"') < checkout.indexOf('document.open()'),
     'checkout submit should be recorded immediately before the ECPay handoff'
   );
-  assert.match(checkout, /const checkoutPayload = \{/);
-  assert.match(checkout, /attribution: window\.sofaGetAttribution\?\.\(\) \|\| \{\}/);
-  assert.match(checkout, /session_id: window\.sofaGetSessionId\?\.\(\) \|\| ''/);
-  assert.match(checkout, /page_path: location\.pathname \+ location\.search/);
-  assert.match(checkout, /body: JSON\.stringify\(checkoutPayload\)/);
+  assert.match(checkout, /const payload = \{/);
+  assert.match(checkout, /attribution: checkoutAttribution\(\)/);
+  assert.match(checkout, /session_id: checkoutSessionId/);
+  assert.match(checkout, /const pagePath = location\.pathname \+ location\.search/);
+  assert.match(checkout, /page_path: pagePath/);
+  assert.match(checkout, /body: JSON\.stringify\(payload\)/);
   assert.doesNotMatch(checkout, /data-track-event="checkout_submit"/, 'checkout submit should not double-count through generic click tracking');
 });
 
 test('internal monetization links carry CTA-level attribution instead of becoming unknown source', () => {
   const expectedLinks = [
     [index, /pricing\.html\?utm_source=homepage&utm_medium=hero&utm_campaign=homepage_pricing/],
-    [index, /pricing\.html\?utm_source=homepage&utm_medium=plan_card&utm_campaign=homepage_monthly_pricing/],
-    [index, /checkout\.html\?plan=到考日&utm_source=homepage&utm_medium=plan_card&utm_campaign=homepage_exam_day/],
-    [index, /pricing\.html\?utm_source=homepage&utm_medium=plan_card&utm_campaign=homepage_quarterly_pricing/],
+    [index, /checkout\.html\?plan=月費&utm_source=home&utm_medium=plan_card&utm_campaign=home_monthly/],
+    [index, /checkout\.html\?plan=到考日&utm_source=home&utm_medium=plan_card&utm_campaign=home_exam_day/],
+    [index, /checkout\.html\?plan=季費&utm_source=home&utm_medium=plan_card&utm_campaign=home_quarterly/],
     [dashboard, /pricing\.html\?utm_source=dashboard&utm_medium=free_retention&utm_campaign=dashboard_pricing/],
     [dashboard, /pricing\.html\?utm_source=dashboard&utm_medium=member_card&utm_campaign=renewal_pricing/],
     [dashboard, /pricing\.html\?utm_source=dashboard&utm_medium=locked_analysis&utm_campaign=dashboard_pricing/],
@@ -185,22 +189,17 @@ test('analytics decorator supplies a safe internal fallback for naked payment li
 
 test('checkout copy explains the payment handoff without burying the primary action', () => {
   assert.match(checkout, /回來繼續做題/);
-  assert.match(checkout, /看月訂閱 NT\$380/);
-  assert.match(checkout, /class="plan-switch-link"/);
-  assert.match(checkout, /class="pay-handoff compact"/);
-  assert.match(checkout, /綠界付款，不儲存信用卡；序號通常 5 分鐘內寄到信箱。/);
+  assert.match(checkout, /月訂閱/);
+  assert.match(checkout, /class="sticky-pay"/);
+  assert.match(checkout, /綠界刷卡 · 不儲存信用卡 · 序號寄到信箱/);
   assert.doesNotMatch(checkout, /<div><b>01 ECPAY<\/b>/);
   assert.match(checkout, /class="ck-quote"/);
-  assert.match(checkout, /class="ck-proof-strip"/);
+  assert.match(checkout, /class="pay-strip"/);
   assert.match(checkout, /不用重填資料/);
   assert.doesNotMatch(checkout, /class="incl"/, 'checkout should not repeat landing-page feature inventory after users decided to pay');
   assert.ok(
-    checkout.indexOf('class="plan-switch-link"') < checkout.indexOf('class="email-card"'),
-    'secondary monthly option should be visible before the email field'
-  );
-  assert.ok(
-    checkout.indexOf('id="ck-submit"') < checkout.indexOf('id="plans"'),
-    'primary payment button should appear before secondary plan switching'
+    checkout.indexOf('id="plans"') < checkout.indexOf('class="email-card"'),
+    'plan selection should be visible before the email field'
   );
   assert.doesNotMatch(checkout, /class=”ck-quote”/);
   assert.match(checkout, /<div class="legal">/);
@@ -212,10 +211,10 @@ test('checkout copy explains the payment handoff without burying the primary act
 
 test('quiz tracks question starts and submitted answers across normal and wrong-review modes', () => {
   assert.match(quiz, /sofaTrack\('quiz_start'/);
-  assert.match(quiz, /mode: 'wrong_review'/);
+  assert.match(quiz, /return 'wrong_review'/);
   assert.match(quiz, /sofaTrack\('answer_submitted'/);
   assert.match(quiz, /elapsed_sec: Math\.round\(_elapsed \|\| 0\)/);
-  assert.match(quiz, /mode: data\._past_exam \? 'past_exam' : \(_drillParam \? 'article_drill' : 'quiz'\)/);
+  assert.match(quiz, /return _drillParam \? 'article_drill' : 'quiz'/);
 });
 
 test('all formal answer tools emit the shared answer_submitted event', () => {

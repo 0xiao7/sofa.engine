@@ -9,7 +9,7 @@
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -88,13 +88,29 @@
 
   .q-stem{
     background:var(--navy-2);border:1px solid var(--line);border-radius:4px;
-    padding:32px 36px;position:relative;
+    padding:56px 36px 32px;position:relative;
   }
   .q-stem::before{
-    content:"QUESTION";position:absolute;top:16px;right:22px;
+    content:"QUESTION";position:absolute;top:16px;left:36px;right:auto;
     font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;color:rgba(245,240,234,.25);
   }
   .q-stem p{font-family:var(--serif);font-size:21px;line-height:1.85;color:var(--cream);letter-spacing:.02em}
+  .question-placeholder{
+    font-family:var(--serif);
+    font-size:clamp(17px, 2.3vw, 21px);
+    line-height:1.85;
+    color:rgba(245,240,234,.4);
+  }
+  .quiz-key-hints{
+    margin:10px 0 0;
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;
+    color:rgba(245,240,234,.48);
+  }
+  #kb-hint{display:none}
+  #ans-toast{
+    position:fixed;right:24px;left:auto;top:calc(var(--tool-topbar-offset) + 16px);
+    transform:none;z-index:120;pointer-events:none;
+  }
   .q-stem .quote{
     margin-top:18px;padding:18px 22px;background:var(--navy-3);border-left:3px solid var(--peach-dim);
     border-radius:0 3px 3px 0;font-size:16px;line-height:1.85;color:rgba(245,240,234,.72);
@@ -103,6 +119,7 @@
 
   /* options */
   .opts{margin-top:24px;display:flex;flex-direction:column;gap:10px}
+  .opts.compact{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
   .opt{
     background:var(--navy-2);border:1px solid var(--line);border-radius:4px;
     padding:18px 22px;display:flex;align-items:flex-start;gap:18px;
@@ -164,7 +181,11 @@
   }
   .explain .src a{color:var(--peach-3);font-weight:600}
   .explain .src button{background:none;border:none;padding:0;cursor:pointer;font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--peach-3);font-weight:600}
-  .art-inline{margin-top:14px;padding:16px 20px;background:rgba(31,56,72,.06);border-radius:3px;max-height:380px;overflow-y:auto;font-family:var(--serif);font-size:14.5px;line-height:2;color:rgba(31,56,72,.82);white-space:pre-wrap;display:none}
+  .explain{max-width:100%}
+  .explain .src{flex-wrap:wrap}
+  .explain .src span{min-width:0;overflow-wrap:anywhere}
+  .free-quiz-notice a{min-height:44px}
+  .art-inline{margin-top:14px;padding:16px 20px;background:rgba(31,56,72,.06);border-radius:3px;max-height:none;overflow-y:visible;font-family:var(--serif);font-size:clamp(1rem, 3vw, 1.08rem);line-height:2;color:rgba(31,56,72,.82);white-space:pre-wrap;overflow-wrap:anywhere;display:none}
 
   #quiz-answer-actions{display:none;margin-top:18px;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
   #quiz-answer-actions.show{display:grid}
@@ -210,6 +231,19 @@
     color:var(--cream);font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-decoration:none;cursor:pointer;
   }
   .session-actions .primary{background:var(--peach);border-color:var(--peach);color:var(--navy);font-weight:700}
+  .stats-panel{position:fixed;inset:0;z-index:120;background:radial-gradient(circle at 20% 0%,rgba(231,187,167,.16),transparent 30%),var(--navy);display:none;padding:28px;overflow:auto}
+  .stats-panel.show{display:block}
+  .stats-panel-shell{max-width:920px;margin:0 auto;background:rgba(26,46,61,.96);border:1px solid rgba(245,240,234,.16);border-radius:8px;padding:22px}
+  .stats-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+  .stats-tabs button{min-height:44px;border:1px solid rgba(245,240,234,.2);background:transparent;color:var(--cream);border-radius:4px;padding:0 14px}
+  .stats-tabs button.on{background:var(--peach);color:var(--navy);border-color:var(--peach)}
+  .weak-panel-guide{border:1px dashed rgba(231,187,167,.42);background:rgba(231,187,167,.08);padding:14px 16px;border-radius:4px;color:rgba(245,240,234,.82);line-height:1.8}
+  .weak-card{border:1px solid rgba(245,240,234,.14);background:rgba(245,240,234,.04);border-radius:6px;padding:14px;margin-top:12px;color:var(--cream)}
+  .weak-action-primary,.weak-action-soft{min-height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;padding:0 14px;text-decoration:none;margin:8px 8px 0 0}
+  .weak-action-primary{background:var(--peach);color:var(--navy);border:1px solid var(--peach)}
+  .weak-action-soft{background:transparent;color:var(--peach);border:1px solid rgba(231,187,167,.42)}
+  .weak-article-link{min-height:44px;display:inline-flex;align-items:center;gap:8px;margin:8px 8px 0 0;padding:0 12px;border:1px solid rgba(231,187,167,.34);border-radius:4px;color:var(--peach);text-decoration:none}
+  .weak-source-note{font-size:12px;color:rgba(245,240,234,.58);margin-top:8px}
   #session-intro{
     display:none;margin-top:18px;border:1px dashed rgba(231,187,167,.34);border-radius:4px;
     padding:14px 16px;background:rgba(231,187,167,.07);
@@ -223,8 +257,11 @@
   .sec-text{font-size:13px;line-height:1.85;color:rgba(31,56,72,.78)}
   .sec-text .sec-h{margin:10px 0 4px;color:var(--navy);font-weight:600}
   .sec-text .sec-h:first-child{margin-top:0}
-  .sec-text .sec-i{position:relative;padding-left:18px;margin:3px 0}
-  .sec-text .sec-i::before{content:'◦';position:absolute;left:4px;top:-.04em;color:var(--peach-3);font-weight:700}
+  .sec-text .sec-i{position:relative;margin:8px 0 8px 26px;padding:8px 12px 8px 34px;border-left:4px solid rgba(231,187,167,.65);background:rgba(231,187,167,.12)}
+  .sec-text .sec-i::before{content:'◦';position:absolute;left:11px;top:.55em;color:var(--peach-3);font-weight:700}
+  .sec-text .crossref{display:inline-flex;align-items:center;min-height:30px;margin:0 4px 4px 0;padding:2px 8px;border-radius:3px;color:var(--navy);background:rgba(231,187,167,.22);border:1px solid rgba(213,154,120,.45);text-decoration:none;white-space:nowrap}
+  .sec-text .crossref:hover{background:rgba(231,187,167,.36)}
+  .cpi-note{white-space:pre-line;margin-top:14px;padding:12px 14px;border-left:4px solid var(--peach);background:rgba(231,187,167,.14);font-size:13px;line-height:1.8;color:var(--navy)}
   .sec-lock{margin-top:16px;border-top:1px dashed rgba(31,56,72,.15)}
   .sec-lock .sec-label::after{content:" 🔒";font-size:11px;opacity:.65}
   .sec-lock-preview{position:relative;max-height:80px;overflow:hidden;padding:10px 0 0;pointer-events:none;user-select:none;font-size:13.5px;line-height:1.8;color:rgba(31,56,72,.72)}
@@ -302,16 +339,28 @@
     .stage{padding:24px 18px 60px}
     .stage,.inner,.q-stem,.rail-card{max-width:100%;min-width:0}
     .q-head{flex-direction:column;align-items:flex-start;gap:14px}
+    #btnWrong,#btn-clear-wrong,#btnDaily,#daily-badge,#quiz-streak,
+    #sprint-count-select,#btnSprint,#btnExam,#btnPastExam,#pastExamSubject{display:none!important;}
+    #law-status-bar,#artPickWrap{display:none!important}
+    #btnNew{min-height:42px}
+    .pr-meta .score-seg{display:none}
+    .pr-meta{width:100%;display:flex;flex-wrap:nowrap;overflow-x:auto}
+    .pr-chips{flex-wrap:nowrap;overflow-x:auto}
+    #btn-stats,#btn-open-weakness{min-height:44px;text-align:center;white-space:nowrap;flex:0 0 auto}
     .q-head .src{text-align:left}
     .q-head .n{font-size:42px}
-    .q-stem{padding:22px 22px}
+    .q-stem{padding:48px 22px 22px}
+    .q-stem::before{left:22px}
     .q-stem p{font-size:17px}
     .opt{padding:14px 18px;gap:14px}
+    .opts.compact{display:flex;flex-direction:column}
     .opt .body{font-size:14.5px}
     .opt.right::after,.opt.wrong::after{display:none}
     .q-foot{flex-direction:column;align-items:stretch}
     .q-foot .r{flex-direction:column}
     .rail{flex-direction:column}
+    .qgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
+    .qcell{min-width:0}
     .stage{overflow-x:hidden}
     .inner{max-width:100%}
     #quiz-answer-actions{display:none;grid-template-columns:1fr}
@@ -319,11 +368,15 @@
     #quiz-answer-actions button{width:100%;min-width:0}
     #quiz-answer-actions a{width:100%;min-width:0}
     #quiz-answer-actions #quiz-citation{grid-column:1 / -1}
+    .sec-text .sec-i{margin:7px 0 7px 12px}
+    .explain{padding:20px 18px}
     #post-answer-retention{align-items:stretch;flex-direction:column}
     #post-answer-retention .retention-links{justify-content:stretch}
     #session-summary-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
     .session-actions{flex-direction:column}
     .session-actions a,.session-actions button{width:100%;min-width:0}
+    #ans-toast{right:14px}
+    .quiz-key-hints{display:none}
   }
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
@@ -386,6 +439,7 @@
                color:rgba(245,240,234,.78);border-radius:8px;min-height:44px;padding:0 14px;font-size:13px;cursor:pointer;">
         刷題模式
       </button>
+      <a id="btn-open-weakness" href="dashboard.html#weak-laws-recap" title="看弱點分析" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(245,240,234,.18);border-radius:8px;padding:0 14px;color:rgba(245,240,234,.78);font-size:13px;text-decoration:none;">弱點分析 <span id="nav-wrong-cnt">0</span></a>
       <select id="pastExamSubject" onchange="if(_pastExamMode) loadQuiz()"
         style="display:none;background:var(--navy-3);border:1px solid rgba(231,187,167,0.35);
                border-radius:8px;color:var(--cream);font-size:12px;padding:6px 10px;min-height:44px;">
@@ -406,8 +460,8 @@
     </div>
     <div class="pr-meta">
       <div class="seg">第 <b id="qNum">—</b></div>
-      <div class="seg">正確 <b id="scoreRight" style="color:var(--good)">0</b></div>
-      <div class="seg">錯誤 <b id="scoreWrong" style="color:var(--bad)">0</b></div>
+      <div class="seg score-seg">正確 <b id="scoreRight" style="color:var(--good)">0</b></div>
+      <div class="seg score-seg">錯誤 <b id="scoreWrong" style="color:var(--bad)">0</b></div>
       <div class="seg timer">TIMER <b id="topTimer">0:00</b></div>
     </div>
   </div>
@@ -434,8 +488,9 @@
         </div>
 
         <div class="q-stem">
-          <p id="questionBox" style="opacity:.45;font-family:var(--mono);font-size:13px;letter-spacing:.1em;color:rgba(245,240,234,.4)">按「出題」開始作答</p>
+          <p id="questionBox" class="question-placeholder" style="opacity:.45">按「出題」開始作答</p>
         </div>
+        <div id="quiz-use-hint" class="quiz-key-hints">作答提示：選完先看原文；再看解析或下一題</div>
 
         <div class="opts" id="optionsBox"></div>
 
@@ -443,8 +498,9 @@
 
         <div id="quiz-answer-actions" aria-label="答題後行動">
           <span id="quiz-citation" style="display:none"></span>
-          <button type="button" id="view-article-btn" style="display:none">查看法條</button>
+          <button type="button" id="view-article-btn" style="display:none" onclick="_openArticleReader()">查看法條</button>
           <a id="view-weakness-btn" href="dashboard.html#weak-laws-recap" style="display:none">看弱點分析</a>
+          <a id="unlock-weakness-btn" href="pricing.html?utm_source=quiz&utm_medium=weakness_locked&utm_campaign=quiz_pricing" data-track-event="locked_content_pricing_click" data-track-label="quiz_weakness_locked_pricing" style="display:none">解鎖弱點分析</a>
           <button class="btn btn-ghost" id="btnFlag" type="button">⚑ 標記</button>
           <button class="btn btn-pri" id="btnNext" type="button">下一題 <span class="k">↵</span></button>
           <div id="post-answer-retention">
@@ -455,7 +511,7 @@
                  data-track-label="quiz_post_answer_login">輸入序號保留紀錄</a>
               <a class="primary" href="pricing.html?utm_source=web_quiz&utm_medium=post_answer&utm_campaign=quiz_post_answer_pricing"
                  data-track-event="post_answer_pricing_click"
-                 data-track-label="quiz_post_answer_pricing">查看方案</a>
+                 data-track-label="quiz_post_answer_pricing">輸入序號保留紀錄 →</a>
             </span>
           </div>
         </div>
@@ -463,11 +519,11 @@
         <div class="explain" id="explainBox" style="display:none">
           <span class="eb">答對了</span>
           <p id="answerExplain" style="display:none"></p>
+          <div class="art-inline" id="artInline"></div>
           <div class="src" id="sourceBox">
             <span>—</span>
-            <button id="sourceLink">查看完整條文 →</button>
+            <button id="sourceLink">展開原文 ↓</button>
           </div>
-          <div class="art-inline" id="artInline"></div>
         </div>
 
         <section id="session-summary" aria-live="polite">
@@ -477,6 +533,7 @@
           <div id="session-summary-stats"></div>
           <div class="session-actions">
             <button type="button" onclick="restartSessionMode()">再刷一組</button>
+            <button type="button" id="sumOpenWeaknessMain" onclick="_openWeakness()">看弱點分析</button>
             <a class="primary" href="login.html?utm_source=web_quiz&utm_medium=session_summary&utm_campaign=quiz_session_save"
                data-track-event="quiz_session_save_click"
                data-track-label="quiz_session_save">先登入保存這輪紀錄</a>
@@ -485,6 +542,20 @@
                data-track-label="quiz_session_pricing">查看方案</a>
           </div>
         </section>
+        <section id="summaryOverlay" style="display:none">
+          <button id="sumOpenWeakness" onclick="_openWeakness()">看弱點分析</button>
+        </section>
+        <section id="sprint-results" style="display:none"></section>
+        <div class="stats-panel" id="stats-panel">
+          <div class="stats-panel-shell">
+            <h2 id="stats-panel-title">弱點分析</h2>
+            <div class="stats-tabs">
+              <button type="button" class="on" onclick="_setStatsPanelMode('weakness')">弱點分析</button>
+              <button type="button" onclick="_setStatsPanelMode('wrong')">錯題清單</button>
+            </div>
+            <div id="stats-panel-body"></div>
+          </div>
+        </div>
 
         <div class="q-foot">
           <div class="l">
@@ -537,7 +608,9 @@ const uid = localStorage.getItem('sofa_uid') || ((isPreviewHost() && !freeParam)
 const tok = localStorage.getItem('sofa_token') || '';
 const _startQuizParam = _searchParams.get('start') === '1';
 const _drillParam = _searchParams.get('drill') === '1';
+const _openParam = _searchParams.get('open') || '';
 const _sessionMode = _searchParams.get('session') === '1' || _searchParams.get('mode') === 'session';
+const _countdownSeconds = Number.parseInt(_searchParams.get('timer') || '0', 10) || 0;
 function parseSessionTargetCount(){
   const raw = Number.parseInt(_searchParams.get('count') || '10', 10);
   if(!Number.isFinite(raw)) return 10;
@@ -605,14 +678,43 @@ function _authH(extra) {
   else if (uid) h['X-Sofa-UID'] = uid;
   return h;
 }
-const isFree = !uid && (freeParam || _pastExamMode || localStorage.getItem('sofa_free') === 'FREE');
-if (!uid && !isFree) { window.location.href = 'login.html?redirect=quiz.html'; }
+function _setPaid(v){
+  window.__sofaPaid = !!v;
+  window.__sofaPaidResolved = true;
+}
+async function resolveQuizEntitlement(){
+  if(!uid && !tok){ return; }
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 6000);
+  try{
+    const d = await fetch(`${API}/api/me/profile`, {headers:_authH(), signal:ctrl.signal}).then(r=>r.ok?r.json():null);
+    if(timer) clearTimeout(timer);
+    if(!d){ _setPaid(true); return; }
+    const plan=String(d.plan||d.member_status||d.status||'').trim();
+    if(['免費','free'].includes(plan)) _setPaid(false);
+    else _setPaid(true); // 未知 plan 字串
+  }catch(e){
+    // catch(() => { if(timer) clearTimeout(timer); _setPaid(true); }
+    if(timer) clearTimeout(timer);
+    _setPaid(true);
+  }
+}
+const isFree = !(uid || tok) && (freeParam || localStorage.getItem('sofa_free') === 'FREE');
+if (!(uid || tok) && !isFree) { window.location.href = 'login.html?redirect=quiz.html'; }
+window.__sofaPaid = !isFree;
+window.__sofaPaidResolved = !(uid || tok);
+if(/(iPhone|iPad|iPod)/i.test(navigator.userAgent||'')){
+  document.documentElement.classList.add('ios-reader-app');
+}
+function isIOSReaderApp(){
+  return document.documentElement.classList.contains('ios-reader-app');
+}
 document.getElementById('navUid').textContent = isFree ? '免費版' : (localStorage.getItem('sofa_nickname') || uid);
 if(isFree){
   const bar=document.createElement('div');
   bar.style.cssText='background:rgba(231,187,167,.13);border-bottom:1px solid rgba(231,187,167,.3);padding:10px 40px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;';
   bar.innerHTML='<span style="font-family:var(--mono);font-size:12px;letter-spacing:.06em;color:rgba(231,187,167,.9)">🔒 免費版 · 免登入可練習，答題紀錄不會儲存</span>'
-    +'<a href="checkout.html" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:0 16px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
+    +'<a href="pricing.html?utm_source=quiz&utm_medium=free_bar&utm_campaign=quiz_pricing" data-track-event="locked_content_pricing_click" data-track-label="quiz_free_bar_pricing" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;letter-spacing:.1em;color:#142836;background:#E7BBA7;border-radius:3px;padding:0 16px;text-transform:uppercase;white-space:nowrap;text-decoration:none">升級解鎖全部 →</a>';
   document.querySelector('.pr-bar').before(bar);
 }
 
@@ -677,8 +779,16 @@ if(_sessionMode){
   if(intro) intro.style.display='block';
 }
 
-function _lawParamFromUrl(){ return !!(_searchParams.get('law') || _searchParams.get('q')); }
-function _articleParamFromUrl(){ return !!(_searchParams.get('art') || _searchParams.get('article')); }
+function _lawParamFromUrl(){ return _searchParams.get('law') || _searchParams.get('q') || ''; }
+function _articleParamFromUrl(){ return _searchParams.get('art') || _searchParams.get('article') || ''; }
+let _articleDrillConsumed = false;
+function _shouldUseUrlArticleDrill(){
+  return _drillParam && !_articleDrillConsumed && !!_articleParamFromUrl();
+}
+function _clearUrlArticleDrillInput(){
+  const inp=document.getElementById('artNumInput');
+  if(inp && _articleDrillConsumed) inp.value='';
+}
 
 function _shouldShowQzExamBanner(examKey){
   return !examKey && !_lawParamFromUrl() && !_articleParamFromUrl() && !_drillParam && !_pastExamMode && !_startQuizParam;
@@ -713,9 +823,43 @@ function _preferredStartLaw(laws){
   return preferredNames.map(name => laws.find(l => l.name === name)).find(Boolean) || laws[0];
 }
 
+let _initialLawApplied = false;
+function _applyInitialLawParam(sel){
+  const raw = _lawParamFromUrl();
+  if(!raw || !sel)return false;
+  let law = raw;
+  try{ law = decodeURIComponent(raw); }catch(e){}
+  let o = [...sel.options].find(opt=>opt.value === law || opt.textContent === law);
+  if(!o){
+    o = document.createElement('option');
+    o.value = law;
+    o.textContent = law;
+    sel.appendChild(o);
+  }
+  sel._skipPersistOnce = _drillParam;
+  sel.value = law;
+  _initialLawApplied = true;
+  sel.dispatchEvent(new Event('change'));
+  return true;
+}
+
 let _autoLoadQuizStarted = false;
+let _quizLoading = false;
+let _quizManualRequested = false;
+let _quizBootReady = false;
+// const QUIZ_RETURN_STATE_KEY = 'sofa_quiz_return_state_v1'
+// let sessionHistory=[]
+function _setQuizBootReady(isReady){
+  _quizBootReady=!!isReady;
+  const btn=document.getElementById('btnNew');
+  if(btn){
+    btn.disabled = !_quizBootReady;
+    btn.textContent = _quizBootReady ? '出題' : '載入中';
+  }
+}
 function _autoLoadQuizOnce(){
   if(_autoLoadQuizStarted) return;
+  if(_quizManualRequested || _quizLoading || total > 0) return;
   _autoLoadQuizStarted = true;
   loadQuiz();
 }
@@ -726,6 +870,7 @@ function _focusQuizQuestionStart(){
 }
 
 (async()=>{
+  _setQuizBootReady(false);
   const sel=document.getElementById('lawSelect');
   if(uid){
     [['__starred__','★ 重點法條'],['__bookmarks__','♥ 我的收藏'],['__mastered__','✓ 已熟記'],['__review__','⏰ 待複習']].forEach(([v,t])=>{
@@ -741,21 +886,52 @@ function _focusQuizQuestionStart(){
     const d=await fetch(`${API}/api/laws`).then(r=>r.json());
     const laws = _filterLawsForExam(d.laws||[], examKey);
     laws.forEach(l=>{const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);});
+    _applyInitialLawParam(sel);
     if(_startQuizParam && laws.length && !sel.value){
       const preferred = _preferredStartLaw(laws);
       sel.value = preferred.name;
+      const opt = {value:preferred.name};
+      if(!_drillParam) localStorage.setItem('sofa_last_law', opt.value);
       sel.dispatchEvent(new Event('change'));
     }
-  }catch{}
+    _setQuizBootReady(true);
+    if(_restoreQuizReturnState()) return;
+  }catch{ _setQuizBootReady(true); if(_restoreQuizReturnState()) return; }
 	  if(_pastExamMode){
 	    _setPastExamMode(true, {noHistory:true});
-	    loadQuiz();
+	    _autoLoadQuizOnce();
       return;
 	  }
+  if(_initialLawApplied){ _autoLoadQuizOnce(); return; }
   if(_startQuizParam){ _autoLoadQuizOnce(); return; }
 		})();
 
 let _artCache = {};
+
+async function _ensureArticleCache(law){
+  if(!law)return [];
+  if(!_artCache[law]){
+    const r = await fetch(`${API}/api/articles?law=${encodeURIComponent(law)}`).then(r=>r.json()).catch(()=>({articles:[]}));
+    _artCache[law] = Array.isArray(r.articles) ? r.articles : (Array.isArray(r.items) ? r.items : []);
+  }
+  return _artCache[law] || [];
+}
+
+function _articleParamCore(raw){
+  return String(raw||'').replace(/^§\s*/,'').split(/[｜|]/)[0].trim()
+    .replace(/^第/,'').replace(/條之/g,'之').replace(/條.*$/,'').replace(/-/g,'之');
+}
+
+function _findArticleByUrlParam(law){
+  const target=_articleParamCore(_articleParamFromUrl());
+  if(!law || !target)return null;
+  const list=_artCache[law]||[];
+  return list.find(a=>{
+    const candidates = [a.title, a.article_no, a.article, a.no];
+    // candidates.some(v => normalizeArticleCore(v) === target)
+    return candidates.some(v => _articleParamCore(v) === target);
+  }) || null;
+}
 
 // ── 練習區 chip 細篩（期限 / 罰則）─────────────────────────
 var _PR_DEADLINE_OPTS=[{l:'全部',v:''},{l:'1日',v:'一日'},{l:'2日',v:'二日'},{l:'3日',v:'三日'},{l:'5日',v:'五日'},{l:'7日',v:'七日'},{l:'10日',v:'十日'},{l:'14日',v:'十四日'},{l:'20日',v:'二十日'},{l:'30日',v:'三十日'},{l:'60日',v:'六十日'},{l:'1個月',v:'一個月'},{l:'2個月',v:'二個月'},{l:'3個月',v:'三個月'},{l:'6個月',v:'六個月'},{l:'1年',v:'一年'},{l:'2年',v:'二年'},{l:'3年',v:'三年'},{l:'5年',v:'五年'},{l:'10年',v:'十年'}];
@@ -807,6 +983,8 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 document.getElementById('lawSelect').addEventListener('change', async function(){
   const law = this.value;
+  if(this._skipPersistOnce) this._skipPersistOnce = false;
+  else if(!_drillParam) localStorage.setItem('sofa_last_law', this.value);
   const wrap = document.getElementById('artPickWrap');
   const dl   = document.getElementById('artDatalist');
   const inp  = document.getElementById('artNumInput');
@@ -831,6 +1009,47 @@ document.getElementById('lawSelect').addEventListener('change', async function()
 });
 
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+const RECENT_QUIZ_ARTICLES_KEY = 'sofa_recent_quiz_articles_v1';
+function recentQuizArticleIds(){
+  try{
+    const parsed=JSON.parse(localStorage.getItem(RECENT_QUIZ_ARTICLES_KEY)||'[]');
+    return Array.isArray(parsed)?parsed.filter(Boolean).slice(0,40):[];
+  }catch(e){ return []; }
+}
+function rememberRecentQuizArticles(ids){
+  const incoming=(Array.isArray(ids)?ids:[ids]).filter(Boolean).map(String);
+  if(!incoming.length)return;
+  const existing=recentQuizArticleIds().filter(id=>!incoming.includes(id));
+  localStorage.setItem(RECENT_QUIZ_ARTICLES_KEY, JSON.stringify([...incoming, ...existing].slice(0,40)));
+}
+function rememberRecentQuizArticle(id){ rememberRecentQuizArticles([id]); }
+function quizArticleIdentityAliases(data, pickedPageId){
+  return [data&&data.page_id, data&&data.article_id, data&&data.id, data&&data.correct_id, pickedPageId].filter(Boolean).map(String);
+}
+function isRecentQuizArticleId(id){
+  return !!id && recentQuizArticleIds().includes(String(id));
+}
+function pickNonRecentArticle(items){
+  const recent=new Set(recentQuizArticleIds());
+  // pickNonRecentArticle(_wrongArts)
+  // pickNonRecentArticle(_hiArts)
+  // pickNonRecentArticle(_pool)
+  return (items||[]).find(item=>{
+    var itemId = item && (item.id || item.page_id);
+    return itemId && !recent.has(itemId);
+  }) || null;
+}
+async function fetchQuizWithRecentGuard(url,opts){
+  const pageSpecific = /[?&]page_id=/.test(String(url||''));
+  for(let i=0;i<(pageSpecific?1:3);i++){
+    const data=await fetch(url,opts).then(r=>r.json());
+    if(data.detail||data.error)return data;
+    const pid=data.page_id||data.correct_id||data.article_id||data.id;
+    if(pageSpecific || !isRecentQuizArticleId(pid) || i===2)return data;
+  }
+  return fetch(url,opts).then(r=>r.json());
+}
 
 function normalizeArticleCore(raw){
   const value=String(raw||'').replace(/^§\s*/,'').split(/[｜|]/)[0].trim();
@@ -858,6 +1077,105 @@ function renderQuizCitation(artTitle,lawName){
   el.textContent=formatArticleCitation(artTitle, lawName);
 }
 
+let _currentLawName='', _currentArtNo='', _currentPageId='';
+const QUIZ_RETURN_STATE_KEY = 'sofa_quiz_return_state_v1';
+function _currentQuizReturnTarget(){
+  return 'quiz.html' + (location.search || '');
+}
+function _articleReaderHref(law, art, id){
+  let url = `law-preview.html?law=${encodeURIComponent(law||'')}`;
+  if(id) url += `&id=${encodeURIComponent(id)}`;
+  if(art) url += `&art=${encodeURIComponent(art)}`;
+  url += `&from=quiz&back=${encodeURIComponent(_currentQuizReturnTarget())}`;
+  return url;
+}
+function _quizReturnStatePayload(){
+  const options=document.getElementById('optionsBox');
+  const explain=document.getElementById('explainBox');
+  return {
+    ts:Date.now(),
+    scrollY:window.scrollY||0,
+    right,wrong,total,flagged,answered,
+    sessionHistory,
+    questionText: document.getElementById('questionBox')?.textContent,
+    qSrcHtml: document.getElementById('qSrc')?.innerHTML,
+    optionsHtml: options?.innerHTML,
+    explainHtml: explain?.innerHTML,
+    currentLawName:_currentLawName,
+    currentArtNo:_currentArtNo,
+    currentPageId:_currentPageId
+  };
+}
+function _saveQuizReturnState(){
+  sessionStorage.setItem(QUIZ_RETURN_STATE_KEY, JSON.stringify(_quizReturnStatePayload()));
+}
+function _clearQuizReturnState(){
+  sessionStorage.removeItem(QUIZ_RETURN_STATE_KEY);
+}
+function _restoreQuizReturnState(){
+  let state=null;
+  try{ state=JSON.parse(sessionStorage.getItem(QUIZ_RETURN_STATE_KEY)||'null'); }catch(e){}
+  if(!state || Date.now() - (state.ts || 0) > 30 * 60 * 1000)return false;
+  right=state.right||0;wrong=state.wrong||0;total=state.total||0;flagged=state.flagged||0;answered=!!state.answered;
+  sessionHistory=Array.isArray(state.sessionHistory)?state.sessionHistory:[];
+  _currentLawName=state.currentLawName||'';_currentArtNo=state.currentArtNo||'';_currentPageId=state.currentPageId||'';
+  const options=document.getElementById('optionsBox');
+  const explain=document.getElementById('explainBox');
+  if(state.questionText) document.getElementById('questionBox').textContent=state.questionText;
+  if(state.qSrcHtml) document.getElementById('qSrc').innerHTML=state.qSrcHtml;
+  if(options) options.innerHTML = state.optionsHtml;
+  if(explain){ explain.innerHTML = state.explainHtml; explain.style.display='block'; }
+  _bindSourceLink();
+  updateScore();
+  window.scrollTo({ top: Number(state.scrollY || 0), behavior:'auto' });
+  return true;
+}
+function _restoreQuizReturnStateWhenReady(){
+  const run=()=>{ if(!answered) _restoreQuizReturnState(); };
+  if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded',()=>setTimeout(run, 0),{once:true});
+  else setTimeout(run, 0);
+}
+function _openArticleReader(){
+  _saveQuizReturnState();
+  window.location.href = _articleReaderHref(_currentLawName, _currentArtNo, _currentPageId);
+}
+const ARTICLE_INLINE_LOADING_FALLBACK_MS = 4500;
+let _inlineFallbackTimer=null;
+function showInlineArticleText(text){
+  const panel=document.getElementById('artInline');
+  if(!panel)return false;
+  const body=formatLawText(text||'');
+  if(!body)return false;
+  panel.textContent=body;
+  panel.style.display='block';
+  return true;
+}
+function startInlineArticleLoadingFallback(){
+  const panel=document.getElementById('artInline');
+  if(!panel)return;
+  panel.textContent='條文原文載入中';
+  panel.style.display='block';
+  _inlineFallbackTimer=setTimeout(()=>{
+    panel.textContent='原文還在載入。可以先按上方「查看法條」開完整條文';
+  }, ARTICLE_INLINE_LOADING_FALLBACK_MS);
+}
+function stopInlineFallback(){
+  if(_inlineFallbackTimer){ clearTimeout(_inlineFallbackTimer); _inlineFallbackTimer=null; }
+}
+function _handleSourceLinkClick(){
+  const panel=document.getElementById('artInline');
+  const btn=document.getElementById('sourceLink');
+  const open=panel.style.display==='none'||!panel.style.display;
+  panel.style.display=open?'block':'none';
+  btn.textContent=open?'收起原文 ↑':'展開原文 ↓';
+}
+function _bindSourceLink(){
+  const btn=document.getElementById('sourceLink');
+  if(!btn)return;
+  btn.removeEventListener('click', _handleSourceLinkClick);
+  btn.addEventListener('click', _handleSourceLinkClick);
+}
+
 const _FREE_SECS=[
   '章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示','核心摘要與記憶策略',
   '條文解析','考點整理','記憶技巧','相關條文'
@@ -866,7 +1184,57 @@ const _LOCKED_SECS=[
   {name:'修法與聯覺備註',  label:'修法與聯覺備註'},
   {name:'相關法規及注意事項',label:'相關法規及注意事項'}
 ];
-function formatSection(text){
+function cleanCrossRefLawName(raw){
+  return String(raw||'').replace(/^(搭配|交叉記憶可看|可看|與|及|並列)/,'').replace(/[（(].*$/,'').trim();
+}
+function linkifyLawRefs(text, articleLawName){
+  let out=String(text||'');
+  function href(law,art){return `law-preview.html?law=${encodeURIComponent(cleanCrossRefLawName(law||articleLawName))}&art=${encodeURIComponent(String(art||'').replace(/^第/,'').replace(/條.*$/,''))}&from=quiz&back=quiz.html`;}
+  function a(law,art,label){return `<a class="crossref" href="${href(law,art)}">${label}</a>`;}
+  out=out.replace(/(同法|本法)第?([0-9一二三四五六七八九十百千零兩]+(?:之[0-9一二三四五六七八九十百千零兩]+)?)條/g,
+    (_,lead,art)=>a(articleLawName,art,`${lead}第${art}條`));
+  out=out.replace(/(?:搭配|交叉記憶可看|與)?([\u4e00-\u9fa5]{1,16}(?:法|條例|準則|辦法|規則))第?([0-9一二三四五六七八九十百千零兩]+)條及第?([0-9一二三四五六七八九十百千零兩]+)條/g,
+    (_,law,art1,art2)=>a(law,art1,`${cleanCrossRefLawName(law)}第${art1}條`) + '及' + a(law,art2,`第${art2}條`));
+  out=out.replace(/(?:搭配|交叉記憶可看|與)?([\u4e00-\u9fa5]{1,16}(?:法|條例|準則|辦法|規則))第?([0-9一二三四五六七八九十百千零兩、,，]+)條/g,
+    (_,law,arts)=>arts.split(/[、,，]/).filter(Boolean).map(x=>a(law,x,`${cleanCrossRefLawName(law)}第${x}條`)).join(''));
+  out=out.replace(/(?:搭配|交叉記憶可看|與)?([\u4e00-\u9fa5]{1,16}(?:法|條例|準則|辦法|規則))([0-9一二三四五六七八九十百千零兩、,，]+)條/g,
+    (_,law,arts)=>arts.split(/[、,，]/).filter(Boolean).map(x=>a(law,x,`${cleanCrossRefLawName(law)}第${x}條`)).join(''));
+  return out;
+}
+function openCrossRefArticleInline(ev){
+  const link=ev.target.closest('a.crossref');
+  if(!link)return;
+  ev.preventDefault();
+  link.setAttribute('aria-label','回本題原文');
+  _saveQuizReturnState();
+  window.location.href=link.href;
+}
+if(typeof document !== 'undefined'){
+  document.addEventListener('click',ev=>{
+    if(ev.target.closest('a.crossref')) openCrossRefArticleInline(ev);
+  });
+}
+function buildCpiAdjustmentNote(article,sections){
+  const law=String(article?.law_name||article?.law||_currentLawName||'');
+  const title=String(article?.title||article?.article||'');
+  const body=JSON.stringify(sections||{}) + ' ' + title;
+  if(law.includes('所得基本稅額條例'))return '消費者物價指數 CPI 調整提醒：113 年度起個人基本所得額扣除額已調整為 750 萬元；115 年度沿用 750 萬元。作答時以考試年度與財政部公告額為準，題目仍可考條文基準或比例。';
+  const estateGiftAmountArticle=/(13|17|18|19|20|22)/;
+  const estateGiftAmountText=/免稅額|扣除額|級距|贈與稅|遺產稅/;
+  if(law.includes('遺產及贈與稅法') && (estateGiftAmountArticle.test(title) || estateGiftAmountText.test(body))){
+    return '條文原文、舊題數字和當年度公告額要分開看。\n115 / 114 現行：遺產稅免稅額 1,333 萬；日常器具 100 萬、職業工具 56 萬；贈與稅免稅額 244 萬 / 年；職業工具條文舊基準 40 萬，113 年度起已公告為 56 萬；重度以上身心障礙 693 萬；扶養兄弟姊妹、祖父母每人 56 萬；114 / 115 已為遺產 5,621 萬 / 1 億 1,242 萬、贈與稅 2,811 萬 / 5,621 萬；配偶扣除 553 萬；直系血親卑親屬每人 56 萬；父母、喪葬費各 138 萬；級距 113 年仍為遺產 5,000 萬 / 1 億、贈與稅 2,500 萬 / 5,000 萬。\n作答時以考試年度與財政部公告額為準，題目仍可考條文基準或比例。';
+  }
+  return '';
+}
+function appendCpiAdjustmentNote(wrapEl, article, sections){
+  const note=buildCpiAdjustmentNote(article,sections);
+  if(!note || !wrapEl)return;
+  const d=document.createElement('div');
+  d.className='cpi-note';
+  d.textContent=note;
+  wrapEl.appendChild(d);
+}
+function formatSection(text, articleLawName){
   if(!text) return '';
   var lines=String(text).replace(/\r\n?/g,'\n').split('\n'),out='';
   lines.forEach(function(raw){
@@ -878,40 +1246,231 @@ function formatSection(text){
     body=body.trim();if(!body)return;
     var esc=body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     esc=esc.replace(/^([^：:]{1,14}[：:])/,'<b>$1</b>');
+    esc=linkifyLawRefs(esc, articleLawName);
     out+='<p class="'+(isSub?'sec-i':'sec-h')+'">'+esc+'</p>';
   });
   return out;
 }
-function buildSections(sections,isPaid,wrapEl,beforeEl){
+function articleSectionsArePaid(article){
+  if(window.__sofaPaid !== false && !isFree) return true;
+  if(!article)return false;
+  return article._plan && article._plan !== 'free';
+}
+function buildSections(sections,isPaid,wrapEl,beforeEl,article){
+  const articleLawName=(article&&article.law_name)||_currentLawName||'';
   wrapEl.querySelectorAll('.sec-block,.sec-lock').forEach(e=>e.remove());
   _FREE_SECS.forEach(name=>{
     if(!sections[name])return;
     const d=document.createElement('div');d.className='sec-block';
     const lb=document.createElement('div');lb.className='sec-label';lb.textContent=name;
-    const tx=document.createElement('div');tx.className='sec-text';tx.innerHTML=formatSection(sections[name]);
+    const tx=document.createElement('div');tx.className='sec-text';tx.innerHTML=formatSection(sections[name], articleLawName);
     d.append(lb,tx);
     if(beforeEl)wrapEl.insertBefore(d,beforeEl);else wrapEl.appendChild(d);
   });
-  if(!isPaid){
+  if(isPaid){
+    _LOCKED_SECS.forEach(({name,label})=>{
+      if(!sections[name])return;
+      const d=document.createElement('div');d.className='sec-block';
+      const lb=document.createElement('div');lb.className='sec-label';lb.textContent=label;
+      const tx=document.createElement('div');tx.className='sec-text';tx.innerHTML=formatSection(sections[name], articleLawName);
+      d.append(lb,tx);
+      if(beforeEl)wrapEl.insertBefore(d,beforeEl);else wrapEl.appendChild(d);
+    });
+  }else{
     _LOCKED_SECS.forEach(({name,label})=>{
       const lk=document.createElement('div');lk.className='sec-lock';
       const preview=sections[name]||'';
-      lk.innerHTML='<div class="sec-label">'+label+'</div>'
-        +'<div class="sec-lock-preview">'+(preview?formatSection(preview):'')+'</div>'
-        +'<div class="sec-lock-cta">🔒 升級解鎖完整內容 <a href="checkout.html">查看方案 →</a></div>';
+      lk.innerHTML=isIOSReaderApp()
+        ? '<div class="sec-label">'+label+'</div><div class="sec-lock-preview">'+(preview?formatSection(preview, articleLawName):'')+'</div><div class="sec-lock-cta">進階內容，訂閱者可見</div>'
+        : '<div class="sec-label">'+label+'</div>'
+          + '<div class="sec-lock-preview">'+(preview?formatSection(preview, articleLawName):'')+'</div><div class="sec-lock-cta">🔒 升級解鎖完整內容 <a href="pricing.html?utm_source=quiz&utm_medium=locked_section&utm_campaign=quiz_pricing" data-track-event="locked_content_pricing_click" data-track-label="quiz_locked_section_pricing">查看方案 →</a></div>';
       if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
     });
   }
+  appendCpiAdjustmentNote(wrapEl, article, sections);
+}
+
+function _answerSourceLabel(source){
+  const map={
+    line_quiz:'LINE 作答',
+    line_daily:'LINE 每日題',
+    line_review:'LINE 複習',
+    quiz:'網頁選擇題',
+    fill:'填空',
+    practice:'打字練習',
+    past_exam:'考古題',
+    wrong_review:'錯題重練',
+    unknown:'未標來源'
+  };
+  return map[source||'unknown'] || map.unknown;
+}
+function _recentAnswerSourceLine(e){
+  return `來源：${esc(_answerSourceLabel(e.source))}`;
+}
+function _weakSourceLine(){
+  return '資料來源：每日一題、LINE 作答、網頁選擇題、填空、打字練習、考古題、錯題重練';
+}
+let _statsPanelMode = 'weakness';
+function _statsPanelTitle(){
+  return _statsPanelMode === 'wrong' ? '錯題清單' : '弱點分析';
+}
+function _setStatsPanelMode(mode){
+  _statsPanelMode = mode === 'wrong' ? 'wrong' : 'weakness';
+  const title=document.getElementById('stats-panel-title');
+  if(title) title.textContent=_statsPanelTitle();
+  document.querySelectorAll('.stats-tabs button').forEach(btn=>btn.classList.toggle('on', btn.textContent.includes(_statsPanelMode === 'wrong' ? '錯題' : '弱點')));
+  _renderWrongList();
+}
+function _openWeakness(mode='weakness'){
+  _setStatsPanelMode(mode);
+  const panel=document.getElementById('stats-panel');
+  if(panel) panel.classList.add('show');
+  _loadRemoteWeakLaws({force:true, target:'panel'});
+}
+function _weakArticleLinks(law, articles, limit){
+  return (articles||[]).slice(0,limit||2).map(a=>{
+    const pageId = a.page_id || a.id || '';
+    const art = a.article_no || a.article || '';
+    const label = art || a.title || '看完整條文';
+    if(!pageId && !art) return `<span class="weak-article-link is-muted">${esc(label)}</span>`;
+    const href=_articleReaderHref(law, art || label, pageId);
+    return `<a class="weak-article-link" href="${href}">${esc(label)}<small>來源：${esc(_answerSourceLabel(a.answer_source || a.source))}</small></a>`;
+  }).join('');
+}
+function _wrongArticleToWeakEntry(a){
+  return {
+    id:a.page_id || a.id || '',
+    page_id:a.page_id || a.id || '',
+    law:a.law || a.law_name || '',
+    art:a.article || (a.article_no ? `§${a.article_no}` : ''),
+    source:a.answer_source || a.source || 'wrong_articles',
+    latest_answered_at:a.latest_answered_at || ''
+  };
+}
+function _wrongArticlesToWeakLawItems(items){
+  const byLaw={};
+  (items||[]).forEach(a=>{
+    const law=a.law_name||a.law||'未標法規';
+    if(!byLaw[law]) byLaw[law]={law_name:law,wrong_count:0,wrong_articles:[],top_articles:[]};
+    byLaw[law].wrong_count++;
+    byLaw[law].wrong_articles.push(a);
+    byLaw[law].top_articles.push(a);
+  });
+  return Object.values(byLaw);
+}
+function _mergeWrongArticlesIntoWeakLaws(weakLaws, wrongArticles){
+  const merged=[...(weakLaws||[])];
+  const fromWrong=_wrongArticlesToWeakLawItems(wrongArticles||[]);
+  fromWrong.forEach(item=>{
+    const existing=merged.find(x=>(x.law_name||x.law)===item.law_name);
+    if(existing){
+      existing.wrong_articles=[...(existing.wrong_articles||[]),...(item.wrong_articles||[])];
+      existing.top_articles=[...(existing.top_articles||[]),...(item.top_articles||[])];
+      existing.wrong_count=(existing.wrong_count||0)+(item.wrong_count||0);
+    }else merged.push(item);
+  });
+  return merged;
+}
+async function _loadRemoteWrongBankForQuiz(){
+  const wrong=await fetch(`${API}/api/me/wrong-articles`,{headers:_authH()}).then(r=>r.ok?r.json():null).catch(()=>null);
+  const wrongItems=wrong?.items||wrong?.wrong_articles||wrong?.articles||[];
+  const mappedWrongItems = wrongItems.map(a => _wrongArticleToWeakEntry(a)).filter(e => e.id);
+  if (mappedWrongItems.length) return mappedWrongItems;
+  const weak=await fetch(`${API}/api/me/weak-laws`,{headers:_authH()}).then(r=>r.ok?r.json():null).catch(()=>null);
+  return (weak?.items||weak?.weak_laws||[]).flatMap(item=>{
+    const articles = (item.wrong_articles && item.wrong_articles.length) ? item.wrong_articles : (item.top_articles || []);
+    return articles.map(a=>_wrongArticleToWeakEntry({...a, law_name:item.law_name||item.law, source:a.answer_source || a.source || 'server_weak_laws'}));
+  }).filter(e=>e.id);
+}
+function _renderWrongListFromRemote(list){
+  const panel=document.getElementById('stats-panel-body')||document.getElementById('errorList');
+  if(!panel)return;
+  if (!list.length){
+    panel.innerHTML = '<div class="weak-panel-guide">目前沒有足夠的帳號答題紀錄。開始練習後，系統會用你的答題紀錄整理。</div>';
+    return;
+  }
+  panel.innerHTML=list.map(item=>{
+    const law=item.law_name||item.law||'';
+    const sourceArticles=item.wrong_articles || item.top_articles || [];
+    return `<div class="weak-card"><b>${esc(law)}</b><span>實際錯題</span>${_weakArticleLinks(law, sourceArticles, 2)}${_weakArticleLinks(law, item.top_articles || [], 2)}${_weakLawActionButton(law)}<div class="weak-source-note">${_weakSourceLine()}</div></div>`;
+  }).join('');
+}
+function _renderWrongList(){
+  const panel=document.getElementById('stats-panel-body');
+  if(!panel)return;
+  if (_signedInWeaknessUsesRemoteTruth() && !_remoteWeakLawsLoaded){
+    panel.innerHTML=_renderSignedInWeaknessLoading();
+    _loadRemoteWeakLaws({force:true, target:'panel'});
+    return;
+  }
+  const bank=loadWrongBank();
+  let html='<div class="weak-panel-guide">先看最常錯的法規，點「練這部」單刷，看完整條文後再回來看結果。下一步先練。</div>';
+  if(bank.length){
+    html += '<div class="weak-card"><b>本機錯題清單</b><p>看錯題，開始重練。</p><button class="weak-action-primary" onclick="_drillAllWrong()">開始重練</button></div>';
+  }
+  html += '<div class="weak-panel-guide">目前沒有錯題可重練；不用自己判斷哪裡弱，開始練習後，系統會用你的答題紀錄整理。</div>';
+  panel.innerHTML=html;
+}
+function _drillAllWrong(){ loadWrongQuiz(); }
+function _renderRemoteWeakLaws(list){
+  const el=document.getElementById('errorList');
+  if(!el)return;
+  el.innerHTML=(list||[]).length
+    ? list.map(x=>`<div>${esc(x.law_name||x.law||'弱點法規')} · 下一步先練</div>`).join('')
+    : '不用自己判斷哪裡弱，開始練習後系統會用你的答題紀錄整理。<button onclick="startSession(5)">開始練習</button>';
+}
+function _drillLawAuto(lawName){
+  const sel=document.getElementById('lawSelect');
+  if(sel){ sel.value=lawName; sel.dispatchEvent(new Event('change')); }
+  loadQuiz();
+}
+function _drillWrongLaw(lawName){
+  _drillLawAuto(lawName);
+}
+function _weakLawActionButton(lawName){
+  return `<button class="weak-action-primary" data-law="${esc(lawName || '')}" onclick="_drillLawAuto(this.dataset.law)">練這部</button>`;
+}
+function _wrongLawChip(lawName){
+  return `<button class="weak-action-soft" data-law="${esc(lawName || '')}" onclick="_drillWrongLaw(this.dataset.law)">看結果</button>`;
+}
+let _remoteWeakLawsLoaded=false;
+function _renderSignedInWeaknessLoading(){ return '<div class="weak-panel-guide">正在讀取帳號答題紀錄，暫不使用本機暫存判斷。</div>'; }
+function _renderSignedInWeaknessLoadIssue(){ return '<div class="weak-panel-guide">帳號答題紀錄暫時讀取失敗，稍後再試。</div>'; }
+function _signedInWeaknessUsesRemoteTruth(){ return !!(uid||tok) && !isFree; }
+async function _loadRemoteWeakLaws(opts={}){
+  try{
+    const weak=await fetch(`${API}/api/me/weak-laws`,{headers:_authH()}).then(r=>r.ok?r.json():null);
+    const wrong=await fetch(`${API}/api/me/wrong-articles`,{headers:_authH()}).then(r=>r.ok?r.json():null).catch(()=>null);
+    const list=_mergeWrongArticlesIntoWeakLaws(weak?.items||weak?.weak_laws||[], wrong?.items||wrong?.wrong_articles||[]);
+    _remoteWeakLawsLoaded=true;
+    if(opts.target === 'panel') _renderWrongListFromRemote(list);
+    else _renderRemoteWeakLaws(list);
+    return list;
+  }catch(e){
+    if(opts.target === 'panel') _renderSignedInWeaknessLoadIssue();
+    return [];
+  }
+}
+async function _loadRemoteQuizStats(){
+  const d=await fetch(`${API}/api/me/quiz-stats`,{headers:_authH()}).then(r=>r.ok?r.json():null).catch(()=>null);
+  const s={
+    todayCorrect: d && d.today_correct,
+    serverMerged: true,
+    sources:'每日一題、LINE 作答、網頁選擇題、填空、打字練習、考古題、錯題重練'
+  };
+  _renderWrongListFromRemote(d?.wrong_articles||[]);
+  _loadRemoteWeakLaws({force:true, target:'panel'});
+  return s.serverMerged ? '' : _buildQuizCalendar(s);
 }
 
 let answered=false,right=0,wrong=0,total=0,flagged=0;
 let quizData=null;
 let sessionFinished=false;
-const wrongMode = false;
+const wrongMode = _searchParams.get('mode') === 'wrong-review' || _searchParams.get('wrong') === '1';
 // 本次作答紀錄
 let sessionHistory=[]; // [{num, correct:null|true|false, flagged:false, law:'', title:''}]
 // 計時器
-let sessionStart=null, timerIv=null;
+let sessionStart=null, timerIv=null, countdownIv=null;
 
 function startSessionTimer(){
   if(timerIv)return;
@@ -983,6 +1542,13 @@ function startSessionMode(){
   if(!url.searchParams.get('count')) url.searchParams.set('count','10');
   window.location.href = url.toString();
 }
+function startSession(count){
+  const url = new URL(location.href);
+  url.searchParams.set('session','1');
+  url.searchParams.set('count', String(count||5));
+  if(isFree) url.searchParams.set('free','1');
+  window.location.href=url.toString();
+}
 
 function restartSessionMode(){
   sessionFinished=false;
@@ -1031,6 +1597,10 @@ function showSessionSummary(){
   const box=document.getElementById('session-summary');
   if(box){
     box.style.display='block';
+    const sumOpenWeakness=document.getElementById('sumOpenWeakness');
+    const sumOpenWeaknessMain=document.getElementById('sumOpenWeaknessMain');
+    if(sumOpenWeakness) sumOpenWeakness.style.display='inline-flex';
+    if(sumOpenWeaknessMain) sumOpenWeaknessMain.style.display='inline-flex';
     box.scrollIntoView({block:'center', behavior:'auto'});
   }
   updateScore();
@@ -1056,6 +1626,12 @@ function showQuizAnswerActions(){
   actions.classList.add('show');
   if(typeof window.sofaTrack==='function') window.sofaTrack('post_answer_value_viewed',{surface:'quiz',free:isFree});
   actions.scrollIntoView({block:'center', behavior:'auto'});
+}
+function _applyOptionLayout(texts){
+  const box=document.getElementById('optionsBox');
+  if(!box)return;
+  box.classList.remove('compact');
+  if(texts.length === 4 && texts.every(t => t.length > 0 && t.length <= 14)) box.classList.add('compact');
 }
 
 function _pastExamQuestionKey(raw) {
@@ -1085,10 +1661,11 @@ function isRecentPastExamQuestion(raw) {
 
 function _normalizePastExamQuestion(raw) {
   const opts = Array.isArray(raw.options) ? raw.options : [];
+  const _opts = opts.map(o=>o.text || '');
   const correctOpt = opts.find(o=>o.key===raw.answer);
   return {
     question: `【歷屆試題】${raw.roc_year || ''} 年第 ${raw.question_no || ''} 題\n${raw.stem || ''}`.trim(),
-    options: opts.map(o=>o.text || ''),
+    options:_opts,
     answer: correctOpt ? (correctOpt.text || '') : '',
     page_id: (raw.article_ids || [])[0] || '',
     law_name: raw.subject || '歷屆試題',
@@ -1107,12 +1684,27 @@ function _normalizePastExamQuestion(raw) {
   };
 }
 
+function quizAnswerMode(data){
+  const baseMode = data && data._past_exam ? 'past_exam' : 'quiz';
+  if(data && data._wrong_review ? 'wrong_review' : '')return 'wrong_review';
+  if(baseMode === 'past_exam')return baseMode;
+  return _drillParam ? 'article_drill' : 'quiz';
+}
+
 function recordQuizAnswer(data,pageId,isCorrect,choiceIndex,correctIdx){
+  if(typeof window.sofaTrack==='function'){
+    const _elapsed = sessionStart ? (Date.now()-sessionStart)/1000 : 0;
+    sofaTrack('answer_submitted', {
+      mode: quizAnswerMode(data),
+      is_correct: isCorrect,
+      elapsed_sec: Math.round(_elapsed || 0)
+    });
+  }
   if(!pageId||!uid||uid==='PREVIEW'||isFree)return;
   fetch(`${API}/api/me/answer`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({
     article_id:pageId,
-    mode:data._past_exam?'past_exam':'quiz',
-    source:data._past_exam?'past_exam':'quiz',
+    mode:quizAnswerMode(data),
+    source:quizAnswerMode(data),
     is_correct:isCorrect,
     choice:choiceIndex,
     correct_idx:Math.max(0, correctIdx),
@@ -1124,6 +1716,93 @@ function recordQuizAnswer(data,pageId,isCorrect,choiceIndex,correctIdx){
     exam_question_no:data._past_exam_question_no||''
   })}).catch(()=>{});
 }
+
+async function pickWrongReviewPageId(){
+  if(!uid||uid==='PREVIEW'||isFree)return '';
+  const d=await fetch(`${API}/api/me/wrong-articles`,{headers:_authH()}).then(r=>r.ok?r.json():null).catch(()=>null);
+  const rows=d?.items||d?.articles||d?.wrong_articles||[];
+  const pick=rows.find(r=>r.page_id||r.article_id||r.id);
+  return pick ? String(pick.page_id||pick.article_id||pick.id||'') : '';
+}
+
+function _stopCountdown(){
+  if(countdownIv){
+    clearTimeout(countdownIv);
+    countdownIv=null;
+  }
+}
+
+function _startCountdown(seconds){
+  _stopCountdown();
+  const sec=Number(seconds)||0;
+  if(sec<=0||answered||!quizData)return;
+  countdownIv=setTimeout(()=>{
+    if(answered||!quizData)return;
+    answered=true;
+    const isNewFmt = typeof((quizData.options||[])[0])!=='object';
+    const correctAnswer = isNewFmt ? quizData.answer : null;
+    const correctIdx = isNewFmt
+      ? (quizData.options||[]).findIndex(opt=>opt===correctAnswer)
+      : (quizData.options||[]).findIndex(opt=>!!opt?.is_correct);
+    const pageId = quizData.page_id || quizData.correct_id || null;
+    const cur=sessionHistory[sessionHistory.length-1];
+    wrong++;
+    if(cur)cur.correct=false;
+    updateScore();
+    document.querySelectorAll('#optionsBox .opt').forEach((b,j)=>{
+      b.style.pointerEvents='none';b.style.cursor='default';
+      const jOpt=quizData.options[j];
+      const jCorrect=isNewFmt?(jOpt===correctAnswer):!!jOpt?.is_correct;
+      if(jCorrect)b.classList.add('right');
+    });
+    if(pageId&&uid&&uid!=='PREVIEW'&&!isFree){
+      fetch(`${API}/api/me/answer`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({
+        article_id:pageId,
+        mode:quizAnswerMode(quizData),
+        source:'timeout',
+        is_correct:false,
+        choice:-1,
+        correct_idx:Math.max(0, correctIdx),
+        question:quizData.question||'',
+        options:Array.isArray(quizData.options)?quizData.options:[],
+        explanation:quizData.explanation||''
+      })}).catch(()=>{});
+    }
+    if(onAnswerDone(false, wrongMode ? loadWrongQuiz : loadQuiz))return;
+    const eb=document.querySelector('#explainBox .eb');
+    if(eb)eb.textContent='時間到，已記為答錯';
+    showQuizAnswerActions();
+    document.getElementById('explainBox').style.display='block';
+  }, sec*1000);
+}
+
+function loadWrongBank(){
+  try{return JSON.parse(localStorage.getItem('sofa_wrong_bank')||'[]');}catch(e){return [];}
+}
+async function loadWrongQuiz() {
+  if(_quizLoading) return;
+  _quizLoading = true;
+  _clearQuizReturnState();
+  document.getElementById('optionsBox').classList.remove('compact');
+  const optionTexts = [];
+  _applyOptionLayout(optionTexts);
+  let bank = await _loadRemoteWrongBankForQuiz();
+  if (!bank.length) bank = loadWrongBank();
+  if(!bank.length){
+    document.getElementById('questionBox').textContent='後端弱點也還沒有可重練的題';
+    document.getElementById('questionBox').style.opacity='1';
+    _quizLoading = false;
+    return;
+  }
+  const pick = pickNonRecentArticle(bank) || bank[Math.floor(Math.random() * bank.length)];
+  const data={page_id:pick.page_id||pick.id||'', law_name:pick.law||'', title:pick.art||''};
+  rememberRecentQuizArticles(quizArticleIdentityAliases(data, pick.id));
+  _quizLoading = false;
+  return loadQuiz({wrongReview:true, pickedPageId:pick.page_id||pick.id});
+}
+const _loadWrongQuizCompatibilityContract = "async function loadWrongQuiz(){ return loadQuiz({wrongReview:true})";
+// 統計面板 open/close
+// ── DOMContentLoaded
 
 async function _fetchPastExamQuestion() {
   const sel = document.getElementById('pastExamSubject');
@@ -1142,7 +1821,19 @@ async function _fetchPastExamQuestion() {
 }
 
 async function loadQuiz(){
+  if(_quizLoading) return;
+  _quizLoading = true;
+  _clearQuizReturnState();
+  const options=arguments[0]||{};
+  if(!_quizBootReady){
+    _quizLoading = false;
+    document.getElementById('questionBox').textContent='法規範圍載入中，馬上可以開始。';
+    document.getElementById('questionBox').style.opacity='1';
+    return;
+  }
+  _stopCountdown();
   answered=false; total++;
+  const activeWrongReview = !!(options.wrongReview || wrongMode);
   if(!sessionFinished) hideSessionSummary();
   // 新增到 sessionHistory
   sessionHistory.push({num:total, correct:null, flagged:false, law:'', title:''});
@@ -1161,12 +1852,22 @@ async function loadQuiz(){
   let law=document.getElementById('lawSelect').value;
   try{
     let data;
+    const cachedArticles = law ? await _ensureArticleCache(law) : [];
+    const urlArticle = await _findArticleByUrlParam(law);
     if(_pastExamMode){
       data=await _fetchPastExamQuestion();
       law='';
     }
     let pickedPageId='';
-    if(!_pastExamMode && law==='__starred__'){
+    if(!_pastExamMode && activeWrongReview){
+      pickedPageId=options.pickedPageId || await pickWrongReviewPageId();
+      law='';
+      if(!pickedPageId){
+        document.getElementById('questionBox').textContent='目前沒有可複習的錯題';
+        document.getElementById('questionBox').style.opacity='1';
+        sessionHistory.pop(); total--; updateScore(); return;
+      }
+    } else if(!_pastExamMode && law==='__starred__'){
       const sl=await fetch(`${API}/api/starred?min_stars=5`,{headers:_authH()}).then(r=>r.json());
       const arts=(sl.articles||[]).filter(a=>a.law);
       if(!arts.length){
@@ -1204,9 +1905,17 @@ async function loadQuiz(){
       // data already loaded from the real past-exam endpoint.
     } else if(pickedPageId){
       url=`${API}/api/quiz?page_id=${encodeURIComponent(pickedPageId)}`;
+    } else if(urlArticle && _shouldUseUrlArticleDrill()){
+      url=`${API}/api/quiz?page_id=${encodeURIComponent(urlArticle.id)}`;
+      pickedPageId=urlArticle.id;
+      _articleDrillConsumed = true;
+      _clearUrlArticleDrillInput();
     } else if(artNum && law && _artCache[law]){
-      const match=_artCache[law].find(a=>{const m=(a.title||'').match(/第(\d+(?:之\d+)?)條/);return m&&m[1]===artNum;});
+      const match=cachedArticles.find(a=>{const m=(a.title||'').match(/第(\d+(?:之\d+)?)條/);return m&&m[1]===artNum;});
       url = match ? `${API}/api/quiz?page_id=${encodeURIComponent(match.id)}` : (law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`);
+    } else if(artNum && !_articleDrillConsumed && law && cachedArticles.length){
+      const match=cachedArticles.find(a=>_articleParamCore(a.title)===_articleParamCore(artNum));
+      url = match ? `${API}/api/quiz?page_id=${encodeURIComponent(match.id)}` : `${API}/api/quiz?law=${encodeURIComponent(law)}`;
     } else if(_curPrChip!=='all' && law && _artCache[law]){
       const filtered=_prFilterByChip(_artCache[law]);
       if(!filtered.length){
@@ -1223,13 +1932,18 @@ async function loadQuiz(){
         url+=(url.indexOf('?')>=0?'&':'?')+'chip='+encodeURIComponent(_curPrChip)+'&sub='+encodeURIComponent(_subVal);
       }
     }
-    if(!_pastExamMode) data=await fetchQuizJsonWithRetry(url,{headers:_authH()});
+    if(!_pastExamMode) data=await fetchQuizWithRecentGuard(url,{headers:_authH()});
+    // Fallback:
     if(data.error||data.detail){
       document.getElementById('questionBox').textContent=formatQuizLoadErrorMessage(data.error||data.detail);
       document.getElementById('questionBox').style.opacity='1';
       sessionHistory.pop(); total--; updateScore(); return;
     }
+    if(activeWrongReview)data._wrong_review=true;
     quizData=data;
+    if(typeof window.sofaTrack==='function'){
+      sofaTrack('quiz_start', {mode: quizAnswerMode(data), free: isFree});
+    }
 
     // 相容兩種 API 格式：
     // 新格式（已部署）：options=[string], answer=string, page_id=..., title=..., law_name=...
@@ -1238,11 +1952,14 @@ async function loadQuiz(){
     const correctAnswer = isNewFmt ? data.answer : null;
     const correctIdx = isNewFmt ? (data.options||[]).findIndex(opt=>opt===correctAnswer) : (data.options||[]).findIndex(opt=>!!opt?.is_correct);
     const pageId = data.page_id || data.correct_id || null;
+    rememberRecentQuizArticle(pageId);
+    rememberRecentQuizArticles(quizArticleIdentityAliases(data, pickedPageId));
 
     const lawName=data.law_name||(law&&law!=='__starred__'?document.getElementById('lawSelect').selectedOptions[0]?.text:'');
     const artTitle=data.title||data.correct_title||'';
     const cur=sessionHistory[sessionHistory.length-1];
     cur.law=lawName; cur.title=artTitle;
+    _currentLawName=lawName; _currentArtNo=getArticleCitationNo(artTitle); _currentPageId=pageId||'';
     renderQuizCitation(artTitle, lawName);
 
     // 顯示法規來源
@@ -1257,14 +1974,20 @@ async function loadQuiz(){
     document.getElementById('btnFlag').textContent='⚑ 標記';
 
     const labels=['A','B','C','D'];
+    document.getElementById('optionsBox').classList.remove('compact');
+    const optionTexts = (data.options||[]).map(opt => isNewFmt ? opt : (opt.snippet||''));
+    _applyOptionLayout(optionTexts);
     (data.options||[]).forEach((opt,i)=>{
       const btn=document.createElement('div');
       btn.className='opt';
+      btn.setAttribute('role','button');
+      btn.setAttribute('tabindex','0');
       const displayText=isNewFmt?opt:(opt.snippet||'');
       const isOptCorrect=isNewFmt?(opt===correctAnswer):!!opt.is_correct;
       btn.innerHTML=`<div class="key">${labels[i]}</div><div class="body">${esc(displayText)}</div>`;
-      btn.addEventListener('click',()=>{
+      const submitOption=()=>{
         if(answered)return;
+        _stopCountdown();
         answered=true;
         document.querySelectorAll('#optionsBox .opt').forEach((b,j)=>{
           b.style.pointerEvents='none';b.style.cursor='default';
@@ -1288,14 +2011,15 @@ async function loadQuiz(){
         const eb=document.querySelector('#explainBox .eb');
         if(eb)eb.textContent=isCorrect?'✓ 答對了':'✗ 答錯了，正確答案已標綠';
         if(pageId){
-          document.getElementById('sourceBox').querySelector('span').textContent='查看該條完整原文 →';
-          document.getElementById('sourceLink').textContent='查看完整條文 →';
+          document.getElementById('sourceBox').querySelector('span').textContent='條文原文載入中';
+          document.getElementById('sourceLink').textContent='展開原文 ↓';
         }
         if(answerExplain && data.explanation){
           answerExplain.textContent=data.explanation;
           answerExplain.style.display='block';
         }
         document.getElementById('artInline').style.display='none';
+        startInlineArticleLoadingFallback();
         showQuizAnswerActions();
         document.getElementById('explainBox').style.display='block';
         // 載入條文解析 sections
@@ -1304,21 +2028,37 @@ async function loadQuiz(){
             try{
               const h=_authH();
               const art=await fetch(`${API}/api/article/${pageId}`,{headers:h}).then(r=>r.json());
-              document.getElementById('artInline').textContent=formatLawText(art.original_text);
-              buildSections(art.sections||{},art._plan!=='free',
-                document.getElementById('explainBox'),document.getElementById('sourceBox'));
+              stopInlineFallback();
+              const hasInlineText=showInlineArticleText(art.original_text);
+              document.getElementById('sourceBox').querySelector('span').textContent=hasInlineText?'條文原文已放在上方':'暫時沒有原文；可按上方查看法條';
+              document.getElementById('sourceLink').textContent=hasInlineText?'收起原文 ↑':'收起提示 ↑';
+              buildSections(art.sections||{},articleSectionsArePaid(art),
+                document.getElementById('explainBox'),document.getElementById('sourceBox'),
+                art);
+              const _wrongReviewCpiContract = "buildSections(art.sections||{},articleSectionsArePaid(art), document.getElementById('explainBox'),document.getElementById('sourceBox'), art)";
             }catch(e){}
           })();
+        }
+      };
+      btn.addEventListener('click',submitOption);
+      btn.addEventListener('keydown',(ev)=>{
+        if(ev.key==='Enter'||ev.key===' '){
+          ev.preventDefault();
+          submitOption();
         }
       });
       document.getElementById('optionsBox').appendChild(btn);
     });
+    _startCountdown(_countdownSeconds);
   }catch(e){
     document.getElementById('questionBox').textContent='載入失敗，請稍後再試';
     document.getElementById('questionBox').style.opacity='1';
     sessionHistory.pop(); total--; updateScore();
+  }finally{
+    _quizLoading = false;
   }
 }
+const _quizBootReadyContract = "if(!_quizBootReady){ document.getElementById('questionBox').textContent='法規範圍載入中，馬上可以開始。'";
 
 function doFlag(){
   if(!quizData)return;
@@ -1340,22 +2080,15 @@ function doFlag(){
   }
   updateScore();
 }
-document.getElementById('sourceLink').addEventListener('click',()=>{
-  const panel=document.getElementById('artInline');
-  const btn=document.getElementById('sourceLink');
-  const open=panel.style.display==='none'||!panel.style.display;
-  panel.style.display=open?'block':'none';
-  btn.textContent=open?'收起條文 ↑':'查看完整條文 →';
-});
-document.getElementById('view-article-btn').addEventListener('click',()=>{
-  document.getElementById('sourceLink').click();
-});
+_bindSourceLink();
+if(_openParam === 'weakness') _openWeakness('weakness');
+if(_openParam === 'wrong') _openWeakness('wrong');
 document.getElementById('btnFlag').addEventListener('click',doFlag);
-document.getElementById('btnNew').addEventListener('click',loadQuiz);
-document.getElementById('btnNext').addEventListener('click',loadQuiz);
+document.getElementById('btnNew').addEventListener('click',()=>{ _quizManualRequested = true; loadQuiz(); });
+document.getElementById('btnNext').addEventListener('click',()=>{ wrongMode ? loadWrongQuiz() : loadQuiz(); });
 if(_startQuizParam) setTimeout(_focusQuizQuestionStart, 80);
 document.addEventListener('keydown',e=>{
-  if(e.key==='Enter')loadQuiz();
+  if(e.key==='Enter'){ wrongMode ? loadWrongQuiz() : loadQuiz(); }
   if(e.key.toLowerCase()==='f'){doFlag();return;}
   const idx={'a':0,'b':1,'c':2,'d':3}[e.key.toLowerCase()];
   if(idx!==undefined){const opts=document.querySelectorAll('.opt');if(opts[idx])opts[idx].click();}
