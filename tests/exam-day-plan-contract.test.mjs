@@ -20,12 +20,26 @@ test('checkout defaults to the exam-day plan and keeps required checkout fields'
   assert.match(checkout, /POST https:\/\/sofa-engine-api\.onrender\.com\/api\/checkout|const API_URL = "https:\/\/sofa-engine-api\.onrender\.com\/api\/checkout"/);
   assert.match(checkout, /class="plan selected" data-plan="到考日" data-amount="1280"/);
   assert.doesNotMatch(checkout, /一次付清,用到 2026\/11\/30\(考後\)/);
-  assert.match(checkout, /<script src="exam-targets\.js\?v=1"><\/script>/);
+  assert.match(checkout, /<script src="exam-targets\.js\?v=20260713-exam-dates"><\/script>/);
   assert.match(examTargets, /const TARGETS = \{/);
   assert.match(examTargets, /DEFAULT_EXAM_DAY_SALE_OPEN_DAYS = 180/);
   for (const key of ['bookkeeper', 'landadmin', 'realestate', 'tax-admin', 'tax-law', 'elem-admin', 'post-acc']) {
     assert.match(examTargets, new RegExp(`${key}:|["']${key}["']:`));
   }
+  for (const [key, date] of [
+    ['bookkeeper', '2026-11-14T00:00:00+08:00'],
+    ['landadmin', '2026-06-06T00:00:00+08:00'],
+    ['realestate', '2026-11-14T00:00:00+08:00'],
+    ['tax-admin', '2026-07-03T00:00:00+08:00'],
+    ['tax-law', '2026-07-05T00:00:00+08:00'],
+    ['elem-admin', '2026-01-10T00:00:00+08:00'],
+    ['post-acc', '2026-07-19T00:00:00+08:00'],
+  ]) {
+    const targetBlock = new RegExp(`key:\\s*'${key}'[\\s\\S]*?examDate:\\s*'${date.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`);
+    assert.match(examTargets, targetBlock);
+  }
+  assert.match(checkout, /NT\$1280 是到考日方案固定價/);
+  assert.match(checkout, /考前 180 天內/);
   assert.match(checkout, /id="ck-exam-target"/);
   assert.match(checkout, /Object\.keys\(targets\)\.map\(\(key\) => \{/);
   assert.match(checkout, /<option value="\$\{key\}">/);

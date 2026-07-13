@@ -14,6 +14,9 @@
     landadmin: {
       key: 'landadmin',
       label: '地政士',
+      examDate: '2026-06-06T00:00:00+08:00',
+      examDisplay: '2026 / 06 / 06',
+      saleOpenDays: DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
       laws: '23',
       articles: '3,650',
       highlight: '民法 1,439 / 地籍測量規則 324 / 土地登記規則 184'
@@ -21,20 +24,29 @@
     realestate: {
       key: 'realestate',
       label: '不動產經紀人',
+      examDate: '2026-11-14T00:00:00+08:00',
+      examDisplay: '2026 / 11 / 14',
+      saleOpenDays: DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
       laws: '19',
       articles: '3,058',
       highlight: '民法 / 土地法 / 不動產經紀業管理條例'
     },
     'tax-admin': {
       key: 'tax-admin',
-      label: '財稅行政',
+      label: '財稅行政（高普考）',
+      examDate: '2026-07-03T00:00:00+08:00',
+      examDisplay: '2026 / 07 / 03',
+      saleOpenDays: DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
       laws: '20',
       articles: '2,590',
       highlight: '貨物稅 / 印花稅 / 使用牌照稅 三細節稅法'
     },
     'tax-law': {
       key: 'tax-law',
-      label: '財稅法務',
+      label: '財稅法務（高考三級）',
+      examDate: '2026-07-05T00:00:00+08:00',
+      examDisplay: '2026 / 07 / 05',
+      saleOpenDays: DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
       laws: '19',
       articles: '3,439',
       highlight: '民法 + 刑法 422 + 行政訴訟法 390 + 全套稅法'
@@ -42,6 +54,9 @@
     'elem-admin': {
       key: 'elem-admin',
       label: '初等一般行政',
+      examDate: '2026-01-10T00:00:00+08:00',
+      examDisplay: '2026 / 01 / 10',
+      saleOpenDays: DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
       laws: '11',
       articles: '2,886',
       highlight: '公務員入門八大法 + 民刑法基底'
@@ -49,6 +64,9 @@
     'post-acc': {
       key: 'post-acc',
       label: '中華郵政會計類',
+      examDate: '2026-07-19T00:00:00+08:00',
+      examDisplay: '2026 / 07 / 19',
+      saleOpenDays: DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
       laws: '10',
       articles: '1,349',
       highlight: '公司法 / 會計法 / 預算法 / 決算法 / 郵政法'
