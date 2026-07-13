@@ -925,7 +925,7 @@
   </div>
 </div>
 
-<script src="exam-targets.js?v=20260713-exam-dates"></script>
+<script src="exam-targets.js?v=20260713-exam-future-only"></script>
 <script>
 (function(){
   const API_URL = "https://sofa-engine-api.onrender.com/api/checkout";
@@ -1055,7 +1055,7 @@
     const selectedKey = getExplicitCheckoutExamKey();
     const options = Object.keys(targets).map((key) => {
       const t = targets[key] || {};
-      const date = t.examDisplay || "考期未設定";
+      const date = t.examDisplay || "下一期未公告";
       return `<option value="${key}">${t.label || key} · ${date}</option>`;
     }).join("");
     examTargetEl.innerHTML = `<option value="">請先選你的考試目標</option>${options}`;
@@ -1085,7 +1085,7 @@
     const api = window.SoFaExamTargets;
     const target = api && api.TARGETS ? api.TARGETS[getCheckoutExamKey()] : null;
     if (!target) return "請先選你的考試目標";
-    return `${target.label || "目標考試"} · ${target.examDisplay || "考期未設定"}`;
+    return `${target.label || "目標考試"} · ${target.examDisplay || "下一期未公告"}`;
   }
 
   function isCheckoutExamTargetConfigured(){
@@ -1107,7 +1107,7 @@
     } else if (state && state.state === "not_open") {
       examTargetHintEl.textContent = `${target.label || "目標考試"} · ${target.examDisplay}，${state.reason}`;
     } else {
-      examTargetHintEl.textContent = state?.reason || "考期未設定：這個考試的到考日方案尚未開放，請先選月費或季費。";
+      examTargetHintEl.textContent = state?.reason || "下一期正式考日尚未公告：這個考試的到考日方案尚未開放，請先選月費或季費。";
     }
   }
 

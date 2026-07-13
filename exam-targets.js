@@ -14,8 +14,7 @@
     landadmin: {
       key: 'landadmin',
       label: '地政士',
-      examDate: '2026-06-06T00:00:00+08:00',
-      examDisplay: '2026 / 06 / 06',
+      examDisplay: '下一期未公告',
       saleOpenDays: DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
       laws: '23',
       articles: '3,650',
@@ -34,8 +33,7 @@
     'tax-admin': {
       key: 'tax-admin',
       label: '財稅行政（高普考）',
-      examDate: '2026-07-03T00:00:00+08:00',
-      examDisplay: '2026 / 07 / 03',
+      examDisplay: '下一期未公告',
       saleOpenDays: DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
       laws: '20',
       articles: '2,590',
@@ -44,8 +42,7 @@
     'tax-law': {
       key: 'tax-law',
       label: '財稅法務（高考三級）',
-      examDate: '2026-07-05T00:00:00+08:00',
-      examDisplay: '2026 / 07 / 05',
+      examDisplay: '下一期未公告',
       saleOpenDays: DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
       laws: '19',
       articles: '3,439',
@@ -54,8 +51,7 @@
     'elem-admin': {
       key: 'elem-admin',
       label: '初等一般行政',
-      examDate: '2026-01-10T00:00:00+08:00',
-      examDisplay: '2026 / 01 / 10',
+      examDisplay: '下一期未公告',
       saleOpenDays: DEFAULT_EXAM_DAY_SALE_OPEN_DAYS,
       laws: '11',
       articles: '2,886',
@@ -140,7 +136,7 @@
       return { state: 'missing_target', canBuy: false, reason: '請先選你的考試目標。' };
     }
     if(!hasExamDate(t)){
-      return { state: 'unconfigured', canBuy: false, reason: '考期未設定，暫不開放到考日方案。' };
+      return { state: 'unconfigured', canBuy: false, reason: '下一期正式考日尚未公告，暫不開放到考日方案。' };
     }
     const d = rawDaysUntil(t, now);
     const saleOpenDays = Number.isFinite(Number(t.saleOpenDays)) ? Number(t.saleOpenDays) : DEFAULT_EXAM_DAY_SALE_OPEN_DAYS;
@@ -155,7 +151,7 @@
 
   function textForDays(target, suffix){
     const d = daysUntil(target);
-    if(d === null) return '考期未設定';
+    if(d === null) return '下一期未公告';
     return String(d) + (suffix || '');
   }
 
@@ -176,13 +172,13 @@
       }
     });
     all(opts.date).forEach(function(el){
-      el.textContent = target.examDisplay || '考期未設定';
+      el.textContent = target.examDisplay || '下一期未公告';
     });
     all(opts.label).forEach(function(el){
       el.textContent = target.label || '目標考試';
     });
     all(opts.bar).forEach(function(el){
-      el.textContent = target.examDisplay ? target.examDisplay + '  ' + target.label + '考試' : target.label + ' · 考期未設定';
+      el.textContent = target.examDisplay ? target.examDisplay + '  ' + target.label + '考試' : target.label + ' · 下一期未公告';
     });
     return target;
   }
