@@ -73,6 +73,30 @@ test('practice mobile share control avoids the top bar and timer corner', () => 
   assert.match(active, /@media \(max-width:760px\)\{[\s\S]*?#session-timer,#practice-stats-btn\{display:none\}/);
 });
 
+test('practice page lets users choose exam before law and filters law scope', () => {
+  const barStart = active.indexOf('Practice control bar');
+  const lawSelect = active.indexOf('id="lawSelect"', barStart);
+  const examSelect = active.indexOf('id="practiceExamSelect"', barStart);
+  assert.ok(examSelect >= 0, 'practice page must expose an exam selector');
+  assert.ok(lawSelect > examSelect, 'exam selector must appear before law selector');
+
+  assert.match(active, /<script src="exam-data\.js\?v=2"><\/script>/);
+  assert.match(active, /var _PRACTICE_EXAM_NODE\s*=\s*\{/);
+  assert.match(active, /bookkeeper:\s*'n72'/);
+  assert.match(active, /function _practiceExamLawSet\(key\)/);
+  assert.match(active, /typeof NODES === 'undefined'/);
+  assert.match(active, /return new Set\(node\.laws\)/);
+  assert.match(active, /function _filterPracticeLawsForExam\(laws,\s*examKey\)/);
+  assert.match(active, /_practiceExamLawSet\(examKey\)/);
+  assert.match(active, /localStorage\.getItem\('sofa_exam_key'\)/);
+  assert.match(active, /localStorage\.getItem\('sofa\.dash\.exam\.pick'\)/);
+  assert.match(active, /localStorage\.setItem\('sofa_exam_key',\s*examKey\)/);
+  assert.match(active, /localStorage\.setItem\('sofa\.dash\.exam\.pick',\s*examKey\)/);
+  assert.match(active, /populatePracticeLawsForExam\(d\.laws\|\|\[\],\s*examKey\)/);
+  assert.match(active, /getElementById\('practiceExamSelect'\)/);
+  assert.match(active, /examSelect\.addEventListener\('change'/);
+});
+
 test('practice analysis linkifies cross-law references inside the article reader', () => {
   const start = active.indexOf('function cleanCrossRefLawName');
   const end = active.indexOf('function formatSection', start);

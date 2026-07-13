@@ -315,6 +315,20 @@
       <a href="dashboard.html" style="font-family:var(--mono);font-size:11px;letter-spacing:.16em;color:rgba(245,240,234,.55);text-transform:uppercase;padding:6px 10px;border:1px solid var(--line-2);border-radius:3px">← BACK</a>
 
       <div class="pr-pick">
+        <span class="lab">EXAM</span>
+        <select id="practiceExamSelect" style="min-height:44px;background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:500;font-size:15px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none;min-width:96px;max-width:200px">
+          <option value="bookkeeper">記帳士</option>
+          <option value="landadmin">地政士</option>
+          <option value="realestate">不動產經紀人</option>
+          <option value="tax-admin">財稅行政</option>
+          <option value="tax-law">財稅法務</option>
+          <option value="elem-admin">初等行政</option>
+          <option value="post-acc">中華郵政會計</option>
+          <option value="all">全部考科</option>
+        </select>
+        <span class="car">▾</span>
+      </div>
+      <div class="pr-pick">
         <span class="lab">LAW</span>
         <select id="lawSelect" style="min-height:44px;background:transparent;border:none;outline:none;font-family:var(--serif);font-weight:500;font-size:15px;color:var(--cream);cursor:pointer;-webkit-appearance:none;appearance:none;min-width:80px;max-width:200px"><option value="">全部法規</option></select>
         <span class="car">▾</span>
@@ -428,6 +442,7 @@
     </div>
   </main>
 
+<script src="exam-data.js?v=2"></script>
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
 function isPreviewHost(){
@@ -476,6 +491,101 @@ if(isFree){
   document.querySelector('.pr-bar').before(bar);
 }
 
+var _PRACTICE_EXAM_NODE = {
+  bookkeeper: 'n72',
+  landadmin: 'n74',
+  realestate: 'n83',
+  'tax-admin': 'n79',
+  'tax-law': 'n43',
+  'elem-admin': 'n23',
+  'post-acc': 'n89'
+};
+var _PRACTICE_EXAM_LABEL = {
+  all: '全部考科',
+  bookkeeper: '記帳士',
+  landadmin: '地政士',
+  realestate: '不動產經紀人',
+  'tax-admin': '財稅行政',
+  'tax-law': '財稅法務',
+  'elem-admin': '初等行政',
+  'post-acc': '中華郵政會計'
+};
+var _practiceAllLaws = [];
+
+function _practiceStoredExamKey(){
+  var key = '';
+  try{
+    key = localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || '';
+  }catch(e){}
+  if(key && (key === 'all' || _PRACTICE_EXAM_NODE[key])) return key;
+  return 'bookkeeper';
+}
+function _practiceExamLawSet(key){
+  if(key === 'all') return null;
+  var nid = _PRACTICE_EXAM_NODE[key];
+  if(!nid || typeof NODES === 'undefined') return null;
+  var node = NODES[nid];
+  if(!node || !node.laws) return null;
+  return new Set(node.laws);
+}
+function _filterPracticeLawsForExam(laws, examKey){
+  var lawSet = _practiceExamLawSet(examKey);
+  if(!lawSet) return laws || [];
+  return (laws || []).filter(function(l){ return l && lawSet.has(l.name); });
+}
+function _appendPracticeSpecialLawOptions(sel){
+  if(uid){
+    [['__starred__','★ 重點法條'],['__bookmarks__','♥ 我的收藏'],['__mastered__','✓ 已熟記'],['__review__','⏰ 待複習']].forEach(function(pair){
+      var o=document.createElement('option');o.value=pair[0];o.textContent=pair[1];sel.appendChild(o);
+    });
+    var sep=document.createElement('option');sep.disabled=true;sep.textContent='──────';sel.appendChild(sep);
+  }
+}
+function populatePracticeLawsForExam(laws, examKey){
+  var sel = document.getElementById('lawSelect');
+  if(!sel) return;
+  var current = sel.value || '';
+  var stored = '';
+  try{ stored = localStorage.getItem('sofa_practice_law') || ''; }catch(e){}
+  sel.innerHTML = '<option value="">全部法規</option>';
+  _appendPracticeSpecialLawOptions(sel);
+  var filtered = _filterPracticeLawsForExam(laws, examKey);
+  filtered.forEach(function(l){
+    var o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);
+  });
+  var targetLaw = practiceUrlLawParam();
+  if(targetLaw && ![...sel.options].some(function(o){ return o.value === targetLaw; })){
+    var targetOpt=document.createElement('option');targetOpt.value=targetLaw;targetOpt.textContent=targetLaw;sel.appendChild(targetOpt);
+  }
+  var next = current || stored || '';
+  if(next && [...sel.options].some(function(o){ return o.value === next; })) sel.value = next;
+  else sel.value = '';
+  sel.dispatchEvent(new Event('change'));
+}
+function initPracticeExamSelect(){
+  var examSelect = document.getElementById('practiceExamSelect');
+  if(!examSelect) return 'bookkeeper';
+  var examKey = _practiceStoredExamKey();
+  examSelect.value = examKey;
+  if(!examSelect.value) examSelect.value = 'bookkeeper';
+  examKey = examSelect.value;
+  try{
+    localStorage.setItem('sofa_exam_key', examKey);
+    localStorage.setItem('sofa.dash.exam.pick', examKey);
+  }catch(e){}
+  examSelect.addEventListener('change', function(){
+    var nextKey = this.value || 'bookkeeper';
+    try{
+      localStorage.setItem('sofa_exam_key', nextKey);
+      localStorage.setItem('sofa.dash.exam.pick', nextKey);
+      localStorage.removeItem('sofa_practice_law');
+    }catch(e){}
+    populatePracticeLawsForExam(_practiceAllLaws, nextKey);
+    _updateChipLock();
+  });
+  return examKey;
+}
+
 // 連續學習天數（從 /api/me/streak）
 (async function loadStreak(){
   if(!uid || uid==='PREVIEW') return;
@@ -489,16 +599,11 @@ if(isFree){
 
 (async()=>{
   const sel = document.getElementById('lawSelect');
-  // Special filters
-  if(uid){
-    [['__starred__','★ 重點法條'],['__bookmarks__','♥ 我的收藏'],['__mastered__','✓ 已熟記'],['__review__','⏰ 待複習']].forEach(([v,t])=>{
-      const o=document.createElement('option');o.value=v;o.textContent=t;sel.appendChild(o);
-    });
-    const sep=document.createElement('option');sep.disabled=true;sep.textContent='──────';sel.appendChild(sep);
-  }
+  const examKey = initPracticeExamSelect();
   try {
     const d = await fetch(`${API}/api/laws`).then(r=>r.json());
-    (d.laws||[]).forEach(l=>{ const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o); });
+    _practiceAllLaws = d.laws || [];
+    populatePracticeLawsForExam(d.laws||[], examKey);
   } catch{}
   const _urlPracticeLaw = practiceUrlLawParam();
   if(_urlPracticeLaw){
