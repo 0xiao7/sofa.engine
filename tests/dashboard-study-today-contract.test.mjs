@@ -842,8 +842,10 @@ test('returning learners get a compact next card without onboarding-style extra 
 
 test('study today uses learner-facing subject status wording, not seed jargon', () => {
   assert.match(active, /可單刷/);
-  assert.match(active, /題庫準備中/);
-  assert.match(active, /科目狀態/);
+  assert.match(active, /目前可練習/);
+  assert.doesNotMatch(active, /題庫準備中/);
+  assert.doesNotMatch(active, /\d+\s*科\s*·\s*\d+\s*科可練習/);
+  assert.doesNotMatch(active, /題庫準備中\s*'\s*\+\s*esc\(pendingCount\)/);
   assert.doesNotMatch(active, /待 seed/);
 });
 

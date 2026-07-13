@@ -168,7 +168,7 @@ test('desktop sidebar stays present while the main dashboard scrolls', () => {
   assert.match(cssRule(html, '.side-guide-controls'), /position:sticky/);
   assert.match(cssRule(html, '.side-guide-controls'), /top:0/);
   assert.match(cssRule(html, '.side-guide-controls'), /background:rgba\(25,48,62,\.96\)/);
-  assert.match(html, /id="side-mode-status"[\s\S]*固定中/);
+  assert.match(html, /id="side-mode-status"[\s\S]*已固定/);
   assert.match(html, /id="side-mode-btn"[\s\S]*onclick="toggleDashboardSideNav\(\)"[\s\S]*隱藏/);
   assert.match(html, /class="side-peek-btn"[\s\S]*onclick="setDashboardSideCollapsed\(false\)"[\s\S]*導覽/);
   assert.match(cssRule(html, '.side-peek-btn'), /width:44px/);
@@ -179,7 +179,7 @@ test('desktop sidebar stays present while the main dashboard scrolls', () => {
   assert.doesNotMatch(html, /body\.side-collapsed \.topbar \.menu-btn::after/);
   assert.match(html, /button\.setAttribute\('aria-label', on \? '顯示導覽' : '隱藏導覽'\)/);
   assert.match(html, /modeButton\.textContent = on \? '顯示' : '隱藏'/);
-  assert.match(html, /status\.textContent = on \? '已隱藏' : '固定中'/);
+  assert.match(html, /status\.textContent = on \? '已隱藏' : '已固定'/);
   assert.match(html, /body\.side-collapsed \.side-guide-controls\{display:none\}/);
   assert.match(html, /\.shell::before\{[\s\S]*position:fixed;top:71px;bottom:0;left:0;width:280px/);
   assert.match(html, /\.shell::before\{[\s\S]*background:var\(--navy-2\)/);

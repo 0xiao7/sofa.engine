@@ -3760,7 +3760,7 @@
           <div class="lab">導 覽</div>
           <div class="nav-helper">右邊滑到哪，左邊會亮哪一段。</div>
           <div class="side-guide-controls" aria-label="導覽顯示狀態">
-            <span class="side-mode-status" id="side-mode-status">固定中</span>
+            <span class="side-mode-status" id="side-mode-status">已固定</span>
             <button class="side-mode-btn" type="button" id="side-mode-btn" onclick="toggleDashboardSideNav()">隱藏</button>
           </div>
           <div class="nav-list today-nav">
@@ -4166,9 +4166,9 @@
             <div class="srs-controls">
               <label class="srs-toggle"><input id="srs-push-enabled" type="checkbox" checked> LINE 每日推播</label>
               <label class="srs-toggle"><input id="srs-freeze-mode" type="checkbox"> 考前凍結</label>
-              <input class="srs-limit" id="srs-daily-limit" type="number" min="1" max="50" value="10" aria-label="每日複習上限">
+              <input class="srs-limit" id="srs-daily-limit" type="number" min="1" max="50" value="5" aria-label="每日複習上限">
               <select class="srs-select" id="srs-exam-key" aria-label="備考方向">
-                <option value="">尚未設定</option>
+                <option value="">跟隨會員目標</option>
                 <option value="bookkeeper">記帳士</option>
                 <option value="landadmin">地政士</option>
                 <option value="realestate">不動產經紀人</option>
@@ -4177,16 +4177,16 @@
                 <option value="elem-admin">初等一般行政</option>
                 <option value="post-acc">郵政會計</option>
               </select>
-              <select class="srs-select" id="srs-push-law" aria-label="LINE 每日推播法規">
-                <option value="">依目前進度</option>
-                <option value="商業會計法">商業會計法</option>
-                <option value="商業會計處理準則">商業會計處理準則</option>
-                <option value="記帳士法">記帳士法</option>
-                <option value="公司法">公司法</option>
-                <option value="稅捐稽徵法">稅捐稽徵法</option>
-                <option value="所得稅法">所得稅法</option>
-                <option value="加值型及非加值型營業稅法">加值型及非加值型營業稅法</option>
-              </select>
+              <input class="srs-select" id="srs-push-law" list="srs-push-law-options" placeholder="依目前進度或輸入法規名稱" aria-label="LINE 每日推播法規">
+              <datalist id="srs-push-law-options">
+                <option value="商業會計法"></option>
+                <option value="商業會計處理準則"></option>
+                <option value="記帳士法"></option>
+                <option value="公司法"></option>
+                <option value="稅捐稽徵法"></option>
+                <option value="所得稅法"></option>
+                <option value="加值型及非加值型營業稅法"></option>
+              </datalist>
               <select class="srs-select" id="srs-push-order" aria-label="LINE 每日推播順序">
                 <option value="law_first">指定法規優先</option>
                 <option value="review_due_first">到期複習優先</option>
@@ -7691,7 +7691,8 @@ function backdropCloseEntitlement(ev){
 
 // ── 今日複習提醒（SRS）────────────────────────────
 var _reviewDueItems = [];
-var _srsSettings = { freeze_mode:false, daily_review_limit:10, push_enabled:true, push_law_name:'', push_order:'law_first', exam_key:'' };
+var SRS_DEFAULT_DAILY_LIMIT = 5;
+var _srsSettings = { freeze_mode:false, daily_review_limit:SRS_DEFAULT_DAILY_LIMIT, push_enabled:true, push_law_name:'', push_order:'law_first', exam_key:'' };
 function _safeClickArg(s){
   return String(s || '')
     .replace(/\\/g, '\\\\')
@@ -7701,10 +7702,53 @@ function _safeClickArg(s){
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 }
+function getCurrentExamKeyForSettings(){
+  var settingKey = (_srsSettings && _srsSettings.exam_key) || '';
+  if(settingKey) return settingKey;
+  var profileKey = (_entitlementState.profile && _entitlementState.profile.exam_key) || '';
+  if(profileKey) return profileKey;
+  try{
+    var storedKey = localStorage.getItem('sofa_exam_key') || '';
+    if(storedKey) return storedKey;
+  }catch(e){}
+  return (typeof _examFilter !== 'undefined' && _examFilter && _examFilter !== 'all') ? _examFilter : '';
+}
+function _allKnownSrsLawNames(examKey){
+  var names = [];
+  var seen = {};
+  function addName(name){
+    name = String(name || '').trim();
+    if(!name || seen[name]) return;
+    seen[name] = true;
+    names.push(name);
+  }
+  var examSet = (examKey && examKey !== 'all' && typeof _examLawSet === 'function') ? _examLawSet(examKey) : null;
+  if(examSet && examSet.forEach){
+    examSet.forEach(addName);
+  }
+  if(!names.length && Array.isArray(_allLaws)){
+    _allLaws.forEach(function(law){
+      addName(typeof law === 'string' ? law : (law && law.name));
+    });
+  }
+  [
+    '商業會計法','商業會計處理準則','記帳士法','公司法',
+    '稅捐稽徵法','所得稅法','加值型及非加值型營業稅法'
+  ].forEach(addName);
+  return names;
+}
+function updateSrsPushLawOptions(examKey){
+  var list = document.getElementById('srs-push-law-options');
+  if(!list) return;
+  var names = _allKnownSrsLawNames(examKey);
+  list.innerHTML = names.map(function(name){
+    return '<option value="' + esc(name).replace(/"/g, '&quot;') + '"></option>';
+  }).join('');
+}
 function renderSrsSettings(settings){
   if(settings) _srsSettings = {
     freeze_mode: !!settings.freeze_mode,
-    daily_review_limit: settings.daily_review_limit || 10,
+    daily_review_limit: settings.daily_review_limit || SRS_DEFAULT_DAILY_LIMIT,
     push_enabled: settings.push_enabled !== false,
     push_law_name: settings.push_law_name || '',
     push_order: settings.push_order || 'law_first',
@@ -7717,16 +7761,18 @@ function renderSrsSettings(settings){
   var pushLaw = document.getElementById('srs-push-law');
   var pushOrder = document.getElementById('srs-push-order');
   var summary = document.getElementById('srs-settings-summary');
+  var currentExamKey = getCurrentExamKeyForSettings();
   if(pushEnabled) pushEnabled.checked = _srsSettings.push_enabled !== false;
   if(freeze) freeze.checked = !!_srsSettings.freeze_mode;
-  if(limit) limit.value = String(_srsSettings.daily_review_limit || 10);
-  if(examKey) examKey.value = _srsSettings.exam_key || '';
+  if(limit) limit.value = String(_srsSettings.daily_review_limit || SRS_DEFAULT_DAILY_LIMIT);
+  updateSrsPushLawOptions(currentExamKey);
+  if(examKey) examKey.value = currentExamKey || '';
   if(pushLaw) pushLaw.value = _srsSettings.push_law_name || '';
   if(pushOrder) pushOrder.value = _srsSettings.push_order || 'law_first';
   if(summary){
     var lawText = _srsSettings.push_law_name ? _srsSettings.push_law_name : '依目前進度';
     var pushText = _srsSettings.push_enabled === false ? '推播關閉' : '推播 ' + lawText;
-    summary.textContent = (_srsSettings.freeze_mode ? '3★+ 優先' : '全題到期') + ' · 每日 ' + (_srsSettings.daily_review_limit || 10) + ' 條 · ' + pushText;
+    summary.textContent = (_srsSettings.freeze_mode ? '3★+ 優先' : '全題到期') + ' · 每日 ' + (_srsSettings.daily_review_limit || SRS_DEFAULT_DAILY_LIMIT) + ' 條 · ' + pushText;
   }
 }
 function saveSrsSettings(){
@@ -7738,11 +7784,12 @@ function saveSrsSettings(){
   var pushOrderEl = document.getElementById('srs-push-order');
   var state = document.getElementById('srs-save-state');
   var n = parseInt(limit && limit.value, 10);
-  if(!Number.isFinite(n)) n = 10;
+  if(!Number.isFinite(n)) n = SRS_DEFAULT_DAILY_LIMIT;
   n = Math.max(1, Math.min(50, n));
   if(limit) limit.value = String(n);
-  var examKey = examKeyEl ? examKeyEl.value : '';
-  var pushLaw = pushLawEl ? pushLawEl.value : '';
+  var inheritedExamKey = getCurrentExamKeyForSettings();
+  var examKey = (examKeyEl && examKeyEl.value) ? examKeyEl.value : inheritedExamKey;
+  var pushLaw = pushLawEl ? String(pushLawEl.value || '').trim() : '';
   var pushOrder = pushOrderEl ? pushOrderEl.value : 'law_first';
   if(state) state.textContent = '儲存中';
   _fetchJSON(API+'/api/me/srs-settings', {
@@ -7872,14 +7919,10 @@ function renderStudyToday(data){
   var subjectMode = rules.law_to_subject_mapping === 'many_to_many' ? '法規可跨考科' : '考科模式';
   var subjects = Array.isArray(data.subjects) ? data.subjects : [];
   var blocks = data.today && Array.isArray(data.today.blocks) ? data.today.blocks : [];
-  var statusLabels = {
-    seeded_moex_mcq: '已可練習',
-    deferred_subject_container_only: '題庫準備中'
-  };
   var seededCount = subjects.filter(function(s){ return s.implementation_status === 'seeded_moex_mcq'; }).length;
-  if(summaryEl) summaryEl.textContent = data.fallback ? '先做 1 題開始累積弱點' : (subjects.length + ' 科 · ' + seededCount + ' 科可練習');
+  if(summaryEl) summaryEl.textContent = data.fallback ? '先做 1 題開始累積弱點' : (seededCount ? ('目前可練習 ' + seededCount + ' 科') : '先做 1 題開始累積弱點');
   var navStudy = document.getElementById('nav-ct-study');
-  if(navStudy) navStudy.textContent = seededCount ? (seededCount + '/' + subjects.length) : '';
+  if(navStudy) navStudy.textContent = seededCount ? String(seededCount) : '';
   var bridgeItems = (data.weak_law_bridge && data.weak_law_bridge.items) || [];
   var weakItems = bridgeItems.length ? bridgeItems : _latestWeakLawItems;
   renderStudyWeakBrief(weakItems);
@@ -7891,10 +7934,9 @@ function renderStudyToday(data){
   renderStudyPlanItems(_mergeStudyPlan(data.personal_plan || null));
   renderStudySuggestions(buildStudySuggestions(data, mergedPlan));
   updateStudySaveNudge();
-  var pendingCount = Math.max(0, subjects.length - seededCount);
   subjectsEl.innerHTML = '<span class="study-subject study-subject-summary">科目狀態</span>'
-    + '<span class="study-subject seeded">可單刷 ' + esc(seededCount) + ' 科</span>'
-    + (pendingCount ? '<span class="study-subject">題庫準備中 ' + esc(pendingCount) + ' 科</span>' : '');
+    + '<span class="study-subject seeded">目前可練習</span>'
+    + '<span class="study-subject seeded">可單刷 ' + esc(seededCount) + ' 科</span>';
   blocksEl.innerHTML = blocks.length ? blocks.slice(0,6).map(function(b){
     var laws = Array.isArray(b.law_names) ? b.law_names.join('、') : '';
     var targetLaw = (Array.isArray(b.law_names) && b.law_names[0]) || b.display_name || '';
@@ -8204,7 +8246,7 @@ function setDashboardSideCollapsed(collapsed){
     modeButton.textContent = on ? '顯示' : '隱藏';
     modeButton.setAttribute('aria-pressed', on ? 'false' : 'true');
   }
-  if(status) status.textContent = on ? '已隱藏' : '固定中';
+  if(status) status.textContent = on ? '已隱藏' : '已固定';
   if(peek) peek.setAttribute('aria-hidden', on ? 'false' : 'true');
 }
 
@@ -9224,6 +9266,9 @@ function applyExamFilter(key){
     }catch(e){}
   }
   if(typeof renderReviewDue === 'function') renderReviewDue();
+  if(typeof updateSrsPushLawOptions === 'function') updateSrsPushLawOptions(key === 'all' ? '' : key);
+  var srsExam = document.getElementById('srs-exam-key');
+  if(srsExam && key !== 'all' && (!_srsSettings || !_srsSettings.exam_key)) srsExam.value = key;
 }
 
 var _saveExamKeyTimer = null;
