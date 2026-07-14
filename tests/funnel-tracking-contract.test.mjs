@@ -15,6 +15,10 @@ const practice = readFileSync(new URL('../practice.html', import.meta.url), 'utf
 const lawPreview = readFileSync(new URL('../law-preview.html', import.meta.url), 'utf8');
 const notes = readFileSync(new URL('../notes.html', import.meta.url), 'utf8');
 const room = readFileSync(new URL('../room.html', import.meta.url), 'utf8');
+const blogIndex = readFileSync(new URL('../blog/index.html', import.meta.url), 'utf8');
+const blogHighFrequency = readFileSync(new URL('../blog/bookkeeper-exam-high-frequency-laws.html', import.meta.url), 'utf8');
+const blogReadLaws = readFileSync(new URL('../blog/how-to-read-bookkeeper-laws.html', import.meta.url), 'utf8');
+const blogToolsComparison = readFileSync(new URL('../blog/bookkeeper-exam-tools-comparison.html', import.meta.url), 'utf8');
 
 test('core funnel pages load the shared analytics bridge', () => {
   for (const html of [index, dashboard, login, quiz, fill, practice, free, pricing, checkout]) {
@@ -178,6 +182,13 @@ test('internal monetization links carry CTA-level attribution instead of becomin
     assert.match(html, pattern);
   }
   assert.match(room, /window\.sofaDecorateHref \? window\.sofaDecorateHref\(checkoutHref\) : checkoutHref/);
+});
+
+test('owned traffic blog CTAs route to tracked free quiz entry', () => {
+  for (const html of [blogIndex, blogHighFrequency, blogReadLaws, blogToolsComparison]) {
+    assert.match(html, /quiz\.html\?free=1&start=1&utm_source=blog&utm_medium=owned&utm_campaign=/);
+    assert.doesNotMatch(html, /href="https:\/\/line\.me\/R\/ti\/p\/@928oakbo"/);
+  }
 });
 
 test('analytics decorator supplies a safe internal fallback for naked payment links', () => {
