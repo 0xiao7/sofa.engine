@@ -49,12 +49,12 @@ test('checkout defaults to the exam-day plan and keeps required checkout fields'
   assert.match(checkout, /NT\$1280 是到考日方案固定價/);
   assert.match(checkout, /報名前一個月內/);
   assert.doesNotMatch(checkout, /考前 180 天內/);
-  assert.match(checkout, /未公告\/已結束考期會顯示但不能付款/);
+  assert.match(checkout, /只顯示目前可購買且 LINE 端已支援的考科/);
   assert.match(checkout, /id="ck-exam-target"/);
-  assert.match(checkout, /Object\.keys\(targets\)\.map\(\(key\) => \{/);
-  assert.match(checkout, /const disabled = state && !state\.canBuy \? ' disabled' : ''/);
-  assert.match(checkout, /const stateLabel = checkoutExamTargetStateLabel\(state\)/);
-  assert.match(checkout, /<option value="\$\{key\}"\$\{disabled\}>/);
+  assert.match(checkout, /function getCheckoutPurchasableTargets\(\)/);
+  assert.match(checkout, /\.filter\(\(\{ state \}\) => state && state\.canBuy\)/);
+  assert.doesNotMatch(checkout, /const disabled = state && !state\.canBuy \? ' disabled' : ''/);
+  assert.doesNotMatch(checkout, /<option value="\$\{key\}"\$\{disabled\}>/);
   assert.match(checkout, /window\.SoFaExamTargets/);
   assert.match(checkout, /function getCheckoutExamKey\(\)/);
   assert.match(checkout, /if \(examTargetEl\) return examTargetEl\.value \|\| ""/);
@@ -70,6 +70,21 @@ test('checkout defaults to the exam-day plan and keeps required checkout fields'
   assert.match(checkout, /"到考日": "到考日方案 · 讀到考試日"/);
   assert.match(checkout, /const examKey = getCheckoutExamKey\(\)/);
   assert.match(checkout, /body: JSON\.stringify\(\{ plan: sel\.plan, email, exam_key: examKey \}\)/);
+});
+
+test('GX-DROPDOWN checkout only renders open and LINE-supported exam targets', () => {
+  const sandbox = { window: {}, URLSearchParams };
+  sandbox.window.location = { search: '' };
+  sandbox.window.localStorage = { getItem: () => '', setItem: () => {} };
+  sandbox.localStorage = sandbox.window.localStorage;
+  vm.runInNewContext(examTargets, sandbox);
+  const api = sandbox.window.SoFaExamTargets;
+  const purchasable = Object.keys(api.TARGETS).filter((key) => api.examDayPlanState(api.TARGETS[key], '2026-07-15T00:00:00+08:00').canBuy);
+
+  assert.deepEqual(purchasable, ['bookkeeper', 'realestate']);
+  assert.match(checkout, /const available = getCheckoutPurchasableTargets\(\)/);
+  assert.match(checkout, /examTargetEl\.innerHTML = `<option value="">請先選你的考試目標<\/option>\$\{options\}`/);
+  assert.doesNotMatch(checkout, /暫不販售<\/option>/);
 });
 
 test('exam-day plan opens from the registration window, not the exam countdown', () => {
@@ -131,6 +146,7 @@ test('CXB frontend exam and plan contract stays aligned with canonical JSON', ()
     if (expected.exam_date) assert.equal(actual.examDate.slice(0, 10), expected.exam_date, `${key} exam_date`);
     if (expected.registration_start) assert.equal(actual.registrationStart.slice(0, 10), expected.registration_start, `${key} registration_start`);
     if (expected.sale_open_date) assert.equal(actual.saleOpenDate.slice(0, 10), expected.sale_open_date, `${key} sale_open_date`);
+    assert.equal(actual.lineBotSupported, expected.line_bot_supported, `${key} line_bot_supported`);
     if (expected.purchase_status === 'disabled') assert.equal(actual.purchaseStatus, 'disabled', `${key} disabled`);
   }
 });

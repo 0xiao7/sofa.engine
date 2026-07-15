@@ -9,6 +9,7 @@
       registrationStart: '2026-08-04T00:00:00+08:00',
       registrationDisplay: '2026 / 08 / 04',
       saleOpenDate: '2026-07-04T00:00:00+08:00',
+      lineBotSupported: true,
       laws: '33',
       articles: '2,157',
       highlight: '營利事業所得稅查核準則 143 條（記帳士獨家）'
@@ -17,6 +18,7 @@
       key: 'landadmin',
       label: '地政士',
       examDisplay: '下一期未公告',
+      lineBotSupported: true,
       laws: '23',
       articles: '3,650',
       highlight: '民法 1,439 / 地籍測量規則 324 / 土地登記規則 184'
@@ -29,6 +31,7 @@
       registrationStart: '2026-08-04T00:00:00+08:00',
       registrationDisplay: '2026 / 08 / 04',
       saleOpenDate: '2026-07-04T00:00:00+08:00',
+      lineBotSupported: true,
       laws: '19',
       articles: '3,058',
       highlight: '民法 / 土地法 / 不動產經紀業管理條例'
@@ -37,6 +40,7 @@
       key: 'tax-admin',
       label: '財稅行政（高普考）',
       examDisplay: '下一期未公告',
+      lineBotSupported: true,
       laws: '20',
       articles: '2,590',
       highlight: '貨物稅 / 印花稅 / 使用牌照稅 三細節稅法'
@@ -45,6 +49,7 @@
       key: 'tax-law',
       label: '財稅法務（高考三級）',
       examDisplay: '下一期未公告',
+      lineBotSupported: true,
       laws: '19',
       articles: '3,439',
       highlight: '民法 + 刑法 422 + 行政訴訟法 390 + 全套稅法'
@@ -55,6 +60,7 @@
       examDisplay: '下一期未公告',
       purchaseStatus: 'disabled',
       purchaseNote: 'LINE 推播尚未支援完整服務，暫不開放到考日方案。',
+      lineBotSupported: false,
       laws: '11',
       articles: '2,886',
       highlight: '公務員入門八大法 + 民刑法基底'
@@ -63,6 +69,7 @@
       key: 'post-acc',
       label: '中華郵政會計類',
       examDisplay: '下一期未公告',
+      lineBotSupported: true,
       laws: '10',
       articles: '1,349',
       highlight: '公司法 / 會計法 / 預算法 / 決算法 / 郵政法'
@@ -157,6 +164,9 @@
     }
     if(t.purchaseStatus === 'disabled'){
       return { state: 'purchase_disabled', canBuy: false, reason: t.purchaseNote || '這個考試暫不開放到考日方案。' };
+    }
+    if(t.lineBotSupported !== true){
+      return { state: 'line_unsupported', canBuy: false, reason: 'LINE 端尚未支援完整內容，暫不開放到考日方案。' };
     }
     if(!hasExamDate(t)){
       return { state: 'unconfigured', canBuy: false, reason: '下一期正式考日尚未公告，暫不開放到考日方案。' };
