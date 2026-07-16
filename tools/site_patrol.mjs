@@ -63,6 +63,71 @@ function tags(html, name) {
   return [...html.matchAll(new RegExp(`<${name}\\b[^>]*>`, "gi"))].map((match) => match[0]);
 }
 
+function elementSlice(html, startIndex, tagName) {
+  const openEnd = html.indexOf(">", startIndex);
+  if (openEnd === -1) return html.slice(startIndex);
+  const tokenRe = new RegExp(`<\\/?${tagName}\\b[^>]*>`, "gi");
+  tokenRe.lastIndex = startIndex;
+  let depth = 0;
+  for (const match of html.matchAll(tokenRe)) {
+    const token = match[0];
+    if (token.startsWith("</")) {
+      depth -= 1;
+      if (depth === 0) return html.slice(startIndex, match.index + token.length);
+    } else if (!token.endsWith("/>")) {
+      depth += 1;
+    }
+  }
+  return html.slice(startIndex, openEnd + 1);
+}
+
+function nearestPlanContainerStart(html, index) {
+  const containerRe = /<(div|section)\b[^>]*class\s*=\s*["'][^"']*\b(?:plan-card|plan)\b[^"']*["'][^>]*>/gi;
+  let found = null;
+  for (const match of html.matchAll(containerRe)) {
+    if (match.index > index) break;
+    const slice = elementSlice(html, match.index, match[1].toLowerCase());
+    if (match.index + slice.length >= index) found = { index: match.index, tagName: match[1].toLowerCase(), slice };
+  }
+  return found;
+}
+
+function visibleNtAmounts(block) {
+  const text = stripHtml(block);
+  return [...text.matchAll(/NT\$\s*([0-9][0-9,]*)/gi)].map((match) => Number(match[1].replace(/,/g, "")));
+}
+
+function pricingPlanComparisons(html, contract) {
+  const expectedPlans = new Map(contract.plans.map((p) => [p.name, Number(p.frontend_amount)]));
+  const comparisons = [];
+  const seen = new Set();
+  for (const match of html.matchAll(/<([a-z0-9-]+)\b[^>]*\bdata-plan=["']([^"']+)["'][^>]*>/gi)) {
+    const tagName = match[1].toLowerCase();
+    const plan = decodeEntities(match[2]);
+    if (!expectedPlans.has(plan)) continue;
+
+    const openingTag = match[0];
+    const openingAttrs = attrs(openingTag);
+    const container = nearestPlanContainerStart(html, match.index);
+    const start = container?.index ?? match.index;
+    const block = container?.slice ?? elementSlice(html, match.index, tagName);
+    const key = `${plan}:${start}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const dataAmount = openingAttrs["data-amount"] ? Number(openingAttrs["data-amount"]) : null;
+    const visibleAmounts = visibleNtAmounts(block);
+    if (dataAmount === null && visibleAmounts.length === 0) continue;
+    comparisons.push({
+      plan,
+      expected: expectedPlans.get(plan),
+      dataAmount,
+      visibleAmounts,
+    });
+  }
+  return comparisons;
+}
+
 function localTarget(url) {
   if (!url || url.startsWith("#")) return null;
   if (/[${}'"]|\s\+|\+\s|<%/.test(url)) return null;
@@ -234,13 +299,17 @@ function auditPage(file, html, contract) {
   }
 
   if (["pricing.html", "checkout.html"].includes(file)) {
-    checked.push("compared pricing/checkout data-plan, data-amount, and visible exam options against exam-plan-contract.json");
-    const expectedPlans = new Map(contract.plans.map((p) => [p.name, Number(p.frontend_amount)]));
-    for (const match of html.matchAll(/data-plan=["']([^"']+)["'][^>]*data-amount=["']([^"']+)["']/g)) {
-      const plan = match[1];
-      const amount = Number(match[2]);
-      if (expectedPlans.has(plan) && expectedPlans.get(plan) !== amount) {
-        issues.push({ level: "🔴", message: `plan ${plan} amount ${amount} does not match contract ${expectedPlans.get(plan)}` });
+    checked.push("compared pricing/checkout data-plan blocks, visible NT$ amounts, data-amount values, and visible exam options against exam-plan-contract.json");
+    const comparisons = pricingPlanComparisons(html, contract);
+    if (comparisons.length === 0) {
+      issues.push({ level: "🟡", message: "pricing contract comparison found 0 comparable plan blocks" });
+    }
+    for (const item of comparisons) {
+      if (item.dataAmount !== null && item.dataAmount !== item.expected) {
+        issues.push({ level: "🔴", message: `plan ${item.plan} data-amount ${item.dataAmount} does not match contract ${item.expected}` });
+      }
+      if (item.visibleAmounts.length > 0 && !item.visibleAmounts.includes(item.expected)) {
+        issues.push({ level: "🔴", message: `plan ${item.plan} visible amount ${item.visibleAmounts[0]} does not match contract ${item.expected}` });
       }
     }
     const openExams = new Set(Object.entries(contract.exams).filter(([, v]) => v.purchase_status === "open").map(([k]) => k));

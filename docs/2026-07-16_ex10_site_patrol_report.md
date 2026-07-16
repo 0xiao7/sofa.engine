@@ -1,6 +1,6 @@
 # EX10 Site Patrol Report
 
-Generated: 2026-07-16T07:44:48.564Z
+Generated: 2026-07-16T08:01:11.832Z
 Scope: 45 root HTML pages (28 formal, 17 design drafts).
 API base: https://sofa-engine-api.onrender.com
 
@@ -109,7 +109,7 @@ Title: SoFa Engine — 結帳
 
 Checked:
 - parsed anchors, scripts, styles, images, forms, onclick handlers, visible text, viewport, API calls
-- compared pricing/checkout data-plan, data-amount, and visible exam options against exam-plan-contract.json
+- compared pricing/checkout data-plan blocks, visible NT$ amounts, data-amount values, and visible exam options against exam-plan-contract.json
 - listed 2 API endpoint pattern(s)
 
 Issues:
@@ -520,7 +520,7 @@ Title: 方案與定價 — SoFa Engine 國考與專技備考平台
 
 Checked:
 - parsed anchors, scripts, styles, images, forms, onclick handlers, visible text, viewport, API calls
-- compared pricing/checkout data-plan, data-amount, and visible exam options against exam-plan-contract.json
+- compared pricing/checkout data-plan blocks, visible NT$ amounts, data-amount values, and visible exam options against exam-plan-contract.json
 
 Issues:
 - 🟡 visible bare sofaengine.org text found
