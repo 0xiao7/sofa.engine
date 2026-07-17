@@ -37,7 +37,7 @@ function runPatrol(root) {
     encoding: 'utf8',
   });
   assert.equal(result.status, 0, result.stderr || result.stdout);
-  return readFileSync(path.join(root, 'docs/2026-07-16_ex10_site_patrol_report.md'), 'utf8');
+  return readFileSync(path.join(root, 'docs/2026-07-17_ex14_site_patrol_report.md'), 'utf8');
 }
 
 test('pricing patrol compares visible NT amounts inside each data-plan block', () => {

@@ -2,15 +2,17 @@ import fs from "node:fs";
 import path from "node:path";
 
 const ROOT = process.cwd();
-const REPORT_PATH = path.join(ROOT, "docs", "2026-07-16_ex10_site_patrol_report.md");
+const REPORT_PATH = path.join(ROOT, "docs", "2026-07-17_ex14_site_patrol_report.md");
 const API_BASE = process.env.SOFA_API_BASE || "https://sofa-engine-api.onrender.com";
 const DESIGN_DRAFT_RE = /(?:-v\d+(?:-[a-z]+)?|-redesign|-micro|-depurple|-clean|-navy|-favicon)\.html$/;
 const FORMAL_EXPECTED = 28;
-const DRAFT_EXPECTED = 17;
-const ROOT_EXPECTED = 45;
+const DRAFT_EXPECTED = 0;
+const ROOT_EXPECTED = 28;
 const FETCH_TIMEOUT_MS = Number(process.env.SITE_PATROL_TIMEOUT_MS || 7000);
 const APPLIED_FIXES = [
   "Fixed ig-cards.html broken local image references by pointing the five phone preview images to committed asset assets/素材/preview.png.",
+  "Removed 17 unlinked legacy design draft pages after EX10 patrol confirmed zero root HTML links.",
+  "Cleaned EX14 yellow facade items on formal pages: UTM tracking, visible bare domains, sub-10px font declarations, viewport metadata, and mobile overflow guards.",
 ];
 
 function readText(file) {
@@ -95,6 +97,16 @@ function nearestPlanContainerStart(html, index) {
 function visibleNtAmounts(block) {
   const text = stripHtml(block);
   return [...text.matchAll(/NT\$\s*([0-9][0-9,]*)/gi)].map((match) => Number(match[1].replace(/,/g, "")));
+}
+
+function visibleBareDomains(text) {
+  const domains = [];
+  for (const match of text.matchAll(/\b(?:https?:\/\/)?(?:www\.)?sofaengine\.org(?:\/[^\s，。、；：！？)）]*)?/gi)) {
+    const before = text[match.index - 1] || "";
+    if (before === "@") continue;
+    domains.push(match[0]);
+  }
+  return [...new Set(domains)].sort();
 }
 
 function pricingPlanComparisons(html, contract) {
@@ -287,7 +299,10 @@ function auditPage(file, html, contract) {
   for (const phrase of ["AI 解析", "AI 生成", "AI生成"]) {
     if (text.includes(phrase)) issues.push({ level: "🔴", message: `visible forbidden wording: ${phrase}` });
   }
-  if (text.includes("sofaengine.org")) issues.push({ level: "🟡", message: "visible bare sofaengine.org text found" });
+  const bareDomains = visibleBareDomains(text);
+  if (bareDomains.length) {
+    issues.push({ level: "🟡", message: `visible bare sofaengine.org text found: ${bareDomains.join(", ")}` });
+  }
 
   const externalCtas = anchors.filter((a) => /^https?:\/\//i.test(a.href || "") || /^mailto:/i.test(a.href || ""));
   const paymentCtas = externalCtas.filter((a) => /checkout|line|ecpay|payment|sofaengine\.org/i.test(a.href || ""));
@@ -389,7 +404,7 @@ async function main() {
 
   const counts = levelCounts(pages);
   const lines = [];
-  lines.push("# EX10 Site Patrol Report");
+  lines.push("# EX14 Site Patrol Report");
   lines.push("");
   lines.push(`Generated: ${new Date().toISOString()}`);
   lines.push(`Scope: ${files.length} root HTML pages (${formal.length} formal, ${drafts.length} design drafts).`);
@@ -409,6 +424,7 @@ async function main() {
   lines.push("");
   lines.push("## Design Draft Inventory");
   lines.push("");
+  if (drafts.length === 0) lines.push("- none; EX14 removed the 17 legacy design draft pages.");
   for (const draft of drafts) {
     const refs = draftRefs.get(draft) || [];
     lines.push(`- ${draft}: ${refs.length ? `linked by ${refs.join(", ")}` : "not linked by root HTML; recommend noindex/removal after Fay approval"}`);
