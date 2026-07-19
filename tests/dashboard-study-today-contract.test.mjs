@@ -347,11 +347,14 @@ test('study playlist is a generic text fallback and does not ship private schedu
   assert.match(active, /function openStudyPlaylistPanel/);
   assert.match(active, /function loadStudyPlaylist/);
   assert.match(active, /\/api\/playlist\?track=bookkeeper/);
+  assert.match(active, /mode=active_recall/);
   assert.match(active, /content_layer=analysis/);
+  assert.match(active, /pause_seconds=/);
   assert.match(active, /star_min=3/);
-  assert.match(active, /重點清單，能朗讀也能單刷/);
+  assert.match(active, /通勤問答|重點清單/);
   assert.match(active, /aria-label="通勤重點朗讀清單"/);
   assert.match(active, /aria-label="重點清單科目"/);
+  assert.match(active, /aria-label="問答停頓秒數"/);
   assert.doesNotMatch(active, /播放清單/);
   assert.doesNotMatch(active, />PLAYLIST</);
   assert.doesNotMatch(active, /記帳士 115記帳士台北N1|115\/03\/02|稅務相關法規\(基礎\)1/);
@@ -465,7 +468,7 @@ test('study playlist can directly play text through the browser speech engine', 
   assert.match(active, /id="study-playlist-playall"/);
   assert.match(active, /class="primary" id="study-playlist-playall"/);
   assert.match(active, /onclick="playStudyPlaylistAll\(this\)"/);
-  assert.match(active, /朗讀全部/);
+  assert.match(active, /播放問答/);
   assert.match(extractFunction(active, 'openStudyPlaylistPanel'), /focusStudyPanelTarget\('study-playlist-playall',\s*'study-cockpit-recap'\)/);
   assert.match(active, /id="study-playlist-status"/);
   assert.match(active, /function playStudyPlaylistItem/);
@@ -473,6 +476,8 @@ test('study playlist can directly play text through the browser speech engine', 
   assert.match(active, /function _setStudyPlaylistStatus/);
   assert.match(active, /function _setStudyPlaylistSpeakingIndex/);
   assert.match(active, /function _cleanSpeechCueText/);
+  assert.match(active, /function _studyPlaylistSegments/);
+  assert.match(active, /function _speakStudyPlaylistSegments/);
   assert.match(active, /function _speakStudyPlaylistText/);
   assert.match(active, /SpeechSynthesisUtterance/);
   assert.match(active, /speechSynthesis\.speak/);
@@ -480,10 +485,10 @@ test('study playlist can directly play text through the browser speech engine', 
   assert.match(active, /speechSynthesis\.resume/);
   assert.match(active, /window\.__studyPlaylistAudioItems/);
   assert.match(active, /\.study-playlist-item\.is-speaking/);
-  assert.match(active, /正在朗讀：/);
+  assert.match(active, /正在朗讀：|正在播放：/);
   assert.match(active, /朗讀沒有啟動/);
   assert.match(active, /已停止朗讀/);
-  assert.match(active, /已準備 ' \+ items\.length \+ ' 則文字重點/);
+  assert.match(active, /已準備 ' \+ items\.length \+ ' 題通勤問答/);
   assert.match(active, /重音\|停頓/);
   assert.match(active, /replace\(\s*\/\\s\+\/g,\s*' '\s*\)/);
   const fn = extractFunction(active, 'loadStudyPlaylist');
@@ -491,6 +496,24 @@ test('study playlist can directly play text through the browser speech engine', 
   assert.match(fn, />朗讀</);
   assert.match(fn, /data-playlist-index/);
   assert.match(active, /不支援朗讀|不支援朗讀，請先看文字清單|這個瀏覽器不支援朗讀/);
+});
+
+test('study playlist active recall plays question pause answer segments without claiming mp3 assets', () => {
+  const load = extractFunction(active, 'loadStudyPlaylist');
+  const segments = extractFunction(active, '_studyPlaylistSegments');
+  const speak = extractFunction(active, '_speakStudyPlaylistSegments');
+  const playAll = extractFunction(active, 'playStudyPlaylistAll');
+
+  assert.match(load, /item\.prompt/);
+  assert.match(load, /item\.answer/);
+  assert.match(load, /item\.pause_seconds/);
+  assert.match(load, /Array\.isArray\(item\.segments\)/);
+  assert.match(segments, /seg\.type === 'pause'/);
+  assert.match(segments, /Math\.max\(3,\s*Math\.min\(12/);
+  assert.match(speak, /setTimeout\(function\(\)\{ speakSegment\(i \+ 1\); \}, seg\.seconds \* 1000\)/);
+  assert.match(speak, /停頓 ' \+ seg\.seconds \+ ' 秒，先自己想答案/);
+  assert.match(playAll, /segments\.some\(function\(seg\)\{ return seg\.type === 'pause'; \}\)/);
+  assert.doesNotMatch(load, /audio_url[\s\S]*new Audio/);
 });
 
 test('study tool panels expose one active mode and explain where saved work goes', () => {
