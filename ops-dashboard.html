@@ -61,6 +61,13 @@
     .event { border-left: 4px solid var(--line); padding: 8px 0 8px 12px; }
     .event.warn { border-left-color: var(--amber); }
     .event.critical { border-left-color: var(--red); }
+    .diagnosis-panel { display: grid; gap: 12px; }
+    .diagnosis-summary { font-size: 20px; line-height: 1.35; color: var(--ink); }
+    .diagnosis-rows { display: grid; gap: 0; border-top: 1px solid var(--line); }
+    .diagnosis-row { display: grid; grid-template-columns: 160px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+    .diagnosis-row b { font-size: 13px; }
+    .diagnosis-row p { color: var(--ink); }
+    .diagnosis-model { margin: 0; padding-left: 18px; color: var(--ink); line-height: 1.75; }
     .actions { margin: 0; padding-left: 18px; color: var(--ink); line-height: 1.9; }
     .policy { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .policy div { border: 1px solid var(--line); border-radius: 6px; padding: 12px; min-height: 92px; }
@@ -70,6 +77,7 @@
       header { display: block; }
       .stamp { text-align: left; margin-top: 12px; }
       .span-8, .span-6, .span-4, .span-3 { grid-column: span 12; }
+      .diagnosis-row { grid-template-columns: 1fr; gap: 4px; }
       .status-row, .policy { grid-template-columns: 1fr; }
     }
   </style>
@@ -123,6 +131,11 @@
       <div id="revenueFunnelChart" class="chart"></div>
     </section>
 
+    <section class="span-12">
+      <h2>商業診斷</h2>
+      <div id="businessDiagnosisPanel" class="diagnosis-panel"></div>
+    </section>
+
     <section class="span-8">
       <span class="anchor" id="alerts" aria-hidden="true"></span>
       <h2>警告紀錄</h2>
@@ -157,6 +170,7 @@
       ],
       lineQuota: { limit: null, used: null, points: [] },
       revenueFunnel: { steps: [] },
+      businessDiagnosis: null,
       alerts: [],
       actions: [
         "接上 GitHub Actions 或 bot preview JSON，寫入 window.SOFA_OPS_SNAPSHOT。",
@@ -232,6 +246,31 @@
       </svg>`;
     }
 
+    function renderBusinessDiagnosis(businessDiagnosis) {
+      const target = document.getElementById("businessDiagnosisPanel");
+      if (businessDiagnosis && (businessDiagnosis.summary || businessDiagnosis.bottleneck)) {
+        target.innerHTML = `
+          <p class="diagnosis-summary">${businessDiagnosis.summary || "資料待接"}</p>
+          <div class="diagnosis-rows">
+            <div class="diagnosis-row"><b>瓶頸</b><p><code>${businessDiagnosis.bottleneck || "unknown"}</code></p></div>
+            <div class="diagnosis-row"><b>為什麼</b><p>${businessDiagnosis.why || "等待 revenue report 診斷。"}</p></div>
+            <div class="diagnosis-row"><b>怎麼改</b><p>${businessDiagnosis.next_action || "等待下一步建議。"}</p></div>
+          </div>`;
+        return;
+      }
+      target.innerHTML = `
+        <p class="diagnosis-summary">沒收入不等於沒人用；先定位使用到付款中間斷在哪一段。</p>
+        <ol class="diagnosis-model">
+          <li><code>traffic</code>：沒有可歸因流量，先補 tracked URL 與入口。</li>
+          <li><code>value_bridge</code>：有人答題/刷題但沒看方案，先改保存紀錄、弱點分析、錯題重練 CTA。</li>
+          <li><code>pricing_to_checkout</code>：有人看方案但沒進付款，先補方案價值與信任。</li>
+          <li><code>checkout_intent</code>：有人進付款頁但沒按付款，先看首屏、信箱與 CTA 可見性。</li>
+          <li><code>checkout_submit</code>：有人按付款但沒送綠界，先查 API/form/ECPay 參數。</li>
+          <li><code>payment_completion</code>：送綠界後沒驗證收入，才查 webhook、驗章、序號發行。</li>
+        </ol>
+        <p>完整數字由內部 revenue report 寫入 snapshot；dashboard 未接資料前不造假。</p>`;
+    }
+
     function renderAlertTimeline(alerts) {
       const target = document.getElementById("alertTimeline");
       const openAlerts = (alerts || []).filter((item) => item.status !== "resolved");
@@ -253,6 +292,7 @@
       renderStatus(snapshot);
       renderQuotaChart(snapshot.lineQuota || {});
       renderFunnelChart(snapshot.revenueFunnel || {});
+      renderBusinessDiagnosis(snapshot.businessDiagnosis || snapshot.business_diagnosis);
       renderAlertTimeline(snapshot.alerts || []);
       renderActions(snapshot.actions || []);
     }
