@@ -65,6 +65,7 @@
     .policy { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .policy div { border: 1px solid var(--line); border-radius: 6px; padding: 12px; min-height: 92px; }
     code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: #efede7; padding: 2px 5px; border-radius: 4px; }
+    .anchor { display: block; position: relative; top: -12px; visibility: hidden; }
     @media (max-width: 840px) {
       header { display: block; }
       .stamp { text-align: left; margin-top: 12px; }
@@ -84,6 +85,7 @@
 
   <main class="grid">
     <section class="span-12" id="opsStatus">
+      <span class="anchor" id="overview" aria-hidden="true"></span>
       <h2>營運總燈</h2>
       <span class="pill warn" id="overallStatus">資料待接</span>
       <div class="status-row" id="serviceStatus"></div>
@@ -116,11 +118,13 @@
     </section>
 
     <section class="span-6">
+      <span class="anchor" id="revenue" aria-hidden="true"></span>
       <h2>收入漏斗變化</h2>
       <div id="revenueFunnelChart" class="chart"></div>
     </section>
 
     <section class="span-8">
+      <span class="anchor" id="alerts" aria-hidden="true"></span>
       <h2>警告紀錄</h2>
       <div id="alertTimeline" class="timeline"></div>
     </section>
