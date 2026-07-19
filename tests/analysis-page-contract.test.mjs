@@ -72,3 +72,13 @@ test('analysis page keeps public answer-source boundary honest', () => {
   assert.match(analysis, /SoFa Engine 參考解析/);
   assert.match(analysis, /非考選部官方標準答案/);
 });
+
+test('analysis diagnosis cards link directly into practice', () => {
+  assert.match(analysis, /function practiceHref\(law, campaign\)/);
+  assert.match(analysis, /qs\.set\('law', lawName\)/);
+  assert.match(analysis, /qs\.set\('drill', '1'\)/);
+  assert.match(analysis, /<a class="spot" href="\$\{htmlEscape\(practiceHref\(lawName, 'analysis_weak_spot'\)\)\}"/);
+  assert.match(analysis, /<a class="spot sage" href="\$\{htmlEscape\(practiceHref\(lawName, 'analysis_most_practiced'\)\)\}"/);
+  assert.match(analysis, /<a class="spot amber" href="\$\{htmlEscape\(practiceHref\(item\.law \|\| '', 'analysis_not_started'\)\)\}"/);
+  assert.match(analysis, /<a class="due-item" href="\$\{htmlEscape\(practiceHref\(item\.law_name \|\| '', 'analysis_review_due'\)\)\}"/);
+});

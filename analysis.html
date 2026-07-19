@@ -67,7 +67,8 @@
     .metric b{display:block;font-size:20px;color:var(--navy);line-height:1}
     .metric span{display:block;margin-top:6px;font-size:12px;color:var(--muted);font-weight:800}
     .list{display:grid;gap:10px}
-    .spot{display:grid;gap:8px;border:1px solid #e4e7ee;border-radius:8px;background:#fff;padding:12px}
+    .spot{display:grid;gap:8px;border:1px solid #e4e7ee;border-radius:8px;background:#fff;padding:12px;color:inherit;text-decoration:none}
+    .spot:hover{border-color:#cfd7e6;box-shadow:0 10px 28px rgba(19,34,61,.08)}
     .spot-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
     .spot-title{font-size:15px;font-weight:900;color:var(--ink);line-height:1.35}
 	    .spot-count{min-width:56px;text-align:center;border-radius:8px;background:#fff0ef;color:#9d3f3a;font-weight:900;padding:7px 8px;font-size:13px}
@@ -77,7 +78,7 @@
     .heat{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px}
     .bar{height:9px;border-radius:999px;background:#edf0f5;overflow:hidden}
     .bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--gold),var(--rose));width:var(--w,30%)}
-    .due-item{display:flex;gap:10px;align-items:flex-start;border-bottom:1px solid #edf0f5;padding:10px 0}
+    .due-item{display:flex;gap:10px;align-items:flex-start;border-bottom:1px solid #edf0f5;padding:10px 0;color:inherit;text-decoration:none}
     .due-item:last-child{border-bottom:0}
     .due-date{min-width:54px;border-radius:8px;background:#edf2fb;color:var(--blue);font-size:12px;font-weight:900;padding:7px;text-align:center}
     .due-body b{display:block;font-size:14px}
@@ -251,6 +252,23 @@
       }[ch]));
     }
 
+    function practiceHref(law, campaign){
+      const qs = new URLSearchParams({
+        utm_source: 'analysis',
+        utm_medium: 'card',
+        utm_campaign: campaign || 'analysis_practice_card'
+      });
+      const lawName = String(law || '').trim();
+      if(lawName){
+        qs.set('law', lawName);
+        qs.set('drill', '1');
+      } else {
+        qs.set('free', '1');
+        qs.set('start', '1');
+      }
+      return `quiz.html?${qs.toString()}`;
+    }
+
     function parseDate(value){
       const parts = String(value || '').split('-').map(Number);
       if(parts.length !== 3 || parts.some((n) => !Number.isFinite(n))) return null;
@@ -404,14 +422,16 @@
 
 	    function previewAnalysis(){
 	      const exam = ((state.contract && state.contract.exams) || {}).bookkeeper || {};
+	      const examDate = exam.exam_date || '';
+	      const accessUntil = exam.access_until || '';
 	      return {
 	        mode: 'preview',
 	        exam: {
 	          exam_key: 'bookkeeper',
 	          label: '記帳士',
-	          exam_date: exam.exam_date || '2026-11-14',
-	          access_until: exam.access_until || '2026-11-21',
-	          days_until_exam: daysUntil(exam.exam_date || '2026-11-14'),
+	          exam_date: examDate,
+	          access_until: accessUntil,
+	          days_until_exam: daysUntil(examDate),
 	          source: 'preview'
 	        },
 	        quiz_stats: { total: 121, correct: 82, accuracy: 68, wrong_count: 18 },
@@ -471,15 +491,18 @@
         $('blindList').innerHTML = '<div class="empty">還沒有足夠錯題。先做 5 題，雷達會開始標出盲區。</div>';
         return;
       }
-      $('blindList').innerHTML = items.map((item) => `
-        <div class="spot">
+      $('blindList').innerHTML = items.map((item) => {
+        const lawName = item.law || item.law_name || item.label || '';
+        return `
+        <a class="spot" href="${htmlEscape(practiceHref(lawName, 'analysis_weak_spot'))}" aria-label="練習 ${htmlEscape(lawName || '弱點法規')}">
           <div class="spot-top">
             <div class="spot-title">${htmlEscape(item.label || item.law_name || '待分類')}</div>
             <div class="spot-count">${Number(item.wrong_count || 0)} 錯</div>
           </div>
           <small>${htmlEscape((item.top_articles && item.top_articles[0] && (item.top_articles[0].article || item.top_articles[0].article_no)) || item.source || 'weak_laws / wrong_articles')}</small>
-        </div>
-      `).join('');
+        </a>
+      `;
+      }).join('');
     }
 
 	    function renderPracticed(data){
@@ -489,15 +512,18 @@
 	        $('practicedList').innerHTML = '<div class="empty">還沒有足夠練習分布。再做幾題後，這裡會顯示你最熟的法規。</div>';
 	        return;
 	      }
-	      $('practicedList').innerHTML = items.map((item) => `
-	          <div class="spot sage">
+	      $('practicedList').innerHTML = items.map((item) => {
+	        const lawName = item.law || item.law_name || '';
+	        return `
+	          <a class="spot sage" href="${htmlEscape(practiceHref(lawName, 'analysis_most_practiced'))}" aria-label="練習 ${htmlEscape(lawName || '已練最多法規')}">
 	            <div>
 	              <div class="spot-title">${htmlEscape(item.law || item.law_name || '待分類法規')}</div>
 	              <small>${item.accuracy === null || item.accuracy === undefined ? '正確率累積中' : `正確率 ${item.accuracy}%`}</small>
 	            </div>
 	            <div class="spot-count">${Number(item.attempt_count || 0)} 題</div>
-	          </div>
-	        `).join('');
+	          </a>
+	        `;
+	      }).join('');
 	    }
 
 	    function renderNotStarted(data){
@@ -510,13 +536,13 @@
 	      $('notStartedList').innerHTML = items.map((item) => {
 	        const weight = Number(item.exam_weight_pct || 0);
 	        return `
-	          <div class="spot amber">
+	          <a class="spot amber" href="${htmlEscape(practiceHref(item.law || '', 'analysis_not_started'))}" aria-label="練習 ${htmlEscape(item.law || '還沒碰的法規')}">
 	            <div>
 	              <div class="spot-title">${htmlEscape(item.law || '待啟動法規')}</div>
 	              <small>考試訊號約 ${Number.isFinite(weight) ? weight : 0}% · 尚未作答</small>
 	            </div>
 	            <div class="spot-count">0 題</div>
-	          </div>
+	          </a>
 	        `;
 	      }).join('');
 	    }
@@ -527,14 +553,14 @@
         $('dueList').innerHTML = '<div class="empty">今天沒有跨裝置到期複習；免費預覽會先保留這格，登入後讀取完整 SRS。</div>';
         return;
       }
-      $('dueList').innerHTML = items.slice(0, 5).map((item) => `
-        <div class="due-item">
+	      $('dueList').innerHTML = items.slice(0, 5).map((item) => `
+        <a class="due-item" href="${htmlEscape(practiceHref(item.law_name || '', 'analysis_review_due'))}" aria-label="練習 ${htmlEscape(item.law_name || '待複習條文')}">
           <div class="due-date">${Math.max(0, Number(item.overdue_days || 0))} 天</div>
           <div class="due-body">
             <b>${htmlEscape(item.law_name || '待複習條文')}</b>
             <span>${htmlEscape(item.article || item.article_no || '回到複習清單')}</span>
           </div>
-        </div>
+        </a>
       `).join('');
     }
 
