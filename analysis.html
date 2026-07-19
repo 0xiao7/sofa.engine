@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>進度雷達｜SoFa Engine</title>
-  <meta name="description" content="SoFa Engine 進度雷達：用答題紀錄整理倒數、盲區、熱區、待複習與下一步。">
+  <meta name="description" content="SoFa Engine 進度雷達：用答題紀錄整理今天最該先補的科目與條文。">
   <meta name="robots" content="noindex,follow">
   <script src="sofa-analytics.js?v=20260704-revenue-v1" defer></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -13,264 +13,156 @@
   <style>
     :root{
       --navy:#1F3848;
-      --navy-2:#19303E;
-      --navy-3:#142836;
-      --navy-4:#0D1C28;
-      --plum-1:#2C4A5C;
-      --plum-2:#4A6373;
-      --halo:#7E8FA0;
-      --halo-2:#9AA9B8;
+      --ink:#20303B;
+      --ink-soft:#4C5A63;
       --peach:#E7BBA7;
-      --peach-2:#F0CDBD;
-      --peach-3:#C89580;
-      --peach-dim:rgba(231,187,167,.32);
-      --mauve:#B38BA7;
-      --mauve-2:#9C7591;
-      --pink:#E7BBA7;
-      --pink-2:#F0CDBD;
-      --pink-3:#C89580;
-      --cream:#F5F0EA;
-      --cream-2:#ECE5DB;
-      --cream-3:#E0D6C7;
-      --clay:#C9A485;
-      --ink:#1A2B35;
-      --ink-2:#3A4A55;
-      --muted:#7A8892;
-      --line:rgba(26,43,53,.14);
-      --line-on-navy:rgba(245,240,234,.14);
-      --line-2:rgba(245,240,234,.22);
+      --peach-deep:#C98E71;
+      --clay:#B98A6E;
+      --cream:#F6F1EA;
+      --cream-2:#EFE8DE;
+      --paper:#FBF8F3;
+      --muted:#8A9299;
+      --hair:rgba(32,48,59,.10);
+      --alert:#B5654F;
       --serif:"Noto Serif TC", "Songti TC", serif;
       --sans:"Noto Sans TC", system-ui, sans-serif;
       --mono:"JetBrains Mono", ui-monospace, monospace;
     }
     *{box-sizing:border-box;margin:0;padding:0}
-    html{background:var(--navy-4);scroll-padding-top:72px}
-    body{font-family:var(--sans);color:var(--ink);font-size:16px;line-height:1.6;background:var(--cream);letter-spacing:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+    html{background:#E7E0D6;scroll-padding-top:24px}
+    body{background:#E7E0D6;font-family:var(--sans);color:var(--ink);font-size:16px;line-height:1.65;letter-spacing:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
     a{color:inherit;text-decoration:none}
     button,a{touch-action:manipulation}
-    .page{min-height:100vh;background:var(--cream);overflow:hidden}
-    .container{max-width:1180px;margin:0 auto;padding:0 56px}
-    nav.top{position:sticky;top:0;z-index:50;background:var(--navy);color:var(--cream);border-bottom:1px solid var(--line-on-navy)}
-    .nav-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px 40px 20px 48px}
-    .brand{font-family:var(--mono);font-weight:500;font-size:18px;color:var(--cream);display:flex;align-items:center;gap:10px}
-    .brand .dot{width:8px;height:8px;background:var(--peach);border-radius:50%;box-shadow:0 0 0 4px rgba(231,187,167,.18)}
-    .nav-links{display:flex;align-items:center;gap:26px;font-size:14px;color:rgba(245,240,234,.78)}
-    .nav-links a{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
-    .nav-cta{min-height:44px;display:inline-flex;align-items:center;justify-content:center;background:var(--peach);color:var(--navy);padding:10px 22px;border-radius:2px;font-weight:600;font-size:14px}
-    .hero{position:relative;background:radial-gradient(ellipse 820px 520px at 28% 40%, rgba(179,139,167,.22) 0%, rgba(179,139,167,.09) 32%, rgba(31,56,72,0) 68%),radial-gradient(ellipse 560px 360px at 22% 34%, rgba(231,187,167,.16) 0%, rgba(231,187,167,0) 58%),var(--navy);color:var(--cream);padding:82px 0 72px;overflow:hidden}
-    .grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(245,240,234,.025) 1px, transparent 1px),linear-gradient(90deg, rgba(245,240,234,.025) 1px, transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse 82% 64% at 30% 50%, #000 30%, transparent 80%)}
-    .hero-inner{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:42px;align-items:end}
-    .eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;font-weight:500;color:var(--peach);text-transform:uppercase;padding:7px 14px;border:1px solid rgba(231,187,167,.32);border-radius:2px;background:rgba(231,187,167,.06)}
-    .eyebrow .pulse{width:6px;height:6px;background:var(--peach);border-radius:50%;box-shadow:0 0 0 4px rgba(231,187,167,.18)}
-    h1.headline{margin-top:26px;font-family:var(--serif);font-weight:600;font-size:72px;line-height:1.08;color:var(--cream)}
-    h1.headline em{font-style:normal;color:var(--peach);position:relative}
-    h1.headline em::after{content:"";position:absolute;left:0;right:0;bottom:6px;height:12px;background:rgba(231,187,167,.16);z-index:-1}
-    .lede{margin-top:28px;font-size:18px;line-height:1.85;color:rgba(245,240,234,.82);max-width:680px;font-weight:300}
-    .hero-meta{margin-top:34px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));max-width:720px;border-top:1px solid var(--line-on-navy);border-bottom:1px solid var(--line-on-navy)}
-    .hero-meta .cell{padding:18px 22px 18px 0;border-right:1px solid var(--line-on-navy)}
-    .hero-meta .cell:last-child{border-right:0}
-    .hero-meta .num{font-family:var(--serif);font-weight:600;font-size:32px;color:var(--cream);line-height:1}
-    .hero-meta .num.peach{color:var(--peach)}
-    .hero-meta .lab{font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.55);text-transform:uppercase;margin-top:9px}
-    .hero-card{background:var(--cream);color:var(--ink);border-radius:4px;box-shadow:0 24px 54px rgba(0,0,0,.32), 0 4px 0 0 var(--peach);overflow:hidden}
-    .hc-head{background:var(--cream-2);padding:14px 18px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--ink-2);display:flex;justify-content:space-between}
-    .hc-body{padding:24px}
-    .hc-tag{font-family:var(--mono);font-size:11px;color:var(--peach-3);text-transform:uppercase;font-weight:600}
-    .hc-title{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--navy);margin-top:10px;line-height:1.35}
-    .hc-copy{margin-top:14px;font-size:13px;color:var(--ink-2);line-height:1.8;background:#fff;border-left:3px solid var(--peach);padding:14px}
-    .btn{min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-family:var(--sans);font-size:15px;font-weight:600;text-decoration:none;padding:12px 22px;border-radius:2px;border:1px solid transparent;cursor:pointer}
-    .btn-primary{background:var(--peach);color:var(--navy);border-radius:2px}
-    .btn-secondary{background:transparent;color:var(--navy);border-color:rgba(26,43,53,.22);border-radius:2px}
-    .btn-ghost{background:transparent;color:var(--cream);border-color:rgba(245,240,234,.38);border-radius:2px}
-    .band{background:var(--cream);padding:42px 0}
-    .band + .band{border-top:1px solid var(--line)}
-    .summary-strip{display:grid;grid-template-columns:1.4fr repeat(3,minmax(0,1fr));border:1px solid var(--line);background:#fff}
-    .summary-copy{padding:24px;border-right:1px solid var(--line)}
-    .summary-copy h2,.panel h2{font-family:var(--serif);font-weight:600;color:var(--navy);font-size:24px;line-height:1.3}
-    .summary-copy p,.panel-copy{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.8}
-    .metric{padding:24px;border-right:1px solid var(--line);background:rgba(245,240,234,.44)}
-    .metric:last-child{border-right:0}
-    .metric b{display:block;font-family:var(--serif);font-size:36px;font-weight:600;color:var(--navy);line-height:1}
-    .metric span{display:block;margin-top:9px;font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
-    .mode-row{margin-top:12px}
-    .pill{display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border-radius:2px;border:1px solid rgba(26,43,53,.16);background:var(--cream);color:var(--ink-2);font-family:var(--mono);font-size:11px;font-weight:600}
-    .pill.free{background:rgba(231,187,167,.20);border-color:rgba(231,187,167,.46);color:var(--navy)}
-    .radar-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:24px}
-    .panel{background:#fff;border:1px solid var(--line);border-radius:4px;padding:22px}
-    .panel.wide{grid-column:1 / -1}
-    .panel.next{background:var(--navy);color:var(--cream);border-color:var(--navy)}
-    .panel.next h2{color:var(--cream)}
-    .panel.next p{color:rgba(245,240,234,.78);line-height:1.8;margin:12px 0 18px}
-    .panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
-    .list{display:grid;gap:10px}
-    .spot{display:grid;gap:8px;border:1px solid var(--line);border-radius:3px;background:var(--cream);padding:13px;color:inherit;text-decoration:none;transition:border-color .18s, background .18s}
-    .spot:hover{border-color:var(--peach-3);background:#fff}
-    .spot-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .spot-title{font-family:var(--serif);font-size:16px;font-weight:600;color:var(--navy);line-height:1.35}
-    .spot-count{min-width:58px;text-align:center;border-radius:2px;background:rgba(231,187,167,.28);color:var(--navy);font-family:var(--mono);font-weight:600;padding:7px 8px;font-size:12px}
-    .spot.sage .spot-count{background:rgba(126,143,160,.16);color:var(--plum-1)}
-    .spot.amber .spot-count{background:rgba(201,164,133,.24);color:#745135}
-    .spot small{color:var(--muted);line-height:1.55}
-    .due-item{display:flex;gap:12px;align-items:flex-start;border-top:1px solid var(--line);padding:12px 0;color:inherit;text-decoration:none}
-    .due-item:first-child{border-top:0}
-    .due-date{min-width:56px;border-radius:2px;background:var(--navy);color:var(--cream);font-family:var(--mono);font-size:12px;font-weight:600;padding:7px;text-align:center}
-    .due-body b{display:block;font-family:var(--serif);font-size:16px;color:var(--navy);font-weight:600}
-    .due-body span{display:block;margin-top:4px;font-size:12px;color:var(--muted);line-height:1.5}
-    .cta-row{display:flex;gap:10px;flex-wrap:wrap}
-    .locked{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
-    .lock-card{border:1px dashed rgba(26,43,53,.22);border-radius:3px;background:var(--cream);padding:14px}
-    .lock-card b{display:block;font-family:var(--serif);font-size:16px;color:var(--navy);font-weight:600}
-    .lock-card span{display:block;margin-top:6px;font-size:12px;color:var(--muted);line-height:1.6}
-    .empty{border:1px dashed rgba(26,43,53,.18);border-radius:3px;background:var(--cream);padding:14px;color:var(--muted);line-height:1.65}
-    .fineprint{color:var(--muted);font-size:12px;line-height:1.8;margin-top:22px;text-align:center}
-    .sticky-cta{background:rgba(245,240,234,.96);border-top:1px solid var(--line);padding:14px 18px calc(14px + env(safe-area-inset-bottom))}
-    .sticky-cta .inner{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
-    .sticky-cta b{font-family:var(--serif);font-size:15px;color:var(--navy)}
-    .sticky-cta span{display:block;margin-top:2px;font-size:12px;color:var(--muted)}
-    @media(max-width:980px){
-      .container{padding:0 24px}
-      .hero-inner{grid-template-columns:1fr}
-      .summary-strip{grid-template-columns:1fr}
-      .summary-copy,.metric{border-right:0;border-bottom:1px solid var(--line)}
-      .radar-grid{grid-template-columns:1fr}
-      .locked{grid-template-columns:1fr}
+    .wrap{max-width:460px;margin:0 auto;background:var(--cream);min-height:100vh;overflow-x:hidden;box-shadow:0 0 0 1px rgba(32,48,59,.04)}
+    .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--clay)}
+    .tnum{font-variant-numeric:tabular-nums}
+    nav{display:flex;align-items:center;justify-content:space-between;padding:22px 28px 0}
+    .brand{font-family:var(--mono);font-size:13px;letter-spacing:.04em;display:flex;align-items:center;gap:8px}
+    .brand .dot{width:7px;height:7px;border-radius:50%;background:var(--peach-deep)}
+    .brand b{font-weight:500}
+    .nav-x{font-family:var(--mono);font-size:12px;color:var(--muted)}
+    .hero{padding:40px 28px 44px;border-bottom:1px solid var(--hair)}
+    .hero .kicker{display:flex;align-items:center;gap:10px}
+    .hero .kicker::after{content:"";flex:1;height:1px;background:var(--hair)}
+    .lead-label{margin-top:30px;font-size:14px;color:var(--ink-soft)}
+    .hero h1{font-family:var(--serif);font-weight:700;font-size:40px;line-height:1.18;margin:6px 0 20px;text-wrap:balance}
+    .hero h1 em{font-style:normal;background:linear-gradient(transparent 62%,var(--peach) 62%,var(--peach) 92%,transparent 92%)}
+    .hero .why{font-size:15px;color:var(--ink-soft);line-height:1.85;max-width:330px}
+    .hero .cta{display:inline-flex;align-items:center;gap:8px;margin-top:26px;background:var(--navy);color:var(--paper);font-size:14.5px;font-weight:500;text-decoration:none;padding:13px 24px;border-radius:3px}
+    .status{display:flex;padding:26px 28px;border-bottom:1px solid var(--hair)}
+    .status .c{flex:1;display:flex;flex-direction:column;gap:5px}
+    .status .c + .c{border-left:1px solid var(--hair);padding-left:22px}
+    .status .n{font-family:var(--serif);font-size:27px;font-weight:600;line-height:1}
+    .status .n .u{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:1px;font-weight:400}
+    .status .k{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    .block{padding:34px 28px;border-bottom:1px solid var(--hair)}
+    .block .kicker{display:block;margin-bottom:16px}
+    .h2{font-family:var(--serif);font-size:20px;font-weight:600;margin-bottom:4px}
+    .mini .h2{font-size:18px}
+    .sub{font-size:13px;color:var(--ink-soft);line-height:1.75;margin-bottom:18px;max-width:320px}
+    .rowline{display:flex;align-items:baseline;gap:14px;padding:14px 0;border-top:1px solid var(--hair);color:inherit;text-decoration:none}
+    .rowline:hover .nm{text-decoration:underline;text-decoration-color:var(--peach-deep);text-underline-offset:4px}
+    .rowline:first-of-type{border-top:none;padding-top:2px}
+    .rowline .nm{font-family:var(--serif);font-size:17px;font-weight:500;flex:none}
+    .rowline .ds{font-size:12.5px;color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .rowline .rt{font-family:var(--mono);font-size:12.5px;color:var(--ink-soft);flex:none}
+    .rowline .rt.a{color:var(--alert)}
+    .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
+    .chip{font-size:13px;background:var(--cream-2);border:1px solid var(--hair);border-radius:3px;padding:8px 12px;display:flex;align-items:baseline;gap:7px;color:inherit;text-decoration:none}
+    .chip:hover{text-decoration:underline;text-decoration-color:var(--peach-deep);text-underline-offset:4px}
+    .chip .q{font-family:var(--mono);font-size:11px;color:var(--muted)}
+    .empty{font-size:13px;color:var(--muted);line-height:1.8;border-top:1px solid var(--hair);padding-top:14px}
+    .next{background:var(--paper)}
+    .next .hero-link{margin-top:18px}
+    .up{padding:32px 28px 40px;background:var(--paper)}
+    .up .row{display:flex;gap:13px;align-items:baseline;padding:11px 0}
+    .up .row + .row{border-top:1px solid var(--hair)}
+    .up .k{font-family:var(--serif);font-size:14.5px;font-weight:600;white-space:nowrap;min-width:74px}
+    .up .d{font-size:12.5px;color:var(--ink-soft);line-height:1.6}
+    .unlock{display:inline-flex;margin-top:20px;font-size:13px;font-weight:600;color:var(--navy);border-bottom:1px solid var(--peach-deep)}
+    .foot{font-family:var(--mono);font-size:9.5px;line-height:2;color:var(--muted);padding:22px 28px 40px;background:var(--paper)}
+    @media (min-width: 900px){
+      .wrap{margin:24px auto;border-radius:2px}
     }
-    @media(max-width:640px){
-      .nav-inner{padding:16px 18px}
-      .nav-links{gap:12px}
-      .nav-links a:not(.nav-cta){display:none}
-      .hero{padding:48px 0 46px}
-      h1.headline{font-size:44px}
-      .lede{font-size:16px}
-      .hero-meta{grid-template-columns:1fr}
-      .hero-meta .cell{border-right:0;border-bottom:1px solid var(--line-on-navy)}
-      .hero-meta .cell:last-child{border-bottom:0}
-      .band{padding:28px 0}
-      .sticky-cta .inner{grid-template-columns:1fr}
-      .sticky-cta .btn{width:100%}
+    @media (max-width: 390px){
+      nav,.hero,.block,.up,.foot{padding-left:22px;padding-right:22px}
+      .hero h1{font-size:36px}
+      .status{padding-left:22px;padding-right:22px}
+      .status .c + .c{padding-left:14px}
+      .rowline{gap:10px}
     }
   </style>
 </head>
 <body>
-  <div class="page">
-    <nav class="top" aria-label="主要導覽">
-      <div class="nav-inner">
-        <a class="brand" href="index.html"><span class="dot"></span><span>SOFA ENGINE</span></a>
-        <div class="nav-links">
-          <a href="quiz.html?free=1&start=1&utm_source=analysis&utm_medium=nav&utm_campaign=analysis_seed">練習</a>
-          <a href="pricing.html?utm_source=analysis&utm_medium=nav&utm_campaign=analysis_pricing">方案</a>
-          <a class="nav-cta" href="checkout.html?plan=到考日&utm_source=analysis&utm_medium=radar&utm_campaign=ex25_analysis" data-track-event="analysis_checkout_click" data-track-label="analysis_nav_exam_day">到考日</a>
-        </div>
-      </div>
+  <div class="wrap">
+    <nav aria-label="主要導覽">
+      <a class="brand" href="index.html"><span class="dot"></span><b>SoFa Engine</b></a>
+      <span class="nav-x">進度雷達</span>
     </nav>
 
-    <header class="hero" aria-labelledby="radar-title">
-      <div class="grid-bg" aria-hidden="true"></div>
-      <div class="container hero-inner">
-        <div>
-          <div class="eyebrow"><span class="pulse"></span>Progress Radar</div>
-          <h1 class="headline" id="radar-title">進度<em>雷達</em></h1>
-          <p class="lede">不是再叫你更努力，而是把答題紀錄翻成今天看得懂的備考地圖：盲區在哪、熱區要不要維持、哪幾條待複習。</p>
-          <div class="hero-meta">
-            <div class="cell"><div class="num peach" id="daysUntil">--</div><div class="lab">距離考試日</div></div>
-            <div class="cell"><div class="num" id="totalMetric">0</div><div class="lab">已練題數</div></div>
-            <div class="cell"><div class="num" id="accuracyMetric">--</div><div class="lab">正確率</div></div>
-          </div>
-        </div>
-        <aside class="hero-card" aria-live="polite">
-          <div class="hc-head"><span>EXAM PLAN</span><span id="modePill" class="pill free">免費預覽</span></div>
-          <div class="hc-body">
-            <div class="hc-tag" id="examLabel">讀取考試計畫</div>
-            <h2 class="hc-title">今天先讀對地方</h2>
-            <p class="hc-copy" id="examMeta">倒數一律讀 exam-plan-contract，不硬編考試日期。</p>
-            <div style="margin-top:18px">
-              <a class="btn btn-primary" href="checkout.html?plan=到考日&utm_source=analysis&utm_medium=radar&utm_campaign=ex25_analysis" data-track-event="analysis_checkout_click" data-track-label="analysis_countdown_exam_day">解鎖到考日方案</a>
-            </div>
-          </div>
-        </aside>
-      </div>
-    </header>
+    <section class="hero" aria-labelledby="leadTitle">
+      <span class="kicker" id="examKicker">距記帳士考試 · 讀取中</span>
+      <div class="lead-label">你現在最該做的一件事——</div>
+      <h1 id="leadTitle">今天先補<br><em id="leadSubject">這一科</em>。</h1>
+      <p class="why" id="leadWhy">正在讀取你的答題紀錄，等一下就會把最該先補的地方講清楚。</p>
+      <a class="cta" id="leadCta" href="quiz.html?free=1&start=1&utm_source=analysis&utm_medium=hero&utm_campaign=analysis_seed">做這 5 題</a>
+    </section>
+
+    <section class="status" aria-label="答題摘要">
+      <div class="c"><span class="n tnum" id="totalMetric">0</span><span class="k">做過的題</span></div>
+      <div class="c"><span class="n tnum"><span id="accuracyMetric">--</span><span class="u">%</span></span><span class="k">答對率</span></div>
+      <div class="c"><span class="n tnum" id="wrongMetric">0</span><span class="k">待加強</span></div>
+    </section>
 
     <main>
-      <section class="band">
-        <div class="container">
-          <div class="summary-strip">
-            <div class="summary-copy">
-              <h2>雷達摘要</h2>
-              <p>免費先看 top 2-3；付費後接完整排程、弱點優先與每週診斷。</p>
-              <div class="mode-row"><span class="pill free">SoFa Engine 參考解析</span></div>
-            </div>
-            <div class="metric"><b id="wrongMetric">0</b><span>弱點訊號</span></div>
-            <div class="metric"><b>Top 3</b><span>免費預覽</span></div>
-            <div class="metric"><b>7D</b><span>每週診斷</span></div>
-          </div>
+      <section class="block" aria-labelledby="blindTitle">
+        <span class="kicker">先補這裡</span>
+        <div class="h2" id="blindTitle">你最常答錯的 3 條</div>
+        <p class="sub">一錯再錯、考試又常考的地方。時間有限，先修這裡最划算。</p>
+        <div id="blindList"></div>
+      </section>
 
-          <section class="radar-grid" aria-label="分析內容">
+      <section class="block mini" aria-labelledby="practicedTitle">
+        <span class="kicker">你的強項</span>
+        <div class="h2" id="practicedTitle">練最多、也最熟的</div>
+        <p class="sub">這幾條維持手感就好，別再花大把時間重練。</p>
+        <div class="chips" id="practicedList"></div>
+      </section>
 
-	      <article class="panel">
-	        <div class="panel-head">
-	          <h2>你最常答錯的</h2>
-	          <span class="pill" id="blindSource">弱點優先</span>
-	        </div>
-	        <p class="panel-copy">這幾條不是你完全不會，而是目前最容易把分數漏掉。</p>
-	        <div class="list" id="blindList"></div>
-	      </article>
+      <section class="block mini" aria-labelledby="notStartedTitle">
+        <span class="kicker">盲點</span>
+        <div class="h2" id="notStartedTitle">考了、但你還沒碰的</div>
+        <p class="sub">考試範圍內、你一題都還沒做過。不是不會，是還沒看見它。</p>
+        <div class="chips" id="notStartedList"></div>
+      </section>
 
-	      <article class="panel">
-	        <div class="panel-head">
-	          <h2>你練最多的</h2>
-	          <span class="pill">手感維持</span>
-	        </div>
-	        <p class="panel-copy">這幾條你做得最多、也最熟。維持手感就好，別再花大把時間重練。</p>
-	        <div class="list" id="practicedList"></div>
-	      </article>
+      <section class="block mini" aria-labelledby="dueTitle">
+        <span class="kicker">待複習</span>
+        <div class="h2" id="dueTitle">今天該回來看的</div>
+        <p class="sub">已經做過、但間隔到了的地方。先補盲區，再回來穩住記憶。</p>
+        <div id="dueList"></div>
+      </section>
 
-	      <article class="panel">
-	        <div class="panel-head">
-	          <h2>你還沒碰的</h2>
-	          <span class="pill">考試範圍</span>
-	        </div>
-	        <p class="panel-copy">考試範圍內、但你一題都還沒做過的法規。不是你不會，是你還沒看見它。</p>
-	        <div class="list" id="notStartedList"></div>
-	      </article>
+      <section class="block next" aria-labelledby="nextTitle">
+        <span class="kicker">下一步</span>
+        <div class="h2" id="nextTitle">照這個順序走</div>
+        <p class="sub" id="nextBody">正在判斷今天最該先做哪一件事。</p>
+        <a class="cta hero-link" id="nextCta" href="quiz.html?free=1&start=1&utm_source=analysis&utm_medium=next_step&utm_campaign=analysis_seed">開始做題</a>
+      </section>
 
-	      <article class="panel">
-	        <h2>今天該複習</h2>
-	        <div id="dueList"></div>
-	      </article>
-
-      <article class="panel next">
-        <h2>下一步</h2>
-        <p id="nextBody">正在判斷今天最該先做哪一件事。</p>
-        <div class="cta-row">
-          <a class="btn btn-primary" id="nextCta" href="quiz.html?free=1&start=1&utm_source=analysis&utm_medium=next_step&utm_campaign=analysis_seed">開始做題</a>
-          <a class="btn btn-ghost" href="checkout.html?plan=到考日&utm_source=analysis&utm_medium=radar&utm_campaign=ex25_analysis" data-track-event="analysis_checkout_click" data-track-label="analysis_exam_day_cta">解鎖到考日方案</a>
-        </div>
-      </article>
-
-      <article class="panel wide">
-        <div class="panel-head">
-          <h2>付費解鎖</h2>
-          <span class="pill">完整轉換引擎</span>
-        </div>
-        <div class="locked" id="lockList">
-          <div class="lock-card"><b>完整排程</b><span>把倒數、待複習、每日任務接成到考日節奏。</span></div>
-          <div class="lock-card"><b>弱點優先</b><span>不是平均分配時間，而是先推最可能拖累分數的法規。</span></div>
-          <div class="lock-card"><b>每週診斷</b><span>每週看一次熱區變化，調整下一輪練習方向。</span></div>
-        </div>
-      </article>
-          </section>
-
-          <p class="fineprint">SoFa Engine 參考解析，非考選部官方標準答案。免費預覽先顯示 top 2-3 盲區、熱區與倒數；完整排程、弱點優先與每週診斷於付費方案解鎖。</p>
-        </div>
+      <section class="up" aria-labelledby="unlockTitle">
+        <span class="kicker">升級後解鎖</span>
+        <div style="height:14px"></div>
+        <div class="row"><span class="k">完整排程</span><span class="d">把倒數、複習、每日任務排成一條到考日的路。</span></div>
+        <div class="row"><span class="k">弱點優先</span><span class="d">每天自動先排你最弱的，不浪費時間在已經會的。</span></div>
+        <div class="row"><span class="k">每週診斷</span><span class="d">一週重算一次雷達，看修復有沒有真的有效。</span></div>
+        <a id="unlockTitle" class="unlock" href="checkout.html?plan=到考日&utm_source=analysis&utm_medium=upgrade&utm_campaign=ex25_analysis" data-track-event="analysis_checkout_click" data-track-label="analysis_v4_upgrade">解鎖到考日方案</a>
       </section>
     </main>
 
-    <div class="sticky-cta">
-      <div class="inner">
-        <div><b>到考日 CTA</b><span id="stickyCopy">先看雷達，再決定今天要補哪裡。</span></div>
-        <a class="btn btn-primary" href="checkout.html?plan=到考日&utm_source=analysis&utm_medium=radar&utm_campaign=ex25_analysis" data-track-event="analysis_checkout_click" data-track-label="analysis_sticky_exam_day">解鎖</a>
-      </div>
+    <div class="foot">
+      以上為 SoFa Engine 參考解析，非官方答案。<br>
+      免費版顯示今日重點與 top 3；完整排程、弱點優先、每週診斷於付費方案解鎖。
     </div>
   </div>
 
@@ -278,9 +170,9 @@
     const API_BASE = location.hostname === 'localhost' || location.hostname === '127.0.0.1'
       ? ''
       : 'https://sofa-engine-api.onrender.com';
-	    const params = new URLSearchParams(location.search);
-	    const topLimit = 3;
-	    const previewAllowed = params.get('preview') === '1' && !/(^|\.)sofaengine\.org$/i.test(location.hostname);
+    const params = new URLSearchParams(location.search);
+    const topLimit = 3;
+    const previewAllowed = params.get('preview') === '1' && !/(^|\.)sofaengine\.org$/i.test(location.hostname);
 
     const state = {
       mode: 'free',
@@ -354,10 +246,9 @@
       const key = (serverExam && serverExam.exam_key) || selectedExamKey();
       const exam = serverExam || exams[key] || {};
       const left = Number.isFinite(exam.days_until_exam) ? exam.days_until_exam : daysUntil(exam.exam_date);
-      $('daysUntil').textContent = left === null ? '--' : String(Math.max(0, left));
-      $('examLabel').textContent = exam.label ? `${exam.label}｜到考日` : '考試目標｜到考日';
-      const access = exam.access_until ? `服務可用到 ${exam.access_until}` : '服務期限依考試計畫計算';
-      $('examMeta').textContent = `${access}。source: exam-plan-contract`;
+      const days = left === null ? '--' : String(Math.max(0, left));
+      const label = exam.label || '記帳士';
+      $('examKicker').textContent = `距${label}考試 · 還有 ${days} 天`;
     }
 
     async function handleMagicLink(){
@@ -404,7 +295,7 @@
       };
     }
 
-	    function localAnalysis(){
+    function localAnalysis(){
       const stats = readJson('sofa_quiz_stats_v1', {});
       const wrongIds = readJson('sofa_wrong_ids', []);
       const wrongBank = readJson('sofa_wrong_bank', []);
@@ -416,6 +307,7 @@
         const bucket = grouped.get(label) || {
           type: 'local',
           label,
+          law: item.law || label,
           wrong_count: 0,
           attempt_count: 0,
           accuracy: null,
@@ -438,19 +330,19 @@
         accuracy: spot.accuracy,
         level: idx === 0 ? 'hot' : 'warm'
       }));
-	      return {
-	        mode: 'free',
+      return {
+        mode: 'free',
         quiz_stats: {
           total,
           correct,
           accuracy: total ? Math.round(correct / total * 100) : null,
           wrong_count: blind_spots.reduce((sum, item) => sum + item.wrong_count, 0)
         },
-	        blind_spots,
-	        heat_zones,
-	        most_practiced: [],
-	        not_started: [],
-	        review_due: { items: [], total: 0 },
+        blind_spots,
+        heat_zones,
+        most_practiced: [],
+        not_started: [],
+        review_due: { items: [], total: 0 },
         next_step: total < 5
           ? {
               title: '先做 5 題產生雷達',
@@ -468,71 +360,104 @@
           weakness_priority: '弱點優先',
           weekly_diagnosis: '每週診斷'
         }
-	      };
-	    }
+      };
+    }
 
-	    function previewAnalysis(){
-	      const exam = ((state.contract && state.contract.exams) || {}).bookkeeper || {};
-	      const examDate = exam.exam_date || '';
-	      const accessUntil = exam.access_until || '';
-	      return {
-	        mode: 'preview',
-	        exam: {
-	          exam_key: 'bookkeeper',
-	          label: '記帳士',
-	          exam_date: examDate,
-	          access_until: accessUntil,
-	          days_until_exam: daysUntil(examDate),
-	          source: 'preview'
-	        },
-	        quiz_stats: { total: 121, correct: 82, accuracy: 68, wrong_count: 18 },
-	        blind_spots: [
-	          { label: '公司法', wrong_count: 7, attempt_count: 26, accuracy: 54, top_articles: [{ article: '公司債發行界線' }] },
-	          { label: '商業會計法', wrong_count: 6, attempt_count: 19, accuracy: 68, top_articles: [{ article: '會計憑證與帳簿' }] },
-	          { label: '稅捐稽徵法', wrong_count: 5, attempt_count: 14, accuracy: 64, top_articles: [{ article: '核課期間' }] }
-	        ],
-	        most_practiced: [
-	          { law: '公司法', attempt_count: 26, accuracy: 54 },
-	          { law: '商業會計法', attempt_count: 19, accuracy: 68 },
-	          { law: '所得稅法', attempt_count: 17, accuracy: 76 }
-	        ],
-	        not_started: [
-	          { law: '加值型及非加值型營業稅法', exam_weight_pct: 15.3, attempt_count: 0 },
-	          { law: '營利事業所得稅查核準則', exam_weight_pct: 8.7, attempt_count: 0 },
-	          { law: '遺產及贈與稅法', exam_weight_pct: 7.2, attempt_count: 0 }
-	        ],
-	        review_due: {
-	          items: [
-	            { law_name: '公司法', article: '§250 公司債發行限制', overdue_days: 1 },
-	            { law_name: '稅捐稽徵法', article: '核課期間', overdue_days: 0 }
-	          ],
-	          total: 2
-	        },
-	        next_step: {
-	          kind: 'blind_spot',
-	          title: '先修公司法 §250',
-	          body: '先補公司債發行限制，再回來測 5 題看錯因有沒有下降。',
-	          href: 'quiz.html?mode=weakness&utm_source=analysis&utm_medium=next_step&utm_campaign=analysis_preview'
-	        },
-	        entitlement: { plan: '免費預覽', is_paid: false },
-	        free_preview: { blind_spot_limit: 3, practice_limit: 3, not_started_limit: 3 },
-	        paid_unlocks: {
-	          full_schedule: '完整排程',
-	          weakness_priority: '弱點優先',
-	          weekly_diagnosis: '每週診斷',
-	          full_practice_map: '完整練習分布與未啟動法規清單'
-	        }
-	      };
-	    }
+    function previewAnalysis(){
+      const exam = ((state.contract && state.contract.exams) || {}).bookkeeper || {};
+      const examDate = exam.exam_date || '';
+      return {
+        mode: 'preview',
+        exam: {
+          exam_key: 'bookkeeper',
+          label: '記帳士',
+          exam_date: examDate,
+          access_until: exam.access_until || '',
+          days_until_exam: daysUntil(examDate),
+          source: 'preview'
+        },
+        quiz_stats: { total: 121, correct: 82, accuracy: 68, wrong_count: 18 },
+        blind_spots: [
+          { label: '公司法', law: '公司法', wrong_count: 7, attempt_count: 26, accuracy: 54, top_articles: [{ article: '公司債發行界線' }] },
+          { label: '商業會計法', law: '商業會計法', wrong_count: 6, attempt_count: 19, accuracy: 68, top_articles: [{ article: '會計憑證與帳簿' }] },
+          { label: '稅捐稽徵法', law: '稅捐稽徵法', wrong_count: 5, attempt_count: 14, accuracy: 64, top_articles: [{ article: '核課期間' }] }
+        ],
+        most_practiced: [
+          { law: '公司法', attempt_count: 26, accuracy: 54 },
+          { law: '商業會計法', attempt_count: 19, accuracy: 68 },
+          { law: '所得稅法', attempt_count: 17, accuracy: 76 }
+        ],
+        not_started: [
+          { law: '加值型及非加值型營業稅法', exam_weight_pct: 15.3, attempt_count: 0 },
+          { law: '營利事業所得稅查核準則', exam_weight_pct: 8.7, attempt_count: 0 },
+          { law: '遺產及贈與稅法', exam_weight_pct: 7.2, attempt_count: 0 }
+        ],
+        review_due: {
+          items: [
+            { law_name: '公司法', article: '§250 公司債發行限制', overdue_days: 1 },
+            { law_name: '稅捐稽徵法', article: '核課期間', overdue_days: 0 }
+          ],
+          total: 2
+        },
+        next_step: {
+          kind: 'blind_spot',
+          title: '先修公司法 §250',
+          body: '先補公司債發行限制，再回來測 5 題看錯因有沒有下降。',
+          href: 'quiz.html?mode=weakness&utm_source=analysis&utm_medium=next_step&utm_campaign=analysis_preview'
+        },
+        entitlement: { plan: '免費預覽', is_paid: false },
+        free_preview: { blind_spot_limit: 3, practice_limit: 3, not_started_limit: 3 },
+        paid_unlocks: {
+          full_schedule: '完整排程',
+          weakness_priority: '弱點優先',
+          weekly_diagnosis: '每週診斷',
+          full_practice_map: '完整練習分布與未啟動法規清單'
+        }
+      };
+    }
+
+    function topBlindSpot(data){
+      const spots = Array.isArray(data.blind_spots) ? data.blind_spots : [];
+      const fallback = spots[0] || {};
+      const next = data.next_step || {};
+      const lawName = fallback.subject || fallback.exam_subject || fallback.law || fallback.law_name || fallback.label || next.law || '';
+      return {
+        raw: fallback,
+        subject: lawName || '這一科',
+        href: practiceHref(lawName, 'analysis_hero_blind_spot')
+      };
+    }
+
+    function topWrongArticle(spot){
+      const articles = Array.isArray(spot.top_articles) ? spot.top_articles : [];
+      const top = articles[0] || spot;
+      return top.article || top.title || top.article_no || top.label || top.source || '這一條';
+    }
+
+    function buildLeadWhy(top){
+      const spot = top.raw || {};
+      const article = topWrongArticle(spot);
+      const wrong = Number(spot.wrong_count || 0);
+      if(!spot || !top.subject || top.subject === '這一科'){
+        return '先做 5 題，SoFa 會把錯題整理成今天最該補的科目。';
+      }
+      const countText = wrong ? `錯了 ${wrong} 次` : '反覆出錯';
+      return `你在這一科錯最多：${article} ${countText}。先把這一條弄懂，比平均分散讀有效得多。`;
+    }
+
+    function renderHero(data){
+      const top = topBlindSpot(data);
+      $('leadSubject').textContent = top.subject;
+      $('leadWhy').textContent = buildLeadWhy(top);
+      $('leadCta').href = top.href;
+      $('leadCta').textContent = top.subject === '這一科' ? '先做 5 題' : '做這 5 題';
+    }
 
     function renderMetrics(data){
       const stats = data.quiz_stats || {};
       $('totalMetric').textContent = String(stats.total || 0);
-      $('accuracyMetric').textContent = stats.accuracy === null || stats.accuracy === undefined ? '--' : `${stats.accuracy}%`;
+      $('accuracyMetric').textContent = stats.accuracy === null || stats.accuracy === undefined ? '--' : String(stats.accuracy);
       $('wrongMetric').textContent = String(stats.wrong_count || (data.blind_spots || []).reduce((sum, item) => sum + Number(item.wrong_count || 0), 0));
-      const paid = data.entitlement && data.entitlement.is_paid;
-      $('modePill').textContent = paid ? '付費完整' : '免費預覽';
-      $('modePill').className = paid ? 'pill' : 'pill free';
     }
 
     function renderBlind(data){
@@ -544,59 +469,43 @@
       }
       $('blindList').innerHTML = items.map((item) => {
         const lawName = item.law || item.law_name || item.label || '';
+        const article = topWrongArticle(item);
         return `
-        <a class="spot" href="${htmlEscape(practiceHref(lawName, 'analysis_weak_spot'))}" aria-label="練習 ${htmlEscape(lawName || '弱點法規')}">
-          <div class="spot-top">
-            <div class="spot-title">${htmlEscape(item.label || item.law_name || '待分類')}</div>
-            <div class="spot-count">${Number(item.wrong_count || 0)} 錯</div>
-          </div>
-          <small>${htmlEscape((item.top_articles && item.top_articles[0] && (item.top_articles[0].article || item.top_articles[0].article_no)) || item.source || 'weak_laws / wrong_articles')}</small>
+        <a class="rowline" href="${htmlEscape(practiceHref(lawName, 'analysis_weak_spot'))}" aria-label="練習 ${htmlEscape(lawName || '弱點法規')}">
+          <span class="nm">${htmlEscape(item.label || item.law_name || item.law || '待分類')}</span>
+          <span class="ds">${htmlEscape(article || 'weak_laws / wrong_articles')}</span>
+          <span class="rt a">錯 ${Number(item.wrong_count || 0)}</span>
         </a>
       `;
       }).join('');
     }
 
-	    function renderPracticed(data){
-	      const limit = (data.entitlement && data.entitlement.is_paid) ? 5 : topLimit;
-	      const items = (data.most_practiced || []).slice(0, limit);
-	      if(!items.length){
-	        $('practicedList').innerHTML = '<div class="empty">還沒有足夠練習分布。再做幾題後，這裡會顯示你最熟的法規。</div>';
-	        return;
-	      }
-	      $('practicedList').innerHTML = items.map((item) => {
-	        const lawName = item.law || item.law_name || '';
-	        return `
-	          <a class="spot sage" href="${htmlEscape(practiceHref(lawName, 'analysis_most_practiced'))}" aria-label="練習 ${htmlEscape(lawName || '已練最多法規')}">
-	            <div>
-	              <div class="spot-title">${htmlEscape(item.law || item.law_name || '待分類法規')}</div>
-	              <small>${item.accuracy === null || item.accuracy === undefined ? '正確率累積中' : `正確率 ${item.accuracy}%`}</small>
-	            </div>
-	            <div class="spot-count">${Number(item.attempt_count || 0)} 題</div>
-	          </a>
-	        `;
-	      }).join('');
-	    }
+    function renderPracticed(data){
+      const limit = (data.entitlement && data.entitlement.is_paid) ? 5 : topLimit;
+      const items = (data.most_practiced || []).slice(0, limit);
+      if(!items.length){
+        $('practicedList').innerHTML = '<div class="empty">還沒有足夠練習分布。再做幾題後，這裡會顯示你最熟的法規。</div>';
+        return;
+      }
+      $('practicedList').innerHTML = items.map((item) => {
+        const lawName = item.law || item.law_name || '';
+        return `<a class="chip" href="${htmlEscape(practiceHref(lawName, 'analysis_most_practiced'))}" aria-label="練習 ${htmlEscape(lawName || '已練最多法規')}">${htmlEscape(item.law || item.law_name || '待分類法規')} <span class="q">${Number(item.attempt_count || 0)} 題</span></a>`;
+      }).join('');
+    }
 
-	    function renderNotStarted(data){
-	      const limit = (data.entitlement && data.entitlement.is_paid) ? 8 : topLimit;
-	      const items = (data.not_started || []).slice(0, limit);
-	      if(!items.length){
-	        $('notStartedList').innerHTML = '<div class="empty">目前考試範圍內沒有明顯未啟動法規，接下來可以回到弱點優先。</div>';
-	        return;
-	      }
-	      $('notStartedList').innerHTML = items.map((item) => {
-	        const weight = Number(item.exam_weight_pct || 0);
-	        return `
-	          <a class="spot amber" href="${htmlEscape(practiceHref(item.law || '', 'analysis_not_started'))}" aria-label="練習 ${htmlEscape(item.law || '還沒碰的法規')}">
-	            <div>
-	              <div class="spot-title">${htmlEscape(item.law || '待啟動法規')}</div>
-	              <small>考試訊號約 ${Number.isFinite(weight) ? weight : 0}% · 尚未作答</small>
-	            </div>
-	            <div class="spot-count">0 題</div>
-	          </a>
-	        `;
-	      }).join('');
-	    }
+    function renderNotStarted(data){
+      const limit = (data.entitlement && data.entitlement.is_paid) ? 8 : topLimit;
+      const items = (data.not_started || []).slice(0, limit);
+      if(!items.length){
+        $('notStartedList').innerHTML = '<div class="empty">目前考試範圍內沒有明顯未啟動法規，接下來可以回到弱點優先。</div>';
+        return;
+      }
+      $('notStartedList').innerHTML = items.map((item) => {
+        const weight = Number(item.exam_weight_pct || 0);
+        const label = Number.isFinite(weight) && weight ? `佔 ${weight}%` : '尚未作答';
+        return `<a class="chip" href="${htmlEscape(practiceHref(item.law || '', 'analysis_not_started'))}" aria-label="練習 ${htmlEscape(item.law || '還沒碰的法規')}">${htmlEscape(item.law || '待啟動法規')} <span class="q">${label}</span></a>`;
+      }).join('');
+    }
 
     function renderDue(data){
       const items = (data.review_due && data.review_due.items) || [];
@@ -604,13 +513,11 @@
         $('dueList').innerHTML = '<div class="empty">今天沒有跨裝置到期複習；免費預覽會先保留這格，登入後讀取完整 SRS。</div>';
         return;
       }
-	      $('dueList').innerHTML = items.slice(0, 5).map((item) => `
-        <a class="due-item" href="${htmlEscape(practiceHref(item.law_name || '', 'analysis_review_due'))}" aria-label="練習 ${htmlEscape(item.law_name || '待複習條文')}">
-          <div class="due-date">${Math.max(0, Number(item.overdue_days || 0))} 天</div>
-          <div class="due-body">
-            <b>${htmlEscape(item.law_name || '待複習條文')}</b>
-            <span>${htmlEscape(item.article || item.article_no || '回到複習清單')}</span>
-          </div>
+      $('dueList').innerHTML = items.slice(0, 5).map((item) => `
+        <a class="rowline due-row" href="${htmlEscape(practiceHref(item.law_name || '', 'analysis_review_due'))}" aria-label="練習 ${htmlEscape(item.law_name || '待複習條文')}">
+          <span class="nm">${htmlEscape(item.law_name || '待複習')}</span>
+          <span class="ds">${htmlEscape(item.article || item.article_no || '回到複習清單')}</span>
+          <span class="rt">${Math.max(0, Number(item.overdue_days || 0))} 天</span>
         </a>
       `).join('');
     }
@@ -620,52 +527,39 @@
       $('nextBody').innerHTML = `<strong>${htmlEscape(next.title || '今天先做一組題')}</strong><br>${htmlEscape(next.body || '用一組題補足雷達資料。')}`;
       $('nextCta').href = next.href || 'quiz.html?free=1&start=1&utm_source=analysis&utm_medium=next_step&utm_campaign=analysis_seed';
       $('nextCta').textContent = next.kind === 'review_due' ? '打開複習' : '開始做題';
-      $('stickyCopy').textContent = (data.entitlement && data.entitlement.is_paid)
-        ? '完整排程已接上，今天照下一步走。'
-        : '免費看 top 2-3，付費解鎖完整排程。';
-    }
-
-    function renderLocks(data){
-      const paid = data.entitlement && data.entitlement.is_paid;
-      const prefix = paid ? '已解鎖' : '付費解鎖';
-      $('lockList').innerHTML = [
-        ['完整排程', '把倒數、待複習、每日任務接成到考日節奏。'],
-        ['弱點優先', '依盲區與熱區排序，不讓時間平均浪費在已經會的地方。'],
-        ['每週診斷', '每週重算一次雷達，看修復是否真的有效。']
-      ].map(([title, body]) => `<div class="lock-card"><b>${prefix}｜${title}</b><span>${body}</span></div>`).join('');
     }
 
     function render(data){
       state.analysis = data;
       if(data.exam) renderExam(data.exam);
-	      renderMetrics(data);
-	      renderBlind(data);
-	      renderPracticed(data);
-	      renderNotStarted(data);
-	      renderDue(data);
-	      renderNext(data);
-	      renderLocks(data);
-	    }
+      renderHero(data);
+      renderMetrics(data);
+      renderBlind(data);
+      renderPracticed(data);
+      renderNotStarted(data);
+      renderDue(data);
+      renderNext(data);
+    }
 
     async function boot(){
       try { await loadExamPlan(); }
-      catch(e){ $('examMeta').textContent = '考試計畫暫時無法讀取，請稍後重整。'; }
+      catch(e){ $('examKicker').textContent = '距記帳士考試 · exam-plan-contract 暫時無法讀取'; }
 
       try { await handleMagicLink(); }
       catch(e){ $('nextBody').textContent = '連結已失效或無效，先用免費預覽看本機紀錄。'; }
 
-	      let remote = null;
-	      if(previewAllowed) {
-	        remote = previewAnalysis();
-	      } else {
-	        try { remote = await loadRemoteAnalysis(); }
-	        catch(e){ remote = null; }
-	      }
+      let remote = null;
+      if(previewAllowed) {
+        remote = previewAnalysis();
+      } else {
+        try { remote = await loadRemoteAnalysis(); }
+        catch(e){ remote = null; }
+      }
 
-	      const data = remote || localAnalysis();
-	      state.mode = previewAllowed ? 'preview' : (remote ? 'member' : 'free');
+      const data = remote || localAnalysis();
+      state.mode = previewAllowed ? 'preview' : (remote ? 'member' : 'free');
       render(data);
-	      if(window.sofaTrack && !previewAllowed) {
+      if(window.sofaTrack && !previewAllowed) {
         window.sofaTrack('analysis_view', {
           mode: state.mode,
           exam_key: selectedExamKey(),

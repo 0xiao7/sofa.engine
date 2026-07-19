@@ -10,27 +10,42 @@ test('analysis page exists as a mobile-first standalone radar page', () => {
   assert.ok(analysis, 'analysis.html should exist');
   assert.match(analysis, /<meta name="viewport" content="[^"]*width=device-width[^"]*initial-scale=1/);
   assert.match(analysis, /進度雷達/);
-  assert.match(analysis, /盲區/);
-  assert.match(analysis, /熱區/);
+  assert.match(analysis, /今天先補/);
+  assert.match(analysis, /先補這裡/);
   assert.match(analysis, /待複習/);
-  assert.match(analysis, /下一步/);
+  assert.match(analysis, /考了、但你還沒碰的/);
   assert.match(analysis, /到考日/);
 });
 
-test('analysis page uses the public site design system instead of the rejected custom mockup', () => {
+test('analysis page uses the approved v4 minimal visual system', () => {
   assert.match(analysis, /fonts\.googleapis\.com\/css2\?family=Noto\+Serif\+TC:wght@400;500;600;700;900&family=Noto\+Sans\+TC:wght@300;400;500;600;700&family=JetBrains\+Mono:wght@400;500;600&display=swap/);
   assert.match(analysis, /--navy:#1F3848/);
   assert.match(analysis, /--peach:#E7BBA7/);
-  assert.match(analysis, /--cream:#F5F0EA/);
+  assert.match(analysis, /--alert:#B5654F/);
+  assert.match(analysis, /--cream:#F6F1EA/);
   assert.match(analysis, /--serif:"Noto Serif TC", "Songti TC", serif/);
   assert.match(analysis, /--mono:"JetBrains Mono", ui-monospace, monospace/);
-  assert.match(analysis, /nav\.top/);
-  assert.match(analysis, /\.hero\{[\s\S]*radial-gradient/);
-  assert.match(analysis, /\.grid-bg/);
-  assert.match(analysis, /\.btn-primary\{[\s\S]*border-radius:2px/);
+  assert.match(analysis, /\.wrap\{[\s\S]*max-width:460px/);
+  assert.match(analysis, /\.hero\{[\s\S]*border-bottom:1px solid var\(--hair\)/);
+  assert.match(analysis, /\.hero h1\{[\s\S]*font-size:40px/);
+  assert.match(analysis, /\.rowline \.rt\.a\{color:var\(--alert\)/);
+  assert.match(analysis, /\.chip\{[\s\S]*background:var\(--cream-2\)/);
+  assert.doesNotMatch(analysis, /radial-gradient/);
+  assert.doesNotMatch(analysis, /\.badge/);
   assert.doesNotMatch(analysis, /brand-mark/);
   assert.doesNotMatch(analysis, /radar-visual/);
-  assert.doesNotMatch(analysis, /--paper:/);
+  assert.doesNotMatch(analysis, /sage/);
+  assert.doesNotMatch(analysis, /amber/);
+});
+
+test('hero conclusion is derived from top blind spot with a plain-language why', () => {
+  assert.match(analysis, /function topBlindSpot\(data\)/);
+  assert.match(analysis, /function topWrongArticle\(spot\)/);
+  assert.match(analysis, /今天先補/);
+  assert.match(analysis, /\$\('leadSubject'\)\.textContent = top\.subject/);
+  assert.match(analysis, /\$\('leadWhy'\)\.textContent = buildLeadWhy\(top\)/);
+  assert.match(analysis, /錯最多/);
+  assert.match(analysis, /錯了/);
 });
 
 test('countdown is loaded from exam-plan-contract instead of hard-coded exam dates', () => {
@@ -64,7 +79,7 @@ test('free and paid surfaces expose the required conversion split', () => {
   assert.match(analysis, /完整排程/);
   assert.match(analysis, /弱點優先/);
   assert.match(analysis, /每週診斷/);
-  assert.match(analysis, /checkout\.html\?plan=到考日&utm_source=analysis&utm_medium=radar&utm_campaign=ex25_analysis/);
+  assert.match(analysis, /checkout\.html\?plan=到考日&utm_source=analysis&utm_medium=upgrade&utm_campaign=ex25_analysis/);
   assert.match(analysis, /data-track-event="analysis_checkout_click"/);
 });
 
@@ -86,7 +101,7 @@ test('analysis page keeps public answer-source boundary honest', () => {
   assert.doesNotMatch(analysis, /保證考上/);
   assert.doesNotMatch(analysis, /AI 解析/);
   assert.match(analysis, /SoFa Engine 參考解析/);
-  assert.match(analysis, /非考選部官方標準答案/);
+  assert.match(analysis, /非官方答案/);
 });
 
 test('analysis diagnosis cards link directly into practice', () => {
@@ -95,8 +110,8 @@ test('analysis diagnosis cards link directly into practice', () => {
   assert.match(analysis, /qs\.set\('drill', '1'\)/);
   assert.match(analysis, /qs\.set\('free', '1'\)/);
   assert.match(analysis, /qs\.set\('start', '1'\)/);
-  assert.match(analysis, /<a class="spot" href="\$\{htmlEscape\(practiceHref\(lawName, 'analysis_weak_spot'\)\)\}"/);
-  assert.match(analysis, /<a class="spot sage" href="\$\{htmlEscape\(practiceHref\(lawName, 'analysis_most_practiced'\)\)\}"/);
-  assert.match(analysis, /<a class="spot amber" href="\$\{htmlEscape\(practiceHref\(item\.law \|\| '', 'analysis_not_started'\)\)\}"/);
-  assert.match(analysis, /<a class="due-item" href="\$\{htmlEscape\(practiceHref\(item\.law_name \|\| '', 'analysis_review_due'\)\)\}"/);
+  assert.match(analysis, /<a class="rowline" href="\$\{htmlEscape\(practiceHref\(lawName, 'analysis_weak_spot'\)\)\}"/);
+  assert.match(analysis, /<a class="chip" href="\$\{htmlEscape\(practiceHref\(lawName, 'analysis_most_practiced'\)\)\}"/);
+  assert.match(analysis, /<a class="chip" href="\$\{htmlEscape\(practiceHref\(item\.law \|\| '', 'analysis_not_started'\)\)\}"/);
+  assert.match(analysis, /<a class="rowline due-row" href="\$\{htmlEscape\(practiceHref\(item\.law_name \|\| '', 'analysis_review_due'\)\)\}"/);
 });
