@@ -169,6 +169,7 @@
   </main>
 
   <script>
+    const OPS_SNAPSHOT_URL = window.SOFA_OPS_SNAPSHOT_URL || "https://fay-spectrum-bot.onrender.com/sofa_ops_snapshot?days=7";
     const OPS_SNAPSHOT = window.SOFA_OPS_SNAPSHOT || {
       generatedAt: null,
       services: [
@@ -185,7 +186,7 @@
       needSignals: null,
       alerts: [],
       actions: [
-        "接上 GitHub Actions 或 bot preview JSON，寫入 window.SOFA_OPS_SNAPSHOT。",
+        "正在讀取 bot ops snapshot，讀不到時才顯示這份 fallback。",
         "LINE 正常完成摘要停止推播，只保留警告與恢復通知。",
         "LINE 額度 80% / 90% / 100% 各推一次並去重。"
       ],
@@ -347,7 +348,26 @@
       renderActions(snapshot.actions || []);
     }
 
+    async function fetchOpsSnapshot() {
+      try {
+        const response = await fetch(OPS_SNAPSHOT_URL, { cache: "no-store" });
+        if (!response.ok) throw new Error(`snapshot ${response.status}`);
+        const snapshot = await response.json();
+        renderDashboard(snapshot);
+      } catch (error) {
+        const currentActions = Array.from(document.querySelectorAll("#opsActionList li"))
+          .map((item) => item.textContent)
+          .filter(Boolean);
+        renderActions([
+          "dashboard snapshot 讀取失敗，先看警告推播與 revenue report。",
+          ...currentActions
+        ]);
+        console.warn("[ops-dashboard] snapshot fetch failed", error);
+      }
+    }
+
     renderDashboard(OPS_SNAPSHOT);
+    fetchOpsSnapshot();
   </script>
 </body>
 </html>

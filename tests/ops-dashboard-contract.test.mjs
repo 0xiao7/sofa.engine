@@ -77,3 +77,18 @@ test('ops dashboard documents customer need signals without inventing unavailabl
   assert.match(html, /不是訪談結論/);
   assert.match(html, /不把未埋點行為算進來/);
 });
+
+test('ops dashboard fetches the live safe snapshot without exposing secrets', () => {
+  const html = readFileSync(pageUrl, 'utf8');
+
+  assert.match(html, /const OPS_SNAPSHOT_URL/);
+  assert.match(html, /https:\/\/fay-spectrum-bot\.onrender\.com\/sofa_ops_snapshot\?days=7/);
+  assert.match(html, /function fetchOpsSnapshot/);
+  assert.match(html, /fetch\(OPS_SNAPSHOT_URL/);
+  assert.match(html, /renderDashboard\(snapshot\)/);
+  assert.match(html, /catch/);
+  assert.doesNotMatch(html, /SOFA_API_ADMIN_SECRET/);
+  assert.doesNotMatch(html, /LINE_CHANNEL_ACCESS_TOKEN/);
+  assert.doesNotMatch(html, /user_id|email_hash/i);
+  assert.doesNotMatch(html, /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+});
