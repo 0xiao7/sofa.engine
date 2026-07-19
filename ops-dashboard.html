@@ -68,6 +68,12 @@
     .diagnosis-row b { font-size: 13px; }
     .diagnosis-row p { color: var(--ink); }
     .diagnosis-model { margin: 0; padding-left: 18px; color: var(--ink); line-height: 1.75; }
+    .need-panel { display: grid; gap: 12px; }
+    .need-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+    .need-signal { border: 1px solid var(--line); border-radius: 6px; padding: 12px; min-height: 112px; }
+    .need-signal b { display: block; font-size: 13px; margin-bottom: 8px; }
+    .need-signal strong { display: block; font-size: 28px; line-height: 1.1; color: var(--blue); margin-bottom: 6px; }
+    .need-note { font-size: 13px; }
     .actions { margin: 0; padding-left: 18px; color: var(--ink); line-height: 1.9; }
     .policy { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
     .policy div { border: 1px solid var(--line); border-radius: 6px; padding: 12px; min-height: 92px; }
@@ -78,7 +84,7 @@
       .stamp { text-align: left; margin-top: 12px; }
       .span-8, .span-6, .span-4, .span-3 { grid-column: span 12; }
       .diagnosis-row { grid-template-columns: 1fr; gap: 4px; }
-      .status-row, .policy { grid-template-columns: 1fr; }
+      .status-row, .need-grid, .policy { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -136,6 +142,11 @@
       <div id="businessDiagnosisPanel" class="diagnosis-panel"></div>
     </section>
 
+    <section class="span-12">
+      <h2>需求訊號</h2>
+      <div id="needSignalsPanel" class="need-panel"></div>
+    </section>
+
     <section class="span-8">
       <span class="anchor" id="alerts" aria-hidden="true"></span>
       <h2>警告紀錄</h2>
@@ -171,6 +182,7 @@
       lineQuota: { limit: null, used: null, points: [] },
       revenueFunnel: { steps: [] },
       businessDiagnosis: null,
+      needSignals: null,
       alerts: [],
       actions: [
         "接上 GitHub Actions 或 bot preview JSON，寫入 window.SOFA_OPS_SNAPSHOT。",
@@ -271,6 +283,43 @@
         <p>完整數字由內部 revenue report 寫入 snapshot；dashboard 未接資料前不造假。</p>`;
     }
 
+    function renderNeedSignals(needSignals) {
+      const target = document.getElementById("needSignalsPanel");
+      const signalKeys = ["avoid_random_study", "save_progress", "find_weakness", "buy_exam_plan"];
+      const fallback = {
+        avoid_random_study: {
+          label: "不要亂讀",
+          why: "從做題開始、刷題 session 與免費練習入口觀察。"
+        },
+        save_progress: {
+          label: "保存進度",
+          why: "從完成後保存與答題後登入觀察。"
+        },
+        find_weakness: {
+          label: "找弱點",
+          why: "從答題後價值曝光、鎖內容與預覽可見觀察。"
+        },
+        buy_exam_plan: {
+          label: "考前付費意圖",
+          why: "從看方案、完成後看方案、鎖內容看方案與 LINE 付款卡觀察。"
+        }
+      };
+      const hasData = needSignals && signalKeys.some((key) => needSignals[key]);
+      const source = hasData ? needSignals : fallback;
+      const topSignal = hasData ? (needSignals.top_signal || "") : "";
+      const topLabel = topSignal && source[topSignal] ? source[topSignal].label : "";
+      target.innerHTML = `
+        <div class="need-grid">
+          ${signalKeys.map((key) => {
+            const item = source[key] || fallback[key];
+            const value = hasData ? String(Math.max(0, Number(item.count) || 0)) : "--";
+            return `<div class="need-signal"><b>${item.label}</b><strong>${value}</strong><p>${item.why || "等待 revenue report 寫入。"}</p></div>`;
+          }).join("")}
+        </div>
+        <p class="need-note">${topLabel ? `最強訊號：${topLabel}。` : "資料待接：完整數字由內部 revenue report 寫入 snapshot。"}</p>
+        <p class="need-note">${hasData && needSignals.measurement_note ? needSignals.measurement_note : "以已存在事件推導需求方向；不是訪談結論，也不把未埋點行為算進來。"}</p>`;
+    }
+
     function renderAlertTimeline(alerts) {
       const target = document.getElementById("alertTimeline");
       const openAlerts = (alerts || []).filter((item) => item.status !== "resolved");
@@ -293,6 +342,7 @@
       renderQuotaChart(snapshot.lineQuota || {});
       renderFunnelChart(snapshot.revenueFunnel || {});
       renderBusinessDiagnosis(snapshot.businessDiagnosis || snapshot.business_diagnosis);
+      renderNeedSignals(snapshot.needSignals || snapshot.need_signals);
       renderAlertTimeline(snapshot.alerts || []);
       renderActions(snapshot.actions || []);
     }
