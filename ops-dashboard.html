@@ -1,0 +1,259 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="robots" content="noindex,nofollow" />
+  <title>SoFa Ops Dashboard</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #17212b;
+      --muted: #68717b;
+      --paper: #f8f7f3;
+      --panel: #ffffff;
+      --line: #dcd7cc;
+      --green: #2f7d54;
+      --amber: #b46b2d;
+      --red: #b33a3a;
+      --blue: #2f5f8f;
+      --violet: #6b5a91;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--paper);
+      color: var(--ink);
+    }
+    header, main { width: min(1180px, calc(100% - 32px)); margin: 0 auto; }
+    header { padding: 32px 0 18px; display: flex; justify-content: space-between; gap: 24px; align-items: flex-end; border-bottom: 1px solid var(--line); }
+    h1 { margin: 0; font-size: 28px; letter-spacing: 0; line-height: 1.2; }
+    h2 { margin: 0 0 14px; font-size: 17px; letter-spacing: 0; }
+    p { margin: 0; color: var(--muted); line-height: 1.6; }
+    .stamp { font-size: 12px; color: var(--muted); text-align: right; line-height: 1.6; }
+    main { padding: 22px 0 42px; }
+    .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 14px; }
+    section, .metric {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+    }
+    .span-12 { grid-column: span 12; }
+    .span-8 { grid-column: span 8; }
+    .span-6 { grid-column: span 6; }
+    .span-4 { grid-column: span 4; }
+    .span-3 { grid-column: span 3; }
+    .status-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-top: 14px; }
+    .service { border: 1px solid var(--line); border-radius: 6px; padding: 12px; min-height: 84px; }
+    .service b, .metric b { display: block; font-size: 13px; margin-bottom: 8px; }
+    .pill { display: inline-flex; align-items: center; min-height: 28px; padding: 0 10px; border-radius: 999px; font-size: 12px; border: 1px solid currentColor; }
+    .ok { color: var(--green); }
+    .warn { color: var(--amber); }
+    .critical { color: var(--red); }
+    .metric strong { display: block; font-size: 30px; line-height: 1.1; margin-bottom: 4px; }
+    .chart { width: 100%; height: 250px; display: block; border-top: 1px solid var(--line); margin-top: 12px; padding-top: 10px; }
+    .bar-label { font-size: 12px; fill: var(--muted); }
+    .empty { display: grid; place-items: center; min-height: 180px; border: 1px dashed var(--line); color: var(--muted); border-radius: 6px; text-align: center; padding: 18px; }
+    .timeline { display: grid; gap: 10px; }
+    .event { border-left: 4px solid var(--line); padding: 8px 0 8px 12px; }
+    .event.warn { border-left-color: var(--amber); }
+    .event.critical { border-left-color: var(--red); }
+    .actions { margin: 0; padding-left: 18px; color: var(--ink); line-height: 1.9; }
+    .policy { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .policy div { border: 1px solid var(--line); border-radius: 6px; padding: 12px; min-height: 92px; }
+    code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 12px; background: #efede7; padding: 2px 5px; border-radius: 4px; }
+    @media (max-width: 840px) {
+      header { display: block; }
+      .stamp { text-align: left; margin-top: 12px; }
+      .span-8, .span-6, .span-4, .span-3 { grid-column: span 12; }
+      .status-row, .policy { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>SoFa Ops Dashboard</h1>
+      <p>LINE 只在警告時推播；正常健康檢查、漏斗與趨勢集中看這裡。</p>
+    </div>
+    <div class="stamp" id="snapshotStamp">資料待接<br />Snapshot pending</div>
+  </header>
+
+  <main class="grid">
+    <section class="span-12" id="opsStatus">
+      <h2>營運總燈</h2>
+      <span class="pill warn" id="overallStatus">資料待接</span>
+      <div class="status-row" id="serviceStatus"></div>
+    </section>
+
+    <div class="metric span-3">
+      <b>本月 LINE 額度</b>
+      <strong id="lineQuotaUsed">--</strong>
+      <p id="lineQuotaNote">等待 Messaging API 用量快照。</p>
+    </div>
+    <div class="metric span-3">
+      <b>今日作答</b>
+      <strong id="lineAnswered">--</strong>
+      <p>LINE 送題與作答，不再每日推完整報表。</p>
+    </div>
+    <div class="metric span-3">
+      <b>付款按鈕</b>
+      <strong id="paymentClicks">--</strong>
+      <p>checkout 有人進但付款按鈕為 0 時才警告。</p>
+    </div>
+    <div class="metric span-3">
+      <b>未處理警告</b>
+      <strong id="openAlerts">--</strong>
+      <p>紅燈立即推；橘燈連續異常才推。</p>
+    </div>
+
+    <section class="span-6">
+      <h2>LINE 額度曲線</h2>
+      <div id="lineQuotaChart" class="chart"></div>
+    </section>
+
+    <section class="span-6">
+      <h2>收入漏斗變化</h2>
+      <div id="revenueFunnelChart" class="chart"></div>
+    </section>
+
+    <section class="span-8">
+      <h2>警告紀錄</h2>
+      <div id="alertTimeline" class="timeline"></div>
+    </section>
+
+    <section class="span-4">
+      <h2>處理清單</h2>
+      <ol class="actions" id="opsActionList"></ol>
+    </section>
+
+    <section class="span-12">
+      <h2>推播政策</h2>
+      <div class="policy">
+        <div><b>綠燈不推</b><p>正常健康檢查、一般 revenue report、law-monitor 無更新，只寫 dashboard。</p></div>
+        <div><b>橘燈連續異常才推</b><p>同一指標連續兩次異常才打擾，避免單點雜訊吃額度。</p></div>
+        <div><b>紅燈立即推</b><p>API/付款/LINE bot、安全檢查、ECPay 或額度耗盡直接 LINE + Email。</p></div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const OPS_SNAPSHOT = window.SOFA_OPS_SNAPSHOT || {
+      generatedAt: null,
+      services: [
+        { key: "web", label: "官網", status: "pending" },
+        { key: "api", label: "API", status: "pending" },
+        { key: "line", label: "LINE bot", status: "pending" },
+        { key: "payment", label: "付款", status: "pending" },
+        { key: "lawMonitor", label: "law-monitor", status: "pending" },
+        { key: "autopost", label: "autopost", status: "pending" }
+      ],
+      lineQuota: { limit: null, used: null, points: [] },
+      revenueFunnel: { steps: [] },
+      alerts: [],
+      actions: [
+        "接上 GitHub Actions 或 bot preview JSON，寫入 window.SOFA_OPS_SNAPSHOT。",
+        "LINE 正常完成摘要停止推播，只保留警告與恢復通知。",
+        "LINE 額度 80% / 90% / 100% 各推一次並去重。"
+      ],
+      metrics: {}
+    };
+
+    function statusClass(status) {
+      if (status === "critical") return "critical";
+      if (status === "warn" || status === "pending") return "warn";
+      return "ok";
+    }
+
+    function statusLabel(status) {
+      return { ok: "正常", warn: "注意", critical: "警告", pending: "資料待接" }[status] || "資料待接";
+    }
+
+    function renderStatus(snapshot) {
+      const statuses = snapshot.services.map((item) => item.status);
+      const overall = statuses.includes("critical") ? "critical" : statuses.includes("warn") || statuses.includes("pending") ? "warn" : "ok";
+      const pill = document.getElementById("overallStatus");
+      pill.className = `pill ${statusClass(overall)}`;
+      pill.textContent = statusLabel(overall);
+      document.getElementById("serviceStatus").innerHTML = snapshot.services.map((item) => (
+        `<div class="service"><b>${item.label}</b><span class="pill ${statusClass(item.status)}">${statusLabel(item.status)}</span><p>${item.note || "等待快照"}</p></div>`
+      )).join("");
+      document.getElementById("snapshotStamp").innerHTML = snapshot.generatedAt ? `更新時間<br />${snapshot.generatedAt}` : "資料待接<br />Snapshot pending";
+    }
+
+    function renderQuotaChart(lineQuota) {
+      const target = document.getElementById("lineQuotaChart");
+      const points = Array.isArray(lineQuota.points) ? lineQuota.points : [];
+      const used = lineQuota.used;
+      const limit = lineQuota.limit;
+      document.getElementById("lineQuotaUsed").textContent = used == null ? "--" : String(used);
+      document.getElementById("lineQuotaNote").textContent = limit ? `上限 ${limit}，剩餘 ${Math.max(0, limit - used)}。` : "等待 Messaging API 用量快照。";
+      if (!points.length) {
+        target.innerHTML = '<div class="empty">資料待接：LINE quota snapshot 尚未寫入。</div>';
+        return;
+      }
+      const max = Math.max(...points.map((p) => p.used || 0), limit || 1);
+      const width = 520, height = 220, pad = 34;
+      const step = (width - pad * 2) / Math.max(1, points.length - 1);
+      const coords = points.map((p, i) => {
+        const x = pad + i * step;
+        const y = height - pad - ((p.used || 0) / max) * (height - pad * 2);
+        return `${x},${y}`;
+      }).join(" ");
+      target.innerHTML = `<svg viewBox="0 0 ${width} ${height}" width="100%" height="100%" role="img" aria-label="LINE quota usage trend">
+        <polyline points="${coords}" fill="none" stroke="#2f5f8f" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"></polyline>
+        ${points.map((p, i) => `<text class="bar-label" x="${pad + i * step}" y="${height - 8}" text-anchor="middle">${p.date || ""}</text>`).join("")}
+      </svg>`;
+    }
+
+    function renderFunnelChart(revenueFunnel) {
+      const target = document.getElementById("revenueFunnelChart");
+      const steps = Array.isArray(revenueFunnel.steps) ? revenueFunnel.steps : [];
+      document.getElementById("lineAnswered").textContent = String(revenueFunnel.lineAnswered ?? "--");
+      document.getElementById("paymentClicks").textContent = String(revenueFunnel.paymentClicks ?? "--");
+      if (!steps.length) {
+        target.innerHTML = '<div class="empty">資料待接：revenue funnel snapshot 尚未寫入。</div>';
+        return;
+      }
+      const max = Math.max(...steps.map((s) => s.value || 0), 1);
+      target.innerHTML = `<svg viewBox="0 0 560 230" width="100%" height="100%" role="img" aria-label="Revenue funnel trend">
+        ${steps.map((s, i) => {
+          const barWidth = Math.max(8, ((s.value || 0) / max) * 420);
+          const y = 22 + i * 42;
+          return `<text class="bar-label" x="0" y="${y + 18}">${s.label}</text><rect x="128" y="${y}" width="${barWidth}" height="24" rx="4" fill="${s.color || "#6b5a91"}"></rect><text class="bar-label" x="${140 + barWidth}" y="${y + 18}">${s.value || 0}</text>`;
+        }).join("")}
+      </svg>`;
+    }
+
+    function renderAlertTimeline(alerts) {
+      const target = document.getElementById("alertTimeline");
+      const openAlerts = (alerts || []).filter((item) => item.status !== "resolved");
+      document.getElementById("openAlerts").textContent = String(openAlerts.length || "--");
+      if (!alerts || !alerts.length) {
+        target.innerHTML = '<div class="empty">資料待接：目前沒有警告快照。</div>';
+        return;
+      }
+      target.innerHTML = alerts.map((item) => (
+        `<div class="event ${statusClass(item.level)}"><b>${item.title}</b><p>${item.time || ""} ${item.detail || ""}</p></div>`
+      )).join("");
+    }
+
+    function renderActions(actions) {
+      document.getElementById("opsActionList").innerHTML = (actions || []).map((item) => `<li>${item}</li>`).join("");
+    }
+
+    function renderDashboard(snapshot) {
+      renderStatus(snapshot);
+      renderQuotaChart(snapshot.lineQuota || {});
+      renderFunnelChart(snapshot.revenueFunnel || {});
+      renderAlertTimeline(snapshot.alerts || []);
+      renderActions(snapshot.actions || []);
+    }
+
+    renderDashboard(OPS_SNAPSHOT);
+  </script>
+</body>
+</html>
