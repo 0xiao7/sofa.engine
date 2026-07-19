@@ -14,6 +14,8 @@
     ['quiz_session_save_click', 'quiz_session_save_click'],
     ['quiz_session_pricing_click', 'quiz_session_pricing_click'],
     ['post_answer_value_viewed', 'post_answer_value_viewed'],
+    ['analysis_view', 'analysis_view'],
+    ['analysis_checkout_click', 'analysis_checkout_click'],
     ['pricing_view', 'pricing_view'],
     ['pricing_select_plan', 'pricing_select_plan'],
     ['pricing_free_quiz_click', 'pricing_free_quiz_click'],
@@ -41,7 +43,7 @@
   ]);
   const CARRY_PATHS = new Set([
     '/pricing.html','/checkout.html','/login.html','/quiz.html','/fill.html',
-    '/practice.html','/dashboard.html','/free.html'
+    '/practice.html','/dashboard.html','/free.html','/analysis.html'
   ]);
   const MONETIZATION_PATHS = new Set(['/pricing.html','/checkout.html','/login.html']);
 
