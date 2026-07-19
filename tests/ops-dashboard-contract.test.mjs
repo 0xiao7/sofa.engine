@@ -18,6 +18,14 @@ test('ops dashboard is an internal noindex page with trend sections', () => {
   assert.match(html, /id="opsActionList"/);
 });
 
+test('ops dashboard exposes anchors used by the internal LINE test lab rich menu', () => {
+  const html = readFileSync(pageUrl, 'utf8');
+
+  assert.match(html, /id="overview"/);
+  assert.match(html, /id="revenue"/);
+  assert.match(html, /id="alerts"/);
+});
+
 test('ops dashboard documents alert-only LINE policy and avoids public sitemap indexing', () => {
   const html = readFileSync(pageUrl, 'utf8');
   const sitemap = readFileSync(new URL('sitemap.xml', root), 'utf8');
