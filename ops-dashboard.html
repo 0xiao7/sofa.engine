@@ -169,7 +169,9 @@
   </main>
 
   <script>
-    const OPS_SNAPSHOT_URL = window.SOFA_OPS_SNAPSHOT_URL || "https://fay-spectrum-bot.onrender.com/sofa_ops_snapshot?days=7";
+    const OPS_SNAPSHOT_URL = window.SOFA_OPS_SNAPSHOT_URL || "https://fay-spectrum-bot.onrender.com/sofa_ops_snapshot";
+    const OPS_QUERY = new URLSearchParams(window.location.search);
+    const OPS_TOKEN = window.SOFA_OPS_TOKEN || OPS_QUERY.get("ops_token") || "";
     const OPS_SNAPSHOT = window.SOFA_OPS_SNAPSHOT || {
       generatedAt: null,
       services: [
@@ -186,12 +188,18 @@
       needSignals: null,
       alerts: [],
       actions: [
-        "正在讀取 bot ops snapshot，讀不到時才顯示這份 fallback。",
-        "LINE 正常完成摘要停止推播，只保留警告與恢復通知。",
-        "LINE 額度 80% / 90% / 100% 各推一次並去重。"
+        "需要內部 test lab 連結才會載入營運 snapshot。",
+        "沒有內部 token 時，本頁不讀取也不顯示營運洞悉。"
       ],
       metrics: {}
     };
+
+    function buildOpsSnapshotUrl() {
+      const url = new URL(OPS_SNAPSHOT_URL);
+      url.searchParams.set("days", "7");
+      url.searchParams.set("token", OPS_TOKEN);
+      return url.toString();
+    }
 
     function statusClass(status) {
       if (status === "critical") return "critical";
@@ -348,9 +356,22 @@
       renderActions(snapshot.actions || []);
     }
 
+    function renderPrivateGate() {
+      const message = '<div class="empty">需要內部 test lab 連結才會載入營運洞悉。</div>';
+      document.getElementById("lineQuotaChart").innerHTML = message;
+      document.getElementById("revenueFunnelChart").innerHTML = message;
+      document.getElementById("businessDiagnosisPanel").innerHTML = message;
+      document.getElementById("needSignalsPanel").innerHTML = message;
+      document.getElementById("alertTimeline").innerHTML = message;
+      renderActions([
+        "請從 SoFa Engine test lab LINE 圖文選單開啟。",
+        "公開 URL 不載入內部營運 snapshot。"
+      ]);
+    }
+
     async function fetchOpsSnapshot() {
       try {
-        const response = await fetch(OPS_SNAPSHOT_URL, { cache: "no-store" });
+        const response = await fetch(buildOpsSnapshotUrl(), { cache: "no-store" });
         if (!response.ok) throw new Error(`snapshot ${response.status}`);
         const snapshot = await response.json();
         renderDashboard(snapshot);
@@ -367,7 +388,11 @@
     }
 
     renderDashboard(OPS_SNAPSHOT);
-    fetchOpsSnapshot();
+    if (OPS_TOKEN) {
+      fetchOpsSnapshot();
+    } else {
+      renderPrivateGate();
+    }
   </script>
 </body>
 </html>

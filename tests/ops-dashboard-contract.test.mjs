@@ -82,11 +82,18 @@ test('ops dashboard fetches the live safe snapshot without exposing secrets', ()
   const html = readFileSync(pageUrl, 'utf8');
 
   assert.match(html, /const OPS_SNAPSHOT_URL/);
-  assert.match(html, /https:\/\/fay-spectrum-bot\.onrender\.com\/sofa_ops_snapshot\?days=7/);
+  assert.match(html, /https:\/\/fay-spectrum-bot\.onrender\.com\/sofa_ops_snapshot/);
+  assert.match(html, /URLSearchParams\(window\.location\.search\)/);
+  assert.match(html, /ops_token/);
+  assert.match(html, /function buildOpsSnapshotUrl/);
+  assert.match(html, /searchParams\.set\("token", OPS_TOKEN\)/);
+  assert.match(html, /function renderPrivateGate/);
+  assert.match(html, /if \(OPS_TOKEN\)/);
   assert.match(html, /function fetchOpsSnapshot/);
-  assert.match(html, /fetch\(OPS_SNAPSHOT_URL/);
+  assert.match(html, /fetch\(buildOpsSnapshotUrl\(\)/);
   assert.match(html, /renderDashboard\(snapshot\)/);
   assert.match(html, /catch/);
+  assert.doesNotMatch(html, /ops_token=[A-Za-z0-9_-]/);
   assert.doesNotMatch(html, /SOFA_API_ADMIN_SECRET/);
   assert.doesNotMatch(html, /LINE_CHANNEL_ACCESS_TOKEN/);
   assert.doesNotMatch(html, /user_id|email_hash/i);
