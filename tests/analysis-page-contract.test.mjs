@@ -17,6 +17,22 @@ test('analysis page exists as a mobile-first standalone radar page', () => {
   assert.match(analysis, /到考日/);
 });
 
+test('analysis page uses the public site design system instead of the rejected custom mockup', () => {
+  assert.match(analysis, /fonts\.googleapis\.com\/css2\?family=Noto\+Serif\+TC:wght@400;500;600;700;900&family=Noto\+Sans\+TC:wght@300;400;500;600;700&family=JetBrains\+Mono:wght@400;500;600&display=swap/);
+  assert.match(analysis, /--navy:#1F3848/);
+  assert.match(analysis, /--peach:#E7BBA7/);
+  assert.match(analysis, /--cream:#F5F0EA/);
+  assert.match(analysis, /--serif:"Noto Serif TC", "Songti TC", serif/);
+  assert.match(analysis, /--mono:"JetBrains Mono", ui-monospace, monospace/);
+  assert.match(analysis, /nav\.top/);
+  assert.match(analysis, /\.hero\{[\s\S]*radial-gradient/);
+  assert.match(analysis, /\.grid-bg/);
+  assert.match(analysis, /\.btn-primary\{[\s\S]*border-radius:2px/);
+  assert.doesNotMatch(analysis, /brand-mark/);
+  assert.doesNotMatch(analysis, /radar-visual/);
+  assert.doesNotMatch(analysis, /--paper:/);
+});
+
 test('countdown is loaded from exam-plan-contract instead of hard-coded exam dates', () => {
   assert.match(analysis, /fetch\(['"]exam-plan-contract\.json/);
   assert.match(analysis, /exam_date/);

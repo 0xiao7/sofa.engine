@@ -7,159 +7,205 @@
   <meta name="description" content="SoFa Engine 進度雷達：用答題紀錄整理倒數、盲區、熱區、待複習與下一步。">
   <meta name="robots" content="noindex,follow">
   <script src="sofa-analytics.js?v=20260704-revenue-v1" defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700;900&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root{
-      --ink:#172033;
-      --muted:#667085;
-      --line:#d9dee8;
-	    --paper:#f7f1e7;
-	    --surface:#ffffff;
-	    --navy:#13223d;
-	    --navy-2:#20365f;
-	    --rose:#bb6263;
-	    --gold:#c48b3c;
-	    --sage:#4b846f;
-	    --green:#4b846f;
-	    --amber:#d49b45;
-	    --blue:#4169a9;
-	    --shadow:0 18px 48px rgba(19,34,61,.12);
+      --navy:#1F3848;
+      --navy-2:#19303E;
+      --navy-3:#142836;
+      --navy-4:#0D1C28;
+      --plum-1:#2C4A5C;
+      --plum-2:#4A6373;
+      --halo:#7E8FA0;
+      --halo-2:#9AA9B8;
+      --peach:#E7BBA7;
+      --peach-2:#F0CDBD;
+      --peach-3:#C89580;
+      --peach-dim:rgba(231,187,167,.32);
+      --mauve:#B38BA7;
+      --mauve-2:#9C7591;
+      --pink:#E7BBA7;
+      --pink-2:#F0CDBD;
+      --pink-3:#C89580;
+      --cream:#F5F0EA;
+      --cream-2:#ECE5DB;
+      --cream-3:#E0D6C7;
+      --clay:#C9A485;
+      --ink:#1A2B35;
+      --ink-2:#3A4A55;
+      --muted:#7A8892;
+      --line:rgba(26,43,53,.14);
+      --line-on-navy:rgba(245,240,234,.14);
+      --line-2:rgba(245,240,234,.22);
+      --serif:"Noto Serif TC", "Songti TC", serif;
+      --sans:"Noto Sans TC", system-ui, sans-serif;
+      --mono:"JetBrains Mono", ui-monospace, monospace;
     }
-    *{box-sizing:border-box}
-    html{background:var(--paper);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans TC","PingFang TC",sans-serif;letter-spacing:0}
-	    body{margin:0;min-height:100vh;background:linear-gradient(180deg,#fbf7ef 0%,#f0e7d8 100%);font-size:16px}
-	    a{color:inherit;text-decoration:none}
-	    button,a{touch-action:manipulation}
-	    .shell{width:min(1040px,100%);margin:0 auto;padding:18px 16px 96px}
-	    .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:18px}
-	    .brand{display:flex;align-items:center;gap:10px;font-weight:900;color:var(--navy);line-height:1.1}
-	    .brand-mark{width:34px;height:34px;border-radius:8px;background:var(--navy);color:#f2d5bf;display:grid;place-items:center;font-size:21px;font-weight:900}
-	    .brand small{display:block;margin-top:2px;font-size:11px;color:var(--muted);font-weight:800;letter-spacing:0;text-transform:uppercase}
-    .nav{display:flex;gap:8px;align-items:center}
-    .nav a{min-height:40px;display:inline-flex;align-items:center;justify-content:center;border:1px solid var(--line);border-radius:8px;background:rgba(255,255,255,.72);padding:0 12px;font-size:13px;font-weight:800}
-	    .hero{display:grid;gap:12px;margin-bottom:12px}
-	    .radar-head{position:relative;overflow:hidden;background:var(--navy);color:#fff;border-radius:8px;padding:24px 18px;box-shadow:var(--shadow);min-height:240px}
-	    .kicker{margin:0 0 8px;font-size:12px;font-weight:900;letter-spacing:0;color:#f1c7b4;text-transform:uppercase}
-	    h1{margin:0;font-size:34px;line-height:1.05;letter-spacing:0}
-	    .lead{margin:12px 0 0;color:#dce5f4;line-height:1.7;font-size:15px;max-width:540px}
-	    .radar-visual{position:absolute;right:18px;bottom:14px;width:142px;height:142px;border:1px solid rgba(242,213,191,.62);border-radius:50%;display:grid;place-items:center}
-	    .radar-visual::before,.radar-visual::after{content:"";position:absolute;border:1px solid rgba(242,213,191,.42);border-radius:50%}
-	    .radar-visual::before{inset:22px}
-	    .radar-visual::after{inset:46px}
-	    .radar-sweep{position:absolute;width:1px;height:70px;background:#f2d5bf;transform-origin:bottom center;top:0;left:70px;transform:rotate(44deg)}
-	    .radar-dot{width:12px;height:12px;border-radius:50%;background:#e7bba7;box-shadow:34px 24px 0 #bb6263,-28px 40px 0 #d49b45}
-	    .countdown{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:18px;display:grid;gap:14px;box-shadow:var(--shadow)}
-    .count-main{display:flex;justify-content:space-between;gap:16px;align-items:flex-end}
-    .count-main b{display:block;font-size:46px;line-height:.9;color:var(--rose)}
-    .count-main span{display:block;color:var(--muted);font-weight:800;font-size:13px}
-    .exam-label{font-size:14px;font-weight:900;color:var(--navy);text-align:right}
-    .source-note{font-size:12px;line-height:1.6;color:var(--muted);margin:0}
-    .count-actions{display:grid;grid-template-columns:1fr;gap:8px}
-    .grid{display:grid;gap:12px}
-    .panel{background:rgba(255,255,255,.88);border:1px solid var(--line);border-radius:8px;padding:16px}
-	    .panel h2{margin:0 0 8px;font-size:18px;line-height:1.2;color:var(--navy)}
-	    .panel-copy{margin:0 0 12px;color:var(--muted);font-size:13px;line-height:1.65}
-    .panel-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
-    .panel-head h2{margin:0}
-	    .pill{display:inline-flex;align-items:center;min-height:28px;padding:0 9px;border-radius:999px;background:#eef3f0;color:var(--sage);font-size:12px;font-weight:900;white-space:nowrap}
-    .pill.free{background:#fff3e4;color:#925f1b}
-    .metric-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-    .metric{border:1px solid #e6e8ef;border-radius:8px;padding:11px 10px;background:#fff}
-    .metric b{display:block;font-size:20px;color:var(--navy);line-height:1}
-    .metric span{display:block;margin-top:6px;font-size:12px;color:var(--muted);font-weight:800}
+    *{box-sizing:border-box;margin:0;padding:0}
+    html{background:var(--navy-4);scroll-padding-top:72px}
+    body{font-family:var(--sans);color:var(--ink);font-size:16px;line-height:1.6;background:var(--cream);letter-spacing:0;-webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility}
+    a{color:inherit;text-decoration:none}
+    button,a{touch-action:manipulation}
+    .page{min-height:100vh;background:var(--cream);overflow:hidden}
+    .container{max-width:1180px;margin:0 auto;padding:0 56px}
+    nav.top{position:sticky;top:0;z-index:50;background:var(--navy);color:var(--cream);border-bottom:1px solid var(--line-on-navy)}
+    .nav-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:20px 40px 20px 48px}
+    .brand{font-family:var(--mono);font-weight:500;font-size:18px;color:var(--cream);display:flex;align-items:center;gap:10px}
+    .brand .dot{width:8px;height:8px;background:var(--peach);border-radius:50%;box-shadow:0 0 0 4px rgba(231,187,167,.18)}
+    .nav-links{display:flex;align-items:center;gap:26px;font-size:14px;color:rgba(245,240,234,.78)}
+    .nav-links a{min-width:44px;min-height:44px;display:inline-flex;align-items:center;justify-content:center}
+    .nav-cta{min-height:44px;display:inline-flex;align-items:center;justify-content:center;background:var(--peach);color:var(--navy);padding:10px 22px;border-radius:2px;font-weight:600;font-size:14px}
+    .hero{position:relative;background:radial-gradient(ellipse 820px 520px at 28% 40%, rgba(179,139,167,.22) 0%, rgba(179,139,167,.09) 32%, rgba(31,56,72,0) 68%),radial-gradient(ellipse 560px 360px at 22% 34%, rgba(231,187,167,.16) 0%, rgba(231,187,167,0) 58%),var(--navy);color:var(--cream);padding:82px 0 72px;overflow:hidden}
+    .grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(245,240,234,.025) 1px, transparent 1px),linear-gradient(90deg, rgba(245,240,234,.025) 1px, transparent 1px);background-size:80px 80px;mask-image:radial-gradient(ellipse 82% 64% at 30% 50%, #000 30%, transparent 80%)}
+    .hero-inner{position:relative;z-index:2;display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:42px;align-items:end}
+    .eyebrow{display:inline-flex;align-items:center;gap:10px;font-family:var(--mono);font-size:12px;font-weight:500;color:var(--peach);text-transform:uppercase;padding:7px 14px;border:1px solid rgba(231,187,167,.32);border-radius:2px;background:rgba(231,187,167,.06)}
+    .eyebrow .pulse{width:6px;height:6px;background:var(--peach);border-radius:50%;box-shadow:0 0 0 4px rgba(231,187,167,.18)}
+    h1.headline{margin-top:26px;font-family:var(--serif);font-weight:600;font-size:72px;line-height:1.08;color:var(--cream)}
+    h1.headline em{font-style:normal;color:var(--peach);position:relative}
+    h1.headline em::after{content:"";position:absolute;left:0;right:0;bottom:6px;height:12px;background:rgba(231,187,167,.16);z-index:-1}
+    .lede{margin-top:28px;font-size:18px;line-height:1.85;color:rgba(245,240,234,.82);max-width:680px;font-weight:300}
+    .hero-meta{margin-top:34px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));max-width:720px;border-top:1px solid var(--line-on-navy);border-bottom:1px solid var(--line-on-navy)}
+    .hero-meta .cell{padding:18px 22px 18px 0;border-right:1px solid var(--line-on-navy)}
+    .hero-meta .cell:last-child{border-right:0}
+    .hero-meta .num{font-family:var(--serif);font-weight:600;font-size:32px;color:var(--cream);line-height:1}
+    .hero-meta .num.peach{color:var(--peach)}
+    .hero-meta .lab{font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.55);text-transform:uppercase;margin-top:9px}
+    .hero-card{background:var(--cream);color:var(--ink);border-radius:4px;box-shadow:0 24px 54px rgba(0,0,0,.32), 0 4px 0 0 var(--peach);overflow:hidden}
+    .hc-head{background:var(--cream-2);padding:14px 18px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:11px;color:var(--ink-2);display:flex;justify-content:space-between}
+    .hc-body{padding:24px}
+    .hc-tag{font-family:var(--mono);font-size:11px;color:var(--peach-3);text-transform:uppercase;font-weight:600}
+    .hc-title{font-family:var(--serif);font-size:22px;font-weight:600;color:var(--navy);margin-top:10px;line-height:1.35}
+    .hc-copy{margin-top:14px;font-size:13px;color:var(--ink-2);line-height:1.8;background:#fff;border-left:3px solid var(--peach);padding:14px}
+    .btn{min-height:46px;display:inline-flex;align-items:center;justify-content:center;gap:10px;font-family:var(--sans);font-size:15px;font-weight:600;text-decoration:none;padding:12px 22px;border-radius:2px;border:1px solid transparent;cursor:pointer}
+    .btn-primary{background:var(--peach);color:var(--navy);border-radius:2px}
+    .btn-secondary{background:transparent;color:var(--navy);border-color:rgba(26,43,53,.22);border-radius:2px}
+    .btn-ghost{background:transparent;color:var(--cream);border-color:rgba(245,240,234,.38);border-radius:2px}
+    .band{background:var(--cream);padding:42px 0}
+    .band + .band{border-top:1px solid var(--line)}
+    .summary-strip{display:grid;grid-template-columns:1.4fr repeat(3,minmax(0,1fr));border:1px solid var(--line);background:#fff}
+    .summary-copy{padding:24px;border-right:1px solid var(--line)}
+    .summary-copy h2,.panel h2{font-family:var(--serif);font-weight:600;color:var(--navy);font-size:24px;line-height:1.3}
+    .summary-copy p,.panel-copy{margin-top:8px;color:var(--muted);font-size:13px;line-height:1.8}
+    .metric{padding:24px;border-right:1px solid var(--line);background:rgba(245,240,234,.44)}
+    .metric:last-child{border-right:0}
+    .metric b{display:block;font-family:var(--serif);font-size:36px;font-weight:600;color:var(--navy);line-height:1}
+    .metric span{display:block;margin-top:9px;font-family:var(--mono);font-size:11px;color:var(--muted);text-transform:uppercase}
+    .mode-row{margin-top:12px}
+    .pill{display:inline-flex;align-items:center;min-height:28px;padding:0 10px;border-radius:2px;border:1px solid rgba(26,43,53,.16);background:var(--cream);color:var(--ink-2);font-family:var(--mono);font-size:11px;font-weight:600}
+    .pill.free{background:rgba(231,187,167,.20);border-color:rgba(231,187,167,.46);color:var(--navy)}
+    .radar-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px;margin-top:24px}
+    .panel{background:#fff;border:1px solid var(--line);border-radius:4px;padding:22px}
+    .panel.wide{grid-column:1 / -1}
+    .panel.next{background:var(--navy);color:var(--cream);border-color:var(--navy)}
+    .panel.next h2{color:var(--cream)}
+    .panel.next p{color:rgba(245,240,234,.78);line-height:1.8;margin:12px 0 18px}
+    .panel-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px}
     .list{display:grid;gap:10px}
-    .spot{display:grid;gap:8px;border:1px solid #e4e7ee;border-radius:8px;background:#fff;padding:12px;color:inherit;text-decoration:none}
-    .spot:hover{border-color:#cfd7e6;box-shadow:0 10px 28px rgba(19,34,61,.08)}
+    .spot{display:grid;gap:8px;border:1px solid var(--line);border-radius:3px;background:var(--cream);padding:13px;color:inherit;text-decoration:none;transition:border-color .18s, background .18s}
+    .spot:hover{border-color:var(--peach-3);background:#fff}
     .spot-top{display:flex;align-items:center;justify-content:space-between;gap:12px}
-    .spot-title{font-size:15px;font-weight:900;color:var(--ink);line-height:1.35}
-	    .spot-count{min-width:56px;text-align:center;border-radius:8px;background:#fff0ef;color:#9d3f3a;font-weight:900;padding:7px 8px;font-size:13px}
-	    .spot.sage .spot-count{background:#edf6f1;color:#2f6c58}
-	    .spot.amber .spot-count{background:#fff3df;color:#8f5f1b}
-	    .spot small{color:var(--muted);line-height:1.5}
-    .heat{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px}
-    .bar{height:9px;border-radius:999px;background:#edf0f5;overflow:hidden}
-    .bar i{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,var(--green),var(--gold),var(--rose));width:var(--w,30%)}
-    .due-item{display:flex;gap:10px;align-items:flex-start;border-bottom:1px solid #edf0f5;padding:10px 0;color:inherit;text-decoration:none}
-    .due-item:last-child{border-bottom:0}
-    .due-date{min-width:54px;border-radius:8px;background:#edf2fb;color:var(--blue);font-size:12px;font-weight:900;padding:7px;text-align:center}
-    .due-body b{display:block;font-size:14px}
+    .spot-title{font-family:var(--serif);font-size:16px;font-weight:600;color:var(--navy);line-height:1.35}
+    .spot-count{min-width:58px;text-align:center;border-radius:2px;background:rgba(231,187,167,.28);color:var(--navy);font-family:var(--mono);font-weight:600;padding:7px 8px;font-size:12px}
+    .spot.sage .spot-count{background:rgba(126,143,160,.16);color:var(--plum-1)}
+    .spot.amber .spot-count{background:rgba(201,164,133,.24);color:#745135}
+    .spot small{color:var(--muted);line-height:1.55}
+    .due-item{display:flex;gap:12px;align-items:flex-start;border-top:1px solid var(--line);padding:12px 0;color:inherit;text-decoration:none}
+    .due-item:first-child{border-top:0}
+    .due-date{min-width:56px;border-radius:2px;background:var(--navy);color:var(--cream);font-family:var(--mono);font-size:12px;font-weight:600;padding:7px;text-align:center}
+    .due-body b{display:block;font-family:var(--serif);font-size:16px;color:var(--navy);font-weight:600}
     .due-body span{display:block;margin-top:4px;font-size:12px;color:var(--muted);line-height:1.5}
-	    .next{background:#13223d;color:#fff;border-color:#13223d}
-    .next h2{color:#fff}
-    .next p{color:#dce5f4;line-height:1.7;margin:0 0 16px}
-    .cta-row{display:grid;gap:10px}
-    .btn{min-height:48px;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;border:1px solid transparent;font-weight:900;padding:0 16px;text-align:center}
-    .btn.primary{background:#e7bba7;color:#13223d}
-    .btn.secondary{background:#fff;color:#13223d;border-color:#cfd7e6}
-    .locked{display:grid;gap:10px}
-    .lock-card{border:1px dashed #cfd6e2;border-radius:8px;background:#fbfcff;padding:12px}
-    .lock-card b{display:block;font-size:14px;color:var(--navy)}
-    .lock-card span{display:block;margin-top:5px;font-size:12px;color:var(--muted);line-height:1.5}
-    .empty{border:1px solid #e4e7ee;border-radius:8px;background:#fff;padding:14px;color:var(--muted);line-height:1.65}
-    .fineprint{margin:18px 2px 0;color:#667085;font-size:12px;line-height:1.7}
-    .sticky-cta{background:rgba(247,245,240,.94);border-top:1px solid var(--line);padding:10px 16px calc(10px + env(safe-area-inset-bottom));}
-    .sticky-cta .inner{width:min(1120px,100%);margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center}
-    .sticky-cta b{font-size:13px;color:var(--navy)}
+    .cta-row{display:flex;gap:10px;flex-wrap:wrap}
+    .locked{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+    .lock-card{border:1px dashed rgba(26,43,53,.22);border-radius:3px;background:var(--cream);padding:14px}
+    .lock-card b{display:block;font-family:var(--serif);font-size:16px;color:var(--navy);font-weight:600}
+    .lock-card span{display:block;margin-top:6px;font-size:12px;color:var(--muted);line-height:1.6}
+    .empty{border:1px dashed rgba(26,43,53,.18);border-radius:3px;background:var(--cream);padding:14px;color:var(--muted);line-height:1.65}
+    .fineprint{color:var(--muted);font-size:12px;line-height:1.8;margin-top:22px;text-align:center}
+    .sticky-cta{background:rgba(245,240,234,.96);border-top:1px solid var(--line);padding:14px 18px calc(14px + env(safe-area-inset-bottom))}
+    .sticky-cta .inner{max-width:1180px;margin:0 auto;display:grid;grid-template-columns:1fr auto;gap:12px;align-items:center}
+    .sticky-cta b{font-family:var(--serif);font-size:15px;color:var(--navy)}
     .sticky-cta span{display:block;margin-top:2px;font-size:12px;color:var(--muted)}
-    .sticky-cta .btn{min-height:44px;padding:0 14px}
-	    @media (min-width:760px){
-	      .shell{padding:26px 22px 110px}
-	      .hero{grid-template-columns:1.35fr .75fr;align-items:stretch}
-	      .radar-head{padding:30px}
-	      h1{font-size:44px}
-	      .grid{grid-template-columns:1.1fr .9fr}
-	      .panel.wide{grid-column:1 / -1}
-	      .radar-visual{width:188px;height:188px;right:34px;bottom:24px}
-	      .radar-visual::before{inset:30px}
-	      .radar-visual::after{inset:62px}
-	      .radar-sweep{height:94px;left:93px}
-	      .cta-row{grid-template-columns:auto auto;justify-content:start}
-	    }
+    @media(max-width:980px){
+      .container{padding:0 24px}
+      .hero-inner{grid-template-columns:1fr}
+      .summary-strip{grid-template-columns:1fr}
+      .summary-copy,.metric{border-right:0;border-bottom:1px solid var(--line)}
+      .radar-grid{grid-template-columns:1fr}
+      .locked{grid-template-columns:1fr}
+    }
+    @media(max-width:640px){
+      .nav-inner{padding:16px 18px}
+      .nav-links{gap:12px}
+      .nav-links a:not(.nav-cta){display:none}
+      .hero{padding:48px 0 46px}
+      h1.headline{font-size:44px}
+      .lede{font-size:16px}
+      .hero-meta{grid-template-columns:1fr}
+      .hero-meta .cell{border-right:0;border-bottom:1px solid var(--line-on-navy)}
+      .hero-meta .cell:last-child{border-bottom:0}
+      .band{padding:28px 0}
+      .sticky-cta .inner{grid-template-columns:1fr}
+      .sticky-cta .btn{width:100%}
+    }
   </style>
 </head>
 <body>
-  <main class="shell">
-    <header class="topbar">
-	      <a class="brand" href="index.html"><span class="brand-mark">§</span><span>SoFa Engine<small>Exam Radar</small></span></a>
-      <nav class="nav" aria-label="主要導覽">
-        <a href="quiz.html?free=1&start=1&utm_source=analysis&utm_medium=nav&utm_campaign=analysis_seed">練習</a>
-        <a href="pricing.html?utm_source=analysis&utm_medium=nav&utm_campaign=analysis_pricing">方案</a>
-      </nav>
+  <div class="page">
+    <nav class="top" aria-label="主要導覽">
+      <div class="nav-inner">
+        <a class="brand" href="index.html"><span class="dot"></span><span>SOFA ENGINE</span></a>
+        <div class="nav-links">
+          <a href="quiz.html?free=1&start=1&utm_source=analysis&utm_medium=nav&utm_campaign=analysis_seed">練習</a>
+          <a href="pricing.html?utm_source=analysis&utm_medium=nav&utm_campaign=analysis_pricing">方案</a>
+          <a class="nav-cta" href="checkout.html?plan=到考日&utm_source=analysis&utm_medium=radar&utm_campaign=ex25_analysis" data-track-event="analysis_checkout_click" data-track-label="analysis_nav_exam_day">到考日</a>
+        </div>
+      </div>
+    </nav>
+
+    <header class="hero" aria-labelledby="radar-title">
+      <div class="grid-bg" aria-hidden="true"></div>
+      <div class="container hero-inner">
+        <div>
+          <div class="eyebrow"><span class="pulse"></span>Progress Radar</div>
+          <h1 class="headline" id="radar-title">進度<em>雷達</em></h1>
+          <p class="lede">不是再叫你更努力，而是把答題紀錄翻成今天看得懂的備考地圖：盲區在哪、熱區要不要維持、哪幾條待複習。</p>
+          <div class="hero-meta">
+            <div class="cell"><div class="num peach" id="daysUntil">--</div><div class="lab">距離考試日</div></div>
+            <div class="cell"><div class="num" id="totalMetric">0</div><div class="lab">已練題數</div></div>
+            <div class="cell"><div class="num" id="accuracyMetric">--</div><div class="lab">正確率</div></div>
+          </div>
+        </div>
+        <aside class="hero-card" aria-live="polite">
+          <div class="hc-head"><span>EXAM PLAN</span><span id="modePill" class="pill free">免費預覽</span></div>
+          <div class="hc-body">
+            <div class="hc-tag" id="examLabel">讀取考試計畫</div>
+            <h2 class="hc-title">今天先讀對地方</h2>
+            <p class="hc-copy" id="examMeta">倒數一律讀 exam-plan-contract，不硬編考試日期。</p>
+            <div style="margin-top:18px">
+              <a class="btn btn-primary" href="checkout.html?plan=到考日&utm_source=analysis&utm_medium=radar&utm_campaign=ex25_analysis" data-track-event="analysis_checkout_click" data-track-label="analysis_countdown_exam_day">解鎖到考日方案</a>
+            </div>
+          </div>
+        </aside>
+      </div>
     </header>
 
-    <section class="hero" aria-labelledby="radar-title">
-	      <div class="radar-head">
-	        <p class="kicker">Progress Radar</p>
-	        <h1 id="radar-title">進度雷達</h1>
-	        <p class="lead">不是再叫你更努力，而是把已經留下的答題紀錄翻成一張備考雷達：哪裡常錯、哪裡練太多、哪裡還沒碰。</p>
-	        <div class="radar-visual" aria-hidden="true"><i class="radar-sweep"></i><i class="radar-dot"></i></div>
-	      </div>
-      <aside class="countdown" aria-live="polite">
-        <div class="count-main">
-          <div>
-            <b id="daysUntil">--</b>
-            <span>距離考試日</span>
+    <main>
+      <section class="band">
+        <div class="container">
+          <div class="summary-strip">
+            <div class="summary-copy">
+              <h2>雷達摘要</h2>
+              <p>免費先看 top 2-3；付費後接完整排程、弱點優先與每週診斷。</p>
+              <div class="mode-row"><span class="pill free">SoFa Engine 參考解析</span></div>
+            </div>
+            <div class="metric"><b id="wrongMetric">0</b><span>弱點訊號</span></div>
+            <div class="metric"><b>Top 3</b><span>免費預覽</span></div>
+            <div class="metric"><b>7D</b><span>每週診斷</span></div>
           </div>
-          <div class="exam-label" id="examLabel">讀取考試計畫</div>
-        </div>
-        <p class="source-note" id="examMeta">倒數一律讀 exam-plan-contract，不硬編考試日期。</p>
-        <div class="count-actions">
-          <a class="btn primary" href="checkout.html?plan=到考日&utm_source=analysis&utm_medium=radar&utm_campaign=ex25_analysis" data-track-event="analysis_checkout_click" data-track-label="analysis_countdown_exam_day">解鎖到考日方案</a>
-        </div>
-      </aside>
-    </section>
 
-    <section class="grid" aria-label="分析內容">
-      <article class="panel wide">
-        <div class="panel-head">
-          <h2>雷達摘要</h2>
-          <span class="pill free" id="modePill">免費預覽</span>
-        </div>
-        <div class="metric-row">
-	          <div class="metric"><b id="totalMetric">0</b><span>已練題數</span></div>
-	          <div class="metric"><b id="accuracyMetric">--</b><span>正確率</span></div>
-	          <div class="metric"><b id="wrongMetric">0</b><span>弱點訊號</span></div>
-	        </div>
-	      </article>
+          <section class="radar-grid" aria-label="分析內容">
 
 	      <article class="panel">
 	        <div class="panel-head">
@@ -197,8 +243,8 @@
         <h2>下一步</h2>
         <p id="nextBody">正在判斷今天最該先做哪一件事。</p>
         <div class="cta-row">
-          <a class="btn primary" id="nextCta" href="quiz.html?free=1&start=1&utm_source=analysis&utm_medium=next_step&utm_campaign=analysis_seed">開始做題</a>
-          <a class="btn secondary" href="checkout.html?plan=到考日&utm_source=analysis&utm_medium=radar&utm_campaign=ex25_analysis" data-track-event="analysis_checkout_click" data-track-label="analysis_exam_day_cta">解鎖到考日方案</a>
+          <a class="btn btn-primary" id="nextCta" href="quiz.html?free=1&start=1&utm_source=analysis&utm_medium=next_step&utm_campaign=analysis_seed">開始做題</a>
+          <a class="btn btn-ghost" href="checkout.html?plan=到考日&utm_source=analysis&utm_medium=radar&utm_campaign=ex25_analysis" data-track-event="analysis_checkout_click" data-track-label="analysis_exam_day_cta">解鎖到考日方案</a>
         </div>
       </article>
 
@@ -213,15 +259,18 @@
           <div class="lock-card"><b>每週診斷</b><span>每週看一次熱區變化，調整下一輪練習方向。</span></div>
         </div>
       </article>
-    </section>
+          </section>
 
-    <p class="fineprint">SoFa Engine 參考解析，非考選部官方標準答案。免費預覽先顯示 top 2-3 盲區、熱區與倒數；完整排程、弱點優先與每週診斷於付費方案解鎖。</p>
-  </main>
+          <p class="fineprint">SoFa Engine 參考解析，非考選部官方標準答案。免費預覽先顯示 top 2-3 盲區、熱區與倒數；完整排程、弱點優先與每週診斷於付費方案解鎖。</p>
+        </div>
+      </section>
+    </main>
 
-  <div class="sticky-cta">
-    <div class="inner">
-      <div><b>到考日 CTA</b><span id="stickyCopy">先看雷達，再決定今天要補哪裡。</span></div>
-      <a class="btn primary" href="checkout.html?plan=到考日&utm_source=analysis&utm_medium=radar&utm_campaign=ex25_analysis" data-track-event="analysis_checkout_click" data-track-label="analysis_sticky_exam_day">解鎖</a>
+    <div class="sticky-cta">
+      <div class="inner">
+        <div><b>到考日 CTA</b><span id="stickyCopy">先看雷達，再決定今天要補哪裡。</span></div>
+        <a class="btn btn-primary" href="checkout.html?plan=到考日&utm_source=analysis&utm_medium=radar&utm_campaign=ex25_analysis" data-track-event="analysis_checkout_click" data-track-label="analysis_sticky_exam_day">解鎖</a>
+      </div>
     </div>
   </div>
 
