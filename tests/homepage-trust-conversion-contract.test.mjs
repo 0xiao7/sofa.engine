@@ -28,9 +28,9 @@ test('homepage hero balances brand trust and a clear practice path', () => {
 test('homepage proof strip uses verifiable evidence instead of empty testimonials', () => {
   assert.match(index, /class="proof-strip"/);
   assert.match(index, /題庫與條文規模/);
-  assert.match(index, /官方答案重核/);
-  assert.match(index, /正式可練與整理中/);
-  assert.match(index, /不把未完成內容包成全科承諾/);
+  assert.match(index, /可練範圍清楚標示/);
+  assert.match(index, /以實際頁面標示為準/);
+  assert.match(index, /未完成內容不放進承諾/);
   assert.doesNotMatch(index, /學員見證/);
   assert.doesNotMatch(index, /等待第一批真實上榜回饋/);
   assert.doesNotMatch(index, /通過率|上榜率|命中率/);
