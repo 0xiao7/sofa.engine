@@ -374,23 +374,33 @@ test('study playlist is a generic text fallback and does not ship private schedu
   assert.doesNotMatch(active, /記帳士 115記帳士台北N1|115\/03\/02|稅務相關法規\(基礎\)1/);
 });
 
-test('study playlist items are executable with single-practice and article-reader links', () => {
+test('study playlist items are executable while article reading stays in the dashboard', () => {
   const fn = extractFunction(active, 'loadStudyPlaylist');
   assert.match(fn, /class="study-playlist-actions"/);
   assert.match(fn, /quiz\.html\?law=/);
   assert.match(fn, /&drill=1/);
-  assert.match(fn, /articleReaderHref\(law, articleNo, itemId\)/);
   assert.match(fn, /item\.page_id \|\| item\.id/);
+  assert.match(active, /function openStudyPlaylistArticle/);
+  assert.match(fn, /data-law="' \+ escAttr\(law\) \+ '"/);
+  assert.match(fn, /data-art="' \+ escAttr\(articleNo\) \+ '"/);
+  assert.match(fn, /data-page-id="' \+ escAttr\(itemId\) \+ '"/);
+  assert.match(fn, /onclick="openStudyPlaylistArticle\(this\)"/);
+  assert.doesNotMatch(fn, /var readerHref = articleReaderHref\(law, articleNo, itemId\)/);
+  assert.doesNotMatch(fn, /<a href="' \+ esc\(readerHref\) \+ '">看法條<\/a>/);
   assert.match(fn, /displayArticleNo = articleNo\.replace\(/);
   assert.match(fn, /displayTitle = String\(item\.title/);
   assert.match(fn, /練習/);
   assert.match(fn, /看法條/);
 });
 
-test('study playlist article-reader links use law preview instead of dashboard search', () => {
+test('study playlist article reader opens the in-page drawer so audio can keep playing', () => {
   const fn = extractFunction(active, 'loadStudyPlaylist');
-  assert.match(fn, /var readerHref = articleReaderHref\(law, articleNo, itemId\)/);
-  assert.match(active, /function articleReaderHref/);
+  const open = extractFunction(active, 'openStudyPlaylistArticle');
+  assert.match(open, /openDrawer\(pageId, law, art\)/);
+  assert.match(open, /searchAndOpen\(law, art\)/);
+  assert.match(open, /focusArticleReaderLanding\(\)/);
+  assert.doesNotMatch(open, /location\.href/);
+  assert.doesNotMatch(fn, /law-preview\.html/);
   assert.doesNotMatch(fn, /dashboard\.html\?q=/);
   assert.doesNotMatch(fn, /#search/);
 });
@@ -646,6 +656,12 @@ test('study next card is direct for active learners and cannot squeeze labels ve
 });
 
 test('study today keeps active learner copy compact and folds lower details', () => {
+  assert.match(active, /id="study-today-toggle"[\s\S]*aria-expanded="false"[\s\S]*aria-controls="study-today-secondary"/);
+  assert.match(active, /function toggleStudyTodayDetails/);
+  assert.match(active, /\.study-today-toggle\{display:flex\}/);
+  assert.match(active, /\.study-status-strip\{display:none\}/);
+  assert.match(active, /\.study-today-secondary\{display:none\}/);
+  assert.match(active, /\.study-today-secondary\.on\{display:grid\}/);
   assert.match(active, /<details class="study-schedule-section" id="study-schedule-section"/);
   assert.match(active, /<summary class="study-schedule-head"/);
   assert.match(active, /\.study-schedule-section:not\(\[open\]\) \.study-schedule-body\{display:none\}/);
@@ -939,9 +955,11 @@ test('study plan items expose learning actions only when item metadata supports 
   assert.match(helper, /target_url/);
   assert.match(helper, /https\?:/);
   assert.match(helper, /quiz\.html\?law=/);
-  assert.match(active, /function articleReaderHref/);
-  assert.match(helper, /articleReaderHref\(law, articleNo, pageId\)/);
-  assert.match(helper, /articleReaderHref\('', '', pageId\)/);
+  assert.match(active, /function openDashboardArticleTarget/);
+  assert.match(helper, /onclick="return openDashboardArticleTarget\(this,event\)"/);
+  assert.match(helper, /data-page-id/);
+  assert.doesNotMatch(helper, /articleReaderHref\(law, articleNo, pageId\)/);
+  assert.doesNotMatch(helper, /articleReaderHref\('', '', pageId\)/);
   assert.doesNotMatch(helper, /dashboard\.html\?q=/);
   assert.doesNotMatch(helper, /dashboard\.html\?open=/);
   assert.match(helper, /開啟資源/);
