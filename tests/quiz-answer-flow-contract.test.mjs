@@ -186,7 +186,7 @@ test('free quiz entry bypasses local preview identity so retention CTA can be ve
 
 test('law deep links bypass the exam picker banner', () => {
   assert.match(active, /function _shouldShowQzExamBanner\(examKey\)/);
-  assert.match(active, /return !examKey && !_lawParamFromUrl\(\) && !_articleParamFromUrl\(\) && !_drillParam && !_pastExamMode && !_startQuizParam/);
+  assert.match(active, /return !examKey && !_pageIdParamFromUrl\(\) && !_lawParamFromUrl\(\) && !_articleParamFromUrl\(\) && !_drillParam && !_pastExamMode && !_startQuizParam/);
   assert.match(active, /if\(_shouldShowQzExamBanner\(examKey\)\) _showQzExamBanner\(\)/);
 });
 
@@ -271,6 +271,18 @@ test('quiz drill links can target one article number from dashboard playlists', 
   assert.match(active, /const urlArticle = await _findArticleByUrlParam\(law\)/);
   assert.match(active, /urlArticle && _shouldUseUrlArticleDrill\(\)/);
   assert.match(active, /page_id=\$\{encodeURIComponent\(urlArticle\.id\)\}/);
+});
+
+test('quiz analysis deep links can target an exact article id without text matching fallback', () => {
+  assert.match(active, /function _pageIdParamFromUrl/);
+  assert.match(active, /_searchParams\.get\('page_id'\)/);
+  assert.match(active, /_searchParams\.get\('article_id'\)/);
+  assert.match(active, /const urlPageId = _pageIdParamFromUrl\(\)/);
+  assert.match(active, /else if\(urlPageId\)/);
+  assert.match(active, /url=`\$\{API\}\/api\/quiz\?page_id=\$\{encodeURIComponent\(urlPageId\)\}`/);
+  assert.match(active, /pickedPageId=urlPageId/);
+  assert.match(active, /if \(_startQuizParam && urlPageId\) return examKey/);
+  assert.match(active, /!_pageIdParamFromUrl\(\) && !_lawParamFromUrl\(\) && !_articleParamFromUrl\(\)/);
 });
 
 test('quiz view-article fallback opens the exact article when only law and article number are known', () => {

@@ -780,6 +780,7 @@ if(_sessionMode){
 }
 
 function _lawParamFromUrl(){ return _searchParams.get('law') || _searchParams.get('q') || ''; }
+function _pageIdParamFromUrl(){ return _searchParams.get('page_id') || _searchParams.get('article_id') || ''; }
 function _articleParamFromUrl(){ return _searchParams.get('art') || _searchParams.get('article') || ''; }
 let _articleDrillConsumed = false;
 function _shouldUseUrlArticleDrill(){
@@ -791,10 +792,12 @@ function _clearUrlArticleDrillInput(){
 }
 
 function _shouldShowQzExamBanner(examKey){
-  return !examKey && !_lawParamFromUrl() && !_articleParamFromUrl() && !_drillParam && !_pastExamMode && !_startQuizParam;
+  return !examKey && !_pageIdParamFromUrl() && !_lawParamFromUrl() && !_articleParamFromUrl() && !_drillParam && !_pastExamMode && !_startQuizParam;
 }
 
 function _defaultExamForQuizStart(examKey){
+  const urlPageId = _pageIdParamFromUrl();
+  if (_startQuizParam && urlPageId) return examKey;
   if (examKey || !_startQuizParam || _lawParamFromUrl() || _articleParamFromUrl() || _drillParam || _pastExamMode) return examKey;
   return 'bookkeeper';
 }
@@ -1854,6 +1857,7 @@ async function loadQuiz(){
     let data;
     const cachedArticles = law ? await _ensureArticleCache(law) : [];
     const urlArticle = await _findArticleByUrlParam(law);
+    const urlPageId = _pageIdParamFromUrl();
     if(_pastExamMode){
       data=await _fetchPastExamQuestion();
       law='';
@@ -1905,6 +1909,15 @@ async function loadQuiz(){
       // data already loaded from the real past-exam endpoint.
     } else if(pickedPageId){
       url=`${API}/api/quiz?page_id=${encodeURIComponent(pickedPageId)}`;
+    } else if(urlPageId){
+      if(!_articleDrillConsumed){
+        url=`${API}/api/quiz?page_id=${encodeURIComponent(urlPageId)}`;
+        pickedPageId=urlPageId;
+        _articleDrillConsumed = true;
+        _clearUrlArticleDrillInput();
+      } else {
+        url=law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`;
+      }
     } else if(urlArticle && _shouldUseUrlArticleDrill()){
       url=`${API}/api/quiz?page_id=${encodeURIComponent(urlArticle.id)}`;
       pickedPageId=urlArticle.id;
