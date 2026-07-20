@@ -17,23 +17,29 @@ test('analysis page exists as a mobile-first standalone radar page', () => {
   assert.match(analysis, /到考日/);
 });
 
-test('analysis page uses the approved v4 minimal visual system', () => {
+test('analysis page uses the approved v5 brand hero with v4 minimal body', () => {
   assert.match(analysis, /fonts\.googleapis\.com\/css2\?family=Noto\+Serif\+TC:wght@400;500;600;700;900&family=Noto\+Sans\+TC:wght@300;400;500;600;700&family=JetBrains\+Mono:wght@400;500;600&display=swap/);
   assert.match(analysis, /--navy:#1F3848/);
+  assert.match(analysis, /--navy-2:#19303E/);
   assert.match(analysis, /--peach:#E7BBA7/);
+  assert.match(analysis, /--peach-3:#C89580/);
+  assert.match(analysis, /--clay:#C9A485/);
+  assert.match(analysis, /--line-on-navy:/);
   assert.match(analysis, /--alert:#B5654F/);
   assert.match(analysis, /--cream:#F6F1EA/);
   assert.match(analysis, /--serif:"Noto Serif TC", "Songti TC", serif/);
   assert.match(analysis, /--mono:"JetBrains Mono", ui-monospace, monospace/);
   assert.match(analysis, /\.wrap\{[\s\S]*max-width:460px/);
-  assert.match(analysis, /\.hero\{[\s\S]*border-bottom:1px solid var\(--hair\)/);
-  assert.match(analysis, /\.hero h1\{[\s\S]*font-size:40px/);
+  assert.match(analysis, /\.hero\{[\s\S]*background:[\s\S]*radial-gradient[\s\S]*var\(--navy\)/);
+  assert.match(analysis, /\.hero \.grid\{/);
+  assert.match(analysis, /\.hero \.radar\{/);
+  assert.match(analysis, /<svg class="radar" viewBox="0 0 200 200" fill="none" aria-hidden="true">/);
+  assert.match(analysis, /\.hero h1\{[\s\S]*font-size:42px/);
+  assert.match(analysis, /\.status\{display:flex;background:var\(--navy-2\);color:var\(--cream\)/);
   assert.match(analysis, /\.rowline \.rt\.a\{color:var\(--alert\)/);
   assert.match(analysis, /\.chip\{[\s\S]*background:var\(--cream-2\)/);
-  assert.doesNotMatch(analysis, /radial-gradient/);
   assert.doesNotMatch(analysis, /\.badge/);
   assert.doesNotMatch(analysis, /brand-mark/);
-  assert.doesNotMatch(analysis, /radar-visual/);
   assert.doesNotMatch(analysis, /sage/);
   assert.doesNotMatch(analysis, /amber/);
 });
@@ -55,6 +61,11 @@ test('countdown is loaded from exam-plan-contract instead of hard-coded exam dat
   assert.doesNotMatch(analysis, /2026-11-14/);
   assert.doesNotMatch(analysis, /2026\/11\/14/);
   assert.doesNotMatch(analysis, /new Date\(['"]2026-/);
+});
+
+test('public preview demo carries a concrete countdown for Fay review', () => {
+  assert.match(analysis, /days_until_exam:\s*118/);
+  assert.doesNotMatch(analysis, /days_until_exam:\s*daysUntil\(examDate\)/);
 });
 
 test('authenticated analysis uses the aggregate API and magic link lands here', () => {
@@ -105,13 +116,20 @@ test('analysis page keeps public answer-source boundary honest', () => {
 });
 
 test('analysis diagnosis cards link directly into practice', () => {
-  assert.match(analysis, /function practiceHref\(law, campaign\)/);
+  assert.match(analysis, /function practiceHref\(\{ law, article, medium, drill = false \}\)/);
+  assert.match(analysis, /qs\.set\('utm_medium', medium\)/);
   assert.match(analysis, /qs\.set\('law', lawName\)/);
-  assert.match(analysis, /qs\.set\('drill', '1'\)/);
+  assert.match(analysis, /qs\.set\('article', articleName\)/);
+  assert.match(analysis, /if\(drill\) qs\.set\('drill', '1'\)/);
   assert.match(analysis, /qs\.set\('free', '1'\)/);
   assert.match(analysis, /qs\.set\('start', '1'\)/);
-  assert.match(analysis, /<a class="rowline" href="\$\{htmlEscape\(practiceHref\(lawName, 'analysis_weak_spot'\)\)\}"/);
-  assert.match(analysis, /<a class="chip" href="\$\{htmlEscape\(practiceHref\(lawName, 'analysis_most_practiced'\)\)\}"/);
-  assert.match(analysis, /<a class="chip" href="\$\{htmlEscape\(practiceHref\(item\.law \|\| '', 'analysis_not_started'\)\)\}"/);
-  assert.match(analysis, /<a class="rowline due-row" href="\$\{htmlEscape\(practiceHref\(item\.law_name \|\| '', 'analysis_review_due'\)\)\}"/);
+  assert.match(analysis, /practiceHref\(\{ law: lawName, article, medium: 'hero', drill: true \}\)/);
+  assert.match(analysis, /practiceHref\(\{ law: lawName, article, medium: 'weak', drill: true \}\)/);
+  assert.match(analysis, /practiceHref\(\{ law: lawName, medium: 'strong' \}\)/);
+  assert.match(analysis, /practiceHref\(\{ law: item\.law \|\| '', medium: 'blindspot' \}\)/);
+  assert.match(analysis, /practiceHref\(\{ law: lawName, article, medium: 'review', drill: true \}\)/);
+  assert.match(analysis, /\.rowline:hover/);
+  assert.match(analysis, /\.rowline:focus-visible/);
+  assert.match(analysis, /\.chip:hover/);
+  assert.match(analysis, /\.chip:focus-visible/);
 });
