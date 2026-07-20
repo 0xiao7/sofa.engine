@@ -42,12 +42,12 @@ test('手機版入口不會遮擋或溢出（允許換行、限制寬度）', ()
 });
 
 test('備考工具卡用動作語言區分看結果與開始練習', () => {
-  assert.match(html, /一般選擇題/);
+  assert.match(html, /選擇題練習/);
   assert.match(html, /想練新題從這裡開始/);
   assert.match(html, /重練錯題/);
   assert.match(html, /先看錯題清單/);
   assert.match(html, /弱點分析/);
   assert.match(html, /看結果/);
-  assert.match(html, /週報整理中/);
+  assert.match(html, /依答題紀錄更新/);
   assert.doesNotMatch(html, /href="#"/);
 });

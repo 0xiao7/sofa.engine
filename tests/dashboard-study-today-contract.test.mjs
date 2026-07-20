@@ -258,7 +258,7 @@ test('study today makes working tools and personal planning obvious', () => {
   assert.match(active, /class="study-action-link primary" href="quiz\.html"[\s\S]*開始選擇題/);
   assert.match(active, /href="#review-due"[\s\S]*今日複習/);
   assert.match(active, /href="#weak-laws-recap"[\s\S]*弱點分析/);
-  assert.match(active, /id="study-playlist-block"[\s\S]*開啟播放清單/);
+  assert.match(active, /id="study-playlist-block"[\s\S]*開啟聽讀清單/);
   assert.match(active, /onclick="openStudyPlanPanel\(\)"[\s\S]*排課/);
   assert.match(active, /onclick="openStudyRecordPanel\(\)"[\s\S]*補紀錄/);
   assert.match(active, /id="study-playlist-panel"/);
@@ -359,15 +359,15 @@ test('study playlist is a generic text fallback and does not ship private schedu
   assert.match(active, /pause_seconds=/);
   assert.match(active, /star_min=3/);
   assert.match(active, /id="study-playlist-law"/);
-  assert.match(active, /aria-label="播放清單法規"/);
+  assert.match(active, /aria-label="聽讀清單法規"/);
   assert.match(active, /<label class="study-playlist-field"[\s\S]*<span>考科<\/span>[\s\S]*id="study-playlist-subject"/);
   assert.match(active, /<label class="study-playlist-field"[\s\S]*<span>法規<\/span>[\s\S]*id="study-playlist-law"/);
   assert.match(active, /<label class="study-playlist-field"[\s\S]*<span>間隔<\/span>[\s\S]*id="study-playlist-pause"/);
   assert.match(active, /function populateStudyPlaylistLaws/);
   assert.match(active, /通勤問答|重點清單/);
   assert.match(active, /id="study-playlist-block"/);
-  assert.match(active, /播放清單/);
-  assert.match(active, /aria-label="通勤重點朗讀清單"/);
+  assert.match(active, /法條聽讀清單/);
+  assert.match(active, /aria-label="法條聽讀清單"/);
   assert.match(active, /aria-label="重點清單科目"/);
   assert.match(active, /aria-label="問答間隔秒數"/);
   assert.match(active, />PLAYLIST</);
@@ -419,13 +419,13 @@ test('study playlist falls back to today weakness and topic blocks when playlist
 
   const load = extractFunction(active, 'loadStudyPlaylist');
   assert.match(load, /buildStudyPlaylistFallbackItems\(window\.__studyTodayData \|\| \{\},\s*subject,\s*law\)/);
-  assert.match(load, /重點清單目前還空/);
+  assert.match(load, /聽讀清單目前還空/);
   assert.doesNotMatch(load, /先回選擇題累積弱點/);
 });
 
 test('empty study playlist explains the list and offers a direct first-question action', () => {
   const fn = extractFunction(active, 'loadStudyPlaylist');
-  assert.match(fn, /重點清單目前還空/);
+  assert.match(fn, /聽讀清單目前還空/);
   assert.match(fn, /href="quiz\.html"[\s\S]*先做一題/);
   assert.match(active, /\.study-empty-action\{[\s\S]*min-height:44px/);
 });
@@ -565,7 +565,7 @@ test('study tool panels expose one active mode and explain where saved work goes
   assert.match(active, /btn\.classList\.toggle\('is-active', on\)/);
   assert.match(active, /btn\.setAttribute\('aria-expanded', on \? 'true' : 'false'\)/);
   assert.match(active, /status\.classList\.toggle\('is-closed', active === 'closed'\)/);
-  assert.match(active, /正在看播放清單/);
+  assert.match(active, /正在看法條聽讀清單/);
   assert.match(active, /正在排讀書任務/);
   assert.match(active, /正在補讀書紀錄/);
   assert.match(active, /存完會回到下方待讀清單/);
@@ -613,7 +613,7 @@ test('study today action buttons are sized for mobile app shells', () => {
   assert.ok(statusStart > actionsStart && weakStart > actionsStart, 'study action buttons should appear before status and weak details');
   assert.match(actionBlock, /class="study-action-group primary"[\s\S]*<span class="study-action-label">先做<\/span>[\s\S]*開始選擇題[\s\S]*今日複習[\s\S]*弱點分析/);
   assert.match(actionBlock, /class="study-action-group secondary"[\s\S]*<span class="study-action-label">安排<\/span>[\s\S]*排課[\s\S]*補紀錄/);
-  assert.doesNotMatch(actionBlock, /重點朗讀|播放清單|playlist/);
+  assert.doesNotMatch(actionBlock, /重點朗讀|播放清單|聽讀清單|playlist/);
   assert.doesNotMatch(active, /看時間、弱點和下一堂；要排課再開下方工具/);
   assert.doesNotMatch(actionBlock, />看今日複習</);
   assert.doesNotMatch(actionBlock, />看弱點分析</);
@@ -1018,7 +1018,7 @@ test('sidebar and mobile quick entry use clear exam-loop labels', () => {
   assert.match(active, /<nav class="top-mid">[\s\S]*href="#review-due"[\s\S]*複習/);
   assert.match(active, /<a href="#study-cockpit-recap" data-spy-target="study-cockpit-recap"><span class="num">T1<\/span>今天先做/);
   assert.match(active, /<a href="#study-weak-brief" data-spy-target="study-weak-brief"><span class="num">T2<\/span>今日弱點/);
-  assert.match(active, /<a href="#study-playlist-block" data-spy-target="study-playlist-block"><span class="num">T3<\/span>播放清單/);
+  assert.match(active, /<a href="#study-playlist-block" data-spy-target="study-playlist-block"><span class="num">T3<\/span>聽讀清單/);
   assert.match(active, /<a href="#study-time-box" data-spy-target="study-time-box"><span class="num">T4<\/span>讀書時間/);
   assert.match(active, /<a href="#study-plan-items" data-spy-target="study-plan-items"><span class="num">T5<\/span>讀書計畫/);
   assert.match(active, /<a href="#quiz-recap" data-spy-target="quiz-recap"><span class="num">T6<\/span>最近作答/);

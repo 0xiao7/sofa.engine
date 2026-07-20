@@ -38,7 +38,7 @@ test('dashboard past-exam card opens the real past-exam mode', () => {
 });
 
 test('dashboard keeps normal quiz and past-exam entries separate', () => {
-  const quizStart = activeDashboard.indexOf('一般選擇題');
+  const quizStart = activeDashboard.indexOf('選擇題練習');
   assert.ok(quizStart > -1, 'dashboard must keep a normal quiz card');
   const quizCard = activeDashboard.slice(Math.max(0, quizStart - 260), quizStart + 260);
 
