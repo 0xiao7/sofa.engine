@@ -495,6 +495,9 @@ test('study playlist can directly play text through the browser speech engine', 
   assert.match(active, /function _speakStudyPlaylistSegments/);
   assert.match(active, /function _speakStudyPlaylistText/);
   assert.match(active, /SpeechSynthesisUtterance/);
+  assert.match(active, /function _playStudyPlaylistAudioUrl/);
+  assert.match(active, /new Audio\(url\)/);
+  assert.match(active, /audio\.play\(\)/);
   assert.match(active, /speechSynthesis\.speak/);
   assert.match(active, /utt\.onstart/);
   assert.match(active, /speechSynthesis\.resume/);
@@ -506,15 +509,18 @@ test('study playlist can directly play text through the browser speech engine', 
   assert.match(active, /已準備 ' \+ items\.length \+ ' 題通勤問答/);
   assert.match(extractFunction(active, '_studyPlaylistSpeechText'), /_cleanStudyPlaylistCueText/);
   assert.doesNotMatch(extractFunction(active, '_studyPlaylistSpeechText'), /停頓 ' \+/);
+  assert.match(extractFunction(active, '_cleanSpeechCueText'), /\(\?:長\|短\)\?停頓/);
   assert.match(active, /replace\(\s*\/\\s\+\/g,\s*' '\s*\)/);
   const fn = extractFunction(active, 'loadStudyPlaylist');
   assert.match(fn, /onclick="playStudyPlaylistItem\(this, ' \+ idx \+ '\)"/);
   assert.match(fn, />朗讀</);
   assert.match(fn, /data-playlist-index/);
+  assert.match(fn, /_cleanVisibleSpeechCueText\(String\(item\.text/);
+  assert.match(fn, /_cleanVisibleSpeechCueText\(String\(item\.prompt/);
   assert.match(active, /不支援朗讀|不支援朗讀，請先看文字清單|這個瀏覽器不支援朗讀/);
 });
 
-test('study playlist active recall plays question pause answer segments without claiming mp3 assets', () => {
+test('study playlist active recall prefers provider audio then falls back to device speech', () => {
   const load = extractFunction(active, 'loadStudyPlaylist');
   const segments = extractFunction(active, '_studyPlaylistSegments');
   const speak = extractFunction(active, '_speakStudyPlaylistSegments');
@@ -522,15 +528,20 @@ test('study playlist active recall plays question pause answer segments without 
 
   assert.match(load, /item\.prompt/);
   assert.match(load, /item\.answer/);
+  assert.match(load, /item\.audio_url \|\| item\.audioUrl/);
   assert.match(load, /item\.pause_seconds/);
   assert.match(load, /Array\.isArray\(item\.segments\)/);
+  assert.match(segments, /audio_url: String\(seg\.audio_url \|\| seg\.audioUrl \|\| ''\)\.trim\(\)/);
+  assert.match(segments, /firstSpeech\.audio_url = itemAudioUrl/);
   assert.match(segments, /seg\.type === 'pause'/);
   assert.match(segments, /_cleanStudyPlaylistCueText/);
   assert.match(segments, /Math\.max\(3,\s*Math\.min\(12/);
+  assert.match(speak, /_playStudyPlaylistAudioUrl\(button, seg\.audio_url/);
   assert.match(speak, /setTimeout\(function\(\)\{ speakSegment\(i \+ 1\); \}, seg\.seconds \* 1000\)/);
   assert.match(speak, /暫停 ' \+ seg\.seconds \+ ' 秒，先自己想答案/);
+  assert.match(playAll, /var itemSegments = _studyPlaylistSegments\(item\)/);
+  assert.match(playAll, /if\(!itemSegments\.some\(function\(seg\)\{ return seg\.audio_url; \}\)\)/);
   assert.match(playAll, /segments\.some\(function\(seg\)\{ return seg\.type === 'pause'; \}\)/);
-  assert.doesNotMatch(load, /audio_url[\s\S]*new Audio/);
 });
 
 test('study tool panels expose one active mode and explain where saved work goes', () => {

@@ -5120,7 +5120,7 @@ function _articleNoFromRecord(a){
 }
 function _cleanSpeechCueText(text){
   return String(text || '')
-    .replace(/[\[【（(]\s*(重音|停頓|輕讀|慢讀|快讀|強調)\s*[\]】）)]/g, '，')
+    .replace(/[\[【（(]\s*(重音|(?:長|短)?停頓|輕讀|慢讀|快讀|強調)\s*[\]】）)]/g, '，')
     .replace(/\[(\/?emphasis|break[^\]]*)\]/gi, '，')
     .replace(/<\s*\/?\s*(em|strong|mark)\s*>/gi, '')
     .replace(/<\s*break[^>]*>/gi, '，')
@@ -5130,7 +5130,7 @@ function _cleanSpeechCueText(text){
 }
 function _cleanStudyPlaylistCueText(text){
   return _cleanSpeechCueText(text)
-    .replace(/(^|[，。；;,\s])(?:停頓|重音)(?=$|[，。；;,\s])/g, '$1')
+    .replace(/(^|[，。；;,\s])(?:(?:長|短)?停頓|重音)(?=$|[，。；;,\s])/g, '$1')
     .replace(/\s+/g, ' ')
     .replace(/[，。]{2,}/g, '。')
     .trim();
@@ -5138,7 +5138,7 @@ function _cleanStudyPlaylistCueText(text){
 function _cleanVisibleSpeechCueText(text){
   return String(text || '')
     .replace(/[\[【（(]\s*(重音|強調|輕讀|慢讀|快讀)\s*[\]】）)]/g, '')
-    .replace(/[\[【（(]\s*停頓\s*[\]】）)]/g, '，')
+    .replace(/[\[【（(]\s*(?:長|短)?停頓\s*[\]】）)]/g, '，')
     .replace(/\[(\/?emphasis)\]/gi, '')
     .replace(/\[break[^\]]*\]/gi, '，')
     .replace(/<\s*\/?\s*(em|strong|mark)\s*>/gi, '')
@@ -8496,6 +8496,7 @@ window.__studyPlaylistAudioItems = window.__studyPlaylistAudioItems || [];
 var _studyPlaylistSpeechButton = null;
 var _studyPlaylistSpeakingIndex = null;
 var _studyPlaylistSpeechRunId = 0;
+var _studyPlaylistAudioEl = null;
 
 function _setStudyPlaylistStatus(message){
   var el = document.getElementById('study-playlist-status');
@@ -8508,6 +8509,47 @@ function setStudyPlaylistPlayReady(ready, label){
   if(_studyPlaylistSpeechButton === btn) return;
   btn.disabled = !ready;
   btn.textContent = label || '播放問答';
+}
+
+function _stopStudyPlaylistAudio(){
+  if(!_studyPlaylistAudioEl) return;
+  try{
+    _studyPlaylistAudioEl.pause();
+    _studyPlaylistAudioEl.currentTime = 0;
+  }catch(e){}
+  _studyPlaylistAudioEl = null;
+}
+
+function _playStudyPlaylistAudioUrl(button, audioUrl, onDone, onError, meta){
+  var url = String(audioUrl || '').trim();
+  if(!url || !('Audio' in window)) return false;
+  try{
+    _stopStudyPlaylistAudio();
+    var audio = new Audio(url);
+    _studyPlaylistAudioEl = audio;
+    audio.onplaying = function(){
+      _setStudyPlaylistStatus(meta && meta.label ? ('正在播放：' + meta.label) : '正在播放通勤問答。');
+    };
+    audio.onended = function(){
+      if(_studyPlaylistAudioEl === audio) _studyPlaylistAudioEl = null;
+      if(typeof onDone === 'function') onDone();
+    };
+    audio.onerror = function(){
+      if(_studyPlaylistAudioEl === audio) _studyPlaylistAudioEl = null;
+      if(typeof onError === 'function') onError();
+    };
+    var started = audio.play();
+    if(started && typeof started.catch === 'function'){
+      started.catch(function(){
+        if(_studyPlaylistAudioEl === audio) _studyPlaylistAudioEl = null;
+        if(typeof onError === 'function') onError();
+      });
+    }
+    return true;
+  }catch(e){
+    _studyPlaylistAudioEl = null;
+    return false;
+  }
 }
 
 function _setStudyPlaylistSpeakingIndex(idx){
@@ -8535,6 +8577,7 @@ function _studyPlaylistSpeechText(item){
 
 function _resetStudyPlaylistSpeechButton(){
   _studyPlaylistSpeechRunId += 1;
+  _stopStudyPlaylistAudio();
   if(_studyPlaylistSpeechButton){
     _studyPlaylistSpeechButton.textContent = _studyPlaylistSpeechButton.getAttribute('data-idle-label') || '朗讀';
     _studyPlaylistSpeechButton.classList.remove('speaking');
@@ -8546,36 +8589,51 @@ function _resetStudyPlaylistSpeechButton(){
 function _studyPlaylistSegments(item){
   item = item || {};
   if(Array.isArray(item.segments) && item.segments.length){
-    return item.segments.map(function(seg){
+    var itemAudioUrl = String(item.audio_url || item.audioUrl || '').trim();
+    var segments = item.segments.map(function(seg){
       seg = seg || {};
       if(seg.type === 'pause') return { type:'pause', seconds: Math.max(3, Math.min(12, Number(seg.seconds || item.pause_seconds || 6) || 6)) };
-      return { type: seg.type || 'speech', text: _cleanStudyPlaylistCueText(String(seg.text || '').replace(/\s+/g, ' ').trim()) };
-    }).filter(function(seg){ return seg.type === 'pause' || seg.text; });
+      return {
+        type: seg.type || 'speech',
+        text: _cleanStudyPlaylistCueText(String(seg.text || '').replace(/\s+/g, ' ').trim()),
+        audio_url: String(seg.audio_url || seg.audioUrl || '').trim()
+      };
+    }).filter(function(seg){ return seg.type === 'pause' || seg.text || seg.audio_url; });
+    if(itemAudioUrl && !segments.some(function(seg){ return seg.audio_url; })){
+      var firstSpeech = segments.find(function(seg){ return seg.type !== 'pause'; });
+      if(firstSpeech) firstSpeech.audio_url = itemAudioUrl;
+    }
+    return segments;
   }
   var text = item.speechText || _studyPlaylistSpeechText(item);
-  return text ? [{ type:'speech', text:text }] : [];
+  var audioUrl = String(item.audio_url || item.audioUrl || '').trim();
+  return (text || audioUrl) ? [{ type:'speech', text:text, audio_url:audioUrl }] : [];
 }
 
 function _speakStudyPlaylistSegments(button, segments, idleLabel, meta){
-  segments = (segments || []).filter(function(seg){ return seg && (seg.type === 'pause' || seg.text); });
+  segments = (segments || []).filter(function(seg){ return seg && (seg.type === 'pause' || seg.text || seg.audio_url); });
   if(!segments.length){
     _dashToast('目前沒有可朗讀的重點');
     _setStudyPlaylistStatus('目前沒有可朗讀的重點；先看文字清單或回去答題累積弱點。');
     return;
   }
-  if(!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)){
+  var canUseSpeech = ('speechSynthesis' in window) && ('SpeechSynthesisUtterance' in window);
+  var hasAudioUrl = segments.some(function(seg){ return seg && seg.audio_url; });
+  if(!canUseSpeech && !hasAudioUrl){
     _dashToast('這個瀏覽器不支援朗讀，請先看文字清單。');
     _setStudyPlaylistStatus('這個瀏覽器不支援朗讀；文字、練習和看法條仍可用。');
     return;
   }
   if(_studyPlaylistSpeechButton === button){
-    speechSynthesis.cancel();
+    if(canUseSpeech) speechSynthesis.cancel();
+    _stopStudyPlaylistAudio();
     _resetStudyPlaylistSpeechButton();
     _setStudyPlaylistStatus('已停止朗讀。');
     return;
   }
   if(_studyPlaylistSpeechButton){
-    speechSynthesis.cancel();
+    if(canUseSpeech) speechSynthesis.cancel();
+    _stopStudyPlaylistAudio();
     _resetStudyPlaylistSpeechButton();
   }
   var runId = _studyPlaylistSpeechRunId + 1;
@@ -8610,6 +8668,23 @@ function _speakStudyPlaylistSegments(button, segments, idleLabel, meta){
       setTimeout(function(){ speakSegment(i + 1); }, seg.seconds * 1000);
       return;
     }
+    function speakWithDeviceVoice(){
+      if(!canUseSpeech){
+        _resetStudyPlaylistSpeechButton();
+        _dashToast('朗讀沒有啟動，請先看文字清單。');
+        _setStudyPlaylistStatus('朗讀沒有啟動；文字、練習和看法條仍可用。');
+        return;
+      }
+      playDeviceVoiceSegment(seg, i);
+    }
+    if(seg.audio_url && _playStudyPlaylistAudioUrl(button, seg.audio_url, function(){ speakSegment(i + 1); }, speakWithDeviceVoice, meta)){
+      _setStudyPlaylistStatus(meta && meta.label ? ('正在播放：' + meta.label) : '正在播放通勤問答。');
+      return;
+    }
+    speakWithDeviceVoice();
+  }
+
+  function playDeviceVoiceSegment(seg, i){
     var utt = new SpeechSynthesisUtterance(seg.text);
     var started = false;
     utt.lang = 'zh-TW';
@@ -8735,8 +8810,11 @@ function playStudyPlaylistAll(button){
   var loop = !!(loopEl && loopEl.checked);
   var segments = [];
   items.forEach(function(item, idx){
-    segments.push({ type:'speech', text:'第 ' + (idx + 1) + ' 題。' });
-    segments = segments.concat(_studyPlaylistSegments(item));
+    var itemSegments = _studyPlaylistSegments(item);
+    if(!itemSegments.some(function(seg){ return seg.audio_url; })){
+      segments.push({ type:'speech', text:'第 ' + (idx + 1) + ' 題。' });
+    }
+    segments = segments.concat(itemSegments);
   });
   if(segments.some(function(seg){ return seg.type === 'pause'; })){
     _speakStudyPlaylistSegments(button, segments, '播放問答', { label: '全部 ' + items.length + ' 題通勤問答', loop: loop });
@@ -8979,6 +9057,7 @@ async function loadStudyPlaylist(){
         article_no:String(item.article_no || ''),
         title:String(item.title || '重點條文'),
         text:fullText || '這條還沒有重點整理，先看原文。',
+        audio_url:String(item.audio_url || item.audioUrl || ''),
         mode:String(item.mode || ''),
         prompt:String(item.prompt || ''),
         answer:String(item.answer || ''),
@@ -8990,9 +9069,9 @@ async function loadStudyPlaylist(){
       return item;
     });
     list.innerHTML = items.map(function(item, idx){
-      var text = String(item.text || '').replace(/\s+/g, ' ').trim();
+      var text = _cleanVisibleSpeechCueText(String(item.text || '').replace(/\s+/g, ' ').trim());
       if(text.length > 110) text = text.slice(0, 110) + '…';
-      var prompt = String(item.prompt || '').replace(/\s+/g, ' ').trim();
+      var prompt = _cleanVisibleSpeechCueText(String(item.prompt || '').replace(/\s+/g, ' ').trim());
       if(prompt.length > 88) prompt = prompt.slice(0, 88) + '…';
       var law = String(item.law_name || '');
       var articleNo = String(item.article_no || '').replace(/^第\s*/, '').replace(/\s*條$/, '');
