@@ -13,16 +13,19 @@
   <style>
     :root{
       --navy:#1F3848;
+      --navy-2:#19303E;
       --ink:#20303B;
       --ink-soft:#4C5A63;
       --peach:#E7BBA7;
+      --peach-3:#C89580;
       --peach-deep:#C98E71;
-      --clay:#B98A6E;
+      --clay:#C9A485;
       --cream:#F6F1EA;
       --cream-2:#EFE8DE;
       --paper:#FBF8F3;
       --muted:#8A9299;
       --hair:rgba(32,48,59,.10);
+      --line-on-navy:rgba(245,240,234,.13);
       --alert:#B5654F;
       --serif:"Noto Serif TC", "Songti TC", serif;
       --sans:"Noto Sans TC", system-ui, sans-serif;
@@ -36,32 +39,42 @@
     .wrap{max-width:460px;margin:0 auto;background:var(--cream);min-height:100vh;overflow-x:hidden;box-shadow:0 0 0 1px rgba(32,48,59,.04)}
     .kicker{font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:var(--clay)}
     .tnum{font-variant-numeric:tabular-nums}
-    nav{display:flex;align-items:center;justify-content:space-between;padding:22px 28px 0}
+    nav{display:flex;align-items:center;justify-content:space-between;padding:0}
     .brand{font-family:var(--mono);font-size:13px;letter-spacing:.04em;display:flex;align-items:center;gap:8px}
     .brand .dot{width:7px;height:7px;border-radius:50%;background:var(--peach-deep)}
     .brand b{font-weight:500}
     .nav-x{font-family:var(--mono);font-size:12px;color:var(--muted)}
-    .hero{padding:40px 28px 44px;border-bottom:1px solid var(--hair)}
-    .hero .kicker{display:flex;align-items:center;gap:10px}
-    .hero .kicker::after{content:"";flex:1;height:1px;background:var(--hair)}
-    .lead-label{margin-top:30px;font-size:14px;color:var(--ink-soft)}
-    .hero h1{font-family:var(--serif);font-weight:700;font-size:40px;line-height:1.18;margin:6px 0 20px;text-wrap:balance}
-    .hero h1 em{font-style:normal;background:linear-gradient(transparent 62%,var(--peach) 62%,var(--peach) 92%,transparent 92%)}
-    .hero .why{font-size:15px;color:var(--ink-soft);line-height:1.85;max-width:330px}
-    .hero .cta{display:inline-flex;align-items:center;gap:8px;margin-top:26px;background:var(--navy);color:var(--paper);font-size:14.5px;font-weight:500;text-decoration:none;padding:13px 24px;border-radius:3px}
-    .status{display:flex;padding:26px 28px;border-bottom:1px solid var(--hair)}
-    .status .c{flex:1;display:flex;flex-direction:column;gap:5px}
-    .status .c + .c{border-left:1px solid var(--hair);padding-left:22px}
-    .status .n{font-family:var(--serif);font-size:27px;font-weight:600;line-height:1}
-    .status .n .u{font-family:var(--mono);font-size:12px;color:var(--muted);margin-left:1px;font-weight:400}
-    .status .k{font-family:var(--mono);font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+    .hero{position:relative;overflow:hidden;color:var(--cream);background:radial-gradient(ellipse 560px 420px at 30% 24%, rgba(179,139,167,.26) 0%, rgba(179,139,167,.08) 36%, rgba(31,56,72,0) 66%),radial-gradient(ellipse 420px 300px at 22% 20%, rgba(231,187,167,.20) 0%, rgba(231,187,167,0) 58%),var(--navy);padding:30px 26px 40px}
+    .hero .grid{position:absolute;inset:0;background-image:linear-gradient(rgba(245,240,234,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(245,240,234,.035) 1px,transparent 1px);background-size:60px 60px;mask-image:radial-gradient(ellipse 85% 75% at 32% 35%,#000 25%,transparent 80%)}
+    .hero .radar{position:absolute;right:-96px;top:-70px;width:300px;height:300px;opacity:.55;pointer-events:none}
+    .hero nav,.hero .in{position:relative;z-index:2}
+    .hero .brand,.hero .nav-x{color:var(--cream)}
+    .hero .brand .dot{background:var(--peach)}
+    .hero .kicker{color:var(--peach-3);display:flex;align-items:center;gap:11px}
+    .hero .kicker::before{content:"";width:22px;height:1px;background:var(--clay)}
+    .lead-label{margin-top:26px;font-size:14px;color:rgba(245,240,234,.68)}
+    .hero h1{font-family:var(--serif);font-weight:700;font-size:42px;line-height:1.16;margin:7px 0 18px;text-wrap:balance}
+    .hero h1 em{font-style:normal;color:var(--peach);border-bottom:3px solid rgba(231,187,167,.5);padding-bottom:2px}
+    .hero .why{font-size:14.5px;color:rgba(245,240,234,.74);line-height:1.85;max-width:330px}
+    .cta{display:inline-flex;align-items:center;gap:8px;font-size:14.5px;font-weight:600;text-decoration:none;border-radius:2px}
+    .hero .cta{margin-top:26px;background:var(--peach);color:var(--navy);padding:13px 24px}
+    .cta:hover{transform:translateY(-1px)}
+    .cta:focus-visible{outline:2px solid var(--peach-3);outline-offset:3px}
+    .status{display:flex;background:var(--navy-2);color:var(--cream)}
+    .status .c{flex:1;padding:20px 16px;border-right:1px solid var(--line-on-navy)}
+    .status .c:last-child{border-right:none}
+    .status .n{font-family:var(--serif);font-size:28px;font-weight:600;line-height:1}
+    .status .n .u{font-family:var(--mono);font-size:12px;color:var(--peach);margin-left:1px;font-weight:400}
+    .status .k{font-family:var(--mono);font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:rgba(245,240,234,.5);margin-top:7px}
     .block{padding:34px 28px;border-bottom:1px solid var(--hair)}
     .block .kicker{display:block;margin-bottom:16px}
     .h2{font-family:var(--serif);font-size:20px;font-weight:600;margin-bottom:4px}
     .mini .h2{font-size:18px}
     .sub{font-size:13px;color:var(--ink-soft);line-height:1.75;margin-bottom:18px;max-width:320px}
-    .rowline{display:flex;align-items:baseline;gap:14px;padding:14px 0;border-top:1px solid var(--hair);color:inherit;text-decoration:none}
+    .rowline{display:flex;align-items:baseline;gap:14px;padding:14px 0;border-top:1px solid var(--hair);color:inherit;text-decoration:none;border-radius:2px}
+    .rowline:hover{background:rgba(231,187,167,.12);box-shadow:0 0 0 6px rgba(231,187,167,.12)}
     .rowline:hover .nm{text-decoration:underline;text-decoration-color:var(--peach-deep);text-underline-offset:4px}
+    .rowline:focus-visible{outline:2px solid var(--peach-deep);outline-offset:4px;background:rgba(231,187,167,.16)}
     .rowline:first-of-type{border-top:none;padding-top:2px}
     .rowline .nm{font-family:var(--serif);font-size:17px;font-weight:500;flex:none}
     .rowline .ds{font-size:12.5px;color:var(--muted);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -69,11 +82,12 @@
     .rowline .rt.a{color:var(--alert)}
     .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:2px}
     .chip{font-size:13px;background:var(--cream-2);border:1px solid var(--hair);border-radius:3px;padding:8px 12px;display:flex;align-items:baseline;gap:7px;color:inherit;text-decoration:none}
-    .chip:hover{text-decoration:underline;text-decoration-color:var(--peach-deep);text-underline-offset:4px}
+    .chip:hover{background:#F4E5D8;border-color:rgba(201,142,113,.35);text-decoration:underline;text-decoration-color:var(--peach-deep);text-underline-offset:4px}
+    .chip:focus-visible{outline:2px solid var(--peach-deep);outline-offset:3px;background:#F4E5D8}
     .chip .q{font-family:var(--mono);font-size:11px;color:var(--muted)}
     .empty{font-size:13px;color:var(--muted);line-height:1.8;border-top:1px solid var(--hair);padding-top:14px}
     .next{background:var(--paper)}
-    .next .hero-link{margin-top:18px}
+    .next .hero-link{margin-top:18px;background:var(--navy);color:var(--paper);padding:13px 24px}
     .up{padding:32px 28px 40px;background:var(--paper)}
     .up .row{display:flex;gap:13px;align-items:baseline;padding:11px 0}
     .up .row + .row{border-top:1px solid var(--hair)}
@@ -85,27 +99,36 @@
       .wrap{margin:24px auto;border-radius:2px}
     }
     @media (max-width: 390px){
-      nav,.hero,.block,.up,.foot{padding-left:22px;padding-right:22px}
+      .hero,.block,.up,.foot{padding-left:22px;padding-right:22px}
       .hero h1{font-size:36px}
-      .status{padding-left:22px;padding-right:22px}
-      .status .c + .c{padding-left:14px}
+      .status .c{padding-left:12px;padding-right:12px}
       .rowline{gap:10px}
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <nav aria-label="主要導覽">
-      <a class="brand" href="index.html"><span class="dot"></span><b>SoFa Engine</b></a>
-      <span class="nav-x">進度雷達</span>
-    </nav>
-
     <section class="hero" aria-labelledby="leadTitle">
-      <span class="kicker" id="examKicker">距記帳士考試 · 讀取中</span>
-      <div class="lead-label">你現在最該做的一件事——</div>
-      <h1 id="leadTitle">今天先補<br><em id="leadSubject">這一科</em>。</h1>
-      <p class="why" id="leadWhy">正在讀取你的答題紀錄，等一下就會把最該先補的地方講清楚。</p>
-      <a class="cta" id="leadCta" href="quiz.html?free=1&start=1&utm_source=analysis&utm_medium=hero&utm_campaign=analysis_seed">做這 5 題</a>
+      <div class="grid"></div>
+      <svg class="radar" viewBox="0 0 200 200" fill="none" aria-hidden="true">
+        <circle cx="100" cy="100" r="32" stroke="#E7BBA7" stroke-width="1"/>
+        <circle cx="100" cy="100" r="58" stroke="#E7BBA7" stroke-width="1" opacity=".7"/>
+        <circle cx="100" cy="100" r="84" stroke="#E7BBA7" stroke-width="1" opacity=".45"/>
+        <circle cx="100" cy="100" r="99" stroke="#E7BBA7" stroke-width="1" opacity=".25"/>
+        <line x1="100" y1="12" x2="100" y2="188" stroke="#E7BBA7" stroke-width=".6" opacity=".3"/>
+        <line x1="12" y1="100" x2="188" y2="100" stroke="#E7BBA7" stroke-width=".6" opacity=".3"/>
+      </svg>
+      <nav aria-label="主要導覽">
+        <a class="brand" href="index.html"><span class="dot"></span><b>SoFa Engine</b></a>
+        <span class="nav-x">進度雷達</span>
+      </nav>
+      <div class="in">
+        <span class="kicker" id="examKicker">距記帳士考試 · 讀取中</span>
+        <div class="lead-label">你現在最該做的一件事——</div>
+        <h1 id="leadTitle">今天先補<br><em id="leadSubject">這一科</em>。</h1>
+        <p class="why" id="leadWhy">正在讀取你的答題紀錄，等一下就會把最該先補的地方講清楚。</p>
+        <a class="cta" id="leadCta" href="quiz.html?free=1&start=1&utm_source=analysis&utm_medium=hero">做這 5 題</a>
+      </div>
     </section>
 
     <section class="status" aria-label="答題摘要">
@@ -193,22 +216,17 @@
       }[ch]));
     }
 
-    function practiceHref(law, campaign){
-      const qs = new URLSearchParams({
-        utm_source: 'analysis',
-        utm_medium: 'card',
-        utm_campaign: campaign || 'analysis_practice_card'
-      });
+    function practiceHref({ law, article, medium, drill = false }){
+      const qs = new URLSearchParams();
       const lawName = String(law || '').trim();
-      if(lawName){
-        qs.set('law', lawName);
-        qs.set('drill', '1');
-        qs.set('free', '1');
-        qs.set('start', '1');
-      } else {
-        qs.set('free', '1');
-        qs.set('start', '1');
-      }
+      const articleName = String(article || '').trim();
+      if(lawName) qs.set('law', lawName);
+      if(articleName) qs.set('article', articleName);
+      if(drill) qs.set('drill', '1');
+      qs.set('free', '1');
+      qs.set('start', '1');
+      qs.set('utm_source', 'analysis');
+      qs.set('utm_medium', medium);
       return `quiz.html?${qs.toString()}`;
     }
 
@@ -373,7 +391,7 @@
           label: '記帳士',
           exam_date: examDate,
           access_until: exam.access_until || '',
-          days_until_exam: daysUntil(examDate),
+          days_until_exam: 118,
           source: 'preview'
         },
         quiz_stats: { total: 121, correct: 82, accuracy: 68, wrong_count: 18 },
@@ -421,10 +439,12 @@
       const fallback = spots[0] || {};
       const next = data.next_step || {};
       const lawName = fallback.subject || fallback.exam_subject || fallback.law || fallback.law_name || fallback.label || next.law || '';
+      const article = topWrongArticle(fallback);
       return {
         raw: fallback,
         subject: lawName || '這一科',
-        href: practiceHref(lawName, 'analysis_hero_blind_spot')
+        article,
+        href: practiceHref({ law: lawName, article, medium: 'hero', drill: true })
       };
     }
 
@@ -471,7 +491,7 @@
         const lawName = item.law || item.law_name || item.label || '';
         const article = topWrongArticle(item);
         return `
-        <a class="rowline" href="${htmlEscape(practiceHref(lawName, 'analysis_weak_spot'))}" aria-label="練習 ${htmlEscape(lawName || '弱點法規')}">
+        <a class="rowline" href="${htmlEscape(practiceHref({ law: lawName, article, medium: 'weak', drill: true }))}" aria-label="練習 ${htmlEscape(lawName || '弱點法規')}">
           <span class="nm">${htmlEscape(item.label || item.law_name || item.law || '待分類')}</span>
           <span class="ds">${htmlEscape(article || 'weak_laws / wrong_articles')}</span>
           <span class="rt a">錯 ${Number(item.wrong_count || 0)}</span>
@@ -489,7 +509,7 @@
       }
       $('practicedList').innerHTML = items.map((item) => {
         const lawName = item.law || item.law_name || '';
-        return `<a class="chip" href="${htmlEscape(practiceHref(lawName, 'analysis_most_practiced'))}" aria-label="練習 ${htmlEscape(lawName || '已練最多法規')}">${htmlEscape(item.law || item.law_name || '待分類法規')} <span class="q">${Number(item.attempt_count || 0)} 題</span></a>`;
+        return `<a class="chip" href="${htmlEscape(practiceHref({ law: lawName, medium: 'strong' }))}" aria-label="練習 ${htmlEscape(lawName || '已練最多法規')}">${htmlEscape(item.law || item.law_name || '待分類法規')} <span class="q">${Number(item.attempt_count || 0)} 題</span></a>`;
       }).join('');
     }
 
@@ -503,7 +523,7 @@
       $('notStartedList').innerHTML = items.map((item) => {
         const weight = Number(item.exam_weight_pct || 0);
         const label = Number.isFinite(weight) && weight ? `佔 ${weight}%` : '尚未作答';
-        return `<a class="chip" href="${htmlEscape(practiceHref(item.law || '', 'analysis_not_started'))}" aria-label="練習 ${htmlEscape(item.law || '還沒碰的法規')}">${htmlEscape(item.law || '待啟動法規')} <span class="q">${label}</span></a>`;
+        return `<a class="chip" href="${htmlEscape(practiceHref({ law: item.law || '', medium: 'blindspot' }))}" aria-label="練習 ${htmlEscape(item.law || '還沒碰的法規')}">${htmlEscape(item.law || '待啟動法規')} <span class="q">${label}</span></a>`;
       }).join('');
     }
 
@@ -513,13 +533,17 @@
         $('dueList').innerHTML = '<div class="empty">今天沒有跨裝置到期複習；免費預覽會先保留這格，登入後讀取完整 SRS。</div>';
         return;
       }
-      $('dueList').innerHTML = items.slice(0, 5).map((item) => `
-        <a class="rowline due-row" href="${htmlEscape(practiceHref(item.law_name || '', 'analysis_review_due'))}" aria-label="練習 ${htmlEscape(item.law_name || '待複習條文')}">
-          <span class="nm">${htmlEscape(item.law_name || '待複習')}</span>
-          <span class="ds">${htmlEscape(item.article || item.article_no || '回到複習清單')}</span>
+      $('dueList').innerHTML = items.slice(0, 5).map((item) => {
+        const lawName = item.law || item.law_name || '';
+        const article = item.article || item.article_no || '';
+        return `
+        <a class="rowline due-row" href="${htmlEscape(practiceHref({ law: lawName, article, medium: 'review', drill: true }))}" aria-label="練習 ${htmlEscape(lawName || '待複習條文')}">
+          <span class="nm">${htmlEscape(lawName || '待複習')}</span>
+          <span class="ds">${htmlEscape(article || '回到複習清單')}</span>
           <span class="rt">${Math.max(0, Number(item.overdue_days || 0))} 天</span>
         </a>
-      `).join('');
+      `;
+      }).join('');
     }
 
     function renderNext(data){
