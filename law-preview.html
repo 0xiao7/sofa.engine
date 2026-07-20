@@ -435,7 +435,7 @@ function updateCanonicalUrl(lawName, artNo, articleId){
 }
 
 async function fetchJSON(url){
-  const r = await fetch(url);
+  const r = await fetch(url, {headers:_authH(), credentials:'include'});
   if(!r.ok) throw new Error(`HTTP ${r.status}`);
   return r.json();
 }
