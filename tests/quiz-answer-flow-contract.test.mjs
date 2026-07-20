@@ -254,9 +254,9 @@ test('question label sits above the stem text instead of overlaying long questio
 
 test('mobile quiz navigation can open without covering the question', () => {
   const mobile = active.match(/@media \(max-width:760px\)\{[\s\S]*?html\.ios-reader-app \.stage/)?.[0] || '';
-  assert.match(mobile, /body\{padding-top:0\}/);
-  assert.match(mobile, /\.topbar\{position:sticky;max-width:100vw;gap:10px;overflow:visible\}/);
-  assert.match(mobile, /body\.mobile-nav-open \.top-mid\{max-height:70vh;overflow:auto\}/);
+  assert.match(mobile, /body\{padding-top:var\(--tool-topbar-offset\)\}/);
+  assert.match(mobile, /\.topbar\{position:fixed;top:0;left:0;right:0;z-index:220;max-width:100vw;gap:10px;overflow:visible\}/);
+  assert.match(mobile, /body\.mobile-nav-open \.top-mid\{max-height:70vh;overflow:auto;z-index:230\}/);
   assert.match(mobile, /\.q-head\{flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:18px;padding-bottom:12px\}/);
   assert.match(mobile, /\.q-head \.n\{font-size:22px;line-height:1\.15;margin-top:4px!important\}/);
   assert.match(mobile, /\.q-stem p\{font-size:16px;line-height:1\.72;letter-spacing:0\}/);
