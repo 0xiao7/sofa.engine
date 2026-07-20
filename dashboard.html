@@ -908,6 +908,30 @@
     appearance:none;
     cursor:pointer;
   }
+  .study-today-toggle{
+    display:none;
+    min-height:44px;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    border:1px solid rgba(231,187,167,.22);
+    border-radius:4px;
+    padding:8px 12px;
+    color:var(--peach);
+    background:rgba(231,187,167,.045);
+    font-family:var(--serif);
+    font-size:14px;
+    font-weight:700;
+  }
+  .study-today-toggle::after{
+    content:"展開";
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.12em;
+    color:rgba(245,240,234,.58);
+  }
+  .study-today-toggle[aria-expanded="true"]::after{content:"收合"}
+  .study-today-secondary{display:grid;gap:10px}
   .study-weak-brief{
     border:1px solid rgba(231,187,167,.16);
     border-radius:4px;
@@ -2168,6 +2192,10 @@
       white-space:normal;
       text-align:center;
     }
+    .study-today-toggle{display:flex}
+    .study-status-strip{display:none}
+    .study-today-secondary{display:none}
+    .study-today-secondary.on{display:grid}
     .study-next-plan{
       grid-template-columns:1fr;
       gap:8px;
@@ -4108,21 +4136,24 @@
               <span class="study-status-chip"><span>今天</span><b id="study-status-today">預留 60 分鐘</b></span>
               <span class="study-status-chip"><span>下一步</span><b id="study-status-next">先做一題</b></span>
             </div>
-            <div class="study-weak-brief" id="study-weak-brief" aria-label="今日弱點">
-              <div class="study-weak-brief-head">
-                <div class="study-weak-brief-copy">
-                  <span class="study-weak-brief-title">今日弱點</span>
-                  <span class="study-weak-brief-kicker">錯最多的法規先排前面，不用自己判斷哪裡弱。</span>
+            <button class="study-today-toggle" id="study-today-toggle" type="button" aria-expanded="false" aria-controls="study-today-secondary" onclick="toggleStudyTodayDetails()">今天詳情</button>
+            <div class="study-today-secondary" id="study-today-secondary">
+              <div class="study-weak-brief" id="study-weak-brief" aria-label="今日弱點">
+                <div class="study-weak-brief-head">
+                  <div class="study-weak-brief-copy">
+                    <span class="study-weak-brief-title">今日弱點</span>
+                    <span class="study-weak-brief-kicker">錯最多的法規先排前面，不用自己判斷哪裡弱。</span>
+                  </div>
+                  <a class="study-weak-brief-link" href="#weak-laws-recap">補這些弱點 →</a>
                 </div>
-                <a class="study-weak-brief-link" href="#weak-laws-recap">補這些弱點 →</a>
+                <div class="study-weak-brief-list" id="study-weak-brief-list">
+                  <div class="study-weak-empty">答題後，這裡會直接列出最該補的法規。</div>
+                </div>
               </div>
-              <div class="study-weak-brief-list" id="study-weak-brief-list">
-                <div class="study-weak-empty">答題後，這裡會直接列出最該補的法規。</div>
+              <div class="study-next-plan" id="study-next-plan" aria-live="polite">
+                <span class="study-next-plan-copy"><span class="k">今日任務</span><b>先做一題</b><span>答完會更新弱點。</span></span>
+                <span class="study-next-plan-actions"><a href="quiz.html">開始選擇題</a></span>
               </div>
-            </div>
-            <div class="study-next-plan" id="study-next-plan" aria-live="polite">
-              <span class="study-next-plan-copy"><span class="k">今日任務</span><b>先做一題</b><span>答完會更新弱點。</span></span>
-              <span class="study-next-plan-actions"><a href="quiz.html">開始選擇題</a></span>
             </div>
             <div class="study-playlist-block" id="study-playlist-block">
               <div class="study-playlist-block-head">
@@ -5052,14 +5083,34 @@ function articleReaderHref(lawName, artNo, pageId){
   params.push('back=' + encodeURIComponent(back));
   return 'law-preview.html' + (params.length ? '?' + params.join('&') : '');
 }
+function openDashboardArticleTarget(el, event){
+  if(event){
+    event.preventDefault();
+    event.stopPropagation();
+  }
+  var data = el && el.dataset ? el.dataset : {};
+  var pid = String(data.pageId || data.articleId || '').trim();
+  var law = String(data.law || data.crossLaw || '').trim();
+  var art = String(data.art || data.crossArt || '').trim();
+  if(pid){
+    openDrawer(pid, law, art);
+    focusArticleReaderLanding();
+    return false;
+  }
+  if(law && art){
+    searchAndOpen(law, art);
+    return false;
+  }
+  _dashToast('這則還沒有可開啟的條文');
+  return false;
+}
 function drawerOpenAttrs(pid, lawName, artNo, label){
   var safePid = String(pid || '').replace(/'/g, '');
   var safeLaw = String(lawName || '').replace(/'/g, '');
   var safeArt = _normalizeArticleNo(artNo || '').replace(/'/g, '');
   var readerHref = articleReaderHref(safeLaw, safeArt, safePid);
-  var clickAction = "if(event.metaKey||event.ctrlKey){window.open(this.dataset.readerHref,'_blank','noopener');return;}location.href=this.dataset.readerHref";
-  var keyAction = "if(event.key==='Enter'||event.key===' '){event.preventDefault();location.href=this.dataset.readerHref;}";
-  return ' role="button" tabindex="0" aria-label="' + escAttr(label || '開啟條文') + '" data-reader-href="' + escAttr(readerHref) + '" onclick="' + clickAction + '" onkeydown="' + keyAction + '"';
+  var keyAction = "if(event.key==='Enter'||event.key===' '){return openDashboardArticleTarget(this,event);}";
+  return ' role="button" tabindex="0" aria-label="' + escAttr(label || '開啟條文') + '" data-page-id="' + escAttr(safePid) + '" data-law="' + escAttr(safeLaw) + '" data-art="' + escAttr(safeArt) + '" data-reader-href="' + escAttr(readerHref) + '" onclick="return openDashboardArticleTarget(this,event)" onkeydown="' + keyAction + '"';
 }
 function _normalizeArticleNo(raw){
   function partToArabic(part){
@@ -5640,6 +5691,15 @@ function renderStudyStatusStrip(items, timeSummary){
     var next = actionable[0] || null;
     nextEl.textContent = next ? (next.title || next.subject || '完成下一項') : '先做一題';
   }
+}
+
+function toggleStudyTodayDetails(forceOpen){
+  var box = document.getElementById('study-today-secondary');
+  var btn = document.getElementById('study-today-toggle');
+  if(!box || !btn) return;
+  var open = typeof forceOpen === 'boolean' ? forceOpen : !box.classList.contains('on');
+  box.classList.toggle('on', open);
+  btn.setAttribute('aria-expanded', open ? 'true' : 'false');
 }
 
 function renderStudyPlanNavCount(actionable, completed){
@@ -6542,6 +6602,22 @@ function searchAndOpen(lawName, artNum){
       focusArticleReaderLanding();
     })
     .catch(function(){ openDrawer('', lawName, artNum); focusArticleReaderLanding(); });
+}
+
+function openStudyPlaylistArticle(button){
+  var law = button && button.dataset ? String(button.dataset.law || '').trim() : '';
+  var art = button && button.dataset ? String(button.dataset.art || '').trim() : '';
+  var pageId = button && button.dataset ? String(button.dataset.pageId || '').trim() : '';
+  if(pageId){
+    openDrawer(pageId, law, art);
+    focusArticleReaderLanding();
+    return;
+  }
+  if(law && art){
+    searchAndOpen(law, art);
+    return;
+  }
+  _dashToast('這則還沒有可開啟的條文');
 }
 
 var FONT_KEY = 'sofa_read_fontsize';
@@ -9079,7 +9155,6 @@ async function loadStudyPlaylist(){
       var displayTitle = String(item.title || '重點條文').replace(/§\s*0+(?=\d)/g, '§ ');
       var itemId = String(item.page_id || item.id || '').trim();
       var practiceHref = 'quiz.html?law=' + encodeURIComponent(law) + (articleNo ? '&art=' + encodeURIComponent(articleNo) : '') + '&drill=1';
-      var readerHref = articleReaderHref(law, articleNo, itemId);
       var meta = [item.importance || '', item.law_name || ''].filter(Boolean).join(' · ');
       if(displayArticleNo || item.article_no) meta += (meta ? ' · ' : '') + '第 ' + (displayArticleNo || item.article_no) + ' 條';
       return '<div class="study-playlist-item" data-playlist-index="' + idx + '">'
@@ -9089,7 +9164,7 @@ async function loadStudyPlaylist(){
         + '<span class="study-playlist-actions">'
           + '<button type="button" onclick="playStudyPlaylistItem(this, ' + idx + ')">朗讀</button>'
           + '<a class="primary" href="' + esc(practiceHref) + '">練習</a>'
-          + '<a href="' + esc(readerHref) + '">看法條</a>'
+          + '<button type="button" data-law="' + escAttr(law) + '" data-art="' + escAttr(articleNo) + '" data-page-id="' + escAttr(itemId) + '" onclick="openStudyPlaylistArticle(this)">看法條</button>'
         + '</span>'
         + '</div>';
     }).join('');
@@ -9114,11 +9189,10 @@ function studyPlanItemActionLinks(item, compact){
   var links = [];
   if(law && articleNo){
     var quizHref = 'quiz.html?law=' + encodeURIComponent(law) + '&art=' + encodeURIComponent(articleNo) + '&drill=1';
-    var readerHref = articleReaderHref(law, articleNo, pageId);
     links.push('<a class="primary" href="' + esc(quizHref) + '">' + (compact ? '練習' : '練習') + '</a>');
-    links.push('<a href="' + esc(readerHref) + '">看法條</a>');
+    links.push('<button type="button" data-law="' + escAttr(law) + '" data-art="' + escAttr(articleNo) + '" data-page-id="' + escAttr(pageId) + '" onclick="return openDashboardArticleTarget(this,event)">看法條</button>');
   }else if(pageId){
-    links.push('<a href="' + esc(articleReaderHref('', '', pageId)) + '">看法條</a>');
+    links.push('<button type="button" data-page-id="' + escAttr(pageId) + '" onclick="return openDashboardArticleTarget(this,event)">看法條</button>');
   }
   if(safeUrl){
     links.push('<a class="resource" href="' + esc(safeUrl) + '" target="_blank" rel="noopener">開啟資源</a>');
@@ -11081,7 +11155,7 @@ ch.on('presence', { event: 'sync' }, () => {
   }
   function recapArticleOpen(el){
     if(!el) return;
-    if(el.dataset.readerHref) location.href = el.dataset.readerHref;
+    openDashboardArticleTarget(el, null);
   }
   function recapArticleKeyOpen(event, el){
     if(!event || (event.key !== 'Enter' && event.key !== ' ')) return;

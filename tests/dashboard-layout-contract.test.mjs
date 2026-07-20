@@ -350,8 +350,8 @@ test('recent answer recap rows can reopen the answered article when metadata exi
   assert.match(html, /entry\.law \|\| entry\.law_name/);
   assert.match(html, /entry\.article \|\| entry\.article_no \|\| entry\.title/);
   assert.match(html, /data-reader-href/);
-  assert.match(extractFunction(html, 'recapArticleOpen'), /location\.href = el\.dataset\.readerHref/);
-  assert.doesNotMatch(extractFunction(html, 'recapArticleOpen'), /openDrawer|searchAndOpen/);
+  assert.match(extractFunction(html, 'recapArticleOpen'), /openDashboardArticleTarget\(el, null\)/);
+  assert.doesNotMatch(extractFunction(html, 'recapArticleOpen'), /location\.href/);
   assert.match(html, /window\.recapArticleOpen = recapArticleOpen/);
   assert.match(html, /window\.recapArticleKeyOpen = recapArticleKeyOpen/);
   assert.match(html, /class="recap-row is-link"/);
@@ -372,8 +372,8 @@ test('saved and recent law rows are semantic keyboard-operable controls', () => 
   assert.match(html, /function drawerOpenAttrs\(pid, lawName, artNo, label\)/);
   assert.match(html, /function articleReaderHref\(lawName, artNo, pageId\)/);
   assert.match(html, /data-reader-href="/);
-  assert.match(html, /event\.metaKey\|\|event\.ctrlKey/);
-  assert.match(html, /location\.href=this\.dataset\.readerHref/);
+  assert.match(html, /function openDashboardArticleTarget/);
+  assert.match(html, /onclick="return openDashboardArticleTarget\(this,event\)"/);
   assert.match(html, /role="button" tabindex="0" aria-label="/);
   assert.match(html, /event\.key==='Enter'\|\|event\.key===' '/);
   assert.match(html, /class="li-card"'\s*\+ drawerOpenAttrs\(pid, ln, artSafe, '開啟收藏條文/);
@@ -385,7 +385,9 @@ test('saved and recent law rows are semantic keyboard-operable controls', () => 
 
 test('saved and recent law rows open the article reader instead of dashboard search fallback', () => {
   assert.doesNotMatch(html, /function chooseArticleOpenAction\(pid, lawName, artNo\)/);
-  assert.doesNotMatch(extractFunction(html, 'drawerOpenAttrs'), /openDrawer|searchAndOpen/);
+  assert.match(extractFunction(html, 'openDashboardArticleTarget'), /openDrawer\(pid, law, art\)/);
+  assert.match(extractFunction(html, 'openDashboardArticleTarget'), /searchAndOpen\(law, art\)/);
+  assert.doesNotMatch(extractFunction(html, 'openDashboardArticleTarget'), /location\.href/);
   assert.match(html, /drawerOpenAttrs\(pid, lawName, artNo, label\)[\s\S]*articleReaderHref\(safeLaw, safeArt, safePid\)/);
   assert.match(html, /onkeydown="' \+ keyAction \+ '"/);
 });
