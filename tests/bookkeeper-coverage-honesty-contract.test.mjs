@@ -41,5 +41,6 @@ test('past-exam radar separates live service count from full-subject support', (
   assert.match(radar, /其他考科不自動判分/);
   assert.match(radar, /國文只收題目/);
   assert.match(radar, /未列入的科目先不做自動弱點判讀/);
-  assert.doesNotMatch(radar, /全考科已上線|記帳士全科已上線|live drift|不假造排行|全考科都已產品化/);
+  assert.match(radar, /法條對應/);
+  assert.doesNotMatch(radar, /全考科已上線|記帳士全科已上線|live drift|不假造排行|全考科都已產品化|article_ids\s+\$\{articleCount\}|article_ids\s+\d/);
 });

@@ -170,7 +170,8 @@
       const rows = results.filter(Boolean).map(q => {
         const articleCount = Array.isArray(q.article_ids) ? q.article_ids.length : 0;
         const conflict = q.answer_conflict ? '<span class="warn">答案需複核</span>' : '答案已對齊';
-        return `<div class="row"><b>${esc(q.subject || '未命名科目')}</b>${esc(q.roc_year || '-')} 年第 ${esc(q.question_no || '-')} 題 · article_ids ${articleCount} · ${conflict}</div>`;
+        const lawStatus = articleCount ? `法條對應 ${articleCount} 條` : '法條對應待補';
+        return `<div class="row"><b>${esc(q.subject || '未命名科目')}</b>${esc(q.roc_year || '-')} 年第 ${esc(q.question_no || '-')} 題 · ${lawStatus} · ${conflict}</div>`;
       });
       el.innerHTML = rows.length ? rows.join('') : '<div class="row quiet">兩科範例題暫時讀不到；可先進練習頁。</div>';
     }
