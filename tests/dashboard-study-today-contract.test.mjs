@@ -68,7 +68,7 @@ function buildStudyPanelHarness() {
     if (!elements[id]) elements[id] = createFakeElement(id);
     return elements[id];
   };
-  ['study-plan-panel', 'study-record-panel', 'study-playlist-panel', 'study-mode-status', 'study-plan-state', 'study-plan-start', 'study-record-date'].forEach(element);
+  ['study-schedule-section', 'study-plan-panel', 'study-record-panel', 'study-playlist-panel', 'study-mode-status', 'study-plan-state', 'study-plan-start', 'study-record-date'].forEach(element);
   const triggers = ['playlist', 'plan', 'record'].map((mode) => {
     const el = createFakeElement(`trigger-${mode}`);
     el.attrs['data-study-panel-trigger'] = mode;
@@ -91,6 +91,7 @@ function buildStudyPanelHarness() {
   vm.runInContext([
     `function _todayInputValue(){ return '2026-06-29'; }`,
     extractFunction(active, 'setStudyPanelMode'),
+    extractFunction(active, 'openStudyScheduleSection'),
     extractFunction(active, 'openStudyPlanPanel'),
     extractFunction(active, 'openStudyRecordPanel'),
     extractFunction(active, 'openStudyPlaylistPanel'),
@@ -184,7 +185,6 @@ test('dashboard fetches the authenticated study today endpoint', () => {
 test('dashboard renders subject containers and seeded blocks', () => {
   assert.match(active, /function renderStudyToday/);
   assert.match(active, /implementation_status/);
-  assert.match(active, /deferred_subject_container_only/);
   assert.match(active, /seeded_moex_mcq/);
   assert.match(active, /law_to_subject_mapping/);
 });
@@ -250,8 +250,8 @@ test('study today makes working tools and personal planning obvious', () => {
   assert.match(active, /下一步/);
   assert.match(active, /class="study-action-link primary" href="quiz\.html"[\s\S]*開始選擇題/);
   assert.match(active, /href="#review-due"[\s\S]*今日複習/);
-  assert.match(active, /href="quiz\.html\?open=weakness"[\s\S]*弱點分析/);
-  assert.match(active, /onclick="openStudyPlaylistPanel\(\)"[\s\S]*重點朗讀/);
+  assert.match(active, /href="#weak-laws-recap"[\s\S]*弱點分析/);
+  assert.match(active, /id="study-playlist-block"[\s\S]*開啟播放清單/);
   assert.match(active, /onclick="openStudyPlanPanel\(\)"[\s\S]*排課/);
   assert.match(active, /onclick="openStudyRecordPanel\(\)"[\s\S]*補紀錄/);
   assert.match(active, /id="study-playlist-panel"/);
@@ -267,9 +267,9 @@ test('study today makes working tools and personal planning obvious', () => {
 test('desktop dashboard keeps the left library rail persistent', () => {
   assert.match(active, /\.shell\{[\s\S]*grid-template-columns:280px minmax\(0,1fr\)/);
   assert.match(active, /\.topbar\{[\s\S]*position:fixed;top:0;left:0;right:0;z-index:80/);
-  assert.match(active, /\.shell\{[\s\S]*margin-top:71px/);
-  assert.match(active, /aside\.side\{[\s\S]*position:fixed;top:71px;bottom:0;left:0;width:280px/);
-  assert.match(active, /aside\.side\{[\s\S]*height:calc\(100dvh - 71px\)/);
+  assert.match(active, /\.shell\{[\s\S]*margin-top:var\(--topbar-offset\)/);
+  assert.match(active, /aside\.side\{[\s\S]*position:fixed;top:var\(--topbar-offset\);bottom:0;left:0;width:280px/);
+  assert.match(active, /aside\.side\{[\s\S]*height:calc\(100dvh - var\(--topbar-offset\)\)/);
   assert.match(active, /body\.side-collapsed \.shell\{grid-template-columns:minmax\(0,1fr\)\}/);
   assert.match(active, /body\.side-collapsed aside\.side\{transform:translateX\(-100%\);pointer-events:none\}/);
   assert.match(active, /function setDashboardSideCollapsed/);
@@ -352,11 +352,12 @@ test('study playlist is a generic text fallback and does not ship private schedu
   assert.match(active, /pause_seconds=/);
   assert.match(active, /star_min=3/);
   assert.match(active, /通勤問答|重點清單/);
+  assert.match(active, /id="study-playlist-block"/);
+  assert.match(active, /播放清單/);
   assert.match(active, /aria-label="通勤重點朗讀清單"/);
   assert.match(active, /aria-label="重點清單科目"/);
-  assert.match(active, /aria-label="問答停頓秒數"/);
-  assert.doesNotMatch(active, /播放清單/);
-  assert.doesNotMatch(active, />PLAYLIST</);
+  assert.match(active, /aria-label="問答間隔秒數"/);
+  assert.match(active, />PLAYLIST</);
   assert.doesNotMatch(active, /記帳士 115記帳士台北N1|115\/03\/02|稅務相關法規\(基礎\)1/);
 });
 
@@ -403,7 +404,7 @@ test('empty study playlist explains the list and offers a direct first-question 
   const fn = extractFunction(active, 'loadStudyPlaylist');
   assert.match(fn, /重點清單目前還空/);
   assert.match(fn, /href="quiz\.html"[\s\S]*先做一題/);
-  assert.match(active, /\.study-empty-action\{[\s\S]*min-height:36px/);
+  assert.match(active, /\.study-empty-action\{[\s\S]*min-height:44px/);
 });
 
 test('open study playlist refreshes when weak laws arrive after the panel opened', () => {
@@ -476,6 +477,7 @@ test('study playlist can directly play text through the browser speech engine', 
   assert.match(active, /function _setStudyPlaylistStatus/);
   assert.match(active, /function _setStudyPlaylistSpeakingIndex/);
   assert.match(active, /function _cleanSpeechCueText/);
+  assert.match(active, /function _cleanStudyPlaylistCueText/);
   assert.match(active, /function _studyPlaylistSegments/);
   assert.match(active, /function _speakStudyPlaylistSegments/);
   assert.match(active, /function _speakStudyPlaylistText/);
@@ -489,7 +491,8 @@ test('study playlist can directly play text through the browser speech engine', 
   assert.match(active, /朗讀沒有啟動/);
   assert.match(active, /已停止朗讀/);
   assert.match(active, /已準備 ' \+ items\.length \+ ' 題通勤問答/);
-  assert.match(active, /重音\|停頓/);
+  assert.match(extractFunction(active, '_studyPlaylistSpeechText'), /_cleanStudyPlaylistCueText/);
+  assert.doesNotMatch(extractFunction(active, '_studyPlaylistSpeechText'), /停頓 ' \+/);
   assert.match(active, /replace\(\s*\/\\s\+\/g,\s*' '\s*\)/);
   const fn = extractFunction(active, 'loadStudyPlaylist');
   assert.match(fn, /onclick="playStudyPlaylistItem\(this, ' \+ idx \+ '\)"/);
@@ -509,9 +512,10 @@ test('study playlist active recall plays question pause answer segments without 
   assert.match(load, /item\.pause_seconds/);
   assert.match(load, /Array\.isArray\(item\.segments\)/);
   assert.match(segments, /seg\.type === 'pause'/);
+  assert.match(segments, /_cleanStudyPlaylistCueText/);
   assert.match(segments, /Math\.max\(3,\s*Math\.min\(12/);
   assert.match(speak, /setTimeout\(function\(\)\{ speakSegment\(i \+ 1\); \}, seg\.seconds \* 1000\)/);
-  assert.match(speak, /停頓 ' \+ seg\.seconds \+ ' 秒，先自己想答案/);
+  assert.match(speak, /暫停 ' \+ seg\.seconds \+ ' 秒，先自己想答案/);
   assert.match(playAll, /segments\.some\(function\(seg\)\{ return seg\.type === 'pause'; \}\)/);
   assert.doesNotMatch(load, /audio_url[\s\S]*new Audio/);
 });
@@ -527,7 +531,7 @@ test('study tool panels expose one active mode and explain where saved work goes
   assert.match(active, /btn\.classList\.toggle\('is-active', on\)/);
   assert.match(active, /btn\.setAttribute\('aria-expanded', on \? 'true' : 'false'\)/);
   assert.match(active, /status\.classList\.toggle\('is-closed', active === 'closed'\)/);
-  assert.match(active, /正在看重點朗讀/);
+  assert.match(active, /正在看播放清單/);
   assert.match(active, /正在排讀書任務/);
   assert.match(active, /正在補讀書紀錄/);
   assert.match(active, /存完會回到下方待讀清單/);
@@ -574,7 +578,8 @@ test('study today action buttons are sized for mobile app shells', () => {
   assert.ok(actionsStart >= 0 && actionsEnd > actionsStart, 'study action block must be extractable');
   assert.ok(statusStart > actionsStart && weakStart > actionsStart, 'study action buttons should appear before status and weak details');
   assert.match(actionBlock, /class="study-action-group primary"[\s\S]*<span class="study-action-label">先做<\/span>[\s\S]*開始選擇題[\s\S]*今日複習[\s\S]*弱點分析/);
-  assert.match(actionBlock, /class="study-action-group secondary"[\s\S]*<span class="study-action-label">整理<\/span>[\s\S]*重點朗讀[\s\S]*排課[\s\S]*補紀錄/);
+  assert.match(actionBlock, /class="study-action-group secondary"[\s\S]*<span class="study-action-label">安排<\/span>[\s\S]*排課[\s\S]*補紀錄/);
+  assert.doesNotMatch(actionBlock, /重點朗讀|播放清單|playlist/);
   assert.doesNotMatch(active, /看時間、弱點和下一堂；要排課再開下方工具/);
   assert.doesNotMatch(actionBlock, />看今日複習</);
   assert.doesNotMatch(actionBlock, />看弱點分析</);
@@ -617,6 +622,9 @@ test('study next card is direct for active learners and cannot squeeze labels ve
 });
 
 test('study today keeps active learner copy compact and folds lower details', () => {
+  assert.match(active, /<details class="study-schedule-section" id="study-schedule-section"/);
+  assert.match(active, /<summary class="study-schedule-head"/);
+  assert.match(active, /\.study-schedule-section:not\(\[open\]\) \.study-schedule-body\{display:none\}/);
   assert.match(active, /<details class="study-recommend-panel" id="study-recommend-panel"/);
   assert.match(active, /<summary class="study-recommend-head"/);
   assert.match(active, /\.study-recommend-panel summary::-webkit-details-marker\{display:none\}/);
@@ -759,7 +767,7 @@ test('study plan pasted natural example is actually parseable', () => {
 test('study planning avoids a duplicate visible map before the private list', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
-  const recap = active.slice(recapStart, recapStart + 16000);
+  const recap = active.slice(recapStart, recapStart + 26000);
   const mapIndex = recap.indexOf('id="study-plan-map"');
   const cloudIndex = recap.indexOf('id="study-cloud-state"');
   const listIndex = recap.indexOf('id="study-plan-items"');
@@ -961,7 +969,7 @@ test('mobile dashboard prioritizes next-step guidance before the full tool grid'
 });
 
 test('sidebar and mobile quick entry use clear exam-loop labels', () => {
-  assert.match(active, /<nav class="top-mid">[\s\S]*href="quiz\.html\?open=weakness"[\s\S]*弱點/);
+  assert.match(active, /<nav class="top-mid">[\s\S]*href="#weak-laws-recap"[\s\S]*弱點/);
   assert.match(active, /<nav class="top-mid">[\s\S]*href="#review-due"[\s\S]*複習/);
   assert.match(active, /<a href="#study-cockpit-recap" data-spy-target="study-cockpit-recap"><span class="num">T1<\/span>今天先做/);
   assert.match(active, /<a href="#study-weak-brief" data-spy-target="study-weak-brief"><span class="num">T2<\/span>今日弱點/);
@@ -972,7 +980,7 @@ test('sidebar and mobile quick entry use clear exam-loop labels', () => {
   assert.match(active, /<a href="#review-due" data-spy-target="review-due"><span class="num">T7<\/span>今日複習/);
   assert.match(active, /<a href="#srs-settings" data-spy-target="srs-settings"><span class="num">T8<\/span>複習策略/);
   assert.match(active, /<a href="quiz\.html"><span class="num">練<\/span>選擇題/);
-  assert.match(active, /<a href="quiz\.html\?open=weakness"><span class="num">補<\/span>弱點分析/);
+  assert.match(active, /<a href="#weak-laws-recap"><span class="num">補<\/span>弱點分析/);
   assert.match(active, /<span class="mdb-lbl">今天先做<\/span>/);
 });
 
@@ -1076,6 +1084,7 @@ test('study time planning is editable and persisted locally', () => {
   assert.doesNotMatch(active, /時間設定只影響建議；按排入後才保存/);
   assert.match(active, /預覽本週排法/);
   assert.match(active, /排入本週計畫/);
+  assert.match(extractFunction(active, 'previewStudyWeekRecommendation'), /panel\.open = true/);
   assert.match(active, /下一筆：/);
   assert.match(active, /完成紀錄/);
 });
@@ -1276,12 +1285,18 @@ test('study today can recommend a private weekly plan without shipping personal 
   assert.match(active, /商業會計法責任與帳簿/);
   assert.match(active, /function previewStudyWeekRecommendation/);
   assert.match(active, /function saveStudyRecommendedWeek/);
+  assert.match(active, /id="study-recommend-list"[\s\S]*預覽後會顯示本週可排項目/);
   assert.match(active, /_addLocalStudyItems\(items\)/);
   assert.match(active, /remainingMinutes/);
   assert.match(active, /weak_law_bridge/);
   assert.match(active, /question_signal/);
   assert.match(active, /source_label:'自排建議'/);
   assert.doesNotMatch(active, /記帳士 115記帳士台北N1|115\/03\/02|補習班台北N1/);
+});
+
+test('dashboard navigation does not show a stale fixed tool count', () => {
+  assert.match(active, /href="#tools" data-spy-target="tools"><span class="num">07<\/span>備考工具<span class="ct"><\/span><\/a>/);
+  assert.doesNotMatch(active, /備考工具<span class="ct">8<\/span>/);
 });
 
 test('saving recommended week syncs to the study API before local fallback', () => {

@@ -4,15 +4,20 @@ import { readFileSync } from 'node:fs';
 
 const html = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
 
-test('dashboard restores the focus reading list entry without media playback wording', () => {
-  assert.match(html, /data-study-panel-trigger="playlist"[\s\S]*重點朗讀/);
+test('dashboard gives the playlist its own block without media playback wording', () => {
+  assert.match(html, /id="study-playlist-block"/);
+  assert.match(html, /PLAYLIST/);
+  assert.match(html, /播放清單/);
+  assert.match(html, /data-study-panel-trigger="playlist"[\s\S]*開啟播放清單/);
   assert.match(html, /id="study-playlist-panel"/);
   assert.match(html, /aria-label="通勤重點朗讀清單"/);
-  assert.match(html, /id="study-playlist-playall"[\s\S]*朗讀全部/);
+  assert.match(html, /id="study-playlist-playall"[\s\S]*播放問答/);
   assert.match(html, /id="study-playlist-status"/);
   assert.match(html, /重點清單，能朗讀也能單刷/);
-  assert.doesNotMatch(html, />PLAYLIST</);
-  assert.doesNotMatch(html, /播放清單/);
+  const actionsStart = html.indexOf('<div class="study-action-group secondary"');
+  const actionsEnd = html.indexOf('</div>', actionsStart);
+  const secondaryActions = html.slice(actionsStart, actionsEnd);
+  assert.doesNotMatch(secondaryActions, /playlist|重點朗讀|播放清單/);
 });
 
 test('dashboard focus list keeps executable actions and API loading', () => {

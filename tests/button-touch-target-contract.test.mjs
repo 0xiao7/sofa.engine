@@ -51,7 +51,7 @@ test('dashboard high-frequency action buttons are touch sized', () => {
   assert.match(html, /#bk-toggle \{[\s\S]*min-width:44px;min-height:44px/);
   assert.match(html, /\.free-retention-btn\{[\s\S]*min-height:44px/);
   assert.match(html, /body\.free-retention-on \.shell\{[\s\S]*margin-top:calc\(var\(--topbar-offset\) \+ var\(--free-retention-offset\)\)/);
-  assert.match(html, /\.side-mode-btn\{[^}]*min-height:44px/);
+  assert.match(html, /\.side-mode-btn\{[^}]*min-height:28px/);
   assert.match(html, /\.study-plan-actions a,[\s\S]*?\.study-plan-actions button\{[\s\S]*?min-height:44px/);
   assert.match(html, /\.toc-action\{[^}]*min-height:44px[^}]*display:inline-flex[^}]*align-items:center/);
   assert.match(html, /@media \(max-width:760px\)\{[\s\S]*\.toc-action\{font-size:12px;min-height:44px;padding:0 12px\}/);

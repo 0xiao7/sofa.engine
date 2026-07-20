@@ -97,9 +97,10 @@ test('countdown is loaded from exam-plan-contract instead of hard-coded exam dat
   assert.doesNotMatch(analysis, /new Date\(['"]2026-/);
 });
 
-test('public preview demo carries a concrete countdown for Fay review', () => {
-  assert.match(analysis, /days_until_exam:\s*118/);
-  assert.doesNotMatch(analysis, /days_until_exam:\s*daysUntil\(examDate\)/);
+test('public preview demo derives countdown from the active exam date', () => {
+  assert.match(analysis, /const daysLeft = daysUntil\(examDate\)/);
+  assert.match(analysis, /days_until_exam:\s*Number\.isFinite\(daysLeft\) \? daysLeft : null/);
+  assert.doesNotMatch(analysis, /days_until_exam:\s*118/);
 });
 
 test('authenticated analysis uses the aggregate API and magic link lands here', () => {

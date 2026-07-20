@@ -4,7 +4,7 @@ window.SOFA_LAW_UPDATES = {
     '追蹤政府公開法規資料',
     '依考科重新分類',
     '標記考試影響程度',
-    '人工複核高影響更新',
+    '追蹤高影響更新',
   ],
   records: [
     {
@@ -79,7 +79,7 @@ window.SOFA_LAW_UPDATES = {
       changeBefore: '目前 SoFa 法庫只處理已納入的主要編章，未把所有建築技術規則編章視為主科高優先資料。',
       changeAfter: '後續擴充時會依考科需求判斷是否補入設計施工編、設備編等編章。',
       whyItMatters: '這類不是所有主科都會用到，先公開標記追蹤狀態，比把未審資料混入題庫更安全。',
-      sofaAction: 'SoFa 先列為觀察中，等正式擴充或考科需要時再人工複核。',
+      sofaAction: 'SoFa 先列為觀察中，將依考科需求逐步補齊。',
       sourceLabel: '全國法規資料庫',
       sourceUrl: 'https://law.moj.gov.tw/',
     },

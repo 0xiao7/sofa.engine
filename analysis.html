@@ -398,6 +398,7 @@
     function previewAnalysis(){
       const exam = ((state.contract && state.contract.exams) || {}).bookkeeper || {};
       const examDate = exam.exam_date || '';
+      const daysLeft = daysUntil(examDate);
       return {
         mode: 'preview',
         exam: {
@@ -405,7 +406,7 @@
           label: '記帳士',
           exam_date: examDate,
           access_until: exam.access_until || '',
-          days_until_exam: 118,
+          days_until_exam: Number.isFinite(daysLeft) ? daysLeft : null,
           source: 'preview'
         },
         quiz_stats: { total: 121, correct: 82, accuracy: 68, wrong_count: 18 },

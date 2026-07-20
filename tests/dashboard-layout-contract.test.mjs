@@ -49,7 +49,7 @@ test('core web pages prefer the Songti brand stack for Chinese UI text', () => {
 
 test('today recaps are included in the sidebar navigation and scroll spy', () => {
   assert.match(html, /<nav class="top-mid">[\s\S]*href="#study-cockpit-recap"[\s\S]*今天先做/);
-  assert.match(html, /<nav class="top-mid">[\s\S]*href="quiz\.html\?open=weakness"[\s\S]*弱點/);
+  assert.match(html, /<nav class="top-mid">[\s\S]*href="#weak-laws-recap"[\s\S]*弱點/);
   assert.match(html, /<nav class="top-mid">[\s\S]*href="#review-due"[\s\S]*複習/);
   assert.match(html, /<div class="nav-helper">右邊滑到哪，左邊會亮哪一段。<\/div>/);
   assert.match(html, /data-spy-target="study-cockpit-recap"[\s\S]*今天先做/);
@@ -160,28 +160,29 @@ test('dashboard tool count names tools rather than practice modes', () => {
 });
 
 test('desktop sidebar stays present while the main dashboard scrolls', () => {
-  assert.match(html, /aside\.side\{[\s\S]*position:fixed;top:71px;bottom:0;left:0;width:280px/);
-  assert.match(html, /aside\.side\{[\s\S]*height:calc\(100dvh - 71px\)/);
+  assert.match(html, /aside\.side\{[\s\S]*position:fixed;top:var\(--topbar-offset\);bottom:0;left:0;width:280px/);
+  assert.match(html, /aside\.side\{[\s\S]*height:calc\(100dvh - var\(--topbar-offset\)\)/);
   assert.match(html, /aside\.side\{[\s\S]*overflow-y:auto/);
   assert.match(cssRule(html, '.nav-list a'), /min-height:44px/);
   assert.match(html, /class="side-guide-controls"[\s\S]*aria-label="導覽顯示狀態"/);
   assert.match(cssRule(html, '.side-guide-controls'), /position:sticky/);
   assert.match(cssRule(html, '.side-guide-controls'), /top:0/);
-  assert.match(cssRule(html, '.side-guide-controls'), /background:rgba\(25,48,62,\.96\)/);
-  assert.match(html, /id="side-mode-status"[\s\S]*已固定/);
-  assert.match(html, /id="side-mode-btn"[\s\S]*onclick="toggleDashboardSideNav\(\)"[\s\S]*隱藏/);
+  assert.match(cssRule(html, '.side-guide-controls'), /background:transparent/);
+  assert.match(cssRule(html, '.side-guide-controls'), /box-shadow:none/);
+  assert.match(html, /id="side-mode-status"[\s\S]*導覽/);
+  assert.match(html, /id="side-mode-btn"[\s\S]*onclick="toggleDashboardSideNav\(\)"[\s\S]*收起/);
   assert.match(html, /class="side-peek-btn"[\s\S]*onclick="setDashboardSideCollapsed\(false\)"[\s\S]*導覽/);
-  assert.match(cssRule(html, '.side-peek-btn'), /width:44px/);
-  assert.match(cssRule(html, '.side-peek-btn'), /min-width:44px/);
-  assert.match(cssRule(html, '.side-peek-btn'), /min-height:44px/);
+  assert.match(cssRule(html, '.side-peek-btn'), /width:auto/);
+  assert.match(cssRule(html, '.side-peek-btn'), /min-width:36px/);
+  assert.match(cssRule(html, '.side-peek-btn'), /min-height:36px/);
   assert.match(html, /body\.side-collapsed \.side-peek-btn\{display:inline-flex/);
   assert.match(html, /peek\.setAttribute\('aria-hidden', on \? 'false' : 'true'\)/);
   assert.doesNotMatch(html, /body\.side-collapsed \.topbar \.menu-btn::after/);
   assert.match(html, /button\.setAttribute\('aria-label', on \? '顯示導覽' : '隱藏導覽'\)/);
-  assert.match(html, /modeButton\.textContent = on \? '顯示' : '隱藏'/);
-  assert.match(html, /status\.textContent = on \? '已隱藏' : '已固定'/);
+  assert.match(html, /modeButton\.textContent = on \? '打開' : '收起'/);
+  assert.match(html, /status\.textContent = '導覽'/);
   assert.match(html, /body\.side-collapsed \.side-guide-controls\{display:none\}/);
-  assert.match(html, /\.shell::before\{[\s\S]*position:fixed;top:71px;bottom:0;left:0;width:280px/);
+  assert.match(html, /\.shell::before\{[\s\S]*position:fixed;top:var\(--topbar-offset\);bottom:0;left:0;width:280px/);
   assert.match(html, /\.shell::before\{[\s\S]*background:var\(--navy-2\)/);
   assert.match(html, /\.shell::before\{[\s\S]*pointer-events:none/);
   assert.match(html, /@media \(max-width:980px\)\{[\s\S]*aside\.side\{[\s\S]*position:fixed/);
@@ -299,7 +300,7 @@ test('article drawer shows when the current article is in the wrong-question ban
   assert.match(html, /a\.answer_source \|\| a\.source \|\| 'server_weak_laws'/);
   assert.match(html, /answerSourceLabel\(hit\.source\)/);
   assert.match(html, /這條曾答錯/);
-  assert.match(html, /quiz\.html\?open=wrong/);
+  assert.match(html, /href="#review">重練錯題<\/a>/);
 });
 
 test('closed article drawer is hidden from mobile hit testing until opened', () => {

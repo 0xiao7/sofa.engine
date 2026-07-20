@@ -61,7 +61,7 @@
 
     <details class="control-panel" id="essay-control-panel">
       <summary>篩選與說明</summary>
-      <p class="control-note">可切換類科與科目。若目前沒有可公開解析，可以先回選擇題考古題練習。</p>
+      <p class="control-note">可切換類科與科目。若目前尚未開放申論解析，可以先回選擇題考古題練習。</p>
       <section class="controls" aria-label="申論解析篩選">
         <select id="essay-track" aria-label="考試類科">
           <option value="landadmin">地政士</option>
@@ -80,9 +80,9 @@
       </section>
     </details>
 
-    <div class="status" id="essay-status">讀取可公開解析中。</div>
+    <div class="status" id="essay-status">讀取已開放解析中。</div>
     <section class="list" id="essay-list" aria-live="polite">
-      <div class="empty">正在讀取可公開解析。</div>
+      <div class="empty">正在讀取已開放解析。</div>
     </section>
   </main>
 
@@ -115,7 +115,7 @@
       const list = document.getElementById('essay-list');
       if(!list) return;
       if(!items.length){
-        list.innerHTML = '<div class="empty">目前尚無可公開的申論解析。你可以先回選擇題考古題練習；新的解析整理好後會放在這裡。</div>';
+        list.innerHTML = '<div class="empty">目前尚未開放申論解析，敬請期待。你可以先回選擇題考古題練習；新的解析整理好後會放在這裡。</div>';
         return;
       }
       list.innerHTML = items.map(item => {
@@ -141,15 +141,15 @@
       const subject = document.getElementById('essay-subject')?.value || '';
       const status = document.getElementById('essay-status');
       const list = document.getElementById('essay-list');
-      if(status) status.textContent = '讀取可公開解析中。';
-      if(list) list.innerHTML = '<div class="empty">正在讀取可公開解析。</div>';
+      if(status) status.textContent = '讀取已開放解析中。';
+      if(list) list.innerHTML = '<div class="empty">正在讀取已開放解析。</div>';
       const qs = new URLSearchParams({ track, limit: '24' });
       if(subject) qs.set('subject', subject);
       try{
         const data = await fetch(`${API}/api/essay-analyses?${qs.toString()}`).then(r => r.ok ? r.json() : Promise.reject(new Error('essay ' + r.status)));
         const items = Array.isArray(data.items) ? data.items.filter(item => item.review_status === 'published') : [];
         renderEssayAnalyses(items);
-        if(status) status.textContent = items.length ? `已顯示 ${items.length} 筆可公開解析。` : '目前尚無可公開解析。';
+        if(status) status.textContent = items.length ? `已顯示 ${items.length} 筆已開放解析。` : '目前尚未開放申論解析，敬請期待。';
       }catch(e){
         if(list) list.innerHTML = '<div class="empty">申論解析暫時讀不到；不影響選擇題練習。</div>';
         if(status) status.textContent = '申論解析暫時無法載入。';

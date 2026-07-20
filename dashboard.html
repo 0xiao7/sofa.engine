@@ -164,48 +164,50 @@
     display:flex;
     align-items:center;
     justify-content:space-between;
-    gap:8px;
-    padding:8px 9px;
-    border:1px solid rgba(245,240,234,.08);
-    background:rgba(25,48,62,.96);
+    gap:10px;
+    padding:4px 0 6px;
+    border:0;
+    border-bottom:1px solid rgba(245,240,234,.08);
+    background:transparent;
     border-radius:3px;
-    box-shadow:0 10px 18px rgba(13,28,40,.18);
+    box-shadow:none;
   }
   .side-mode-status{
-    color:rgba(245,240,234,.55);
+    color:rgba(245,240,234,.38);
     font-family:var(--mono);
-    font-size:10px;
-    letter-spacing:.1em;
+    font-size:9.5px;
+    letter-spacing:.16em;
     white-space:nowrap;
+    text-transform:uppercase;
   }
   .side-mode-btn{
-    min-height:44px;
+    min-height:28px;
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    border:1px solid rgba(231,187,167,.28);
+    border:0;
     border-radius:3px;
-    padding:6px 10px;
+    padding:3px 0;
     color:var(--peach);
-    background:rgba(231,187,167,.06);
+    background:transparent;
     font-family:var(--mono);
     font-size:10px;
     letter-spacing:.1em;
     white-space:nowrap;
   }
-  .side-mode-btn:hover{background:rgba(231,187,167,.13)}
+  .side-mode-btn:hover{color:var(--peach-2)}
   body.side-collapsed .side-guide-controls{display:none}
   .side-peek-btn{
     display:none;
     position:fixed;
-    top:94px;
+    top:104px;
     left:0;
     z-index:42;
     box-sizing:border-box;
-    width:44px;
-    min-width:44px;
-    min-height:44px;
-    padding:9px 12px 9px 10px;
+    width:auto;
+    min-width:36px;
+    min-height:36px;
+    padding:7px 10px 7px 8px;
     border:1px solid rgba(231,187,167,.34);
     border-left:0;
     border-radius:0 4px 4px 0;
@@ -213,8 +215,8 @@
     background:rgba(23,50,68,.96);
     box-shadow:0 12px 24px rgba(0,0,0,.22);
     font-family:var(--mono);
-    font-size:10.5px;
-    letter-spacing:.16em;
+    font-size:10px;
+    letter-spacing:.12em;
     writing-mode:vertical-rl;
     text-orientation:mixed;
     cursor:pointer;
@@ -309,8 +311,8 @@
   .shell{
     display:grid;
     grid-template-columns:280px minmax(0,1fr);
-    min-height:calc(100vh - 71px);
-    margin-top:71px;
+    min-height:calc(100vh - var(--topbar-offset));
+    margin-top:var(--topbar-offset);
   }
   body.side-collapsed .shell{grid-template-columns:minmax(0,1fr)}
   body.side-collapsed .shell::before{display:none}
@@ -1227,6 +1229,60 @@
     font-weight:600;
   }
   .study-mode-status span{overflow-wrap:anywhere}
+  .study-playlist-block{
+    border:1px solid rgba(231,187,167,.18);
+    background:rgba(2,12,18,.20);
+    border-radius:4px;
+    padding:13px;
+    display:grid;
+    gap:11px;
+  }
+  .study-playlist-block-head{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .study-playlist-block-copy{
+    min-width:0;
+    display:grid;
+    gap:3px;
+  }
+  .study-playlist-block-copy span{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.14em;
+    color:var(--peach);
+  }
+  .study-playlist-block-copy b{
+    color:var(--cream);
+    font-family:var(--serif);
+    font-size:16px;
+    font-weight:600;
+  }
+  .study-playlist-block-copy small{
+    color:rgba(245,240,234,.56);
+    font-size:12px;
+    line-height:1.55;
+  }
+  .study-playlist-open{
+    min-height:44px;
+    border:1px solid rgba(231,187,167,.38);
+    border-radius:4px;
+    padding:8px 12px;
+    background:rgba(231,187,167,.08);
+    color:var(--peach);
+    font-family:var(--serif);
+    font-size:14px;
+    font-weight:700;
+  }
+  .study-playlist-open:hover,
+  .study-playlist-open:focus-visible{
+    background:rgba(231,187,167,.14);
+    outline:0;
+    border-color:var(--peach);
+  }
   .study-playlist-panel{
     display:none;
     border:1px solid var(--line-2);
@@ -1409,6 +1465,60 @@
     border:1px solid var(--line-2);
     background:rgba(255,255,255,.025);
     border-radius:4px;
+    padding:13px;
+    display:grid;
+    gap:12px;
+  }
+  .study-schedule-section{
+    border:1px solid rgba(159,184,159,.18);
+    background:rgba(159,184,159,.035);
+    border-radius:4px;
+    overflow:hidden;
+  }
+  .study-schedule-head{
+    list-style:none;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    padding:12px 14px;
+    cursor:pointer;
+  }
+  .study-schedule-head::-webkit-details-marker{display:none}
+  .study-schedule-copy{
+    min-width:0;
+    display:grid;
+    gap:3px;
+  }
+  .study-schedule-copy span{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.14em;
+    color:var(--good);
+  }
+  .study-schedule-copy b{
+    color:var(--cream);
+    font-family:var(--serif);
+    font-size:16px;
+    font-weight:600;
+  }
+  .study-schedule-copy small{
+    color:rgba(245,240,234,.54);
+    font-size:12px;
+    line-height:1.55;
+  }
+  .study-schedule-toggle{
+    color:var(--peach);
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.08em;
+    white-space:nowrap;
+  }
+  .study-schedule-toggle::before{content:"展開"}
+  .study-schedule-section[open] .study-schedule-toggle::before{content:"收合"}
+  .study-schedule-section:not([open]) .study-schedule-body{display:none}
+  .study-schedule-body{
+    border-top:1px dashed rgba(159,184,159,.16);
     padding:13px;
     display:grid;
     gap:12px;
@@ -3748,7 +3858,7 @@
           <button class="cd-x" onclick="hideCountdown()" title="關閉倒數">✕</button>
         </div>
         <div class="cd-mid">
-          <div class="cd-num">187</div>
+          <div class="cd-num">--</div>
           <div class="cd-unit">天 倒 數 中</div>
         </div>
         <div class="cd-foot" id="cd-foot" onclick="cycleExam()" title="點擊切換考科">
@@ -3762,8 +3872,8 @@
           <div class="lab">導 覽</div>
           <div class="nav-helper">右邊滑到哪，左邊會亮哪一段。</div>
           <div class="side-guide-controls" aria-label="導覽顯示狀態">
-            <span class="side-mode-status" id="side-mode-status">已固定</span>
-            <button class="side-mode-btn" type="button" id="side-mode-btn" onclick="toggleDashboardSideNav()">隱藏</button>
+            <span class="side-mode-status" id="side-mode-status">導覽</span>
+            <button class="side-mode-btn" type="button" id="side-mode-btn" onclick="toggleDashboardSideNav()">收起</button>
           </div>
           <div class="nav-list today-nav">
           <a href="#study-cockpit-recap" data-spy-target="study-cockpit-recap"><span class="num">T1</span>今天先做<span class="ct" id="nav-ct-study"></span></a>
@@ -3788,7 +3898,7 @@
           <a href="#favorites" data-spy-target="favorites"><span class="num">04</span>我的收藏<span class="ct" id="nav-ct-fav"></span></a>
           <a href="#memorized" data-spy-target="memorized"><span class="num">05</span>已熟記<span class="ct" id="nav-ct-mem"></span></a>
           <a href="#review" data-spy-target="review"><span class="num">06</span>待複習<span class="ct" id="nav-ct-rev"></span></a>
-          <a href="#tools" data-spy-target="tools"><span class="num">07</span>備考工具<span class="ct">8</span></a>
+          <a href="#tools" data-spy-target="tools"><span class="num">07</span>備考工具<span class="ct"></span></a>
           <a href="#laws" data-spy-target="laws"><span class="num">08</span>法規目錄<span class="ct">567</span></a>
           <a href="#recent" data-spy-target="recent"><span class="num">09</span>最近查詢<span class="ct">7d</span></a>
         </div>
@@ -3870,8 +3980,7 @@
                 <a class="study-action-link" href="#weak-laws-recap">弱點分析</a>
               </div>
               <div class="study-action-group secondary">
-                <span class="study-action-label">整理</span>
-                <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="playlist" aria-expanded="false" onclick="openStudyPlaylistPanel()">重點朗讀</button>
+                <span class="study-action-label">安排</span>
                 <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="plan" aria-expanded="false" onclick="openStudyPlanPanel()">排課</button>
                 <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="record" aria-expanded="false" onclick="openStudyRecordPanel()">補紀錄</button>
               </div>
@@ -3897,105 +4006,125 @@
               <span class="study-next-plan-copy"><span class="k">今日任務</span><b>先做一題</b><span>答完會更新弱點。</span></span>
               <span class="study-next-plan-actions"><a href="quiz.html">開始選擇題</a></span>
             </div>
-            <div class="study-playlist-panel" id="study-playlist-panel" aria-label="通勤重點朗讀清單">
-              <div class="study-playlist-head">
-                <div class="study-playlist-title">
-                  <span>FOCUS</span>
-                  <b>重點清單，能朗讀也能單刷</b>
+            <div class="study-playlist-block" id="study-playlist-block">
+              <div class="study-playlist-block-head">
+                <div class="study-playlist-block-copy">
+                  <span>PLAYLIST</span>
+                  <b>播放清單</b>
+                  <small>獨立放朗讀和單刷，不混在今天任務裡。</small>
                 </div>
-                <div class="study-playlist-tools">
-                  <select id="study-playlist-subject" aria-label="重點清單科目">
-                    <option value="tax_laws">稅務法規</option>
-                    <option value="bookkeeping_laws">記帳法規</option>
-                  </select>
-                  <select id="study-playlist-pause" aria-label="問答停頓秒數">
-                    <option value="6">停 6 秒</option>
-                    <option value="4">停 4 秒</option>
-                    <option value="8">停 8 秒</option>
-                    <option value="10">停 10 秒</option>
-                  </select>
-                  <button class="primary" id="study-playlist-playall" type="button" onclick="playStudyPlaylistAll(this)">播放問答</button>
-                  <button class="secondary" type="button" onclick="loadStudyPlaylist()">更新清單</button>
+                <button class="study-playlist-open" type="button" data-study-panel-trigger="playlist" aria-expanded="false" onclick="openStudyPlaylistPanel()">開啟播放清單</button>
+              </div>
+              <div class="study-playlist-panel" id="study-playlist-panel" aria-label="通勤重點朗讀清單">
+                <div class="study-playlist-head">
+                  <div class="study-playlist-title">
+                    <span>FOCUS</span>
+                    <b>重點清單，能朗讀也能單刷</b>
+                  </div>
+                  <div class="study-playlist-tools">
+                    <select id="study-playlist-subject" aria-label="重點清單科目">
+                      <option value="tax_laws">稅務法規</option>
+                      <option value="bookkeeping_laws">記帳法規</option>
+                    </select>
+                    <select id="study-playlist-pause" aria-label="問答間隔秒數">
+                      <option value="6">等 6 秒</option>
+                      <option value="4">等 4 秒</option>
+                      <option value="8">等 8 秒</option>
+                      <option value="10">等 10 秒</option>
+                    </select>
+                    <button class="primary" id="study-playlist-playall" type="button" onclick="playStudyPlaylistAll(this)">播放問答</button>
+                    <button class="secondary" type="button" onclick="loadStudyPlaylist()">更新清單</button>
+                  </div>
                 </div>
+                <div class="study-playlist-list" id="study-playlist-list">
+                  <div class="study-empty">按更新清單，先產生文字版重點。</div>
+                </div>
+                <div class="study-playlist-status" id="study-playlist-status">清單產生後，可以逐則播放問答、單刷，或回去看原文。</div>
               </div>
-              <div class="study-playlist-list" id="study-playlist-list">
-                <div class="study-empty">按更新清單，先產生文字版重點。</div>
-              </div>
-              <div class="study-playlist-status" id="study-playlist-status">清單產生後，可以逐則播放問答、單刷，或回去看原文。</div>
             </div>
             <div class="study-mode-status is-closed" id="study-mode-status" aria-live="polite">
               <b>工具收合</b>
               <span></span>
             </div>
             <div class="study-suggestions" id="study-suggestions" aria-label="今天建議讀什麼"></div>
-            <span id="study-plan" data-anchor-alias="study-plan-panel" aria-hidden="true"></span>
-            <div class="study-planning-overview" id="study-planning-overview" aria-label="讀書計畫總覽">
-              <span class="study-overview-card">
-                <span>現在先做</span>
-                <b id="study-overview-next">先做一題或排一項任務</b>
-                <small id="study-overview-next-note">還沒有待讀項目；先刷一題或排一項任務。</small>
-              </span>
-              <span class="study-overview-card">
-                <span>累積時間</span>
-                <b id="study-overview-hours">累積 0 小時</b>
-                <small><span id="study-overview-status">待讀 0 / 完成 0</span><br><span id="study-overview-status-note">補紀錄不改答題率。</span></small>
-              </span>
-            </div>
-            <div class="study-time-wrap" id="study-time-box" aria-label="備考時間規劃">
-              <div class="study-time-summary-card">
-                <span class="study-time-main">
-                  <b id="study-time-title">累積 0 小時</b>
-                  <small id="study-time-summary">累積 0 小時；本週 0 小時；今天 0 分。</small>
-                  <span id="study-time-purpose">修改時間只影響建議排法。</span>
+            <details class="study-schedule-section" id="study-schedule-section" aria-label="讀書排程">
+              <summary class="study-schedule-head">
+                <span class="study-schedule-copy">
+                  <span>SCHEDULE</span>
+                  <b>讀書排程</b>
+                  <small>排課、補紀錄、週排法都收在這裡。</small>
                 </span>
-                <span class="study-time-impact" aria-live="polite">
-                  <b id="study-time-impact">剩約 42 週</b>
-                  <small id="study-time-outcome">可先看建議。</small>
-                </span>
-                <span class="study-time-actions">
-                  <button class="primary" type="button" data-study-panel-trigger="timer" aria-expanded="false" onclick="openStudyTimerPanel(true)">開始計時</button>
-                  <button type="button" data-study-panel-trigger="record" aria-expanded="false" onclick="openStudyRecordPanel(true)">補紀錄</button>
-                  <button class="study-time-edit-btn" type="button" aria-expanded="false" onclick="toggleStudyTimeEditor()">修改時間</button>
-                </span>
-              </div>
-              <div class="study-time-box" id="study-time-edit-panel" hidden>
-                <div class="study-time-cell" id="study-target-hours">
-                  <span class="k">建議總時數</span>
-                  <span class="v"><input id="study-total-hours-input" type="number" min="50" max="2000" step="10" value="500"> 小時</span>
-                  <span class="hint">記帳士起始預設；建議總時數可以改。</span>
-                </div>
-                <div class="study-time-cell" id="study-weekly-hours">
-                  <span class="k">每週可讀</span>
-                  <span class="v"><input id="study-weekly-hours-input" type="number" min="1" max="80" step="1" value="12"> 小時</span>
-                  <span class="hint">先填你真的有空的時間，系統再幫你補空檔。</span>
-                </div>
-                <div class="study-time-cell" id="study-time-status">
-                  <span class="k">今天方向</span>
-                  <span class="v"><input id="study-today-minutes-input" type="number" min="5" max="720" step="5" value="60"> 分鐘</span>
-                  <span class="hint" id="study-time-hint">時間設定只影響建議，不會改答題正確率。</span>
-                </div>
-                <div class="study-time-save">
-                  <button type="button" onclick="saveStudyTimeSettings()">儲存時間設定</button>
-                  <span id="study-time-state">時間設定只影響建議。</span>
-                </div>
-              </div>
-            </div>
-            <details class="study-recommend-panel" id="study-recommend-panel" aria-label="本週讀書計畫推薦">
-              <summary class="study-recommend-head">
-                <div class="study-recommend-copy">
-                  <span>本週建議</span>
-                  <b>先預覽，再決定要不要排入</b>
-                  <small>預覽不會寫入；排入後才保存。</small>
-                </div>
-                <div class="study-recommend-actions">
-                  <button type="button" onclick="previewStudyWeekRecommendation()">預覽本週排法</button>
-                  <button class="primary" type="button" onclick="saveStudyRecommendedWeek()">排入本週計畫</button>
-                </div>
+                <span class="study-schedule-toggle" aria-hidden="true"></span>
               </summary>
-              <div class="study-recommend-list" id="study-recommend-list">
-                <div class="study-empty">先按預覽建議，系統會避開已排項目，補上本週空檔。</div>
-              </div>
-            </details>
+              <div class="study-schedule-body">
+                <span id="study-plan" data-anchor-alias="study-plan-panel" aria-hidden="true"></span>
+                <div class="study-planning-overview" id="study-planning-overview" aria-label="讀書計畫總覽">
+                  <span class="study-overview-card">
+                    <span>現在先做</span>
+                    <b id="study-overview-next">先做一題或排一項任務</b>
+                    <small id="study-overview-next-note">還沒有待讀項目；先刷一題或排一項任務。</small>
+                  </span>
+                  <span class="study-overview-card">
+                    <span>累積時間</span>
+                    <b id="study-overview-hours">累積 0 小時</b>
+                    <small><span id="study-overview-status">待讀 0 / 完成 0</span><br><span id="study-overview-status-note">補紀錄不改答題率。</span></small>
+                  </span>
+                </div>
+                <div class="study-time-wrap" id="study-time-box" aria-label="備考時間規劃">
+                  <div class="study-time-summary-card">
+                    <span class="study-time-main">
+                      <b id="study-time-title">累積 0 小時</b>
+                      <small id="study-time-summary">累積 0 小時；本週 0 小時；今天 0 分。</small>
+                      <span id="study-time-purpose">修改時間只影響建議排法。</span>
+                    </span>
+                    <span class="study-time-impact" aria-live="polite">
+                      <b id="study-time-impact">剩約 42 週</b>
+                      <small id="study-time-outcome">可先看建議。</small>
+                    </span>
+                    <span class="study-time-actions">
+                      <button class="primary" type="button" data-study-panel-trigger="timer" aria-expanded="false" onclick="openStudyTimerPanel(true)">開始計時</button>
+                      <button type="button" data-study-panel-trigger="record" aria-expanded="false" onclick="openStudyRecordPanel(true)">補紀錄</button>
+                      <button class="study-time-edit-btn" type="button" aria-expanded="false" onclick="toggleStudyTimeEditor()">修改時間</button>
+                    </span>
+                  </div>
+                  <div class="study-time-box" id="study-time-edit-panel" hidden>
+                    <div class="study-time-cell" id="study-target-hours">
+                      <span class="k">建議總時數</span>
+                      <span class="v"><input id="study-total-hours-input" type="number" min="50" max="2000" step="10" value="500"> 小時</span>
+                      <span class="hint">記帳士起始預設；建議總時數可以改。</span>
+                    </div>
+                    <div class="study-time-cell" id="study-weekly-hours">
+                      <span class="k">每週可讀</span>
+                      <span class="v"><input id="study-weekly-hours-input" type="number" min="1" max="80" step="1" value="12"> 小時</span>
+                      <span class="hint">先填你真的有空的時間，系統再幫你補空檔。</span>
+                    </div>
+                    <div class="study-time-cell" id="study-time-status">
+                      <span class="k">今天方向</span>
+                      <span class="v"><input id="study-today-minutes-input" type="number" min="5" max="720" step="5" value="60"> 分鐘</span>
+                      <span class="hint" id="study-time-hint">時間設定只影響建議，不會改答題正確率。</span>
+                    </div>
+                    <div class="study-time-save">
+                      <button type="button" onclick="saveStudyTimeSettings()">儲存時間設定</button>
+                      <span id="study-time-state">時間設定只影響建議。</span>
+                    </div>
+                  </div>
+                </div>
+                <details class="study-recommend-panel" id="study-recommend-panel" aria-label="本週讀書計畫推薦">
+                  <summary class="study-recommend-head">
+                    <div class="study-recommend-copy">
+                      <span>本週建議</span>
+                      <b>先預覽，再決定要不要排入</b>
+                      <small>預覽不會寫入；排入後才保存。</small>
+                    </div>
+                    <div class="study-recommend-actions">
+                      <button type="button" onclick="previewStudyWeekRecommendation()">預覽本週排法</button>
+                      <button class="primary" type="button" onclick="saveStudyRecommendedWeek()">排入本週計畫</button>
+                    </div>
+                  </summary>
+                  <div class="study-recommend-list" id="study-recommend-list">
+                    <div class="study-empty">預覽後會顯示本週可排項目；沒有空檔時會直接說原因。</div>
+                  </div>
+                </details>
             <div class="study-save-nudge" id="study-save-nudge" aria-live="polite">
               <div>
                 <b>保留這些進度</b>
@@ -4129,6 +4258,8 @@
               <div class="study-cloud-detail">登入後同步。</div>
             </details>
             <div class="study-plan-items" id="study-plan-items" aria-label="接下來的私人計畫"></div>
+              </div>
+            </details>
             <div class="study-subjects" id="study-cockpit-subjects"></div>
             <div class="study-blocks" id="study-cockpit-blocks"></div>
           </div>
@@ -4853,6 +4984,13 @@ function _cleanSpeechCueText(text){
     .replace(/\[(\/?emphasis|break[^\]]*)\]/gi, '，')
     .replace(/<\s*\/?\s*(em|strong|mark)\s*>/gi, '')
     .replace(/<\s*break[^>]*>/gi, '，')
+    .replace(/\s+/g, ' ')
+    .replace(/[，。]{2,}/g, '。')
+    .trim();
+}
+function _cleanStudyPlaylistCueText(text){
+  return _cleanSpeechCueText(text)
+    .replace(/(^|[，。；;,\s])(?:停頓|重音)(?=$|[，。；;,\s])/g, '$1')
     .replace(/\s+/g, ' ')
     .replace(/[，。]{2,}/g, '。')
     .trim();
@@ -5917,6 +6055,9 @@ function setStudyRecommendMessage(html){
 }
 
 function previewStudyWeekRecommendation(){
+  openStudyScheduleSection();
+  var panel = document.getElementById('study-recommend-panel');
+  if(panel) panel.open = true;
   var data = window.__studyTodayData || null;
   var merged = _mergeStudyPlan(data && data.personal_plan ? data.personal_plan : null);
   var rec = buildStudyWeekRecommendation(data, merged);
@@ -7976,7 +8117,7 @@ function _todayInputValue(){
 function setStudyPanelMode(mode){
   var status = document.getElementById('study-mode-status');
   var copy = {
-    playlist: ['正在看重點朗讀', '先按「朗讀全部」聽一輪；「單刷」會去練題，「看法條」會回到條文。'],
+    playlist: ['正在看播放清單', '先按「播放問答」聽一輪；「單刷」會去練題，「看法條」會回到條文。'],
     plan: ['正在排讀書任務', '存完會回到下方待讀清單。'],
     record: ['正在補讀書紀錄', '補紀錄只補時間與進度，不會改答題正確率；存完也會回到下方清單。'],
     timer: ['正在計時', '番茄鐘只記讀書時間；完成後才會寫入累積時數。'],
@@ -7994,6 +8135,11 @@ function setStudyPanelMode(mode){
   }
 }
 
+function openStudyScheduleSection(){
+  var section = document.getElementById('study-schedule-section');
+  if(section) section.open = true;
+}
+
 function openStudyPlanPanel(forceOpen){
   var panel = document.getElementById('study-plan-panel');
   var record = document.getElementById('study-record-panel');
@@ -8004,6 +8150,7 @@ function openStudyPlanPanel(forceOpen){
   if(!panel) return;
   if(forceOpen === true) panel.classList.add('on');
   else panel.classList.toggle('on');
+  if(panel.classList.contains('on')) openStudyScheduleSection();
   if(record) record.classList.remove('on');
   if(playlist) playlist.classList.remove('on');
   if(timer) timer.classList.remove('on');
@@ -8024,6 +8171,7 @@ function openStudyRecordPanel(forceOpen){
   if(!panel) return;
   if(forceOpen === true) panel.classList.add('on');
   else panel.classList.toggle('on');
+  if(panel.classList.contains('on')) openStudyScheduleSection();
   if(plan) plan.classList.remove('on');
   if(playlist) playlist.classList.remove('on');
   if(timer) timer.classList.remove('on');
@@ -8056,6 +8204,7 @@ function openStudyTimerPanel(forceOpen){
   if(!panel) return;
   if(forceOpen === true) panel.classList.add('on');
   else panel.classList.toggle('on');
+  if(panel.classList.contains('on')) openStudyScheduleSection();
   if(plan) plan.classList.remove('on');
   if(record) record.classList.remove('on');
   if(playlist) playlist.classList.remove('on');
@@ -8101,6 +8250,10 @@ function openStudyPanelFromHash(){
     openStudyPlanPanel(true);
     retryStudyHashScroll('study-plan-title', 18, true);
   }
+  if(hash === '#study-plan-items' || hash === '#study-time-box') {
+    openStudyScheduleSection();
+    retryStudyHashScroll(hash.slice(1), 18, true);
+  }
   if(hash === '#study-record') {
     openStudyRecordPanel(true);
     retryStudyHashScroll('study-record-date', 18, true);
@@ -8142,16 +8295,16 @@ function _setStudyPlaylistSpeakingIndex(idx){
 function _studyPlaylistSpeechText(item){
   if(item && Array.isArray(item.segments) && item.segments.length){
     return item.segments.map(function(seg){
-      if(seg && seg.type === 'pause') return '停頓 ' + (seg.seconds || item.pause_seconds || 6) + ' 秒';
-      return seg && seg.text ? seg.text : '';
-    }).filter(Boolean).map(_cleanSpeechCueText).join('。');
+      if(seg && seg.type === 'pause') return '';
+      return seg && seg.text ? _cleanStudyPlaylistCueText(seg.text) : '';
+    }).filter(Boolean).join('。');
   }
   var parts = [
     item && item.law_name ? item.law_name : '',
     item && item.article_no ? ('第 ' + item.article_no + ' 條') : '',
     item && item.title ? item.title : '',
     item && item.text ? item.text : ''
-  ].filter(Boolean).map(_cleanSpeechCueText);
+  ].filter(Boolean).map(_cleanStudyPlaylistCueText);
   return parts.join('。');
 }
 
@@ -8171,7 +8324,7 @@ function _studyPlaylistSegments(item){
     return item.segments.map(function(seg){
       seg = seg || {};
       if(seg.type === 'pause') return { type:'pause', seconds: Math.max(3, Math.min(12, Number(seg.seconds || item.pause_seconds || 6) || 6)) };
-      return { type: seg.type || 'speech', text: String(seg.text || '').replace(/\s+/g, ' ').trim() };
+      return { type: seg.type || 'speech', text: _cleanStudyPlaylistCueText(String(seg.text || '').replace(/\s+/g, ' ').trim()) };
     }).filter(function(seg){ return seg.type === 'pause' || seg.text; });
   }
   var text = item.speechText || _studyPlaylistSpeechText(item);
@@ -8220,7 +8373,7 @@ function _speakStudyPlaylistSegments(button, segments, idleLabel, meta){
     }
     var seg = segments[i] || {};
     if(seg.type === 'pause'){
-      _setStudyPlaylistStatus('停頓 ' + seg.seconds + ' 秒，先自己想答案。');
+      _setStudyPlaylistStatus('暫停 ' + seg.seconds + ' 秒，先自己想答案。');
       setTimeout(function(){ speakSegment(i + 1); }, seg.seconds * 1000);
       return;
     }
@@ -8374,10 +8527,10 @@ function setDashboardSideCollapsed(collapsed){
     button.setAttribute('title', on ? '顯示導覽' : '隱藏導覽');
   }
   if(modeButton){
-    modeButton.textContent = on ? '顯示' : '隱藏';
+    modeButton.textContent = on ? '打開' : '收起';
     modeButton.setAttribute('aria-pressed', on ? 'false' : 'true');
   }
-  if(status) status.textContent = on ? '已隱藏' : '已固定';
+  if(status) status.textContent = '導覽';
   if(peek) peek.setAttribute('aria-hidden', on ? 'false' : 'true');
 }
 
