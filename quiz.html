@@ -379,6 +379,16 @@
     font-size:11.5px;
     line-height:1.55;
   }
+  .quiz-quick-setting{
+    margin:12px 0 14px;
+    padding:10px 12px;
+    border:1px solid rgba(231,187,167,.22);
+    border-radius:4px;
+    background:rgba(231,187,167,.055);
+  }
+  .quiz-quick-setting.auto-next-setting{
+    border-top:1px solid rgba(231,187,167,.22);
+  }
 
   @media (max-width:1100px){
     .pr-bar{padding:14px 24px}
@@ -558,6 +568,10 @@
           <p id="questionBox" class="question-placeholder" style="opacity:.45">按「出題」開始作答</p>
         </div>
         <div id="quiz-use-hint" class="quiz-key-hints">作答提示：選完先看原文；再看解析或下一題</div>
+        <label class="auto-next-setting quiz-quick-setting" for="autoNextCorrectToggle">
+          <input id="autoNextCorrectToggle" type="checkbox">
+          <span><b>答對自動下一題</b><small>答錯停留看解析；可隨時關閉。</small></span>
+        </label>
 
         <div class="opts" id="optionsBox"></div>
 
@@ -660,10 +674,6 @@
           <div class="stat-line"><span>累計答錯</span><span><b id="railWrong" style="color:var(--bad)">0</b></span></div>
           <div class="stat-line"><span>已標記</span><span><b id="railFlagged">0</b></span></div>
           <div class="stat-line"><span>用時</span><span><b id="railTimer">0:00</b></span></div>
-          <label class="auto-next-setting" for="autoNextCorrectToggle">
-            <input id="autoNextCorrectToggle" type="checkbox">
-            <span><b>答對自動下一題</b><small>答錯停留看解析；可隨時關閉。</small></span>
-          </label>
         </div>
 
         <div class="rail-card">
@@ -1361,7 +1371,11 @@ const _LOCKED_SECS=[
   {name:'相關法規及注意事項',label:'相關法規及注意事項'}
 ];
 function cleanCrossRefLawName(raw){
-  return String(raw||'').replace(/^(搭配|交叉記憶可看|可看|與|及|並列)/,'').replace(/[（(].*$/,'').trim();
+  return String(raw||'')
+    .replace(/^(搭配|交叉記憶可看|可看|請看|請參照|請見|另參照|另見|參照|依|按|見|熟記本條(?:與|及)?|本條(?:與|及)?|與|及|並列)+/,'')
+    .replace(/[（(].*$/,'')
+    .replace(/^[，。、；：\s]+|[，。、；：\s]+$/g,'')
+    .trim();
 }
 function linkifyLawRefs(text, articleLawName){
   let out=String(text||'');
@@ -1583,7 +1597,7 @@ function _renderWrongList(){
     return;
   }
   const bank=loadWrongBank();
-  let html='<div class="weak-panel-guide">先看最常錯的法規，點「練這部」單刷，看完整條文後再回來看結果。下一步先練。</div>';
+  let html='<div class="weak-panel-guide">先看最常錯的法規，點「練這部」練習，看完整條文後再回來看結果。下一步先練。</div>';
   if(bank.length){
     html += '<div class="weak-card"><b>本機錯題清單</b><p>看錯題，開始重練。</p><button class="weak-action-primary" onclick="_drillAllWrong()">開始重練</button></div>';
   }

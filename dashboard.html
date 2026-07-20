@@ -1322,7 +1322,25 @@
     font-weight:500;
     color:var(--cream);
   }
-  .study-playlist-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .study-playlist-tools{
+    display:grid;
+    grid-template-columns:minmax(120px,.8fr) minmax(220px,1.7fr) minmax(100px,.7fr) auto auto auto;
+    gap:8px;
+    align-items:end;
+    width:100%;
+  }
+  .study-playlist-field{
+    display:grid;
+    gap:4px;
+    min-width:0;
+    width:100%;
+  }
+  .study-playlist-field span{
+    color:rgba(245,240,234,.58);
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.12em;
+  }
   .study-playlist-tools select,.study-playlist-tools button{
     min-height:44px;
     border:1px solid var(--line-2);
@@ -1345,6 +1363,30 @@
     color:rgba(245,240,234,.78);
     background:rgba(255,255,255,.025);
     border-color:var(--line-2);
+  }
+  .study-playlist-tools button:disabled{
+    opacity:.52;
+    cursor:not-allowed;
+    filter:saturate(.65);
+  }
+  .study-playlist-loop{
+    min-height:44px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:7px;
+    border:1px solid var(--line-2);
+    border-radius:3px;
+    background:rgba(2,12,18,.25);
+    color:rgba(245,240,234,.72);
+    padding:7px 10px;
+    font-family:var(--mono);
+    font-size:10.5px;
+    letter-spacing:.06em;
+    white-space:nowrap;
+  }
+  .study-playlist-loop input{
+    accent-color:var(--peach);
   }
   .study-playlist-list{display:grid;gap:8px}
   .study-playlist-status{
@@ -2180,6 +2222,42 @@
       display:-webkit-box;
       -webkit-line-clamp:2;
       -webkit-box-orient:vertical;
+    }
+    .study-playlist-block,
+    .study-playlist-panel,
+    .study-playlist-head,
+    .study-playlist-tools,
+    .study-playlist-field{
+      min-width:0;
+      width:100%;
+      max-width:100%;
+    }
+    .study-playlist-block-head,
+    .study-playlist-head{
+      align-items:stretch;
+    }
+    .study-playlist-open{
+      width:100%;
+      max-width:100%;
+    }
+    .study-playlist-tools{
+      grid-template-columns:1fr;
+      align-items:stretch;
+    }
+    .study-playlist-tools select,
+    .study-playlist-tools button,
+    .study-playlist-loop{
+      width:100%;
+      max-width:100%;
+    }
+    .study-playlist-actions{
+      display:grid;
+      grid-template-columns:repeat(3,minmax(0,1fr));
+    }
+    .study-playlist-actions a,
+    .study-playlist-actions button{
+      min-height:40px;
+      width:100%;
     }
     .review-card{
       grid-template-columns:1fr;
@@ -4051,7 +4129,7 @@
                 <div class="study-playlist-block-copy">
                   <span>PLAYLIST</span>
                   <b>播放清單</b>
-                  <small>獨立放朗讀和單刷，不混在今天任務裡。</small>
+                  <small>獨立放朗讀和練習，不混在今天任務裡。</small>
                 </div>
                 <button class="study-playlist-open" type="button" data-study-panel-trigger="playlist" aria-expanded="false" onclick="openStudyPlaylistPanel()">開啟播放清單</button>
               </div>
@@ -4059,30 +4137,40 @@
                 <div class="study-playlist-head">
                   <div class="study-playlist-title">
                     <span>FOCUS</span>
-                    <b>重點清單，能朗讀也能單刷</b>
+                    <b>重點清單，能朗讀也能練習</b>
                   </div>
                   <div class="study-playlist-tools">
-                    <select id="study-playlist-subject" aria-label="重點清單科目" onchange="loadStudyPlaylist()">
-                      <option value="tax_laws">稅務法規</option>
-                      <option value="bookkeeping_laws">記帳法規</option>
-                    </select>
-                    <select id="study-playlist-law" aria-label="播放清單法規" onchange="loadStudyPlaylist()">
-                      <option value="">全部法規</option>
-                    </select>
-                    <select id="study-playlist-pause" aria-label="問答間隔秒數">
-                      <option value="6">等 6 秒</option>
-                      <option value="4">等 4 秒</option>
-                      <option value="8">等 8 秒</option>
-                      <option value="10">等 10 秒</option>
-                    </select>
-                    <button class="primary" id="study-playlist-playall" type="button" onclick="playStudyPlaylistAll(this)">播放問答</button>
+                    <label class="study-playlist-field">
+                      <span>考科</span>
+                      <select id="study-playlist-subject" aria-label="重點清單科目" onchange="loadStudyPlaylist()">
+                        <option value="tax_laws">稅務法規</option>
+                        <option value="bookkeeping_laws">記帳相關法規</option>
+                      </select>
+                    </label>
+                    <label class="study-playlist-field">
+                      <span>法規</span>
+                      <select id="study-playlist-law" aria-label="播放清單法規" onchange="loadStudyPlaylist()">
+                        <option value="">全部法規</option>
+                      </select>
+                    </label>
+                    <label class="study-playlist-field">
+                      <span>間隔</span>
+                      <select id="study-playlist-pause" aria-label="問答間隔秒數">
+                        <option value="6">等 6 秒</option>
+                        <option value="4">等 4 秒</option>
+                        <option value="8">等 8 秒</option>
+                        <option value="10">等 10 秒</option>
+                      </select>
+                    </label>
+                    <label class="study-playlist-loop"><input id="study-playlist-loop" type="checkbox">連播</label>
+                    <button class="primary" id="study-playlist-playall" type="button" onclick="playStudyPlaylistAll(this)" disabled>播放問答</button>
                     <button class="secondary" type="button" onclick="loadStudyPlaylist()">更新清單</button>
                   </div>
                 </div>
                 <div class="study-playlist-list" id="study-playlist-list">
                   <div class="study-empty">按更新清單，先產生文字版重點。</div>
                 </div>
-                <div class="study-playlist-status" id="study-playlist-status">清單產生後，可以逐則播放問答、單刷，或回去看原文。</div>
+                <div class="study-playlist-status" id="study-playlist-status">清單產生後，可以逐則播放問答、練習，或回去看原文。</div>
               </div>
             </div>
             <div class="study-mode-status is-closed" id="study-mode-status" aria-live="polite">
@@ -4753,6 +4841,15 @@
               </div>
               <p class="desc">你寫過筆記的條文，<br/>集中一處回看。</p>
               <span class="arrow">翻開 <span class="glyph">→</span></span>
+            </a>
+            <a class="tool" href="#study-playlist-block" onclick="openStudyPlaylistPanel(true)">
+              <div class="num">10</div>
+              <div>
+                <div class="code">AUDIO</div>
+                <div class="name" style="margin-top:6px">播放清單</div>
+              </div>
+              <p class="desc">聽問答、連播，<br/>也能直接進練習。</p>
+              <span class="arrow">開始播放 <span class="glyph">→</span></span>
             </a>
           </div>
         </section>
@@ -5640,7 +5737,7 @@ function renderStudyWeakBrief(items){
     return '<a class="study-weak-brief-row" href="quiz.html?law=' + encodeURIComponent(law.law_name || '') + '&drill=1">'
       + '<b>'+esc(law.law_name)+'</b>'
       + '<span>錯 '+esc(law.wrong_count || 0)+' 次</span>'
-      + '<span class="go">單刷</span>'
+      + '<span class="go">練習</span>'
       + '</a>';
   }).join('');
   scheduleActiveNavRefresh();
@@ -6272,9 +6369,10 @@ function _linkifyLaw(escapedText, currentLawName){
   var linkedAnchors = [];
   function cleanLawName(lawName){
     return String(lawName || '')
+      .replace(/^.*?(?:熟記本條與|熟記本條及|熟記本條|本條與|本條及)/, '')
       .replace(/^.*?(?:可看|請看|請參照|請見|另參照|另見)/, '')
-      .replace(/^(搭配|參照|依|按|見|與)+/, '')
-      .replace(/[，。、；：\s]+$/, '')
+      .replace(/^(搭配|參照|依|按|見|與|及)+/, '')
+      .replace(/^[，。、；：\s]+|[，。、；：\s]+$/g, '')
       .trim();
   }
   function splitLawPrefix(rawLaw, law){
@@ -6330,7 +6428,7 @@ function _linkifyLaw(escapedText, currentLawName){
     else if((sameLaw || law === '同法' || law === '本法') && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
     if(!lastLaw) return match;
     var fullArt = art + (sub ? '之' + sub : '');
-    var prefixMatch = match.match(/^(.+?(?:可看|請看|請參照|請見|另參照|另見)|搭配|參照|依|按|見|與)(.+)$/);
+    var prefixMatch = match.match(/^(.+?(?:熟記本條與|熟記本條及|熟記本條|本條與|本條及|可看|請看|請參照|請見|另參照|另見)|搭配|參照|依|按|見|與|及)(.+)$/);
     var prefix = prefixMatch ? prefixMatch[1] : '';
     var label = prefixMatch ? prefixMatch[2] : match;
     return prefix + crossRefAnchor(lastLaw, fullArt, label);
@@ -8217,7 +8315,7 @@ function renderStudyToday(data){
     var targetLaw = (Array.isArray(b.law_names) && b.law_names[0]) || b.display_name || '';
     return '<a class="study-block" href="quiz.html?law=' + encodeURIComponent(targetLaw) + '">'
       + '<span class="law">'+esc(b.display_name||'備考區塊')+'</span>'
-      + '<span class="sig">可單刷 · 常考 '+esc(b.question_signal||'')+' 題</span>'
+      + '<span class="sig">可練習 · 常考 '+esc(b.question_signal||'')+' 題</span>'
       + '<span class="sub">'+esc(b.subject||'')+' · '+esc(b.phase_key||'')+' · '+esc(subjectMode)+' · '+esc(laws)+'</span>'
       + '</a>';
   }).join('') : '<div class="study-empty">先從「開始選擇題」做一題；登入或輸入序號後，這裡會接上個人化讀書區塊。</div>';
@@ -8233,7 +8331,7 @@ function _todayInputValue(){
 function setStudyPanelMode(mode){
   var status = document.getElementById('study-mode-status');
   var copy = {
-    playlist: ['正在看播放清單', '先按「播放問答」聽一輪；「單刷」會去練題，「看法條」會回到條文。'],
+    playlist: ['正在看播放清單', '先按「播放問答」聽一輪；「練習」會去練題，「看法條」會回到條文。'],
     plan: ['正在排讀書任務', '存完會回到下方待讀清單。'],
     record: ['正在補讀書紀錄', '補紀錄只補時間與進度，不會改答題正確率；存完也會回到下方清單。'],
     timer: ['正在計時', '番茄鐘只記讀書時間；完成後才會寫入累積時數。'],
@@ -8401,7 +8499,15 @@ var _studyPlaylistSpeechRunId = 0;
 
 function _setStudyPlaylistStatus(message){
   var el = document.getElementById('study-playlist-status');
-  if(el) el.textContent = message || '清單產生後，可以逐則朗讀、單刷，或回去看原文。';
+  if(el) el.textContent = message || '清單產生後，可以逐則朗讀、練習，或回去看原文。';
+}
+
+function setStudyPlaylistPlayReady(ready, label){
+  var btn = document.getElementById('study-playlist-playall');
+  if(!btn) return;
+  if(_studyPlaylistSpeechButton === btn) return;
+  btn.disabled = !ready;
+  btn.textContent = label || '播放問答';
 }
 
 function _setStudyPlaylistSpeakingIndex(idx){
@@ -8459,7 +8565,7 @@ function _speakStudyPlaylistSegments(button, segments, idleLabel, meta){
   }
   if(!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)){
     _dashToast('這個瀏覽器不支援朗讀，請先看文字清單。');
-    _setStudyPlaylistStatus('這個瀏覽器不支援朗讀；文字、單刷和看法條仍可用。');
+    _setStudyPlaylistStatus('這個瀏覽器不支援朗讀；文字、練習和看法條仍可用。');
     return;
   }
   if(_studyPlaylistSpeechButton === button){
@@ -8486,8 +8592,16 @@ function _speakStudyPlaylistSegments(button, segments, idleLabel, meta){
   function speakSegment(i){
     if(runId !== _studyPlaylistSpeechRunId) return;
     if(i >= segments.length){
+      if(meta && meta.loop && _studyPlaylistSpeechButton === button){
+        _setStudyPlaylistStatus('連播下一輪；按「停止」就會停下。');
+        setTimeout(function(){
+          if(runId !== _studyPlaylistSpeechRunId) return;
+          speakSegment(0);
+        }, 700);
+        return;
+      }
       _resetStudyPlaylistSpeechButton();
-      _setStudyPlaylistStatus('問答播放結束；可以接著單刷或看法條。');
+      _setStudyPlaylistStatus('問答播放結束；可以接著練習或看法條。');
       return;
     }
     var seg = segments[i] || {};
@@ -8497,6 +8611,7 @@ function _speakStudyPlaylistSegments(button, segments, idleLabel, meta){
       return;
     }
     var utt = new SpeechSynthesisUtterance(seg.text);
+    var started = false;
     utt.lang = 'zh-TW';
     utt.rate = 0.92;
     utt.pitch = 1;
@@ -8505,13 +8620,14 @@ function _speakStudyPlaylistSegments(button, segments, idleLabel, meta){
                || voices.find(function(v){ return v.lang && v.lang.indexOf('zh') === 0; });
     if(twVoice) utt.voice = twVoice;
     utt.onstart = function(){
+      started = true;
       _setStudyPlaylistStatus(meta && meta.label ? ('正在播放：' + meta.label) : '正在播放通勤問答。');
     };
     utt.onend = function(){ speakSegment(i + 1); };
     utt.onerror = function(){
       _resetStudyPlaylistSpeechButton();
       _dashToast('朗讀沒有啟動，請再點一次或先看文字清單。');
-      _setStudyPlaylistStatus('朗讀沒有啟動；文字、單刷和看法條仍可用。');
+      _setStudyPlaylistStatus('朗讀沒有啟動；文字、練習和看法條仍可用。');
     };
     _setStudyPlaylistStatus(meta && meta.label ? ('正在播放：' + meta.label) : '正在播放通勤問答。');
     speechSynthesis.speak(utt);
@@ -8520,6 +8636,13 @@ function _speakStudyPlaylistSegments(button, segments, idleLabel, meta){
         try{ speechSynthesis.resume(); }catch(e){}
       }, 0);
     }
+    setTimeout(function(){
+      if(_studyPlaylistSpeechButton !== button || started) return;
+      if(speechSynthesis.speaking || speechSynthesis.pending) return;
+      _resetStudyPlaylistSpeechButton();
+      _dashToast('朗讀沒有啟動，請再點一次或先看文字清單。');
+      _setStudyPlaylistStatus('手機語音沒有啟動；請再點一次「播放問答」，或先看文字清單。');
+    }, 1200);
   }
 
   speakSegment(0);
@@ -8533,7 +8656,7 @@ function _speakStudyPlaylistText(button, text, idleLabel, meta){
   }
   if(!('speechSynthesis' in window) || !('SpeechSynthesisUtterance' in window)){
     _dashToast('這個瀏覽器不支援朗讀，請先看文字清單。');
-    _setStudyPlaylistStatus('這個瀏覽器不支援朗讀；文字、單刷和看法條仍可用。');
+    _setStudyPlaylistStatus('這個瀏覽器不支援朗讀；文字、練習和看法條仍可用。');
     return;
   }
   if(_studyPlaylistSpeechButton === button){
@@ -8561,12 +8684,12 @@ function _speakStudyPlaylistText(button, text, idleLabel, meta){
   };
   utt.onend = function(){
     _resetStudyPlaylistSpeechButton();
-    _setStudyPlaylistStatus('朗讀結束；可以接著單刷或看法條。');
+    _setStudyPlaylistStatus('朗讀結束；可以接著練習或看法條。');
   };
   utt.onerror = function(){
     _resetStudyPlaylistSpeechButton();
     _dashToast('朗讀沒有啟動，請再點一次或先看文字清單。');
-    _setStudyPlaylistStatus('朗讀沒有啟動；文字、單刷和看法條仍可用。');
+    _setStudyPlaylistStatus('朗讀沒有啟動；文字、練習和看法條仍可用。');
   };
   if(button){
     button.setAttribute('data-idle-label', idleLabel || button.textContent || '朗讀');
@@ -8587,7 +8710,7 @@ function _speakStudyPlaylistText(button, text, idleLabel, meta){
     if(_studyPlaylistSpeechButton !== button || started) return;
     if(speechSynthesis.speaking || speechSynthesis.pending) return;
     _resetStudyPlaylistSpeechButton();
-    _setStudyPlaylistStatus('朗讀沒有啟動；文字、單刷和看法條仍可用。');
+    _setStudyPlaylistStatus('朗讀沒有啟動；文字、練習和看法條仍可用。');
   }, 1200);
 }
 
@@ -8605,15 +8728,18 @@ function playStudyPlaylistAll(button){
   var items = window.__studyPlaylistAudioItems || [];
   if(!items.length){
     _dashToast('目前沒有可朗讀的重點，先按更新清單。');
+    _setStudyPlaylistStatus('清單還沒準備好；請先按「更新清單」，等重點出現後再播放。');
     return;
   }
+  var loopEl = document.getElementById('study-playlist-loop');
+  var loop = !!(loopEl && loopEl.checked);
   var segments = [];
   items.forEach(function(item, idx){
     segments.push({ type:'speech', text:'第 ' + (idx + 1) + ' 題。' });
     segments = segments.concat(_studyPlaylistSegments(item));
   });
   if(segments.some(function(seg){ return seg.type === 'pause'; })){
-    _speakStudyPlaylistSegments(button, segments, '播放問答', { label: '全部 ' + items.length + ' 題通勤問答' });
+    _speakStudyPlaylistSegments(button, segments, '播放問答', { label: '全部 ' + items.length + ' 題通勤問答', loop: loop });
     return;
   }
   var text = items.map(function(item, idx){
@@ -8736,7 +8862,7 @@ function buildStudyPlaylistFallbackItems(data, subject, lawFilter){
       article_no: law.article_no || law.article || '',
       page_id: law.page_id || law.article_id || '',
       title: law.title || ('弱點回練：' + lawName),
-      text: lawName + '最近答錯 ' + wrongCount + ' 次。先聽重點，再單刷一題確認。',
+      text: lawName + '最近答錯 ' + wrongCount + ' 次。先聽重點，再練習一題確認。',
       importance: '弱點'
     });
   });
@@ -8753,7 +8879,7 @@ function buildStudyPlaylistFallbackItems(data, subject, lawFilter){
     var text = title + '是題庫常考區塊'
       + (count ? '，常考 ' + count + ' 題' : '')
       + (signal ? '；重點是' + signal : '')
-      + '。先聽一輪，再進單刷。';
+      + '。先聽一輪，再進練習。';
     pushItem({
       law_name: lawName || title,
       title: title,
@@ -8827,6 +8953,7 @@ async function loadStudyPlaylist(){
   var subject = subjectEl ? subjectEl.value : 'tax_laws';
   var law = lawEl ? String(lawEl.value || '').trim() : '';
   var pauseSeconds = pauseEl ? String(pauseEl.value || '6') : '6';
+  setStudyPlaylistPlayReady(false, '讀取中');
   list.innerHTML = '<div class="study-empty">讀取重點清單中…</div>';
   _setStudyPlaylistStatus('正在更新通勤問答清單。');
   try{
@@ -8840,7 +8967,8 @@ async function loadStudyPlaylist(){
     if(!items.length) items = buildStudyPlaylistFallbackItems(window.__studyTodayData || {}, subject, law);
     if(!items.length){
       window.__studyPlaylistAudioItems = [];
-      list.innerHTML = '<div class="study-empty">重點清單目前還空；先做一題，答題紀錄會變成可朗讀、可單刷的重點。<br><a class="study-empty-action" href="quiz.html">先做一題</a></div>';
+      setStudyPlaylistPlayReady(false, '播放問答');
+      list.innerHTML = '<div class="study-empty">重點清單目前還空；先做一題，答題紀錄會變成可朗讀、可練習的重點。<br><a class="study-empty-action" href="quiz.html">先做一題</a></div>';
       _setStudyPlaylistStatus('重點清單目前還空；先做一題，系統會接上可朗讀的重點。');
       return;
     }
@@ -8881,14 +9009,16 @@ async function loadStudyPlaylist(){
         + '<span class="text">' + esc(prompt || text || '這條還沒有重點整理，先看原文。') + '</span>'
         + '<span class="study-playlist-actions">'
           + '<button type="button" onclick="playStudyPlaylistItem(this, ' + idx + ')">朗讀</button>'
-          + '<a class="primary" href="' + esc(practiceHref) + '">單刷</a>'
+          + '<a class="primary" href="' + esc(practiceHref) + '">練習</a>'
           + '<a href="' + esc(readerHref) + '">看法條</a>'
         + '</span>'
         + '</div>';
     }).join('');
+    setStudyPlaylistPlayReady(true, '播放問答');
     _setStudyPlaylistStatus('已準備 ' + items.length + ' 題通勤問答；問題後會停 ' + pauseSeconds + ' 秒再播放答案。');
   }catch(e){
     window.__studyPlaylistAudioItems = [];
+    setStudyPlaylistPlayReady(false, '播放問答');
     list.innerHTML = '<div class="study-empty">重點清單暫時讀不到；不影響答題和讀書計畫。</div>';
     _setStudyPlaylistStatus('重點清單暫時讀不到；不影響答題和讀書計畫。');
   }
@@ -8906,7 +9036,7 @@ function studyPlanItemActionLinks(item, compact){
   if(law && articleNo){
     var quizHref = 'quiz.html?law=' + encodeURIComponent(law) + '&art=' + encodeURIComponent(articleNo) + '&drill=1';
     var readerHref = articleReaderHref(law, articleNo, pageId);
-    links.push('<a class="primary" href="' + esc(quizHref) + '">' + (compact ? '單刷' : '單刷') + '</a>');
+    links.push('<a class="primary" href="' + esc(quizHref) + '">' + (compact ? '練習' : '練習') + '</a>');
     links.push('<a href="' + esc(readerHref) + '">看法條</a>');
   }else if(pageId){
     links.push('<a href="' + esc(articleReaderHref('', '', pageId)) + '">看法條</a>');
@@ -9888,7 +10018,7 @@ function _renderLawsToc(page){
           + '<span class="meta"><span class="ct">'+ct+'</span><span class="arrow">讀整部</span></span></a>'
           + '<span class="toc-actions" aria-label="'+nm+' 的動作">'
           + '<button class="toc-action" type="button" data-law="'+encodedName+'" onclick="searchLaw(decodeURIComponent(this.dataset.law))">查條文</button>'
-          + '<a class="toc-action" href="quiz.html?law='+encodedName+'&drill=1">單刷</a></span></div>';
+          + '<a class="toc-action" href="quiz.html?law='+encodedName+'&drill=1">練習</a></span></div>';
       }).join('');
     }
   }
