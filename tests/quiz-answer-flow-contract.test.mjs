@@ -71,6 +71,34 @@ test('post-answer action buttons keep mobile tap targets', () => {
   assert.match(active, /#post-answer-retention a\s*\{[\s\S]*min-height:\s*44px/);
 });
 
+test('normal quiz can auto-advance only after correct answers when the learner opts in', () => {
+  assert.match(active, /id="autoNextCorrectToggle"/);
+  assert.match(active, /答對自動下一題/);
+  assert.match(active, /答錯停留看解析/);
+  assert.match(active, /const AUTO_NEXT_CORRECT_KEY = 'sofa_quiz_auto_next_correct_v1'/);
+  assert.match(active, /const AUTO_NEXT_CORRECT_DELAY_MS =/);
+  assert.match(active, /function setAutoNextCorrect/);
+  assert.match(active, /function updateAutoNextCorrectUI/);
+  assert.match(active, /function maybeAutoAdvanceCorrectAnswer/);
+
+  const maybe = extractFunction(active, 'maybeAutoAdvanceCorrectAnswer');
+  assert.match(maybe, /if\(_sessionMode\) return false/);
+  assert.match(maybe, /if\(!isCorrect\) return false/);
+  assert.match(maybe, /if\(!isAutoNextCorrectEnabled\(\)\) return false/);
+  assert.match(maybe, /setTimeout\(function\(\)\{ wrongMode \? loadWrongQuiz\(\) : loadQuiz\(\); \}, AUTO_NEXT_CORRECT_DELAY_MS\)/);
+  assert.doesNotMatch(maybe, /showQuizAnswerActions/);
+
+  const answerStart = active.indexOf('recordQuizAnswer(data,pageId,isCorrect,i,correctIdx)');
+  assert.ok(answerStart > -1, 'answer submit flow must record answer');
+  const answerFlow = active.slice(answerStart, answerStart + 900);
+  assert.match(answerFlow, /if\(onAnswerDone\(isCorrect, loadQuiz\)\) return/);
+  assert.match(answerFlow, /if\(maybeAutoAdvanceCorrectAnswer\(isCorrect\)\) return/);
+  assert.ok(
+    answerFlow.indexOf('onAnswerDone(isCorrect, loadQuiz)') < answerFlow.indexOf('maybeAutoAdvanceCorrectAnswer(isCorrect)'),
+    'session mode should keep its existing auto-advance behavior first',
+  );
+});
+
 test('mobile post-answer actions stay inside the iOS viewport', () => {
   const mediaStart = active.indexOf('@media (max-width:760px)');
   assert.ok(mediaStart >= 0, 'mobile media query must exist');
@@ -285,11 +313,19 @@ test('quiz analysis deep links can target an exact article id without text match
   assert.match(active, /!_pageIdParamFromUrl\(\) && !_lawParamFromUrl\(\) && !_articleParamFromUrl\(\)/);
 });
 
-test('quiz view-article fallback opens the exact article when only law and article number are known', () => {
+test('quiz view-article opens an in-page article dialog with exact article fallback data', () => {
   const readerStart = active.indexOf('function _articleReaderHref');
   assert.ok(readerStart >= 0, '_articleReaderHref must exist');
   const readerEnd = active.indexOf('function renderQuizCitation', readerStart);
   const readerFn = active.slice(readerStart, readerEnd);
+  assert.match(active, /id="quiz-article-panel"/);
+  assert.match(active, /role="dialog"/);
+  assert.match(active, /aria-modal="true"/);
+  assert.match(active, /onclick="closeQuizArticlePanel\(\)"/);
+  assert.match(active, /\.quiz-article-panel\{/);
+  assert.match(active, /@media \(max-width:760px\)\{[\s\S]*\.quiz-article-panel\{inset:0/);
+  assert.match(active, /function openQuizArticlePanelByTarget/);
+  assert.match(active, /function closeQuizArticlePanel/);
   assert.match(active, /function _currentQuizReturnTarget/);
   assert.match(readerFn, /law-preview\.html\?law=/);
   assert.match(readerFn, /encodeURIComponent\(law\)/);
@@ -302,9 +338,24 @@ test('quiz view-article fallback opens the exact article when only law and artic
   const openStart = active.indexOf('function _openArticleReader');
   const openEnd = active.indexOf('let quizData', openStart);
   const openFn = active.slice(openStart, openEnd);
-  assert.match(openFn, /window\.location\.href = _articleReaderHref\(_currentLawName, _currentArtNo, _currentPageId\)/);
+  assert.match(openFn, /openQuizArticlePanelByTarget\(\{law:_currentLawName, art:_currentArtNo, pageId:_currentPageId\}\)/);
+  assert.doesNotMatch(openFn, /window\.location\.href/);
   assert.doesNotMatch(openFn, /window\.open/);
   assert.doesNotMatch(active, /url = 'dashboard\.html\?q=' \+ encodeURIComponent\(_currentLawName\);\s*\}/);
+});
+
+test('quiz article dialog keeps paid members in authenticated full-content context', () => {
+  const dialogFn = extractFunction(active, 'openQuizArticlePanelByTarget');
+  assert.match(dialogFn, /resolveQuizArticlePageId\(law, art\)/);
+  assert.match(dialogFn, /fetch\(`\$\{API\}\/api\/article\/\$\{encodeURIComponent\(pageId\)\}`,\{headers:_authH\(\)\}\)/);
+  assert.match(dialogFn, /payload\.article \|\| payload\.item \|\| payload/);
+  assert.match(dialogFn, /formatLawText\(article\.original_text \|\| article\.text \|\| ''\)/);
+  assert.match(dialogFn, /buildSections\(article\.sections\|\|\{\}, articleSectionsArePaid\(article\), body, null, article\)/);
+  assert.doesNotMatch(dialogFn, /law-preview\.html/);
+  assert.doesNotMatch(dialogFn, /window\.location\.href/);
+  assert.match(active, /function resolveQuizArticlePageId/);
+  assert.match(active, /const list=await _ensureArticleCache\(law\)/);
+  assert.match(active, /_articleNoMatches\(a, art\)/);
 });
 
 test('quiz restores answered state after returning from article reader', () => {
@@ -328,7 +379,8 @@ test('quiz restores answered state after returning from article reader', () => {
   const openStart = active.indexOf('function _openArticleReader');
   const openEnd = active.indexOf('// 本次作答紀錄', openStart);
   const openFn = active.slice(openStart, openEnd);
-  assert.match(openFn, /_saveQuizReturnState\(\)/);
+  assert.doesNotMatch(openFn, /_saveQuizReturnState\(\)/);
+  assert.doesNotMatch(openFn, /window\.location\.href/);
   const stateStart = active.indexOf("const QUIZ_RETURN_STATE_KEY = 'sofa_quiz_return_state_v1'");
   const restoreCall = active.indexOf('if(_restoreQuizReturnState()) return');
   assert.ok(stateStart >= 0 && restoreCall > stateStart, 'return-state variables must be initialized before restore runs');
@@ -445,17 +497,21 @@ test('weakness panel shows actual wrong articles when the server provides them',
   assert.match(fn, /_weakArticleLinks\(law, sourceArticles, 2\)/);
 });
 
-test('weakness article chips open the exact article reader', () => {
+test('weakness article chips carry exact article identity for the in-page reader', () => {
   const start = active.indexOf('function _weakArticleLinks');
   assert.ok(start > -1, '_weakArticleLinks must exist');
   const fn = active.slice(start, start + 1200);
   assert.match(fn, /const pageId = a\.page_id \|\| a\.id \|\| ''/);
   assert.match(fn, /const art = a\.article_no \|\| a\.article \|\| ''/);
   assert.match(fn, /if\(!pageId && !art\) return `<span class="weak-article-link is-muted">/);
-  assert.match(fn, /_articleReaderHref\(law, art \|\| label, pageId\)/);
+  assert.match(fn, /_articleRefAttrs\(law, art \|\| label, pageId\)/);
   assert.match(fn, /class="weak-article-link"/);
   assert.match(fn, /_answerSourceLabel\(a\.answer_source \|\| a\.source\)/);
   assert.doesNotMatch(fn, /target="_blank"/);
+  assert.match(active, /function _articleRefAttrs\(law, art, id\)/);
+  assert.match(active, /data-law="\$\{_articleRefAttr\(law\|\|''\)\}"/);
+  assert.match(active, /data-art="\$\{_articleRefAttr\(art\|\|''\)\}"/);
+  assert.match(active, /data-page-id="\$\{_articleRefAttr\(id\)\}"/);
 });
 
 test('short multiple-choice options can use compact two-column layout on desktop only', () => {
@@ -688,7 +744,7 @@ test('wrong review avoids recently shown articles when possible', () => {
   assert.match(wrongLoader, /rememberRecentQuizArticles\(quizArticleIdentityAliases\(data, pick\.id\)\)/);
 });
 
-test('quiz analysis linkifies sixth-section law references to the article reader', () => {
+test('quiz analysis linkifies sixth-section law references to the in-page article dialog', () => {
   const start = active.indexOf('function cleanCrossRefLawName');
   const end = active.indexOf('function formatSection', start);
   assert.ok(start >= 0 && end > start, 'law reference helper must be extractable before formatSection');
@@ -698,18 +754,26 @@ test('quiz analysis linkifies sixth-section law references to the article reader
   assert.match(linkedSameLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=13/);
   assert.match(linkedSameLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=15/);
   assert.match(linkedSameLaw, /&from=quiz&back=quiz\.html/);
+  assert.match(linkedSameLaw, /class="crossref"/);
+  assert.match(linkedSameLaw, /data-law="記帳士法"/);
+  assert.match(linkedSameLaw, /data-art="13"/);
+  assert.match(linkedSameLaw, /data-art="15"/);
 
   const linkedNamedLaw = helpers.linkifyLawRefs('記帳士法第13條及第15條', '所得稅法');
   assert.match(linkedNamedLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=13/);
   assert.match(linkedNamedLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=15/);
+  assert.match(linkedNamedLaw, /data-law="記帳士法"/);
   const linkedPrefixedLaw = helpers.linkifyLawRefs('搭配公司法第29條經理人任免規定', '商業會計法');
   assert.match(linkedPrefixedLaw, />公司法第29條</);
   assert.match(linkedPrefixedLaw, /&from=quiz&back=quiz\.html/);
+  assert.match(linkedPrefixedLaw, /data-law="公司法"/);
+  assert.match(linkedPrefixedLaw, /data-art="29"/);
   assert.doesNotMatch(linkedPrefixedLaw, />搭配公司法第29條</);
   assert.equal(helpers.cleanCrossRefLawName('搭配公司法'), '公司法');
   const linkedReadableLead = helpers.linkifyLawRefs('交叉記憶可看公司法第29條', '商業會計法');
   assert.match(linkedReadableLead, /law-preview\.html\?law=%E5%85%AC%E5%8F%B8%E6%B3%95&art=29/);
   assert.match(linkedReadableLead, />公司法第29條</);
+  assert.match(linkedReadableLead, /data-law="公司法"/);
   assert.doesNotMatch(linkedReadableLead, /law=.*%E4%BA%A4%E5%8F%89/);
   assert.equal(helpers.cleanCrossRefLawName('交叉記憶可看公司法'), '公司法');
   const linkedArticleSeries = helpers.linkifyLawRefs('刑法317、318、319條;地政士法26條(地政士守密義務)', '記帳士法');
@@ -722,8 +786,14 @@ test('quiz analysis linkifies sixth-section law references to the article reader
   assert.match(linkedProfessionalLaw, /law-preview\.html\?law=%E6%9C%83%E8%A8%88%E5%B8%AB%E6%B3%95&art=43/);
   assert.doesNotMatch(linkedNamedLaw, /target="_blank"/);
   assert.match(active, /function openCrossRefArticleInline/);
-  assert.match(active, /closest\('a\.crossref'\)/);
-  assert.match(active, /回本題原文/);
+  assert.match(active, /closest\('a\.crossref, a\.weak-article-link'\)/);
+  assert.match(active, /開啟法條解析/);
+  const openCrossRefFn = extractFunction(active, 'openCrossRefArticleInline');
+  assert.match(openCrossRefFn, /ev\.preventDefault\(\)/);
+  assert.match(openCrossRefFn, /openQuizArticlePanelByTarget\(_articleTargetFromLink\(link\)\)/);
+  assert.doesNotMatch(openCrossRefFn, /window\.location\.href/);
+  assert.match(active, /document\.addEventListener\('keydown'/);
+  assert.match(active, /if\(ev\.key === 'Escape'\) closeQuizArticlePanel\(\)/);
   assert.match(active, /formatSection\(sections\[name\],\s*articleLawName\)/);
 });
 

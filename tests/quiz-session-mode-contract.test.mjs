@@ -5,6 +5,38 @@ import test from 'node:test';
 const html = readFileSync(new URL('../quiz.html', import.meta.url), 'utf8');
 const active = html.replace(/<!--[\s\S]*?-->/g, '');
 
+function extractFunction(source, name) {
+  const start = source.indexOf(`function ${name}`);
+  assert.ok(start >= 0, `${name} must exist`);
+  const open = source.indexOf('{', start);
+  let depth = 0;
+  for (let i = open; i < source.length; i += 1) {
+    if (source[i] === '{') depth += 1;
+    if (source[i] === '}') {
+      depth -= 1;
+      if (depth === 0) return source.slice(start, i + 1);
+    }
+  }
+  throw new Error(`Could not extract ${name}`);
+}
+
+test('law drill deeplinks are not limited by the bookkeeper past-exam two-subject boundary', () => {
+  const applyInitial = extractFunction(active, '_applyInitialLawParam');
+  assert.match(applyInitial, /const raw = _lawParamFromUrl\(\)/);
+  assert.match(applyInitial, /document\.createElement\('option'\)/);
+  assert.match(applyInitial, /o\.value = law/);
+  assert.match(applyInitial, /sel\.appendChild\(o\)/);
+  assert.match(applyInitial, /sel\._skipPersistOnce = _drillParam/);
+
+  const defaultExam = extractFunction(active, '_defaultExamForQuizStart');
+  assert.match(defaultExam, /_lawParamFromUrl\(\)/);
+  assert.match(defaultExam, /_drillParam/);
+  assert.match(defaultExam, /if \(examKey \|\| !_startQuizParam \|\| _lawParamFromUrl\(\) \|\| _articleParamFromUrl\(\) \|\| _drillParam \|\| _pastExamMode\) return examKey/);
+
+  assert.match(active, /const _PAST_EXAM_SUBJECTS = \['記帳相關法規概要', '稅務相關法規概要'\]/);
+  assert.match(active, /if\(_initialLawApplied\)\{ _autoLoadQuizOnce\(\); return; \}/);
+});
+
 test('session mode is enabled by URL and uses a bounded question count', () => {
   assert.match(active, /const _sessionMode = _searchParams\.get\('session'\) === '1' \|\| _searchParams\.get\('mode'\) === 'session'/);
   assert.match(active, /function parseSessionTargetCount\(\)/);

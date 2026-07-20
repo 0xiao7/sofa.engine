@@ -63,7 +63,8 @@ test('weakness panel names what to look at and where to act in one visible strip
 
 test('weakness wrong article labels are clickable article links', () => {
   assert.match(active, /function _weakArticleLinks/);
-  assert.match(active, /_articleReaderHref/);
+  assert.match(active, /_articleRefAttrs/);
+  assert.match(active, /data-page-id/);
   assert.match(active, /weak-article-link/);
   assert.match(active, /_answerSourceLabel\(a\.answer_source \|\| a\.source\)/);
   assert.match(active, /_weakArticleLinks\(law, item\.top_articles \|\| \[\], 2\)/);
