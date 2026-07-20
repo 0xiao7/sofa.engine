@@ -248,20 +248,22 @@ test('question label sits above the stem text instead of overlaying long questio
   assert.match(active, /\.q-stem::before\{[\s\S]*left:36px[\s\S]*right:auto/);
   const labelRule = active.match(/\.q-stem::before\{[^}]+\}/)?.[0] || '';
   assert.doesNotMatch(labelRule, /right:22px/);
-  assert.match(active, /@media \(max-width:760px\)\{[\s\S]*\.q-stem\{padding:42px 16px 18px\}/);
-  assert.match(active, /@media \(max-width:760px\)\{[\s\S]*\.q-stem::before\{top:14px;left:16px/);
+  assert.match(active, /@media \(max-width:760px\)\{[\s\S]*\.q-stem\{padding:38px 14px 16px\}/);
+  assert.match(active, /@media \(max-width:760px\)\{[\s\S]*\.q-stem::before\{top:13px;left:14px/);
 });
 
 test('mobile quiz navigation can open without covering the question', () => {
   const mobile = active.match(/@media \(max-width:760px\)\{[\s\S]*?html\.ios-reader-app \.stage/)?.[0] || '';
   assert.match(mobile, /body\{padding-top:var\(--tool-topbar-offset\)\}/);
   assert.match(mobile, /\.topbar\{position:fixed;top:0;left:0;right:0;z-index:220;max-width:100vw;gap:10px;overflow:visible\}/);
-  assert.match(mobile, /body\.mobile-nav-open \.top-mid\{max-height:70vh;overflow:auto;z-index:230\}/);
+  assert.match(mobile, /body\.mobile-nav-open \.top-mid\{[\s\S]*display:flex/);
+  assert.match(mobile, /body\.mobile-nav-open \.top-mid\{[\s\S]*position:absolute/);
+  assert.match(mobile, /body\.mobile-nav-open \.top-mid a\{[\s\S]*justify-content:flex-start/);
   assert.match(mobile, /\.q-head\{flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:18px;padding-bottom:12px\}/);
   assert.match(mobile, /\.q-head \.n\{font-size:22px;line-height:1\.15;margin-top:4px!important\}/);
-  assert.match(mobile, /\.q-stem p\{font-size:16px;line-height:1\.72;letter-spacing:0\}/);
-  assert.match(mobile, /\.opts\{margin-top:16px;gap:8px\}/);
-  assert.match(mobile, /\.opt\{padding:11px 12px;gap:12px;align-items:center\}/);
+  assert.match(mobile, /\.q-stem p\{font-size:15px;line-height:1\.68;letter-spacing:0\}/);
+  assert.match(mobile, /\.opts\{margin-top:14px;gap:8px\}/);
+  assert.match(mobile, /\.opt\{padding:10px 11px;gap:10px;align-items:center\}/);
 });
 
 test('quiz placeholder stem does not force mono 13px over the article text stack', () => {

@@ -89,9 +89,9 @@ test('today sidebar order follows the actual dashboard reading order', () => {
   const navOrder = [
     'study-cockpit-recap',
     'study-weak-brief',
-    'study-playlist-block',
     'study-time-box',
     'study-plan-items',
+    'study-playlist-block',
     'quiz-recap',
     'weak-laws-recap',
     'review-due',
@@ -100,9 +100,9 @@ test('today sidebar order follows the actual dashboard reading order', () => {
   const pageOrder = [
     'study-cockpit-recap',
     'study-weak-brief',
-    'study-playlist-block',
     'study-time-box',
     'study-plan-items',
+    'study-playlist-block',
     'quiz-recap',
     'weak-laws-recap',
     'review-due',
@@ -142,7 +142,7 @@ test('law table of contents separates reading searching and single-practice acti
   assert.notEqual(end, -1, 'searchLaw should follow law TOC rendering');
   const tocSource = html.slice(start, end);
   assert.match(tocSource, /var encodedName = encodeURIComponent\(rawName\)/);
-  assert.match(tocSource, /class="toc-main" href="law-preview\.html\?law='\+encodedName\+'"/);
+  assert.match(tocSource, /class="toc-main" href="#search" onclick="searchLaw\(decodeURIComponent\(this\.dataset\.law\)\);return false" data-law="'\+encodedName\+'"/);
   assert.match(tocSource, /<span class="meta"><span class="ct">'\+ct\+'<\/span><span class="arrow">讀整部<\/span><\/span><\/a>/);
   assert.match(tocSource, /var ct\s*=\s*formatLawArticleCount\(l\.article_count\)/);
   assert.match(html, /function formatLawArticleCount\(value\)/);
@@ -602,8 +602,22 @@ test('law article URL handlers open the target article through the canonical fal
   const lawFn = extractFunction(html, '_handleUrlLaw');
   assert.match(queryFn, /if\(q && art\) return _redirectArticleUrlToReader\(q, art\)/);
   assert.match(lawFn, /if\(law && art\) return _redirectArticleUrlToReader\(law, art\)/);
-  assert.doesNotMatch(queryFn, /if\(q && art\) searchAndOpen/);
-  assert.doesNotMatch(lawFn, /if\(law && art\) searchAndOpen/);
+  const redirectFn = extractFunction(html, '_redirectArticleUrlToReader');
+  assert.match(redirectFn, /window\.__pendingSearchOpenArticle = true/);
+  assert.match(redirectFn, /doSearch\(\)/);
+  assert.doesNotMatch(redirectFn, /window\.location\.href/);
+});
+
+test('study playlist is a standalone dashboard block outside today-first cockpit', () => {
+  const panelStart = html.indexOf('<div class="study-panel">');
+  const panelEnd = html.indexOf('<div class="study-mode-status', panelStart);
+  const playlistIndex = html.indexOf('id="study-playlist-block"');
+  const quizRecapIndex = html.indexOf('id="quiz-recap"');
+  assert.ok(panelStart >= 0 && panelEnd > panelStart, 'today study panel should be extractable');
+  assert.ok(playlistIndex > panelEnd, 'playlist block should render after the today study panel closes');
+  assert.ok(playlistIndex < quizRecapIndex, 'playlist should stay before recent-answer recap');
+  assert.doesNotMatch(html.slice(panelStart, panelEnd), /id="study-playlist-block"/);
+  assert.match(html, /\.study-playlist-block\{[\s\S]*scroll-margin-top:calc\(96px \+ env\(safe-area-inset-top, 0px\)\)/);
 });
 
 test('recent answer recap has an empty state so sidebar T6 has a real target', () => {

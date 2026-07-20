@@ -1270,6 +1270,9 @@
     padding:13px;
     display:grid;
     gap:11px;
+    margin-bottom:22px;
+    scroll-margin-top:calc(96px + env(safe-area-inset-top, 0px));
+    scroll-margin-bottom:calc(104px + env(safe-area-inset-bottom, 0px));
   }
   .study-playlist-block-head{
     display:flex;
@@ -4023,9 +4026,9 @@
           <div class="nav-list today-nav">
           <a href="#study-cockpit-recap" data-spy-target="study-cockpit-recap"><span class="num">T1</span>今天先做<span class="ct" id="nav-ct-study"></span></a>
           <a href="#study-weak-brief" data-spy-target="study-weak-brief"><span class="num">T2</span>今日弱點<span class="ct" id="nav-ct-weak">0</span></a>
-          <a href="#study-playlist-block" data-spy-target="study-playlist-block"><span class="num">T3</span>聽讀清單<span class="ct"></span></a>
-          <a href="#study-time-box" data-spy-target="study-time-box"><span class="num">T4</span>讀書時間<span class="ct"></span></a>
-          <a href="#study-plan-items" data-spy-target="study-plan-items"><span class="num">T5</span>讀書計畫<span class="ct" id="nav-ct-plan"></span></a>
+          <a href="#study-time-box" data-spy-target="study-time-box"><span class="num">T3</span>讀書時間<span class="ct"></span></a>
+          <a href="#study-plan-items" data-spy-target="study-plan-items"><span class="num">T4</span>讀書計畫<span class="ct" id="nav-ct-plan"></span></a>
+          <a href="#study-playlist-block" data-spy-target="study-playlist-block"><span class="num">T5</span>聽讀清單<span class="ct"></span></a>
           <a href="#quiz-recap" data-spy-target="quiz-recap"><span class="num">T6</span>最近作答<span class="ct"></span></a>
           <a href="#weak-laws-recap" data-spy-target="weak-laws-recap"><span class="num">T7</span>弱點法規<span class="ct"></span></a>
           <a href="#review-due" data-spy-target="review-due"><span class="num">T8</span>今日複習<span class="ct" id="nav-ct-due">0</span></a>
@@ -4153,55 +4156,6 @@
               <div class="study-next-plan" id="study-next-plan" aria-live="polite">
                 <span class="study-next-plan-copy"><span class="k">今日任務</span><b>先做一題</b><span>答完會更新弱點。</span></span>
                 <span class="study-next-plan-actions"><a href="quiz.html">開始選擇題</a></span>
-              </div>
-            </div>
-            <div class="study-playlist-block" id="study-playlist-block">
-              <div class="study-playlist-block-head">
-                <div class="study-playlist-block-copy">
-                  <span>PLAYLIST</span>
-                  <b>法條聽讀清單</b>
-                  <small>獨立放聽讀和練習，不混在今天任務裡。</small>
-                </div>
-                <button class="study-playlist-open" type="button" data-study-panel-trigger="playlist" aria-expanded="false" onclick="openStudyPlaylistPanel()">開啟聽讀清單</button>
-              </div>
-              <div class="study-playlist-panel" id="study-playlist-panel" aria-label="法條聽讀清單">
-                <div class="study-playlist-head">
-                  <div class="study-playlist-title">
-                    <span>FOCUS</span>
-                    <b>聽法條、聽問答，也能直接練習</b>
-                  </div>
-                  <div class="study-playlist-tools">
-                    <label class="study-playlist-field">
-                      <span>考科</span>
-                      <select id="study-playlist-subject" aria-label="重點清單科目" onchange="loadStudyPlaylist()">
-                        <option value="tax_laws">稅務法規</option>
-                        <option value="bookkeeping_laws">記帳相關法規</option>
-                      </select>
-                    </label>
-                    <label class="study-playlist-field">
-                      <span>法規</span>
-                      <select id="study-playlist-law" aria-label="聽讀清單法規" onchange="loadStudyPlaylist()">
-                        <option value="">全部法規</option>
-                      </select>
-                    </label>
-                    <label class="study-playlist-field">
-                      <span>間隔</span>
-                      <select id="study-playlist-pause" aria-label="問答間隔秒數">
-                        <option value="6">等 6 秒</option>
-                        <option value="4">等 4 秒</option>
-                        <option value="8">等 8 秒</option>
-                        <option value="10">等 10 秒</option>
-                      </select>
-                    </label>
-                    <label class="study-playlist-loop"><input id="study-playlist-loop" type="checkbox">連播</label>
-                    <button class="primary" id="study-playlist-playall" type="button" onclick="playStudyPlaylistAll(this)" disabled>播放問答</button>
-                    <button class="secondary" type="button" onclick="loadStudyPlaylist()">更新清單</button>
-                  </div>
-                </div>
-                <div class="study-playlist-list" id="study-playlist-list">
-                  <div class="study-empty">按更新清單，先產生文字版重點。</div>
-                </div>
-                <div class="study-playlist-status" id="study-playlist-status">清單產生後，可以逐則播放問答、練習，或回去看原文。</div>
               </div>
             </div>
             <div class="study-mode-status is-closed" id="study-mode-status" aria-live="polite">
@@ -4424,6 +4378,56 @@
             </details>
             <div class="study-subjects" id="study-cockpit-subjects"></div>
             <div class="study-blocks" id="study-cockpit-blocks"></div>
+          </div>
+        </div>
+
+        <div class="study-playlist-block" id="study-playlist-block">
+          <div class="study-playlist-block-head">
+            <div class="study-playlist-block-copy">
+              <span>PLAYLIST</span>
+              <b>法條聽讀清單</b>
+              <small>獨立放聽讀和練習，不混在今天任務裡。</small>
+            </div>
+            <button class="study-playlist-open" type="button" data-study-panel-trigger="playlist" aria-expanded="false" onclick="openStudyPlaylistPanel()">開啟聽讀清單</button>
+          </div>
+          <div class="study-playlist-panel" id="study-playlist-panel" aria-label="法條聽讀清單">
+            <div class="study-playlist-head">
+              <div class="study-playlist-title">
+                <span>FOCUS</span>
+                <b>聽法條、聽問答，也能直接練習</b>
+              </div>
+              <div class="study-playlist-tools">
+                <label class="study-playlist-field">
+                  <span>考科</span>
+                  <select id="study-playlist-subject" aria-label="重點清單科目" onchange="loadStudyPlaylist()">
+                    <option value="tax_laws">稅務法規</option>
+                    <option value="bookkeeping_laws">記帳相關法規</option>
+                  </select>
+                </label>
+                <label class="study-playlist-field">
+                  <span>法規</span>
+                  <select id="study-playlist-law" aria-label="聽讀清單法規" onchange="loadStudyPlaylist()">
+                    <option value="">全部法規</option>
+                  </select>
+                </label>
+                <label class="study-playlist-field">
+                  <span>間隔</span>
+                  <select id="study-playlist-pause" aria-label="問答間隔秒數">
+                    <option value="6">等 6 秒</option>
+                    <option value="4">等 4 秒</option>
+                    <option value="8">等 8 秒</option>
+                    <option value="10">等 10 秒</option>
+                  </select>
+                </label>
+                <label class="study-playlist-loop"><input id="study-playlist-loop" type="checkbox">連播</label>
+                <button class="primary" id="study-playlist-playall" type="button" onclick="playStudyPlaylistAll(this)" disabled>播放問答</button>
+                <button class="secondary" type="button" onclick="loadStudyPlaylist()">更新清單</button>
+              </div>
+            </div>
+            <div class="study-playlist-list" id="study-playlist-list">
+              <div class="study-empty">按更新清單，先產生文字版重點。</div>
+            </div>
+            <div class="study-playlist-status" id="study-playlist-status">清單產生後，可以逐則播放問答、練習，或回去看原文。</div>
           </div>
         </div>
 
@@ -10165,7 +10169,7 @@ function _renderLawsToc(page){
         var idx = String(start + i + 1).padStart(2,'0');
         var encodedName = encodeURIComponent(rawName);
         return '<div class="toc-row">'
-          + '<a class="toc-main" href="law-preview.html?law='+encodedName+'" aria-label="閱讀'+nm+'">'
+          + '<a class="toc-main" href="#search" onclick="searchLaw(decodeURIComponent(this.dataset.law));return false" data-law="'+encodedName+'" aria-label="閱讀'+nm+'">'
           + '<span class="idx">'+idx+'</span>'
           + '<span class="nm">'+nmHl+star+'<span class="leader"></span></span>'
           + '<span class="meta"><span class="ct">'+ct+'</span><span class="arrow">讀整部</span></span></a>'
@@ -10637,7 +10641,14 @@ function _articleReaderUrl(lawName, artNo){
 }
 function _redirectArticleUrlToReader(lawName, artNo){
   if(!lawName || !artNo) return false;
-  window.location.href = _articleReaderUrl(lawName, artNo);
+  var law = _safeDecodeUrlParam(lawName);
+  var art = _normalizeArticleNo(_safeDecodeUrlParam(artNo));
+  var inp = document.getElementById('search-law');
+  var artInp = document.getElementById('search-art');
+  if(inp) inp.value = law;
+  if(artInp) artInp.value = art;
+  window.__pendingSearchOpenArticle = true;
+  doSearch();
   return true;
 }
 

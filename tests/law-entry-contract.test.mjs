@@ -262,6 +262,15 @@ test('law preview names the return path for tree readers', () => {
   assert.match(preview, /backLink\.textContent = '← 回考試地圖'/);
 });
 
+test('law preview article fetches keep paid member auth', () => {
+  assert.match(preview, /function _authH\(extra\)/);
+  assert.match(preview, /if\(tok\) h\.Authorization='Bearer '\+tok/);
+  assert.match(preview, /else if\(uid\) h\['X-Sofa-UID'\]=uid/);
+  assert.match(preview, /async function fetchJSON\(url\)\{/);
+  assert.match(preview, /fetch\(url, \{headers:_authH\(\), credentials:'include'\}\)/);
+  assert.match(preview, /fetchJSON\(`\$\{API\}\/api\/article\/\$\{id\}`\)/);
+});
+
 test('law preview opens cross references inside the reader instead of full page jumping', () => {
   assert.match(preview, /let lawName = params\.get\('law'\) \|\| '記帳士法'/);
   assert.match(preview, /async function loadLawReader\(nextLaw, opts\)/);
