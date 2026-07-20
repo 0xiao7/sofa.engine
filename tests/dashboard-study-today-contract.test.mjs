@@ -133,6 +133,13 @@ test('law drawer analysis linkifies sixth-section law references', () => {
   assert.match(linkedNamedLaw, /back=dashboard\.html/);
   assert.doesNotMatch(linkedNamedLaw, /searchAndOpen/);
 
+  const linkedMemoryLead = sandbox.linkify('熟記本條與記帳士法第35條', '所得稅法');
+  assert.match(linkedMemoryLead, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=35&amp;/);
+  assert.match(linkedMemoryLead, /data-cross-law="記帳士法"/);
+  assert.match(linkedMemoryLead, /data-cross-art="35"/);
+  assert.match(linkedMemoryLead, />記帳士法第35條</);
+  assert.doesNotMatch(linkedMemoryLead, /熟記本條與記帳士法/);
+
   const linkedPrefixedLaw = sandbox.linkify('搭配公司法第29條經理人任免規定', '商業會計法');
   assert.match(linkedPrefixedLaw, />公司法第29條</);
   assert.doesNotMatch(linkedPrefixedLaw, />搭配公司法第29條</);
@@ -353,6 +360,9 @@ test('study playlist is a generic text fallback and does not ship private schedu
   assert.match(active, /star_min=3/);
   assert.match(active, /id="study-playlist-law"/);
   assert.match(active, /aria-label="播放清單法規"/);
+  assert.match(active, /<label class="study-playlist-field"[\s\S]*<span>考科<\/span>[\s\S]*id="study-playlist-subject"/);
+  assert.match(active, /<label class="study-playlist-field"[\s\S]*<span>法規<\/span>[\s\S]*id="study-playlist-law"/);
+  assert.match(active, /<label class="study-playlist-field"[\s\S]*<span>間隔<\/span>[\s\S]*id="study-playlist-pause"/);
   assert.match(active, /function populateStudyPlaylistLaws/);
   assert.match(active, /通勤問答|重點清單/);
   assert.match(active, /id="study-playlist-block"/);
@@ -373,7 +383,7 @@ test('study playlist items are executable with single-practice and article-reade
   assert.match(fn, /item\.page_id \|\| item\.id/);
   assert.match(fn, /displayArticleNo = articleNo\.replace\(/);
   assert.match(fn, /displayTitle = String\(item\.title/);
-  assert.match(fn, /單刷/);
+  assert.match(fn, /練習/);
   assert.match(fn, /看法條/);
 });
 
@@ -641,7 +651,7 @@ test('study today keeps active learner copy compact and folds lower details', ()
 test('study today exposes a time-first planning box before schedule details', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
-  const recap = active.slice(recapStart, recapStart + 11000);
+  const recap = active.slice(recapStart, recapStart + 12500);
   const statusStrip = recap.indexOf('id="study-status-strip"');
   const overview = recap.indexOf('id="study-planning-overview"');
   const timeBox = recap.indexOf('id="study-time-box"');
@@ -709,7 +719,7 @@ test('study planning overview explains next item save scope and completion statu
 test('study time settings stay collapsed into a readable summary until editing', () => {
   const recapStart = active.indexOf('id="study-cockpit-recap"');
   assert.ok(recapStart >= 0, 'study recap must exist');
-  const recap = active.slice(recapStart, recapStart + 8200);
+  const recap = active.slice(recapStart, recapStart + 9000);
   assert.match(recap, /class="study-time-summary-card"/);
   assert.match(recap, /id="study-time-purpose"[\s\S]*修改時間只影響建議排法/);
   assert.match(recap, /id="study-time-edit-panel" hidden/);
@@ -878,7 +888,7 @@ test('study today uses learner-facing subject status wording, not seed jargon', 
   assert.match(active, /弱點判讀已接/);
   assert.match(active, /弱點判讀/);
   assert.match(active, /已接 ' \+ esc\(seededCount\) \+ ' 科/);
-  assert.doesNotMatch(active, /可單刷 ' \+ esc\(seededCount\) \+ ' 科/);
+  assert.doesNotMatch(active, /可練習 ' \+ esc\(seededCount\) \+ ' 科/);
   assert.doesNotMatch(active, /目前可練習 ' \+ seededCount \+ ' 科/);
   assert.doesNotMatch(active, /題庫準備中/);
   assert.doesNotMatch(active, /\d+\s*科\s*·\s*\d+\s*科可練習/);
@@ -891,12 +901,12 @@ test('study today links weak laws and topic blocks into single-practice entry po
   assert.match(weakFn, /quiz\.html\?law=/);
   assert.match(weakFn, /&drill=1/);
   assert.doesNotMatch(weakFn, /quiz\.html\?open=weakness&law=/);
-  assert.match(weakFn, /單刷/);
+  assert.match(weakFn, /練習/);
 
   const renderStart = active.indexOf('function renderStudyToday');
   const render = active.slice(renderStart, renderStart + 5200);
   assert.match(render, /<a class="study-block" href="quiz\.html\?law=/);
-  assert.match(render, /可單刷/);
+  assert.match(render, /可練習/);
   assert.match(render, /study-subject-summary/);
 });
 
@@ -924,7 +934,7 @@ test('study plan items expose learning actions only when item metadata supports 
   assert.doesNotMatch(helper, /dashboard\.html\?q=/);
   assert.doesNotMatch(helper, /dashboard\.html\?open=/);
   assert.match(helper, /開啟資源/);
-  assert.match(helper, /單刷/);
+  assert.match(helper, /練習/);
   assert.match(helper, /看法條/);
   assert.match(extractFunction(active, 'renderStudyPlanItems'), /studyPlanItemActionLinks\(item\)/);
   assert.doesNotMatch(extractFunction(active, 'renderStudyNextPlan'), /studyPlanItemActionLinks\(next, true\)/);

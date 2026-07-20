@@ -55,7 +55,7 @@ test('weakness overlay uses the SoFa panel system instead of a separate black mo
 
 test('weakness panel names what to look at and where to act in one visible strip', () => {
   assert.match(active, /先看最常錯/);
-  assert.match(active, /點「練這部」單刷/);
+  assert.match(active, /點「練這部」練習/);
   assert.match(active, /看完整條文/);
   assert.match(active, /下一步先練/);
   assert.match(active, /資料來源/);

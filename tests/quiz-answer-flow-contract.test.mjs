@@ -776,6 +776,12 @@ test('quiz analysis linkifies sixth-section law references to the in-page articl
   assert.match(linkedReadableLead, /data-law="公司法"/);
   assert.doesNotMatch(linkedReadableLead, /law=.*%E4%BA%A4%E5%8F%89/);
   assert.equal(helpers.cleanCrossRefLawName('交叉記憶可看公司法'), '公司法');
+  const linkedMemoryLead = helpers.linkifyLawRefs('熟記本條與記帳士法第35條', '所得稅法');
+  assert.match(linkedMemoryLead, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=35/);
+  assert.match(linkedMemoryLead, />記帳士法第35條</);
+  assert.match(linkedMemoryLead, /data-law="記帳士法"/);
+  assert.doesNotMatch(linkedMemoryLead, /熟記本條與記帳士法/);
+  assert.equal(helpers.cleanCrossRefLawName('熟記本條與記帳士法'), '記帳士法');
   const linkedArticleSeries = helpers.linkifyLawRefs('刑法317、318、319條;地政士法26條(地政士守密義務)', '記帳士法');
   assert.match(linkedArticleSeries, /law-preview\.html\?law=%E5%88%91%E6%B3%95&art=317/);
   assert.match(linkedArticleSeries, /law-preview\.html\?law=%E5%88%91%E6%B3%95&art=318/);

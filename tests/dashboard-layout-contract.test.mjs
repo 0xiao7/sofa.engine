@@ -150,7 +150,7 @@ test('law table of contents separates reading searching and single-practice acti
   assert.doesNotMatch(tocSource, /— 條/);
   assert.match(tocSource, /<span class="toc-actions" aria-label="'\+nm\+' 的動作">/);
   assert.match(tocSource, /onclick="searchLaw\(decodeURIComponent\(this\.dataset\.law\)\)">查條文<\/button>/);
-  assert.match(tocSource, /href="quiz\.html\?law='\+encodedName\+'\&drill=1">單刷<\/a>/);
+  assert.match(tocSource, /href="quiz\.html\?law='\+encodedName\+'\&drill=1">練習<\/a>/);
   assert.doesNotMatch(html, /class="toc-row" onclick="searchLaw/);
   assert.match(html, /\.toc-main\{/);
   assert.match(html, /\.toc-actions\{/);
