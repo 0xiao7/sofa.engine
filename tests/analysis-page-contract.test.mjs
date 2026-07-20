@@ -1,10 +1,44 @@
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import test from 'node:test';
+import vm from 'node:vm';
 
 const analysisPath = new URL('../analysis.html', import.meta.url);
 const analysis = existsSync(analysisPath) ? readFileSync(analysisPath, 'utf8') : '';
 const analytics = readFileSync(new URL('../sofa-analytics.js', import.meta.url), 'utf8');
+
+function extractFunction(source, name) {
+  const start = source.indexOf(`function ${name}`);
+  assert.ok(start >= 0, `${name} must exist`);
+  const signatureClose = source.indexOf('){', start);
+  const brace = signatureClose >= 0 ? signatureClose + 1 : source.indexOf('{', start);
+  let depth = 0;
+  let quote = '';
+  let escaped = false;
+  for (let i = brace; i < source.length; i++) {
+    const ch = source[i];
+    if (quote) {
+      if (escaped) {
+        escaped = false;
+      } else if (ch === '\\') {
+        escaped = true;
+      } else if (ch === quote) {
+        quote = '';
+      }
+      continue;
+    }
+    if (ch === '"' || ch === "'" || ch === '`') {
+      quote = ch;
+      continue;
+    }
+    if (ch === '{') depth++;
+    if (ch === '}') {
+      depth--;
+      if (depth === 0) return source.slice(start, i + 1);
+    }
+  }
+  throw new Error(`${name} function did not close`);
+}
 
 test('analysis page exists as a mobile-first standalone radar page', () => {
   assert.ok(analysis, 'analysis.html should exist');
@@ -116,20 +150,53 @@ test('analysis page keeps public answer-source boundary honest', () => {
 });
 
 test('analysis diagnosis cards link directly into practice', () => {
-  assert.match(analysis, /function practiceHref\(\{ law, article, medium, drill = false \}\)/);
+  assert.match(analysis, /function practiceHref\(\{ law, article, pageId, medium, drill = false \}\)/);
   assert.match(analysis, /qs\.set\('utm_medium', medium\)/);
   assert.match(analysis, /qs\.set\('law', lawName\)/);
   assert.match(analysis, /qs\.set\('article', articleName\)/);
+  assert.match(analysis, /qs\.set\('page_id', stablePageId\)/);
   assert.match(analysis, /if\(drill\) qs\.set\('drill', '1'\)/);
   assert.match(analysis, /qs\.set\('free', '1'\)/);
   assert.match(analysis, /qs\.set\('start', '1'\)/);
-  assert.match(analysis, /practiceHref\(\{ law: lawName, article, medium: 'hero', drill: true \}\)/);
-  assert.match(analysis, /practiceHref\(\{ law: lawName, article, medium: 'weak', drill: true \}\)/);
+  assert.match(analysis, /practiceHref\(\{ law: lawName, article, pageId, medium: 'hero', drill: true \}\)/);
+  assert.match(analysis, /practiceHref\(\{ law: lawName, article, pageId, medium: 'weak', drill: true \}\)/);
   assert.match(analysis, /practiceHref\(\{ law: lawName, medium: 'strong' \}\)/);
   assert.match(analysis, /practiceHref\(\{ law: item\.law \|\| '', medium: 'blindspot' \}\)/);
-  assert.match(analysis, /practiceHref\(\{ law: lawName, article, medium: 'review', drill: true \}\)/);
+  assert.match(analysis, /practiceHref\(\{ law: lawName, article, pageId, medium: 'review', drill: true \}\)/);
   assert.match(analysis, /\.rowline:hover/);
   assert.match(analysis, /\.rowline:focus-visible/);
   assert.match(analysis, /\.chip:hover/);
   assert.match(analysis, /\.chip:focus-visible/);
+});
+
+test('analysis article practice links preserve stable article ids instead of relying on display text', () => {
+  assert.match(analysis, /function stableArticleId\(item\)/);
+  const source = [
+    extractFunction(analysis, 'stableArticleId'),
+    extractFunction(analysis, 'practiceHref'),
+    'globalThis.stableArticleId = stableArticleId;',
+    'globalThis.practiceHref = practiceHref;'
+  ].join('\n');
+  const sandbox = { URLSearchParams };
+  vm.runInNewContext(source, sandbox);
+
+  assert.equal(
+    sandbox.stableArticleId({ top_articles: [{ article: '占有喪失逾二年質權消滅', page_id: '民法-908' }] }),
+    '民法-908'
+  );
+  assert.equal(
+    sandbox.stableArticleId({ article: '第36條', article_id: '消債-36' }),
+    '消債-36'
+  );
+  const href = sandbox.practiceHref({
+    law: '民法',
+    article: '占有喪失逾二年質權消滅',
+    pageId: '民法-908',
+    medium: 'weak',
+    drill: true
+  });
+  const parsed = new URL(href, 'https://sofaengine.org/');
+  assert.equal(parsed.searchParams.get('page_id'), '民法-908');
+  assert.equal(parsed.searchParams.get('article'), '占有喪失逾二年質權消滅');
+  assert.equal(parsed.searchParams.get('drill'), '1');
 });
