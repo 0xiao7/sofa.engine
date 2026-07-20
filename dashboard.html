@@ -157,57 +157,68 @@
   .menu-btn span::after{top:5px}
   .menu-btn[aria-expanded="true"]{border-color:var(--peach);background:rgba(231,187,167,.1)}
   .side-guide-controls{
-    position:sticky;
-    top:0;
+    position:absolute;
+    top:94px;
+    right:18px;
     z-index:4;
-    margin-top:10px;
-    display:flex;
+    width:28px;
+    margin-top:0;
+    display:block;
     align-items:center;
-    justify-content:space-between;
-    gap:10px;
-    padding:4px 0 6px;
+    justify-content:center;
+    padding:0;
     border:0;
-    border-bottom:1px solid rgba(245,240,234,.08);
     background:transparent;
     border-radius:3px;
     box-shadow:none;
   }
   .side-mode-status{
-    color:rgba(245,240,234,.38);
-    font-family:var(--mono);
-    font-size:9.5px;
-    letter-spacing:.16em;
+    position:absolute;
+    width:1px;
+    height:1px;
+    margin:-1px;
+    padding:0;
+    overflow:hidden;
+    clip:rect(0 0 0 0);
     white-space:nowrap;
-    text-transform:uppercase;
+    border:0;
   }
   .side-mode-btn{
-    min-height:28px;
+    width:32px;
+    min-width:32px;
+    min-height:32px;
     display:inline-flex;
     align-items:center;
     justify-content:center;
-    border:0;
-    border-radius:3px;
-    padding:3px 0;
-    color:var(--peach);
-    background:transparent;
+    border:1px solid rgba(245,240,234,.12);
+    border-radius:999px;
+    padding:0;
+    color:rgba(245,240,234,.48);
+    background:rgba(13,28,40,.22);
     font-family:var(--mono);
-    font-size:10px;
-    letter-spacing:.1em;
-    white-space:nowrap;
+    font-size:18px;
+    line-height:1;
+    letter-spacing:0;
   }
-  .side-mode-btn:hover{color:var(--peach-2)}
+  .side-mode-btn:hover,
+  .side-mode-btn:focus-visible{
+    color:var(--peach-2);
+    border-color:rgba(231,187,167,.36);
+    background:rgba(231,187,167,.08);
+    outline:0;
+  }
   body.side-collapsed .side-guide-controls{display:none}
   .side-peek-btn{
     display:none;
     position:fixed;
-    top:104px;
+    top:108px;
     left:0;
     z-index:42;
     box-sizing:border-box;
-    width:auto;
-    min-width:36px;
-    min-height:36px;
-    padding:7px 10px 7px 8px;
+    width:32px;
+    min-width:32px;
+    min-height:32px;
+    padding:0;
     border:1px solid rgba(231,187,167,.34);
     border-left:0;
     border-radius:0 4px 4px 0;
@@ -215,10 +226,9 @@
     background:rgba(23,50,68,.96);
     box-shadow:0 12px 24px rgba(0,0,0,.22);
     font-family:var(--mono);
-    font-size:10px;
-    letter-spacing:.12em;
-    writing-mode:vertical-rl;
-    text-orientation:mixed;
+    font-size:18px;
+    line-height:1;
+    letter-spacing:0;
     cursor:pointer;
   }
   .side-peek-btn:hover{background:rgba(31,56,72,.98);border-color:var(--peach)}
@@ -405,7 +415,7 @@
   .cd-foot b{color:var(--cream);font-weight:500;letter-spacing:.04em;white-space:nowrap}
   .cd-foot #cd-exam-name{color:var(--peach-dim)}
 
-  .nav-section{margin-top:32px}
+  .nav-section{position:relative;margin-top:32px}
   .nav-section .lab{
     font-family:var(--mono);font-size:10.5px;
     color:rgba(245,240,234,.36);
@@ -2048,6 +2058,34 @@
   .study-plan-actions button.primary{background:rgba(159,184,159,.12);border-color:rgba(159,184,159,.45);color:var(--good)}
   .study-plan-actions a.resource{border-color:rgba(231,187,167,.34);color:var(--peach)}
   .study-plan-actions button.warn{border-color:rgba(217,176,132,.38);color:var(--warn)}
+  .study-plan-reschedule{
+    grid-column:1 / -1;
+    display:grid;
+    grid-template-columns:minmax(0,1fr) minmax(120px,.65fr) auto;
+    gap:7px;
+    align-items:center;
+  }
+  .study-plan-reschedule[hidden]{display:none}
+  .study-plan-reschedule input{
+    width:100%;
+    min-width:0;
+    min-height:44px;
+    border:1px solid var(--line-2);
+    border-radius:4px;
+    background:rgba(255,255,255,.025);
+    color:var(--cream);
+    padding:6px 9px;
+    font-size:13px;
+  }
+  .study-plan-reschedule button{
+    min-height:44px;
+    border:1px solid rgba(231,187,167,.34);
+    border-radius:4px;
+    color:var(--peach);
+    background:rgba(231,187,167,.08);
+    padding:6px 10px;
+    font-size:12px;
+  }
   @media (max-width:760px){
     .srs-panel{
       grid-template-columns:1fr;
@@ -2136,6 +2174,7 @@
     .study-plan-save{width:100%;min-height:44px}
     .study-plan-item{grid-template-columns:1fr auto}
     .study-plan-item .date,.study-plan-item .meta{grid-column:1 / -1}
+    .study-plan-reschedule{grid-template-columns:1fr}
     .study-plan-item .title{
       white-space:normal;
       display:-webkit-box;
@@ -3848,7 +3887,7 @@
   </div>
 
   <div class="shell">
-    <button class="side-peek-btn" type="button" id="side-peek-btn" onclick="setDashboardSideCollapsed(false)" aria-label="顯示左側導覽">導覽</button>
+    <button class="side-peek-btn" type="button" id="side-peek-btn" onclick="setDashboardSideCollapsed(false)" aria-label="顯示左側導覽" title="顯示左側導覽">›</button>
 
     <!-- ============ SIDEBAR ============ -->
     <aside class="side">
@@ -3872,18 +3911,19 @@
           <div class="lab">導 覽</div>
           <div class="nav-helper">右邊滑到哪，左邊會亮哪一段。</div>
           <div class="side-guide-controls" aria-label="導覽顯示狀態">
-            <span class="side-mode-status" id="side-mode-status">導覽</span>
-            <button class="side-mode-btn" type="button" id="side-mode-btn" onclick="toggleDashboardSideNav()">收起</button>
+            <span class="side-mode-status" id="side-mode-status">左側導覽</span>
+            <button class="side-mode-btn" type="button" id="side-mode-btn" aria-label="隱藏導覽" title="隱藏導覽" onclick="toggleDashboardSideNav()">‹</button>
           </div>
           <div class="nav-list today-nav">
           <a href="#study-cockpit-recap" data-spy-target="study-cockpit-recap"><span class="num">T1</span>今天先做<span class="ct" id="nav-ct-study"></span></a>
           <a href="#study-weak-brief" data-spy-target="study-weak-brief"><span class="num">T2</span>今日弱點<span class="ct" id="nav-ct-weak">0</span></a>
-          <a href="#study-time-box" data-spy-target="study-time-box"><span class="num">T3</span>讀書時間<span class="ct"></span></a>
-          <a href="#study-plan-items" data-spy-target="study-plan-items"><span class="num">T4</span>讀書計畫<span class="ct" id="nav-ct-plan"></span></a>
-          <a href="#quiz-recap" data-spy-target="quiz-recap"><span class="num">T5</span>最近作答<span class="ct"></span></a>
-          <a href="#weak-laws-recap" data-spy-target="weak-laws-recap"><span class="num">T6</span>弱點法規<span class="ct"></span></a>
-          <a href="#review-due" data-spy-target="review-due"><span class="num">T7</span>今日複習<span class="ct" id="nav-ct-due">0</span></a>
-          <a href="#srs-settings" data-spy-target="srs-settings"><span class="num">T8</span>複習策略<span class="ct"></span></a>
+          <a href="#study-playlist-block" data-spy-target="study-playlist-block"><span class="num">T3</span>播放清單<span class="ct"></span></a>
+          <a href="#study-time-box" data-spy-target="study-time-box"><span class="num">T4</span>讀書時間<span class="ct"></span></a>
+          <a href="#study-plan-items" data-spy-target="study-plan-items"><span class="num">T5</span>讀書計畫<span class="ct" id="nav-ct-plan"></span></a>
+          <a href="#quiz-recap" data-spy-target="quiz-recap"><span class="num">T6</span>最近作答<span class="ct"></span></a>
+          <a href="#weak-laws-recap" data-spy-target="weak-laws-recap"><span class="num">T7</span>弱點法規<span class="ct"></span></a>
+          <a href="#review-due" data-spy-target="review-due"><span class="num">T8</span>今日複習<span class="ct" id="nav-ct-due">0</span></a>
+          <a href="#srs-settings" data-spy-target="srs-settings"><span class="num">T9</span>複習策略<span class="ct"></span></a>
           <a href="quiz.html"><span class="num">練</span>選擇題<span class="ct"></span></a>
           <a href="#weak-laws-recap"><span class="num">補</span>弱點分析<span class="ct"></span></a>
         </div>
@@ -4022,9 +4062,12 @@
                     <b>重點清單，能朗讀也能單刷</b>
                   </div>
                   <div class="study-playlist-tools">
-                    <select id="study-playlist-subject" aria-label="重點清單科目">
+                    <select id="study-playlist-subject" aria-label="重點清單科目" onchange="loadStudyPlaylist()">
                       <option value="tax_laws">稅務法規</option>
                       <option value="bookkeeping_laws">記帳法規</option>
+                    </select>
+                    <select id="study-playlist-law" aria-label="播放清單法規" onchange="loadStudyPlaylist()">
+                      <option value="">全部法規</option>
                     </select>
                     <select id="study-playlist-pause" aria-label="問答間隔秒數">
                       <option value="6">等 6 秒</option>
@@ -4607,7 +4650,7 @@
               <span class="idx">07</span>
               <h2>備考工具</h2>
             </div>
-            <div class="r"><span class="eb">8 個工具</span></div>
+            <div class="r"><span class="eb">備考工具</span></div>
           </div>
 
           <!-- 繼續練習 CTA -->
@@ -5236,6 +5279,22 @@ function updateLocalStudyItemStatus(key, status, shiftDays){
   showStudySaveNudge();
 }
 
+function updateLocalStudyItemSchedule(key, date, time){
+  var local = _studyLocal();
+  local.items = (local.items || []).map(function(item){
+    if(_studyItemKey(item) !== key) return item;
+    return Object.assign({}, item, {
+      scheduled_date: date || item.scheduled_date || _todayInputValue(),
+      scheduled_time: time || ''
+    });
+  });
+  _saveStudyLocal(local);
+  setStudyPlanActionMessage('已改到 ' + (date || '新的日期') + (time ? ' ' + time : '') + '。');
+  renderStudyPlanItems(_mergeStudyPlan(null));
+  focusStudyPlanItems();
+  showStudySaveNudge();
+}
+
 function setStudyPlanActionMessage(message){
   window.__studyPlanActionMessage = message || '';
 }
@@ -5361,6 +5420,61 @@ function completeStudyItem(key){ updateStudyItemStatus(key, 'done', 0); }
 function postponeStudyItem(key){ updateStudyItemStatus(key, 'postponed', 7); }
 function cancelStudyItem(key){ updateStudyItemStatus(key, 'cancelled', 0); }
 
+function toggleStudyItemReschedule(key){
+  var selector = '[data-study-reschedule-key="' + _cssAttrEscape(key) + '"]';
+  document.querySelectorAll('.study-plan-reschedule').forEach(function(panel){
+    if(!panel.matches(selector)) panel.hidden = true;
+  });
+  var panel = document.querySelector('.study-plan-reschedule' + selector);
+  if(!panel) return;
+  panel.hidden = !panel.hidden;
+  if(!panel.hidden){
+    var input = panel.querySelector('[data-study-reschedule-date]');
+    if(input) input.focus();
+  }
+}
+
+async function rescheduleStudyItemToInput(key){
+  var dateEl = document.querySelector('[data-study-reschedule-date="' + _cssAttrEscape(key) + '"]');
+  var timeEl = document.querySelector('[data-study-reschedule-time="' + _cssAttrEscape(key) + '"]');
+  var date = dateEl ? String(dateEl.value || '').trim() : '';
+  var time = timeEl ? String(timeEl.value || '').trim() : '';
+  if(!date){
+    setStudyPlanActionMessage('請先選要改到哪一天。');
+    renderStudyPlanItems(_mergeStudyPlan({ items: window.__studyPlanItemCache || [] }));
+    return;
+  }
+  var item = _findStudyPlanItem(key);
+  var token = localStorage.getItem('sofa_token') || '';
+  var uid = localStorage.getItem('sofa_uid') || '';
+  setStudyItemPending(key, true, '改期中…');
+  try{
+    if(item && item.id && (token || uid)){
+      try{
+        var moved = await _fetchStudyJSON(API + '/api/me/study/plan-item/' + encodeURIComponent(item.id) + '/reschedule', {
+          method:'POST',
+          headers:_authH({'Content-Type':'application/json'}),
+          body: JSON.stringify({ scheduled_date:date, scheduled_time:time, scope:'single' })
+        });
+        if(!moved || !moved.ok) throw new Error('reschedule failed');
+        setStudyPlanActionMessage('已改到 ' + date + (time ? ' ' + time : '') + '。');
+        var latest = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
+        renderStudyToday(latest || null);
+        focusStudyPlanItems();
+        return;
+      }catch(e){
+        setStudyPlanActionMessage('同步失敗，這筆雲端計畫還沒改動；請稍後再試。');
+        renderStudyPlanItems(_mergeStudyPlan({ items: window.__studyPlanItemCache || [] }));
+        focusStudyPlanItems();
+        return;
+      }
+    }
+    updateLocalStudyItemSchedule(key, date, time);
+  } finally {
+    setStudyItemPending(key, false);
+  }
+}
+
 document.addEventListener('click', function(event){
   var btn = event.target && event.target.closest ? event.target.closest('[data-study-action-kind]') : null;
   if(!btn) return;
@@ -5371,6 +5485,8 @@ document.addEventListener('click', function(event){
   if(kind === 'done') completeStudyItem(key);
   else if(kind === 'postpone') postponeStudyItem(key);
   else if(kind === 'cancel') cancelStudyItem(key);
+  else if(kind === 'reschedule-open') toggleStudyItemReschedule(key);
+  else if(kind === 'reschedule-save') rescheduleStudyItemToInput(key);
 });
 
 function _mergeStudyPlan(remotePlan){
@@ -8079,7 +8195,7 @@ function renderStudyToday(data){
   var subjects = Array.isArray(data.subjects) ? data.subjects : [];
   var blocks = data.today && Array.isArray(data.today.blocks) ? data.today.blocks : [];
   var seededCount = subjects.filter(function(s){ return s.implementation_status === 'seeded_moex_mcq'; }).length;
-  if(summaryEl) summaryEl.textContent = data.fallback ? '先做 1 題開始累積弱點' : (seededCount ? ('目前可練習 ' + seededCount + ' 科') : '先做 1 題開始累積弱點');
+  if(summaryEl) summaryEl.textContent = data.fallback ? '先做 1 題開始累積弱點' : (seededCount ? ('弱點判讀已接 ' + seededCount + ' 科') : '先做 1 題開始累積弱點');
   var navStudy = document.getElementById('nav-ct-study');
   if(navStudy) navStudy.textContent = seededCount ? String(seededCount) : '';
   var bridgeItems = (data.weak_law_bridge && data.weak_law_bridge.items) || [];
@@ -8094,8 +8210,8 @@ function renderStudyToday(data){
   renderStudySuggestions(buildStudySuggestions(data, mergedPlan));
   updateStudySaveNudge();
   subjectsEl.innerHTML = '<span class="study-subject study-subject-summary">科目狀態</span>'
-    + '<span class="study-subject seeded">目前可練習</span>'
-    + '<span class="study-subject seeded">可單刷 ' + esc(seededCount) + ' 科</span>';
+    + '<span class="study-subject seeded">弱點判讀</span>'
+    + '<span class="study-subject seeded">已接 ' + esc(seededCount) + ' 科</span>';
   blocksEl.innerHTML = blocks.length ? blocks.slice(0,6).map(function(b){
     var laws = Array.isArray(b.law_names) ? b.law_names.join('、') : '';
     var targetLaw = (Array.isArray(b.law_names) && b.law_names[0]) || b.display_name || '';
@@ -8192,7 +8308,10 @@ function openStudyPlaylistPanel(forceOpen){
   if(record) record.classList.remove('on');
   if(timer) timer.classList.remove('on');
   setStudyPanelMode(panel.classList.contains('on') ? 'playlist' : 'closed');
-  if(panel.classList.contains('on')) loadStudyPlaylist();
+  if(panel.classList.contains('on')){
+    if(typeof populateStudyPlaylistLaws === 'function') populateStudyPlaylistLaws();
+    loadStudyPlaylist();
+  }
   if(panel.classList.contains('on') && typeof focusStudyPanelTarget === 'function') focusStudyPanelTarget('study-playlist-playall', 'study-cockpit-recap');
 }
 
@@ -8527,10 +8646,12 @@ function setDashboardSideCollapsed(collapsed){
     button.setAttribute('title', on ? '顯示導覽' : '隱藏導覽');
   }
   if(modeButton){
-    modeButton.textContent = on ? '打開' : '收起';
+    modeButton.textContent = '‹';
     modeButton.setAttribute('aria-pressed', on ? 'false' : 'true');
+    modeButton.setAttribute('aria-label', on ? '顯示導覽' : '隱藏導覽');
+    modeButton.setAttribute('title', on ? '顯示導覽' : '隱藏導覽');
   }
-  if(status) status.textContent = '導覽';
+  if(status) status.textContent = on ? '左側導覽已隱藏' : '左側導覽已顯示';
   if(peek) peek.setAttribute('aria-hidden', on ? 'false' : 'true');
 }
 
@@ -8577,8 +8698,9 @@ function _studyVal(id){
   return el ? String(el.value || '').trim() : '';
 }
 
-function buildStudyPlaylistFallbackItems(data, subject){
+function buildStudyPlaylistFallbackItems(data, subject, lawFilter){
   data = data || {};
+  lawFilter = String(lawFilter || '').trim();
   var items = [];
   var seen = new Set();
   function pushItem(raw){
@@ -8645,7 +8767,41 @@ function buildStudyPlaylistFallbackItems(data, subject){
       return item.law_name || item.title;
     });
   }
+  if(lawFilter){
+    items = items.filter(function(item){
+      return String(item.law_name || '').trim() === lawFilter;
+    });
+  }
   return items.slice(0, 8);
+}
+
+function populateStudyPlaylistLaws(){
+  var sel = document.getElementById('study-playlist-law');
+  if(!sel) return;
+  var current = sel.value || '';
+  var laws = Array.isArray(_allLaws) ? _allLaws.slice() : [];
+  if(!laws.length){
+    fetch(API + '/api/laws')
+      .then(function(r){ return r.ok ? r.json() : null; })
+      .then(function(d){
+        if(d && Array.isArray(d.laws)){
+          _allLaws = d.laws;
+          populateStudyPlaylistLaws();
+        }
+      })
+      .catch(function(){});
+    return;
+  }
+  var seen = {};
+  var options = ['<option value="">全部法規</option>'];
+  laws.forEach(function(law){
+    var name = String(law && law.name || law || '').trim();
+    if(!name || seen[name]) return;
+    seen[name] = true;
+    options.push('<option value="' + esc(name) + '">' + esc(name) + '</option>');
+  });
+  sel.innerHTML = options.join('');
+  if(current && seen[current]) sel.value = current;
 }
 
 function refreshOpenStudyPlaylistFromWeakCache(){
@@ -8665,16 +8821,23 @@ function refreshOpenStudyPlaylistFromWeakCache(){
 async function loadStudyPlaylist(){
   var list = document.getElementById('study-playlist-list');
   var subjectEl = document.getElementById('study-playlist-subject');
+  var lawEl = document.getElementById('study-playlist-law');
   var pauseEl = document.getElementById('study-playlist-pause');
   if(!list) return;
   var subject = subjectEl ? subjectEl.value : 'tax_laws';
+  var law = lawEl ? String(lawEl.value || '').trim() : '';
   var pauseSeconds = pauseEl ? String(pauseEl.value || '6') : '6';
   list.innerHTML = '<div class="study-empty">讀取重點清單中…</div>';
   _setStudyPlaylistStatus('正在更新通勤問答清單。');
   try{
-    var res = await _fetchJSON(API + '/api/playlist?track=bookkeeper&subject=' + encodeURIComponent(subject) + '&mode=active_recall&content_layer=analysis&pause_seconds=' + encodeURIComponent(pauseSeconds) + '&star_min=3&limit=8', { headers: _authH({}) }, 1);
+    var res = await _fetchJSON(API + '/api/playlist?track=bookkeeper&subject=' + encodeURIComponent(subject) + (law ? '&law=' + encodeURIComponent(law) : '') + '&mode=active_recall&content_layer=analysis&pause_seconds=' + encodeURIComponent(pauseSeconds) + '&star_min=3&limit=8', { headers: _authH({}) }, 1);
     var items = res && Array.isArray(res.items) ? res.items : [];
-    if(!items.length) items = buildStudyPlaylistFallbackItems(window.__studyTodayData || {}, subject);
+    if(law){
+      items = items.filter(function(item){
+        return String(item.law_name || item.law || '').trim() === law;
+      });
+    }
+    if(!items.length) items = buildStudyPlaylistFallbackItems(window.__studyTodayData || {}, subject, law);
     if(!items.length){
       window.__studyPlaylistAudioItems = [];
       list.innerHTML = '<div class="study-empty">重點清單目前還空；先做一題，答題紀錄會變成可朗讀、可單刷的重點。<br><a class="study-empty-action" href="quiz.html">先做一題</a></div>';
@@ -8806,13 +8969,21 @@ function renderStudyPlanItems(plan){
     var key = _studyItemKey(item);
     var canEdit = item.source_label !== '補紀錄 ' + (item.minutes || '') + ' 分鐘';
     var learningActions = studyPlanItemActionLinks(item);
+    var reschedulePanel = canEdit
+      ? '<span class="study-plan-reschedule" data-study-reschedule-key="' + esc(key) + '" hidden>'
+        + '<input type="date" value="' + esc(item.scheduled_date || _todayInputValue()) + '" data-study-reschedule-date="' + esc(key) + '" aria-label="新的讀書日期">'
+        + '<input type="time" value="' + esc(item.scheduled_time || '') + '" data-study-reschedule-time="' + esc(key) + '" aria-label="新的讀書時間">'
+        + '<button type="button" data-study-action-kind="reschedule-save" data-study-action-key="' + esc(key) + '">儲存時間</button>'
+        + '</span>'
+      : '';
     var editActions = canEdit
       ? '<button class="primary" type="button" data-study-action-kind="done" data-study-action-key="' + esc(key) + '">完成</button>'
         + '<button type="button" data-study-action-kind="postpone" data-study-action-key="' + esc(key) + '">改下週</button>'
+        + '<button type="button" data-study-action-kind="reschedule-open" data-study-action-key="' + esc(key) + '">改時間</button>'
         + '<button class="warn" type="button" data-study-action-kind="cancel" data-study-action-key="' + esc(key) + '">取消</button>'
       : '';
     var actionHtml = learningActions || editActions
-      ? '<span class="study-plan-actions">' + learningActions + editActions + '</span>'
+      ? '<span class="study-plan-actions">' + learningActions + editActions + '</span>' + reschedulePanel
       : '';
     return '<div class="study-plan-item' + (idx >= 4 ? ' is-hidden' : '') + '">'
       + '<span class="date">' + esc(item.scheduled_date || '') + '</span>'
@@ -9758,6 +9929,7 @@ function _runLandingUrlHandlers(){
       if(d && d.laws){
         _allLaws = d.laws;
         _renderLawsToc(0);
+        populateStudyPlaylistLaws();
         // 動態更新法規數字標籤
         var cnt = _allLaws.length;
         // article_total = 真實條文數；d.total 是法規數，別誤用成條文數

@@ -54,6 +54,7 @@ test('today recaps are included in the sidebar navigation and scroll spy', () =>
   assert.match(html, /<div class="nav-helper">右邊滑到哪，左邊會亮哪一段。<\/div>/);
   assert.match(html, /data-spy-target="study-cockpit-recap"[\s\S]*今天先做/);
   assert.match(html, /data-spy-target="study-weak-brief"[\s\S]*今日弱點/);
+  assert.match(html, /data-spy-target="study-playlist-block"[\s\S]*播放清單/);
   assert.match(html, /data-spy-target="study-time-box"[\s\S]*讀書時間/);
   assert.match(html, /data-spy-target="study-plan-items"[\s\S]*讀書計畫/);
   assert.match(html, /data-spy-target="quiz-recap"[\s\S]*最近作答/);
@@ -88,6 +89,7 @@ test('today sidebar order follows the actual dashboard reading order', () => {
   const navOrder = [
     'study-cockpit-recap',
     'study-weak-brief',
+    'study-playlist-block',
     'study-time-box',
     'study-plan-items',
     'quiz-recap',
@@ -98,6 +100,7 @@ test('today sidebar order follows the actual dashboard reading order', () => {
   const pageOrder = [
     'study-cockpit-recap',
     'study-weak-brief',
+    'study-playlist-block',
     'study-time-box',
     'study-plan-items',
     'quiz-recap',
@@ -155,7 +158,8 @@ test('law table of contents separates reading searching and single-practice acti
 });
 
 test('dashboard tool count names tools rather than practice modes', () => {
-  assert.match(html, /<div class="r"><span class="eb">8 個工具<\/span><\/div>/);
+  assert.doesNotMatch(html, /<div class="r"><span class="eb">\d+ 個工具<\/span><\/div>/);
+  assert.match(html, /<div class="r"><span class="eb">備考工具<\/span><\/div>/);
   assert.doesNotMatch(html, /8 種模式/);
 });
 
@@ -165,22 +169,28 @@ test('desktop sidebar stays present while the main dashboard scrolls', () => {
   assert.match(html, /aside\.side\{[\s\S]*overflow-y:auto/);
   assert.match(cssRule(html, '.nav-list a'), /min-height:44px/);
   assert.match(html, /class="side-guide-controls"[\s\S]*aria-label="導覽顯示狀態"/);
-  assert.match(cssRule(html, '.side-guide-controls'), /position:sticky/);
-  assert.match(cssRule(html, '.side-guide-controls'), /top:0/);
+  assert.match(cssRule(html, '.side-guide-controls'), /position:absolute/);
+  assert.match(cssRule(html, '.side-guide-controls'), /top:94px/);
+  assert.match(cssRule(html, '.side-guide-controls'), /right:18px/);
+  assert.match(cssRule(html, '.side-guide-controls'), /width:28px/);
   assert.match(cssRule(html, '.side-guide-controls'), /background:transparent/);
   assert.match(cssRule(html, '.side-guide-controls'), /box-shadow:none/);
-  assert.match(html, /id="side-mode-status"[\s\S]*導覽/);
-  assert.match(html, /id="side-mode-btn"[\s\S]*onclick="toggleDashboardSideNav\(\)"[\s\S]*收起/);
-  assert.match(html, /class="side-peek-btn"[\s\S]*onclick="setDashboardSideCollapsed\(false\)"[\s\S]*導覽/);
-  assert.match(cssRule(html, '.side-peek-btn'), /width:auto/);
-  assert.match(cssRule(html, '.side-peek-btn'), /min-width:36px/);
-  assert.match(cssRule(html, '.side-peek-btn'), /min-height:36px/);
+  assert.match(cssRule(html, '.side-mode-status'), /position:absolute/);
+  assert.match(cssRule(html, '.side-mode-status'), /width:1px/);
+  assert.match(html, /id="side-mode-status"[\s\S]*左側導覽/);
+  assert.match(html, /id="side-mode-btn"[\s\S]*aria-label="隱藏導覽"[\s\S]*onclick="toggleDashboardSideNav\(\)"[\s\S]*‹/);
+  assert.match(html, /class="side-peek-btn"[\s\S]*onclick="setDashboardSideCollapsed\(false\)"[\s\S]*›/);
+  assert.doesNotMatch(html, /id="side-mode-btn"[\s\S]*>收起<\/button>/);
+  assert.doesNotMatch(html, /id="side-mode-btn"[\s\S]*>打開<\/button>/);
+  assert.match(cssRule(html, '.side-peek-btn'), /width:32px/);
+  assert.match(cssRule(html, '.side-peek-btn'), /min-width:32px/);
+  assert.match(cssRule(html, '.side-peek-btn'), /min-height:32px/);
   assert.match(html, /body\.side-collapsed \.side-peek-btn\{display:inline-flex/);
   assert.match(html, /peek\.setAttribute\('aria-hidden', on \? 'false' : 'true'\)/);
   assert.doesNotMatch(html, /body\.side-collapsed \.topbar \.menu-btn::after/);
   assert.match(html, /button\.setAttribute\('aria-label', on \? '顯示導覽' : '隱藏導覽'\)/);
-  assert.match(html, /modeButton\.textContent = on \? '打開' : '收起'/);
-  assert.match(html, /status\.textContent = '導覽'/);
+  assert.match(html, /modeButton\.textContent = '‹'/);
+  assert.match(html, /status\.textContent = on \? '左側導覽已隱藏' : '左側導覽已顯示'/);
   assert.match(html, /body\.side-collapsed \.side-guide-controls\{display:none\}/);
   assert.match(html, /\.shell::before\{[\s\S]*position:fixed;top:var\(--topbar-offset\);bottom:0;left:0;width:280px/);
   assert.match(html, /\.shell::before\{[\s\S]*background:var\(--navy-2\)/);

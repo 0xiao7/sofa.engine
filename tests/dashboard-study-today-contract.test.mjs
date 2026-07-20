@@ -351,6 +351,9 @@ test('study playlist is a generic text fallback and does not ship private schedu
   assert.match(active, /content_layer=analysis/);
   assert.match(active, /pause_seconds=/);
   assert.match(active, /star_min=3/);
+  assert.match(active, /id="study-playlist-law"/);
+  assert.match(active, /aria-label="播放清單法規"/);
+  assert.match(active, /function populateStudyPlaylistLaws/);
   assert.match(active, /通勤問答|重點清單/);
   assert.match(active, /id="study-playlist-block"/);
   assert.match(active, /播放清單/);
@@ -395,7 +398,7 @@ test('study playlist falls back to today weakness and topic blocks when playlist
   assert.match(fallback, /slice\(0,\s*8\)/);
 
   const load = extractFunction(active, 'loadStudyPlaylist');
-  assert.match(load, /buildStudyPlaylistFallbackItems\(window\.__studyTodayData \|\| \{\},\s*subject\)/);
+  assert.match(load, /buildStudyPlaylistFallbackItems\(window\.__studyTodayData \|\| \{\},\s*subject,\s*law\)/);
   assert.match(load, /重點清單目前還空/);
   assert.doesNotMatch(load, /先回選擇題累積弱點/);
 });
@@ -872,8 +875,11 @@ test('returning learners get a compact next card without onboarding-style extra 
 });
 
 test('study today uses learner-facing subject status wording, not seed jargon', () => {
-  assert.match(active, /可單刷/);
-  assert.match(active, /目前可練習/);
+  assert.match(active, /弱點判讀已接/);
+  assert.match(active, /弱點判讀/);
+  assert.match(active, /已接 ' \+ esc\(seededCount\) \+ ' 科/);
+  assert.doesNotMatch(active, /可單刷 ' \+ esc\(seededCount\) \+ ' 科/);
+  assert.doesNotMatch(active, /目前可練習 ' \+ seededCount \+ ' 科/);
   assert.doesNotMatch(active, /題庫準備中/);
   assert.doesNotMatch(active, /\d+\s*科\s*·\s*\d+\s*科可練習/);
   assert.doesNotMatch(active, /題庫準備中\s*'\s*\+\s*esc\(pendingCount\)/);
@@ -973,12 +979,13 @@ test('sidebar and mobile quick entry use clear exam-loop labels', () => {
   assert.match(active, /<nav class="top-mid">[\s\S]*href="#review-due"[\s\S]*複習/);
   assert.match(active, /<a href="#study-cockpit-recap" data-spy-target="study-cockpit-recap"><span class="num">T1<\/span>今天先做/);
   assert.match(active, /<a href="#study-weak-brief" data-spy-target="study-weak-brief"><span class="num">T2<\/span>今日弱點/);
-  assert.match(active, /<a href="#study-time-box" data-spy-target="study-time-box"><span class="num">T3<\/span>讀書時間/);
-  assert.match(active, /<a href="#study-plan-items" data-spy-target="study-plan-items"><span class="num">T4<\/span>讀書計畫/);
-  assert.match(active, /<a href="#quiz-recap" data-spy-target="quiz-recap"><span class="num">T5<\/span>最近作答/);
-  assert.match(active, /<a href="#weak-laws-recap" data-spy-target="weak-laws-recap"><span class="num">T6<\/span>弱點法規/);
-  assert.match(active, /<a href="#review-due" data-spy-target="review-due"><span class="num">T7<\/span>今日複習/);
-  assert.match(active, /<a href="#srs-settings" data-spy-target="srs-settings"><span class="num">T8<\/span>複習策略/);
+  assert.match(active, /<a href="#study-playlist-block" data-spy-target="study-playlist-block"><span class="num">T3<\/span>播放清單/);
+  assert.match(active, /<a href="#study-time-box" data-spy-target="study-time-box"><span class="num">T4<\/span>讀書時間/);
+  assert.match(active, /<a href="#study-plan-items" data-spy-target="study-plan-items"><span class="num">T5<\/span>讀書計畫/);
+  assert.match(active, /<a href="#quiz-recap" data-spy-target="quiz-recap"><span class="num">T6<\/span>最近作答/);
+  assert.match(active, /<a href="#weak-laws-recap" data-spy-target="weak-laws-recap"><span class="num">T7<\/span>弱點法規/);
+  assert.match(active, /<a href="#review-due" data-spy-target="review-due"><span class="num">T8<\/span>今日複習/);
+  assert.match(active, /<a href="#srs-settings" data-spy-target="srs-settings"><span class="num">T9<\/span>複習策略/);
   assert.match(active, /<a href="quiz\.html"><span class="num">練<\/span>選擇題/);
   assert.match(active, /<a href="#weak-laws-recap"><span class="num">補<\/span>弱點分析/);
   assert.match(active, /<span class="mdb-lbl">今天先做<\/span>/);
@@ -1213,6 +1220,19 @@ test('local study plan items can be completed postponed or cancelled from the li
   assert.match(active, /local\.items = \(local\.items \|\| \[\]\)\.map/);
   assert.match(active, /renderStudyPlanItems\(_mergeStudyPlan\(null\)\)/);
   assert.doesNotMatch(active, /updateLocalStudyItemStatus[\s\S]{0,500}correct_count/);
+});
+
+test('study plan items can be rescheduled to a chosen date and time', () => {
+  assert.match(active, /function toggleStudyItemReschedule/);
+  assert.match(active, /function rescheduleStudyItemToInput/);
+  assert.match(active, /data-study-action-kind="reschedule-open"/);
+  assert.match(active, /data-study-reschedule-key=/);
+  assert.match(active, /data-study-reschedule-date/);
+  assert.match(active, /data-study-reschedule-time/);
+  assert.match(active, /data-study-action-kind="reschedule-save"/);
+  assert.match(active, /JSON\.stringify\(\{ scheduled_date:date,\s*scheduled_time:time,\s*scope:'single' \}\)/);
+  assert.match(active, /updateLocalStudyItemSchedule\(key, date, time\)/);
+  assert.doesNotMatch(active, /prompt\(/);
 });
 
 test('remote study plan actions persist status before falling back locally', () => {

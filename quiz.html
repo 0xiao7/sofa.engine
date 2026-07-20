@@ -186,6 +186,38 @@
   .explain .src span{min-width:0;overflow-wrap:anywhere}
   .free-quiz-notice a{min-height:44px}
   .art-inline{margin-top:14px;padding:16px 20px;background:rgba(31,56,72,.06);border-radius:3px;max-height:none;overflow-y:visible;font-family:var(--serif);font-size:clamp(1rem, 3vw, 1.08rem);line-height:2;color:rgba(31,56,72,.82);white-space:pre-wrap;overflow-wrap:anywhere;display:none}
+  .quiz-article-panel{
+    position:fixed;inset:76px 28px 28px;z-index:150;display:none;
+    align-items:center;justify-content:center;background:rgba(4,13,20,.58);padding:0;
+  }
+  .quiz-article-panel.show{display:flex}
+  .quiz-article-shell{
+    width:min(860px,100%);max-height:100%;overflow:hidden;display:flex;flex-direction:column;
+    background:var(--cream);color:var(--navy);border:1px solid rgba(231,187,167,.46);border-radius:6px;
+    box-shadow:0 26px 80px rgba(0,0,0,.34);
+  }
+  .quiz-article-head{
+    display:flex;align-items:center;justify-content:space-between;gap:14px;padding:16px 18px;
+    border-bottom:1px solid rgba(31,56,72,.12);background:rgba(31,56,72,.04);
+  }
+  .quiz-article-head b{
+    font-family:var(--serif);font-size:18px;line-height:1.45;color:var(--navy);font-weight:700;
+    min-width:0;overflow-wrap:anywhere;
+  }
+  .quiz-article-close{
+    flex:0 0 auto;width:44px;height:44px;border:1px solid rgba(31,56,72,.18);border-radius:4px;
+    background:rgba(31,56,72,.06);color:var(--navy);font-size:23px;line-height:1;cursor:pointer;
+  }
+  .quiz-article-close:hover,.quiz-article-close:focus{background:rgba(231,187,167,.34);outline:2px solid rgba(213,154,120,.45);outline-offset:2px}
+  .quiz-article-body{padding:20px 22px;overflow:auto;line-height:1.85}
+  .quiz-article-loading,.quiz-article-error{
+    padding:18px;border:1px dashed rgba(31,56,72,.18);border-radius:4px;
+    background:rgba(31,56,72,.05);color:rgba(31,56,72,.72);
+  }
+  .quiz-dialog-law-text{
+    padding:16px 18px;background:rgba(31,56,72,.06);border-radius:4px;white-space:pre-wrap;
+    font-family:var(--serif);font-size:16px;line-height:2;color:rgba(31,56,72,.84);overflow-wrap:anywhere;
+  }
 
   #quiz-answer-actions{display:none;margin-top:18px;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
   #quiz-answer-actions.show{display:grid}
@@ -316,6 +348,37 @@
   .stat-line b{font-family:var(--mono);color:var(--cream);font-weight:600}
   .stat-line .v.good{color:var(--good)}
   .stat-line .v.bad{color:var(--bad)}
+  .auto-next-setting{
+    display:flex;
+    align-items:flex-start;
+    gap:10px;
+    padding-top:10px;
+    margin-top:10px;
+    border-top:1px dashed var(--line);
+    color:rgba(245,240,234,.72);
+    font-size:13px;
+    line-height:1.55;
+    cursor:pointer;
+  }
+  .auto-next-setting input{
+    width:18px;
+    height:18px;
+    min-height:18px;
+    margin-top:2px;
+    accent-color:var(--peach);
+    flex:0 0 auto;
+  }
+  .auto-next-setting b{
+    display:block;
+    color:var(--cream);
+    font-weight:600;
+  }
+  .auto-next-setting small{
+    display:block;
+    color:rgba(245,240,234,.46);
+    font-size:11.5px;
+    line-height:1.55;
+  }
 
   @media (max-width:1100px){
     .pr-bar{padding:14px 24px}
@@ -370,6 +433,10 @@
     #quiz-answer-actions #quiz-citation{grid-column:1 / -1}
     .sec-text .sec-i{margin:7px 0 7px 12px}
     .explain{padding:20px 18px}
+    .quiz-article-panel{inset:0;align-items:flex-end;background:rgba(4,13,20,.68)}
+    .quiz-article-shell{width:100%;height:min(82vh,720px);max-height:calc(100vh - env(safe-area-inset-top,0px));border-radius:10px 10px 0 0}
+    .quiz-article-head{padding:14px 16px}
+    .quiz-article-body{padding:18px 16px calc(18px + env(safe-area-inset-bottom,0px))}
     #post-answer-retention{align-items:stretch;flex-direction:column}
     #post-answer-retention .retention-links{justify-content:stretch}
     #session-summary-stats{grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -526,6 +593,16 @@
           </div>
         </div>
 
+        <section id="quiz-article-panel" class="quiz-article-panel" role="dialog" aria-modal="true" aria-labelledby="quiz-article-panel-title" hidden>
+          <div class="quiz-article-shell">
+            <div class="quiz-article-head">
+              <b id="quiz-article-panel-title">法條解析</b>
+              <button type="button" class="quiz-article-close" aria-label="關閉法條解析" onclick="closeQuizArticlePanel()">×</button>
+            </div>
+            <div id="quiz-article-panel-body" class="quiz-article-body"></div>
+          </div>
+        </section>
+
         <section id="session-summary" aria-live="polite">
           <div class="eyebrow">SOFA ENGINE · 刷題模式</div>
           <h2 id="session-summary-title">這組刷題完成</h2>
@@ -583,6 +660,10 @@
           <div class="stat-line"><span>累計答錯</span><span><b id="railWrong" style="color:var(--bad)">0</b></span></div>
           <div class="stat-line"><span>已標記</span><span><b id="railFlagged">0</b></span></div>
           <div class="stat-line"><span>用時</span><span><b id="railTimer">0:00</b></span></div>
+          <label class="auto-next-setting" for="autoNextCorrectToggle">
+            <input id="autoNextCorrectToggle" type="checkbox">
+            <span><b>答對自動下一題</b><small>答錯停留看解析；可隨時關閉。</small></span>
+          </label>
         </div>
 
         <div class="rail-card">
@@ -1092,6 +1173,99 @@ function _articleReaderHref(law, art, id){
   url += `&from=quiz&back=${encodeURIComponent(_currentQuizReturnTarget())}`;
   return url;
 }
+function _articleRefAttr(raw){
+  return String(raw||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+function _articleRefAttrs(law, art, id){
+  let attrs = `href="${_articleRefAttr(_articleReaderHref(law, art, id))}" data-law="${_articleRefAttr(law||'')}" data-art="${_articleRefAttr(art||'')}"`;
+  if(id) attrs += ` data-page-id="${_articleRefAttr(id)}"`;
+  return attrs;
+}
+function _articleIdentityKey(raw){
+  const n=normalizeArticleCore(raw);
+  return `${n.core}${n.suffix}`;
+}
+function _articleNoMatches(item, wanted){
+  const target=_articleIdentityKey(wanted);
+  if(!target)return false;
+  return [item&&item.title, item&&item.article_no, item&&item.article, item&&item.no].some(v=>_articleIdentityKey(v)===target || _articleParamCore(v)===_articleParamCore(wanted));
+}
+async function resolveQuizArticlePageId(law, art){
+  if(!law || !art)return '';
+  const list=await _ensureArticleCache(law);
+  const found=(list||[]).find(a=>_articleNoMatches(a, art));
+  return found ? String(found.page_id || found.id || found.article_id || '') : '';
+}
+function _quizArticlePanelEls(){
+  return {
+    panel:document.getElementById('quiz-article-panel'),
+    title:document.getElementById('quiz-article-panel-title'),
+    body:document.getElementById('quiz-article-panel-body')
+  };
+}
+function closeQuizArticlePanel(){
+  const {panel,body}=_quizArticlePanelEls();
+  if(!panel)return;
+  panel.classList.remove('show');
+  panel.hidden=true;
+  if(body)body.innerHTML='';
+}
+function _showQuizArticlePanelLoading(label){
+  const {panel,title,body}=_quizArticlePanelEls();
+  if(!panel || !body)return false;
+  panel.hidden=false;
+  panel.classList.add('show');
+  if(title)title.textContent=label || '法條解析';
+  body.innerHTML='<div class="quiz-article-loading">法條解析載入中...</div>';
+  return true;
+}
+function _articlePanelTitle(article, fallbackLaw, fallbackArt){
+  const law=article?.law_name || article?.law || fallbackLaw || '';
+  const title=article?.title || article?.article || fallbackArt || '';
+  return [law,title].filter(Boolean).join(' · ') || '法條解析';
+}
+async function openQuizArticlePanelByTarget(target){
+  target=target||{};
+  const law=String(target.law||'').trim();
+  const art=String(target.art||target.article||'').trim();
+  let pageId=String(target.pageId||target.id||target.page_id||'').trim();
+  _showQuizArticlePanelLoading(_articlePanelTitle(null, law, art));
+  const {title,body}=_quizArticlePanelEls();
+  try{
+    if(!pageId)pageId=await resolveQuizArticlePageId(law, art);
+    if(!pageId)throw new Error('article_not_found');
+    const res=await fetch(`${API}/api/article/${encodeURIComponent(pageId)}`,{headers:_authH()});
+    if(!res.ok)throw new Error('article_fetch_failed');
+    const payload=await res.json();
+    const article=payload.article || payload.item || payload;
+    if(title)title.textContent=_articlePanelTitle(article, law, art);
+    if(body){
+      body.innerHTML='';
+      const original=document.createElement('div');
+      original.className='quiz-dialog-law-text';
+      original.textContent=formatLawText(article.original_text || article.text || '') || '暫時沒有條文原文。';
+      body.appendChild(original);
+      buildSections(article.sections||{}, articleSectionsArePaid(article), body, null, article);
+    }
+  }catch(e){
+    if(body)body.innerHTML='<div class="quiz-article-error">暫時讀不到這條法條。你的作答畫面沒有離開，可以關閉後繼續看原題。</div>';
+  }
+}
+function _articleTargetFromLink(link){
+  if(!link)return {};
+  let law=link.dataset.law || '';
+  let art=link.dataset.art || '';
+  let pageId=link.dataset.pageId || link.dataset.id || '';
+  if((!law || !art || !pageId) && link.href){
+    try{
+      const url=new URL(link.href, location.href);
+      law=law || url.searchParams.get('law') || '';
+      art=art || url.searchParams.get('art') || '';
+      pageId=pageId || url.searchParams.get('id') || url.searchParams.get('page_id') || '';
+    }catch(e){}
+  }
+  return {law,art,pageId};
+}
 function _quizReturnStatePayload(){
   const options=document.getElementById('optionsBox');
   const explain=document.getElementById('explainBox');
@@ -1139,8 +1313,7 @@ function _restoreQuizReturnStateWhenReady(){
   else setTimeout(run, 0);
 }
 function _openArticleReader(){
-  _saveQuizReturnState();
-  window.location.href = _articleReaderHref(_currentLawName, _currentArtNo, _currentPageId);
+  openQuizArticlePanelByTarget({law:_currentLawName, art:_currentArtNo, pageId:_currentPageId});
 }
 const ARTICLE_INLINE_LOADING_FALLBACK_MS = 4500;
 let _inlineFallbackTimer=null;
@@ -1192,8 +1365,10 @@ function cleanCrossRefLawName(raw){
 }
 function linkifyLawRefs(text, articleLawName){
   let out=String(text||'');
-  function href(law,art){return `law-preview.html?law=${encodeURIComponent(cleanCrossRefLawName(law||articleLawName))}&art=${encodeURIComponent(String(art||'').replace(/^第/,'').replace(/條.*$/,''))}&from=quiz&back=quiz.html`;}
-  function a(law,art,label){return `<a class="crossref" href="${href(law,art)}">${label}</a>`;}
+  function cleanArt(art){return String(art||'').replace(/^第/,'').replace(/條.*$/,'');}
+  function attr(raw){return String(raw||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function href(law,art){return `law-preview.html?law=${encodeURIComponent(cleanCrossRefLawName(law||articleLawName))}&art=${encodeURIComponent(cleanArt(art))}&from=quiz&back=quiz.html`;}
+  function a(law,art,label){const cleanLaw=cleanCrossRefLawName(law||articleLawName);const clean=cleanArt(art);return `<a class="crossref" href="${href(cleanLaw,clean)}" data-law="${attr(cleanLaw)}" data-art="${attr(clean)}">${label}</a>`;}
   out=out.replace(/(同法|本法)第?([0-9一二三四五六七八九十百千零兩]+(?:之[0-9一二三四五六七八九十百千零兩]+)?)條/g,
     (_,lead,art)=>a(articleLawName,art,`${lead}第${art}條`));
   out=out.replace(/(?:搭配|交叉記憶可看|與)?([\u4e00-\u9fa5]{1,16}(?:法|條例|準則|辦法|規則))第?([0-9一二三四五六七八九十百千零兩]+)條及第?([0-9一二三四五六七八九十百千零兩]+)條/g,
@@ -1205,16 +1380,18 @@ function linkifyLawRefs(text, articleLawName){
   return out;
 }
 function openCrossRefArticleInline(ev){
-  const link=ev.target.closest('a.crossref');
+  const link=ev.target.closest('a.crossref, a.weak-article-link');
   if(!link)return;
   ev.preventDefault();
-  link.setAttribute('aria-label','回本題原文');
-  _saveQuizReturnState();
-  window.location.href=link.href;
+  link.setAttribute('aria-label','開啟法條解析');
+  openQuizArticlePanelByTarget(_articleTargetFromLink(link));
 }
 if(typeof document !== 'undefined'){
   document.addEventListener('click',ev=>{
-    if(ev.target.closest('a.crossref')) openCrossRefArticleInline(ev);
+    if(ev.target.closest('a.crossref, a.weak-article-link')) openCrossRefArticleInline(ev);
+  });
+  document.addEventListener('keydown',ev=>{
+    if(ev.key === 'Escape') closeQuizArticlePanel();
   });
 }
 function buildCpiAdjustmentNote(article,sections){
@@ -1336,8 +1513,7 @@ function _weakArticleLinks(law, articles, limit){
     const art = a.article_no || a.article || '';
     const label = art || a.title || '看完整條文';
     if(!pageId && !art) return `<span class="weak-article-link is-muted">${esc(label)}</span>`;
-    const href=_articleReaderHref(law, art || label, pageId);
-    return `<a class="weak-article-link" href="${href}">${esc(label)}<small>來源：${esc(_answerSourceLabel(a.answer_source || a.source))}</small></a>`;
+    return `<a class="weak-article-link" ${_articleRefAttrs(law, art || label, pageId)}>${esc(label)}<small>來源：${esc(_answerSourceLabel(a.answer_source || a.source))}</small></a>`;
   }).join('');
 }
 function _wrongArticleToWeakEntry(a){
@@ -1470,6 +1646,8 @@ let answered=false,right=0,wrong=0,total=0,flagged=0;
 let quizData=null;
 let sessionFinished=false;
 const wrongMode = _searchParams.get('mode') === 'wrong-review' || _searchParams.get('wrong') === '1';
+const AUTO_NEXT_CORRECT_KEY = 'sofa_quiz_auto_next_correct_v1';
+const AUTO_NEXT_CORRECT_DELAY_MS = 520;
 // 本次作答紀錄
 let sessionHistory=[]; // [{num, correct:null|true|false, flagged:false, law:'', title:''}]
 // 計時器
@@ -1561,6 +1739,29 @@ function restartSessionMode(){
   updateScore();
   trackQuizSessionEvent('quiz_session_start', {target_count: _sessionTargetCount, restarted: true});
   loadQuiz();
+}
+
+function isAutoNextCorrectEnabled(){
+  try{return localStorage.getItem(AUTO_NEXT_CORRECT_KEY) === '1';}
+  catch(e){return false;}
+}
+
+function updateAutoNextCorrectUI(){
+  const toggle=document.getElementById('autoNextCorrectToggle');
+  if(toggle) toggle.checked = isAutoNextCorrectEnabled();
+}
+
+function setAutoNextCorrect(on){
+  try{localStorage.setItem(AUTO_NEXT_CORRECT_KEY, on ? '1' : '0');}catch(e){}
+  updateAutoNextCorrectUI();
+}
+
+function maybeAutoAdvanceCorrectAnswer(isCorrect){
+  if(_sessionMode) return false;
+  if(!isCorrect) return false;
+  if(!isAutoNextCorrectEnabled()) return false;
+  setTimeout(function(){ wrongMode ? loadWrongQuiz() : loadQuiz(); }, AUTO_NEXT_CORRECT_DELAY_MS);
+  return true;
 }
 
 function onAnswerDone(isCorrect, loader){
@@ -2020,6 +2221,7 @@ async function loadQuiz(){
           fetch(`${API}/api/me/history`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({page_id:pageId,law_name:lawName,article:artTitle})}).catch(()=>{});
         }
         if(onAnswerDone(isCorrect, loadQuiz)) return;
+        if(maybeAutoAdvanceCorrectAnswer(isCorrect)) return;
         // 顯示說明框
         const eb=document.querySelector('#explainBox .eb');
         if(eb)eb.textContent=isCorrect?'✓ 答對了':'✗ 答錯了，正確答案已標綠';
@@ -2096,9 +2298,11 @@ function doFlag(){
 _bindSourceLink();
 if(_openParam === 'weakness') _openWeakness('weakness');
 if(_openParam === 'wrong') _openWeakness('wrong');
+updateAutoNextCorrectUI();
 document.getElementById('btnFlag').addEventListener('click',doFlag);
 document.getElementById('btnNew').addEventListener('click',()=>{ _quizManualRequested = true; loadQuiz(); });
 document.getElementById('btnNext').addEventListener('click',()=>{ wrongMode ? loadWrongQuiz() : loadQuiz(); });
+document.getElementById('autoNextCorrectToggle').addEventListener('change',e=>{ setAutoNextCorrect(e.target.checked); });
 if(_startQuizParam) setTimeout(_focusQuizQuestionStart, 80);
 document.addEventListener('keydown',e=>{
   if(e.key==='Enter'){ wrongMode ? loadWrongQuiz() : loadQuiz(); }
