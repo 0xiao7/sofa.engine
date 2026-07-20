@@ -63,7 +63,7 @@
         <h1>記帳士考古題雷達</h1>
         <div class="truth">
           <b>目前先看記帳士兩科官方選擇題</b>；只顯示能追蹤到法條的題。
-          這個頁面讀現有 API，不做題庫匯入，也不代表全考科都已產品化。
+          未列入的科目先不做自動弱點判讀，避免把還沒整理完整的資料當成練習結果。
         </div>
         <div class="actions">
           <a class="btn primary" href="quiz.html?mode=past-exam">開始考古題練習</a>
@@ -72,12 +72,12 @@
         </div>
       </div>
       <aside class="panel" aria-label="目前範圍">
-        <div class="k">CURRENT SCOPE</div>
+        <div class="k">目前範圍</div>
         <ul class="scope-list">
           <li><span>產品範圍</span><b>兩科先行</b></li>
-          <li><span>題目邊界</span><b>trackable only</b></li>
+          <li><span>題目邊界</span><b>有法條對應</b></li>
           <li><span>其他考科</span><b>不自動判分</b></li>
-          <li><span>正式練習</span><b>quiz.html?mode=past-exam</b></li>
+          <li><span>正式練習</span><b>前往練習頁</b></li>
         </ul>
       </aside>
     </section>
@@ -85,13 +85,13 @@
     <section class="metrics" aria-label="考古題雷達數字">
       <div class="metric"><div class="n" id="radar-total">讀取中</div><div class="label">正式可練題數</div></div>
       <div class="metric"><div class="n">2</div><div class="label">兩科先行</div></div>
-      <div class="metric"><div class="n" id="radar-years">讀取中</div><div class="label">API 年度範圍</div></div>
+      <div class="metric"><div class="n" id="radar-years">讀取中</div><div class="label">年度範圍</div></div>
     </section>
 
     <section class="grid" id="subjects">
       <article class="card">
         <h2>記帳士兩科</h2>
-        <p>先把練習範圍收在記帳士目前可追蹤的兩科，不用非記帳士 live drift 當公開賣點。</p>
+        <p>先把練習範圍收在記帳士目前可追蹤的兩科，讓每次作答都能回到同一套弱點紀錄。</p>
         <div class="list" id="subject-preview-list">
           <div class="row quiet">正在讀取兩科範例題...</div>
         </div>
@@ -107,24 +107,24 @@
       </article>
       <article class="card">
         <h2>歷屆高頻</h2>
-        <p>高頻法條應由 `article_exam_frequency` 或專用 radar API 提供；本頁先不假造排行。</p>
+        <p>高頻法條正在整理中；未完成前不放排行榜，避免把不完整的資料當成複習方向。</p>
         <div class="list">
-          <div class="row"><b>下一段要接的資料</b>exam_count、subjects、years、官方來源標籤。</div>
+          <div class="row"><b>下一段會補上</b>考過次數、出題科目、年度與官方來源標籤。</div>
           <div class="row"><b>現在可做的事</b>先進考古題練習；答錯會回到弱點與複習路徑。</div>
         </div>
       </article>
       <article class="card" id="quality">
         <h2>資料品質</h2>
-        <p>只把有 `article_ids` 的題送進練習，讓答案可以寫回同一套弱點紀錄。排除題不是消失，是暫時不拿來建立不可靠的弱點歷史。</p>
+        <p>只把能對回法條的題送進練習，讓答案可以寫回同一套弱點紀錄。排除題不是消失，是暫時不拿來建立不可靠的弱點歷史。</p>
         <div class="list" id="quality-list">
-          <div class="row quiet">正在讀取 live meta...</div>
+          <div class="row quiet">正在讀取資料狀態...</div>
         </div>
       </article>
       <article class="card">
-        <h2>Live Scope Drift</h2>
-        <p>目前 live `/api/past-exam/meta` 可能含非記帳士科目。本頁會列出偵測到的科目，但 public copy 不把它說成全考科上線。</p>
+        <h2>其他科目</h2>
+        <p>其他科目若有資料，會先列為待整理範圍；整理完成前不拿來自動判分或建立弱點紀錄。</p>
         <div class="list" id="live-subject-list">
-          <div class="row quiet">正在讀取 live subjects...</div>
+          <div class="row quiet">正在讀取科目狀態...</div>
         </div>
       </article>
     </section>
@@ -151,16 +151,16 @@
       const quality = document.getElementById('quality-list');
       if(quality){
         quality.innerHTML = [
-          `<div class="row"><b>正式可練題數</b>${esc((meta && meta.total) || '未確認')} 題；仍需用 trackable guard 保證有法條對應。</div>`,
-          '<div class="row"><b>排除規則</b>沒有 article_ids 的題不進正式練習，不拿來寫弱點。</div>'
+          `<div class="row"><b>正式可練題數</b>${esc((meta && meta.total) || '未確認')} 題；只計入有法條對應的題。</div>`,
+          '<div class="row"><b>排除規則</b>暫時無法對回法條的題不進正式練習，不拿來寫弱點。</div>'
         ].join('');
       }
       const live = document.getElementById('live-subject-list');
       if(live){
         const subjects = Array.isArray(meta && meta.subjects) ? meta.subjects : [];
         live.innerHTML = subjects.length
-          ? subjects.map(s => `<div class="row"><span class="tag">${BOOKKEEPER_SUBJECTS.includes(s) ? 'BOOKKEEPER' : 'LIVE DRIFT'}</span>${esc(s)}</div>`).join('')
-          : '<div class="row quiet">live subjects 暫時讀不到。</div>';
+          ? subjects.map(s => `<div class="row"><span class="tag">${BOOKKEEPER_SUBJECTS.includes(s) ? '正式可練' : '待整理'}</span>${esc(s)}</div>`).join('')
+          : '<div class="row quiet">科目狀態暫時讀不到。</div>';
       }
     }
 
@@ -181,7 +181,7 @@
         renderRadarMeta(meta);
       }catch(err){
         const quality = document.getElementById('quality-list');
-        if(quality) quality.innerHTML = `<div class="row error">live meta 暫時讀不到：${esc(err.message)}</div>`;
+        if(quality) quality.innerHTML = '<div class="row error">資料狀態暫時讀不到；可先進練習頁。</div>';
       }
       const previews = await Promise.all(BOOKKEEPER_SUBJECTS.map(subject =>
         fetch(`${API}/api/past-exam?subject=${encodeURIComponent(subject)}`)

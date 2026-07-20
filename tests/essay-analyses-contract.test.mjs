@@ -36,11 +36,19 @@ test('essay page only renders published SoFa reference analyses', () => {
   assert.match(essay, /申論參考解析/);
   assert.match(essay, /SoFa Engine 參考解析/);
   assert.match(essay, /非考選部官方標準答案/);
-  assert.match(essay, /manual_review_required/);
+  assert.match(essay, /整理完成的 SoFa Engine 參考解析/);
+  assert.match(essay, /未完成的內容不會放到公開頁面/);
+  assert.doesNotMatch(essay, /manual_review_required|Fay \/ 人工 review|published 解析|草稿/);
   assert.match(essay, /\/api\/essay-analyses/);
   assert.match(essay, /item\.review_status === 'published'/);
   assert.doesNotMatch(essay, /\/api\/admin/);
   assert.doesNotMatch(essay, /<b>考選部官方標準答案<\/b>|PUBLIC_LABEL = '考選部官方標準答案'/);
+});
+
+test('essay page keeps the long controls collapsible', () => {
+  assert.match(essay, /<details class="control-panel" id="essay-control-panel">/);
+  assert.match(essay, /<summary>篩選與說明<\/summary>/);
+  assert.doesNotMatch(essay, /<details class="control-panel" id="essay-control-panel" open>/);
 });
 
 test('essay page preserves legal basis and answer outline without claiming official answers', () => {
