@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>申論參考解析｜SoFa Engine</title>
+  <meta name="description" content="SoFa Engine 申論題參考解析，只顯示人工發布內容，明確區分非考選部官方標準答案。">
+  <link rel="stylesheet" href="sofa.css">
+  <style>
+    :root{--navy:#0e2433;--navy-2:#132f42;--cream:#f5f0ea;--muted:rgba(245,240,234,.66);--line:rgba(245,240,234,.12);--peach:#e7bba7;--warn:#f0c36d}
+    body{margin:0;background:var(--navy);color:var(--cream);font-family:var(--serif, "Noto Serif TC", serif);letter-spacing:0}
+    a{color:inherit}
+    .page{max-width:1080px;margin:0 auto;padding:28px 20px 56px}
+    .top{display:flex;justify-content:space-between;align-items:center;gap:16px;margin-bottom:28px}
+    .brand{display:flex;align-items:center;gap:10px;text-decoration:none;font-size:13px;color:var(--muted);font-family:var(--mono, ui-monospace, monospace);letter-spacing:.12em}
+    .dot{width:9px;height:9px;border-radius:50%;background:var(--peach)}
+    .back{font-size:13px;color:var(--muted);text-decoration:none}
+    .hero{border-bottom:1px solid var(--line);padding:24px 0 28px}
+    h1{font-size:clamp(34px,6vw,64px);line-height:1;margin:0 0 16px;font-weight:600;letter-spacing:0}
+    .truth{font-size:17px;line-height:1.8;color:var(--muted);max-width:760px}
+    .truth b{color:var(--cream);font-weight:600}
+    .controls{display:flex;gap:10px;flex-wrap:wrap;margin:24px 0}
+    select,.btn{min-height:44px;border:1px solid var(--line);border-radius:4px;padding:0 14px;background:var(--navy-2);color:var(--cream);font:inherit}
+    .btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
+    .btn.primary{background:var(--peach);border-color:var(--peach);color:var(--navy);font-weight:700}
+    .status{color:var(--muted);font-size:14px;min-height:24px}
+    .list{display:grid;gap:14px;margin-top:20px}
+    .card{border:1px solid var(--line);background:var(--navy-2);border-radius:4px;padding:18px}
+    .meta{display:flex;gap:8px;flex-wrap:wrap;color:var(--muted);font-size:13px;margin-bottom:8px}
+    .tag{display:inline-flex;align-items:center;min-height:24px;border:1px solid rgba(231,187,167,.35);color:var(--peach);border-radius:3px;padding:0 8px;font-family:var(--mono, ui-monospace, monospace);font-size:11px;letter-spacing:.06em}
+    .card h2{font-size:22px;margin:0 0 10px;font-weight:600}
+    .disclaimer{border-left:3px solid var(--warn);padding-left:12px;color:rgba(245,240,234,.78);font-size:14px;line-height:1.8;margin:12px 0}
+    .analysis{display:grid;gap:10px;color:var(--muted);font-size:14px;line-height:1.85}
+    .analysis b{color:var(--cream)}
+    .basis{display:grid;gap:8px;margin-top:12px}
+    .basis div{border-top:1px dashed var(--line);padding-top:8px;color:var(--muted);font-size:13px;line-height:1.7}
+    .empty{border:1px solid var(--line);background:rgba(245,240,234,.035);border-radius:4px;padding:18px;color:var(--muted);line-height:1.8}
+    @media(max-width:720px){.page{padding:20px 14px 42px}.controls{display:grid}h1{font-size:40px}}
+  </style>
+</head>
+<body>
+  <main class="page">
+    <nav class="top" aria-label="頁面導覽">
+      <a class="brand" href="dashboard.html"><span class="dot"></span>SOFA ENGINE</a>
+      <a class="back" href="dashboard.html">回會員中心</a>
+    </nav>
+
+    <section class="hero">
+      <h1>申論參考解析</h1>
+      <p class="truth">
+        <b>只顯示人工發布的 SoFa Engine 參考解析。</b>
+        這裡不是考選部官方標準答案，也不會把 `manual_review_required` 草稿公開給考生。
+      </p>
+    </section>
+
+    <section class="controls" aria-label="申論解析篩選">
+      <select id="essay-track" aria-label="考試類科">
+        <option value="landadmin">地政士</option>
+        <option value="bookkeeper">記帳士</option>
+      </select>
+      <select id="essay-subject" aria-label="申論科目">
+        <option value="">全部科目</option>
+        <option value="土地法規">土地法規</option>
+        <option value="土地登記實務">土地登記實務</option>
+        <option value="土地稅法規">土地稅法規</option>
+        <option value="民法概要與信託法概要">民法概要與信託法概要</option>
+        <option value="租稅申報實務">租稅申報實務</option>
+      </select>
+      <button class="btn primary" type="button" onclick="loadEssayAnalyses()">更新解析</button>
+      <a class="btn" href="quiz.html?mode=past-exam">回選擇題考古題</a>
+    </section>
+
+    <div class="status" id="essay-status">讀取已發布解析中。</div>
+    <section class="list" id="essay-list" aria-live="polite">
+      <div class="empty">正在讀取 published 解析。</div>
+    </section>
+  </main>
+
+  <script>
+    const API = window.SOFA_API || 'https://sofa-engine-api.onrender.com';
+    const PUBLIC_LABEL = 'SoFa Engine 參考解析';
+    const PUBLIC_DISCLAIMER = '非考選部官方標準答案';
+
+    function esc(s){
+      return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({
+        '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+      }[c]));
+    }
+
+    function listify(value){
+      return Array.isArray(value) ? value : [];
+    }
+
+    function analysisRows(analysis){
+      analysis = analysis && typeof analysis === 'object' ? analysis : {};
+      const rows = [];
+      if(analysis.issue_summary) rows.push(`<div><b>爭點整理</b><br>${esc(analysis.issue_summary)}</div>`);
+      listify(analysis.applicable_law).slice(0, 5).forEach(item => rows.push(`<div><b>法源定位</b><br>${esc(item)}</div>`));
+      listify(analysis.answer_outline).slice(0, 5).forEach(item => rows.push(`<div><b>作答架構</b><br>${esc(item)}</div>`));
+      if(analysis.scoring_notes) rows.push(`<div><b>得分提醒</b><br>${esc(analysis.scoring_notes)}</div>`);
+      return rows.length ? rows.join('') : '<div>這筆解析已發布，但內容格式仍在整理。</div>';
+    }
+
+    function renderEssayAnalyses(items){
+      const list = document.getElementById('essay-list');
+      if(!list) return;
+      if(!items.length){
+        list.innerHTML = '<div class="empty">目前沒有已發布的申論解析。草稿仍需 Fay / 人工 review 後才能公開。</div>';
+        return;
+      }
+      list.innerHTML = items.map(item => {
+        const basis = listify(item.current_law_articles).slice(0, 4).map(a => (
+          `<div>《${esc(a.law || '')}》第 ${esc(a.article_no || '-')} 條：${esc(a.excerpt || '')}</div>`
+        )).join('');
+        return `<article class="card">
+          <div class="meta">
+            <span class="tag">${esc(PUBLIC_LABEL)}</span>
+            <span>${esc(item.subject || '')}</span>
+            <span>${esc(item.roc_year || '')} 年第 ${esc(item.question_no || '')} 題</span>
+          </div>
+          <h2>${esc(item.subject || '申論題')} ${esc(item.roc_year || '')}-${esc(item.question_no || '')}</h2>
+          <p class="disclaimer">${esc(item.disclaimer || PUBLIC_DISCLAIMER)}</p>
+          <div class="analysis">${analysisRows(item.analysis)}</div>
+          ${basis ? `<div class="basis">${basis}</div>` : ''}
+        </article>`;
+      }).join('');
+    }
+
+    async function loadEssayAnalyses(){
+      const track = document.getElementById('essay-track')?.value || 'landadmin';
+      const subject = document.getElementById('essay-subject')?.value || '';
+      const status = document.getElementById('essay-status');
+      const list = document.getElementById('essay-list');
+      if(status) status.textContent = '讀取已發布解析中。';
+      if(list) list.innerHTML = '<div class="empty">正在讀取 published 解析。</div>';
+      const qs = new URLSearchParams({ track, limit: '24' });
+      if(subject) qs.set('subject', subject);
+      try{
+        const data = await fetch(`${API}/api/essay-analyses?${qs.toString()}`).then(r => r.ok ? r.json() : Promise.reject(new Error('essay ' + r.status)));
+        const items = Array.isArray(data.items) ? data.items.filter(item => item.review_status === 'published') : [];
+        renderEssayAnalyses(items);
+        if(status) status.textContent = items.length ? `已顯示 ${items.length} 筆人工發布解析。` : '目前沒有 published 解析；草稿不公開。';
+      }catch(e){
+        if(list) list.innerHTML = '<div class="empty">申論解析暫時讀不到；不影響選擇題練習。</div>';
+        if(status) status.textContent = '申論解析 API 暫時不可用。';
+      }
+    }
+
+    loadEssayAnalyses();
+  </script>
+</body>
+</html>
