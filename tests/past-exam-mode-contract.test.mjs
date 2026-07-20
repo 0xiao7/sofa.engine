@@ -60,8 +60,8 @@ test('past-exam answers write formal answer ledger rows with exam context', () =
   const fn = extractFunction(activeQuiz, 'recordQuizAnswer');
   assert.match(fn, /\/api\/me\/answer/);
   assert.match(fn, /article_id:pageId/);
-  assert.match(fn, /mode:data\._past_exam\?'past_exam':'quiz'/);
-  assert.match(fn, /source:data\._past_exam\?'past_exam':'quiz'/);
+  assert.match(fn, /mode:quizAnswerMode\(data\)/);
+  assert.match(fn, /source:quizAnswerMode\(data\)/);
   assert.match(fn, /is_correct:isCorrect/);
   assert.match(fn, /choice:choiceIndex/);
   assert.match(fn, /correct_idx:Math\.max\(0, correctIdx\)/);
@@ -81,13 +81,15 @@ test('past-exam answer ledger payload is emitted from the real helper', () => {
     isFree: false,
     API: 'https://api.example.test',
     captured: null,
+    window: {},
     _authH: (headers) => ({...headers, Authorization: 'Bearer t'}),
     fetch: (url, init) => {
       sandbox.captured = {url, init};
       return {catch() {}};
     },
   };
-  vm.runInNewContext(`${fn}; recordQuizAnswer({
+  const modeFn = extractFunction(activeQuiz, 'quizAnswerMode');
+  vm.runInNewContext(`${modeFn}; ${fn}; recordQuizAnswer({
     _past_exam:true,
     question:'stem',
     options:['A','B','C','D'],
@@ -150,14 +152,14 @@ test('past-exam mode remembers recent questions and retries duplicates', () => {
   assert.match(fn, /rememberRecentPastExamQuestion\(data\)/);
 });
 
-test('dashboard exposes a separate past-exam radar entry', () => {
-  const radarStart = activeDashboard.indexOf('考古題雷達');
-  assert.ok(radarStart > -1, 'dashboard must expose the past-exam radar entry');
+test('dashboard exposes the past-exam practice entry without replacing normal quiz', () => {
+  const radarStart = activeDashboard.indexOf('考古題練習');
+  assert.ok(radarStart > -1, 'dashboard must expose the past-exam practice entry');
   const card = activeDashboard.slice(Math.max(0, radarStart - 260), radarStart + 360);
 
-  assert.match(card, /href="past-exam-radar\.html"/);
-  assert.match(card, /看範圍/);
-  assert.doesNotMatch(card, /mode=past-exam/);
+  assert.match(card, /href="quiz\.html\?mode=past-exam"/);
+  assert.match(card, /歷屆試題模式/);
+  assert.doesNotMatch(card, /href="quiz\.html"/);
 });
 
 test('bookkeeper resource page exposes practice and radar as bookkeeper-scoped actions', () => {
@@ -172,7 +174,7 @@ test('past-exam radar states bookkeeper-only scope and trackable-question bounda
   assert.match(activeRadar, /記帳士考古題雷達/);
   assert.match(activeRadar, /目前先看記帳士兩科官方選擇題/);
   assert.match(activeRadar, /只顯示能追蹤到法條的題/);
-  assert.match(activeRadar, /不代表全考科都已產品化/);
+  assert.match(activeRadar, /未列入的科目先不做自動弱點判讀/);
   assert.match(activeRadar, /稅務相關法規概要/);
   assert.match(activeRadar, /記帳相關法規概要/);
   assert.doesNotMatch(activeRadar, /不動產經紀人已上線|地政士已上線|全考科已上線/);
