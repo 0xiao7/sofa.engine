@@ -38,7 +38,7 @@ test('podcast page exposes RSS, interactive playback, captions, cue sound, and n
   assert.match(page, /id="cue-toggle"/);
   assert.match(page, /id="caption-toggle"/);
   assert.match(page, /pause:6000/);
-  assert.match(page, /assets\/audio\/sofa-podcast-001-ac\.mp3/);
+  assert.match(page, /assets\/audio\/sofa-podcast-ep001-v20260721-ac\.mp3/);
   assert.match(page, /停六秒，請回答三件事/);
 });
 
@@ -69,15 +69,15 @@ test('podcast feed is platform-safe and points to the generated audio file', () 
   assert.doesNotMatch(feed, /SoFa Engine 通勤補一條|通勤補一條/);
   assert.match(page, /https:\/\/sofaengine\.org\/assets\/podcast-cover-3000-v2\.jpg/);
   assert.match(feed, /<itunes:image href="https:\/\/sofaengine\.org\/assets\/podcast-cover-3000-v2\.jpg"\/>/);
-  assert.match(feed, /<enclosure url="https:\/\/sofaengine\.org\/assets\/audio\/sofa-podcast-001\.m4a" length="\d+" type="audio\/mp4"\/>/);
+  assert.match(feed, /<enclosure url="https:\/\/sofaengine\.org\/assets\/audio\/sofa-podcast-ep001-v20260721-ac\.m4a" length="\d+" type="audio\/mp4"\/>/);
   assert.match(feed, /付費會員的完整播放清單會留在官網會員區/);
   assert.match(feed, /<copyright>&#xA9; 2026 SoFa Engine<\/copyright>/);
-  assert.match(feed, /<pubDate>Tue, 21 Jul 2026 11:37:00 \+0000<\/pubDate>/);
+  assert.match(feed, /<pubDate>Tue, 21 Jul 2026 14:42:00 \+0000<\/pubDate>/);
   assert.doesNotMatch(feed, /lin\.ee|LINE Bot|每日 LINE/);
 
-  const audio = statSync(new URL('assets/audio/sofa-podcast-001-ac.mp3', root));
+  const audio = statSync(new URL('assets/audio/sofa-podcast-ep001-v20260721-ac.mp3', root));
   assert.ok(audio.size > 2500000, `audio file too small: ${audio.size}`);
-  const appleCompatAudio = statSync(new URL('assets/audio/sofa-podcast-001.m4a', root));
+  const appleCompatAudio = statSync(new URL('assets/audio/sofa-podcast-ep001-v20260721-ac.m4a', root));
   assert.ok(appleCompatAudio.size > 2000000, `apple-compatible audio file too small: ${appleCompatAudio.size}`);
 
   const artwork = statSync(new URL('assets/podcast-cover-3000-v2.jpg', root));
