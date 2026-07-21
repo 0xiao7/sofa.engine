@@ -9,6 +9,8 @@ const publicFiles = [
   'essay.html',
   'fill.html',
   'law-updates-data.js',
+  'podcast.html',
+  'podcast.xml',
   'previews/地政士法_六段預覽.html',
   'previews/地政士法_六段預覽_v2.html',
   'previews/地政士法_六段預覽_v3.html',
