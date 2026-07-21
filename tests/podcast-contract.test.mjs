@@ -20,6 +20,8 @@ test('podcast page exposes RSS, interactive playback, captions, cue sound, and n
   assert.match(page, /<h1>輕聲補一條<\/h1>/);
   assert.match(page, /給國考生的法規通勤練習/);
   assert.match(page, /SoFa 輕聲補一條/);
+  assert.match(page, /SoFa Engine 是給國考生用的法條練習工具/);
+  assert.match(page, /sofaengine\.org/);
   assert.doesNotMatch(page, /通勤補一條/);
   assert.match(page, /rel="alternate" type="application\/rss\+xml"/);
   assert.match(page, /data-action="play-interactive"/);
@@ -29,15 +31,30 @@ test('podcast page exposes RSS, interactive playback, captions, cue sound, and n
   assert.match(page, /assets\/audio\/sofa-podcast-001\.m4a/);
 });
 
+test('podcast page tracks traffic and routes listeners back to the website', () => {
+  assert.match(page, /data-track="podcast_site_intro"/);
+  assert.match(page, /data-track="podcast_episode_practice"/);
+  assert.match(page, /data-track="podcast_playlist_open"/);
+  assert.match(page, /data-track-audio="podcast_native_audio"/);
+  assert.match(page, /function trackPodcast/);
+  assert.match(page, /eventName \+ '_play'/);
+  assert.match(page, /eventName \+ '_ended'/);
+  assert.match(page, /utm_source=podcast&utm_medium=site_intro&utm_campaign=episode_001/);
+  assert.match(page, /utm_source=podcast&utm_medium=episode_card&utm_campaign=episode_001/);
+});
+
 test('podcast practice CTA goes to the exact article with podcast attribution', () => {
   assert.match(page, /quiz\.html\?law=%E7%A8%85%E6%8D%90%E7%A8%BD%E5%BE%B5%E6%B3%95&article=01%E4%B9%8B1&free=1&start=1&utm_source=podcast&utm_medium=episode&utm_campaign=episode_001/);
   assert.match(feed, /utm_source=podcast&amp;utm_medium=rss&amp;utm_campaign=episode_001/);
+  assert.match(feed, /utm_source=podcast&amp;utm_medium=rss_episode&amp;utm_campaign=episode_001/);
+  assert.match(feed, /到 SoFa 官網聽互動版/);
 });
 
 test('podcast feed is platform-safe and points to the generated audio file', () => {
   assert.match(feed, /<rss version="2\.0"/);
   assert.match(feed, /<title>SoFa 輕聲補一條<\/title>/);
   assert.match(feed, /記帳士、地政士考科法規，一次一條/);
+  assert.match(feed, /sofaengine\.org 可以看字幕/);
   assert.doesNotMatch(feed, /SoFa Engine 通勤補一條|通勤補一條/);
   assert.match(page, /https:\/\/sofaengine\.org\/assets\/podcast-cover-3000\.png/);
   assert.match(feed, /<itunes:image href="https:\/\/sofaengine\.org\/assets\/podcast-cover-3000\.png"\/>/);
