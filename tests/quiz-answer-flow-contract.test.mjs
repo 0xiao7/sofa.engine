@@ -772,6 +772,8 @@ test('quiz analysis linkifies sixth-section law references to the in-page articl
   assert.match(linkedSameLaw, /data-law="記帳士法"/);
   assert.match(linkedSameLaw, /data-art="13"/);
   assert.match(linkedSameLaw, /data-art="15"/);
+  assert.doesNotMatch(linkedSameLaw, /law=.*%E5%90%8C%E6%B3%95/);
+  assert.doesNotMatch(linkedSameLaw, /<a class="crossref"[^>]*><a class="crossref"/);
 
   const linkedNamedLaw = helpers.linkifyLawRefs('記帳士法第13條及第15條', '所得稅法');
   assert.match(linkedNamedLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=13/);

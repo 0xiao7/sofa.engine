@@ -1408,19 +1408,21 @@ function cleanCrossRefLawName(raw){
 }
 function linkifyLawRefs(text, articleLawName){
   let out=String(text||'');
+  const anchors=[];
+  function hold(html){const key=`\uE000${anchors.length}\uE000`;anchors.push(html);return key;}
   function cleanArt(art){return String(art||'').replace(/^第/,'').replace(/條.*$/,'');}
   function attr(raw){return String(raw||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
   function href(law,art){return `law-preview.html?law=${encodeURIComponent(cleanCrossRefLawName(law||articleLawName))}&art=${encodeURIComponent(cleanArt(art))}&from=quiz&back=quiz.html`;}
   function a(law,art,label){const cleanLaw=cleanCrossRefLawName(law||articleLawName);const clean=cleanArt(art);return `<a class="crossref" href="${href(cleanLaw,clean)}" data-law="${attr(cleanLaw)}" data-art="${attr(clean)}">${label}</a>`;}
   out=out.replace(/(同法|本法)第?([0-9一二三四五六七八九十百千零兩]+(?:之[0-9一二三四五六七八九十百千零兩]+)?)條/g,
-    (_,lead,art)=>a(articleLawName,art,`${lead}第${art}條`));
+    (_,lead,art)=>hold(a(articleLawName,art,`${lead}第${art}條`)));
   out=out.replace(/(?:搭配|交叉記憶可看|與)?([\u4e00-\u9fa5]{1,16}(?:法|條例|準則|辦法|規則))第?([0-9一二三四五六七八九十百千零兩]+)條及第?([0-9一二三四五六七八九十百千零兩]+)條/g,
-    (_,law,art1,art2)=>a(law,art1,`${cleanCrossRefLawName(law)}第${art1}條`) + '及' + a(law,art2,`第${art2}條`));
+    (_,law,art1,art2)=>hold(a(law,art1,`${cleanCrossRefLawName(law)}第${art1}條`)) + '及' + hold(a(law,art2,`第${art2}條`)));
   out=out.replace(/(?:搭配|交叉記憶可看|與)?([\u4e00-\u9fa5]{1,16}(?:法|條例|準則|辦法|規則))第?([0-9一二三四五六七八九十百千零兩、,，]+)條/g,
-    (_,law,arts)=>arts.split(/[、,，]/).filter(Boolean).map(x=>a(law,x,`${cleanCrossRefLawName(law)}第${x}條`)).join(''));
+    (_,law,arts)=>arts.split(/[、,，]/).filter(Boolean).map(x=>hold(a(law,x,`${cleanCrossRefLawName(law)}第${x}條`))).join(''));
   out=out.replace(/(?:搭配|交叉記憶可看|與)?([\u4e00-\u9fa5]{1,16}(?:法|條例|準則|辦法|規則))([0-9一二三四五六七八九十百千零兩、,，]+)條/g,
-    (_,law,arts)=>arts.split(/[、,，]/).filter(Boolean).map(x=>a(law,x,`${cleanCrossRefLawName(law)}第${x}條`)).join(''));
-  return out;
+    (_,law,arts)=>arts.split(/[、,，]/).filter(Boolean).map(x=>hold(a(law,x,`${cleanCrossRefLawName(law)}第${x}條`))).join(''));
+  return out.replace(/\uE000(\d+)\uE000/g,(_,i)=>anchors[Number(i)]||'');
 }
 function openCrossRefArticleInline(ev){
   const link=ev.target.closest('a.crossref, a.weak-article-link');

@@ -216,12 +216,25 @@
       }[ch]));
     }
 
-    function practiceHref({ law, article, medium, drill = false }){
+    function stableArticleId(item){
+      if(!item) return '';
+      const articles = Array.isArray(item.top_articles) ? item.top_articles : [];
+      const top = articles[0] || {};
+      const candidates = [
+        item.page_id, item.article_id, item.articlePageId, item.article_page_id, item.id, item.notion_page_id,
+        top.page_id, top.article_id, top.articlePageId, top.article_page_id, top.id, top.notion_page_id
+      ];
+      return String(candidates.find(Boolean) || '').trim();
+    }
+
+    function practiceHref({ law, article, pageId, medium, drill = false }){
       const qs = new URLSearchParams();
       const lawName = String(law || '').trim();
       const articleName = String(article || '').trim();
+      const stablePageId = String(pageId || '').trim();
       if(lawName) qs.set('law', lawName);
       if(articleName) qs.set('article', articleName);
+      if(stablePageId) qs.set('page_id', stablePageId);
       if(drill) qs.set('drill', '1');
       qs.set('free', '1');
       qs.set('start', '1');
@@ -441,11 +454,12 @@
       const next = data.next_step || {};
       const lawName = fallback.subject || fallback.exam_subject || fallback.law || fallback.law_name || fallback.label || next.law || '';
       const article = topWrongArticle(fallback);
+      const pageId = stableArticleId(fallback);
       return {
         raw: fallback,
         subject: lawName || '這一科',
         article,
-        href: practiceHref({ law: lawName, article, medium: 'hero', drill: true })
+        href: practiceHref({ law: lawName, article, pageId, medium: 'hero', drill: true })
       };
     }
 
@@ -491,8 +505,9 @@
       $('blindList').innerHTML = items.map((item) => {
         const lawName = item.law || item.law_name || item.label || '';
         const article = topWrongArticle(item);
+        const pageId = stableArticleId(item);
         return `
-        <a class="rowline" href="${htmlEscape(practiceHref({ law: lawName, article, medium: 'weak', drill: true }))}" aria-label="練習 ${htmlEscape(lawName || '弱點法規')}">
+        <a class="rowline" href="${htmlEscape(practiceHref({ law: lawName, article, pageId, medium: 'weak', drill: true }))}" aria-label="練習 ${htmlEscape(lawName || '弱點法規')}">
           <span class="nm">${htmlEscape(item.label || item.law_name || item.law || '待分類')}</span>
           <span class="ds">${htmlEscape(article || 'weak_laws / wrong_articles')}</span>
           <span class="rt a">錯 ${Number(item.wrong_count || 0)}</span>
@@ -537,8 +552,9 @@
       $('dueList').innerHTML = items.slice(0, 5).map((item) => {
         const lawName = item.law || item.law_name || '';
         const article = item.article || item.article_no || '';
+        const pageId = stableArticleId(item);
         return `
-        <a class="rowline due-row" href="${htmlEscape(practiceHref({ law: lawName, article, medium: 'review', drill: true }))}" aria-label="練習 ${htmlEscape(lawName || '待複習條文')}">
+        <a class="rowline due-row" href="${htmlEscape(practiceHref({ law: lawName, article, pageId, medium: 'review', drill: true }))}" aria-label="練習 ${htmlEscape(lawName || '待複習條文')}">
           <span class="nm">${htmlEscape(lawName || '待複習')}</span>
           <span class="ds">${htmlEscape(article || '回到複習清單')}</span>
           <span class="rt">${Math.max(0, Number(item.overdue_days || 0))} 天</span>

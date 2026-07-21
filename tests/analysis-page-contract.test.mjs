@@ -5,6 +5,8 @@ import vm from 'node:vm';
 
 const analysisPath = new URL('../analysis.html', import.meta.url);
 const analysis = existsSync(analysisPath) ? readFileSync(analysisPath, 'utf8') : '';
+const analysisPreviewPath = new URL('../analysis-preview.html', import.meta.url);
+const analysisPreview = existsSync(analysisPreviewPath) ? readFileSync(analysisPreviewPath, 'utf8') : '';
 const analytics = readFileSync(new URL('../sofa-analytics.js', import.meta.url), 'utf8');
 
 function extractFunction(source, name) {
@@ -200,4 +202,28 @@ test('analysis article practice links preserve stable article ids instead of rel
   assert.equal(parsed.searchParams.get('page_id'), '民法-908');
   assert.equal(parsed.searchParams.get('article'), '占有喪失逾二年質權消滅');
   assert.equal(parsed.searchParams.get('drill'), '1');
+});
+
+test('analysis preview practice links also preserve stable article ids', () => {
+  assert.ok(analysisPreview, 'analysis-preview.html should exist');
+  assert.match(analysisPreview, /function stableArticleId\(item\)/);
+  assert.match(analysisPreview, /function practiceHref\(\{ law, article, pageId, medium, drill = false \}\)/);
+  assert.match(analysisPreview, /qs\.set\('page_id', stablePageId\)/);
+  assert.match(analysisPreview, /practiceHref\(\{ law: lawName, article, pageId, medium: 'hero', drill: true \}\)/);
+  assert.match(analysisPreview, /practiceHref\(\{ law: lawName, article, pageId, medium: 'weak', drill: true \}\)/);
+  assert.match(analysisPreview, /practiceHref\(\{ law: lawName, article, pageId, medium: 'review', drill: true \}\)/);
+
+  const source = [
+    extractFunction(analysisPreview, 'stableArticleId'),
+    extractFunction(analysisPreview, 'practiceHref'),
+    'globalThis.stableArticleId = stableArticleId;',
+    'globalThis.practiceHref = practiceHref;'
+  ].join('\n');
+  const sandbox = { URLSearchParams };
+  vm.runInNewContext(source, sandbox);
+  const pageId = sandbox.stableArticleId({ top_articles: [{ article: '公司債發行界線', page_id: '公司法-250' }] });
+  const href = sandbox.practiceHref({ law: '公司法', article: '公司債發行界線', pageId, medium: 'weak', drill: true });
+  const parsed = new URL(href, 'https://sofaengine.org/');
+  assert.equal(parsed.searchParams.get('page_id'), '公司法-250');
+  assert.equal(parsed.searchParams.get('article'), '公司債發行界線');
 });
