@@ -235,8 +235,10 @@
   .sec-text{font-size:13px;line-height:1.85;color:rgba(31,56,72,.78)}
   .sec-text .sec-h{margin:10px 0 4px;color:var(--navy);font-weight:600}
   .sec-text .sec-h:first-child{margin-top:0}
-  .sec-text .sec-i{position:relative;padding-left:18px;margin:3px 0}
-  .sec-text .sec-i::before{content:'◦';position:absolute;left:4px;top:-.04em;color:var(--peach-3);font-weight:700}
+  .sec-text .crossref{display:inline-flex;align-items:center;gap:4px;background:rgba(231,187,167,.16);border:1px solid rgba(213,154,120,.38);border-radius:3px;color:var(--navy);padding:1px 7px;margin:0 2px;text-decoration:none;white-space:nowrap;font-weight:600}
+  .sec-text .crossref:hover{background:rgba(231,187,167,.28)}
+  .sec-text .sec-i{position:relative;margin:8px 0 8px 26px;padding:8px 12px 8px 34px;border-left:4px solid rgba(231,187,167,.55);background:rgba(231,187,167,.12)}
+  .sec-text .sec-i::before{content:'◦';position:absolute;left:11px;top:7px;color:var(--peach-3);font-weight:700}
   .sec-lock{margin-top:16px;border-top:1px dashed rgba(31,56,72,.15)}
   .sec-lock .sec-label::after{content:" 🔒";font-size:11px;opacity:.65}
   .sec-lock-preview{position:relative;max-height:80px;overflow:hidden;padding:10px 0 0;pointer-events:none;user-select:none;font-size:13.5px;line-height:1.8;color:rgba(31,56,72,.72)}
@@ -266,6 +268,7 @@
     .ar-head h2{font-size:24px}
     .ar-head h2 .n{font-size:36px}
     .fill-card{padding:24px 22px;font-size:18px;line-height:2}
+    .sec-text .sec-i{margin:7px 0 7px 12px}
     .blank{font-size:17px;min-width:4.5em;padding:2px 10px}
     .fill-actions{flex-direction:column;align-items:stretch}
     .fill-actions .r{flex-direction:column}
@@ -320,7 +323,7 @@
           style="background:transparent;border:none;outline:none;font-family:var(--mono);font-size:14px;color:var(--cream);width:64px;cursor:text">
         <datalist id="artDatalist"></datalist>
       </div>
-      <button id="btnNext" class="btn btn-sec" style="padding:8px 16px;font-size:13px">換一條</button>
+      <button id="btnNext" class="btn btn-sec" style="padding:8px 16px;font-size:13px">開始填空</button>
     </div>
     <div class="pr-meta">
       <div class="seg">已填 <b id="filled">— / —</b></div>
@@ -345,7 +348,7 @@
       <div>
         <div class="ar-head">
           <span class="eb">FILL-IN · 關鍵字填空</span>
-          <h2><span class="n" id="artNum">—</span><span id="artTitle">選擇法規後換一條開始</span></h2>
+          <h2><span class="n" id="artNum">—</span><span id="artTitle">選擇法規後點「開始填空」開始</span></h2>
           <div class="row">
             <span class="pill" id="lawName" style="display:none"></span>
             <span class="pill" id="diffPill">—</span>
@@ -354,7 +357,7 @@
         </div>
 
         <div class="fill-card" id="fillCard" data-label="FILL">
-          <div id="fillText"><span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.35);letter-spacing:.1em">選擇法規後點「換一條」開始</span></div>
+          <div id="fillText"><span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.35);letter-spacing:.1em">選擇法規後點「開始填空」開始</span></div>
           <div id="resultMsg" style="display:none;margin-top:16px;font-family:var(--mono);font-size:13px;letter-spacing:.1em"></div>
           <div id="sourceBox" style="display:none;margin-top:8px;font-family:var(--mono);font-size:11px;color:rgba(245,240,234,.5);letter-spacing:.08em"></div>
           <button id="fillSourceLink" style="display:none;margin-top:10px;background:transparent;border:1px solid var(--peach-dim);color:var(--peach);font-family:var(--mono);font-size:11px;letter-spacing:.1em;padding:6px 12px;border-radius:2px;cursor:pointer">展開原文 ↓</button>
@@ -375,6 +378,9 @@
         </div>
 
         <div id="sectionsBox" class="sec-panel" style="display:none"></div>
+        <div id="fillSessionModal" style="display:none" aria-hidden="true">
+          <span>選擇篇數</span>
+        </div>
       </div>
 
       <!-- right rail -->
@@ -443,7 +449,15 @@ function _authH(extra) {
   else if (uid) h['X-Sofa-UID'] = uid;
   return h;
 }
-const freeParam = new URLSearchParams(location.search).get('free') === '1';
+const _fillSearchParams = new URLSearchParams(location.search);
+const freeParam = _fillSearchParams.get('free') === '1';
+function fillUrlLawParam(){ return _fillSearchParams.get('law') || _fillSearchParams.get('q') || ''; }
+function fillUrlArticleParam(){ return _fillSearchParams.get('art') || _fillSearchParams.get('article') || ''; }
+function fillUrlPageIdParam(){ return _fillSearchParams.get('page_id') || _fillSearchParams.get('article_id') || _fillSearchParams.get('id') || ''; }
+let _fillUrlTargetPending = !!(fillUrlPageIdParam() || (fillUrlLawParam() && fillUrlArticleParam()));
+let _fillUrlTargetResolving = false;
+let _skipFillLawPersistOnce = false;
+let _lastFillPerfect = false;
 if (freeParam && !uid && !tok) {
   localStorage.setItem('sofa_free', 'FREE');
 }
@@ -515,8 +529,30 @@ function pushHistory(law, title){
     const d = await fetch(`${API}/api/laws`).then(r=>r.json());
     (d.laws||[]).forEach(l=>{const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);});
   } catch{}
+  const _urlFillLaw = fillUrlLawParam();
+  const _urlFillPageId = fillUrlPageIdParam();
+  const savedLaw = localStorage.getItem('sofa_fill_law') || '';
+  if(_urlFillPageId){
+    loadNew();
+    return;
+  }
+  if(_urlFillLaw && [...sel.options].some(o=>o.value===_urlFillLaw)){
+    _skipFillLawPersistOnce = true;
+    sel.value=_urlFillLaw;
+    await sel.dispatchEvent(new Event('change'));
+    const art=fillUrlArticleParam();
+    const artInput=document.getElementById('artNumInput');
+    if(artInput)artInput.value=normalizeFillArticleNo(art);
+    loadNew();
+    return;
+  }
+  if(savedLaw && [...sel.options].some(o=>o.value===savedLaw)){
+    sel.value=savedLaw;
+    sel.dispatchEvent(new Event('change'));
+  }
 })();
 
+// 自製法規下拉
 let _artCache = {};
 
 // ── 練習區 chip 細篩（期限 / 罰則）─────────────────────────
@@ -541,7 +577,9 @@ function _prFilterByChip(arts){
   });
 }
 function _updateChipLock(){
-  var v=(document.getElementById('lawSelect')||{}).value||'';
+  if(_fillUrlTargetPending) return;
+  var law=document.getElementById('lawSelect').value;
+  var v=law||'';
   var subVal=(document.getElementById('prSubSel')||{}).value||'';
   var box=document.querySelector('.pr-chips');
   if(!box)return;
@@ -572,7 +610,13 @@ document.getElementById('lawSelect').addEventListener('change', async function()
   const wrap = document.getElementById('artPickWrap');
   const dl   = document.getElementById('artDatalist');
   const inp  = document.getElementById('artNumInput');
-  dl.innerHTML = ''; inp.value = '';
+  const urlArt = normalizeFillArticleNo(fillUrlArticleParam());
+  dl.innerHTML = '';
+  const keepUrlArticle = _fillUrlTargetPending && fillUrlLawParam() === this.value && !!urlArt;
+  if(keepUrlArticle) inp.value = normalizeFillArticleNo(urlArt);
+  else inp.value = '';
+  if(_skipFillLawPersistOnce)_skipFillLawPersistOnce = false;
+  else localStorage.setItem('sofa_fill_law', this.value);
   const realLaw = law && !law.startsWith('__');
   wrap.style.display = realLaw ? '' : 'none';
   if (!realLaw) return;
@@ -593,6 +637,34 @@ document.getElementById('lawSelect').addEventListener('change', async function()
 });
 
 function esc(s){return(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function attr(s){return String(s||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function normalizeFillArticleNo(raw){
+  return String(raw||'').trim().replace(/^第/,'').replace(/條.*$/,'').replace(/之/g,'之');
+}
+function fillArticleNo(article){
+  function clean(raw){return String(raw||'').trim().replace(/^第/,'').replace(/條.*$/,'').replace(/之/g,'之');}
+  const title=String(article?.title||article?.article||article?.article_no||'');
+  const no=String(article?.article_no||'').trim();
+  if(no) return clean(no);
+  const m=title.match(/第(\d+)條之(\d+)/) || title.match(/第(\d+之\d+)條/) || title.match(/第(\d+)條/);
+  if(!m)return '';
+  return m[2] ? `${m[1]}之${m[2]}` : clean(m[1]);
+}
+function fillArticleReaderHref(article){
+  const law=article?.law_name||article?.law||'';
+  const id=article?.id||article?.page_id||article?.article_id||'';
+  const art=fillArticleNo(article);
+  let url=`law-preview.html?law=${encodeURIComponent(law)}`;
+  if(id)url+=`&id=${encodeURIComponent(id)}`;
+  if(art)url+=`&art=${encodeURIComponent(art)}`;
+  url+=`&from=fill&back=${encodeURIComponent('fill.html')}`;
+  return url;
+}
+function findFillArticleByNo(articles, artNo){
+  const target=normalizeFillArticleNo(artNo);
+  if(!target)return null;
+  return (articles||[]).find(a=>fillArticleNo(a)===target || normalizeFillArticleNo(a.article_no)===target) || null;
+}
 
 const _FREE_SECS=[
   '章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示','核心摘要與記憶策略',
@@ -602,7 +674,32 @@ const _LOCKED_SECS=[
   {name:'修法與聯覺備註',  label:'修法與聯覺備註'},
   {name:'相關法規及注意事項',label:'相關法規及注意事項'}
 ];
-function formatSection(text){
+function cleanCrossRefLawName(raw){
+  return String(raw||'')
+    .replace(/^(搭配|交叉記憶可看|可看|請看|請參照|請見|另參照|另見|參照|依|按|見|熟記本條(?:與|及)?|本條(?:與|及)?|與|及|並列)+/,'')
+    .replace(/[（(].*$/,'')
+    .replace(/^[，。、；：\s]+|[，。、；：\s]+$/g,'')
+    .trim();
+}
+function linkifyLawRefs(text, articleLawName){
+  let out=String(text||'');
+  const anchors=[];
+  function hold(html){const key=`\uE000${anchors.length}\uE000`;anchors.push(html);return key;}
+  function cleanArt(art){return String(art||'').replace(/^第/,'').replace(/條.*$/,'');}
+  function attr(raw){return String(raw||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function href(law,art){return `law-preview.html?law=${encodeURIComponent(cleanCrossRefLawName(law||articleLawName))}&art=${encodeURIComponent(cleanArt(art))}&from=fill&back=fill.html`;}
+  function a(law,art,label){const cleanLaw=cleanCrossRefLawName(law||articleLawName);const clean=cleanArt(art);return `<a class="crossref" href="${href(cleanLaw,clean)}" data-law="${attr(cleanLaw)}" data-art="${attr(clean)}">${label}</a>`;}
+  out=out.replace(/(同法|本法)第?([0-9一二三四五六七八九十百千零兩]+(?:之[0-9一二三四五六七八九十百千零兩]+)?)條/g,
+    (_,lead,art)=>hold(a(articleLawName,art,`${lead}第${art}條`)));
+  out=out.replace(/(?:搭配|交叉記憶可看|與)?([\u4e00-\u9fa5]{1,16}(?:法|條例|準則|辦法|規則))第?([0-9一二三四五六七八九十百千零兩]+)條及第?([0-9一二三四五六七八九十百千零兩]+)條/g,
+    (_,law,art1,art2)=>hold(a(law,art1,`${cleanCrossRefLawName(law)}第${art1}條`)) + '及' + hold(a(law,art2,`第${art2}條`)));
+  out=out.replace(/(?:搭配|交叉記憶可看|與)?([\u4e00-\u9fa5]{1,16}(?:法|條例|準則|辦法|規則))第?([0-9一二三四五六七八九十百千零兩、,，]+)條/g,
+    (_,law,arts)=>arts.split(/[、,，]/).filter(Boolean).map(x=>hold(a(law,x,`${cleanCrossRefLawName(law)}第${x}條`))).join(''));
+  out=out.replace(/(?:搭配|交叉記憶可看|與)?([\u4e00-\u9fa5]{1,16}(?:法|條例|準則|辦法|規則))([0-9一二三四五六七八九十百千零兩、,，]+)條/g,
+    (_,law,arts)=>arts.split(/[、,，]/).filter(Boolean).map(x=>hold(a(law,x,`${cleanCrossRefLawName(law)}第${x}條`))).join(''));
+  return out.replace(/\uE000(\d+)\uE000/g,(_,i)=>anchors[Number(i)]||'');
+}
+function formatSection(text, articleLawName){
   if(!text) return '';
   var lines=String(text).replace(/\r\n?/g,'\n').split('\n'),out='';
   lines.forEach(function(raw){
@@ -614,30 +711,50 @@ function formatSection(text){
     body=body.trim();if(!body)return;
     var esc=body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     esc=esc.replace(/^([^：:]{1,14}[：:])/,'<b>$1</b>');
+    esc=linkifyLawRefs(esc, articleLawName);
     out+='<p class="'+(isSub?'sec-i':'sec-h')+'">'+esc+'</p>';
   });
   return out;
 }
-function buildSections(sections,isPaid,wrapEl,beforeEl){
+function showFillSectionsLoading(panel){
+  panel.innerHTML='<div class="sec-hd">條文解析載入中</div>';
+  panel.style.display='block';
+}
+function renderFillSections(wrapEl, sections, isPaid, article, beforeEl){
   wrapEl.querySelectorAll('.sec-block,.sec-lock').forEach(e=>e.remove());
+  wrapEl.innerHTML='<div class="sec-hd">條文解析</div>';
+  const articleLawName=article?.law_name||article?.law||fillData?.law_name||'';
+  let rendered=0;
   _FREE_SECS.forEach(name=>{
     if(!sections[name])return;
     const d=document.createElement('div');d.className='sec-block';
     const lb=document.createElement('div');lb.className='sec-label';lb.textContent=name;
-    const tx=document.createElement('div');tx.className='sec-text';tx.innerHTML=formatSection(sections[name]);
+    const tx=document.createElement('div');tx.className='sec-text';tx.innerHTML=formatSection(sections[name], articleLawName);
     d.append(lb,tx);
     if(beforeEl)wrapEl.insertBefore(d,beforeEl);else wrapEl.appendChild(d);
+    rendered++;
   });
   if(!isPaid){
     _LOCKED_SECS.forEach(({name,label})=>{
       const lk=document.createElement('div');lk.className='sec-lock';
       const preview=sections[name]||'';
       lk.innerHTML='<div class="sec-label">'+label+'</div>'
-        +'<div class="sec-lock-preview">'+(preview?formatSection(preview):'')+'</div>'
+        +'<div class="sec-lock-preview">'+(preview?formatSection(preview, articleLawName):'')+'</div>'
         +'<div class="sec-lock-cta">🔒 升級解鎖完整內容 <a href="pricing.html?utm_source=fill&utm_medium=locked_section&utm_campaign=fill_pricing" data-track-event="locked_content_pricing_click" data-track-label="fill_locked_section_pricing">查看方案 →</a></div>';
       if(beforeEl)wrapEl.insertBefore(lk,beforeEl);else wrapEl.appendChild(lk);
+      rendered++;
     });
   }
+  if(!rendered){
+    const empty=document.createElement('div');
+    empty.className='sec-block';
+    empty.innerHTML='<div class="sec-text">這條暫時沒有解析。</div>';
+    wrapEl.appendChild(empty);
+  }
+  wrapEl.style.display='block';
+}
+function buildSections(sections,isPaid,wrapEl,beforeEl){
+  renderFillSections(wrapEl, sections, isPaid, fillData, beforeEl);
 }
 
 let fillData = null;
@@ -774,6 +891,7 @@ function checkAnswers(){
   msg.style.display='block';
   msg.style.color=cor===inputs.length?'var(--good)':'var(--warn)';
   msg.textContent=cor===inputs.length?`✓ 全對！${cor}/${inputs.length}`:`${cor}/${inputs.length} 正確`;
+  _lastFillPerfect = cor === inputs.length && inputs.length > 0;
   document.getElementById('scoreDisplay').textContent=cor+'/'+inputs.length;
   document.getElementById('accDisplay').textContent=Math.round(cor/inputs.length*100)+'%';
   updateMetaRight(cor);
@@ -809,7 +927,7 @@ function checkAnswers(){
   updateBlankList();
   if(fillData.id&&fillData.title){
     const src=document.getElementById('sourceBox');
-    src.innerHTML=`出自 <a href="dashboard.html?open=${encodeURIComponent(fillData.id)}&art=${encodeURIComponent(fillData.title)}" style="color:var(--peach)">《${esc(fillData.law_name||'')}》${esc(fillData.title)}</a>`;
+    src.innerHTML=`出自 <a href="${fillArticleReaderHref(fillData)}" style="color:var(--peach)">《${esc(fillData.law_name||'')}》${esc(fillData.title)}</a>`;
     src.style.display='block';
   }
   // 寫入練習紀錄
@@ -819,8 +937,7 @@ function checkAnswers(){
   // 載入條文解析 sections
   if(fillData.id){
     const panel=document.getElementById('sectionsBox');
-    panel.innerHTML='<div class="sec-hd">條文解析</div>';
-    panel.style.display='block';
+    showFillSectionsLoading(panel);
     const srcBtn=document.getElementById('fillSourceLink');
     const srcPanel=document.getElementById('fillArtInline');
     srcBtn.style.display='inline-block';
@@ -832,9 +949,14 @@ function checkAnswers(){
         const h=_authH();
         const art=await fetch(`${API}/api/article/${fillData.id}`,{headers:h}).then(r=>r.json());
         srcPanel.textContent=formatLawText(art.original_text);
-        buildSections(art.sections||{},art._plan!=='free',panel);
-      }catch(e){}
+        renderFillSections(panel, art.sections||{}, art._plan!=='free', art);
+      }catch(e){
+        renderFillSections(panel, {}, true);
+      }
     })();
+  }
+  if(cor === inputs.length && inputs.length > 0){
+    setTimeout(()=>{ if(_lastFillPerfect) loadNew(); }, 900);
   }
 }
 
@@ -847,8 +969,11 @@ document.getElementById('fillSourceLink').addEventListener('click',()=>{
 });
 
 async function loadNew(){
+  if(_fillUrlTargetResolving) return;
   fillData=null;
+  _lastFillPerfect=false;
   fillTimerReset();
+  document.getElementById('btnNext').textContent = '下一篇';
   document.getElementById('fillText').innerHTML='<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.4);letter-spacing:.1em">載入中…</span>';
   document.getElementById('artNum').textContent='—';
   document.getElementById('artTitle').textContent='載入中…';
@@ -861,7 +986,28 @@ async function loadNew(){
   const law=document.getElementById('lawSelect').value;
   try{
     let url;
-    if(law==='__starred__'){
+    if(_fillUrlTargetPending){
+      _fillUrlTargetResolving = true;
+      try{
+        const targetPid=fillUrlPageIdParam();
+        const targetLaw=fillUrlLawParam() || law;
+        const targetArt=normalizeFillArticleNo(fillUrlArticleParam());
+        if(targetPid){
+          url=`${API}/api/fill?page_id=${encodeURIComponent(targetPid)}`;
+        }else if(targetLaw && targetArt){
+          if(!_artCache[targetLaw]){
+            const r=await fetch(`${API}/api/articles?law=${encodeURIComponent(targetLaw)}`).then(r=>r.json());
+            _artCache[targetLaw]=r.articles||[];
+          }
+          const match=findFillArticleByNo(_artCache[targetLaw],targetArt);
+          if(match)url=`${API}/api/fill?page_id=${encodeURIComponent(match.id||match.page_id)}`;
+        }
+      }finally{
+        _fillUrlTargetPending = false;
+        _fillUrlTargetResolving = false;
+      }
+    }
+    if(!url && law==='__starred__'){
       const sl=await fetch(`${API}/api/starred?min_stars=5`,{headers:_authH()}).then(r=>r.json());
       const arts=(sl.articles||[]);
       if(!arts.length){
@@ -870,7 +1016,7 @@ async function loadNew(){
       }
       const pick=arts[Math.floor(Math.random()*arts.length)];
       url=`${API}/api/fill?page_id=${encodeURIComponent(pick.id)}`;
-    } else if(law==='__bookmarks__'){
+    } else if(!url && law==='__bookmarks__'){
       const bm=await fetch(`${API}/api/me/bookmarks`,{headers:_authH()}).then(r=>r.json());
       const ids=(bm.bookmarks||[]);
       if(!ids.length){
@@ -879,7 +1025,7 @@ async function loadNew(){
       }
       const pick=ids[Math.floor(Math.random()*ids.length)];
       url=`${API}/api/fill?page_id=${encodeURIComponent(pick)}`;
-    } else if(law==='__mastered__'||law==='__review__'){
+    } else if(!url && (law==='__mastered__'||law==='__review__')){
       const wantStatus=law==='__mastered__'?'mastered':'review';
       const mr=await fetch(`${API}/api/me/mastery`,{headers:_authH()}).then(r=>r.json());
       const items=(mr.items||[]).filter(m=>m.status===wantStatus&&m.page_id);
@@ -890,10 +1036,10 @@ async function loadNew(){
       }
       const pick=items[Math.floor(Math.random()*items.length)];
       url=`${API}/api/fill?page_id=${encodeURIComponent(pick.page_id)}`;
-    } else {
+    } else if(!url) {
       const artNum = (document.getElementById('artNumInput')||{}).value?.trim();
       if(artNum && law && _artCache[law]){
-        const match=_artCache[law].find(a=>{const m=(a.title||'').match(/第(\d+(?:之\d+)?)條/);return m&&m[1]===artNum;});
+        const match=findFillArticleByNo(_artCache[law],artNum);
         if(match){ url=`${API}/api/fill?page_id=${encodeURIComponent(match.id)}`; }
       }
       if(!url && _curPrChip!=='all' && law && _artCache[law]){
@@ -913,7 +1059,7 @@ async function loadNew(){
         }
       }
     }
-    const resp=await fetch(url,{headers:_authH()});
+    let resp=await fetch(url,{headers:_authH()});
     fillData=await resp.json();
     // 補上前端已知的法規名（若 API 未回傳）
     if(!fillData.law_name&&law&&!law.startsWith('__')){
@@ -960,7 +1106,13 @@ document.getElementById('btnReveal').addEventListener('click',()=>{
   });
   updateBlankList();
 });
-loadNew();
+function _fillKeyHandler(ev){
+  if(ev.key === 'Enter' && ev.metaKey){
+    ev.preventDefault();
+    if (_lastFillPerfect) document.getElementById('btnNext')?.click();
+  }
+}
+document.addEventListener('keydown', _fillKeyHandler);
 </script>
 </body>
 </html>

@@ -109,6 +109,8 @@ test('fill analysis linkifies cross-law references inside the article reader', (
   assert.match(linkedSameLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=13/);
   assert.match(linkedSameLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=15/);
   assert.match(linkedSameLaw, /&from=fill&back=fill\.html/);
+  assert.doesNotMatch(linkedSameLaw, /law=.*%E5%90%8C%E6%B3%95/);
+  assert.doesNotMatch(linkedSameLaw, /<a class="crossref"[^>]*><a class="crossref"/);
 
   const linkedNamedLaw = helpers.linkifyLawRefs('搭配公司法第29條經理人任免規定', '商業會計法');
   assert.match(linkedNamedLaw, />公司法第29條</);
