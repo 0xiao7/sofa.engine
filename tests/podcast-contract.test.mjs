@@ -31,6 +31,7 @@ test('podcast page exposes RSS, interactive playback, captions, cue sound, and n
   assert.match(page, /給國考生的法規通勤練習/);
   assert.match(page, /SoFa 輕聲補一條/);
   assert.match(page, /SoFa Engine 是給國考生用的法條練習工具/);
+  assert.match(page, /本節目使用 AI 合成語音/);
   assert.match(page, /sofaengine\.org/);
   assert.doesNotMatch(page, /通勤補一條/);
   assert.match(page, /rel="alternate" type="application\/rss\+xml"/);
@@ -65,6 +66,7 @@ test('podcast feed is platform-safe and points to the generated audio file', () 
   assert.match(feed, /<rss version="2\.0"/);
   assert.match(feed, /<title>SoFa 輕聲補一條<\/title>/);
   assert.match(feed, /記帳士、地政士考科法規，一次一條/);
+  assert.match(feed, /本節目使用 AI 合成語音/);
   assert.match(feed, /sofaengine\.org 可以看字幕/);
   assert.doesNotMatch(feed, /SoFa Engine 通勤補一條|通勤補一條/);
   assert.match(page, /https:\/\/sofaengine\.org\/assets\/podcast-cover-3000-v2\.jpg/);
@@ -87,6 +89,13 @@ test('podcast feed is platform-safe and points to the generated audio file', () 
     width: 3000,
     height: 3000,
   });
+});
+
+test('podcast page separates the three audio lanes without loading the short episode with long ads', () => {
+  assert.match(page, /情境脈絡/);
+  assert.match(page, /毒法條 \/ 記憶入口/);
+  assert.match(page, /題目帶法規/);
+  assert.match(page, /短音檔不塞長廣告/);
 });
 
 test('site navigation and sitemap include podcast entry', () => {
