@@ -8,6 +8,7 @@ Outputs: account.png, qa.png, pricing.png, buy.png, help.png (1040×520 PNG)
 同時保有按鈕互動性與動態文字（序號、到期日）。
 """
 import asyncio
+import os
 from playwright.async_api import async_playwright
 from pathlib import Path
 
@@ -110,13 +111,17 @@ CARDS = [
     ("buy.png",      "SOFA ENGINE / CHECKOUT", "立即購買", "Secure Payment · 5 min",            "SOFA <b>·</b> BUY"),
     ("help.png",     "SOFA ENGINE / GUIDE",    "使用說明", "Full Command Reference",            "SOFA <b>·</b> GUIDE"),
     ("push-settings.png", "SOFA ENGINE / PUSH", "推播設定", "Daily LINE · Review Strategy",      "SOFA <b>·</b> PUSH"),
+    ("winback-radar.png", "SOFA ENGINE / RADAR", "弱點雷達", "Winback · Review Strategy",        "SOFA <b>·</b> RADAR"),
 ]
 
 async def main():
     out_dir = Path(__file__).parent
+    selected = os.environ.get('SOFA_CARD_FILTER', '').strip()
     async with async_playwright() as p:
         browser = await p.chromium.launch()
         for fname, br, title, sub, corner in CARDS:
+            if selected and fname != selected:
+                continue
             html = TEMPLATE.format(W=W, H=H, BR=br, TITLE=title, SUB=sub, CORNER=corner)
             page = await browser.new_page(viewport={"width": W, "height": H}, device_scale_factor=2)
             await page.set_content(html, wait_until="domcontentloaded")
