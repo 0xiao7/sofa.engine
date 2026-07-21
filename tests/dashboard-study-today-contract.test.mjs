@@ -360,17 +360,17 @@ test('study playlist is a generic text fallback and does not ship private schedu
   assert.match(active, /function studyPlaylistApiUrl/);
   assert.match(active, /params\.set\('star_min', '0'\)/);
   assert.match(active, /params\.set\('limit', '40'\)/);
-  assert.match(active, /params\.set\('star_min', '3'\)/);
+  assert.match(active, /params\.set\('limit', '20'\)/);
   assert.match(active, /id="study-playlist-law"/);
   assert.match(active, /aria-label="播放清單法規"/);
-  assert.match(active, /<label class="study-playlist-field"[\s\S]*<span>分組<\/span>[\s\S]*id="study-playlist-subject"/);
+  assert.match(active, /<label class="study-playlist-field"[\s\S]*<span>考科範圍<\/span>[\s\S]*id="study-playlist-subject"/);
   assert.match(active, /<label class="study-playlist-field"[\s\S]*<span>法規<\/span>[\s\S]*id="study-playlist-law"/);
   assert.match(active, /<label class="study-playlist-field"[\s\S]*<span>間隔<\/span>[\s\S]*id="study-playlist-pause"/);
   assert.match(active, /function populateStudyPlaylistLaws/);
   assert.match(active, /function _studyPlaylistPreferredLaw/);
   assert.match(extractFunction(active, 'openStudyPlaylistPanel'), /populateStudyPlaylistLaws\(\) !== false/);
   assert.match(extractFunction(active, 'populateStudyPlaylistLaws'), /return false/);
-  assert.match(extractFunction(active, 'populateStudyPlaylistLaws'), /_studyPlaylistPreferredLaw\(laws\)/);
+  assert.match(extractFunction(active, 'populateStudyPlaylistLaws'), /else sel\.value = ''/);
   assert.match(active, /通勤問答|重點清單/);
   assert.match(active, /id="study-playlist-block"/);
   assert.match(active, /播放清單/);
@@ -536,7 +536,7 @@ test('study playlist can directly play text through the browser speech engine', 
   assert.match(extractFunction(active, '_cleanSpeechCueText'), /\(\?:長\|短\)\?停頓/);
   assert.match(active, /replace\(\s*\/\\s\+\/g,\s*' '\s*\)/);
   const fn = extractFunction(active, 'loadStudyPlaylist');
-  assert.match(fn, /onclick="playStudyPlaylistItem\(this, ' \+ idx \+ '\)"/);
+  assert.match(fn, /onclick="playStudyPlaylistItem\(this, ' \+ itemIndex \+ '\)"/);
   assert.match(fn, />播放</);
   assert.match(fn, /data-playlist-index/);
   assert.match(fn, /_cleanVisibleSpeechCueText\(String\(item\.text/);
@@ -580,18 +580,35 @@ test('study playlist explains soft caps instead of looking like missing laws', (
   assert.match(active, /未登入先播|免費帳號先播|付費會員可拉更多/);
 });
 
+test('study playlist paginates so playback can continue beyond the first batch', () => {
+  assert.match(active, /var _studyPlaylistPagination/);
+  assert.match(extractFunction(active, 'studyPlaylistApiUrl'), /params\.set\('offset', String\(offset \|\| 0\)\)/);
+  const load = extractFunction(active, 'loadStudyPlaylist');
+  assert.match(load, /appendMode/);
+  assert.match(load, /res\.has_more \|\| res\.hasMore/);
+  assert.match(load, /res\.next_offset \|\| res\.nextOffset/);
+  assert.match(load, /study-playlist-load-more/);
+  assert.match(active, /function loadMoreStudyPlaylist/);
+  assert.match(extractFunction(active, 'studyPlaylistNext'), /loadMoreStudyPlaylist\(true\)/);
+  assert.match(active, /載入更多/);
+});
+
 test('study playlist renders lyric-style lines and highlights the current segment', () => {
   assert.match(active, /\.study-playlist-lines/);
   assert.match(active, /\.study-playlist-line\.is-current/);
+  assert.match(active, /\.study-playlist-current-line\.is-pause/);
   assert.match(active, /function _renderStudyPlaylistLines/);
   assert.match(active, /function _studyPlaylistTimedLyricLines/);
   assert.match(active, /function _setStudyPlaylistCurrentSegment/);
+  assert.match(active, /function _studyPlaylistBeep/);
   assert.match(active, /data-playlist-line/);
   assert.match(extractFunction(active, '_syncStudyPlaylistLyricFromProgress'), /line\.start/);
   assert.match(extractFunction(active, '_syncStudyPlaylistLyricFromProgress'), /line\.end/);
+  assert.match(extractFunction(active, '_syncStudyPlaylistLyricFromProgress'), /_studyPlaylistBeep/);
   assert.match(extractFunction(active, 'loadStudyPlaylist'), /lyric_lines:item\.lyric_lines \|\| item\.lyricLines/);
   assert.match(extractFunction(active, '_studyPlaylistSegments'), /playlist_index/);
   assert.match(extractFunction(active, '_speakStudyPlaylistSegments'), /_setStudyPlaylistCurrentSegment/);
+  assert.match(extractFunction(active, '_speakStudyPlaylistSegments'), /_studyPlaylistBeep\(\)/);
   assert.match(extractFunction(active, '_resetStudyPlaylistSpeechButton'), /_setStudyPlaylistCurrentSegment\(null,\s*null\)/);
 });
 
