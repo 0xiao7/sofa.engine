@@ -554,6 +554,8 @@ test('study playlist active recall prefers provider audio then falls back to dev
   assert.match(load, /item\.prompt/);
   assert.match(load, /item\.answer/);
   assert.match(load, /item\.audio_url \|\| item\.audioUrl/);
+  assert.match(load, /lazy_audio_url:String\(item\.lazy_audio_url \|\| item\.lazyAudioUrl \|\| ''\)/);
+  assert.match(extractFunction(active, 'startStudyPlaylistPlayerAt'), /item\.lazy_audio_url \|\| item\.lazyAudioUrl/);
   assert.match(load, /item\.pause_seconds/);
   assert.match(load, /Array\.isArray\(item\.segments\)/);
   assert.match(segments, /audio_url: String\(seg\.audio_url \|\| seg\.audioUrl \|\| ''\)\.trim\(\)/);
