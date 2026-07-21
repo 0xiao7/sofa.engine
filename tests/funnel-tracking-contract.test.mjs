@@ -12,6 +12,7 @@ const dashboard = readFileSync(new URL('../dashboard.html', import.meta.url), 'u
 const login = readFileSync(new URL('../login.html', import.meta.url), 'utf8');
 const fill = readFileSync(new URL('../fill.html', import.meta.url), 'utf8');
 const practice = readFileSync(new URL('../practice.html', import.meta.url), 'utf8');
+const podcast = readFileSync(new URL('../podcast.html', import.meta.url), 'utf8');
 const lawPreview = readFileSync(new URL('../law-preview.html', import.meta.url), 'utf8');
 const notes = readFileSync(new URL('../notes.html', import.meta.url), 'utf8');
 const room = readFileSync(new URL('../room.html', import.meta.url), 'utf8');
@@ -75,6 +76,12 @@ test('server-side funnel forwarding is limited to revenue, recovery, and entry e
   assert.match(analytics, /\['payment_return_success', 'payment_return_success'\]/);
   assert.match(analytics, /\['expire_feedback_click', 'expiry_feedback_start'\]/);
   assert.match(analytics, /\['expire_share_click', 'share_extension_start'\]/);
+  assert.match(analytics, /\['podcast_page_view', 'podcast_page_view'\]/);
+  assert.match(analytics, /\['podcast_play_interactive', 'podcast_play_interactive'\]/);
+  assert.match(analytics, /\['podcast_native_audio_play', 'podcast_native_audio_play'\]/);
+  assert.match(analytics, /\['podcast_native_audio_ended', 'podcast_native_audio_ended'\]/);
+  assert.match(analytics, /\['podcast_site_intro', 'podcast_site_intro'\]/);
+  assert.match(analytics, /\['podcast_episode_practice', 'podcast_episode_practice'\]/);
   assert.doesNotMatch(analytics, /SERVER_EVENT_MAP[\s\S]*answer_submitted/);
 });
 
@@ -272,4 +279,13 @@ test('expired learner recovery choices are measurable before renewal', () => {
   assert.match(dashboard, /data-track-event="expire_renew_click"/);
   assert.match(dashboard, /data-track-label="renew_pricing"/);
   assert.match(dashboard, /data-track-event="expire_free_switch"/);
+});
+
+test('podcast page forwards owned-audio traffic into the server funnel', () => {
+  assert.match(podcast, /<script src="sofa-analytics\.js\?v=20260721-podcast-v1" defer><\/script>/);
+  assert.match(podcast, /window\.sofaTrack\('podcast_page_view'/);
+  assert.match(podcast, /window\.sofaTrack\(eventName, payload\)/);
+  assert.match(podcast, /data-track="podcast_site_intro"/);
+  assert.match(podcast, /data-track="podcast_episode_practice"/);
+  assert.match(podcast, /data-track-audio="podcast_native_audio"/);
 });

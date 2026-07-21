@@ -17,6 +17,7 @@
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
+<script src="sofa-analytics.js?v=20260721-podcast-v1" defer></script>
 <style>
 :root{
   --navy:#1F3848;
@@ -324,7 +325,11 @@ function setSegment(index){
 function sleep(ms){ return new Promise(resolve => setTimeout(resolve, ms)); }
 function trackPodcast(eventName, payload){
   payload = Object.assign({ episode:'001' }, payload || {});
-  if('gtag' in window) gtag('event', eventName, payload);
+  if (window.sofaTrack) {
+    window.sofaTrack(eventName, payload);
+  } else if('gtag' in window) {
+    gtag('event', eventName, payload);
+  }
 }
 function beep(){
   if(!cueOn) return;
@@ -399,6 +404,11 @@ captionToggle.addEventListener('click', () => {
   captionsOn = !captionsOn;
   captionToggle.textContent = captionsOn ? '字幕 開' : '字幕 關';
   captionToggle.classList.toggle('on', captionsOn);
+});
+window.addEventListener('DOMContentLoaded', () => {
+  if (window.sofaTrack) {
+    window.sofaTrack('podcast_page_view', { episode:'001', medium:'landing' });
+  }
 });
 </script>
 </body>

@@ -39,7 +39,13 @@
     ['post_answer_login_click', 'post_answer_login_click'],
     ['locked_content_pricing_click', 'locked_content_pricing_click'],
     ['existing_serial_login_click', 'existing_serial_login_click'],
-    ['serial_verify_success', 'serial_verify_success']
+    ['serial_verify_success', 'serial_verify_success'],
+    ['podcast_page_view', 'podcast_page_view'],
+    ['podcast_play_interactive', 'podcast_play_interactive'],
+    ['podcast_native_audio_play', 'podcast_native_audio_play'],
+    ['podcast_native_audio_ended', 'podcast_native_audio_ended'],
+    ['podcast_site_intro', 'podcast_site_intro'],
+    ['podcast_episode_practice', 'podcast_episode_practice']
   ]);
   const CARRY_PATHS = new Set([
     '/pricing.html','/checkout.html','/login.html','/quiz.html','/fill.html',
