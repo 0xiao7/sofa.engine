@@ -1424,6 +1424,98 @@
     accent-color:var(--peach);
   }
   .study-playlist-list{display:grid;gap:8px}
+  .study-playlist-player{
+    display:grid;
+    gap:9px;
+    border:1px solid rgba(231,187,167,.18);
+    background:rgba(13,28,40,.28);
+    border-radius:6px;
+    padding:12px;
+  }
+  .study-playlist-player-main{
+    display:flex;
+    justify-content:space-between;
+    gap:12px;
+    align-items:flex-start;
+    min-width:0;
+  }
+  .study-playlist-now{
+    display:grid;
+    gap:3px;
+    min-width:0;
+  }
+  .study-playlist-now span{
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.12em;
+    color:var(--peach);
+    text-transform:uppercase;
+  }
+  .study-playlist-now b{
+    font-family:var(--serif);
+    font-size:16px;
+    color:var(--cream);
+    font-weight:600;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .study-playlist-now small{
+    color:rgba(245,240,234,.58);
+    font-size:12px;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+  }
+  .study-playlist-player-controls{
+    display:flex;
+    gap:6px;
+    flex:0 0 auto;
+  }
+  .study-playlist-player-controls button{
+    width:36px;
+    min-width:36px;
+    min-height:36px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--line-2);
+    border-radius:999px;
+    background:rgba(255,255,255,.025);
+    color:rgba(245,240,234,.78);
+    font-size:13px;
+  }
+  .study-playlist-player-controls button.primary{
+    background:var(--peach);
+    border-color:var(--peach);
+    color:var(--navy-3);
+    font-weight:900;
+  }
+  .study-playlist-player-controls button:disabled{
+    opacity:.38;
+    cursor:not-allowed;
+  }
+  .study-playlist-progress{
+    display:grid;
+    grid-template-columns:auto 1fr auto;
+    gap:8px;
+    align-items:center;
+    color:rgba(245,240,234,.5);
+    font-family:var(--mono);
+    font-size:10px;
+  }
+  .study-playlist-progress input{
+    width:100%;
+    accent-color:var(--peach);
+  }
+  .study-playlist-current-line{
+    min-height:44px;
+    border-top:1px solid rgba(245,240,234,.08);
+    padding-top:9px;
+    color:var(--cream);
+    font-size:14px;
+    line-height:1.55;
+  }
   .study-playlist-status{
     border:1px solid rgba(231,187,167,.18);
     background:rgba(231,187,167,.055);
@@ -1463,6 +1555,36 @@
     font-size:12.5px;
     line-height:1.65;
     overflow-wrap:anywhere;
+  }
+  .study-playlist-lines{
+    display:grid;
+    gap:4px;
+    margin-top:2px;
+  }
+  .study-playlist-line{
+    display:flex;
+    gap:7px;
+    align-items:flex-start;
+    color:rgba(245,240,234,.56);
+    font-size:12px;
+    line-height:1.55;
+    padding:4px 6px;
+    border-radius:4px;
+    background:rgba(255,255,255,.018);
+    transition:background .16s ease,color .16s ease;
+  }
+  .study-playlist-line b{
+    flex:0 0 auto;
+    min-width:22px;
+    color:rgba(231,187,167,.72);
+    font-family:var(--mono);
+    font-size:10px;
+    letter-spacing:.04em;
+    font-weight:600;
+  }
+  .study-playlist-line.is-current{
+    background:rgba(231,187,167,.12);
+    color:var(--cream);
   }
   .study-playlist-actions{
     display:flex;
@@ -4434,6 +4556,26 @@
                 <button class="primary" id="study-playlist-playall" type="button" onclick="playStudyPlaylistAll(this)" disabled>播放問答</button>
                 <button class="secondary" type="button" onclick="loadStudyPlaylist()">更新清單</button>
               </div>
+            </div>
+            <div class="study-playlist-player" id="study-playlist-player" aria-label="播放清單播放器">
+              <div class="study-playlist-player-main">
+                <div class="study-playlist-now">
+                  <span>NOW PLAYING</span>
+                  <b id="study-playlist-now-title">尚未播放</b>
+                  <small id="study-playlist-now-meta">更新清單後，按播放問答開始。</small>
+                </div>
+                <div class="study-playlist-player-controls" aria-label="播放控制">
+                  <button type="button" id="study-playlist-prev" onclick="studyPlaylistPrev()" disabled title="上一題">‹</button>
+                  <button type="button" class="primary" id="study-playlist-toggle" onclick="toggleStudyPlaylistPlayer()" disabled title="播放或暫停">▶</button>
+                  <button type="button" id="study-playlist-next" onclick="studyPlaylistNext()" disabled title="下一題">›</button>
+                </div>
+              </div>
+              <div class="study-playlist-progress">
+                <span id="study-playlist-current-time">0:00</span>
+                <input id="study-playlist-progress" type="range" min="0" max="1000" value="0" oninput="seekStudyPlaylistPlayer(this.value)" aria-label="播放進度">
+                <span id="study-playlist-duration">0:00</span>
+              </div>
+              <div class="study-playlist-current-line" id="study-playlist-current-line">像音樂歌詞一樣，播放時這裡會跟著亮現在這一句。</div>
             </div>
             <div class="study-playlist-list" id="study-playlist-list">
               <div class="study-empty">按更新清單，先產生文字版重點。</div>
@@ -8598,10 +8740,61 @@ var _studyPlaylistSpeechButton = null;
 var _studyPlaylistSpeakingIndex = null;
 var _studyPlaylistSpeechRunId = 0;
 var _studyPlaylistAudioEl = null;
+var _studyPlaylistPlayer = {
+  index: 0,
+  playing: false,
+  loop: false,
+  currentLine: 0
+};
 
 function _setStudyPlaylistStatus(message){
   var el = document.getElementById('study-playlist-status');
   if(el) el.textContent = message || '清單產生後，可以逐則聽讀、練習，或回去看原文。';
+}
+
+function _playlistTimeLabel(seconds){
+  seconds = Math.max(0, Math.floor(Number(seconds || 0) || 0));
+  var m = Math.floor(seconds / 60);
+  var s = seconds % 60;
+  return m + ':' + String(s).padStart(2, '0');
+}
+
+function _studyPlaylistItemLabel(item, idx){
+  item = item || {};
+  return item.law_name
+    ? item.law_name + (item.article_no ? ' 第 ' + String(item.article_no).replace(/^0+(?=\d)/, '') + ' 條' : '')
+    : '第 ' + ((idx || 0) + 1) + ' 題';
+}
+
+function _studyPlaylistAccessNote(policy, count){
+  policy = policy || {};
+  var tier = String(policy.tier || '').toLowerCase();
+  var dailyLimit = Number(policy.daily_limit || policy.dailyLimit || 0) || 0;
+  var requested = Number(policy.requested_limit || policy.requestedLimit || 0) || 0;
+  var effective = Number(policy.effective_limit || policy.effectiveLimit || count || 0) || 0;
+  if(tier === 'paid') return '付費會員可拉更多題；目前先排 ' + count + ' 題。';
+  if(tier === 'free') return '免費帳號先播 ' + effective + ' 題；登入狀態下會保留練習紀錄。';
+  if(dailyLimit && requested > effective) return '未登入先播 ' + effective + ' 題，不是法條缺資料；登入後可保留紀錄，付費會員可拉更多。';
+  return '';
+}
+
+function _studyPlaylistLyricLines(item){
+  item = item || {};
+  var lines = [];
+  if(item.prompt) lines.push({ label:'問', text:_cleanVisibleSpeechCueText(item.prompt) });
+  if(item.pause_seconds) lines.push({ label:'想', text:'先自己想 ' + item.pause_seconds + ' 秒。' });
+  if(item.answer) lines.push({ label:'答', text:_cleanVisibleSpeechCueText(item.answer) });
+  if(!lines.length && item.text) lines.push({ label:'讀', text:_cleanVisibleSpeechCueText(item.text) });
+  return lines.filter(function(line){ return line.text; }).slice(0, 4);
+}
+
+function _renderStudyPlaylistLines(item, idx){
+  return '<span class="study-playlist-lines">'
+    + _studyPlaylistLyricLines(item).map(function(line, lineIdx){
+      return '<span class="study-playlist-line" data-playlist-line="' + idx + '-' + lineIdx + '">'
+        + '<b>' + esc(line.label) + '</b><span>' + esc(line.text) + '</span></span>';
+    }).join('')
+    + '</span>';
 }
 
 function setStudyPlaylistPlayReady(ready, label){
@@ -8662,6 +8855,174 @@ function _setStudyPlaylistSpeakingIndex(idx){
   });
 }
 
+function _setStudyPlaylistCurrentSegment(itemIndex, lineIndex){
+  document.querySelectorAll('[data-playlist-line]').forEach(function(el){
+    var current = itemIndex !== null
+      && itemIndex !== undefined
+      && lineIndex !== null
+      && lineIndex !== undefined
+      && el.getAttribute('data-playlist-line') === String(itemIndex) + '-' + String(lineIndex);
+    el.classList.toggle('is-current', current);
+  });
+  var lineBox = document.getElementById('study-playlist-current-line');
+  if(lineBox && itemIndex !== null && lineIndex !== null){
+    var currentEl = document.querySelector('[data-playlist-line="' + String(itemIndex) + '-' + String(lineIndex) + '"] span');
+    if(currentEl) lineBox.textContent = currentEl.textContent || '';
+  }
+}
+
+function _setStudyPlaylistPlayerButtons(enabled){
+  ['study-playlist-prev', 'study-playlist-toggle', 'study-playlist-next'].forEach(function(id){
+    var el = document.getElementById(id);
+    if(el) el.disabled = !enabled;
+  });
+}
+
+function _updateStudyPlaylistPlayerUI(item, idx){
+  var items = window.__studyPlaylistAudioItems || [];
+  item = item || items[idx] || {};
+  var title = document.getElementById('study-playlist-now-title');
+  var meta = document.getElementById('study-playlist-now-meta');
+  var toggle = document.getElementById('study-playlist-toggle');
+  if(title) title.textContent = item.title || _studyPlaylistItemLabel(item, idx);
+  if(meta) meta.textContent = _studyPlaylistItemLabel(item, idx) + (items.length ? ' · ' + (idx + 1) + ' / ' + items.length : '');
+  if(toggle) toggle.textContent = _studyPlaylistPlayer.playing ? 'Ⅱ' : '▶';
+  _setStudyPlaylistPlayerButtons(!!items.length);
+}
+
+function _updateStudyPlaylistProgress(current, duration){
+  var range = document.getElementById('study-playlist-progress');
+  var cur = document.getElementById('study-playlist-current-time');
+  var dur = document.getElementById('study-playlist-duration');
+  current = Number(current || 0) || 0;
+  duration = Number(duration || 0) || 0;
+  if(range) range.value = duration > 0 ? String(Math.max(0, Math.min(1000, Math.round(current / duration * 1000)))) : '0';
+  if(cur) cur.textContent = _playlistTimeLabel(current);
+  if(dur) dur.textContent = _playlistTimeLabel(duration);
+}
+
+function _syncStudyPlaylistLyricFromProgress(item, idx, current, duration){
+  var lines = _studyPlaylistLyricLines(item);
+  if(!lines.length) return;
+  var lineIdx = duration > 0 ? Math.min(lines.length - 1, Math.floor((current / duration) * lines.length)) : 0;
+  _studyPlaylistPlayer.currentLine = lineIdx;
+  _setStudyPlaylistCurrentSegment(idx, lineIdx);
+}
+
+function startStudyPlaylistPlayerAt(idx){
+  var items = window.__studyPlaylistAudioItems || [];
+  if(!items.length){
+    _dashToast('目前沒有可播放的重點，先按更新清單。');
+    return;
+  }
+  idx = Math.max(0, Math.min(items.length - 1, Number(idx || 0) || 0));
+  var item = items[idx] || {};
+  _studyPlaylistPlayer.index = idx;
+  _studyPlaylistPlayer.loop = !!(document.getElementById('study-playlist-loop') && document.getElementById('study-playlist-loop').checked);
+  _studyPlaylistPlayer.playing = true;
+  if('speechSynthesis' in window) try{ speechSynthesis.cancel(); }catch(e){}
+  _resetStudyPlaylistSpeechButton();
+  _setStudyPlaylistSpeakingIndex(idx);
+  _setStudyPlaylistCurrentSegment(idx, 0);
+  _updateStudyPlaylistProgress(0, 0);
+  _updateStudyPlaylistPlayerUI(item, idx);
+  var audioUrl = String(item.audio_url || item.audioUrl || '').trim();
+  if(audioUrl && 'Audio' in window){
+    try{
+      _stopStudyPlaylistAudio();
+      var audio = new Audio(audioUrl);
+      _studyPlaylistAudioEl = audio;
+      audio.onloadedmetadata = function(){
+        _updateStudyPlaylistProgress(audio.currentTime, audio.duration);
+      };
+      audio.ontimeupdate = function(){
+        _updateStudyPlaylistProgress(audio.currentTime, audio.duration);
+        _syncStudyPlaylistLyricFromProgress(item, idx, audio.currentTime, audio.duration);
+      };
+      audio.onplaying = function(){
+        _studyPlaylistPlayer.playing = true;
+        _updateStudyPlaylistPlayerUI(item, idx);
+        _setStudyPlaylistStatus('正在播放：' + _studyPlaylistItemLabel(item, idx));
+      };
+      audio.onpause = function(){
+        if(_studyPlaylistAudioEl === audio){
+          _studyPlaylistPlayer.playing = false;
+          _updateStudyPlaylistPlayerUI(item, idx);
+        }
+      };
+      audio.onended = function(){
+        if(_studyPlaylistAudioEl === audio) _studyPlaylistAudioEl = null;
+        studyPlaylistNext(true);
+      };
+      audio.onerror = function(){
+        if(_studyPlaylistAudioEl === audio) _studyPlaylistAudioEl = null;
+        _studyPlaylistPlayer.playing = false;
+        _updateStudyPlaylistPlayerUI(item, idx);
+        _setStudyPlaylistStatus('音訊沒有啟動；已改用裝置朗讀，或請再點一次播放。');
+        _speakStudyPlaylistSegments(document.getElementById('study-playlist-toggle'), _studyPlaylistSegments(item, idx), '播放', { index: idx, label: _studyPlaylistItemLabel(item, idx) });
+      };
+      var started = audio.play();
+      if(started && typeof started.catch === 'function'){
+        started.catch(function(){
+          if(_studyPlaylistAudioEl === audio) _studyPlaylistAudioEl = null;
+          _studyPlaylistPlayer.playing = false;
+          _updateStudyPlaylistPlayerUI(item, idx);
+          _setStudyPlaylistStatus('手機音訊沒有啟動；已改用裝置朗讀，或請再點一次播放。');
+          _speakStudyPlaylistSegments(document.getElementById('study-playlist-toggle'), _studyPlaylistSegments(item, idx), '播放', { index: idx, label: _studyPlaylistItemLabel(item, idx) });
+        });
+      }
+      return;
+    }catch(e){
+      _stopStudyPlaylistAudio();
+    }
+  }
+  _speakStudyPlaylistSegments(document.getElementById('study-playlist-toggle'), _studyPlaylistSegments(item, idx), '播放', { index: idx, label: _studyPlaylistItemLabel(item, idx) });
+}
+
+function toggleStudyPlaylistPlayer(){
+  var items = window.__studyPlaylistAudioItems || [];
+  if(!items.length) return;
+  if(_studyPlaylistAudioEl){
+    if(_studyPlaylistAudioEl.paused){
+      _studyPlaylistAudioEl.play();
+    }else{
+      _studyPlaylistAudioEl.pause();
+    }
+    return;
+  }
+  startStudyPlaylistPlayerAt(_studyPlaylistPlayer.index || 0);
+}
+
+function studyPlaylistNext(fromEnded){
+  var items = window.__studyPlaylistAudioItems || [];
+  if(!items.length) return;
+  var next = (_studyPlaylistPlayer.index || 0) + 1;
+  if(next >= items.length){
+    if(_studyPlaylistPlayer.loop) next = 0;
+    else{
+      _studyPlaylistPlayer.playing = false;
+      _updateStudyPlaylistPlayerUI(items[_studyPlaylistPlayer.index] || {}, _studyPlaylistPlayer.index || 0);
+      _setStudyPlaylistStatus('播放結束；可以重播、練習或看法條。');
+      return;
+    }
+  }
+  startStudyPlaylistPlayerAt(next);
+}
+
+function studyPlaylistPrev(){
+  var items = window.__studyPlaylistAudioItems || [];
+  if(!items.length) return;
+  var prev = (_studyPlaylistPlayer.index || 0) - 1;
+  if(prev < 0) prev = items.length - 1;
+  startStudyPlaylistPlayerAt(prev);
+}
+
+function seekStudyPlaylistPlayer(value){
+  if(!_studyPlaylistAudioEl || !_studyPlaylistAudioEl.duration) return;
+  var ratio = Math.max(0, Math.min(1000, Number(value || 0) || 0)) / 1000;
+  _studyPlaylistAudioEl.currentTime = _studyPlaylistAudioEl.duration * ratio;
+}
+
 function _studyPlaylistSpeechText(item){
   if(item && Array.isArray(item.segments) && item.segments.length){
     return item.segments.map(function(seg){
@@ -8687,19 +9048,28 @@ function _resetStudyPlaylistSpeechButton(){
     _studyPlaylistSpeechButton = null;
   }
   _setStudyPlaylistSpeakingIndex(null);
+  _setStudyPlaylistCurrentSegment(null, null);
 }
 
-function _studyPlaylistSegments(item){
+function _studyPlaylistSegments(item, itemIndex){
   item = item || {};
   if(Array.isArray(item.segments) && item.segments.length){
     var itemAudioUrl = String(item.audio_url || item.audioUrl || '').trim();
+    var lineNo = 0;
     var segments = item.segments.map(function(seg){
       seg = seg || {};
-      if(seg.type === 'pause') return { type:'pause', seconds: Math.max(3, Math.min(12, Number(seg.seconds || item.pause_seconds || 6) || 6)) };
+      if(seg.type === 'pause') return {
+        type:'pause',
+        seconds: Math.max(3, Math.min(12, Number(seg.seconds || item.pause_seconds || 6) || 6)),
+        playlist_index: itemIndex,
+        line_index: lineNo++
+      };
       return {
         type: seg.type || 'speech',
         text: _cleanStudyPlaylistCueText(String(seg.text || '').replace(/\s+/g, ' ').trim()),
-        audio_url: String(seg.audio_url || seg.audioUrl || '').trim()
+        audio_url: String(seg.audio_url || seg.audioUrl || '').trim(),
+        playlist_index: itemIndex,
+        line_index: lineNo++
       };
     }).filter(function(seg){ return seg.type === 'pause' || seg.text || seg.audio_url; });
     if(itemAudioUrl && !segments.some(function(seg){ return seg.audio_url; })){
@@ -8710,7 +9080,7 @@ function _studyPlaylistSegments(item){
   }
   var text = item.speechText || _studyPlaylistSpeechText(item);
   var audioUrl = String(item.audio_url || item.audioUrl || '').trim();
-  return (text || audioUrl) ? [{ type:'speech', text:text, audio_url:audioUrl }] : [];
+  return (text || audioUrl) ? [{ type:'speech', text:text, audio_url:audioUrl, playlist_index:itemIndex, line_index:0 }] : [];
 }
 
 function _speakStudyPlaylistSegments(button, segments, idleLabel, meta){
@@ -8766,6 +9136,9 @@ function _speakStudyPlaylistSegments(button, segments, idleLabel, meta){
       return;
     }
     var seg = segments[i] || {};
+    if(typeof seg.playlist_index === 'number' && typeof seg.line_index === 'number'){
+      _setStudyPlaylistCurrentSegment(seg.playlist_index, seg.line_index);
+    }
     if(seg.type === 'pause'){
       _setStudyPlaylistStatus('暫停 ' + seg.seconds + ' 秒，先自己想答案。');
       setTimeout(function(){ speakSegment(i + 1); }, seg.seconds * 1000);
@@ -8894,12 +9267,8 @@ function _speakStudyPlaylistText(button, text, idleLabel, meta){
 
 function playStudyPlaylistItem(button, idx){
   var item = (window.__studyPlaylistAudioItems || [])[idx];
-  var label = item && item.law_name ? item.law_name : '第 ' + (idx + 1) + ' 則';
-  if(item && item.mode === 'active_recall'){
-    _speakStudyPlaylistSegments(button, _studyPlaylistSegments(item), '朗讀', { index: idx, label: label });
-    return;
-  }
-  _speakStudyPlaylistText(button, item && item.speechText, '朗讀', { index: idx, label: label });
+  if(!item) return;
+  startStudyPlaylistPlayerAt(idx);
 }
 
 function playStudyPlaylistAll(button){
@@ -8909,24 +9278,7 @@ function playStudyPlaylistAll(button){
     _setStudyPlaylistStatus('清單還沒準備好；請先按「更新清單」，等重點出現後再播放。');
     return;
   }
-  var loopEl = document.getElementById('study-playlist-loop');
-  var loop = !!(loopEl && loopEl.checked);
-  var segments = [];
-  items.forEach(function(item, idx){
-    var itemSegments = _studyPlaylistSegments(item);
-    if(!itemSegments.some(function(seg){ return seg.audio_url; })){
-      segments.push({ type:'speech', text:'第 ' + (idx + 1) + ' 題。' });
-    }
-    segments = segments.concat(itemSegments);
-  });
-  if(segments.some(function(seg){ return seg.type === 'pause'; })){
-    _speakStudyPlaylistSegments(button, segments, '播放問答', { label: '全部 ' + items.length + ' 題通勤問答', loop: loop });
-    return;
-  }
-  var text = items.map(function(item, idx){
-    return '第 ' + (idx + 1) + ' 則。' + item.speechText;
-  }).join('。下一則。');
-  _speakStudyPlaylistText(button, text, '朗讀全部', { label: '全部 ' + items.length + ' 則重點' });
+  startStudyPlaylistPlayerAt(_studyPlaylistPlayer.index || 0);
 }
 
 function closeDashboardSideNav(){
@@ -9158,6 +9510,7 @@ async function loadStudyPlaylist(){
   try{
     var res = await _fetchJSON(studyPlaylistApiUrl(subject, law, pauseSeconds), { headers: _authH({}) }, 1);
     var items = res && Array.isArray(res.items) ? res.items : [];
+    var policy = res && (res.access_policy || res.accessPolicy) || {};
     if(law){
       items = items.filter(function(item){
         return String(item.law_name || item.law || '').trim() === law;
@@ -9176,6 +9529,7 @@ async function loadStudyPlaylist(){
       return {
         law_name:String(item.law_name || ''),
         article_no:String(item.article_no || ''),
+        page_id:String(item.page_id || item.id || ''),
         title:String(item.title || '重點條文'),
         text:fullText || '這條還沒有重點整理，先看原文。',
         audio_url:String(item.audio_url || item.audioUrl || ''),
@@ -9210,15 +9564,22 @@ async function loadStudyPlaylist(){
         + '<span class="meta">' + esc(meta || '今日重點') + '</span>'
         + '<span class="title">' + esc(displayTitle || '重點條文') + '</span>'
         + '<span class="text">' + esc(prompt || text || '這條還沒有重點整理，先看原文。') + '</span>'
+        + _renderStudyPlaylistLines(item, idx)
         + '<span class="study-playlist-actions">'
-          + '<button type="button" onclick="playStudyPlaylistItem(this, ' + idx + ')">朗讀</button>'
+          + '<button type="button" onclick="playStudyPlaylistItem(this, ' + idx + ')">播放</button>'
           + '<a class="primary" href="' + esc(practiceHref) + '">練習</a>'
           + '<button type="button" data-law="' + escAttr(law) + '" data-art="' + escAttr(articleNo) + '" data-page-id="' + escAttr(itemId) + '" onclick="openStudyPlaylistArticle(this)">看法條</button>'
         + '</span>'
         + '</div>';
     }).join('');
     setStudyPlaylistPlayReady(true, '播放問答');
-    _setStudyPlaylistStatus('已準備 ' + items.length + ' 題通勤問答；問題後會停 ' + pauseSeconds + ' 秒再播放答案。');
+    _studyPlaylistPlayer.index = 0;
+    _studyPlaylistPlayer.playing = false;
+    _updateStudyPlaylistPlayerUI(window.__studyPlaylistAudioItems[0] || {}, 0);
+    _updateStudyPlaylistProgress(0, 0);
+    _setStudyPlaylistCurrentSegment(null, null);
+    var accessNote = _studyPlaylistAccessNote(policy, items.length);
+    _setStudyPlaylistStatus('已準備 ' + items.length + ' 題通勤問答；問題後會停 ' + pauseSeconds + ' 秒再播放答案。' + (accessNote ? ' ' + accessNote : ''));
   }catch(e){
     window.__studyPlaylistAudioItems = [];
     setStudyPlaylistPlayReady(false, '播放問答');
