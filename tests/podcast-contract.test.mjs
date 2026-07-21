@@ -69,9 +69,11 @@ test('podcast feed is platform-safe and points to the generated audio file', () 
   assert.match(feed, /本節目使用 AI 合成語音/);
   assert.match(feed, /sofaengine\.org 可以看字幕/);
   assert.doesNotMatch(feed, /SoFa Engine 通勤補一條|通勤補一條/);
-  assert.match(page, /https:\/\/sofaengine\.org\/assets\/podcast-cover-3000-v2\.jpg/);
-  assert.match(feed, /<itunes:image href="https:\/\/sofaengine\.org\/assets\/podcast-cover-3000-v2\.jpg"\/>/);
+  assert.match(page, /https:\/\/sofaengine\.org\/assets\/podcast-cover-3000-v20260721-close\.jpg/);
+  assert.match(feed, /<itunes:image href="https:\/\/sofaengine\.org\/assets\/podcast-cover-3000-v20260721-close\.jpg"\/>/);
   assert.match(feed, /<enclosure url="https:\/\/sofaengine\.org\/assets\/audio\/sofa-podcast-ep001-v20260721-ac\.m4a" length="\d+" type="audio\/mp4"\/>/);
+  assert.match(feed, /xmlns:podcast="https:\/\/podcastindex\.org\/namespace\/1\.0"/);
+  assert.match(feed, /<podcast:transcript url="https:\/\/sofaengine\.org\/assets\/audio\/sofa-podcast-ep001-v20260721-ac\.vtt" type="text\/vtt" language="zh-TW" rel="captions"\/>/);
   assert.match(feed, /付費會員的完整播放清單會留在官網會員區/);
   assert.match(feed, /<copyright>&#xA9; 2026 SoFa Engine<\/copyright>/);
   assert.match(feed, /<pubDate>Tue, 21 Jul 2026 14:42:00 \+0000<\/pubDate>/);
@@ -82,13 +84,31 @@ test('podcast feed is platform-safe and points to the generated audio file', () 
   const appleCompatAudio = statSync(new URL('assets/audio/sofa-podcast-ep001-v20260721-ac.m4a', root));
   assert.ok(appleCompatAudio.size > 2000000, `apple-compatible audio file too small: ${appleCompatAudio.size}`);
 
-  const artwork = statSync(new URL('assets/podcast-cover-3000-v2.jpg', root));
+  const artwork = statSync(new URL('assets/podcast-cover-3000-v20260721-close.jpg', root));
   assert.ok(artwork.size > 300000, `artwork file too small: ${artwork.size}`);
-  assert.match(readFileSync(new URL('assets/podcast-cover-3000-v2.jpg', root)).subarray(0, 2).toString('hex'), /^ffd8/);
-  assert.deepEqual(jpegDimensions(new URL('assets/podcast-cover-3000-v2.jpg', root)), {
+  assert.match(readFileSync(new URL('assets/podcast-cover-3000-v20260721-close.jpg', root)).subarray(0, 2).toString('hex'), /^ffd8/);
+  assert.deepEqual(jpegDimensions(new URL('assets/podcast-cover-3000-v20260721-close.jpg', root)), {
     width: 3000,
     height: 3000,
   });
+});
+
+test('podcast transcript is available in Apple-compatible VTT and on the website', () => {
+  assert.match(page, /id="transcript"/);
+  assert.match(page, /逐字稿/);
+  assert.match(page, /有利可以往回，不利通常往後/);
+  assert.match(page, /\.note\.law-text\{grid-column:1\/-1\}/);
+  assert.match(page, /<h3>法條原文<\/h3>/);
+  assert.match(page, /SoFa 法規資料庫整理版：§ 01之1｜解釋函令之效力與變更/);
+  assert.match(page, /2 財政部發布解釋函令/);
+  assert.match(feed, /SoFa 法規資料庫整理版原文/);
+  assert.doesNotMatch(page, /來源：全國法規資料庫/);
+
+  const transcript = readFileSync(new URL('assets/audio/sofa-podcast-ep001-v20260721-ac.vtt', root), 'utf8');
+  assert.match(transcript, /^WEBVTT/);
+  assert.match(transcript, /00:00:00\.000 --> 00:00:08\.000/);
+  assert.match(transcript, /SoFa 輕聲補一條。/);
+  assert.match(transcript, /回到 SoFa Engine，可以直接練習這條附近的題目。/);
 });
 
 test('podcast page separates the three audio lanes without loading the short episode with long ads', () => {

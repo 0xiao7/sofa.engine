@@ -38,9 +38,13 @@ const enclosureLength = Number(matchOne(feed, /<enclosure url="[^"]+" length="(\
 const enclosureType = matchOne(feed, /<enclosure url="[^"]+" length="\d+" type="([^"]+)"/, 'RSS enclosure type');
 const guid = matchOne(feed, /<guid isPermaLink="false">([^<]+)<\/guid>/, 'RSS guid');
 const pageAudio = matchOne(page, /<audio controls preload="metadata" src="([^"]+)"/, 'site audio src');
+const artworkUrl = matchOne(feed, /<itunes:image href="([^"]+)"\/>/, 'RSS artwork');
+const transcriptUrl = matchOne(feed, /<podcast:transcript url="([^"]+)" type="text\/vtt" language="zh-TW" rel="captions"\/>/, 'RSS transcript');
 
 const enclosurePath = localPathFromUrl(enclosureUrl);
 const pageAudioPath = localPathFromUrl(pageAudio);
+const artworkPath = localPathFromUrl(artworkUrl);
+const transcriptPath = localPathFromUrl(transcriptUrl);
 const episode = release.episodes[0];
 
 assert.equal(release.show.title, 'SoFa 輕聲補一條');
@@ -49,12 +53,16 @@ assert.equal(enclosureType, 'audio/mp4');
 assert.equal(guid, episode.guid);
 assert.equal(enclosurePath, episode.enclosure);
 assert.equal(pageAudioPath, episode.siteAudio);
+assert.equal(artworkPath, release.show.artwork);
+assert.equal(transcriptPath, episode.transcript);
 assert.equal(statSync(new URL(enclosurePath, root)).size, enclosureLength);
 assert.match(guid, /^sofa-podcast-ep\d{3}-v\d{8}-ac$/);
 assert.doesNotMatch(enclosurePath, /sofa-podcast-001\.m4a$/);
 
 assertAudioFile(enclosurePath, 2_000_000);
 assertAudioFile(pageAudioPath, 2_500_000);
+assertAudioFile(artworkPath, 300_000);
+assertAudioFile(transcriptPath, 1_000);
 for (const legacyPath of episode.legacyUrlsToKeep) {
   assertAudioFile(legacyPath, 100_000);
 }

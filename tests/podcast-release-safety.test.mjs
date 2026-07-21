@@ -25,6 +25,7 @@ test('legacy podcast audio remains available for Apple and device caches', () =>
 test('podcast release notes record rights, voices, and the three content lanes', () => {
   const notes = JSON.parse(readFileSync(new URL('podcast-release.json', root), 'utf8'));
   assert.equal(notes.show.title, 'SoFa 輕聲補一條');
+  assert.equal(notes.show.artwork, 'assets/podcast-cover-3000-v20260721-close.jpg');
   assert.equal(notes.rights.aiVoiceDisclosure, true);
   assert.deepEqual(notes.voicePolicy.primaryVoices, ['A', 'C']);
   assert.deepEqual(notes.contentLanes.map(lane => lane.id), [
@@ -33,4 +34,7 @@ test('podcast release notes record rights, voices, and the three content lanes',
     'question-application',
   ]);
   assert.match(notes.episodes[0].enclosure, /sofa-podcast-ep001-v\d{8}-ac\.m4a$/);
+  assert.match(notes.episodes[0].transcript, /sofa-podcast-ep001-v\d{8}-ac\.vtt$/);
+  assert.equal(notes.episodes[0].articleId, '11bd2bd4-f72e-4fd7-94d2-bc8344bdc66b');
+  assert.equal(notes.episodes[0].articleSource, 'SoFa articles table via /api/article/{articleId}');
 });
