@@ -8788,9 +8788,36 @@ function _studyPlaylistLyricLines(item){
   return lines.filter(function(line){ return line.text; }).slice(0, 4);
 }
 
+function _studyPlaylistTimedLyricLines(item){
+  item = item || {};
+  var timed = Array.isArray(item.lyric_lines) ? item.lyric_lines : (Array.isArray(item.lyricLines) ? item.lyricLines : []);
+  var lines = timed.map(function(line){
+    var start = Number(line.start || 0) || 0;
+    var end = Number(line.end || 0) || 0;
+    return {
+      label:line.label || (line.type === 'pause' ? '想' : (line.type === 'answer' ? '答' : '問')),
+      text:_cleanVisibleSpeechCueText(line.text || ''),
+      type:line.type || '',
+      start:start,
+      end:end > start ? end : start + Math.max(1, Number(line.duration || 0) || 1),
+      duration:Number(line.duration || 0) || 0
+    };
+  }).filter(function(line){ return line.text; });
+  if(timed.length && lines.length) return lines.slice(0, 4);
+  var cursor = 0;
+  return _studyPlaylistLyricLines(item).map(function(line){
+    var duration = line.label === '想'
+      ? Math.max(3, Math.min(12, Number(item.pause_seconds || item.pauseSeconds || 6) || 6))
+      : Math.max(2, Math.min(45, String(line.text || '').replace(/\s+/g, '').length / 4.2));
+    var out = { label:line.label, text:line.text, start:cursor, end:cursor + duration, duration:duration };
+    cursor += duration;
+    return out;
+  });
+}
+
 function _renderStudyPlaylistLines(item, idx){
   return '<span class="study-playlist-lines">'
-    + _studyPlaylistLyricLines(item).map(function(line, lineIdx){
+    + _studyPlaylistTimedLyricLines(item).map(function(line, lineIdx){
       return '<span class="study-playlist-line" data-playlist-line="' + idx + '-' + lineIdx + '">'
         + '<b>' + esc(line.label) + '</b><span>' + esc(line.text) + '</span></span>';
     }).join('')
@@ -8902,9 +8929,14 @@ function _updateStudyPlaylistProgress(current, duration){
 }
 
 function _syncStudyPlaylistLyricFromProgress(item, idx, current, duration){
-  var lines = _studyPlaylistLyricLines(item);
+  var lines = _studyPlaylistTimedLyricLines(item);
   if(!lines.length) return;
-  var lineIdx = duration > 0 ? Math.min(lines.length - 1, Math.floor((current / duration) * lines.length)) : 0;
+  var estimated = Number(item.estimated_duration || item.estimatedDuration || 0) || 0;
+  var cursor = duration > 0 && estimated > 0 ? (Number(current || 0) / duration) * estimated : Number(current || 0);
+  var lineIdx = lines.findIndex(function(line){
+    return cursor >= line.start && cursor < line.end;
+  });
+  if(lineIdx < 0) lineIdx = cursor >= lines[lines.length - 1].end ? lines.length - 1 : 0;
   _studyPlaylistPlayer.currentLine = lineIdx;
   _setStudyPlaylistCurrentSegment(idx, lineIdx);
 }
@@ -9537,6 +9569,8 @@ async function loadStudyPlaylist(){
         prompt:String(item.prompt || ''),
         answer:String(item.answer || ''),
         pause_seconds:Number(item.pause_seconds || pauseSeconds || 6) || 6,
+        lyric_lines:item.lyric_lines || item.lyricLines || [],
+        estimated_duration:Number(item.estimated_duration || item.estimatedDuration || 0) || 0,
         segments:Array.isArray(item.segments) ? item.segments : []
       };
     }).map(function(item){
