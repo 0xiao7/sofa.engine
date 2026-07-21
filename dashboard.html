@@ -4578,6 +4578,15 @@
                   </select>
                 </label>
                 <label class="study-playlist-field">
+                  <span>重點</span>
+                  <select id="study-playlist-star" aria-label="播放清單重點星級" onchange="loadStudyPlaylist()">
+                    <option value="5">五星</option>
+                    <option value="4">四星以上</option>
+                    <option value="3">三星以上</option>
+                    <option value="0">全部</option>
+                  </select>
+                </label>
+                <label class="study-playlist-field">
                   <span>間隔</span>
                   <select id="study-playlist-pause" aria-label="問答間隔秒數">
                     <option value="6">等 6 秒</option>
@@ -8781,6 +8790,7 @@ var _studyPlaylistPagination = {
   loading: false,
   subject: '',
   law: '',
+  star_min: '5',
   pause_seconds: '6'
 };
 var _studyPlaylistPlayer = {
@@ -9629,7 +9639,7 @@ function refreshOpenStudyPlaylistFromWeakCache(){
   loadStudyPlaylist();
 }
 
-function studyPlaylistApiUrl(subject, law, pauseSeconds, offset){
+function studyPlaylistApiUrl(subject, law, pauseSeconds, offset, starMin){
   var params = new URLSearchParams();
   params.set('track', 'bookkeeper');
   params.set('subject', subject || '');
@@ -9637,12 +9647,11 @@ function studyPlaylistApiUrl(subject, law, pauseSeconds, offset){
   params.set('content_layer', 'analysis');
   params.set('pause_seconds', pauseSeconds || '6');
   params.set('offset', String(offset || 0));
+  params.set('star_min', String(starMin || '5'));
   if(law){
     params.set('law', law);
-    params.set('star_min', '0');
     params.set('limit', '40');
   }else{
-    params.set('star_min', '0');
     params.set('limit', '20');
   }
   return API + '/api/playlist?' + params.toString();
@@ -9652,11 +9661,13 @@ async function loadStudyPlaylist(options){
   var list = document.getElementById('study-playlist-list');
   var subjectEl = document.getElementById('study-playlist-subject');
   var lawEl = document.getElementById('study-playlist-law');
+  var starEl = document.getElementById('study-playlist-star');
   var pauseEl = document.getElementById('study-playlist-pause');
   if(!list) return;
   var appendMode = !!(options && options.append);
   var subject = subjectEl ? subjectEl.value : '';
   var law = lawEl ? String(lawEl.value || '').trim() : '';
+  var starMin = starEl ? String(starEl.value || '5') : '5';
   var pauseSeconds = pauseEl ? String(pauseEl.value || '6') : '6';
   var offset = appendMode ? (Number(_studyPlaylistPagination.next_offset || 0) || 0) : 0;
   var loadMoreBtn = document.getElementById('study-playlist-load-more');
@@ -9671,7 +9682,7 @@ async function loadStudyPlaylist(options){
     _setStudyPlaylistStatus('正在載入下一批通勤問答。');
   }
   try{
-    var res = await _fetchJSON(studyPlaylistApiUrl(subject, law, pauseSeconds, offset), { headers: _authH({}) }, 1);
+    var res = await _fetchJSON(studyPlaylistApiUrl(subject, law, pauseSeconds, offset, starMin), { headers: _authH({}) }, 1);
     var items = res && Array.isArray(res.items) ? res.items : [];
     var policy = res && (res.access_policy || res.accessPolicy) || {};
     var hasMore = !!(res && (res.has_more || res.hasMore));
@@ -9691,7 +9702,7 @@ async function loadStudyPlaylist(options){
       }else{
         _setStudyPlaylistStatus('下一批暫時沒有內容；目前清單可以繼續播放或練習。');
       }
-      _studyPlaylistPagination = { has_more:false, next_offset:0, loading:false, subject:subject, law:law, pause_seconds:pauseSeconds };
+      _studyPlaylistPagination = { has_more:false, next_offset:0, loading:false, subject:subject, law:law, star_min:starMin, pause_seconds:pauseSeconds };
       return false;
     }
     items = items.map(function(item){
@@ -9762,6 +9773,7 @@ async function loadStudyPlaylist(options){
       loading: false,
       subject: subject,
       law: law,
+      star_min: starMin,
       pause_seconds: pauseSeconds
     };
     if(hasMore){
