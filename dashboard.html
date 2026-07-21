@@ -4579,15 +4579,20 @@
             <div class="study-playlist-head">
               <div class="study-playlist-title">
                 <span>PLAYER</span>
-                <b>聽法條、聽問答，也能直接練習</b>
+                <b>沉浸練習：閉眼想，再聽法規答案</b>
               </div>
               <div class="study-playlist-tools">
                 <label class="study-playlist-field">
-                  <span>考科範圍</span>
-                  <select id="study-playlist-subject" aria-label="重點清單科目" onchange="loadStudyPlaylist()">
-                    <option value="">記帳士全部法規</option>
-                    <option value="tax_laws">租稅相關法規概要</option>
-                    <option value="bookkeeping_laws">記帳相關法規概要</option>
+                  <span>考科</span>
+                  <select id="study-playlist-subject" aria-label="播放清單考科" onchange="populateStudyPlaylistLaws(); loadStudyPlaylist()">
+                    <option value="all">全部考科</option>
+                    <option value="bookkeeper">記帳士</option>
+                    <option value="landadmin">地政士</option>
+                    <option value="realestate">不動產經紀人</option>
+                    <option value="tax-admin">財稅行政</option>
+                    <option value="tax-law">財稅法務</option>
+                    <option value="elem-admin">初等行政</option>
+                    <option value="post-acc">中華郵政</option>
                   </select>
                 </label>
                 <label class="study-playlist-field">
@@ -8807,6 +8812,7 @@ var _studyPlaylistPagination = {
   has_more: false,
   next_offset: 0,
   loading: false,
+  track: 'all',
   subject: '',
   law: '',
   star_min: '5',
@@ -8821,7 +8827,32 @@ var _studyPlaylistPlayer = {
 
 function _setStudyPlaylistStatus(message){
   var el = document.getElementById('study-playlist-status');
-  if(el) el.textContent = message || '清單產生後，可以逐則聽讀、練習，或回去看原文。';
+  if(el) el.textContent = message || '清單產生後，可以閉眼聽題、停一下想，再聽法規答案。';
+}
+
+function _studyPlaylistNormalizeTrack(value){
+  value = String(value || '').trim();
+  if(!value) return 'all';
+  var aliases = {
+    'all-exams':'all',
+    'all_exams':'all',
+    'land-agent':'landadmin',
+    'land_agent':'landadmin',
+    'land-admin':'landadmin',
+    'land_admin':'landadmin',
+    'real-estate':'realestate',
+    'real_estate':'realestate',
+    'tax_admin':'tax-admin',
+    'tax_law':'tax-law',
+    'elem_admin':'elem-admin',
+    'post_acc':'post-acc'
+  };
+  return aliases[value] || value;
+}
+
+function _studyPlaylistCurrentTrack(){
+  var el = document.getElementById('study-playlist-subject');
+  return _studyPlaylistNormalizeTrack(el ? el.value : 'all');
 }
 
 function _playlistTimeLabel(seconds){
@@ -8942,7 +8973,7 @@ function _playStudyPlaylistAudioUrl(button, audioUrl, onDone, onError, meta){
     var audio = new Audio(url);
     _studyPlaylistAudioEl = audio;
     audio.onplaying = function(){
-      _setStudyPlaylistStatus(meta && meta.label ? ('正在播放：' + meta.label) : '正在播放通勤問答。');
+      _setStudyPlaylistStatus(meta && meta.label ? ('正在播放：' + meta.label) : '正在播放沉浸練習。');
     };
     audio.onended = function(){
       if(_studyPlaylistAudioEl === audio) _studyPlaylistAudioEl = null;
@@ -9300,7 +9331,7 @@ function _speakStudyPlaylistSegments(button, segments, idleLabel, meta){
       playDeviceVoiceSegment(seg, i);
     }
     if(seg.audio_url && _playStudyPlaylistAudioUrl(button, seg.audio_url, function(){ speakSegment(i + 1); }, speakWithDeviceVoice, meta)){
-      _setStudyPlaylistStatus(meta && meta.label ? ('正在播放：' + meta.label) : '正在播放通勤問答。');
+      _setStudyPlaylistStatus(meta && meta.label ? ('正在播放：' + meta.label) : '正在播放沉浸練習。');
       return;
     }
     speakWithDeviceVoice();
@@ -9318,7 +9349,7 @@ function _speakStudyPlaylistSegments(button, segments, idleLabel, meta){
     if(twVoice) utt.voice = twVoice;
     utt.onstart = function(){
       started = true;
-      _setStudyPlaylistStatus(meta && meta.label ? ('正在播放：' + meta.label) : '正在播放通勤問答。');
+      _setStudyPlaylistStatus(meta && meta.label ? ('正在播放：' + meta.label) : '正在播放沉浸練習。');
     };
     utt.onend = function(){ speakSegment(i + 1); };
     utt.onerror = function(){
@@ -9326,7 +9357,7 @@ function _speakStudyPlaylistSegments(button, segments, idleLabel, meta){
       _dashToast('朗讀沒有啟動，請再點一次或先看文字清單。');
       _setStudyPlaylistStatus('朗讀沒有啟動；文字、練習和看法條仍可用。');
     };
-    _setStudyPlaylistStatus(meta && meta.label ? ('正在播放：' + meta.label) : '正在播放通勤問答。');
+    _setStudyPlaylistStatus(meta && meta.label ? ('正在播放：' + meta.label) : '正在播放沉浸練習。');
     speechSynthesis.speak(utt);
     if(typeof speechSynthesis.resume === 'function'){
       setTimeout(function(){
@@ -9503,8 +9534,9 @@ function _studyVal(id){
   return el ? String(el.value || '').trim() : '';
 }
 
-function buildStudyPlaylistFallbackItems(data, subject, lawFilter){
+function buildStudyPlaylistFallbackItems(data, track, lawFilter){
   data = data || {};
+  track = _studyPlaylistNormalizeTrack(track);
   lawFilter = String(lawFilter || '').trim();
   var items = [];
   var seen = new Set();
@@ -9567,10 +9599,13 @@ function buildStudyPlaylistFallbackItems(data, subject, lawFilter){
     });
   });
 
-  if(subject && subject !== 'all'){
-    items = items.filter(function(item){
-      return item.law_name || item.title;
-    });
+  if(track && track !== 'all'){
+    var examSet = (typeof _examLawSet === 'function') ? _examLawSet(track) : null;
+    if(examSet){
+      items = items.filter(function(item){
+        return !item.law_name || examSet.has(item.law_name);
+      });
+    }
   }
   if(lawFilter){
     items = items.filter(function(item){
@@ -9614,6 +9649,7 @@ function populateStudyPlaylistLaws(){
   var sel = document.getElementById('study-playlist-law');
   if(!sel) return;
   var current = sel.value || '';
+  var track = _studyPlaylistCurrentTrack();
   var laws = Array.isArray(_allLaws) ? _allLaws.slice() : [];
   if(!laws.length){
     fetch(API + '/api/laws')
@@ -9631,9 +9667,11 @@ function populateStudyPlaylistLaws(){
     return false;
   }
   var seen = {};
-  var options = ['<option value="">目前考科全部法規</option>'];
+  var examSet = (track && track !== 'all' && typeof _examLawSet === 'function') ? _examLawSet(track) : null;
+  var options = ['<option value="">全部法規</option>'];
   laws.forEach(function(law){
     var name = String(law && law.name || law || '').trim();
+    if(examSet && !examSet.has(name)) return;
     if(!name || seen[name]) return;
     seen[name] = true;
     options.push('<option value="' + esc(name) + '">' + esc(name) + '</option>');
@@ -9658,10 +9696,12 @@ function refreshOpenStudyPlaylistFromWeakCache(){
   loadStudyPlaylist();
 }
 
-function studyPlaylistApiUrl(subject, law, pauseSeconds, offset, starMin){
+function studyPlaylistApiUrl(track, law, pauseSeconds, offset, starMin){
   var params = new URLSearchParams();
-  params.set('track', 'bookkeeper');
-  params.set('subject', subject || '');
+  track = _studyPlaylistNormalizeTrack(track);
+  law = String(law || '').trim();
+  params.set('track', track || 'all');
+  params.set('subject', '');
   params.set('mode', 'active_recall');
   params.set('content_layer', 'analysis');
   params.set('pause_seconds', pauseSeconds || '6');
@@ -9678,13 +9718,12 @@ function studyPlaylistApiUrl(subject, law, pauseSeconds, offset, starMin){
 
 async function loadStudyPlaylist(options){
   var list = document.getElementById('study-playlist-list');
-  var subjectEl = document.getElementById('study-playlist-subject');
   var lawEl = document.getElementById('study-playlist-law');
   var starEl = document.getElementById('study-playlist-star');
   var pauseEl = document.getElementById('study-playlist-pause');
   if(!list) return;
   var appendMode = !!(options && options.append);
-  var subject = subjectEl ? subjectEl.value : '';
+  var track = _studyPlaylistCurrentTrack();
   var law = lawEl ? String(lawEl.value || '').trim() : '';
   var starMin = starEl ? String(starEl.value || '5') : '5';
   var pauseSeconds = pauseEl ? String(pauseEl.value || '6') : '6';
@@ -9696,12 +9735,12 @@ async function loadStudyPlaylist(options){
   if(!appendMode){
     setStudyPlaylistPlayReady(false, '讀取中');
     list.innerHTML = '<div class="study-empty">讀取重點清單中…</div>';
-    _setStudyPlaylistStatus('正在更新通勤問答清單。');
+    _setStudyPlaylistStatus('正在更新沉浸練習清單。');
   }else{
-    _setStudyPlaylistStatus('正在載入下一批通勤問答。');
+    _setStudyPlaylistStatus('正在載入下一批沉浸練習。');
   }
   try{
-    var res = await _fetchJSON(studyPlaylistApiUrl(subject, law, pauseSeconds, offset, starMin), { headers: _authH({}) }, 1);
+    var res = await _fetchJSON(studyPlaylistApiUrl(track, law, pauseSeconds, offset, starMin), { headers: _authH({}) }, 1);
     var items = res && Array.isArray(res.items) ? res.items : [];
     var policy = res && (res.access_policy || res.accessPolicy) || {};
     var hasMore = !!(res && (res.has_more || res.hasMore));
@@ -9711,7 +9750,7 @@ async function loadStudyPlaylist(options){
         return String(item.law_name || item.law || '').trim() === law;
       });
     }
-    if(!items.length && !appendMode) items = buildStudyPlaylistFallbackItems(window.__studyTodayData || {}, subject, law);
+    if(!items.length && !appendMode) items = buildStudyPlaylistFallbackItems(window.__studyTodayData || {}, track, law);
     if(!items.length){
       if(!appendMode){
         window.__studyPlaylistAudioItems = [];
@@ -9721,7 +9760,7 @@ async function loadStudyPlaylist(options){
       }else{
         _setStudyPlaylistStatus('下一批暫時沒有內容；目前清單可以繼續播放或練習。');
       }
-      _studyPlaylistPagination = { has_more:false, next_offset:0, loading:false, subject:subject, law:law, star_min:starMin, pause_seconds:pauseSeconds };
+      _studyPlaylistPagination = { has_more:false, next_offset:0, loading:false, track:track, subject:'', law:law, star_min:starMin, pause_seconds:pauseSeconds };
       return false;
     }
     items = items.map(function(item){
@@ -9790,7 +9829,8 @@ async function loadStudyPlaylist(options){
       has_more: hasMore,
       next_offset: nextOffset,
       loading: false,
-      subject: subject,
+      track: track,
+      subject: '',
       law: law,
       star_min: starMin,
       pause_seconds: pauseSeconds
@@ -9810,7 +9850,7 @@ async function loadStudyPlaylist(options){
     }
     var accessNote = _studyPlaylistAccessNote(policy, items.length);
     var totalCount = (window.__studyPlaylistAudioItems || []).length;
-    _setStudyPlaylistStatus((appendMode ? '已新增 ' + items.length + ' 題，現在共有 ' + totalCount + ' 題；' : '已準備 ' + items.length + ' 題通勤問答；') + '問題後會停 ' + pauseSeconds + ' 秒再播放答案。' + (hasMore ? ' 播到最後會自動載入下一批。' : '') + (accessNote ? ' ' + accessNote : ''));
+    _setStudyPlaylistStatus((appendMode ? '已新增 ' + items.length + ' 題，現在共有 ' + totalCount + ' 題；' : '已準備 ' + items.length + ' 題沉浸練習；') + '問題後會停 ' + pauseSeconds + ' 秒再播放答案。' + (hasMore ? ' 播到最後會自動載入下一批。' : '') + (accessNote ? ' ' + accessNote : ''));
     return true;
   }catch(e){
     if(!appendMode) window.__studyPlaylistAudioItems = [];

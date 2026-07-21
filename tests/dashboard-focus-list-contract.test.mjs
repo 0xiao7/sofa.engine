@@ -13,7 +13,7 @@ test('dashboard gives the playlist its own block without media playback wording'
   assert.match(html, /aria-label="播放清單"/);
   assert.match(html, /id="study-playlist-playall"[\s\S]*播放問答/);
   assert.match(html, /id="study-playlist-status"/);
-  assert.match(html, /聽法條、聽問答，也能直接練習/);
+  assert.match(html, /沉浸練習：閉眼想，再聽法規答案/);
   const actionsStart = html.indexOf('<div class="study-action-group secondary"');
   const actionsEnd = html.indexOf('</div>', actionsStart);
   const secondaryActions = html.slice(actionsStart, actionsEnd);
@@ -25,7 +25,8 @@ test('dashboard focus list keeps executable actions and API loading', () => {
   assert.match(html, /function openStudyPlaylistPanel/);
   assert.match(html, /function loadStudyPlaylist/);
   assert.match(html, /\/api\/playlist\?/);
-  assert.match(html, /params\.set\('track', 'bookkeeper'\)/);
+  assert.match(html, /params\.set\('track', track \|\| 'all'\)/);
+  assert.doesNotMatch(html, /params\.set\('track', 'bookkeeper'\)/);
   assert.match(html, /function playStudyPlaylistAll/);
   assert.match(html, /function playStudyPlaylistItem/);
   assert.match(html, /function _speakStudyPlaylistText/);

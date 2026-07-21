@@ -367,7 +367,10 @@ test('study playlist is a generic text fallback and does not ship private schedu
   assert.match(active, /aria-label="播放清單重點星級"/);
   assert.match(active, /<option value="5">五星<\/option>/);
   assert.match(active, /<option value="0">全部<\/option>/);
-  assert.match(active, /<label class="study-playlist-field"[\s\S]*<span>考科範圍<\/span>[\s\S]*id="study-playlist-subject"/);
+  assert.match(active, /<label class="study-playlist-field"[\s\S]*<span>考科<\/span>[\s\S]*id="study-playlist-subject"/);
+  assert.match(active, /aria-label="播放清單考科"/);
+  assert.match(active, /<option value="all">全部考科<\/option>/);
+  assert.match(active, /<option value="landadmin">地政士<\/option>/);
   assert.match(active, /<label class="study-playlist-field"[\s\S]*<span>法規<\/span>[\s\S]*id="study-playlist-law"/);
   assert.match(active, /<label class="study-playlist-field"[\s\S]*<span>重點<\/span>[\s\S]*id="study-playlist-star"/);
   assert.match(active, /<label class="study-playlist-field"[\s\S]*<span>間隔<\/span>[\s\S]*id="study-playlist-pause"/);
@@ -376,11 +379,14 @@ test('study playlist is a generic text fallback and does not ship private schedu
   assert.match(extractFunction(active, 'openStudyPlaylistPanel'), /populateStudyPlaylistLaws\(\) !== false/);
   assert.match(extractFunction(active, 'populateStudyPlaylistLaws'), /return false/);
   assert.match(extractFunction(active, 'populateStudyPlaylistLaws'), /else sel\.value = ''/);
-  assert.match(active, /通勤問答|重點清單/);
+  assert.match(extractFunction(active, 'populateStudyPlaylistLaws'), /_examLawSet\(track\)/);
+  assert.match(extractFunction(active, 'studyPlaylistApiUrl'), /params\.set\('track', track \|\| 'all'\)/);
+  assert.doesNotMatch(extractFunction(active, 'studyPlaylistApiUrl'), /params\.set\('track', 'bookkeeper'\)/);
+  assert.match(active, /沉浸練習|重點清單/);
   assert.match(active, /id="study-playlist-block"/);
   assert.match(active, /播放清單/);
   assert.match(active, /aria-label="播放清單"/);
-  assert.match(active, /aria-label="重點清單科目"/);
+  assert.match(active, /aria-label="播放清單考科"/);
   assert.match(active, /aria-label="問答間隔秒數"/);
   assert.match(active, />PLAYLIST</);
   assert.doesNotMatch(active, /記帳士 115記帳士台北N1|115\/03\/02|稅務相關法規\(基礎\)1/);
@@ -431,7 +437,7 @@ test('study playlist falls back to today weakness and topic blocks when playlist
   assert.match(fallback, /slice\(0,\s*8\)/);
 
   const load = extractFunction(active, 'loadStudyPlaylist');
-  assert.match(load, /buildStudyPlaylistFallbackItems\(window\.__studyTodayData \|\| \{\},\s*subject,\s*law\)/);
+  assert.match(load, /buildStudyPlaylistFallbackItems\(window\.__studyTodayData \|\| \{\},\s*track,\s*law\)/);
   assert.match(load, /播放清單目前還空/);
   assert.doesNotMatch(load, /先回選擇題累積弱點/);
 });
@@ -535,7 +541,7 @@ test('study playlist can directly play text through the browser speech engine', 
   assert.match(active, /正在朗讀：|正在播放：/);
   assert.match(active, /朗讀沒有啟動/);
   assert.match(active, /已停止朗讀/);
-  assert.match(active, /已準備 ' \+ items\.length \+ ' 題通勤問答/);
+  assert.match(active, /已準備 ' \+ items\.length \+ ' 題沉浸練習/);
   assert.match(extractFunction(active, '_studyPlaylistSpeechText'), /_cleanStudyPlaylistCueText/);
   assert.doesNotMatch(extractFunction(active, '_studyPlaylistSpeechText'), /停頓 ' \+/);
   assert.match(extractFunction(active, '_cleanSpeechCueText'), /\(\?:長\|短\)\?停頓/);
