@@ -510,6 +510,12 @@ test('study playlist can directly play text through the browser speech engine', 
   assert.match(active, /function _speakStudyPlaylistText/);
   assert.match(active, /SpeechSynthesisUtterance/);
   assert.match(active, /function _playStudyPlaylistAudioUrl/);
+  assert.match(active, /function startStudyPlaylistPlayerAt/);
+  assert.match(active, /function toggleStudyPlaylistPlayer/);
+  assert.match(active, /function studyPlaylistNext/);
+  assert.match(active, /function seekStudyPlaylistPlayer/);
+  assert.match(active, /id="study-playlist-player"/);
+  assert.match(active, /id="study-playlist-progress"/);
   assert.match(active, /new Audio\(url\)/);
   assert.match(active, /audio\.play\(\)/);
   assert.match(active, /speechSynthesis\.speak/);
@@ -527,7 +533,7 @@ test('study playlist can directly play text through the browser speech engine', 
   assert.match(active, /replace\(\s*\/\\s\+\/g,\s*' '\s*\)/);
   const fn = extractFunction(active, 'loadStudyPlaylist');
   assert.match(fn, /onclick="playStudyPlaylistItem\(this, ' \+ idx \+ '\)"/);
-  assert.match(fn, />朗讀</);
+  assert.match(fn, />播放</);
   assert.match(fn, /data-playlist-index/);
   assert.match(fn, /_cleanVisibleSpeechCueText\(String\(item\.text/);
   assert.match(fn, /_cleanVisibleSpeechCueText\(String\(item\.prompt/);
@@ -556,9 +562,27 @@ test('study playlist active recall prefers provider audio then falls back to dev
   assert.match(playAudio, /已改用裝置朗讀/);
   assert.match(speak, /setTimeout\(function\(\)\{ speakSegment\(i \+ 1\); \}, seg\.seconds \* 1000\)/);
   assert.match(speak, /暫停 ' \+ seg\.seconds \+ ' 秒，先自己想答案/);
-  assert.match(playAll, /var itemSegments = _studyPlaylistSegments\(item\)/);
-  assert.match(playAll, /if\(!itemSegments\.some\(function\(seg\)\{ return seg\.audio_url; \}\)\)/);
-  assert.match(playAll, /segments\.some\(function\(seg\)\{ return seg\.type === 'pause'; \}\)/);
+  assert.match(playAll, /startStudyPlaylistPlayerAt\(_studyPlaylistPlayer\.index \|\| 0\)/);
+  assert.doesNotMatch(playAll, /var itemSegments = _studyPlaylistSegments\(item\)/);
+});
+
+test('study playlist explains soft caps instead of looking like missing laws', () => {
+  const load = extractFunction(active, 'loadStudyPlaylist');
+  assert.match(active, /function _studyPlaylistAccessNote/);
+  assert.match(load, /res\.access_policy \|\| res\.accessPolicy/);
+  assert.match(load, /_studyPlaylistAccessNote\(policy,\s*items\.length\)/);
+  assert.match(active, /未登入先播|免費帳號先播|付費會員可拉更多/);
+});
+
+test('study playlist renders lyric-style lines and highlights the current segment', () => {
+  assert.match(active, /\.study-playlist-lines/);
+  assert.match(active, /\.study-playlist-line\.is-current/);
+  assert.match(active, /function _renderStudyPlaylistLines/);
+  assert.match(active, /function _setStudyPlaylistCurrentSegment/);
+  assert.match(active, /data-playlist-line/);
+  assert.match(extractFunction(active, '_studyPlaylistSegments'), /playlist_index/);
+  assert.match(extractFunction(active, '_speakStudyPlaylistSegments'), /_setStudyPlaylistCurrentSegment/);
+  assert.match(extractFunction(active, '_resetStudyPlaylistSpeechButton'), /_setStudyPlaylistCurrentSegment\(null,\s*null\)/);
 });
 
 test('study tool panels expose one active mode and explain where saved work goes', () => {
