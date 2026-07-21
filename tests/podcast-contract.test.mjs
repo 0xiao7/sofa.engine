@@ -8,12 +8,22 @@ const feed = readFileSync(new URL('podcast.xml', root), 'utf8');
 const sitemap = readFileSync(new URL('sitemap.xml', root), 'utf8');
 const index = readFileSync(new URL('index.html', root), 'utf8');
 
-function pngDimensions(fileUrl) {
+function jpegDimensions(fileUrl) {
   const buffer = readFileSync(fileUrl);
-  return {
-    width: buffer.readUInt32BE(16),
-    height: buffer.readUInt32BE(20),
-  };
+  let offset = 2;
+  while (offset < buffer.length) {
+    if (buffer[offset] !== 0xff) break;
+    const marker = buffer[offset + 1];
+    const length = buffer.readUInt16BE(offset + 2);
+    if (marker >= 0xc0 && marker <= 0xc3) {
+      return {
+        height: buffer.readUInt16BE(offset + 5),
+        width: buffer.readUInt16BE(offset + 7),
+      };
+    }
+    offset += 2 + length;
+  }
+  throw new Error('JPEG dimensions not found');
 }
 
 test('podcast page exposes RSS, interactive playback, captions, cue sound, and native audio', () => {
@@ -57,8 +67,8 @@ test('podcast feed is platform-safe and points to the generated audio file', () 
   assert.match(feed, /記帳士、地政士考科法規，一次一條/);
   assert.match(feed, /sofaengine\.org 可以看字幕/);
   assert.doesNotMatch(feed, /SoFa Engine 通勤補一條|通勤補一條/);
-  assert.match(page, /https:\/\/sofaengine\.org\/assets\/podcast-cover-3000\.png/);
-  assert.match(feed, /<itunes:image href="https:\/\/sofaengine\.org\/assets\/podcast-cover-3000\.png"\/>/);
+  assert.match(page, /https:\/\/sofaengine\.org\/assets\/podcast-cover-3000-v2\.jpg/);
+  assert.match(feed, /<itunes:image href="https:\/\/sofaengine\.org\/assets\/podcast-cover-3000-v2\.jpg"\/>/);
   assert.match(feed, /<enclosure url="https:\/\/sofaengine\.org\/assets\/audio\/sofa-podcast-001-ac\.mp3" length="\d+" type="audio\/mpeg"\/>/);
   assert.match(feed, /付費會員的完整播放清單會留在官網會員區/);
   assert.match(feed, /<copyright>&#xA9; 2026 SoFa Engine<\/copyright>/);
@@ -68,9 +78,10 @@ test('podcast feed is platform-safe and points to the generated audio file', () 
   const audio = statSync(new URL('assets/audio/sofa-podcast-001-ac.mp3', root));
   assert.ok(audio.size > 2500000, `audio file too small: ${audio.size}`);
 
-  const artwork = statSync(new URL('assets/podcast-cover-3000.png', root));
+  const artwork = statSync(new URL('assets/podcast-cover-3000-v2.jpg', root));
   assert.ok(artwork.size > 300000, `artwork file too small: ${artwork.size}`);
-  assert.deepEqual(pngDimensions(new URL('assets/podcast-cover-3000.png', root)), {
+  assert.match(readFileSync(new URL('assets/podcast-cover-3000-v2.jpg', root)).subarray(0, 2).toString('hex'), /^ffd8/);
+  assert.deepEqual(jpegDimensions(new URL('assets/podcast-cover-3000-v2.jpg', root)), {
     width: 3000,
     height: 3000,
   });
