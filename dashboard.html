@@ -1271,6 +1271,8 @@
     display:grid;
     gap:11px;
     margin-bottom:22px;
+    min-width:0;
+    overflow:hidden;
     scroll-margin-top:calc(96px + env(safe-area-inset-top, 0px));
     scroll-margin-bottom:calc(104px + env(safe-area-inset-bottom, 0px));
   }
@@ -1313,6 +1315,7 @@
     font-family:var(--serif);
     font-size:14px;
     font-weight:700;
+    white-space:nowrap;
   }
   .study-playlist-open:hover,
   .study-playlist-open:focus-visible{
@@ -1327,6 +1330,8 @@
     border-radius:4px;
     padding:13px;
     gap:12px;
+    min-width:0;
+    overflow:hidden;
   }
   .study-playlist-panel.on{display:grid}
   .study-playlist-head{
@@ -1351,10 +1356,11 @@
   }
   .study-playlist-tools{
     display:grid;
-    grid-template-columns:minmax(120px,.8fr) minmax(220px,1.7fr) minmax(100px,.7fr) auto auto auto;
+    grid-template-columns:minmax(118px,.8fr) minmax(220px,1.7fr) minmax(92px,.65fr) auto auto auto;
     gap:8px;
     align-items:end;
     width:100%;
+    min-width:0;
   }
   .study-playlist-field{
     display:grid;
@@ -1378,6 +1384,7 @@
     font-family:var(--mono);
     font-size:10.5px;
     letter-spacing:.06em;
+    min-width:0;
   }
   .study-playlist-tools button{
     cursor:pointer;
@@ -1411,6 +1418,7 @@
     font-size:10.5px;
     letter-spacing:.06em;
     white-space:nowrap;
+    min-width:0;
   }
   .study-playlist-loop input{
     accent-color:var(--peach);
@@ -1430,6 +1438,7 @@
     padding-top:9px;
     display:grid;
     gap:5px;
+    min-width:0;
   }
   .study-playlist-item.is-speaking{
     border-left:2px solid var(--peach);
@@ -1460,6 +1469,7 @@
     gap:7px;
     flex-wrap:wrap;
     margin-top:2px;
+    min-width:0;
   }
   .study-playlist-actions a,.study-playlist-actions button{
     min-height:32px;
@@ -4028,7 +4038,7 @@
           <a href="#study-weak-brief" data-spy-target="study-weak-brief"><span class="num">T2</span>今日弱點<span class="ct" id="nav-ct-weak">0</span></a>
           <a href="#study-time-box" data-spy-target="study-time-box"><span class="num">T3</span>讀書時間<span class="ct"></span></a>
           <a href="#study-plan-items" data-spy-target="study-plan-items"><span class="num">T4</span>讀書計畫<span class="ct" id="nav-ct-plan"></span></a>
-          <a href="#study-playlist-block" data-spy-target="study-playlist-block"><span class="num">T5</span>聽讀清單<span class="ct"></span></a>
+          <a href="#study-playlist-block" data-spy-target="study-playlist-block"><span class="num">T5</span>播放清單<span class="ct"></span></a>
           <a href="#quiz-recap" data-spy-target="quiz-recap"><span class="num">T6</span>最近作答<span class="ct"></span></a>
           <a href="#weak-laws-recap" data-spy-target="weak-laws-recap"><span class="num">T7</span>弱點法規<span class="ct"></span></a>
           <a href="#review-due" data-spy-target="review-due"><span class="num">T8</span>今日複習<span class="ct" id="nav-ct-due">0</span></a>
@@ -4130,6 +4140,7 @@
               </div>
               <div class="study-action-group secondary">
                 <span class="study-action-label">安排</span>
+                <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="playlist" aria-expanded="false" onclick="openStudyPlaylistPanel()">播放清單</button>
                 <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="plan" aria-expanded="false" onclick="openStudyPlanPanel()">排課</button>
                 <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="record" aria-expanded="false" onclick="openStudyRecordPanel()">補紀錄</button>
               </div>
@@ -4385,20 +4396,20 @@
           <div class="study-playlist-block-head">
             <div class="study-playlist-block-copy">
               <span>PLAYLIST</span>
-              <b>法條聽讀清單</b>
-              <small>獨立放聽讀和練習，不混在今天任務裡。</small>
+              <b>播放清單</b>
+              <small>獨立放朗讀、連續播放和練習，不混在今天任務裡。</small>
             </div>
-            <button class="study-playlist-open" type="button" data-study-panel-trigger="playlist" aria-expanded="false" onclick="openStudyPlaylistPanel()">開啟聽讀清單</button>
+            <button class="study-playlist-open" type="button" data-study-panel-trigger="playlist" aria-expanded="false" onclick="openStudyPlaylistPanel()">開啟播放清單</button>
           </div>
-          <div class="study-playlist-panel" id="study-playlist-panel" aria-label="法條聽讀清單">
+          <div class="study-playlist-panel" id="study-playlist-panel" aria-label="播放清單">
             <div class="study-playlist-head">
               <div class="study-playlist-title">
-                <span>FOCUS</span>
+                <span>PLAYER</span>
                 <b>聽法條、聽問答，也能直接練習</b>
               </div>
               <div class="study-playlist-tools">
                 <label class="study-playlist-field">
-                  <span>考科</span>
+                  <span>分組</span>
                   <select id="study-playlist-subject" aria-label="重點清單科目" onchange="loadStudyPlaylist()">
                     <option value="tax_laws">稅務法規</option>
                     <option value="bookkeeping_laws">記帳相關法規</option>
@@ -4406,7 +4417,7 @@
                 </label>
                 <label class="study-playlist-field">
                   <span>法規</span>
-                  <select id="study-playlist-law" aria-label="聽讀清單法規" onchange="loadStudyPlaylist()">
+                  <select id="study-playlist-law" aria-label="播放清單法規" onchange="loadStudyPlaylist()">
                     <option value="">全部法規</option>
                   </select>
                 </label>
@@ -4419,7 +4430,7 @@
                     <option value="10">等 10 秒</option>
                   </select>
                 </label>
-                <label class="study-playlist-loop"><input id="study-playlist-loop" type="checkbox">連播</label>
+                <label class="study-playlist-loop"><input id="study-playlist-loop" type="checkbox">連續播放</label>
                 <button class="primary" id="study-playlist-playall" type="button" onclick="playStudyPlaylistAll(this)" disabled>播放問答</button>
                 <button class="secondary" type="button" onclick="loadStudyPlaylist()">更新清單</button>
               </div>
@@ -4427,7 +4438,7 @@
             <div class="study-playlist-list" id="study-playlist-list">
               <div class="study-empty">按更新清單，先產生文字版重點。</div>
             </div>
-            <div class="study-playlist-status" id="study-playlist-status">清單產生後，可以逐則播放問答、練習，或回去看原文。</div>
+            <div class="study-playlist-status" id="study-playlist-status">清單產生後，可以逐則播放問答、練習，或留在這頁看原文。</div>
           </div>
         </div>
 
@@ -4856,7 +4867,7 @@
                 <div class="code">WRONG</div>
                 <div class="name" style="margin-top:6px">重練錯題</div>
               </div>
-              <p class="desc"><span id="tool-wrong-ct">先看錯題清單</span>，<br/>再重練全部或只練這部法規。</p>
+              <p class="desc"><span id="tool-wrong-ct">先看錯題清單</span>，<br/>再重練全部或練習這部法規。</p>
               <span class="arrow">看清單 <span class="glyph">→</span></span>
             </a>
             <a class="tool tool-feature" href="#weak-laws-recap">
@@ -4881,7 +4892,7 @@
               <div class="num">10</div>
               <div>
                 <div class="code">AUDIO</div>
-                <div class="name" style="margin-top:6px">法條聽讀清單</div>
+                <div class="name" style="margin-top:6px">播放清單</div>
               </div>
               <p class="desc">聽法條、聽問答，<br/>聽完直接練習。</p>
               <span class="arrow">開始聽讀 <span class="glyph">→</span></span>
@@ -8411,7 +8422,7 @@ function _todayInputValue(){
 function setStudyPanelMode(mode){
   var status = document.getElementById('study-mode-status');
   var copy = {
-    playlist: ['正在看法條聽讀清單', '先按「播放問答」聽一輪；「練習」會去練題，「看法條」會回到條文。'],
+    playlist: ['正在看播放清單', '先按「播放問答」聽一輪；「練習」會去練題，「看法條」留在這頁開條文。'],
     plan: ['正在排讀書任務', '存完會回到下方待讀清單。'],
     record: ['正在補讀書紀錄', '補紀錄只補時間與進度，不會改答題正確率；存完也會回到下方清單。'],
     timer: ['正在計時', '番茄鐘只記讀書時間；完成後才會寫入累積時數。'],
@@ -8427,6 +8438,16 @@ function setStudyPanelMode(mode){
     status.classList.toggle('is-closed', active === 'closed');
     status.innerHTML = '<b>' + esc(copy[active][0]) + '</b><span>' + esc(copy[active][1]) + '</span>';
   }
+  if(typeof updateStudyPlaylistToggleLabel === 'function') updateStudyPlaylistToggleLabel(active === 'playlist');
+}
+
+function updateStudyPlaylistToggleLabel(open){
+  document.querySelectorAll('[data-study-panel-trigger="playlist"]').forEach(function(btn){
+    if(btn.classList.contains('study-playlist-open')){
+      btn.textContent = open ? '收起播放清單' : '開啟播放清單';
+    }
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
 }
 
 function openStudyScheduleSection(){
@@ -9102,6 +9123,24 @@ function refreshOpenStudyPlaylistFromWeakCache(){
   loadStudyPlaylist();
 }
 
+function studyPlaylistApiUrl(subject, law, pauseSeconds){
+  var params = new URLSearchParams();
+  params.set('track', 'bookkeeper');
+  params.set('subject', subject || '');
+  params.set('mode', 'active_recall');
+  params.set('content_layer', 'analysis');
+  params.set('pause_seconds', pauseSeconds || '6');
+  if(law){
+    params.set('law', law);
+    params.set('star_min', '0');
+    params.set('limit', '40');
+  }else{
+    params.set('star_min', '3');
+    params.set('limit', '8');
+  }
+  return API + '/api/playlist?' + params.toString();
+}
+
 async function loadStudyPlaylist(){
   var list = document.getElementById('study-playlist-list');
   var subjectEl = document.getElementById('study-playlist-subject');
@@ -9115,7 +9154,7 @@ async function loadStudyPlaylist(){
   list.innerHTML = '<div class="study-empty">讀取重點清單中…</div>';
   _setStudyPlaylistStatus('正在更新通勤問答清單。');
   try{
-    var res = await _fetchJSON(API + '/api/playlist?track=bookkeeper&subject=' + encodeURIComponent(subject) + (law ? '&law=' + encodeURIComponent(law) : '') + '&mode=active_recall&content_layer=analysis&pause_seconds=' + encodeURIComponent(pauseSeconds) + '&star_min=3&limit=8', { headers: _authH({}) }, 1);
+    var res = await _fetchJSON(studyPlaylistApiUrl(subject, law, pauseSeconds), { headers: _authH({}) }, 1);
     var items = res && Array.isArray(res.items) ? res.items : [];
     if(law){
       items = items.filter(function(item){
@@ -9126,8 +9165,8 @@ async function loadStudyPlaylist(){
     if(!items.length){
       window.__studyPlaylistAudioItems = [];
       setStudyPlaylistPlayReady(false, '播放問答');
-      list.innerHTML = '<div class="study-empty">聽讀清單目前還空；先做一題，答題紀錄會變成可聽讀、可練習的重點。<br><a class="study-empty-action" href="quiz.html">先做一題</a></div>';
-      _setStudyPlaylistStatus('聽讀清單目前還空；先做一題，系統會接上可聽讀的重點。');
+      list.innerHTML = '<div class="study-empty">播放清單目前還空；先做一題，答題紀錄會變成可播放、可練習的重點。<br><a class="study-empty-action" href="quiz.html">先做一題</a></div>';
+      _setStudyPlaylistStatus('播放清單目前還空；先做一題，系統會接上可播放的重點。');
       return;
     }
     window.__studyPlaylistAudioItems = items.map(function(item){
@@ -9158,7 +9197,11 @@ async function loadStudyPlaylist(){
       var displayArticleNo = articleNo.replace(/^0+(?=\d)/, '');
       var displayTitle = String(item.title || '重點條文').replace(/§\s*0+(?=\d)/g, '§ ');
       var itemId = String(item.page_id || item.id || '').trim();
-      var practiceHref = 'quiz.html?law=' + encodeURIComponent(law) + (articleNo ? '&art=' + encodeURIComponent(articleNo) : '') + '&drill=1';
+      var practiceParams = ['law=' + encodeURIComponent(law)];
+      if(itemId) practiceParams.push('page_id=' + encodeURIComponent(itemId));
+      if(articleNo) practiceParams.push('art=' + encodeURIComponent(articleNo));
+      practiceParams.push('drill=1');
+      var practiceHref = 'quiz.html?' + practiceParams.join('&');
       var meta = [item.importance || '', item.law_name || ''].filter(Boolean).join(' · ');
       if(displayArticleNo || item.article_no) meta += (meta ? ' · ' : '') + '第 ' + (displayArticleNo || item.article_no) + ' 條';
       return '<div class="study-playlist-item" data-playlist-index="' + idx + '">'
@@ -9167,7 +9210,7 @@ async function loadStudyPlaylist(){
         + '<span class="text">' + esc(prompt || text || '這條還沒有重點整理，先看原文。') + '</span>'
         + '<span class="study-playlist-actions">'
           + '<button type="button" onclick="playStudyPlaylistItem(this, ' + idx + ')">朗讀</button>'
-          + '<a class="primary" href="' + esc(practiceHref) + '">只練這部法規</a>'
+          + '<a class="primary" href="' + esc(practiceHref) + '">練習</a>'
           + '<button type="button" data-law="' + escAttr(law) + '" data-art="' + escAttr(articleNo) + '" data-page-id="' + escAttr(itemId) + '" onclick="openStudyPlaylistArticle(this)">看法條</button>'
         + '</span>'
         + '</div>';
@@ -9192,7 +9235,11 @@ function studyPlanItemActionLinks(item, compact){
   var pageId = String(item.page_id || item.article_id || item.articleId || '').trim();
   var links = [];
   if(law && articleNo){
-    var quizHref = 'quiz.html?law=' + encodeURIComponent(law) + '&art=' + encodeURIComponent(articleNo) + '&drill=1';
+    var quizParams = ['law=' + encodeURIComponent(law)];
+    if(pageId) quizParams.push('page_id=' + encodeURIComponent(pageId));
+    quizParams.push('art=' + encodeURIComponent(articleNo));
+    quizParams.push('drill=1');
+    var quizHref = 'quiz.html?' + quizParams.join('&');
     links.push('<a class="primary" href="' + esc(quizHref) + '">' + (compact ? '練習' : '練習') + '</a>');
     links.push('<button type="button" data-law="' + escAttr(law) + '" data-art="' + escAttr(articleNo) + '" data-page-id="' + escAttr(pageId) + '" onclick="return openDashboardArticleTarget(this,event)">看法條</button>');
   }else if(pageId){
