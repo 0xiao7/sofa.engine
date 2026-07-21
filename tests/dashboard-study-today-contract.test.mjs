@@ -367,6 +367,10 @@ test('study playlist is a generic text fallback and does not ship private schedu
   assert.match(active, /<label class="study-playlist-field"[\s\S]*<span>法規<\/span>[\s\S]*id="study-playlist-law"/);
   assert.match(active, /<label class="study-playlist-field"[\s\S]*<span>間隔<\/span>[\s\S]*id="study-playlist-pause"/);
   assert.match(active, /function populateStudyPlaylistLaws/);
+  assert.match(active, /function _studyPlaylistPreferredLaw/);
+  assert.match(extractFunction(active, 'openStudyPlaylistPanel'), /populateStudyPlaylistLaws\(\) !== false/);
+  assert.match(extractFunction(active, 'populateStudyPlaylistLaws'), /return false/);
+  assert.match(extractFunction(active, 'populateStudyPlaylistLaws'), /_studyPlaylistPreferredLaw\(laws\)/);
   assert.match(active, /通勤問答|重點清單/);
   assert.match(active, /id="study-playlist-block"/);
   assert.match(active, /播放清單/);
