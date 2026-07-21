@@ -1509,18 +1509,20 @@
     accent-color:var(--peach);
   }
   .study-playlist-current-line{
-    min-height:44px;
+    min-height:52px;
     border:1px solid rgba(245,240,234,.1);
     border-radius:4px;
-    padding:9px 10px;
+    padding:11px 12px;
     color:var(--cream);
     font-size:14px;
-    line-height:1.55;
+    line-height:1.7;
     background:rgba(4,19,30,.22);
-    display:flex;
-    align-items:center;
+    display:grid;
+    grid-template-columns:auto 1fr;
+    align-items:start;
     gap:8px;
     overflow-wrap:anywhere;
+    word-break:break-word;
   }
   .study-playlist-current-line::before{
     content:"LINE";
@@ -1545,18 +1547,19 @@
     line-height:1.5;
   }
   .study-playlist-item{
-    border-top:1px dashed rgba(231,187,167,.16);
-    padding-top:9px;
+    border:1px solid rgba(245,240,234,.08);
+    border-left:2px solid rgba(231,187,167,.18);
+    border-radius:6px;
+    background:rgba(13,28,40,.22);
+    padding:12px;
     display:grid;
-    gap:5px;
+    gap:8px;
     min-width:0;
   }
   .study-playlist-item.is-speaking{
     border-left:2px solid var(--peach);
-    padding-left:10px;
-    background:rgba(231,187,167,.04);
+    background:rgba(231,187,167,.055);
   }
-  .study-playlist-item:first-child{border-top:0;padding-top:0}
   .study-playlist-item .meta{
     font-family:var(--mono);
     font-size:10.5px;
@@ -1565,9 +1568,10 @@
   }
   .study-playlist-item .title{
     font-family:var(--serif);
-    font-size:15px;
+    font-size:18px;
+    line-height:1.45;
     color:var(--cream);
-    font-weight:500;
+    font-weight:600;
   }
   .study-playlist-item .text{
     color:rgba(245,240,234,.62);
@@ -1577,29 +1581,43 @@
   }
   .study-playlist-lines{
     display:grid;
-    gap:4px;
-    margin-top:2px;
+    gap:7px;
+    margin-top:3px;
   }
   .study-playlist-line{
-    display:flex;
-    gap:7px;
-    align-items:flex-start;
-    color:rgba(245,240,234,.56);
-    font-size:12px;
-    line-height:1.55;
-    padding:4px 6px;
+    display:grid;
+    grid-template-columns:38px minmax(0,1fr);
+    gap:9px;
+    align-items:start;
+    color:rgba(245,240,234,.68);
+    font-size:13px;
+    line-height:1.75;
+    padding:9px 10px;
     border-radius:4px;
-    background:rgba(255,255,255,.018);
-    transition:background .16s ease,color .16s ease;
+    background:rgba(255,255,255,.026);
+    transition:background .16s ease,color .16s ease,border-color .16s ease;
+    min-width:0;
   }
   .study-playlist-line b{
-    flex:0 0 auto;
-    min-width:22px;
-    color:rgba(231,187,167,.72);
+    width:30px;
+    min-height:30px;
+    border:1px solid rgba(231,187,167,.22);
+    border-radius:999px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    color:rgba(231,187,167,.86);
     font-family:var(--mono);
     font-size:10px;
-    letter-spacing:.04em;
+    letter-spacing:0;
     font-weight:600;
+  }
+  .study-playlist-line-text{
+    display:block;
+    min-width:0;
+    white-space:normal;
+    overflow-wrap:anywhere;
+    word-break:break-word;
   }
   .study-playlist-line.is-current{
     background:rgba(231,187,167,.12);
@@ -1609,11 +1627,11 @@
     display:flex;
     gap:7px;
     flex-wrap:wrap;
-    margin-top:2px;
+    margin-top:4px;
     min-width:0;
   }
   .study-playlist-actions a,.study-playlist-actions button{
-    min-height:32px;
+    min-height:38px;
     display:inline-flex;
     align-items:center;
     justify-content:center;
@@ -4579,7 +4597,7 @@
             <div class="study-playlist-head">
               <div class="study-playlist-title">
                 <span>PLAYER</span>
-                <b>沉浸練習：閉眼想，再聽法規答案</b>
+                <b>輕聲補一條：先想，再聽答案</b>
               </div>
               <div class="study-playlist-tools">
                 <label class="study-playlist-field">
@@ -4604,7 +4622,7 @@
                 <label class="study-playlist-field">
                   <span>重點</span>
                   <select id="study-playlist-star" aria-label="播放清單重點星級" onchange="loadStudyPlaylist()">
-                    <option value="5">五星</option>
+                    <option value="5">五星優先</option>
                     <option value="4">四星以上</option>
                     <option value="3">三星以上</option>
                     <option value="0">全部</option>
@@ -4620,7 +4638,7 @@
                   </select>
                 </label>
                 <label class="study-playlist-loop"><input id="study-playlist-loop" type="checkbox">連續播放</label>
-                <button class="primary" id="study-playlist-playall" type="button" onclick="playStudyPlaylistAll(this)" disabled>播放問答</button>
+                <button class="primary" id="study-playlist-playall" type="button" onclick="playStudyPlaylistAll(this)" disabled>開始播放</button>
                 <button class="secondary" type="button" onclick="loadStudyPlaylist()">更新清單</button>
               </div>
             </div>
@@ -4629,7 +4647,7 @@
                 <div class="study-playlist-now">
                   <span>NOW PLAYING</span>
                   <b id="study-playlist-now-title">尚未播放</b>
-                  <small id="study-playlist-now-meta">更新清單後，按播放問答開始。</small>
+                  <small id="study-playlist-now-meta">更新清單後，按開始播放。</small>
                 </div>
                 <div class="study-playlist-player-controls" aria-label="播放控制">
                   <button type="button" id="study-playlist-prev" onclick="studyPlaylistPrev()" disabled title="上一題">‹</button>
@@ -4647,7 +4665,7 @@
             <div class="study-playlist-list" id="study-playlist-list">
               <div class="study-empty">按更新清單，先產生文字版重點。</div>
             </div>
-            <div class="study-playlist-status" id="study-playlist-status">清單產生後，可以逐則播放問答、練習，或留在這頁看原文。</div>
+            <div class="study-playlist-status" id="study-playlist-status">清單產生後，可以逐則播放、練習，或留在這頁看原文。</div>
           </div>
         </div>
 
@@ -8631,7 +8649,7 @@ function _todayInputValue(){
 function setStudyPanelMode(mode){
   var status = document.getElementById('study-mode-status');
   var copy = {
-    playlist: ['正在看播放清單', '先按「播放問答」聽一輪；「練習」會去練題，「看法條」留在這頁開條文。'],
+    playlist: ['正在看播放清單', '先按「開始播放」聽一輪；「練習」會去練題，「看法條」留在這頁開條文。'],
     plan: ['正在排讀書任務', '存完會回到下方待讀清單。'],
     record: ['正在補讀書紀錄', '補紀錄只補時間與進度，不會改答題正確率；存完也會回到下方清單。'],
     timer: ['正在計時', '番茄鐘只記讀書時間；完成後才會寫入累積時數。'],
@@ -8943,7 +8961,7 @@ function _renderStudyPlaylistLines(item, idx){
   return '<span class="study-playlist-lines">'
     + _studyPlaylistTimedLyricLines(item).map(function(line, lineIdx){
       return '<span class="study-playlist-line" data-playlist-line="' + idx + '-' + lineIdx + '">'
-        + '<b>' + esc(line.label) + '</b><span>' + esc(line.text) + '</span></span>';
+        + '<b>' + esc(line.label) + '</b><span class="study-playlist-line-text">' + esc(line.text) + '</span></span>';
     }).join('')
     + '</span>';
 }
@@ -8953,7 +8971,7 @@ function setStudyPlaylistPlayReady(ready, label){
   if(!btn) return;
   if(_studyPlaylistSpeechButton === btn) return;
   btn.disabled = !ready;
-  btn.textContent = label || '播放問答';
+  btn.textContent = label || '開始播放';
 }
 
 function _stopStudyPlaylistAudio(){
@@ -9018,7 +9036,7 @@ function _setStudyPlaylistCurrentSegment(itemIndex, lineIndex){
   var lineBox = document.getElementById('study-playlist-current-line');
   if(lineBox && itemIndex !== null && lineIndex !== null){
     var currentWrap = document.querySelector('[data-playlist-line="' + String(itemIndex) + '-' + String(lineIndex) + '"]');
-    var currentEl = currentWrap ? currentWrap.querySelector('span') : null;
+    var currentEl = currentWrap ? currentWrap.querySelector('.study-playlist-line-text') : null;
     var labelEl = currentWrap ? currentWrap.querySelector('b') : null;
     var label = labelEl ? String(labelEl.textContent || '').trim() : '';
     var text = currentEl ? String(currentEl.textContent || '').trim() : '';
@@ -9369,7 +9387,7 @@ function _speakStudyPlaylistSegments(button, segments, idleLabel, meta){
       if(speechSynthesis.speaking || speechSynthesis.pending) return;
       _resetStudyPlaylistSpeechButton();
       _dashToast('朗讀沒有啟動，請再點一次或先看文字清單。');
-      _setStudyPlaylistStatus('手機語音沒有啟動；請再點一次「播放問答」，或先看文字清單。');
+      _setStudyPlaylistStatus('手機語音沒有啟動；請再點一次「開始播放」，或先看文字清單。');
     }, 1200);
   }
 
@@ -9754,7 +9772,7 @@ async function loadStudyPlaylist(options){
     if(!items.length){
       if(!appendMode){
         window.__studyPlaylistAudioItems = [];
-        setStudyPlaylistPlayReady(false, '播放問答');
+        setStudyPlaylistPlayReady(false, '開始播放');
         list.innerHTML = '<div class="study-empty">播放清單目前還空；先做一題，答題紀錄會變成可播放、可練習的重點。<br><a class="study-empty-action" href="quiz.html">先做一題</a></div>';
         _setStudyPlaylistStatus('播放清單目前還空；先做一題，系統會接上可播放的重點。');
       }else{
@@ -9838,7 +9856,7 @@ async function loadStudyPlaylist(options){
     if(hasMore){
       list.insertAdjacentHTML('beforeend', '<button class="study-playlist-load-more" id="study-playlist-load-more" type="button" onclick="loadMoreStudyPlaylist(false)">載入更多</button>');
     }
-    setStudyPlaylistPlayReady(true, '播放問答');
+    setStudyPlaylistPlayReady(true, '開始播放');
     if(!appendMode){
       _studyPlaylistPlayer.index = 0;
       _studyPlaylistPlayer.playing = false;
@@ -9854,7 +9872,7 @@ async function loadStudyPlaylist(options){
     return true;
   }catch(e){
     if(!appendMode) window.__studyPlaylistAudioItems = [];
-    setStudyPlaylistPlayReady(false, '播放問答');
+    setStudyPlaylistPlayReady(false, '開始播放');
     if(!appendMode) list.innerHTML = '<div class="study-empty">重點清單暫時讀不到；不影響答題和讀書計畫。</div>';
     _setStudyPlaylistStatus('重點清單暫時讀不到；不影響答題和讀書計畫。');
     _studyPlaylistPagination.loading = false;

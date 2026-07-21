@@ -2,16 +2,16 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8">
-<title>通勤補一條 — SoFa Engine Podcast</title>
-<meta name="description" content="SoFa Engine 的通勤音訊。每集用一條法規、一個考點，搭配停頓回想、字幕與練習入口。">
+<title>輕聲補一條 — SoFa Podcast</title>
+<meta name="description" content="給國考生的法規通勤練習。記帳士、地政士考科法規，一次一條，搭配停頓回想、字幕與練習入口。">
 <link rel="canonical" href="https://sofaengine.org/podcast.html">
-<link rel="alternate" type="application/rss+xml" title="SoFa Engine 通勤補一條" href="https://sofaengine.org/podcast.xml">
+<link rel="alternate" type="application/rss+xml" title="SoFa 輕聲補一條" href="https://sofaengine.org/podcast.xml">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#142836">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://sofaengine.org/podcast.html">
-<meta property="og:title" content="通勤補一條 — SoFa Engine Podcast">
-<meta property="og:description" content="一條法規、一個考點。通勤時先聽題目，停一下，再聽答案。">
+<meta property="og:title" content="輕聲補一條 — SoFa Podcast">
+<meta property="og:description" content="給國考生的法規通勤練習。一次一條，先聽題目，停一下，再輕聲補上答案。">
 <meta property="og:image" content="https://sofaengine.org/assets/podcast-cover-3000.png">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23244658'/%3E%3Ctext x='16' y='23.5' font-size='21' font-family='Georgia,serif' font-weight='700' text-anchor='middle' fill='%23E7BBA7'%3ES%3C/text%3E%3C/svg%3E">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
@@ -41,7 +41,8 @@ body{
   line-height:1.75;
   -webkit-font-smoothing:antialiased;
   background:
-    radial-gradient(ellipse 980px 540px at 50% 8%, rgba(231,187,167,.12), transparent 68%),
+    radial-gradient(ellipse 980px 540px at 50% 8%, rgba(231,187,167,.18), transparent 68%),
+    radial-gradient(ellipse 520px 380px at 78% 18%, rgba(245,240,234,.08), transparent 64%),
     linear-gradient(180deg,var(--navy-3),var(--navy-4));
 }
 a{color:inherit;text-decoration:none}
@@ -58,16 +59,23 @@ button{font:inherit;color:inherit}
 .nav{display:flex;align-items:center;gap:22px;color:rgba(245,240,234,.72);font-family:var(--mono);font-size:13px}
 .nav a{min-height:44px;display:inline-flex;align-items:center}
 .nav a:hover{color:var(--cream)}
-.wrap{max-width:1120px;margin:0 auto;padding:56px clamp(18px,4vw,44px) 88px}
-.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);gap:34px;align-items:end;padding-bottom:40px;border-bottom:1px solid var(--line)}
+.wrap{max-width:1160px;margin:0 auto;padding:56px clamp(18px,4vw,44px) 88px}
+.hero{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) minmax(300px,420px);
+  gap:40px;
+  align-items:center;
+  padding:24px 0 46px;
+  border-bottom:1px solid var(--line);
+}
 .eyebrow{font-family:var(--mono);letter-spacing:.22em;color:var(--peach);font-size:12px;font-weight:700;text-transform:uppercase}
-h1{font-family:var(--serif);font-size:clamp(44px,7vw,86px);line-height:1.04;letter-spacing:.02em;margin:16px 0}
-.lead{font-size:clamp(18px,2vw,24px);color:var(--muted);max-width:680px}
+h1{font-family:var(--serif);font-size:clamp(54px,7vw,92px);line-height:1.04;letter-spacing:0;margin:16px 0}
+.lead{font-size:clamp(18px,2vw,23px);color:var(--muted);max-width:690px}
 .hero-card{
   border:1px solid var(--line-2);background:rgba(25,48,62,.78);
-  border-radius:8px;overflow:hidden;box-shadow:0 28px 70px rgba(0,0,0,.28);
+  border-radius:8px;overflow:hidden;box-shadow:0 28px 70px rgba(0,0,0,.28), 0 0 0 1px rgba(231,187,167,.08) inset;
 }
-.hero-card img{width:100%;display:block;aspect-ratio:4/3;object-fit:cover;background:var(--navy-2)}
+.hero-card img{width:100%;display:block;aspect-ratio:1/1;object-fit:cover;background:var(--navy-2)}
 .hero-card .cap{padding:18px 20px;color:var(--muted)}
 .actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
 .btn{
@@ -83,11 +91,12 @@ h1{font-family:var(--serif);font-size:clamp(44px,7vw,86px);line-height:1.04;lett
 .section-head p{margin:8px 0 0;color:var(--muted)}
 .player{display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:22px;padding:24px}
 .now{
-  min-height:190px;border:1px solid var(--line);border-radius:7px;background:rgba(13,28,40,.76);
-  padding:24px;display:flex;flex-direction:column;justify-content:center;
+  min-height:210px;border:1px solid var(--line);border-radius:7px;background:
+    linear-gradient(135deg,rgba(13,28,40,.94),rgba(31,56,72,.72));
+  padding:26px;display:flex;flex-direction:column;justify-content:center;
 }
 .now-label{font-family:var(--mono);font-size:12px;color:var(--peach);letter-spacing:.18em;text-transform:uppercase;margin-bottom:14px}
-.caption{font-family:var(--serif);font-size:clamp(25px,4vw,42px);line-height:1.45}
+.caption{font-family:var(--serif);font-size:clamp(25px,4vw,42px);line-height:1.5;letter-spacing:0}
 .caption.muted{color:rgba(245,240,234,.42)}
 .controls{display:flex;flex-direction:column;gap:12px}
 .control-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -103,7 +112,7 @@ audio{width:100%;height:42px}
 .note h3{margin:0 0 10px;font-family:var(--serif);font-size:24px}
 .note p,.note li{color:var(--muted)}
 .note ul{padding-left:20px;margin:8px 0 0}
-.transcript{padding:24px;border-top:1px solid var(--line);white-space:pre-wrap;color:rgba(245,240,234,.82);font-size:18px}
+.transcript{padding:24px;border-top:1px solid var(--line);white-space:pre-wrap;color:rgba(245,240,234,.82);font-size:18px;max-width:820px}
 .foot{margin-top:34px;color:rgba(245,240,234,.5);font-size:14px;display:flex;justify-content:space-between;gap:18px;flex-wrap:wrap}
 @media(max-width:780px){
   .topbar{min-height:66px}
@@ -129,9 +138,9 @@ audio{width:100%;height:42px}
 <main class="wrap">
   <section class="hero">
     <div>
-      <div class="eyebrow">SOFA ENGINE / COMMUTE AUDIO</div>
-      <h1>通勤補一條</h1>
-      <p class="lead">一條法規、一個考點。先聽題目，停一下自己想，再聽答案。搭車時不用讀完整章，也能把一個判斷入口留下來。</p>
+      <div class="eyebrow">SOFA ENGINE / QUIET LAW AUDIO</div>
+      <h1>輕聲補一條</h1>
+      <p class="lead">給國考生的法規通勤練習。記帳士、地政士，一次一條。先聽題目，停一下自己想，再輕聲補上答案。</p>
       <div class="actions">
         <button class="btn primary" type="button" data-action="play-interactive">播放互動版</button>
         <a class="btn" href="#episode-001">看本集內容</a>
@@ -139,7 +148,7 @@ audio{width:100%;height:42px}
       </div>
     </div>
     <figure class="hero-card">
-      <img src="/assets/素材/tax-law/稅捐稽徵法_§01-1_cover.png" alt="稅捐稽徵法第一條之一重點圖卡">
+      <img src="/assets/podcast-cover-3000.png" alt="SoFa 輕聲補一條 Podcast 封面">
       <figcaption class="cap">EP.001 · 稅捐稽徵法 §01之1 · 解釋函令變更</figcaption>
     </figure>
   </section>
@@ -171,7 +180,7 @@ audio{width:100%;height:42px}
         <a class="ghost" href="/dashboard.html#study-playlist">開啟個人播放清單</a>
       </div>
       <div class="native-audio">
-        <p style="margin:0 0 10px;color:var(--muted)">通勤檔。Apple Podcasts 會先吃這個版本；互動版才有停頓提示音與字幕。</p>
+        <p style="margin:0 0 10px;color:var(--muted)">Podcast 檔。Apple Podcasts 會先吃這個版本；互動版才有停頓提示音與字幕。</p>
         <audio controls preload="metadata" src="/assets/audio/sofa-podcast-001.m4a"></audio>
       </div>
     </div>
@@ -189,7 +198,7 @@ audio{width:100%;height:42px}
         <p>SoFa Engine 只整理人工發布的參考解析與練習路徑。正式考試仍以主管機關與考選部公告為準。</p>
       </article>
     </div>
-    <div class="transcript" id="transcript">SoFa Engine 通勤補一條。
+    <div class="transcript" id="transcript">SoFa 輕聲補一條。
 
 第一集，稅捐稽徵法第一條之一。
 
@@ -231,7 +240,7 @@ audio{width:100%;height:42px}
 </main>
 <script>
 const segments = [
-  {label:'OPENING', text:'SoFa Engine 通勤補一條。第一集，稅捐稽徵法第一條之一。'},
+  {label:'OPENING', text:'SoFa 輕聲補一條。第一集，稅捐稽徵法第一條之一。'},
   {label:'先記這句', text:'今天只先記一句。有利可以往回，不利通常往後。'},
   {label:'題目入口', text:'題目看到解釋函令變更，不要先背日期。先問自己，這個變更對納稅義務人是有利，還是不利。'},
   {label:'PAUSE', text:'停六秒，先在心裡回答。', pause:6000},

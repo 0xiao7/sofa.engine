@@ -17,6 +17,10 @@ function pngDimensions(fileUrl) {
 }
 
 test('podcast page exposes RSS, interactive playback, captions, cue sound, and native audio', () => {
+  assert.match(page, /<h1>輕聲補一條<\/h1>/);
+  assert.match(page, /給國考生的法規通勤練習/);
+  assert.match(page, /SoFa 輕聲補一條/);
+  assert.doesNotMatch(page, /通勤補一條/);
   assert.match(page, /rel="alternate" type="application\/rss\+xml"/);
   assert.match(page, /data-action="play-interactive"/);
   assert.match(page, /id="cue-toggle"/);
@@ -32,6 +36,9 @@ test('podcast practice CTA goes to the exact article with podcast attribution', 
 
 test('podcast feed is platform-safe and points to the generated audio file', () => {
   assert.match(feed, /<rss version="2\.0"/);
+  assert.match(feed, /<title>SoFa 輕聲補一條<\/title>/);
+  assert.match(feed, /記帳士、地政士考科法規，一次一條/);
+  assert.doesNotMatch(feed, /SoFa Engine 通勤補一條|通勤補一條/);
   assert.match(page, /https:\/\/sofaengine\.org\/assets\/podcast-cover-3000\.png/);
   assert.match(feed, /<itunes:image href="https:\/\/sofaengine\.org\/assets\/podcast-cover-3000\.png"\/>/);
   assert.match(feed, /<enclosure url="https:\/\/sofaengine\.org\/assets\/audio\/sofa-podcast-001\.m4a" length="\d+" type="audio\/mp4"\/>/);

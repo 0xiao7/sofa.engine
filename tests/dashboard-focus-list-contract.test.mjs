@@ -11,9 +11,12 @@ test('dashboard gives the playlist its own block without media playback wording'
   assert.match(html, /data-study-panel-trigger="playlist"[\s\S]*開啟播放清單/);
   assert.match(html, /id="study-playlist-panel"/);
   assert.match(html, /aria-label="播放清單"/);
-  assert.match(html, /id="study-playlist-playall"[\s\S]*播放問答/);
+  assert.match(html, /id="study-playlist-playall"[\s\S]*開始播放/);
   assert.match(html, /id="study-playlist-status"/);
-  assert.match(html, /沉浸練習：閉眼想，再聽法規答案/);
+  assert.match(html, /輕聲補一條：先想，再聽答案/);
+  assert.match(html, /<option value="5">五星優先<\/option>/);
+  assert.match(html, /grid-template-columns:38px minmax\(0,1fr\)/);
+  assert.match(html, /class="study-playlist-line-text"/);
   const actionsStart = html.indexOf('<div class="study-action-group secondary"');
   const actionsEnd = html.indexOf('</div>', actionsStart);
   const secondaryActions = html.slice(actionsStart, actionsEnd);

@@ -365,7 +365,7 @@ test('study playlist is a generic text fallback and does not ship private schedu
   assert.match(active, /aria-label="播放清單法規"/);
   assert.match(active, /id="study-playlist-star"/);
   assert.match(active, /aria-label="播放清單重點星級"/);
-  assert.match(active, /<option value="5">五星<\/option>/);
+  assert.match(active, /<option value="5">五星優先<\/option>/);
   assert.match(active, /<option value="0">全部<\/option>/);
   assert.match(active, /<label class="study-playlist-field"[\s\S]*<span>考科<\/span>[\s\S]*id="study-playlist-subject"/);
   assert.match(active, /aria-label="播放清單考科"/);
@@ -511,7 +511,7 @@ test('study playlist can directly play text through the browser speech engine', 
   assert.match(active, /id="study-playlist-playall"/);
   assert.match(active, /class="primary" id="study-playlist-playall"/);
   assert.match(active, /onclick="playStudyPlaylistAll\(this\)"/);
-  assert.match(active, /播放問答/);
+  assert.match(active, /開始播放/);
   assert.match(extractFunction(active, 'openStudyPlaylistPanel'), /focusStudyPanelTarget\('study-playlist-playall',\s*'study-cockpit-recap'\)/);
   assert.match(active, /id="study-playlist-status"/);
   assert.match(active, /function playStudyPlaylistItem/);
