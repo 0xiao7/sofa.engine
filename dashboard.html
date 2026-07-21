@@ -8637,12 +8637,14 @@ function _playStudyPlaylistAudioUrl(button, audioUrl, onDone, onError, meta){
     };
     audio.onerror = function(){
       if(_studyPlaylistAudioEl === audio) _studyPlaylistAudioEl = null;
+      _setStudyPlaylistStatus('音訊沒有啟動；已改用裝置朗讀，或請再點一次播放。');
       if(typeof onError === 'function') onError();
     };
     var started = audio.play();
     if(started && typeof started.catch === 'function'){
       started.catch(function(){
         if(_studyPlaylistAudioEl === audio) _studyPlaylistAudioEl = null;
+        _setStudyPlaylistStatus('手機音訊沒有啟動；已改用裝置朗讀，或請再點一次播放。');
         if(typeof onError === 'function') onError();
       });
     }
