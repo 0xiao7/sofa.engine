@@ -1263,6 +1263,14 @@ test('mobile study plan and record forms do not squeeze native inputs', () => {
   assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-plan-save\{[\s\S]*width:100%/);
 });
 
+test('mobile study playlist controls stay compact enough to reveal content', () => {
+  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-playlist-tools\{[\s\S]*grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-playlist-tools\{[\s\S]*grid-auto-flow:row dense/);
+  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-playlist-tools \.study-playlist-field:nth-child\(2\)\{[\s\S]*grid-column:1 \/ -1/);
+  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-playlist-tools select,\s*\.study-playlist-tools button,\s*\.study-playlist-loop\{[\s\S]*min-height:40px/);
+  assert.match(active, /@media\s*\(max-width:760px\)\{[\s\S]*\.study-playlist-field span\{[\s\S]*font-size:9px/);
+});
+
 test('series planning can generate local weekly items before API sync', () => {
   assert.match(active, /function _studySeriesItems/);
   assert.match(active, /_nextWeekdayOnOrAfter/);
