@@ -8650,8 +8650,7 @@ function openStudyPlaylistPanel(forceOpen){
   if(timer) timer.classList.remove('on');
   setStudyPanelMode(panel.classList.contains('on') ? 'playlist' : 'closed');
   if(panel.classList.contains('on')){
-    if(typeof populateStudyPlaylistLaws === 'function') populateStudyPlaylistLaws();
-    loadStudyPlaylist();
+    if(typeof populateStudyPlaylistLaws !== 'function' || populateStudyPlaylistLaws() !== false) loadStudyPlaylist();
   }
   if(panel.classList.contains('on') && typeof focusStudyPanelTarget === 'function') focusStudyPanelTarget('study-playlist-playall', 'study-cockpit-recap');
 }
@@ -9466,6 +9465,36 @@ function buildStudyPlaylistFallbackItems(data, subject, lawFilter){
   return items.slice(0, 8);
 }
 
+function _studyPlaylistPreferredLaw(laws){
+  var seen = {};
+  (laws || []).forEach(function(law){
+    var name = String(law && law.name || law || '').trim();
+    if(name) seen[name] = true;
+  });
+  var candidates = [];
+  function push(name){
+    name = String(name || '').trim();
+    if(name && candidates.indexOf(name) < 0) candidates.push(name);
+  }
+  var data = window.__studyTodayData || {};
+  var weakItems = data.weak_law_bridge && Array.isArray(data.weak_law_bridge.items) ? data.weak_law_bridge.items : [];
+  if(!weakItems.length && Array.isArray(_latestWeakLawItems)) weakItems = _latestWeakLawItems;
+  weakItems.forEach(function(item){
+    push(item && (item.law_name || item.law || item.name));
+  });
+  var blocks = data.today && Array.isArray(data.today.blocks) ? data.today.blocks : [];
+  blocks.forEach(function(block){
+    if(!block) return;
+    push(block.law_name || block.law);
+    (Array.isArray(block.law_names) ? block.law_names : []).forEach(push);
+  });
+  ['記帳士法', '商業會計法', '公司法'].forEach(push);
+  for(var i = 0; i < candidates.length; i++){
+    if(seen[candidates[i]]) return candidates[i];
+  }
+  return '';
+}
+
 function populateStudyPlaylistLaws(){
   var sel = document.getElementById('study-playlist-law');
   if(!sel) return;
@@ -9477,14 +9506,17 @@ function populateStudyPlaylistLaws(){
       .then(function(d){
         if(d && Array.isArray(d.laws)){
           _allLaws = d.laws;
-          populateStudyPlaylistLaws();
+          if(populateStudyPlaylistLaws() !== false){
+            var panel = document.getElementById('study-playlist-panel');
+            if(panel && panel.classList.contains('on')) loadStudyPlaylist();
+          }
         }
       })
       .catch(function(){});
-    return;
+    return false;
   }
   var seen = {};
-  var options = ['<option value="">全部法規</option>'];
+  var options = ['<option value="">全部法規（較慢）</option>'];
   laws.forEach(function(law){
     var name = String(law && law.name || law || '').trim();
     if(!name || seen[name]) return;
@@ -9493,6 +9525,11 @@ function populateStudyPlaylistLaws(){
   });
   sel.innerHTML = options.join('');
   if(current && seen[current]) sel.value = current;
+  else {
+    var preferred = _studyPlaylistPreferredLaw(laws);
+    if(preferred && seen[preferred]) sel.value = preferred;
+  }
+  return true;
 }
 
 function refreshOpenStudyPlaylistFromWeakCache(){
