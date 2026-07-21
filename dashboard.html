@@ -8957,7 +8957,7 @@ function startStudyPlaylistPlayerAt(idx){
   _setStudyPlaylistCurrentSegment(idx, 0);
   _updateStudyPlaylistProgress(0, 0);
   _updateStudyPlaylistPlayerUI(item, idx);
-  var audioUrl = String(item.audio_url || item.audioUrl || '').trim();
+  var audioUrl = String(item.audio_url || item.audioUrl || item.lazy_audio_url || item.lazyAudioUrl || '').trim();
   if(audioUrl && 'Audio' in window){
     try{
       _stopStudyPlaylistAudio();
@@ -9602,6 +9602,7 @@ async function loadStudyPlaylist(){
         title:String(item.title || '重點條文'),
         text:fullText || '這條還沒有重點整理，先看原文。',
         audio_url:String(item.audio_url || item.audioUrl || ''),
+        lazy_audio_url:String(item.lazy_audio_url || item.lazyAudioUrl || ''),
         mode:String(item.mode || ''),
         prompt:String(item.prompt || ''),
         answer:String(item.answer || ''),
