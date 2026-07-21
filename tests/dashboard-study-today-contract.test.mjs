@@ -538,6 +538,7 @@ test('study playlist active recall prefers provider audio then falls back to dev
   const load = extractFunction(active, 'loadStudyPlaylist');
   const segments = extractFunction(active, '_studyPlaylistSegments');
   const speak = extractFunction(active, '_speakStudyPlaylistSegments');
+  const playAudio = extractFunction(active, '_playStudyPlaylistAudioUrl');
   const playAll = extractFunction(active, 'playStudyPlaylistAll');
 
   assert.match(load, /item\.prompt/);
@@ -551,6 +552,8 @@ test('study playlist active recall prefers provider audio then falls back to dev
   assert.match(segments, /_cleanStudyPlaylistCueText/);
   assert.match(segments, /Math\.max\(3,\s*Math\.min\(12/);
   assert.match(speak, /_playStudyPlaylistAudioUrl\(button, seg\.audio_url/);
+  assert.match(playAudio, /手機音訊沒有啟動/);
+  assert.match(playAudio, /已改用裝置朗讀/);
   assert.match(speak, /setTimeout\(function\(\)\{ speakSegment\(i \+ 1\); \}, seg\.seconds \* 1000\)/);
   assert.match(speak, /暫停 ' \+ seg\.seconds \+ ' 秒，先自己想答案/);
   assert.match(playAll, /var itemSegments = _studyPlaylistSegments\(item\)/);
