@@ -578,8 +578,12 @@ test('study playlist renders lyric-style lines and highlights the current segmen
   assert.match(active, /\.study-playlist-lines/);
   assert.match(active, /\.study-playlist-line\.is-current/);
   assert.match(active, /function _renderStudyPlaylistLines/);
+  assert.match(active, /function _studyPlaylistTimedLyricLines/);
   assert.match(active, /function _setStudyPlaylistCurrentSegment/);
   assert.match(active, /data-playlist-line/);
+  assert.match(extractFunction(active, '_syncStudyPlaylistLyricFromProgress'), /line\.start/);
+  assert.match(extractFunction(active, '_syncStudyPlaylistLyricFromProgress'), /line\.end/);
+  assert.match(extractFunction(active, 'loadStudyPlaylist'), /lyric_lines:item\.lyric_lines \|\| item\.lyricLines/);
   assert.match(extractFunction(active, '_studyPlaylistSegments'), /playlist_index/);
   assert.match(extractFunction(active, '_speakStudyPlaylistSegments'), /_setStudyPlaylistCurrentSegment/);
   assert.match(extractFunction(active, '_resetStudyPlaylistSpeechButton'), /_setStudyPlaylistCurrentSegment\(null,\s*null\)/);
