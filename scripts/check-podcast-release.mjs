@@ -37,7 +37,8 @@ const enclosureUrl = matchOne(feed, /<enclosure url="([^"]+)"/, 'RSS enclosure')
 const enclosureLength = Number(matchOne(feed, /<enclosure url="[^"]+" length="(\d+)"/, 'RSS enclosure length'));
 const enclosureType = matchOne(feed, /<enclosure url="[^"]+" length="\d+" type="([^"]+)"/, 'RSS enclosure type');
 const guid = matchOne(feed, /<guid isPermaLink="false">([^<]+)<\/guid>/, 'RSS guid');
-const pageAudio = matchOne(page, /<audio controls preload="metadata" src="([^"]+)"/, 'site audio src');
+const pageAudioTag = matchOne(page, /(<audio\b[^>]*id="episode-audio"[^>]*>)/, 'site episode audio tag');
+const pageAudio = matchOne(pageAudioTag, /\bsrc="([^"]+)"/, 'site audio src');
 const artworkUrl = matchOne(feed, /<itunes:image href="([^"]+)"\/>/, 'RSS artwork');
 const transcriptUrl = matchOne(feed, /<podcast:transcript url="([^"]+)" type="text\/vtt" language="zh-TW" rel="captions"\/>/, 'RSS transcript');
 
@@ -49,6 +50,8 @@ const episode = release.episodes[0];
 
 assert.equal(release.show.title, 'SoFa 輕聲補一條');
 assert.equal(release.rights.aiVoiceDisclosure, true);
+assert.equal(release.voicePolicy.version, 'voice-ac-low-calm-v1');
+assert.equal(release.voicePolicy.changeControl, 'Do not change provider, voiceName, rate, pitch, or rotation without a new manifest version and Fay listening approval.');
 assert.equal(enclosureType, 'audio/mp4');
 assert.equal(guid, episode.guid);
 assert.equal(enclosurePath, episode.enclosure);

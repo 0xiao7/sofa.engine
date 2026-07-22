@@ -38,3 +38,12 @@ test('podcast release notes record rights, voices, and the three content lanes',
   assert.equal(notes.episodes[0].articleId, '11bd2bd4-f72e-4fd7-94d2-bc8344bdc66b');
   assert.equal(notes.episodes[0].articleSource, 'SoFa articles table via /api/article/{articleId}');
 });
+
+test('podcast release notes pin a reusable voice policy version', () => {
+  const notes = JSON.parse(readFileSync(new URL('podcast-release.json', root), 'utf8'));
+  assert.equal(notes.voicePolicy.version, 'voice-ac-low-calm-v1');
+  assert.equal(notes.voicePolicy.changeControl, 'Do not change provider, voiceName, rate, pitch, or rotation without a new manifest version and Fay listening approval.');
+  assert.equal(notes.voicePolicy.lawFamilyRotation.tax, 'A/C alternating by segment');
+  assert.equal(notes.voicePolicy.lawFamilyRotation.land, 'A/C alternating by article');
+  assert.equal(notes.voicePolicy.lawFamilyRotation.default, 'A for context, C for answer and explanation');
+});
