@@ -43,6 +43,21 @@ test('podcast page exposes RSS, interactive playback, captions, cue sound, and n
   assert.match(page, /停六秒，請回答三件事/);
 });
 
+test('podcast page behaves like a music player with large artwork and synced transcript', () => {
+  assert.match(page, /class="listening-stage"/);
+  assert.match(page, /class="cover-shell"/);
+  assert.match(page, /class="player-shell"/);
+  assert.match(page, /class="player-art-large"/);
+  assert.match(page, /class="mini-player"/);
+  assert.match(page, /id="episode-audio"/);
+  assert.match(page, /id="lyric-panel"/);
+  assert.match(page, /data-start="0"/);
+  assert.match(page, /function syncLyrics/);
+  assert.match(page, /addEventListener\('timeupdate', syncLyrics\)/);
+  assert.match(page, /cueTimes = \[85, 174\]/);
+  assert.match(page, /Apple Podcast 可能需要一段時間同步封面與逐字稿/);
+});
+
 test('podcast page tracks traffic and routes listeners back to the website', () => {
   assert.match(page, /data-track="podcast_site_intro"/);
   assert.match(page, /data-track="podcast_episode_practice"/);
