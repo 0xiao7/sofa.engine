@@ -487,6 +487,16 @@
     line-height:1.55;
     color:rgba(245,240,234,.58);
   }
+  .ck-compact-pay-note b{
+    color:var(--cream);
+    font-weight:600;
+  }
+  .ck-compact-pay-note .amount{
+    color:var(--peach);
+    font-family:var(--mono);
+    font-weight:700;
+    letter-spacing:.04em;
+  }
   .sticky-pay .trust{
     display:block;margin-top:6px;text-align:center;
     font-family:var(--mono);font-size:10px;letter-spacing:.08em;
@@ -700,6 +710,7 @@
       border-top:1px solid rgba(245,240,234,.14);
       box-shadow:0 -18px 42px rgba(0,0,0,.28);
     }
+    .ck-compact-pay-note{display:block}
     .ck-r{
       padding-bottom:160px;
     }
@@ -887,7 +898,11 @@
         </div>
 
         <div class="sticky-pay">
-          <div class="ck-compact-pay-note">付款前可先確認方案與信箱；付款由綠界處理。</div>
+          <div class="ck-compact-pay-note">
+            <b id="ck-compact-plan">到考日方案 · 讀到考試日</b>
+            <span class="amount">NT$<span id="ck-compact-amount">1280</span></span>
+            <span> · 綠界付款，序號寄到信箱。</span>
+          </div>
           <button class="ck-cta" id="ck-submit" type="button">立即前往付款 <span class="arrow">⟶</span></button>
           <span class="trust">綠界刷卡 · 不儲存信用卡 · 序號寄到信箱</span>
         </div>
@@ -936,6 +951,8 @@
   const cards     = plansEl.querySelectorAll(".plan");
   const sumPlan   = document.getElementById("ck-sum-plan");
   const sumAmount = document.getElementById("ck-sum-amount");
+  const compactPlan = document.getElementById("ck-compact-plan");
+  const compactAmount = document.getElementById("ck-compact-amount");
   const emailEl   = document.getElementById("ck-email-input");
   const hintEl    = document.getElementById("ck-email-hint");
   const examTargetSection = document.getElementById("ck-exam-target-section");
@@ -1158,7 +1175,10 @@
     const examMode = s.plan === "到考日";
     if (examTargetSection) examTargetSection.hidden = !examMode;
     updateExamTargetHint();
-    sumPlan.textContent = examMode ? `${PLAN_TEXT[s.plan]} · ${getCheckoutExamLabel()}` : (PLAN_TEXT[s.plan] || s.plan);
+    const summaryPlan = examMode ? `${PLAN_TEXT[s.plan]} · ${getCheckoutExamLabel()}` : (PLAN_TEXT[s.plan] || s.plan);
+    sumPlan.textContent = summaryPlan;
+    if (compactPlan) compactPlan.textContent = summaryPlan;
+    if (compactAmount) compactAmount.textContent = s.amount;
     if (sumAmount.textContent !== s.amount){
       sumAmount.textContent = s.amount;
       const totEl = sumAmount.parentElement;
