@@ -55,6 +55,11 @@ test('mobile quiz law selector and compact checkout have explicit viewport guard
     checkout.indexOf('class="ck-compact-pay-note"') < checkout.indexOf('id="ck-submit"'),
     'compact payment note should sit directly before the primary checkout CTA'
   );
+  assert.match(checkout, /@media \(max-width:780px\)\{[\s\S]*\.ck-compact-pay-note\{display:block\}/);
+  assert.match(checkout, /id="ck-compact-plan">到考日方案 · 讀到考試日<\/b>/);
+  assert.match(checkout, /NT\$<span id="ck-compact-amount">1280<\/span>/);
+  assert.match(checkout, /if \(compactPlan\) compactPlan\.textContent = summaryPlan/);
+  assert.match(checkout, /if \(compactAmount\) compactAmount\.textContent = s\.amount/);
 });
 
 test('public drill favicon references resolve to a committed asset', () => {
