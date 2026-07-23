@@ -16,20 +16,23 @@
   },
   "voicePolicy": {
     "version": "voice-ac-low-calm-v1",
-    "changeControl": "Do not change provider, voiceName, rate, pitch, or rotation without a new manifest version and Fay listening approval.",
-    "primaryVoices": ["A", "C"],
+    "changeControl": "Do not change provider, voiceName, rate, pitch, cue tone, or rotation without a new manifest version and Fay listening approval.",
+    "primaryVoices": [
+      "A",
+      "C"
+    ],
     "provider": "Google Cloud Text-to-Speech",
     "variants": {
       "A": {
         "label": "完整 A | 女聲低柔",
-        "voiceName": "cmn-TW-Chirp3-HD-HsiaoChen",
+        "voiceName": "cmn-TW-Wavenet-A",
         "speakingRate": 0.9,
         "pitch": -10,
-        "role": "context and slower legal memory passages"
+        "role": "context, law text, and slower legal memory passages"
       },
       "C": {
         "label": "完整 C | 男聲低穩",
-        "voiceName": "cmn-TW-Chirp3-HD-YunJhe",
+        "voiceName": "cmn-TW-Wavenet-C",
         "speakingRate": 0.9,
         "pitch": -10,
         "role": "answer explanation and alternating same-subject passages"
@@ -41,7 +44,7 @@
       "default": "A for context, C for answer and explanation"
     },
     "rotationRule": "Use A/C alternation for official episodes. Do not introduce new public voices without adding a new manifest version and Fay listening approval.",
-    "pauseRule": "Pause prompts must tell the listener what to answer before silence; long pause is 6 seconds; optional cue tone is handled by the website player, not spoken as text."
+    "pauseRule": "Scripts must tell the listener what to answer before silence; long pause is 6 seconds; cue tone is 880 Hz for 0.18s before the silence; never speak bracketed cues such as [停頓] or [重音]."
   },
   "contentLanes": [
     {
@@ -78,8 +81,176 @@
         "assets/audio/sofa-podcast-001-ac.mp3"
       ],
       "duration": "00:03:01",
-      "voiceMix": ["A", "C"],
-      "ctaPolicy": "Only short ending CTA; full notes and official member audio live on sofaengine.org."
+      "voiceMix": [
+        "A",
+        "C"
+      ],
+      "ctaPolicy": "Only short ending CTA; full notes and official member audio live on sofaengine.org.",
+      "lane": "題目帶法規",
+      "practiceUrl": "https://sofaengine.org/quiz.html?law=%E7%A8%85%E6%8D%90%E7%A8%BD%E5%BE%B5%E6%B3%95&article=01%E4%B9%8B1&start=1&utm_source=podcast&utm_medium=site&utm_campaign=episode_001",
+      "summary": "稅捐稽徵法 §01之1。有利可以往回，不利通常往後。",
+      "originalText": "財政部依本法或稅法所發布之解釋函令，對於據以申請之案件發生效力。但有利於納稅義務人者， 對於尚未核課確定之案件適用之。\n2 財政部發布解釋函令，變更已發布解釋函令之法令見解，如不利於納稅義務人者，自發布日起或 財政部指定之將來一定期日起，發生效力；於發布日或財政部指定之將來一定期日前，應核課而未核課之稅捐及未確定案件，不適用該變更後之解釋函令。\n3 本條中華民國一百年十一月八日修正施行前，財政部發布解釋函令，變更已發布解釋函令之法令 見解且不利於納稅義務人，經稅捐稽徵機關依財政部變更法令見解後之解釋函令核課稅捐，於本 條中華民國一百年十一月八日修正施行日尚未確定案件，適用前項規定。\n4 財政部發布之稅務違章案件裁罰金額或倍數參考表變更時，有利於納稅義務人者，對於尚未核課 確定之案件適用之。",
+      "pubDate": "Tue, 21 Jul 2026 14:42:00 +0000"
+    },
+    {
+      "id": "EP002",
+      "version": "v20260723-ac",
+      "title": "EP002｜土地徵收條例 §16：二以上需用土地人競合之核定原則",
+      "law": "土地徵收條例",
+      "article": "16",
+      "articleId": "044b4108-c015-4fb1-8459-f3286c4590e2",
+      "articleSource": "SoFa articles table via /api/article/{articleId}",
+      "sourceApi": "https://sofa-engine-api.onrender.com/api/article/044b4108-c015-4fb1-8459-f3286c4590e2",
+      "guid": "sofa-podcast-ep002-v20260723-ac",
+      "enclosure": "assets/audio/sofa-podcast-ep002-v20260723-ac.m4a",
+      "siteAudio": "assets/audio/sofa-podcast-ep002-v20260723-ac.mp3",
+      "transcript": "assets/audio/sofa-podcast-ep002-v20260723-ac.vtt",
+      "duration": "00:01:20",
+      "voiceMix": [
+        "A",
+        "C"
+      ],
+      "lane": "題目帶法規",
+      "plannedDate": "2026-07-23",
+      "pubDate": "Thu, 23 Jul 2026 05:30:00 +0000",
+      "practiceUrl": "/quiz.html?law=%E5%9C%9F%E5%9C%B0%E5%BE%B5%E6%94%B6%E6%A2%9D%E4%BE%8B&article=16&start=1&utm_source=podcast&utm_medium=site&utm_campaign=episode_002",
+      "summary": "土地徵收條例 §16。輕重先、先後次",
+      "originalText": "同一土地有二以上需用土地人申請徵收時,以其興辦事業性質之輕重為核定原則。其性質相同者,以其申請之先後為核定原則。",
+      "sourceSections": {
+        "規範意旨與條文解析": "• 立法目的：明定二以上需用土地人競合時之核定原則\n• 規範對象：\n ◦ 二以上需用土地人\n ◦ 中央主管機關\n• 執業場景：\n ◦ 同一土地有二以上需用土地人申請徵收之核定衝突解決\n• 條文邏輯：\n ◦ 原則一：以興辦事業性質之輕重\n ◦ 原則二：性質相同者，以申請先後",
+        "執業要點與考情提示": "• 關鍵陷阱：\n ◦ 將『先後』作為首位原則：應先看『輕重』，性質相同方論先後\n• 易混淆名詞：\n ◦ 性質輕重之認定：本條無明文標準，由中央主管機關認定\n• 法學對比：\n ◦ 與本條例第3條九款事業範圍對比：本條為其競合處理規定\n• 歷屆考題提示：\n ◦ 命題方向：二需用土地人競合之核定原則\n ◦ 選擇題重點：輕重優先、先後次之之辨識題",
+        "核心摘要與記憶策略": "• 關鍵字組：\n ◦ 興辦事業性質輕重性質相同申請先後\n• 專業口訣：輕重先、先後次\n• 聽覺記憶指引：輕重為核定原則性質相同申請先後"
+      },
+      "transcriptText": "SoFa 輕聲補一條。今天補 土地徵收條例 第 16 條。\n\n先聽條文原文。同一土地有二以上需用土地人申請徵收時,以其興辦事業性質之輕重為核定原則。其性質相同者,以其申請之先後為核定原則。\n\n停六秒，請先回答：題目考 土地徵收條例 第 16 條時，先判斷哪一個關鍵？將『先後』作為首位原則：應先看『輕重』，性質相同方論先後\n\n答案先抓這個入口：輕重先、先後次\n\n這條的判斷順序是：原則一：以興辦事業性質之輕重\n\n容易錯的地方是：將『先後』作為首位原則：應先看『輕重』，性質相同方論先後\n\n聽完回 SoFa 官網練這一條，字幕、法條原文和完整會員播放清單都在 sofaengine.org。",
+      "ctaPolicy": "Short ending CTA only; full notes and official member audio live on sofaengine.org."
+    },
+    {
+      "id": "EP003",
+      "version": "v20260723-ac",
+      "title": "EP003｜商業登記法 §10：商業負責人",
+      "law": "商業登記法",
+      "article": "10",
+      "articleId": "0393518e-f26a-4439-9265-855fba53dfe7",
+      "articleSource": "SoFa articles table via /api/article/{articleId}",
+      "sourceApi": "https://sofa-engine-api.onrender.com/api/article/0393518e-f26a-4439-9265-855fba53dfe7",
+      "guid": "sofa-podcast-ep003-v20260723-ac",
+      "enclosure": "assets/audio/sofa-podcast-ep003-v20260723-ac.m4a",
+      "siteAudio": "assets/audio/sofa-podcast-ep003-v20260723-ac.mp3",
+      "transcript": "assets/audio/sofa-podcast-ep003-v20260723-ac.vtt",
+      "duration": "00:01:22",
+      "voiceMix": [
+        "A",
+        "C"
+      ],
+      "lane": "毒法條",
+      "plannedDate": "2026-07-23",
+      "pubDate": "Thu, 23 Jul 2026 05:30:00 +0000",
+      "practiceUrl": "/quiz.html?law=%E5%95%86%E6%A5%AD%E7%99%BB%E8%A8%98%E6%B3%95&article=10&start=1&utm_source=podcast&utm_medium=site&utm_campaign=episode_003",
+      "summary": "商業登記法 §10。「獨出合執經範圍」（獨資出資人、合夥執行者、經理人有範圍）",
+      "originalText": "本法所稱商業負責人，在獨資組織，為出資人或其法定代理人；在合夥組織者，為執行業務之合夥人。 2 經理人在執行職務範圍內，亦為商業負責人。",
+      "sourceSections": {
+        "規範意旨與條文解析": "• 立法目的：明確界定商業組織中負法律責任之主體，確保交易安全與行政管理之對象明確\n• 規範對象：\n ◦ 獨資組織：出資人本人或其法定代理人（如出資人為未成年人）\n ◦ 合夥組織：執行業務之合夥人（非全體合夥人）\n ◦ 經理人：限於執行職務範圍內始具負責人地位\n• 執業場景：\n ◦ 記帳士受託辦理商業登記時，須正確判斷誰為負責人以填載申請書\n ◦ 稅務申報時，負責人簽章之效力認定\n ◦ 違章處罰時，確認處罰對象是否為法定負責人\n• 條文邏輯：\n ◦ 第1項採「組織型態」區分：獨資→出資人；合夥→執行業務合夥人\n ◦ 第2項採「職務範圍」限縮：經理人僅於執行職務範圍內為負責人",
+        "執業要點與考情提示": "考點層級：核心\n出題焦點：商業負責人 — 獨資→出資人或法定代理人；合夥→執行業務之合夥人；經理人在執行職務範圍內亦為負責人\n禁區：不考非執行業務合夥人的責任",
+        "核心摘要與記憶策略": "• 關鍵字組：\n ◦ 獨資→出資人／法定代理人\n ◦ 合夥→執行業務合夥人\n ◦ 經理人→執行職務範圍內\n• 專業口訣：「獨出合執經範圍」（獨資出資人、合夥執行者、經理人有範圍）\n• 聽覺記憶指引：商業負責人分三種獨資是出資人或法代合夥是執行業務的合夥人經理人只在執行職務範圍內才算負責人"
+      },
+      "transcriptText": "SoFa 輕聲補一條。今天補 商業登記法 第 10 條。\n\n先聽條文原文。本法所稱商業負責人，在獨資組織，為出資人或其法定代理人；在合夥組織者，為執行業務之合夥人。 2 經理人在執行職務範圍內，亦為商業負責人。\n\n停六秒，請先回答：這條先背哪一句入口？「獨出合執經範圍」（獨資出資人、合夥執行者、經理人有範圍）\n\n答案先抓這個入口：「獨出合執經範圍」（獨資出資人、合夥執行者、經理人有範圍）\n\n這條的判斷順序是：第1項採「組織型態」區分：獨資→出資人；合夥→執行業務合夥人\n\n容易錯的地方是：商業負責人 — 獨資→出資人或法定代理人；合夥→執行業務之合夥人；經理人在執行職務範圍內亦為負責人\n\n聽完回 SoFa 官網練這一條，字幕、法條原文和完整會員播放清單都在 sofaengine.org。",
+      "ctaPolicy": "Short ending CTA only; full notes and official member audio live on sofaengine.org."
+    },
+    {
+      "id": "EP004",
+      "version": "v20260723-ac",
+      "title": "EP004｜加值型及非加值型營業稅法 §39：溢付稅額退還",
+      "law": "加值型及非加值型營業稅法",
+      "article": "39",
+      "articleId": "4c10e90a-a577-47e7-ad86-773d0d1280fb",
+      "articleSource": "SoFa articles table via /api/article/{articleId}",
+      "sourceApi": "https://sofa-engine-api.onrender.com/api/article/4c10e90a-a577-47e7-ad86-773d0d1280fb",
+      "guid": "sofa-podcast-ep004-v20260723-ac",
+      "enclosure": "assets/audio/sofa-podcast-ep004-v20260723-ac.m4a",
+      "siteAudio": "assets/audio/sofa-podcast-ep004-v20260723-ac.mp3",
+      "transcript": "assets/audio/sofa-podcast-ep004-v20260723-ac.vtt",
+      "duration": "00:01:29",
+      "voiceMix": [
+        "A",
+        "C"
+      ],
+      "lane": "情境脈絡",
+      "plannedDate": "2026-07-23",
+      "pubDate": "Thu, 23 Jul 2026 05:30:00 +0000",
+      "practiceUrl": "/quiz.html?law=%E5%8A%A0%E5%80%BC%E5%9E%8B%E5%8F%8A%E9%9D%9E%E5%8A%A0%E5%80%BC%E5%9E%8B%E7%87%9F%E6%A5%AD%E7%A8%85%E6%B3%95&article=39&start=1&utm_source=podcast&utm_medium=site&utm_campaign=episode_004",
+      "summary": "加值型及非加值型營業稅法 §39。「零固註三退，其餘留抵配，特殊報部核，查明即退回」",
+      "originalText": "營業人申報之左列溢付稅額，應由主管稽徵機關查明後退還之： 一、因銷售第七條規定適用零稅率貨物或勞務而溢付之營業稅。 二、因取得固定資產而溢付之營業稅。 三、因合併、轉讓、解散或廢止申請註銷登記者，其溢付之營業稅。 2 前項以外之溢付稅額，應由營業人留抵應納營業稅。但情形特殊者，得報經財政部核准退還之。",
+      "sourceSections": {
+        "規範意旨與條文解析": "• 立法目的：避免營業人因特定交易型態導致進項稅額長期無法扣抵，造成資金積壓，影響營運週轉，故設計退還機制以維護租稅中立性\n• 規範對象：\n ◦ 一般營業人：適用加值型營業稅之營業人\n ◦ 外銷營業人：從事第7條零稅率貨物或勞務銷售者\n ◦ 購置固定資產營業人：因資本支出產生大額進項稅額者\n ◦ 結束營業營業人：因合併、轉讓、解散或廢止而註銷登記者\n• 執業場景：\n ◦ 場景一：外銷廠商當期外銷額占總銷售額80%，銷項稅額為零，進項稅額50萬元，全數得申請退還\n ◦ 場景二：製造業購入生產設備含稅525萬元，進項稅額25萬元，當期銷項稅額僅10萬元，溢付15萬元得申請退還\n ◦ 場景三：公司經股東會決議解散進入清算程序，申請註銷登記時尚有留抵稅額8萬元，得申請退還\n• 條文邏輯：\n ◦ 第一項：列舉三款「法定退稅事由」，採正面表列，符合者稽徵機關應主動查明退還\n ◦ 第二項：採「留抵為原則、退稅為例外」，非屬第一項三款者原則留抵，但情形特殊得報財政部核准退還",
+        "執業要點與考情提示": "考點層級：常考\n出題焦點：溢付稅額之退還或留抵 — 留抵下期或退稅條件（零稅率/停業/解散）\n禁區：不考留抵稅額的利息計算",
+        "核心摘要與記憶策略": "• 關鍵字組：\n ◦ 「三退一留」：零稅率退、固定資產退、註銷退、其餘留抵\n ◦ 「溢付＝進＞銷」：進項稅額大於銷項稅額\n ◦ 「特殊核准」：非三款情形需財政部專案核准\n• 專業口訣：「零固註三退，其餘留抵配，特殊報部核，查明即退回」\n• 聽覺記憶指引：零稅率、固定資產、註銷登記，這三種得退還，其餘留抵，特殊情形報財政部核准"
+      },
+      "transcriptText": "SoFa 輕聲補一條。今天補 加值型及非加值型營業稅法 第 39 條。\n\n先聽條文原文。營業人申報之左列溢付稅額，應由主管稽徵機關查明後退還之： 一、因銷售第七條規定適用零稅率貨物或勞務而溢付之營業稅。 二、因取得固定資產而溢付之營業稅。 三、因合併、轉讓、解散或廢止申請註銷登記者，其溢付之營業稅。 2 前項以外之溢付稅額，應由營業人留抵應納營業稅。但情形特殊者，得報經財政部核准退還之。\n\n停六秒，請先回答：遇到這種情境，條文要你先看什麼？第一項：列舉三款「法定退稅事由」，採正面表列，符合者稽徵機關應主動查明退還\n\n答案先抓這個入口：「零固註三退，其餘留抵配，特殊報部核，查明即退回」\n\n這條的判斷順序是：第一項：列舉三款「法定退稅事由」，採正面表列，符合者稽徵機關應主動查明退還\n\n容易錯的地方是：溢付稅額之退還或留抵 — 留抵下期或退稅條件（零稅率/停業/解散）\n\n聽完回 SoFa 官網練這一條，字幕、法條原文和完整會員播放清單都在 sofaengine.org。",
+      "ctaPolicy": "Short ending CTA only; full notes and official member audio live on sofaengine.org."
+    },
+    {
+      "id": "EP005",
+      "version": "v20260723-ac",
+      "title": "EP005｜土地法 §57：視為無主土地之國有登記程序",
+      "law": "土地法",
+      "article": "57",
+      "articleId": "0fdc30a8-3e02-47f2-b549-1b5049a03135",
+      "articleSource": "SoFa articles table via /api/article/{articleId}",
+      "sourceApi": "https://sofa-engine-api.onrender.com/api/article/0fdc30a8-3e02-47f2-b549-1b5049a03135",
+      "guid": "sofa-podcast-ep005-v20260723-ac",
+      "enclosure": "assets/audio/sofa-podcast-ep005-v20260723-ac.m4a",
+      "siteAudio": "assets/audio/sofa-podcast-ep005-v20260723-ac.mp3",
+      "transcript": "assets/audio/sofa-podcast-ep005-v20260723-ac.vtt",
+      "duration": "00:01:25",
+      "voiceMix": [
+        "A",
+        "C"
+      ],
+      "lane": "毒法條",
+      "plannedDate": "2026-07-24",
+      "pubDate": "Thu, 23 Jul 2026 05:30:00 +0000",
+      "practiceUrl": "/quiz.html?law=%E5%9C%9F%E5%9C%B0%E6%B3%95&article=57&start=1&utm_source=podcast&utm_medium=site&utm_campaign=episode_005",
+      "summary": "土地法 §57。逾期視無主，公告滿即國有",
+      "originalText": "逾登記期限無人聲請登記之土地或經聲請而逾限未補繳證明文件者,其土地視為無主土地,由該管直轄市或縣(市)地政機關公告之,公告期滿,無人提出異議,即為國有土地之登記。",
+      "sourceSections": {
+        "規範意旨與條文解析": "• 立法目的：對逾期未聲請登記或未補繳證明文件之土地，建立公告後登記為國有之程序\n• 規範對象：\n ◦ 逾登記期限無人聲請登記之土地\n ◦ 已聲請但逾限未補繳證明文件之土地\n• 執業場景：\n ◦ 地政士協助原權利人在公告期內主張（連動§58、§66）\n• 條文邏輯：\n ◦ 視為無主 → 直轄市／縣（市）地政機關公告 → 公告期滿無人異議 → 國有登記",
+        "執業要點與考情提示": "• 關鍵陷阱：\n ◦ 「視為無主」非真正無主，原權利人仍得在公告期內依§66主張（須加繳1/2登記費）\n ◦ 公告期不得少於30日（§58第2項）\n• 易混淆名詞：\n ◦ 視為無主 VS 真正無主\n ◦ 視為無主登記 VS §53機關囑託登記\n• 法學對比：\n ◦ 與§10所有權消滅後歸國有對照\n• 歷屆考題提示：\n ◦ 「公告30日」、「無人異議」要件常考",
+        "核心摘要與記憶策略": "• 關鍵字組：\n ◦ 逾期未聲請 — 視為無主 — 公告 — 國有登記\n• 專業口訣：逾期視無主，公告滿即國有\n• 聽覺記憶指引：逾登記期限無人聲請，視為無主土地；公告期滿無人異議即為國有"
+      },
+      "transcriptText": "SoFa 輕聲補一條。今天補 土地法 第 57 條。\n\n先聽條文原文。逾登記期限無人聲請登記之土地或經聲請而逾限未補繳證明文件者,其土地視為無主土地,由該管直轄市或縣(市)地政機關公告之,公告期滿,無人提出異議,即為國有土地之登記。\n\n停六秒，請先回答：這條先背哪一句入口？逾期視無主，公告滿即國有\n\n答案先抓這個入口：逾期視無主，公告滿即國有\n\n這條的判斷順序是：視為無主 → 直轄市／縣（市）地政機關公告 → 公告期滿無人異議 → 國有登記\n\n容易錯的地方是：「視為無主」非真正無主，原權利人仍得在公告期內依§66主張（須加繳1/2登記費）\n\n聽完回 SoFa 官網練這一條，字幕、法條原文和完整會員播放清單都在 sofaengine.org。",
+      "ctaPolicy": "Short ending CTA only; full notes and official member audio live on sofaengine.org."
+    },
+    {
+      "id": "EP006",
+      "version": "v20260723-ac",
+      "title": "EP006｜商業會計法 §12：會計制度訂定",
+      "law": "商業會計法",
+      "article": "12",
+      "articleId": "1d828521-96c4-4f29-8781-945c3f1a6e39",
+      "articleSource": "SoFa articles table via /api/article/{articleId}",
+      "sourceApi": "https://sofa-engine-api.onrender.com/api/article/1d828521-96c4-4f29-8781-945c3f1a6e39",
+      "guid": "sofa-podcast-ep006-v20260723-ac",
+      "enclosure": "assets/audio/sofa-podcast-ep006-v20260723-ac.m4a",
+      "siteAudio": "assets/audio/sofa-podcast-ep006-v20260723-ac.mp3",
+      "transcript": "assets/audio/sofa-podcast-ep006-v20260723-ac.vtt",
+      "duration": "00:01:17",
+      "voiceMix": [
+        "A",
+        "C"
+      ],
+      "lane": "題目帶法規",
+      "plannedDate": "2026-07-24",
+      "pubDate": "Thu, 23 Jul 2026 05:30:00 +0000",
+      "practiceUrl": "/quiz.html?law=%E5%95%86%E6%A5%AD%E6%9C%83%E8%A8%88%E6%B3%95&article=12&start=1&utm_source=podcast&utm_medium=site&utm_campaign=episode_006",
+      "summary": "商業會計法 §12。「業務、事務、內控、管理」四情並重定制度",
+      "originalText": "商業得依其實際業務情形、會計事務之性質、內部控制及管理上之需要，訂定其會計制度。",
+      "sourceSections": {
+        "規範意旨與條文解析": "• 立法目的：賦予商業因地制宜之彈性，使會計制度能切合實際營運需求，兼顧管理效能與法令遵循\n• 規範對象：\n ◦ 依《商業登記法》完成登記之獨資、合夥及公司組織\n ◦ 排除適用：非以營利為目的之團體、政府機關\n• 執業場景：\n ◦ 場景一：某中小企業委託記帳士協助建立會計制度，記帳士須評估其業務性質（製造業vs服務業）、交易量、內控需求，設計適當之會計科目表及帳務流程\n ◦ 場景二：客戶擴大營業規模，記帳士建議修訂會計制度，增設成本會計子系統\n• 條文邏輯：\n ◦ 「得」字表示授權而非強制，商業享有制度設計之裁量空間\n ◦ 四要素並列：實際業務情形、會計事務性質、內部控制、管理需要，缺一不可之考量面向",
+        "執業要點與考情提示": "考點層級：罕考\n出題焦點：會計制度 — 商業得依實際需要、會計性質、內控管理訂定；非強制統一格式\n禁區：強制使用統一會計制度的錯誤選項",
+        "核心摘要與記憶策略": "• 關鍵字組：\n ◦ 核心動詞：得、訂定\n ◦ 四大考量：實際業務情形、會計事務性質、內部控制、管理需要\n ◦ 規範客體：會計制度\n• 專業口訣：「業務、事務、內控、管理」四情並重定制度\n• 聽覺記憶指引：商業得依其實際業務情形會計事務之性質內部控制及管理上之需要訂定其會計制度記住：是得不是應"
+      },
+      "transcriptText": "SoFa 輕聲補一條。今天補 商業會計法 第 12 條。\n\n先聽條文原文。商業得依其實際業務情形、會計事務之性質、內部控制及管理上之需要，訂定其會計制度。\n\n停六秒，請先回答：題目考 商業會計法 第 12 條時，先判斷哪一個關鍵？會計制度 — 商業得依實際需要、會計性質、內控管理訂定；非強制統一格式\n\n答案先抓這個入口：「業務、事務、內控、管理」四情並重定制度\n\n這條的判斷順序是：「得」字表示授權而非強制，商業享有制度設計之裁量空間\n\n容易錯的地方是：會計制度 — 商業得依實際需要、會計性質、內控管理訂定；非強制統一格式\n\n聽完回 SoFa 官網練這一條，字幕、法條原文和完整會員播放清單都在 sofaengine.org。",
+      "ctaPolicy": "Short ending CTA only; full notes and official member audio live on sofaengine.org."
     }
   ]
 }
