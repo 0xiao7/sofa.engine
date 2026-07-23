@@ -23,6 +23,15 @@ async function assertHead(path, minBytes, label) {
   }
 }
 
+async function assertText(path, minBytes, label) {
+  const response = await fetch(`${baseUrl}${path}`);
+  assert.equal(response.ok, true, `${label} GET returned ${response.status}: ${path}`);
+  const text = await response.text();
+  const byteLength = Buffer.byteLength(text, 'utf8');
+  assert.ok(byteLength >= minBytes, `${label} too small: ${byteLength} < ${minBytes}`);
+  assert.match(text, /^WEBVTT/, `${label} is not a VTT file`);
+}
+
 function escapeRegExp(value) {
   return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
@@ -56,7 +65,7 @@ for (const episode of release.episodes) {
 
   await assertHead(enclosurePath, episode.id === 'EP001' ? 2_000_000 : 300_000, `${episode.id} enclosure`);
   await assertHead(audioPath, episode.id === 'EP001' ? 2_500_000 : 300_000, `${episode.id} site audio`);
-  await assertHead(transcriptPath, episode.id === 'EP001' ? 1_000 : 500, `${episode.id} transcript`);
+  await assertText(transcriptPath, episode.id === 'EP001' ? 1_000 : 500, `${episode.id} transcript`);
 }
 
 console.log(`Live podcast release OK: ${baseUrl} ${expectedEpisodes.join(', ')}`);
