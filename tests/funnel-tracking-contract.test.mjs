@@ -131,7 +131,7 @@ test('pricing and checkout expose plan selection, checkout start, and payment re
   assert.match(pricing, /href="\/checkout\.html\?plan=到考日&utm_source=pricing&utm_medium=footer&utm_campaign=pricing_exam_day"/);
   assert.match(analytics, /pricing_view/);
   assert.match(analytics, /checkout_start/);
-  assert.match(analytics, /track\('checkout_start', \{ plan: queryPlan\(\) \|\| '月費' \}\)/);
+  assert.match(analytics, /track\('checkout_start', \{ plan: queryPlan\(\) \|\| '到考日' \}\)/);
   assert.match(analytics, /payment_return_success/);
   assert.doesNotMatch(analytics, /purchase_completed/);
   assert.match(checkout, /function trackCheckout\(eventName, extra\)/);
