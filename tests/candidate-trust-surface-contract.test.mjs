@@ -22,12 +22,12 @@ test('candidate entry surfaces lead with continuity instead of unstable scale cl
   assert.match(source['free.html'], /完整答題紀錄、弱點分析與錯題重練/);
 });
 
-test('pricing and checkout agree that exam-day is the default purchase path', () => {
+test('pricing can feature exam-day while generic checkout starts with the lower-friction monthly path', () => {
   assert.match(source['pricing.html'], /class="plan-card featured"[\s\S]*到考日/);
-  assert.match(source['checkout.html'], /class="plan selected" data-plan="到考日" data-amount="1280"/);
-  assert.match(source['checkout.html'], /id="ck-sum-plan">到考日方案 · 讀到考試日/);
-  assert.match(source['checkout.html'], /id="ck-sum-amount">1280/);
-  assert.doesNotMatch(source['checkout.html'], /class="plan selected" data-plan="季費"/);
+  assert.match(source['checkout.html'], /class="plan selected" data-plan="月費" data-amount="380"/);
+  assert.match(source['checkout.html'], /id="ck-sum-plan">月訂閱 · 30 天/);
+  assert.match(source['checkout.html'], /id="ck-sum-amount">380/);
+  assert.doesNotMatch(source['checkout.html'], /class="plan selected" data-plan="到考日"/);
 });
 
 test('checkout payment page sells saved study continuity, not law inventory scale', () => {

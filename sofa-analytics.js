@@ -281,7 +281,7 @@
     const path = location.pathname.replace(/\/+$/, '') || '/';
     if (path === '/' || path.endsWith('/index.html')) track('landing_view');
     if (path.endsWith('/pricing.html')) track('pricing_view');
-    if (path.endsWith('/checkout.html')) track('checkout_start', { plan: queryPlan() || '到考日' });
+    if (path.endsWith('/checkout.html')) track('checkout_start', { plan: queryPlan() || '月費' });
     const qs = params();
     const success = ['paid','success'].some(k => qs.get(k) === '1') || /success|paid|completed/i.test(qs.get('status') || qs.get('payment') || '');
     // URL return params only prove the browser came back from payment; verified revenue is server-side only.
