@@ -792,7 +792,7 @@
         <div class="plans" id="plans">
 
           <!-- 月費 -->
-          <div class="plan selected" data-plan="月費" data-amount="380" data-days="30">
+          <div class="plan" data-plan="月費" data-amount="380" data-days="30">
             <span class="radio"></span>
             <div class="body">
               <div class="name-row">
@@ -808,7 +808,7 @@
           </div>
 
           <!-- 到考日 -->
-          <div class="plan" data-plan="到考日" data-amount="1280" data-days="exam">
+          <div class="plan selected" data-plan="到考日" data-amount="1280" data-days="exam">
             <span class="radio"></span>
             <div class="body">
               <div class="name-row">
@@ -889,18 +889,18 @@
         <div class="summary">
           <div>
             <div class="lab">本次購買</div>
-            <span class="planName" id="ck-sum-plan">月訂閱 · 30 天</span>
+            <span class="planName" id="ck-sum-plan">到考日方案 · 讀到考試日</span>
           </div>
           <div class="tot">
             <div class="tlab">應付金額</div>
-            <div class="n"><span class="c">NT$</span><span id="ck-sum-amount">380</span></div>
+            <div class="n"><span class="c">NT$</span><span id="ck-sum-amount">1280</span></div>
           </div>
         </div>
 
         <div class="sticky-pay">
           <div class="ck-compact-pay-note">
-            <b id="ck-compact-plan">月訂閱 · 30 天</b>
-            <span class="amount">NT$<span id="ck-compact-amount">380</span></span>
+            <b id="ck-compact-plan">到考日方案 · 讀到考試日</b>
+            <span class="amount">NT$<span id="ck-compact-amount">1280</span></span>
             <span> · 綠界付款，序號寄到信箱。</span>
           </div>
           <button class="ck-cta" id="ck-submit" type="button">立即前往付款 <span class="arrow">⟶</span></button>
@@ -1228,13 +1228,6 @@
       emailEl.value = emailParam;
     }
     const safeExamKeyParam = sanitizeCheckoutExamKey(examKeyParam, { allowDisabled: false });
-    if (!rawPlanParam && safeExamKeyParam) {
-      const examDayTarget = plansEl.querySelector('.plan[data-plan="到考日"]');
-      if (examDayTarget && !examDayTarget.classList.contains("selected")) {
-        cards.forEach(x => x.classList.remove("selected"));
-        examDayTarget.classList.add("selected");
-      }
-    }
     if (safeExamKeyParam && examTargetEl) {
       examTargetEl.value = safeExamKeyParam;
       updateExamTargetHint();

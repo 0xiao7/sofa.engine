@@ -18,12 +18,9 @@ test('homepage does not advertise one fixed bookkeeper exam-day date', () => {
   assert.equal((homepage.match(/依考試目標計算期限/g) || []).length, 0);
 });
 
-test('checkout defaults generic entries to monthly and preserves explicit exam-day intent', () => {
+test('checkout defaults to the exam-day plan and keeps required checkout fields', () => {
   assert.match(checkout, /POST https:\/\/sofa-engine-api\.onrender\.com\/api\/checkout|const API_URL = "https:\/\/sofa-engine-api\.onrender\.com\/api\/checkout"/);
-  assert.match(checkout, /class="plan selected" data-plan="月費" data-amount="380"/);
-  assert.doesNotMatch(checkout, /class="plan selected" data-plan="到考日"/);
-  assert.match(checkout, /if \(!rawPlanParam && safeExamKeyParam\)/);
-  assert.match(checkout, /examDayTarget\.classList\.add\("selected"\)/);
+  assert.match(checkout, /class="plan selected" data-plan="到考日" data-amount="1280"/);
   assert.doesNotMatch(checkout, /一次付清,用到 2026\/11\/30\(考後\)/);
   assert.match(checkout, /<script src="exam-targets\.js\?v=20260714-registration-window"><\/script>/);
   assert.match(examTargets, /const TARGETS = \{/);
