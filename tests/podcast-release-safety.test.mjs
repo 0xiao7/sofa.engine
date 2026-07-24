@@ -27,7 +27,7 @@ test('podcast release notes record rights, voices, and the three content lanes',
   assert.equal(notes.show.title, 'SoFa 輕聲補一條');
   assert.equal(notes.show.artwork, 'assets/podcast-cover-3000-v20260721-close.jpg');
   assert.equal(notes.rights.aiVoiceDisclosure, true);
-  assert.deepEqual(notes.voicePolicy.primaryVoices, ['A', 'C']);
+  assert.deepEqual(notes.voicePolicy.primaryVoices, ['Hana']);
   assert.deepEqual(notes.contentLanes.map(lane => lane.id), [
     'context',
     'law-memory',
@@ -41,9 +41,9 @@ test('podcast release notes record rights, voices, and the three content lanes',
 
 test('podcast release notes pin a reusable voice policy version', () => {
   const notes = JSON.parse(readFileSync(new URL('podcast-release.json', root), 'utf8'));
-  assert.equal(notes.voicePolicy.version, 'voice-ac-low-calm-v1');
-  assert.equal(notes.voicePolicy.changeControl, 'Do not change provider, voiceName, rate, pitch, cue tone, or rotation without a new manifest version and Fay listening approval.');
-  assert.equal(notes.voicePolicy.lawFamilyRotation.tax, 'A/C alternating by segment');
-  assert.equal(notes.voicePolicy.lawFamilyRotation.land, 'A/C alternating by article');
-  assert.equal(notes.voicePolicy.lawFamilyRotation.default, 'A for context, C for answer and explanation');
+  assert.equal(notes.voicePolicy.version, 'voice-hana-seed-v1');
+  assert.equal(notes.voicePolicy.changeControl, 'Do not change provider, voiceName, mastering target, or script treatment without a new manifest version and Fay listening approval.');
+  assert.equal(notes.voicePolicy.lawFamilyRotation.tax, 'Hana');
+  assert.equal(notes.voicePolicy.lawFamilyRotation.land, 'Hana');
+  assert.equal(notes.voicePolicy.lawFamilyRotation.default, 'Hana');
 });
