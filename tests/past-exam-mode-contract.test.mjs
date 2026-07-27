@@ -54,6 +54,9 @@ test('quiz has a real past-exam mode backed by the past-exam API', () => {
   assert.match(activeQuiz, /\/api\/past-exam\?subject=/);
   assert.match(activeQuiz, /year=\$\{encodeURIComponent\(year\)\}/);
   assert.match(activeQuiz, /\.find\(o=>o\.key===raw\.answer\)/);
+  assert.match(activeQuiz, /import\('\.\/exam-capabilities\.mjs'\)/);
+  assert.match(activeQuiz, /_refreshPastExamSubjects/);
+  assert.doesNotMatch(activeQuiz, /const _PAST_EXAM_SUBJECTS/);
 });
 
 test('past-exam answers write formal answer ledger rows with exam context', () => {
@@ -162,12 +165,13 @@ test('dashboard exposes the past-exam practice entry without replacing normal qu
   assert.doesNotMatch(card, /href="quiz\.html"/);
 });
 
-test('bookkeeper resource page exposes practice and radar as bookkeeper-scoped actions', () => {
+test('bookkeeper resource page exposes only production-ready subjects', () => {
   assert.match(activeBookkeeper, /href="\/quiz\.html\?mode=past-exam"/);
   assert.match(activeBookkeeper, /href="\/past-exam-radar\.html"/);
   assert.match(activeBookkeeper, /考古題練習/);
   assert.match(activeBookkeeper, /考古題雷達/);
-  assert.match(activeBookkeeper, /只看目前可追蹤到法條的題/);
+  assert.match(activeBookkeeper, /目前正式可用科目/);
+  assert.doesNotMatch(activeBookkeeper, /會計學概要|租稅申報實務|國文|題目清單|備考清單/);
 });
 
 test('past-exam radar states bookkeeper-only scope and trackable-question boundary', () => {
