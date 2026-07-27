@@ -549,6 +549,16 @@ function _filterPracticeLawsForExam(laws, examKey){
   if(!lawSet) return laws || [];
   return (laws || []).filter(function(l){ return l && lawSet.has(l.name); });
 }
+function _practiceScopedLaw(law){
+  if(law) return law;
+  const scoped=_filterPracticeLawsForExam(_practiceAllLaws,_practiceStoredExamKey());
+  if(!scoped.length){
+    const set=_practiceExamLawSet(_practiceStoredExamKey())||_practiceExamLawSet('n72');
+    const laws=set?[...set]:['記帳士法'];
+    return laws[Math.floor(Math.random()*laws.length)];
+  }
+  return scoped[Math.floor(Math.random()*scoped.length)].name;
+}
 function _appendPracticeSpecialLawOptions(sel){
   if(uid){
     [['__starred__','★ 重點法條'],['__bookmarks__','♥ 我的收藏'],['__mastered__','✓ 已熟記'],['__review__','⏰ 待複習']].forEach(function(pair){
@@ -959,7 +969,7 @@ async function loadNew(){
   ['stat-prog','stat-wpm','stat-acc'].forEach(id=>document.getElementById(id).textContent='—');
   document.getElementById('stat-err').textContent='0';
   document.getElementById('prog').style.width='0%';
-  const law=document.getElementById('lawSelect').value;
+  let law=document.getElementById('lawSelect').value;
   try{
     let d, lawMeta='';
     if(_practiceUrlTargetPending){
@@ -1039,6 +1049,7 @@ async function loadNew(){
         lawMeta=law;
       }
       if(!d){
+        law=_practiceScopedLaw(law);
         let url=law?`${API}/api/random?law=${encodeURIComponent(law)}`:`${API}/api/random`;
         // 跨法規 + chip + sub → server-side 篩選
         var _subVal=(document.getElementById('prSubSel')||{}).value||'';

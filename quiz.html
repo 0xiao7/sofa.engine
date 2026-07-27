@@ -414,7 +414,7 @@
     .stage,.inner,.q-stem,.rail-card{max-width:100%;min-width:0}
     .q-head{flex-direction:column;align-items:flex-start;gap:8px;margin-bottom:18px;padding-bottom:12px}
     #btnWrong,#btn-clear-wrong,#btnDaily,#daily-badge,#quiz-streak,
-    #sprint-count-select,#btnSprint,#btnExam,#btnPastExam,#pastExamSubject{display:none!important;}
+    #sprint-count-select,#btnSprint,#btnExam,#btnPastExam{display:none!important;}
     #law-status-bar,#artPickWrap{display:none!important}
     #btnNew{min-height:42px}
     .pr-meta .score-seg{display:none}
@@ -546,13 +546,13 @@
         刷題模式
       </button>
       <a id="btn-open-weakness" href="dashboard.html#weak-laws-recap" title="看弱點分析" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(245,240,234,.18);border-radius:8px;padding:0 14px;color:rgba(245,240,234,.78);font-size:13px;text-decoration:none;">弱點分析 <span id="nav-wrong-cnt">0</span></a>
-      <select id="pastExamSubject" onchange="if(_pastExamMode) loadQuiz()"
+      <select id="pastExamSubject" onchange="_persistPastExamSelection();if(_pastExamMode) loadQuiz()"
         style="display:none;background:var(--navy-3);border:1px solid rgba(231,187,167,0.35);
                border-radius:8px;color:var(--cream);font-size:12px;padding:6px 10px;min-height:44px;">
         <option value="記帳相關法規概要">記帳法規</option>
         <option value="稅務相關法規概要">稅務法規</option>
       </select>
-      <select id="pastExamYear" onchange="if(_pastExamMode) loadQuiz()"
+      <select id="pastExamYear" onchange="_persistPastExamSelection();if(_pastExamMode) loadQuiz()"
         style="display:none;background:var(--navy-3);border:1px solid rgba(231,187,167,0.35);
                border-radius:8px;color:var(--cream);font-size:12px;padding:6px 10px;min-height:44px;">
         <option value="">全部年度</option>
@@ -714,6 +714,7 @@
     </div>
   </main>
 
+<script src="exam-data.js?v=2"></script>
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
 const _searchParams = new URLSearchParams(location.search);
@@ -886,6 +887,30 @@ function _setPastExamMode(on, opts){
   }
 }
 
+function _persistPastExamSelection(){
+  const subject=(document.getElementById('pastExamSubject')||{}).value||'';
+  const year=(document.getElementById('pastExamYear')||{}).value||'';
+  try{
+    localStorage.setItem('sofa_past_exam_subject', subject);
+    localStorage.setItem('sofa_past_exam_year', year);
+  }catch(e){}
+  const u=new URL(location.href);
+  u.searchParams.set('mode','past-exam');
+  if(subject)u.searchParams.set('subject',subject);else u.searchParams.delete('subject');
+  if(year)u.searchParams.set('year',year);else u.searchParams.delete('year');
+  history.replaceState({},'',u.pathname+u.search+u.hash);
+}
+
+function _restorePastExamSelection(){
+  const p=new URLSearchParams(location.search);
+  const subject=p.get('subject')||localStorage.getItem('sofa_past_exam_subject')||'';
+  const year=p.get('year')||localStorage.getItem('sofa_past_exam_year')||'';
+  const subjectEl=document.getElementById('pastExamSubject');
+  const yearEl=document.getElementById('pastExamYear');
+  if(subjectEl&&[...subjectEl.options].some(o=>o.value===subject))subjectEl.value=subject;
+  if(yearEl&&[...yearEl.options].some(o=>o.value===year))yearEl.value=year;
+}
+
 if(_sessionMode){
   trackQuizSessionEvent('quiz_session_start', {target_count: _sessionTargetCount});
   const btn=document.getElementById('btnSession');
@@ -935,10 +960,20 @@ const _BOOKKEEPER_LAWS = new Set([
   '統一發票使用辦法','統一發票給獎辦法','遺產及贈與稅法','遺產及贈與稅法施行細則',
   '特種貨物及勞務稅條例','特種貨物及勞務稅條例施行細則'
 ]);
+let _quizExamLaws = [];
+
+function _quizScopedLaw(law){
+  if(law) return law;
+  if(!_quizExamLaws.length) return [..._BOOKKEEPER_LAWS][Math.floor(Math.random()*_BOOKKEEPER_LAWS.size)];
+  return _quizExamLaws[Math.floor(Math.random()*_quizExamLaws.length)].name;
+}
 
 function _filterLawsForExam(laws, examKey){
-  if(examKey !== 'bookkeeper') return laws;
-  return laws.filter(l => _BOOKKEEPER_LAWS.has(l.name));
+  const legacy={bookkeeper:'n72',landadmin:'n74',realestate:'n83','tax-admin':'n79','post-acc':'n89'};
+  const node=(typeof NODES!=='undefined'&&NODES[legacy[examKey]||examKey])||null;
+  const scope=node&&Array.isArray(node.laws)?new Set(node.laws):(examKey==='bookkeeper'?_BOOKKEEPER_LAWS:null);
+  if(!scope)return _filterLawsForExam(laws,'bookkeeper');
+  return laws.filter(l=>scope.has(l.name));
 }
 
 function _preferredStartLaw(laws){
@@ -1007,7 +1042,8 @@ function _focusQuizQuestionStart(){
   if(_shouldShowQzExamBanner(examKey)) _showQzExamBanner();
   try{
     const d=await fetch(`${API}/api/laws`).then(r=>r.json());
-    const laws = _filterLawsForExam(d.laws||[], examKey);
+    const laws = _filterLawsForExam(d.laws||[], examKey || 'bookkeeper');
+    _quizExamLaws = laws.slice();
     laws.forEach(l=>{const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);});
     _applyInitialLawParam(sel);
     if(_startQuizParam && laws.length && !sel.value){
@@ -1021,6 +1057,7 @@ function _focusQuizQuestionStart(){
     if(_restoreQuizReturnState()) return;
   }catch{ _setQuizBootReady(true); if(_restoreQuizReturnState()) return; }
 	  if(_pastExamMode){
+	    _restorePastExamSelection();
 	    _setPastExamMode(true, {noHistory:true});
 	    _autoLoadQuizOnce();
       return;
@@ -2185,6 +2222,7 @@ async function loadQuiz(){
       const pick=filtered[Math.floor(Math.random()*filtered.length)];
       url=`${API}/api/quiz?page_id=${encodeURIComponent(pick.id)}`;
     } else {
+      law=_quizScopedLaw(law);
       url=law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`;
       var _subVal=(document.getElementById('prSubSel')||{}).value||'';
       if(!law && _curPrChip!=='all' && _subVal){

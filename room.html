@@ -10891,8 +10891,8 @@ function _buildDailyLawBoard() {
     try {
       // 限定在使用者考科範圍內隨機（未選考科才全庫）
       let _ek = '';
-      try { _ek = localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || (typeof memberProfile!=='undefined' && memberProfile && memberProfile.exam_key) || ''; } catch(e){}
-      const _laws = _ROOM_EXAM_LAWS[_ek] || [];
+      try { _ek = localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || (typeof memberProfile!=='undefined' && memberProfile && memberProfile.exam_key) || 'bookkeeper'; } catch(e){ _ek='bookkeeper'; }
+      const _laws = _ROOM_EXAM_LAWS[_ek] || _ROOM_EXAM_LAWS.bookkeeper;
       let _u = 'https://sofa-engine-api.onrender.com/api/random';
       if (_laws.length) { _u += '?law=' + encodeURIComponent(_laws[Math.floor(Math.random()*_laws.length)]); }
       const r = await fetch(_u);

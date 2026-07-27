@@ -424,6 +424,7 @@
     </div>
   </main>
 
+<script src="exam-data.js?v=2"></script>
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
 function isPreviewHost(){
@@ -487,6 +488,23 @@ function normLegalNum(s){
 // ── 計時器 ──────────────────────────────────────────
 let _fillTimerIv=null, _fillStart=null, _sessionRight=0, _sessionHint=0;
 let _sessionHistory=[], _sessionCount=0;
+let _fillExamLaws=[];
+
+function _fillExamNode(){
+  let key='';
+  try{key=localStorage.getItem('sofa_exam_key')||localStorage.getItem('sofa.dash.exam.pick')||'bookkeeper';}catch(e){}
+  const legacy={bookkeeper:'n72',landadmin:'n74',realestate:'n83','tax-admin':'n79','post-acc':'n89'};
+  return (typeof NODES!=='undefined'&&(NODES[legacy[key]||key]||NODES.n72))||null;
+}
+function _fillScopedLaw(law){
+  if(law) return law;
+  if(!_fillExamLaws.length){
+    const node=_fillExamNode();
+    const laws=(node&&node.laws)||[];
+    return laws.length?laws[Math.floor(Math.random()*laws.length)]:'記帳士法';
+  }
+  return _fillExamLaws[Math.floor(Math.random()*_fillExamLaws.length)].name;
+}
 
 function fillTimerStart(){
   if(_fillTimerIv)return;
@@ -527,7 +545,11 @@ function pushHistory(law, title){
   }
   try {
     const d = await fetch(`${API}/api/laws`).then(r=>r.json());
-    (d.laws||[]).forEach(l=>{const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);});
+    const node=_fillExamNode();
+    const scope=new Set((node&&node.laws)||[]);
+    _fillExamLaws=(d.laws||[]).filter(l=>scope.has(l.name));
+    sel.options[0].textContent=((node&&node.name)||'記帳士')+'・全部法規';
+    _fillExamLaws.forEach(l=>{const o=document.createElement('option');o.value=l.name;o.textContent=l.name;sel.appendChild(o);});
   } catch{}
   const _urlFillLaw = fillUrlLawParam();
   const _urlFillPageId = fillUrlPageIdParam();
@@ -983,7 +1005,7 @@ async function loadNew(){
   const sp=document.getElementById('sectionsBox');sp.innerHTML='';sp.style.display='none';
   const srcBtn0=document.getElementById('fillSourceLink');if(srcBtn0)srcBtn0.style.display='none';
   const srcP0=document.getElementById('fillArtInline');if(srcP0){srcP0.style.display='none';srcP0.textContent='';}
-  const law=document.getElementById('lawSelect').value;
+  let law=document.getElementById('lawSelect').value;
   try{
     let url;
     if(_fillUrlTargetPending){
@@ -1052,6 +1074,7 @@ async function loadNew(){
         url=`${API}/api/fill?page_id=${encodeURIComponent(pick.id)}`;
       }
       if(!url){
+        law=_fillScopedLaw(law);
         url=law?`${API}/api/fill?law=${encodeURIComponent(law)}`:`${API}/api/fill`;
         var _subVal=(document.getElementById('prSubSel')||{}).value||'';
         if(!law && _curPrChip!=='all' && _subVal){

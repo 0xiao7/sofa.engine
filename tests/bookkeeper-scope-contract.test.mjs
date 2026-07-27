@@ -56,15 +56,15 @@ test('exam-data bookkeeper node does not include constitution laws', () => {
 });
 
 test('web exam scopes keep bookkeeper separate from constitution subjects', () => {
-  const surfaces = [
-    ['fill.html', '_EXAM_LAWS'],
-    ['quiz.html', '_EXAM_LAWS'],
-    ['practice.html', '_EXAM_LAWS'],
-    ['room.html', '_ROOM_EXAM_LAWS'],
-  ];
-
-  for (const [fileName, constName] of surfaces) {
-    const laws = htmlExamLaws(fileName, constName).bookkeeper;
-    assertBookkeeperHasNoConstitution(laws, fileName);
+  const nodes = examDataNodes();
+  const sharedBookkeeper = Object.values(nodes).find((node) => node.name === '記帳士');
+  for (const fileName of ['fill.html', 'quiz.html', 'practice.html']) {
+    const source = readFileSync(new URL(`../${fileName}`, import.meta.url), 'utf8');
+    assert.match(source, /exam-data\.js/, `${fileName} must use the shared exam catalog`);
+    assertBookkeeperHasNoConstitution(sharedBookkeeper.laws, fileName);
   }
+  assertBookkeeperHasNoConstitution(
+    htmlExamLaws('room.html', '_ROOM_EXAM_LAWS').bookkeeper,
+    'room.html',
+  );
 });
