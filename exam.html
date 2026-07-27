@@ -91,9 +91,19 @@ let questions = [];
 let idx = 0;
 let answered = false;
 const answer_source = "past_exam";
+const examKey = (
+  new URLSearchParams(location.search).get("exam")
+  || localStorage.getItem("sofa_exam_key")
+  || localStorage.getItem("sofa.dash.exam.pick")
+  || ""
+).trim();
 
 async function loadMeta(){
-  const meta = await fetch(`${API}/api/past-exam/meta`).then(r => r.json());
+  if(!examKey){
+    document.getElementById("metaBox").textContent = "請先選擇考試類別";
+    return;
+  }
+  const meta = await fetch(`${API}/api/past-exam/meta?exam_key=${encodeURIComponent(examKey)}`).then(r => r.json());
   document.getElementById("metaBox").textContent = `目前 ${meta.total || 0} 題 · ${((meta.subjects || []).length)} 科 · ${((meta.years || []).join("、"))}`;
   const subjectSelect = document.getElementById("subjectSelect");
   const yearSelect = document.getElementById("yearSelect");
@@ -106,7 +116,7 @@ async function loadSet(){
   const year = document.getElementById("yearSelect").value;
   const panel = document.getElementById("examPanel");
   panel.innerHTML = '<div class="empty">載入真題中…</div>';
-  const data = await fetch(`${API}/api/past-exam/set?subject=${encodeURIComponent(subject)}&year=${encodeURIComponent(year)}&limit=40`).then(r => r.json());
+  const data = await fetch(`${API}/api/past-exam/set?exam_key=${encodeURIComponent(examKey)}&subject=${encodeURIComponent(subject)}&year=${encodeURIComponent(year)}&limit=40`).then(r => r.json());
   questions = (data.questions || []).filter(q => (q.article_ids || []).length);
   idx = 0;
   if(!questions.length){

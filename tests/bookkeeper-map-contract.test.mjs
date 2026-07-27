@@ -11,7 +11,7 @@ test('bookkeeper law map page is discoverable from blog index and sitemap', () =
   assert.match(page, /<title>記帳士考古題與高頻法條地圖/);
   assert.match(page, /<link rel="canonical" href="https:\/\/sofaengine\.org\/blog\/bookkeeper-past-exam-law-map">/);
   assert.match(blogIndex, /href="\/blog\/bookkeeper-past-exam-law-map"/);
-  assert.match(blogIndex, /所有文章 &nbsp;·&nbsp; 4 篇/);
+  assert.match(blogIndex, /所有文章 &nbsp;·&nbsp; 5 篇/);
   assert.match(sitemap, /https:\/\/sofaengine\.org\/blog\/bookkeeper-past-exam-law-map/);
 });
 
@@ -23,6 +23,7 @@ test('bookkeeper law map keeps proof claims inside verified bookkeeper scope', (
   assert.match(page, /MOEX 官方答案重核/);
   assert.match(page, /正式可練題數/);
   assert.match(page, /\/api\/past-exam\/meta/);
+  assert.match(page, /\/api\/past-exam\/meta\?exam_key=bookkeeper/);
   assert.match(page, /會計學概要/);
   assert.match(page, /國文只收題目/);
   assert.match(page, /租稅申報實務/);

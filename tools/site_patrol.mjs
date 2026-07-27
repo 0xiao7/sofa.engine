@@ -390,8 +390,9 @@ async function main() {
   const pages = files.map((file) => auditPage(file, readText(file), contract));
   const endpoints = [...new Set(pages.flatMap((page) => page.endpoints))].sort();
   const apiStatuses = await Promise.all(endpoints.map(fetchStatus));
-  const metaStatus = await fetchStatus("/api/past-exam/meta");
-  if (!endpoints.includes("/api/past-exam/meta")) apiStatuses.push(metaStatus);
+  const metaEndpoint = "/api/past-exam/meta?exam_key=bookkeeper";
+  const metaStatus = await fetchStatus(metaEndpoint);
+  if (!endpoints.includes(metaEndpoint)) apiStatuses.push(metaStatus);
 
   const draftRefs = linkedDrafts(files);
   for (const draft of drafts) {

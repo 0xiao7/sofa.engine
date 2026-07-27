@@ -959,7 +959,7 @@ async function _refreshPastExamSubjects(){
   const examKey=_resolvedPastExamKey();
   if(!examKey){ _showPastExamUnavailable(); return []; }
   const allowed=_pastExamCapability.subjectsForExam(examKey);
-  const meta=await fetch(`${API}/api/past-exam/meta`).then(r=>r.ok?r.json():null).catch(()=>null);
+  const meta=await fetch(`${API}/api/past-exam/meta?exam_key=${encodeURIComponent(examKey)}`).then(r=>r.ok?r.json():null).catch(()=>null);
   const live=new Set((meta&&meta.subjects)||[]);
   const subjects=allowed.filter(subject=>live.has(subject));
   if(!subjects.length){ _showPastExamUnavailable(); return []; }
@@ -2159,6 +2159,8 @@ const _loadWrongQuizCompatibilityContract = "async function loadWrongQuiz(){ ret
 
 async function _fetchPastExamQuestion() {
   await _pastExamCapabilityReady;
+  const examKey = _resolvedPastExamKey();
+  if(!examKey) return {detail:'此考科考古題尚未上線'};
   const sel = document.getElementById('pastExamSubject');
   const subject = (sel && sel.value) || '';
   if(!subject) return {detail:'此考科考古題尚未上線'};
@@ -2166,7 +2168,7 @@ async function _fetchPastExamQuestion() {
   const year = (yearSel && yearSel.value) || '';
   const yearPart = year ? `&year=${encodeURIComponent(year)}` : '';
   for(let attempt=0;attempt<5;attempt++){
-    const data = await fetch(`${API}/api/past-exam?subject=${encodeURIComponent(subject)}${yearPart}`, {headers:_authH()}).then(r=>r.json());
+    const data = await fetch(`${API}/api/past-exam?exam_key=${encodeURIComponent(examKey)}&subject=${encodeURIComponent(subject)}${yearPart}`, {headers:_authH()}).then(r=>r.json());
     if(data.error || data.detail) return data;
     if(!isRecentPastExamQuestion(data) || attempt===4){
       rememberRecentPastExamQuestion(data);

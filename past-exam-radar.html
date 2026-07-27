@@ -178,14 +178,14 @@
 
     async function loadRadar(){
       try{
-        const meta = await fetch(`${API}/api/past-exam/meta`).then(r => r.ok ? r.json() : Promise.reject(new Error('meta ' + r.status)));
+        const meta = await fetch(`${API}/api/past-exam/meta?exam_key=bookkeeper`).then(r => r.ok ? r.json() : Promise.reject(new Error('meta ' + r.status)));
         renderRadarMeta(meta);
       }catch(err){
         const quality = document.getElementById('quality-list');
         if(quality) quality.innerHTML = '<div class="row error">資料狀態暫時讀不到；可先進練習頁。</div>';
       }
       const previews = await Promise.all(BOOKKEEPER_SUBJECTS.map(subject =>
-        fetch(`${API}/api/past-exam?subject=${encodeURIComponent(subject)}`)
+        fetch(`${API}/api/past-exam?exam_key=bookkeeper&subject=${encodeURIComponent(subject)}`)
           .then(r => r.ok ? r.json() : null)
           .catch(() => null)
       ));
