@@ -194,7 +194,8 @@ test('mobile quiz keeps secondary mode controls out of the first screen', () => 
   assert.doesNotMatch(active, /\.free-quiz-notice a\[href="pricing\.html"\]\{display:none!important\}/);
   assert.match(active, /\.free-quiz-notice a\{[\s\S]*min-height:44px/);
   assert.match(active, /輸入序號保留紀錄 →/);
-  assert.match(active, /#btnWrong,#btn-clear-wrong,#btnDaily,#daily-badge,#quiz-streak,\s*#sprint-count-select,#btnSprint,#btnExam,#btnPastExam,#pastExamSubject\{\s*display:none!important;/);
+  assert.match(active, /#btnWrong,#btn-clear-wrong,#btnDaily,#daily-badge,#quiz-streak,\s*#sprint-count-select,#btnSprint,#btnExam,#btnPastExam\{display:none!important;/);
+  assert.doesNotMatch(active, /#pastExamSubject[^}]*display:none!important/);
   assert.match(active, /#law-status-bar,#artPickWrap\{display:none!important\}/);
   assert.match(active, /#btnNew\{min-height:42px/);
   assert.match(active, /class="seg score-seg">正確/);
