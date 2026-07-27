@@ -6,6 +6,11 @@ import { spawnSync } from 'node:child_process';
 import test from 'node:test';
 
 const scriptPath = new URL('../tools/site_patrol.mjs', import.meta.url);
+const scriptSource = readFileSync(scriptPath, 'utf8');
+
+test('legacy static patrol scopes the past-exam meta probe to bookkeeper', () => {
+  assert.match(scriptSource, /\/api\/past-exam\/meta\?exam_key=bookkeeper/);
+});
 
 function writeFixtureRoot(pricingHtml) {
   const root = mkdtempSync(path.join(tmpdir(), 'site-patrol-pricing-'));

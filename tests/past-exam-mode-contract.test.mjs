@@ -5,6 +5,7 @@ import vm from 'node:vm';
 
 const quiz = readFileSync(new URL('../quiz.html', import.meta.url), 'utf8');
 const dashboard = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
+const exam = readFileSync(new URL('../exam.html', import.meta.url), 'utf8');
 const radar = readFileSync(new URL('../past-exam-radar.html', import.meta.url), 'utf8');
 const bookkeeper = readFileSync(new URL('../bookkeeper.html', import.meta.url), 'utf8');
 const activeQuiz = quiz.replace(/<!--[\s\S]*?-->/g, '');
@@ -51,7 +52,7 @@ test('quiz has a real past-exam mode backed by the past-exam API', () => {
   assert.match(activeQuiz, /id="pastExamSubject"/);
   assert.match(activeQuiz, /id="pastExamYear"/);
   assert.match(activeQuiz, /function _normalizePastExamQuestion/);
-  assert.match(activeQuiz, /\/api\/past-exam\?subject=/);
+  assert.match(activeQuiz, /\/api\/past-exam\?exam_key=/);
   assert.match(activeQuiz, /year=\$\{encodeURIComponent\(year\)\}/);
   assert.match(activeQuiz, /\.find\(o=>o\.key===raw\.answer\)/);
   assert.match(activeQuiz, /import\('\.\/exam-capabilities\.mjs'\)/);
@@ -63,6 +64,23 @@ test('quiz has a real past-exam mode backed by the past-exam API', () => {
   assert.match(activeQuiz, /_quizResolvedExamKey=result\.examKey/);
   assert.match(activeQuiz, /if\(_quizProfileExamState==='pending'\|\|_quizProfileExamState==='failed'\) return ''/);
   assert.match(activeQuiz, /if\(!r\.ok\) throw new Error/);
+});
+
+test('every public past-exam request carries the resolved exam key', () => {
+  for (const [name, source] of [
+    ['quiz', quiz],
+    ['exam', exam],
+    ['radar', radar],
+  ]) {
+    const requests = source
+      .split('\n')
+      .filter(line => line.includes('fetch(') && line.includes('/api/past-exam'));
+    assert.ok(requests.length > 0, `${name} must call the past-exam API`);
+    assert.ok(
+      requests.every(request => request.includes('exam_key=')),
+      `${name} must send exam_key on every past-exam request`,
+    );
+  }
 });
 
 test('past-exam answers write formal answer ledger rows with exam context', () => {
@@ -192,7 +210,7 @@ test('past-exam radar states bookkeeper-only scope and trackable-question bounda
 
 test('past-exam radar uses current APIs without creating imports or migrations', () => {
   assert.match(activeRadar, /\/api\/past-exam\/meta/);
-  assert.match(activeRadar, /\/api\/past-exam\?subject=/);
+  assert.match(activeRadar, /\/api\/past-exam\?exam_key=bookkeeper&subject=/);
   assert.match(activeRadar, /quiz\.html\?mode=past-exam/);
   assert.match(activeRadar, /renderRadarMeta/);
   assert.match(activeRadar, /renderSubjectPreview/);
