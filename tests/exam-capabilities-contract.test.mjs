@@ -26,6 +26,13 @@ test('stored exam is used only after profile and URL', () => {
   assert.equal(resolveExamKey({storedExamKey: 'land_agent'}), 'land_agent');
 });
 
+test('legacy exam aliases resolve to canonical fail-closed exam keys', () => {
+  assert.equal(resolveExamKey({urlExamKey: 'realestate'}), 'real_estate_broker');
+  assert.equal(resolveExamKey({storedExamKey: 'landadmin'}), 'land_agent');
+  assert.deepEqual(subjectsForExam('realestate'), []);
+  assert.deepEqual(subjectsForExam('landadmin'), []);
+});
+
 test('unknown or absent exam fails closed without bookkeeper fallback', () => {
   assert.equal(resolveExamKey({storedExamKey: 'mining_engineer'}), '');
   assert.equal(resolveExamKey({}), '');

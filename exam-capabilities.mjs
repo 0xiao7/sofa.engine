@@ -26,8 +26,14 @@ export const EXAM_CAPABILITIES = Object.freeze({
   }),
 });
 
+const EXAM_KEY_ALIASES = Object.freeze({
+  realestate: 'real_estate_broker',
+  landadmin: 'land_agent',
+});
+
 function knownExamKey(value) {
-  const key = String(value || '').trim();
+  const raw = String(value || '').trim();
+  const key = EXAM_KEY_ALIASES[raw] || raw;
   return Object.hasOwn(EXAM_CAPABILITIES, key) ? key : '';
 }
 

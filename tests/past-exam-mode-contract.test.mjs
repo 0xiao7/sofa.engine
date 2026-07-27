@@ -57,6 +57,7 @@ test('quiz has a real past-exam mode backed by the past-exam API', () => {
   assert.match(activeQuiz, /import\('\.\/exam-capabilities\.mjs'\)/);
   assert.match(activeQuiz, /_refreshPastExamSubjects/);
   assert.doesNotMatch(activeQuiz, /const _PAST_EXAM_SUBJECTS/);
+  assert.match(activeQuiz, /await resolveQuizEntitlement\(\)[\s\S]*_refreshPastExamSubjects\(\)/);
 });
 
 test('past-exam answers write formal answer ledger rows with exam context', () => {
@@ -166,8 +167,8 @@ test('dashboard exposes the past-exam practice entry without replacing normal qu
 });
 
 test('bookkeeper resource page exposes only production-ready subjects', () => {
-  assert.match(activeBookkeeper, /href="\/quiz\.html\?mode=past-exam"/);
-  assert.match(activeBookkeeper, /href="\/past-exam-radar\.html"/);
+  assert.match(activeBookkeeper, /href="\/quiz\.html\?mode=past-exam&amp;exam=bookkeeper"/);
+  assert.match(activeBookkeeper, /href="\/past-exam-radar\.html\?exam=bookkeeper"/);
   assert.match(activeBookkeeper, /考古題練習/);
   assert.match(activeBookkeeper, /考古題雷達/);
   assert.match(activeBookkeeper, /目前正式可用科目/);

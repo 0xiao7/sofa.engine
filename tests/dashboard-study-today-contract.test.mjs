@@ -108,6 +108,14 @@ test('dashboard exposes a seed-backed cockpit recap', () => {
   assert.match(active, /id="study-cockpit-blocks"/);
 });
 
+test('study cockpit API failure does not fabricate two connected subjects', () => {
+  const fn = extractFunction(active, 'renderStudyToday');
+  assert.doesNotMatch(fn, /display_name:\s*'記帳相關法規'/);
+  assert.doesNotMatch(fn, /display_name:\s*'租稅相關法規'/);
+  assert.match(fn, /學習範圍暫時無法確認/);
+  assert.match(fn, /科目狀態暫時無法確認/);
+});
+
 test('law drawer analysis linkifies sixth-section law references', () => {
   const source = extractFunction(active, '_linkifyLaw');
   const sandbox = {};

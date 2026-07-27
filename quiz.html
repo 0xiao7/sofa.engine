@@ -740,8 +740,9 @@ const _sessionTargetCount = parseSessionTargetCount();
 const SESSION_AUTO_NEXT_DELAY_MS = 260;
 let _pastExamCapability = null;
 let _quizProfileExamKey = '';
-const _pastExamCapabilityReady = import('./exam-capabilities.mjs').then(mod => {
+const _pastExamCapabilityReady = import('./exam-capabilities.mjs').then(async mod => {
   _pastExamCapability = mod;
+  await resolveQuizEntitlement();
   return _refreshPastExamSubjects();
 }).catch(() => _showPastExamUnavailable());
 const RECENT_PAST_EXAM_QUESTIONS_KEY = 'sofa_recent_past_exam_questions_v1';
@@ -816,7 +817,6 @@ async function resolveQuizEntitlement(){
     if(timer) clearTimeout(timer);
     if(!d){ _setPaid(true); return; }
     _quizProfileExamKey = String(d.exam_key || '').trim();
-    if(_pastExamCapability) await _refreshPastExamSubjects();
     const plan=String(d.plan||d.member_status||d.status||'').trim();
     if(['免費','free'].includes(plan)) _setPaid(false);
     else _setPaid(true); // 未知 plan 字串
