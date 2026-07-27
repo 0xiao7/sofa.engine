@@ -17,7 +17,7 @@ test('candidate entry surfaces lead with continuity instead of unstable scale cl
   }
 
   assert.match(source['index.html'], /免登入可練習；啟用後保留紀錄/);
-  assert.match(source['index.html'], /href="quiz\.html\?free=1&start=1&utm_source=site&utm_medium=web&utm_campaign=free_quiz_entry"/);
+  assert.match(source['index.html'], /href="quiz\.html\?free=1&start=1&session=1&count=5&utm_source=site&utm_medium=web&utm_campaign=free_quiz_entry"/);
   assert.match(source['free.html'], /免登入可練習/);
   assert.match(source['free.html'], /完整答題紀錄、弱點分析與錯題重練/);
 });

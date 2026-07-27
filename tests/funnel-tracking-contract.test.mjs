@@ -193,7 +193,7 @@ test('internal monetization links carry CTA-level attribution instead of becomin
 
 test('owned traffic blog CTAs route to tracked free quiz entry', () => {
   for (const html of [blogIndex, blogHighFrequency, blogReadLaws, blogToolsComparison]) {
-    assert.match(html, /quiz\.html\?free=1&start=1&utm_source=blog&utm_medium=owned&utm_campaign=/);
+    assert.match(html, /quiz\.html\?free=1&start=1&session=1&count=5&utm_source=blog&utm_medium=owned&utm_campaign=/);
     assert.doesNotMatch(html, /href="https:\/\/line\.me\/R\/ti\/p\/@928oakbo"/);
   }
 });
@@ -260,7 +260,7 @@ test('public free-quiz entry links carry a measurable campaign path', () => {
   for (const [file, html] of publicPages) {
     assert.match(
       html,
-      /quiz\.html\?free=1&start=1&utm_source=site&utm_medium=web&utm_campaign=free_quiz_entry/,
+      /quiz\.html\?free=1&start=1&session=1&count=5&utm_source=site&utm_medium=web&utm_campaign=free_quiz_entry/,
       `${file} should send free-quiz CTA through the measured web entry path`,
     );
     assert.doesNotMatch(
