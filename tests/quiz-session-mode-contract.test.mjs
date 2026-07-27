@@ -50,7 +50,8 @@ test('session mode has a visible summary card with save actions', () => {
   assert.match(active, /id="session-summary"/);
   assert.match(active, /id="session-summary-title"/);
   assert.match(active, /id="session-summary-stats"/);
-  assert.match(active, /先登入保存這輪紀錄/);
+  assert.match(active, /保留這輪錯題與弱點/);
+  assert.match(active, /已有序號？登入保存/);
   assert.match(active, /href="login\.html\?utm_source=web_quiz&utm_medium=session_summary&utm_campaign=quiz_session_save"/);
   assert.match(active, /data-track-event="quiz_session_save_click"/);
   assert.match(active, /data-track-label="quiz_session_save"/);

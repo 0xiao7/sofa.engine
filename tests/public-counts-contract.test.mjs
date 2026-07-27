@@ -20,7 +20,7 @@ test('public candidate funnel avoids unstable inventory counts as proof', () => 
 
 test('public growth funnel leads with web practice and saved learning value', () => {
   assert.match(source['index.html'], /開始練習/);
-  assert.match(source['index.html'], /href="quiz\.html\?free=1&start=1&utm_source=site&utm_medium=web&utm_campaign=free_quiz_entry"/);
+  assert.match(source['index.html'], /href="quiz\.html\?free=1&start=1&session=1&count=5&utm_source=site&utm_medium=web&utm_campaign=free_quiz_entry"/);
   assert.match(source['pricing.html'], /保留答題紀錄/);
   assert.match(source['pricing.html'], /弱點分析/);
   assert.match(source['pricing.html'], /錯題重練/);

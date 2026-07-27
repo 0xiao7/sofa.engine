@@ -32,3 +32,12 @@ test('quiz session summary buttons deep-link to save and upgrade flows', () => {
   assert.match(quiz, /data-track-event="quiz_session_pricing_click"/);
   assert.match(quiz, /data-track-label="quiz_session_pricing"/);
 });
+
+test('free session summary makes the payable retention path primary', () => {
+  const start = quiz.indexOf('<section id="session-summary"');
+  const end = quiz.indexOf('</section>', start);
+  const summary = quiz.slice(start, end);
+  assert.match(summary, /<a class="primary" href="pricing\.html\?[^"]*quiz_session_upgrade"[\s\S]*>保留這輪錯題與弱點 →<\/a>/);
+  assert.match(summary, /href="login\.html\?[^"]*quiz_session_save"[\s\S]*>已有序號？登入保存<\/a>/);
+  assert.ok(summary.indexOf('quiz_session_upgrade') < summary.indexOf('quiz_session_save'));
+});
