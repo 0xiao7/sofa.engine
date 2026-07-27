@@ -21,14 +21,22 @@ export const EXAM_CAPABILITIES = Object.freeze({
   }),
   land_agent: Object.freeze({
     label: '地政士',
-    legacyNodeId: 'n75',
+    legacyNodeId: 'n74',
     subjects: Object.freeze({}),
   }),
 });
 
 const EXAM_KEY_ALIASES = Object.freeze({
+  n72: 'bookkeeper',
   realestate: 'real_estate_broker',
+  'real-estate': 'real_estate_broker',
+  real_estate: 'real_estate_broker',
+  n83: 'real_estate_broker',
   landadmin: 'land_agent',
+  'land-agent': 'land_agent',
+  'land-admin': 'land_agent',
+  land_admin: 'land_agent',
+  n74: 'land_agent',
 });
 
 function knownExamKey(value) {

@@ -610,10 +610,11 @@ test('signed-in learners are not treated as free while entitlement is uncertain'
   assert.match(active, /const isFree = !\(uid \|\| tok\) && \(freeParam \|\| localStorage\.getItem\('sofa_free'\) === 'FREE'\)/);
   assert.match(active, /if \(!\(uid \|\| tok\) && !isFree\)/);
   assert.match(active, /window\.__sofaPaidResolved = !\(uid \|\| tok\)/);
-  assert.match(active, /if\(!uid && !tok\)\{ return; \}/);
-  assert.match(active, /if\(!d\)\{ _setPaid\(true\); return; \}/);
+  assert.match(active, /if\(!uid && !tok\)\{ _quizProfileExamState='not_required'; return true; \}/);
+  assert.match(active, /_quizProfileExamState='resolved'/);
+  assert.match(active, /_quizProfileExamState='failed'/);
   assert.match(active, /_setPaid\(true\); \/\/ 未知 plan 字串/);
-  assert.match(active, /catch\(\(\) => \{ if\(timer\) clearTimeout\(timer\); _setPaid\(true\); \}/);
+  assert.match(active, /if\(!r\.ok\) throw new Error/);
   assert.match(active, /function articleSectionsArePaid\(article\)/);
   assert.match(active, /if\(window\.__sofaPaid !== false && !isFree\) return true/);
   assert.match(active, /buildSections\(art\.sections\|\|\{\},articleSectionsArePaid\(art\)/);

@@ -26,11 +26,19 @@ test('stored exam is used only after profile and URL', () => {
   assert.equal(resolveExamKey({storedExamKey: 'land_agent'}), 'land_agent');
 });
 
-test('legacy exam aliases resolve to canonical fail-closed exam keys', () => {
-  assert.equal(resolveExamKey({urlExamKey: 'realestate'}), 'real_estate_broker');
-  assert.equal(resolveExamKey({storedExamKey: 'landadmin'}), 'land_agent');
-  assert.deepEqual(subjectsForExam('realestate'), []);
-  assert.deepEqual(subjectsForExam('landadmin'), []);
+test('established exam aliases normalize to canonical keys', () => {
+  for (const alias of ['bookkeeper', 'n72']) {
+    assert.equal(resolveExamKey({urlExamKey: alias}), 'bookkeeper', alias);
+  }
+  for (const alias of ['realestate', 'real-estate', 'real_estate', 'real_estate_broker', 'n83']) {
+    assert.equal(resolveExamKey({urlExamKey: alias}), 'real_estate_broker', alias);
+    assert.deepEqual(subjectsForExam(alias), [], alias);
+  }
+  for (const alias of ['landadmin', 'land-agent', 'land_agent', 'land-admin', 'land_admin', 'n74']) {
+    assert.equal(resolveExamKey({storedExamKey: alias}), 'land_agent', alias);
+    assert.deepEqual(subjectsForExam(alias), [], alias);
+  }
+  assert.equal(EXAM_CAPABILITIES.land_agent.legacyNodeId, 'n74');
 });
 
 test('unknown or absent exam fails closed without bookkeeper fallback', () => {
