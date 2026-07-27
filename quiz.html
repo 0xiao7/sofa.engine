@@ -549,8 +549,7 @@
       <select id="pastExamSubject" onchange="_persistPastExamSelection();if(_pastExamMode) loadQuiz()"
         style="display:none;background:var(--navy-3);border:1px solid rgba(231,187,167,0.35);
                border-radius:8px;color:var(--cream);font-size:12px;padding:6px 10px;min-height:44px;">
-        <option value="記帳相關法規概要">記帳法規</option>
-        <option value="稅務相關法規概要">稅務法規</option>
+        <option value="">科目載入中</option>
       </select>
       <select id="pastExamYear" onchange="_persistPastExamSelection();if(_pastExamMode) loadQuiz()"
         style="display:none;background:var(--navy-3);border:1px solid rgba(231,187,167,0.35);
@@ -739,7 +738,15 @@ function parseSessionTargetCount(){
 }
 const _sessionTargetCount = parseSessionTargetCount();
 const SESSION_AUTO_NEXT_DELAY_MS = 260;
-const _PAST_EXAM_SUBJECTS = ['記帳相關法規概要', '稅務相關法規概要'];
+let _pastExamCapability = null;
+let _quizProfileExamKey = '';
+let _quizProfileExamState = (uid||tok) ? 'pending' : 'not_required';
+let _quizResolvedExamKey = '';
+const _pastExamCapabilityReady = import('./exam-capabilities.mjs').then(async mod => {
+  _pastExamCapability = mod;
+  await resolveQuizEntitlement();
+  return _refreshPastExamSubjects();
+}).catch(() => _showPastExamUnavailable());
 const RECENT_PAST_EXAM_QUESTIONS_KEY = 'sofa_recent_past_exam_questions_v1';
 let _pastExamMode = _searchParams.get('mode') === 'past-exam';
 if (freeParam && !uid && !tok) {
@@ -804,20 +811,54 @@ function _setPaid(v){
   window.__sofaPaidResolved = true;
 }
 async function resolveQuizEntitlement(){
-  if(!uid && !tok){ return; }
+  const authenticated=!!(uid||tok);
+  _quizProfileExamState=authenticated?'pending':'not_required';
+  const p=new URLSearchParams(location.search);
+  const urlExamKey=p.get('exam')||'';
+  const storedExamKey=localStorage.getItem('sofa_exam_key')||localStorage.getItem('sofa.dash.exam.pick')||'';
+  if(!authenticated){
+    const guestResult=await _pastExamCapability.resolveExamKeyWithProfile({
+      authenticated:false,urlExamKey,storedExamKey
+    });
+    _quizResolvedExamKey=guestResult.examKey;
+    _quizProfileExamState=guestResult.profileState;
+    return true;
+  }
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 6000);
+  let d=null;
   try{
-    const d = await fetch(`${API}/api/me/profile`, {headers:_authH(), signal:ctrl.signal}).then(r=>r.ok?r.json():null);
+    const result=await _pastExamCapability.resolveExamKeyWithProfile({
+      authenticated:true,
+      urlExamKey,
+      storedExamKey,
+      loadProfileExamKey:async()=>{
+        const r=await fetch(`${API}/api/me/profile`, {headers:_authH(), signal:ctrl.signal});
+        if(!r.ok) throw new Error('profile '+r.status);
+        d=await r.json();
+        return String((d&&d.exam_key)||'').trim();
+      }
+    });
     if(timer) clearTimeout(timer);
-    if(!d){ _setPaid(true); return; }
+    _quizResolvedExamKey=result.examKey;
+    _quizProfileExamState=result.profileState;
+    if(result.profileState==='failed'){
+      _quizProfileExamKey='';
+      _setPaid(true);
+      return false;
+    }
+    _quizProfileExamKey = String((d&&d.exam_key)||'').trim();
     const plan=String(d.plan||d.member_status||d.status||'').trim();
     if(['免費','free'].includes(plan)) _setPaid(false);
     else _setPaid(true); // 未知 plan 字串
+    return true;
   }catch(e){
     // catch(() => { if(timer) clearTimeout(timer); _setPaid(true); }
     if(timer) clearTimeout(timer);
+    _quizProfileExamKey='';
+    _quizProfileExamState='failed';
     _setPaid(true);
+    return false;
   }
 }
 const isFree = !(uid || tok) && (freeParam || localStorage.getItem('sofa_free') === 'FREE');
@@ -899,6 +940,32 @@ function _persistPastExamSelection(){
   if(subject)u.searchParams.set('subject',subject);else u.searchParams.delete('subject');
   if(year)u.searchParams.set('year',year);else u.searchParams.delete('year');
   history.replaceState({},'',u.pathname+u.search+u.hash);
+}
+
+function _resolvedPastExamKey(){
+  if(!_pastExamCapability) return '';
+  if(_quizProfileExamState==='pending'||_quizProfileExamState==='failed') return '';
+  return _quizResolvedExamKey;
+}
+
+function _showPastExamUnavailable(){
+  const subjectEl=document.getElementById('pastExamSubject');
+  if(subjectEl) subjectEl.innerHTML='<option value="">此考科考古題尚未上線</option>';
+}
+
+async function _refreshPastExamSubjects(){
+  const subjectEl=document.getElementById('pastExamSubject');
+  if(!subjectEl||!_pastExamCapability) return [];
+  const examKey=_resolvedPastExamKey();
+  if(!examKey){ _showPastExamUnavailable(); return []; }
+  const allowed=_pastExamCapability.subjectsForExam(examKey);
+  const meta=await fetch(`${API}/api/past-exam/meta`).then(r=>r.ok?r.json():null).catch(()=>null);
+  const live=new Set((meta&&meta.subjects)||[]);
+  const subjects=allowed.filter(subject=>live.has(subject));
+  if(!subjects.length){ _showPastExamUnavailable(); return []; }
+  subjectEl.innerHTML=subjects.map(subject=>`<option value="${subject}">${subject}</option>`).join('');
+  _restorePastExamSelection();
+  return subjects;
 }
 
 function _restorePastExamSelection(){
@@ -2091,8 +2158,10 @@ const _loadWrongQuizCompatibilityContract = "async function loadWrongQuiz(){ ret
 // ── DOMContentLoaded
 
 async function _fetchPastExamQuestion() {
+  await _pastExamCapabilityReady;
   const sel = document.getElementById('pastExamSubject');
-  const subject = (sel && sel.value) || _PAST_EXAM_SUBJECTS[0];
+  const subject = (sel && sel.value) || '';
+  if(!subject) return {detail:'此考科考古題尚未上線'};
   const yearSel = document.getElementById('pastExamYear');
   const year = (yearSel && yearSel.value) || '';
   const yearPart = year ? `&year=${encodeURIComponent(year)}` : '';

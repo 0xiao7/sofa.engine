@@ -33,7 +33,9 @@ test('law drill deeplinks are not limited by the bookkeeper past-exam two-subjec
   assert.match(defaultExam, /_drillParam/);
   assert.match(defaultExam, /if \(examKey \|\| !_startQuizParam \|\| _lawParamFromUrl\(\) \|\| _articleParamFromUrl\(\) \|\| _drillParam \|\| _pastExamMode\) return examKey/);
 
-  assert.match(active, /const _PAST_EXAM_SUBJECTS = \['記帳相關法規概要', '稅務相關法規概要'\]/);
+  assert.match(active, /import\('\.\/exam-capabilities\.mjs'\)/);
+  assert.match(active, /subjectsForExam\(examKey\)/);
+  assert.doesNotMatch(active, /const _PAST_EXAM_SUBJECTS/);
   assert.match(active, /if\(_initialLawApplied\)\{ _autoLoadQuizOnce\(\); return; \}/);
 });
 

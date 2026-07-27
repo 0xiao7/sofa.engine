@@ -194,7 +194,8 @@ test('mobile quiz keeps secondary mode controls out of the first screen', () => 
   assert.doesNotMatch(active, /\.free-quiz-notice a\[href="pricing\.html"\]\{display:none!important\}/);
   assert.match(active, /\.free-quiz-notice a\{[\s\S]*min-height:44px/);
   assert.match(active, /輸入序號保留紀錄 →/);
-  assert.match(active, /#btnWrong,#btn-clear-wrong,#btnDaily,#daily-badge,#quiz-streak,\s*#sprint-count-select,#btnSprint,#btnExam,#btnPastExam,#pastExamSubject\{\s*display:none!important;/);
+  assert.match(active, /#btnWrong,#btn-clear-wrong,#btnDaily,#daily-badge,#quiz-streak,\s*#sprint-count-select,#btnSprint,#btnExam,#btnPastExam\{display:none!important;/);
+  assert.doesNotMatch(active, /#pastExamSubject[^}]*display:none!important/);
   assert.match(active, /#law-status-bar,#artPickWrap\{display:none!important\}/);
   assert.match(active, /#btnNew\{min-height:42px/);
   assert.match(active, /class="seg score-seg">正確/);
@@ -609,10 +610,11 @@ test('signed-in learners are not treated as free while entitlement is uncertain'
   assert.match(active, /const isFree = !\(uid \|\| tok\) && \(freeParam \|\| localStorage\.getItem\('sofa_free'\) === 'FREE'\)/);
   assert.match(active, /if \(!\(uid \|\| tok\) && !isFree\)/);
   assert.match(active, /window\.__sofaPaidResolved = !\(uid \|\| tok\)/);
-  assert.match(active, /if\(!uid && !tok\)\{ return; \}/);
-  assert.match(active, /if\(!d\)\{ _setPaid\(true\); return; \}/);
+  assert.match(active, /resolveExamKeyWithProfile/);
+  assert.match(active, /_quizProfileExamState=result\.profileState/);
+  assert.match(active, /if\(result\.profileState==='failed'\)/);
   assert.match(active, /_setPaid\(true\); \/\/ 未知 plan 字串/);
-  assert.match(active, /catch\(\(\) => \{ if\(timer\) clearTimeout\(timer\); _setPaid\(true\); \}/);
+  assert.match(active, /if\(!r\.ok\) throw new Error/);
   assert.match(active, /function articleSectionsArePaid\(article\)/);
   assert.match(active, /if\(window\.__sofaPaid !== false && !isFree\) return true/);
   assert.match(active, /buildSections\(art\.sections\|\|\{\},articleSectionsArePaid\(art\)/);

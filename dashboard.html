@@ -8596,14 +8596,11 @@ function renderStudyToday(data){
   var weakEl = document.getElementById('study-cockpit-weak-state');
   if(!box || !subjectsEl || !blocksEl) return;
   if(!data) data = {
-    scope_rules: { law_to_subject_mapping: 'many_to_many' },
-    subjects: [
-      { display_name: '記帳相關法規', subject_key: 'bookkeeper_law', implementation_status: 'seeded_moex_mcq' },
-      { display_name: '租稅相關法規', subject_key: 'tax_law', implementation_status: 'seeded_moex_mcq' }
-    ],
+    scope_rules: {},
+    subjects: [],
     today: { blocks: [] },
     weak_law_bridge: { items: [] },
-    fallback: true
+    scopeUnavailable: true
   };
   window.__studyTimeSummary = data && data.study_time ? data.study_time : window.__studyTimeSummary;
   var rules = data.scope_rules || {};
@@ -8611,7 +8608,9 @@ function renderStudyToday(data){
   var subjects = Array.isArray(data.subjects) ? data.subjects : [];
   var blocks = data.today && Array.isArray(data.today.blocks) ? data.today.blocks : [];
   var seededCount = subjects.filter(function(s){ return s.implementation_status === 'seeded_moex_mcq'; }).length;
-  if(summaryEl) summaryEl.textContent = data.fallback ? '先做 1 題開始累積弱點' : (seededCount ? ('弱點判讀已接 ' + seededCount + ' 科') : '先做 1 題開始累積弱點');
+  if(summaryEl) summaryEl.textContent = data.scopeUnavailable
+    ? '學習範圍暫時無法確認'
+    : (seededCount ? ('弱點判讀已接 ' + seededCount + ' 科') : '先做 1 題開始累積弱點');
   var navStudy = document.getElementById('nav-ct-study');
   if(navStudy) navStudy.textContent = seededCount ? String(seededCount) : '';
   var bridgeItems = (data.weak_law_bridge && data.weak_law_bridge.items) || [];
@@ -8625,9 +8624,11 @@ function renderStudyToday(data){
   renderStudyPlanItems(_mergeStudyPlan(data.personal_plan || null));
   renderStudySuggestions(buildStudySuggestions(data, mergedPlan));
   updateStudySaveNudge();
-  subjectsEl.innerHTML = '<span class="study-subject study-subject-summary">科目狀態</span>'
-    + '<span class="study-subject seeded">弱點判讀</span>'
-    + '<span class="study-subject seeded">已接 ' + esc(seededCount) + ' 科</span>';
+  subjectsEl.innerHTML = data.scopeUnavailable
+    ? '<span class="study-subject study-subject-summary">科目狀態暫時無法確認</span>'
+    : ('<span class="study-subject study-subject-summary">科目狀態</span>'
+      + '<span class="study-subject seeded">弱點判讀</span>'
+      + '<span class="study-subject seeded">已接 ' + esc(seededCount) + ' 科</span>');
   blocksEl.innerHTML = blocks.length ? blocks.slice(0,6).map(function(b){
     var laws = Array.isArray(b.law_names) ? b.law_names.join('、') : '';
     var targetLaw = (Array.isArray(b.law_names) && b.law_names[0]) || b.display_name || '';
