@@ -783,6 +783,27 @@ a{color:inherit;text-decoration:none}
 </footer>
 
 <script>
+function carryExamContextToCheckoutLinks(){
+  const params = new URLSearchParams(location.search);
+  let examKey = (params.get("exam_key") || params.get("track") || "").trim();
+  if (!examKey) {
+    try {
+      examKey = (
+        localStorage.getItem("sofa_exam_target") ||
+        localStorage.getItem("sofa.target") ||
+        ""
+      ).trim();
+    } catch (_) {}
+  }
+  if (!/^[a-z0-9_-]+$/i.test(examKey)) return;
+  document.querySelectorAll('a[href*="checkout.html"]').forEach((link) => {
+    const url = new URL(link.href, location.href);
+    url.searchParams.set("exam_key", examKey);
+    link.href = url.pathname + url.search + url.hash;
+  });
+}
+carryExamContextToCheckoutLinks();
+
 // FAQ accordion
 document.querySelectorAll('.faq-q').forEach(q => {
   q.addEventListener('click', () => {
