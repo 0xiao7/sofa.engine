@@ -31,8 +31,9 @@ not an official answer.
 - File:
   `podcast/ep001-tax-collection-act-article-1-1.html`
 - Canonical:
-  `https://sofaengine.org/podcast/ep001-tax-collection-act-article-1-1`
-- Add the exact canonical URL to `sitemap.xml`.
+  `https://sofaengine.org/podcast/ep001-tax-collection-act-article-1-1.html`
+- Add the exact `.html` canonical URL to `sitemap.xml` so local static HTTP
+  checks and the GitHub Pages resource resolve identically.
 - Add internal links from the EP001 block in `podcast.html` and the public
   article collection in `blog/index.html`.
 - Record the page in `podcast-release.json` as EP001's `seoPage`, allowing the
@@ -95,4 +96,3 @@ The document will include:
   internal-link targets.
 - `git diff --check` and an explicit before/after snapshot proving every
   released GUID and enclosure remains unchanged.
-

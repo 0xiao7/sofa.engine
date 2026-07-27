@@ -61,7 +61,7 @@ Set EP001 `seoPage` to
 - [ ] **Step 3: Add exact internal and sitemap links**
 
 Link the canonical page from EP001 in `podcast.html`, add it to
-`blog/index.html`, and add the extensionless canonical URL to `sitemap.xml`.
+`blog/index.html`, and add the exact `.html` canonical URL to `sitemap.xml`.
 
 - [ ] **Step 4: Run the focused test to verify GREEN**
 
@@ -175,4 +175,3 @@ existing unambiguous TASK_DB row only if one exists for this automation.
 
 Record EP001 as completed, its canonical URL, source article ID, commit/PR,
 deploy evidence, and current run time so the next run selects EP002.
-
