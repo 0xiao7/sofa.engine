@@ -1,0 +1,43 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+
+import {
+  EXAM_CAPABILITIES,
+  resolveExamKey,
+  subjectsForExam,
+} from '../exam-capabilities.mjs';
+
+test('profile exam wins over URL and stored exam', () => {
+  assert.equal(resolveExamKey({
+    profileExamKey: 'bookkeeper',
+    urlExamKey: 'real_estate_broker',
+    storedExamKey: 'land_agent',
+  }), 'bookkeeper');
+});
+
+test('URL exam wins when profile has no exam', () => {
+  assert.equal(resolveExamKey({
+    urlExamKey: 'real_estate_broker',
+    storedExamKey: 'bookkeeper',
+  }), 'real_estate_broker');
+});
+
+test('stored exam is used only after profile and URL', () => {
+  assert.equal(resolveExamKey({storedExamKey: 'land_agent'}), 'land_agent');
+});
+
+test('unknown or absent exam fails closed without bookkeeper fallback', () => {
+  assert.equal(resolveExamKey({storedExamKey: 'mining_engineer'}), '');
+  assert.equal(resolveExamKey({}), '');
+  assert.deepEqual(subjectsForExam('mining_engineer'), []);
+});
+
+test('bookkeeper exposes only production-live subjects to customers', () => {
+  assert.deepEqual(subjectsForExam('bookkeeper'), [
+    '記帳相關法規概要',
+    '稅務相關法規概要',
+  ]);
+  assert.equal(EXAM_CAPABILITIES.bookkeeper.subjects['會計學概要'].availability, 'internal_review');
+  assert.equal(EXAM_CAPABILITIES.bookkeeper.subjects['租稅申報實務'].availability, 'hidden');
+  assert.equal(EXAM_CAPABILITIES.bookkeeper.subjects['國文（作文）'].availability, 'hidden');
+});
