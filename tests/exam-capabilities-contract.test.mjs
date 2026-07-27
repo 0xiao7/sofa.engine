@@ -41,3 +41,12 @@ test('bookkeeper exposes only production-live subjects to customers', () => {
   assert.equal(EXAM_CAPABILITIES.bookkeeper.subjects['租稅申報實務'].availability, 'hidden');
   assert.equal(EXAM_CAPABILITIES.bookkeeper.subjects['國文（作文）'].availability, 'hidden');
 });
+
+test('non-bookkeeper exams stay unavailable without exam-isolated production evidence', () => {
+  assert.deepEqual(subjectsForExam('real_estate_broker'), []);
+  assert.deepEqual(subjectsForExam('land_agent'), []);
+
+  for (const capability of Object.values(EXAM_CAPABILITIES.real_estate_broker.subjects)) {
+    assert.equal(capability.availability, 'not_live');
+  }
+});

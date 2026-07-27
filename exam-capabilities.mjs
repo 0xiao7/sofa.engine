@@ -14,9 +14,9 @@ export const EXAM_CAPABILITIES = Object.freeze({
     label: '不動產經紀人',
     legacyNodeId: 'n83',
     subjects: Object.freeze({
-      '民法概要': Object.freeze({mode: 'law_mcq', availability: 'live'}),
-      '不動產經紀相關法規概要': Object.freeze({mode: 'law_mcq', availability: 'live'}),
-      '土地法與土地相關稅法概要': Object.freeze({mode: 'law_mcq', availability: 'live'}),
+      '民法概要': Object.freeze({mode: 'law_mcq', availability: 'not_live'}),
+      '不動產經紀相關法規概要': Object.freeze({mode: 'law_mcq', availability: 'not_live'}),
+      '土地法與土地相關稅法概要': Object.freeze({mode: 'law_mcq', availability: 'not_live'}),
     }),
   }),
   land_agent: Object.freeze({
