@@ -610,9 +610,9 @@ test('signed-in learners are not treated as free while entitlement is uncertain'
   assert.match(active, /const isFree = !\(uid \|\| tok\) && \(freeParam \|\| localStorage\.getItem\('sofa_free'\) === 'FREE'\)/);
   assert.match(active, /if \(!\(uid \|\| tok\) && !isFree\)/);
   assert.match(active, /window\.__sofaPaidResolved = !\(uid \|\| tok\)/);
-  assert.match(active, /if\(!uid && !tok\)\{ _quizProfileExamState='not_required'; return true; \}/);
-  assert.match(active, /_quizProfileExamState='resolved'/);
-  assert.match(active, /_quizProfileExamState='failed'/);
+  assert.match(active, /resolveExamKeyWithProfile/);
+  assert.match(active, /_quizProfileExamState=result\.profileState/);
+  assert.match(active, /if\(result\.profileState==='failed'\)/);
   assert.match(active, /_setPaid\(true\); \/\/ 未知 plan 字串/);
   assert.match(active, /if\(!r\.ok\) throw new Error/);
   assert.match(active, /function articleSectionsArePaid\(article\)/);

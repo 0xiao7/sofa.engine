@@ -58,9 +58,9 @@ test('quiz has a real past-exam mode backed by the past-exam API', () => {
   assert.match(activeQuiz, /_refreshPastExamSubjects/);
   assert.doesNotMatch(activeQuiz, /const _PAST_EXAM_SUBJECTS/);
   assert.match(activeQuiz, /await resolveQuizEntitlement\(\)[\s\S]*_refreshPastExamSubjects\(\)/);
-  assert.match(activeQuiz, /_quizProfileExamState\s*=\s*'pending'/);
-  assert.match(activeQuiz, /_quizProfileExamState\s*=\s*'resolved'/);
-  assert.match(activeQuiz, /_quizProfileExamState\s*=\s*'failed'/);
+  assert.match(activeQuiz, /resolveExamKeyWithProfile/);
+  assert.match(activeQuiz, /_quizProfileExamState=result\.profileState/);
+  assert.match(activeQuiz, /_quizResolvedExamKey=result\.examKey/);
   assert.match(activeQuiz, /if\(_quizProfileExamState==='pending'\|\|_quizProfileExamState==='failed'\) return ''/);
   assert.match(activeQuiz, /if\(!r\.ok\) throw new Error/);
 });

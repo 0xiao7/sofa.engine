@@ -55,6 +55,29 @@ export function resolveExamKey({
     || knownExamKey(storedExamKey);
 }
 
+export async function resolveExamKeyWithProfile({
+  authenticated = false,
+  loadProfileExamKey,
+  urlExamKey = '',
+  storedExamKey = '',
+} = {}) {
+  if (!authenticated) {
+    return {
+      examKey: resolveExamKey({urlExamKey, storedExamKey}),
+      profileState: 'not_required',
+    };
+  }
+  try {
+    const profileExamKey = await loadProfileExamKey();
+    return {
+      examKey: resolveExamKey({profileExamKey, urlExamKey, storedExamKey}),
+      profileState: 'resolved',
+    };
+  } catch {
+    return {examKey: '', profileState: 'failed'};
+  }
+}
+
 export function subjectsForExam(examKey, {includeInternal = false} = {}) {
   const exam = EXAM_CAPABILITIES[knownExamKey(examKey)];
   if (!exam) return [];

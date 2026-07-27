@@ -4,6 +4,7 @@ import test from 'node:test';
 import {
   EXAM_CAPABILITIES,
   resolveExamKey,
+  resolveExamKeyWithProfile,
   subjectsForExam,
 } from '../exam-capabilities.mjs';
 
@@ -64,4 +65,72 @@ test('non-bookkeeper exams stay unavailable without exam-isolated production evi
   for (const capability of Object.values(EXAM_CAPABILITIES.real_estate_broker.subjects)) {
     assert.equal(capability.availability, 'not_live');
   }
+});
+
+for (const [label, error] of [
+  ['HTTP 500', new Error('profile 500')],
+  ['fetch rejection', new TypeError('Failed to fetch')],
+  ['AbortError', new DOMException('aborted', 'AbortError')],
+]) {
+  test(`authenticated ${label} fails closed despite stale bookkeeper scope`, async () => {
+    let pastExamRequests = 0;
+    const result = await resolveExamKeyWithProfile({
+      authenticated: true,
+      loadProfileExamKey: async () => { throw error; },
+      urlExamKey: 'bookkeeper',
+      storedExamKey: 'bookkeeper',
+    });
+    if (result.examKey) pastExamRequests += 1;
+
+    assert.deepEqual(result, {examKey: '', profileState: 'failed'});
+    assert.equal(pastExamRequests, 0);
+  });
+}
+
+test('delayed authenticated profile success overrides URL and storage', async () => {
+  let settled = false;
+  const pending = resolveExamKeyWithProfile({
+    authenticated: true,
+    loadProfileExamKey: async () => {
+      await new Promise(resolve => setTimeout(resolve, 10));
+      settled = true;
+      return 'realestate';
+    },
+    urlExamKey: 'bookkeeper',
+    storedExamKey: 'bookkeeper',
+  });
+
+  assert.equal(settled, false);
+  assert.deepEqual(await pending, {
+    examKey: 'real_estate_broker',
+    profileState: 'resolved',
+  });
+});
+
+test('resolved empty profile follows URL then storage fallback', async () => {
+  assert.deepEqual(await resolveExamKeyWithProfile({
+    authenticated: true,
+    loadProfileExamKey: async () => '',
+    urlExamKey: 'bookkeeper',
+    storedExamKey: 'landadmin',
+  }), {examKey: 'bookkeeper', profileState: 'resolved'});
+
+  assert.deepEqual(await resolveExamKeyWithProfile({
+    authenticated: true,
+    loadProfileExamKey: async () => '',
+    storedExamKey: 'landadmin',
+  }), {examKey: 'land_agent', profileState: 'resolved'});
+});
+
+test('guest scope uses URL then storage without loading a profile', async () => {
+  let profileLoads = 0;
+  const result = await resolveExamKeyWithProfile({
+    authenticated: false,
+    loadProfileExamKey: async () => { profileLoads += 1; return 'realestate'; },
+    urlExamKey: 'bookkeeper',
+    storedExamKey: 'landadmin',
+  });
+
+  assert.deepEqual(result, {examKey: 'bookkeeper', profileState: 'not_required'});
+  assert.equal(profileLoads, 0);
 });
