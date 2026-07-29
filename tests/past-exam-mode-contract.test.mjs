@@ -66,6 +66,12 @@ test('quiz has a real past-exam mode backed by the past-exam API', () => {
   assert.match(activeQuiz, /if\(!r\.ok\) throw new Error/);
 });
 
+test('past-exam year selector exposes the full verified accounting range', () => {
+  for (let year = 104; year <= 114; year += 1) {
+    assert.match(activeQuiz, new RegExp(`<option value="${year}">${year} 年</option>`));
+  }
+});
+
 test('every public past-exam request carries the resolved exam key', () => {
   for (const [name, source] of [
     ['quiz', quiz],
