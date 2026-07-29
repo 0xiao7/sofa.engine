@@ -25,6 +25,8 @@ test('bookkeeper law map keeps proof claims inside verified bookkeeper scope', (
   assert.match(page, /\/api\/past-exam\/meta/);
   assert.match(page, /\/api\/past-exam\/meta\?exam_key=bookkeeper/);
   assert.match(page, /會計學概要/);
+  assert.match(page, /230 題/);
+  assert.match(page, /官方答案/);
   assert.match(page, /國文只收題目/);
   assert.match(page, /租稅申報實務/);
   assert.match(page, /整理中/);
@@ -33,7 +35,7 @@ test('bookkeeper law map keeps proof claims inside verified bookkeeper scope', (
     /104-114 年(?:[\s\S]{0,24})?全部已上線/,
     /記帳士全科已上線/,
     /全部科目完整收錄/,
-    /會計學概要已可自動判分/,
+    /會計學概要(?:[\s\S]{0,24})?完整解析/,
     /國文(?:[\s\S]{0,12})?答案/,
     /staging loader/,
     /可灌題數/,
