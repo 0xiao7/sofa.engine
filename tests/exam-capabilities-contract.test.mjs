@@ -50,10 +50,11 @@ test('unknown or absent exam fails closed without bookkeeper fallback', () => {
 
 test('bookkeeper exposes only production-live subjects to customers', () => {
   assert.deepEqual(subjectsForExam('bookkeeper'), [
+    '會計學概要',
     '記帳相關法規概要',
     '稅務相關法規概要',
   ]);
-  assert.equal(EXAM_CAPABILITIES.bookkeeper.subjects['會計學概要'].availability, 'internal_review');
+  assert.equal(EXAM_CAPABILITIES.bookkeeper.subjects['會計學概要'].availability, 'live');
   assert.equal(EXAM_CAPABILITIES.bookkeeper.subjects['租稅申報實務'].availability, 'hidden');
   assert.equal(EXAM_CAPABILITIES.bookkeeper.subjects['國文（作文）'].availability, 'hidden');
 });

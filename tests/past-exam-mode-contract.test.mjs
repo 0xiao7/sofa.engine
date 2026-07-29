@@ -195,16 +195,17 @@ test('bookkeeper resource page exposes only production-ready subjects', () => {
   assert.match(activeBookkeeper, /考古題練習/);
   assert.match(activeBookkeeper, /考古題雷達/);
   assert.match(activeBookkeeper, /目前正式可用科目/);
-  assert.doesNotMatch(activeBookkeeper, /會計學概要|租稅申報實務|國文|題目清單|備考清單/);
+  assert.match(activeBookkeeper, /會計學概要/);
+  assert.doesNotMatch(activeBookkeeper, /租稅申報實務|國文|題目清單|備考清單/);
 });
 
 test('past-exam radar states bookkeeper-only scope and trackable-question boundary', () => {
   assert.match(activeRadar, /記帳士考古題雷達/);
-  assert.match(activeRadar, /目前先看記帳士兩科官方選擇題/);
-  assert.match(activeRadar, /只顯示能追蹤到法條的題/);
-  assert.match(activeRadar, /未列入的科目先不做自動弱點判讀/);
+  assert.match(activeRadar, /目前先看記帳士三科官方選擇題/);
+  assert.match(activeRadar, /會計題依官方答案判分，不偽造法條連結或解析/);
   assert.match(activeRadar, /稅務相關法規概要/);
   assert.match(activeRadar, /記帳相關法規概要/);
+  assert.match(activeRadar, /會計學概要/);
   assert.doesNotMatch(activeRadar, /不動產經紀人已上線|地政士已上線|全考科已上線/);
 });
 

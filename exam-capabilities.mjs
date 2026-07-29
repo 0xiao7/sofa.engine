@@ -3,7 +3,7 @@ export const EXAM_CAPABILITIES = Object.freeze({
     label: '記帳士',
     legacyNodeId: 'n72',
     subjects: Object.freeze({
-      '會計學概要': Object.freeze({mode: 'accounting_mcq', availability: 'internal_review'}),
+      '會計學概要': Object.freeze({mode: 'accounting_mcq', availability: 'live'}),
       '記帳相關法規概要': Object.freeze({mode: 'law_mcq', availability: 'live'}),
       '租稅申報實務': Object.freeze({mode: 'essay', availability: 'hidden'}),
       '稅務相關法規概要': Object.freeze({mode: 'law_mcq', availability: 'live'}),
