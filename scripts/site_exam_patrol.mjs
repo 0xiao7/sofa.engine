@@ -30,9 +30,13 @@ const VIEWPORTS = [
 ];
 
 const EXAM_SCOPES = {
-  bookkeeper: new Set(['記帳相關法規概要', '稅務相關法規概要']),
-  real_estate_broker: new Set(),
-  land_agent: new Set(),
+  bookkeeper: {
+    total: 708,
+    subjects: new Set(['會計學概要', '稅務相關法規概要', '記帳相關法規概要']),
+    years: [104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114],
+  },
+  real_estate_broker: {total: 0, subjects: new Set(), years: []},
+  land_agent: {total: 0, subjects: new Set(), years: []},
 };
 
 const UNFINISHED_COPY_RE = /(TODO|FIXME|尚未實作|coming soon|lorem ipsum)/i;
@@ -237,7 +241,7 @@ async function auditPage(browser, spec, viewport) {
 async function auditExamApis(request) {
   const results = [];
   const findings = [];
-  for (const [examKey, expectedSubjects] of Object.entries(EXAM_SCOPES)) {
+  for (const [examKey, expected] of Object.entries(EXAM_SCOPES)) {
     const url = `${API_URL}/api/past-exam/meta?exam_key=${encodeURIComponent(examKey)}`;
     try {
       const response = await request.get(url, {timeout: TIMEOUT_MS});
@@ -247,21 +251,36 @@ async function auditExamApis(request) {
           .slice(0, MAX_SUBJECTS)
           .map(subject => String(subject).slice(0, MAX_SUBJECT_LENGTH))
         : [];
-      const leaked = subjects.filter(subject => !expectedSubjects.has(subject));
+      const years = Array.isArray(body.years)
+        ? body.years.map(Number).filter(Number.isFinite).sort((a, b) => a - b)
+        : [];
       const parsedTotal = Number(body.total);
+      const actualTotal = Number.isFinite(parsedTotal) ? parsedTotal : null;
+      const actualSubjects = [...subjects].sort();
+      const expectedSubjects = [...expected.subjects].sort();
+      const scopeMatches = (
+        actualTotal === expected.total
+        && JSON.stringify(actualSubjects) === JSON.stringify(expectedSubjects)
+        && JSON.stringify(years) === JSON.stringify(expected.years)
+      );
       results.push({
         examKey,
         status: response.status(),
-        total: Number.isFinite(parsedTotal) ? parsedTotal : null,
+        total: actualTotal,
         subjects,
+        years,
       });
-      if (response.status() >= 400 || leaked.length) {
+      if (response.status() >= 400 || !scopeMatches) {
         findings.push(finding({
           severity: 'P0',
-          code: leaked.length ? 'cross_exam_contamination' : 'exam_meta_http',
+          code: response.status() >= 400 ? 'exam_meta_http' : 'exam_scope_mismatch',
           target: examKey,
-          expected: [...expectedSubjects],
-          actual: leaked.length ? leaked : response.status(),
+          expected: response.status() >= 400
+            ? 'HTTP status below 400'
+            : {total: expected.total, subjects: expectedSubjects, years: expected.years},
+          actual: response.status() >= 400
+            ? response.status()
+            : {total: actualTotal, subjects: actualSubjects, years},
           evidenceUrl: url,
         }));
       }

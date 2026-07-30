@@ -33,9 +33,19 @@ test('patrol checks console overflow CTA exam isolation and API counts', () => {
   assert.match(source, /console/i);
   assert.match(source, /scrollWidth/);
   assert.match(source, /primaryCta/);
-  assert.match(source, /cross_exam_contamination/);
+  assert.match(source, /exam_scope_mismatch/);
   assert.match(source, /\/api\/past-exam\/meta\?exam_key=/);
   assert.match(source, /unfinished_copy/);
+});
+
+test('patrol accepts the verified live bookkeeper accounting scope', () => {
+  const source = readFileSync(scriptUrl, 'utf8');
+  assert.match(source, /total:\s*708/);
+  assert.match(source, /會計學概要/);
+  assert.match(source, /記帳相關法規概要/);
+  assert.match(source, /稅務相關法規概要/);
+  assert.match(source, /years:\s*\[104,\s*105,\s*106,\s*107,\s*108,\s*109,\s*110,\s*111,\s*112,\s*113,\s*114\]/);
+  assert.match(source, /exam_scope_mismatch/);
 });
 
 test('patrol report has stable incidents and never mutates production', () => {
