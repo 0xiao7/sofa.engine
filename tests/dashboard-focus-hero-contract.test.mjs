@@ -29,11 +29,11 @@ test('dashboard remains an installable cross-device web app', () => {
   assert.equal(manifest.orientation, 'any');
 });
 
-test('focus hero upgrades the record link to wrong-question review and tracks safely', () => {
+test('focus hero upgrades the record link to in-page wrong-question records and tracks safely', () => {
   assert.match(html, /function initDashboardFocusHero\(\)/);
   assert.match(html, /localStorage\.getItem\('sofa_wrong_ids'\)/);
-  assert.match(html, /secondary\.href = 'quiz\.html\?open=weakness'/);
-  assert.match(html, /'複習 ' \+ wrong\.length \+ ' 題錯題'/);
+  assert.match(html, /secondary\.href = '#weak-laws-recap'/);
+  assert.match(html, /'查看 ' \+ wrong\.length \+ ' 題錯題紀錄'/);
   assert.match(html, /typeof window\.sofaTrack === 'function'/);
   assert.match(html, /surface:'dashboard_focus_hero'/);
 });
