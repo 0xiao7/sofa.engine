@@ -47,6 +47,11 @@
   --sans:   var(--serif);
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html {
+  max-width: 100%;
+  overflow-x: clip;
+  -webkit-text-size-adjust: 100%;
+}
 :focus-visible { outline: 2px solid var(--peach); outline-offset: 3px; }
 @keyframes shake { 0%,100%{transform:translateX(0)} 20%{transform:translateX(-6px)} 40%{transform:translateX(6px)} 60%{transform:translateX(-4px)} 80%{transform:translateX(4px)} }
 @keyframes errFade { from{opacity:0;transform:translateY(-4px)} to{opacity:1;transform:translateY(0)} }
@@ -70,6 +75,9 @@ body {
   display: flex;
   color: var(--cream);
   -webkit-font-smoothing: antialiased;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
 }
 
 /* ===========================================
@@ -624,6 +632,7 @@ html.ios-reader-app [data-ios-reader-hide] { display: none !important; }
   .auth-l { display: none; }
   .auth-r {
     width: 100%;
+    min-width: 0;
     min-height: 100vh;
     padding: 28px 24px 32px;
   }
@@ -666,7 +675,8 @@ html.ios-reader-app [data-ios-reader-hide] { display: none !important; }
   .auth-form .greet-sub { margin-bottom: 24px; }
   .serial-card { padding: 22px 20px 20px; }
   .serial-prefix { padding: 12px 14px; font-size: 13px; }
-  .serial-wrap input { padding: 12px 14px; font-size: 14px; }
+  .serial-wrap { min-width: 0; max-width: 100%; }
+  .serial-wrap input { min-width: 0; padding: 12px 14px; font-size: 16px; }
 }
 
 /* 預設不顯示，手機 media query 才打開 */
