@@ -26,6 +26,13 @@ test('native iOS login reserves the status-bar safe area without affecting norma
   assert.match(html, /@media \(max-width: 540px\)[\s\S]*html\.ios-reader-app\s+\.auth-r\s*\{[^}]*padding-top:\s*calc\(22px \+ env\(safe-area-inset-top, 0px\)\)/);
 });
 
+test('mobile serial focus cannot trigger iOS input zoom or horizontal page drift', () => {
+  assert.match(html, /html\s*\{[^}]*max-width:\s*100%[^}]*overflow-x:\s*(?:hidden|clip)/);
+  assert.match(html, /body\s*\{[^}]*width:\s*100%[^}]*max-width:\s*100%[^}]*overflow-x:\s*(?:hidden|clip)/);
+  assert.match(html, /@media \(max-width: 540px\)[\s\S]*\.serial-wrap input\s*\{[^}]*font-size:\s*16px/);
+  assert.match(html, /-webkit-text-size-adjust:\s*100%/);
+});
+
 test('desktop login keeps the first screen compact and moves long support copy into details', () => {
   assert.match(html, /\.auth-hero\s*\{[^}]*margin-top:\s*0[^}]*padding-bottom:\s*0/);
   assert.match(html, /\.auth-form\s*\{[^}]*flex:\s*0 1 auto/);
