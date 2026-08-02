@@ -31,6 +31,13 @@ test('mobile serial focus cannot trigger iOS input zoom or horizontal page drift
   assert.match(html, /body\s*\{[^}]*width:\s*100%[^}]*max-width:\s*100%[^}]*overflow-x:\s*(?:hidden|clip)/);
   assert.match(html, /@media \(max-width: 540px\)[\s\S]*\.serial-wrap input\s*\{[^}]*font-size:\s*16px/);
   assert.match(html, /-webkit-text-size-adjust:\s*100%/);
+  assert.match(html, /function resetLoginHorizontalViewport\(\)/);
+  assert.match(html, /document\.documentElement\.scrollLeft\s*=\s*0/);
+  assert.match(html, /document\.body\.scrollLeft\s*=\s*0/);
+  assert.match(html, /window\.scrollTo\(0,\s*window\.scrollY\)/);
+  assert.match(html, /serialEl\.addEventListener\('focus',\s*scheduleLoginViewportReset\)/);
+  assert.match(html, /window\.visualViewport\.addEventListener\('resize',\s*scheduleLoginViewportReset\)/);
+  assert.match(html, /window\.visualViewport\.addEventListener\('scroll',\s*scheduleLoginViewportReset\)/);
 });
 
 test('desktop login keeps the first screen compact and moves long support copy into details', () => {
