@@ -509,7 +509,158 @@
   }
   .main-inner{max-width:1180px;margin:0 auto;position:relative}
 
-  /* === Hero === */
+  /* === Focus hero — same SoFa palette, type, and linework === */
+  .focus-hero{
+    position:relative;
+    min-height:clamp(560px,72svh,760px);
+    display:grid;
+    place-items:center;
+    overflow:hidden;
+    border-bottom:1px solid var(--line-2);
+    isolation:isolate;
+  }
+  .focus-hero-lines{
+    position:absolute;
+    inset:12% 0 0;
+    z-index:-1;
+    opacity:.55;
+    background-image:
+      linear-gradient(var(--line) 1px,transparent 1px),
+      linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:92px 92px;
+    mask-image:linear-gradient(to bottom,transparent,#000 30%,#000 72%,transparent);
+    pointer-events:none;
+  }
+  .focus-hero-lines::before,
+  .focus-hero-lines::after{
+    content:"";
+    position:absolute;
+    width:42%;
+    height:1px;
+    background:var(--line-2);
+    top:58%;
+  }
+  .focus-hero-lines::before{left:-5%;transform:rotate(12deg)}
+  .focus-hero-lines::after{right:-5%;transform:rotate(-12deg)}
+  .focus-hero-inner{
+    width:min(820px,100%);
+    text-align:center;
+    padding:72px 24px 88px;
+    animation:focusHeroIn .7s ease-out both;
+  }
+  @keyframes focusHeroIn{
+    from{opacity:0;transform:translateY(12px)}
+    to{opacity:1;transform:translateY(0)}
+  }
+  .focus-hero-kicker{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    min-height:38px;
+    padding:8px 24px;
+    border:1px solid var(--line-3);
+    border-radius:999px;
+    color:var(--peach-2);
+    font-family:var(--mono);
+    font-size:11px;
+    letter-spacing:.28em;
+  }
+  .focus-hero-title{
+    margin-top:38px;
+    font-family:var(--serif);
+    font-size:clamp(54px,6.2vw,86px);
+    font-weight:500;
+    line-height:1.12;
+    letter-spacing:.01em;
+    color:var(--cream);
+  }
+  .focus-hero-title em{font-style:normal;color:var(--peach);font-weight:600}
+  .focus-hero-copy{
+    max-width:620px;
+    margin:24px auto 0;
+    color:rgba(245,240,234,.64);
+    font-size:17px;
+    line-height:1.9;
+  }
+  .focus-hero-actions{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:16px;
+    width:min(620px,100%);
+    margin:34px auto 0;
+  }
+  .focus-hero-primary,
+  .focus-hero-secondary{
+    min-height:60px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:14px 22px;
+    border:1px solid var(--line-3);
+    border-radius:3px;
+    font-size:16px;
+    font-weight:600;
+    transition:background .2s,border-color .2s,color .2s,transform .2s;
+  }
+  .focus-hero-primary{background:var(--peach);border-color:var(--peach);color:var(--navy)}
+  .focus-hero-secondary{background:rgba(20,40,54,.22);color:var(--cream)}
+  .focus-hero-primary:hover{background:var(--peach-2);border-color:var(--peach-2);transform:translateY(-2px)}
+  .focus-hero-secondary:hover{background:rgba(245,240,234,.06);border-color:var(--peach-dim);transform:translateY(-2px)}
+  .focus-hero-primary:focus-visible,
+  .focus-hero-secondary:focus-visible,
+  .focus-hero-scroll:focus-visible{outline:2px solid var(--peach);outline-offset:4px}
+  .focus-hero-scroll{
+    display:inline-flex;
+    align-items:center;
+    gap:10px;
+    margin-top:42px;
+    color:rgba(245,240,234,.48);
+    font-size:13px;
+    transition:color .2s;
+  }
+  .focus-hero-scroll:hover{color:var(--peach-2)}
+  .study-desk-intro{
+    display:flex;
+    align-items:flex-end;
+    justify-content:space-between;
+    gap:24px;
+    padding:68px 0 26px;
+    border-bottom:1px solid var(--line);
+    margin-bottom:36px;
+    scroll-margin-top:110px;
+  }
+  .study-desk-intro span{font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:var(--peach)}
+  .study-desk-intro h2{font-family:var(--serif);font-size:30px;font-weight:500;color:var(--cream)}
+
+  @media (max-width:767px){
+    .focus-hero{order:-100;min-height:68svh;border-bottom-color:rgba(245,240,234,.12)}
+    .focus-hero-inner{padding:44px 6px 54px}
+    .focus-hero-lines{inset:6% -12px 0;background-size:48px 48px;opacity:.42}
+    .focus-hero-kicker{min-height:34px;padding:7px 15px;font-size:9px;letter-spacing:.18em}
+    .focus-hero-title{margin-top:28px;font-size:clamp(42px,13vw,58px);line-height:1.16}
+    .focus-hero-copy{margin-top:18px;font-size:15px;line-height:1.75;padding:0 8px}
+    .focus-hero-actions{grid-template-columns:1fr;gap:10px;margin-top:28px}
+    .focus-hero-primary,.focus-hero-secondary{min-height:54px;border-radius:8px;font-size:15px}
+    .focus-hero-scroll{margin-top:26px;font-size:12px}
+    .study-desk-intro{order:-34;padding:34px 2px 14px;margin-bottom:14px;align-items:center}
+    .study-desk-intro span{font-size:9px;letter-spacing:.18em}
+    .study-desk-intro h2{font-size:22px}
+  }
+  @media (min-width:768px) and (max-width:1099px){
+    .focus-hero{min-height:68svh}
+    .focus-hero-inner{padding:64px 32px 76px}
+    .focus-hero-title{font-size:clamp(58px,8vw,76px)}
+    .focus-hero-copy{font-size:16px}
+  }
+  @media (min-width:1100px){
+    .focus-hero-inner{padding-left:48px;padding-right:48px}
+  }
+  @media (prefers-reduced-motion:reduce){
+    .focus-hero-inner{animation:none}
+    .focus-hero-primary,.focus-hero-secondary{transition:none}
+  }
+
+  /* === Existing dashboard hero === */
   .greet{
     display:grid;
     grid-template-columns:1fr auto;
@@ -4276,7 +4427,27 @@
     <main class="main">
       <div class="main-inner">
 
-        <!-- ============ HERO ============ -->
+        <!-- ============ FOCUS HERO ============ -->
+        <section class="focus-hero" id="dashboard-focus-hero" aria-labelledby="dashboard-focus-title">
+          <div class="focus-hero-lines" aria-hidden="true"></div>
+          <div class="focus-hero-inner">
+            <div class="focus-hero-kicker">TODAY · FOCUS · ONE SET</div>
+            <h1 class="focus-hero-title" id="dashboard-focus-title">今天，先做一組。</h1>
+            <p class="focus-hero-copy">不用先整理完整計畫。先完成 5 題，系統再依你的作答紀錄安排下一步。</p>
+            <div class="focus-hero-actions">
+              <a class="focus-hero-primary" id="focus-hero-start" data-focus-event="dashboard_focus_start" href="quiz.html?start=1&amp;session=1&amp;count=5">開始今天 5 題</a>
+              <a class="focus-hero-secondary" id="focus-hero-secondary" data-focus-event="dashboard_focus_records" href="#dashboard-study-desk">查看學習紀錄</a>
+            </div>
+            <a class="focus-hero-scroll" data-focus-event="dashboard_focus_desk" href="#dashboard-study-desk">查看完整學習桌 <span aria-hidden="true">↓</span></a>
+          </div>
+        </section>
+
+        <div class="study-desk-intro" id="dashboard-study-desk">
+          <span>YOUR STUDY DESK</span>
+          <h2>你的學習桌</h2>
+        </div>
+
+        <!-- ============ EXISTING DASHBOARD ============ -->
         <div class="greet">
           <div>
             <div class="eyebrow" id="greet-eyebrow">TONIGHT · TAIPEI</div>
@@ -11999,6 +12170,30 @@ ch.on('presence', { event: 'sync' }, () => {
     renderWeakLaws([]);
   }
 })();
+</script>
+
+<script>
+function initDashboardFocusHero(){
+  var secondary = document.getElementById('focus-hero-secondary');
+  var wrong = [];
+  try{ wrong = JSON.parse(localStorage.getItem('sofa_wrong_ids') || '[]'); }catch(e){}
+  if(secondary && Array.isArray(wrong) && wrong.length){
+    secondary.href = '#weak-laws-recap';
+    secondary.textContent = '查看 ' + wrong.length + ' 題錯題紀錄';
+  }
+  document.querySelectorAll('[data-focus-event]').forEach(function(link){
+    link.addEventListener('click', function(){
+      if(typeof window.sofaTrack === 'function'){
+        window.sofaTrack(link.dataset.focusEvent, {surface:'dashboard_focus_hero'});
+      }
+    });
+  });
+}
+if(document.readyState === 'loading'){
+  document.addEventListener('DOMContentLoaded', initDashboardFocusHero);
+}else{
+  initDashboardFocusHero();
+}
 </script>
 </body>
 </html>
