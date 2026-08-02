@@ -58,3 +58,16 @@ test('past-exam question stem hides duplicated source year and number', () => {
   );
   assert.equal(stripPastExamSourcePrefix('一般法規題幹'), '一般法規題幹');
 });
+
+test('ordinary quiz entry automatically loads the first question once boot data is ready', () => {
+  const bootStart = active.indexOf('(async()=>{');
+  const bootEnd = active.indexOf('let _artCache', bootStart);
+  assert.ok(bootStart >= 0 && bootEnd > bootStart, 'quiz boot initializer must be extractable');
+  const boot = active.slice(bootStart, bootEnd);
+
+  assert.match(boot, /if\(_restoreQuizReturnState\(\)\) return/);
+  assert.match(boot, /if\(_pastExamMode\)\{[\s\S]*_autoLoadQuizOnce\(\)[\s\S]*return/);
+  assert.match(boot, /if\(_initialLawApplied\)\{ _autoLoadQuizOnce\(\); return; \}/);
+  assert.match(boot, /if\(_startQuizParam\)\{ _autoLoadQuizOnce\(\); return; \}/);
+  assert.match(boot, /if\(_startQuizParam\)\{ _autoLoadQuizOnce\(\); return; \}\s*_autoLoadQuizOnce\(\);/);
+});
