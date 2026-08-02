@@ -826,6 +826,27 @@ const btn      = document.getElementById('btn');
 const errEl    = document.getElementById('err');
 const loginTargetHash = location.hash;
 
+let loginViewportResetFrame = 0;
+function resetLoginHorizontalViewport() {
+  document.documentElement.scrollLeft = 0;
+  document.body.scrollLeft = 0;
+  if (window.scrollX !== 0) window.scrollTo(0, window.scrollY);
+}
+function scheduleLoginViewportReset() {
+  cancelAnimationFrame(loginViewportResetFrame);
+  loginViewportResetFrame = requestAnimationFrame(() => {
+    resetLoginHorizontalViewport();
+    requestAnimationFrame(resetLoginHorizontalViewport);
+  });
+}
+
+serialEl.addEventListener('focus', scheduleLoginViewportReset);
+serialEl.addEventListener('blur', scheduleLoginViewportReset);
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', scheduleLoginViewportReset);
+  window.visualViewport.addEventListener('scroll', scheduleLoginViewportReset);
+}
+
 serialEl.addEventListener('input', function() {
   let raw = this.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase().slice(0, 8);
   if (!raw) { this.value = ''; return; }
