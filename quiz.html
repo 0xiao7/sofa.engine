@@ -68,6 +68,7 @@
   .q-head{
     display:flex;align-items:flex-end;justify-content:space-between;gap:24px;
     padding-bottom:18px;border-bottom:1px solid var(--line);margin-bottom:28px;
+    scroll-margin-top:calc(var(--tool-topbar-offset) + 16px);
   }
   .q-head .eb{
     font-family:var(--mono);font-size:11px;color:var(--peach);
@@ -461,6 +462,7 @@
     .q-foot{flex-direction:column;align-items:stretch}
     .q-foot .r{flex-direction:column}
     .rail{flex-direction:column}
+    .rail-card{flex:none;width:100%;min-width:0}
     .qgrid{grid-template-columns:repeat(4,minmax(0,1fr))}
     .qcell{min-width:0}
     .stage{overflow-x:hidden}
@@ -688,7 +690,7 @@
             <span><kbd>F</kbd>標記</span>
           </div>
           <div class="r">
-            <button class="btn btn-sec">← 上一題</button>
+            <button class="btn btn-sec" id="btnPrev" type="button">← 上一題</button>
           </div>
         </div>
       </div>
@@ -1420,7 +1422,7 @@ function _quizReturnStatePayload(){
   return {
     ts:Date.now(),
     scrollY:window.scrollY||0,
-    right,wrong,total,flagged,answered,
+    right,wrong,total,flagged,answered,currentQuestionNum,
     sessionHistory,
     questionText: document.getElementById('questionBox')?.textContent,
     qSrcHtml: document.getElementById('qSrc')?.innerHTML,
@@ -1442,6 +1444,7 @@ function _restoreQuizReturnState(){
   try{ state=JSON.parse(sessionStorage.getItem(QUIZ_RETURN_STATE_KEY)||'null'); }catch(e){}
   if(!state || Date.now() - (state.ts || 0) > 30 * 60 * 1000)return false;
   right=state.right||0;wrong=state.wrong||0;total=state.total||0;flagged=state.flagged||0;answered=!!state.answered;
+  currentQuestionNum=state.currentQuestionNum||total;
   sessionHistory=Array.isArray(state.sessionHistory)?state.sessionHistory:[];
   _currentLawName=state.currentLawName||'';_currentArtNo=state.currentArtNo||'';_currentPageId=state.currentPageId||'';
   const options=document.getElementById('optionsBox');
@@ -1797,13 +1800,15 @@ async function _loadRemoteQuizStats(){
 }
 
 let answered=false,right=0,wrong=0,total=0,flagged=0;
+let currentQuestionNum=0;
 let quizData=null;
 let sessionFinished=false;
 const wrongMode = _searchParams.get('mode') === 'wrong-review' || _searchParams.get('wrong') === '1';
 const AUTO_NEXT_CORRECT_KEY = 'sofa_quiz_auto_next_correct_v1';
 const AUTO_NEXT_CORRECT_DELAY_MS = 520;
 // 本次作答紀錄
-let sessionHistory=[]; // [{num, correct:null|true|false, flagged:false, law:'', title:''}]
+let sessionHistory=[]; // [{num, correct:null|true|false, flagged:false, law:'', title:'', data:null}]
+let sessionQuestionViews=new Map();
 // 計時器
 let sessionStart=null, timerIv=null, countdownIv=null;
 
@@ -1824,13 +1829,92 @@ function rebuildSetMap(){
   document.getElementById('mapCount').textContent=total+' Q';
   grid.innerHTML=sessionHistory.map(q=>{
     let cls='qcell';
-    if(q.num===total&&q.correct===null)cls+=' cur';
-    else if(_sessionMode&&!sessionFinished&&q.correct!==null)cls+=' done';
+    if(_sessionMode&&!sessionFinished&&q.correct!==null)cls+=' done';
     else if(q.correct===true)cls+=' ok';
     else if(q.correct===false)cls+=' bad';
+    if(q.num===currentQuestionNum)cls+=' cur';
     if(q.flagged)cls+=' flag';
-    return`<div class="${cls}">${q.num}</div>`;
+    return`<button type="button" class="${cls}" data-question-num="${q.num}" aria-label="回到第 ${q.num} 題">${q.num}</button>`;
   }).join('');
+  grid.querySelectorAll('[data-question-num]').forEach(cell=>{
+    cell.addEventListener('click',()=>showSessionQuestion(Number(cell.dataset.questionNum)));
+  });
+}
+
+function focusCurrentQuestion(){
+  const heading=document.querySelector('.q-head');
+  if(heading) heading.scrollIntoView({block:'start', behavior:'auto'});
+}
+
+function captureCurrentQuestionView(){
+  const item=sessionHistory.find(q=>q.num===currentQuestionNum);
+  if(!item || !quizData)return;
+  const question=document.getElementById('questionBox');
+  const source=document.getElementById('qSrc');
+  const options=document.getElementById('optionsBox');
+  const explain=document.getElementById('explainBox');
+  const actions=document.getElementById('quiz-answer-actions');
+  const citation=document.getElementById('quiz-citation');
+  item.data=quizData;
+  sessionQuestionViews.set(currentQuestionNum,{
+    questionText:question.textContent,
+    questionOpacity:question.style.opacity,
+    sourceHtml:source.innerHTML,
+    optionsClassName:options.className,
+    optionsNodes:Array.from(options.childNodes),
+    explainDisplay:explain.style.display,
+    explainNodes:Array.from(explain.childNodes),
+    actionsClassName:actions.className,
+    citationHtml:citation.innerHTML,
+    citationDisplay:citation.style.display,
+    lawName:_currentLawName,
+    artNo:_currentArtNo,
+    pageId:_currentPageId
+  });
+}
+
+function showSessionQuestion(num){
+  if(_sessionMode&&!sessionFinished)return false;
+  const item=sessionHistory.find(q=>q.num===num);
+  const storedView=sessionQuestionViews.get(num);
+  if(!item || !storedView)return false;
+  captureCurrentQuestionView();
+  currentQuestionNum=num;
+  quizData=item.data;
+  answered=item.correct!==null;
+  const view=storedView;
+  const options=document.getElementById('optionsBox');
+  const explain=document.getElementById('explainBox');
+  const actions=document.getElementById('quiz-answer-actions');
+  const citation=document.getElementById('quiz-citation');
+  document.getElementById('questionBox').textContent=view.questionText;
+  document.getElementById('questionBox').style.opacity=view.questionOpacity;
+  document.getElementById('qSrc').innerHTML=view.sourceHtml;
+  options.className=view.optionsClassName;
+  options.replaceChildren(...view.optionsNodes);
+  explain.replaceChildren(...view.explainNodes);
+  explain.style.display=view.explainDisplay;
+  actions.className=view.actionsClassName;
+  citation.innerHTML=view.citationHtml;
+  citation.style.display=view.citationDisplay;
+  _currentLawName=view.lawName;
+  _currentArtNo=view.artNo;
+  _currentPageId=view.pageId;
+  const flagButton=document.getElementById('btnFlag');
+  flagButton.classList.toggle('flagged',!!item.flagged);
+  flagButton.textContent=item.flagged?'⚑ 已標記':'⚑ 標記';
+  updateScore();
+  focusCurrentQuestion();
+  return true;
+}
+
+function showPreviousQuestion(){
+  return currentQuestionNum>1 && showSessionQuestion(currentQuestionNum-1);
+}
+
+function showNextQuestion(){
+  if(currentQuestionNum<total && showSessionQuestion(currentQuestionNum+1))return;
+  wrongMode ? loadWrongQuiz() : loadQuiz();
 }
 
 function rebuildErrorList(){
@@ -1845,8 +1929,9 @@ function rebuildErrorList(){
 }
 
 function updateScore(){
-  document.getElementById('qNum').textContent=total;
-  document.getElementById('qNumBig').textContent=total;
+  const visibleQuestion=currentQuestionNum||total;
+  document.getElementById('qNum').textContent=visibleQuestion;
+  document.getElementById('qNumBig').textContent=visibleQuestion;
   const deferStats = _sessionMode && !sessionFinished;
   document.getElementById('scoreRight').textContent=deferStats?'—':right;
   document.getElementById('scoreWrong').textContent=deferStats?'—':wrong;
@@ -1887,8 +1972,9 @@ function startSession(count){
 
 function restartSessionMode(){
   sessionFinished=false;
-  answered=false;right=0;wrong=0;total=0;flagged=0;
+  answered=false;right=0;wrong=0;total=0;flagged=0;currentQuestionNum=0;
   sessionHistory=[];
+  sessionQuestionViews.clear();
   hideSessionSummary();
   updateScore();
   trackQuizSessionEvent('quiz_session_start', {target_count: _sessionTargetCount, restarted: true});
@@ -2017,12 +2103,18 @@ function isRecentPastExamQuestion(raw) {
   return recentPastExamQuestionKeys().includes(_pastExamQuestionKey(raw));
 }
 
+function stripPastExamSourcePrefix(text) {
+  return String(text || '')
+    .replace(/^\s*【歷屆試題】\s*(?:\d{2,3}\s*年\s*第\s*\d+\s*題)?[\s:：._＿-]*/, '')
+    .trim();
+}
+
 function _normalizePastExamQuestion(raw) {
   const opts = Array.isArray(raw.options) ? raw.options : [];
   const _opts = opts.map(o=>o.text || '');
   const correctOpt = opts.find(o=>o.key===raw.answer);
   return {
-    question: `【歷屆試題】${raw.roc_year || ''} 年第 ${raw.question_no || ''} 題\n${raw.stem || ''}`.trim(),
+    question: stripPastExamSourcePrefix(raw.stem),
     options:_opts,
     answer: correctOpt ? (correctOpt.text || '') : '',
     page_id: (raw.article_ids || [])[0] || '',
@@ -2186,6 +2278,7 @@ async function loadQuiz(){
   if(_quizLoading) return;
   _quizLoading = true;
   _clearQuizReturnState();
+  captureCurrentQuestionView();
   const options=arguments[0]||{};
   if(!_quizBootReady){
     _quizLoading = false;
@@ -2194,11 +2287,11 @@ async function loadQuiz(){
     return;
   }
   _stopCountdown();
-  answered=false; total++;
+  answered=false; total++; currentQuestionNum=total;
   const activeWrongReview = !!(options.wrongReview || wrongMode);
   if(!sessionFinished) hideSessionSummary();
   // 新增到 sessionHistory
-  sessionHistory.push({num:total, correct:null, flagged:false, law:'', title:''});
+  sessionHistory.push({num:total, correct:null, flagged:false, law:'', title:'', data:null});
   startSessionTimer();
 
   document.getElementById('questionBox').textContent='載入中…';
@@ -2228,7 +2321,7 @@ async function loadQuiz(){
       if(!pickedPageId){
         document.getElementById('questionBox').textContent='目前沒有可複習的錯題';
         document.getElementById('questionBox').style.opacity='1';
-        sessionHistory.pop(); total--; updateScore(); return;
+        sessionHistory.pop(); total--; currentQuestionNum=total; updateScore(); return;
       }
     } else if(!_pastExamMode && law==='__starred__'){
       const sl=await fetch(`${API}/api/starred?min_stars=5`,{headers:_authH()}).then(r=>r.json());
@@ -2310,7 +2403,7 @@ async function loadQuiz(){
     if(data.error||data.detail){
       document.getElementById('questionBox').textContent=formatQuizLoadErrorMessage(data.error||data.detail);
       document.getElementById('questionBox').style.opacity='1';
-      sessionHistory.pop(); total--; updateScore(); return;
+      sessionHistory.pop(); total--; currentQuestionNum=total; updateScore(); return;
     }
     if(activeWrongReview)data._wrong_review=true;
     quizData=data;
@@ -2332,6 +2425,7 @@ async function loadQuiz(){
     const artTitle=data.title||data.correct_title||'';
     const cur=sessionHistory[sessionHistory.length-1];
     cur.law=lawName; cur.title=artTitle;
+    cur.data=data;
     _currentLawName=lawName; _currentArtNo=getArticleCitationNo(artTitle); _currentPageId=pageId||'';
     renderQuizCitation(artTitle, lawName);
 
@@ -2424,10 +2518,12 @@ async function loadQuiz(){
       document.getElementById('optionsBox').appendChild(btn);
     });
     _startCountdown(_countdownSeconds);
+    captureCurrentQuestionView();
+    focusCurrentQuestion();
   }catch(e){
     document.getElementById('questionBox').textContent='載入失敗，請稍後再試';
     document.getElementById('questionBox').style.opacity='1';
-    sessionHistory.pop(); total--; updateScore();
+    sessionHistory.pop(); total--; currentQuestionNum=total; updateScore();
   }finally{
     _quizLoading = false;
   }
@@ -2436,7 +2532,7 @@ const _quizBootReadyContract = "if(!_quizBootReady){ document.getElementById('qu
 
 function doFlag(){
   if(!quizData)return;
-  const cur=sessionHistory.find(q=>q.num===total);
+  const cur=sessionHistory.find(q=>q.num===currentQuestionNum);
   const pid=quizData.page_id||quizData.correct_id||null;
   const btn=document.getElementById('btnFlag');
   if(btn.classList.contains('flagged')){
@@ -2460,11 +2556,12 @@ if(_openParam === 'wrong') _openWeakness('wrong');
 updateAutoNextCorrectUI();
 document.getElementById('btnFlag').addEventListener('click',doFlag);
 document.getElementById('btnNew').addEventListener('click',()=>{ _quizManualRequested = true; loadQuiz(); });
-document.getElementById('btnNext').addEventListener('click',()=>{ wrongMode ? loadWrongQuiz() : loadQuiz(); });
+document.getElementById('btnNext').addEventListener('click',showNextQuestion);
+document.getElementById('btnPrev').addEventListener('click',showPreviousQuestion);
 document.getElementById('autoNextCorrectToggle').addEventListener('change',e=>{ setAutoNextCorrect(e.target.checked); });
 if(_startQuizParam) setTimeout(_focusQuizQuestionStart, 80);
 document.addEventListener('keydown',e=>{
-  if(e.key==='Enter'){ wrongMode ? loadWrongQuiz() : loadQuiz(); }
+  if(e.key==='Enter'){ showNextQuestion(); }
   if(e.key.toLowerCase()==='f'){doFlag();return;}
   const idx={'a':0,'b':1,'c':2,'d':3}[e.key.toLowerCase()];
   if(idx!==undefined){const opts=document.querySelectorAll('.opt');if(opts[idx])opts[idx].click();}
