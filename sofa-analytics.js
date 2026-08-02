@@ -47,10 +47,10 @@
     ['podcast_site_intro', 'podcast_site_intro'],
     ['podcast_episode_practice', 'podcast_episode_practice']
   ]);
-  const CARRY_PATHS = new Set([
-    '/pricing.html','/checkout.html','/login.html','/quiz.html','/fill.html',
-    '/practice.html','/dashboard.html','/free.html','/analysis.html'
-  ]);
+  // Keep campaign attribution in storage and event payloads. Only decorate
+  // monetization hand-offs; copying an old campaign onto study navigation
+  // makes internal page changes look like fresh external visits.
+  const CARRY_PATHS = new Set(['/pricing.html','/checkout.html','/login.html']);
   const MONETIZATION_PATHS = new Set(['/pricing.html','/checkout.html','/login.html']);
 
   function nowIso(){

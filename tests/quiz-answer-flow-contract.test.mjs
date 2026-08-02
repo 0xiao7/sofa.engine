@@ -134,7 +134,8 @@ test('answer toast stays out of the question title area', () => {
 test('quiz top entry names weakness analysis as a first-level tool', () => {
   assert.match(active, /id="btn-open-weakness"/);
   assert.match(active, /title="看弱點分析"/);
-  assert.match(active, />弱點分析 <span id="nav-wrong-cnt"/);
+  assert.match(active, />查看弱點分析<\/a>/);
+  assert.doesNotMatch(active, /nav-wrong-cnt/);
 });
 
 test('post-answer citation formats article labels without duplicated 第 or 條', () => {
