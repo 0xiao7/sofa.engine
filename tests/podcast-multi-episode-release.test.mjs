@@ -7,7 +7,7 @@ const page = readFileSync(new URL('podcast.html', root), 'utf8');
 const feed = readFileSync(new URL('podcast.xml', root), 'utf8');
 const release = JSON.parse(readFileSync(new URL('podcast-release.json', root), 'utf8'));
 
-const expectedEpisodes = ['EP001', 'EP002', 'EP003', 'EP004', 'EP005', 'EP006'];
+const expectedEpisodes = ['EP001', 'EP002', 'EP003', 'EP004', 'EP005', 'EP006', 'EP007'];
 
 function assertLocalFile(path, minBytes) {
   const file = new URL(path, root);
@@ -15,7 +15,7 @@ function assertLocalFile(path, minBytes) {
   assert.ok(statSync(file).size > minBytes, `${path} too small`);
 }
 
-test('podcast release publishes EP001 through EP006 with local audio and transcripts', () => {
+test('podcast release publishes EP001 through EP007 in episode order with local audio and transcripts', () => {
   assert.deepEqual(release.episodes.map(episode => episode.id), expectedEpisodes);
   assert.equal(release.voicePolicy.version, 'voice-hana-seed-v1');
   assert.equal(release.voicePolicy.provider, 'Seed Audio');
@@ -25,7 +25,7 @@ test('podcast release publishes EP001 through EP006 with local audio and transcr
   for (const episode of release.episodes) {
     assert.match(
       episode.guid,
-      /^sofa-podcast-ep001-v20260721-ac$|^sofa-podcast-ep00[2-6]-v20260724-hana$/,
+      /^sofa-podcast-ep001-v20260721-ac$|^sofa-podcast-ep00[2-6]-v20260724-hana$|^sofa-podcast-ep007-v20260807-ac$/,
     );
     assertLocalFile(episode.enclosure, 300_000);
     assertLocalFile(episode.siteAudio, 300_000);
@@ -36,11 +36,12 @@ test('podcast release publishes EP001 through EP006 with local audio and transcr
 
 test('podcast RSS includes every released episode with transcript, enclosure, and website CTA', () => {
   for (const episode of release.episodes) {
-    const number = episode.id.replace('EP', '').padStart(3, '0');
+    const campaign = new URL(episode.practiceUrl, 'https://sofaengine.org').searchParams.get('utm_campaign');
     assert.match(feed, new RegExp(`<guid isPermaLink="false">${episode.guid}</guid>`));
     assert.match(feed, new RegExp(`<enclosure url="https://sofaengine\\.org/${episode.enclosure}" length="\\d+" type="audio/mp4"/>`));
     assert.match(feed, new RegExp(`<podcast:transcript url="https://sofaengine\\.org/${episode.transcript}" type="text/vtt" language="zh-TW" rel="captions"/>`));
-    assert.match(feed, new RegExp(`utm_campaign=episode_${number}`));
+    assert.ok(campaign, `${episode.id} practice URL must have an independent campaign`);
+    assert.match(feed, new RegExp(`utm_campaign=${campaign}`));
   }
   assert.equal((feed.match(/<item>/g) || []).length, expectedEpisodes.length);
 });
