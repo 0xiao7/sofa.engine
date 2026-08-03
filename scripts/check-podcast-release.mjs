@@ -13,6 +13,14 @@ function matchOne(input, regex, label) {
   return match[1];
 }
 
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function escapeHtmlAttribute(value) {
+  return value.replaceAll('&', '&amp;');
+}
+
 function localPathFromUrl(url) {
   const parsed = new URL(url, 'https://sofaengine.org');
   assert.equal(parsed.origin, 'https://sofaengine.org', `external URL not allowed: ${url}`);
@@ -69,7 +77,31 @@ assertAudioFile(transcriptPath, 1_000);
 for (const legacyPath of episode.legacyUrlsToKeep) {
   assertAudioFile(legacyPath, 100_000);
 }
-for (const releasedEpisode of release.episodes.slice(1)) {
+for (const releasedEpisode of release.episodes) {
+  const number = releasedEpisode.id.replace('EP', '').padStart(3, '0');
+  const escapedGuid = escapeRegExp(releasedEpisode.guid);
+  const item = matchOne(
+    feed,
+    new RegExp(`(<item>[\\s\\S]*?<guid isPermaLink="false">${escapedGuid}</guid>[\\s\\S]*?</item>)`),
+    `${releasedEpisode.id} RSS item`,
+  );
+  const practiceUrl = new URL(releasedEpisode.practiceUrl, 'https://sofaengine.org');
+  const campaign = practiceUrl.searchParams.get('utm_campaign');
+
+  assert.ok(campaign, `${releasedEpisode.id} practice URL campaign missing`);
+  assert.match(item, new RegExp(`<enclosure url="https://sofaengine\\.org/${escapeRegExp(releasedEpisode.enclosure)}" length="\\d+" type="audio/mp4"/>`));
+  assert.match(item, new RegExp(`<podcast:transcript url="https://sofaengine\\.org/${escapeRegExp(releasedEpisode.transcript)}" type="text/vtt" language="zh-TW" rel="captions"/>`));
+  assert.match(item, new RegExp(`utm_campaign=${escapeRegExp(campaign)}`));
+  assert.match(page, new RegExp(`id="episode-${number}"`));
+  assert.match(page, new RegExp(escapeRegExp(releasedEpisode.siteAudio)));
+  if (releasedEpisode !== episode) {
+    assert.match(page, new RegExp(escapeRegExp(releasedEpisode.transcript)));
+  }
+  const sitePracticeUrl = `${practiceUrl.pathname}${practiceUrl.search}`;
+  assert.ok(
+    page.includes(sitePracticeUrl) || page.includes(escapeHtmlAttribute(sitePracticeUrl)),
+    `${releasedEpisode.id} site practice URL missing`,
+  );
   assertAudioFile(releasedEpisode.enclosure, 300_000);
   assertAudioFile(releasedEpisode.siteAudio, 300_000);
   assertAudioFile(releasedEpisode.transcript, 500);
@@ -87,4 +119,4 @@ assert.deepEqual(release.contentLanes.map(lane => lane.id), [
   'question-application',
 ]);
 
-console.log(`Podcast release OK: ${episode.id} ${episode.version}`);
+console.log(`Podcast release OK: ${release.episodes.length} episodes (${release.episodes.map(item => item.id).join(', ')})`);
