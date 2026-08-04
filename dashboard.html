@@ -6038,10 +6038,19 @@ function renderStudyWeakBrief(items, subjectWeakness){
     scheduleActiveNavRefresh();
     return;
   }
-  var subjectHTML = accounting.slice(0,1).map(function(subjectWeakness){
-    return '<a class="study-weak-brief-row" href="quiz.html?mode=past-exam&exam=bookkeeper&subject=' + encodeURIComponent('會計學概要') + '">'
-      + '<b>'+esc(subjectWeakness.subject)+'</b>'
-      + '<span>錯 '+esc(subjectWeakness.wrong_count || 0)+' 題</span>'
+  var accountingConcepts = accounting.reduce(function(all, subjectWeakness){
+    var concepts = Array.isArray(subjectWeakness.concepts) && subjectWeakness.concepts.length
+      ? subjectWeakness.concepts
+      : [{ concept_key:'unclassified', label:'未分類', wrong_count:subjectWeakness.wrong_count || 0 }];
+    return all.concat(concepts);
+  }, []);
+  var subjectHTML = accountingConcepts.slice(0,3).map(function(concept){
+    var conceptPart = concept.concept_key === 'unclassified'
+      ? ''
+      : '&concept_key=' + encodeURIComponent(concept.concept_key || '');
+    return '<a class="study-weak-brief-row" href="quiz.html?mode=past-exam&exam=bookkeeper&subject=' + encodeURIComponent('會計學概要') + conceptPart + '">'
+      + '<b>'+esc(concept.label || '未分類')+'</b>'
+      + '<span>錯 '+esc(concept.wrong_count || 0)+' 題</span>'
       + '<span class="go">練習</span>'
       + '</a>';
   }).join('');

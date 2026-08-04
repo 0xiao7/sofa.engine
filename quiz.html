@@ -593,6 +593,10 @@
         <option value="105">105 年</option>
         <option value="104">104 年</option>
       </select>
+      <span id="pastExamConceptState" aria-live="polite"
+        style="display:none;max-width:240px;min-height:44px;align-items:center;padding:6px 12px;border:1px solid rgba(231,187,167,.35);border-radius:8px;color:var(--peach);font-family:var(--mono);font-size:11px;line-height:1.5;white-space:normal;overflow-wrap:anywhere;">
+        章節專練
+      </span>
     </div>
     <div class="pr-meta">
       <div class="seg">第 <b id="qNum">—</b></div>
@@ -801,6 +805,8 @@ const _pastExamCapabilityReady = import('./exam-capabilities.mjs').then(async mo
 }).catch(() => _showPastExamUnavailable());
 const RECENT_PAST_EXAM_QUESTIONS_KEY = 'sofa_recent_past_exam_questions_v1';
 let _pastExamMode = _searchParams.get('mode') === 'past-exam';
+let _pastExamConceptKey = _searchParams.get('concept_key') || '';
+let _pastExamConceptLabel = '';
 if (freeParam && !uid && !tok) {
   localStorage.setItem('sofa_free', 'FREE');
 }
@@ -1076,6 +1082,7 @@ function _setPastExamMode(on, opts){
   const year = document.getElementById('pastExamYear');
   const lawSelect = document.getElementById('lawSelect');
   const chips = document.querySelector('.pr-chips');
+  const conceptState = document.getElementById('pastExamConceptState');
   if(btn){
     btn.textContent = _pastExamMode ? '考古題中' : '考古題';
     btn.style.background = _pastExamMode ? 'var(--peach)' : 'rgba(231,187,167,0.12)';
@@ -1085,6 +1092,7 @@ function _setPastExamMode(on, opts){
   if(year) year.style.display = _pastExamMode ? '' : 'none';
   if(lawSelect) lawSelect.style.display = _pastExamMode ? 'none' : '';
   if(chips) chips.style.display = _pastExamMode ? 'none' : '';
+  if(conceptState) conceptState.style.display = (_pastExamMode && _pastExamConceptKey) ? 'inline-flex' : 'none';
   if(!(opts&&opts.noHistory)){
     const url = new URL(location.href);
     if(_pastExamMode) url.searchParams.set('mode', 'past-exam');
@@ -1092,6 +1100,16 @@ function _setPastExamMode(on, opts){
     if(isFree) url.searchParams.set('free', '1');
     history.replaceState(null, '', url.toString());
   }
+}
+
+function _updatePastExamConceptState(label){
+  _pastExamConceptLabel = String(label || _pastExamConceptLabel || '').trim();
+  const state = document.getElementById('pastExamConceptState');
+  if(!state) return;
+  state.textContent = _pastExamConceptKey
+    ? '章節專練｜' + (_pastExamConceptLabel || '載入中')
+    : '';
+  state.style.display = (_pastExamMode && _pastExamConceptKey) ? 'inline-flex' : 'none';
 }
 
 function _persistPastExamSelection(){
@@ -1103,9 +1121,17 @@ function _persistPastExamSelection(){
   }catch(e){}
   const u=new URL(location.href);
   u.searchParams.set('mode','past-exam');
+  if(subject !== '會計學概要'){
+    _pastExamConceptKey = '';
+    _pastExamConceptLabel = '';
+    u.searchParams.delete('concept_key');
+  }else if(_pastExamConceptKey){
+    u.searchParams.set('concept_key', _pastExamConceptKey);
+  }
   if(subject)u.searchParams.set('subject',subject);else u.searchParams.delete('subject');
   if(year)u.searchParams.set('year',year);else u.searchParams.delete('year');
   history.replaceState({},'',u.pathname+u.search+u.hash);
+  _updatePastExamConceptState('');
 }
 
 function _resolvedPastExamKey(){
@@ -2294,6 +2320,8 @@ function _normalizePastExamQuestion(raw) {
     _past_exam_subject: raw.subject || '',
     _past_exam_year: raw.roc_year || '',
     _past_exam_question_no: raw.question_no || '',
+    _past_exam_concept_key: raw.concept_key || '',
+    _past_exam_concept_label: raw.concept_label || '',
   };
 }
 
@@ -2440,11 +2468,18 @@ async function _fetchPastExamQuestion() {
   const yearSel = document.getElementById('pastExamYear');
   const year = (yearSel && yearSel.value) || '';
   const yearPart = year ? `&year=${encodeURIComponent(year)}` : '';
+  const conceptPart = subject === '會計學概要' && _pastExamConceptKey
+    ? `&concept_key=${encodeURIComponent(_pastExamConceptKey)}`
+    : '';
   for(let attempt=0;attempt<5;attempt++){
-    const data = await fetch(`${API}/api/past-exam?exam_key=${encodeURIComponent(examKey)}&subject=${encodeURIComponent(subject)}${yearPart}`, {headers:_authH()}).then(r=>r.json());
-    if(data.error || data.detail) return data;
+    const data = await fetch(`${API}/api/past-exam?exam_key=${encodeURIComponent(examKey)}&subject=${encodeURIComponent(subject)}${yearPart}${conceptPart}`, {headers:_authH()}).then(r=>r.json());
+    if(data.error || data.detail){
+      if(data.detail === '找不到此章可追蹤的考古題') _updatePastExamConceptState('此章暫無題目');
+      return data;
+    }
     if(!isRecentPastExamQuestion(data) || attempt===4){
       rememberRecentPastExamQuestion(data);
+      _updatePastExamConceptState(data.concept_label || '');
       return _normalizePastExamQuestion(data);
     }
   }

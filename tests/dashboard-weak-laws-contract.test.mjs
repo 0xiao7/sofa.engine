@@ -37,7 +37,7 @@ test('weak law recap is a summary and does not duplicate the today weak list', (
   assert.match(fn, /var drillHref = 'quiz\.html\?law=' \+ encodeURIComponent\(topLaw\.law_name \|\| ''\) \+ '&drill=1'/);
   assert.match(fn, /class="weak-law-summary"/);
   assert.match(fn, /先補最弱/);
-  assert.match(fn, /quiz\.html\?open=weakness/);
+  assert.match(fn, /href="#weak-laws-recap"/);
   assert.doesNotMatch(fn, /laws\.slice\(0,4\)\.map/);
   assert.doesNotMatch(fn, /class="recap-row weak-law-row is-link"/);
 });
@@ -49,8 +49,8 @@ test('study today does not clear weak-laws that loaded first', () => {
   const fn = html.slice(start, start + 2600);
   assert.match(fn, /var bridgeItems = \(data\.weak_law_bridge && data\.weak_law_bridge\.items\) \|\| \[\]/);
   assert.match(fn, /var weakItems = bridgeItems\.length \? bridgeItems : _latestWeakLawItems/);
-  assert.match(fn, /renderStudyWeakBrief\(weakItems\)/);
-  assert.match(fn, /renderStudyWeakState\(weakItems\)/);
+  assert.match(fn, /renderStudyWeakBrief\(weakItems, _latestSubjectWeaknessItems\)/);
+  assert.match(fn, /renderStudyWeakState\(weakItems\.concat\(_latestSubjectWeaknessItems\)\)/);
 });
 
 test('weak law rendering avoids fake empty metrics', () => {
