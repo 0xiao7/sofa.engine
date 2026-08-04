@@ -23,12 +23,12 @@ function extractFunction(source, name) {
 test('dashboard exposes essay analyses as a separate non-official reference path', () => {
   const start = dashboard.indexOf('申論參考解析');
   assert.ok(start > -1, 'dashboard must expose essay analyses');
-  const card = dashboard.slice(Math.max(0, start - 260), start + 360);
+  const card = dashboard.slice(Math.max(0, start - 260), start + 520);
 
   assert.match(card, /href="essay\.html"/);
   assert.match(card, /ESSAY/);
   assert.match(card, /只看人工發布解析/);
-  assert.match(card, /非官方標準答案/);
+  assert.match(card, /非考選部官方標準答案/);
   assert.doesNotMatch(card, /quiz\.html\?mode=past-exam/);
 });
 

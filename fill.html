@@ -10,7 +10,7 @@
 <script src="sofa-analytics.js?v=20260802-attribution-v2" defer></script>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -19,6 +19,7 @@
   :root{--tool-topbar-offset:74px}
   html,body{max-width:100%;overflow-x:hidden}
   body{padding-top:var(--tool-topbar-offset)}
+  html.ios-reader-app .stage{padding-bottom:calc(96px + env(safe-area-inset-bottom, 0px))}
   .topbar{position:fixed;top:0;left:0;right:0;z-index:80}
   .pr-bar{
     background:var(--navy-2);border-bottom:1px solid var(--line);
@@ -113,6 +114,7 @@
 
   .blank{
     display:inline-block;min-width:5.5em;
+    max-width:100%;box-sizing:border-box;
     padding:2px 14px;margin:0 3px;
     border:none;border-bottom:2px solid var(--peach);
     background:rgba(231,187,167,.06);
@@ -435,6 +437,11 @@ function isPreviewHost(){
 }
 const uid = localStorage.getItem('sofa_uid') || (isPreviewHost() ? 'PREVIEW' : null);
 const tok = localStorage.getItem('sofa_token') || '';
+function isIOSReaderApp(){
+  const params=new URLSearchParams(location.search||'');
+  return params.get('surface')==='ios-reader'||params.get('app')==='ios-reader'||params.get('reader')==='ios';
+}
+if(isIOSReaderApp())document.documentElement.classList.add('ios-reader-app');
 function formatLawText(raw){
   if(!raw) return '';
   let t=String(raw).replace(/\r\n?/g,'\n').trim();
@@ -473,15 +480,25 @@ if(isFree){
   document.querySelector('.pr-bar').before(bar);
 }
 
-// 中文數字正規化：二年→2年、三十日→30日
+// 中文數字正規化：二年→2年、三十日→30日、一百二十日→120日
 function normLegalNum(s){
-  const d={'一':'1','二':'2','三':'3','四':'4','五':'5','六':'6','七':'7','八':'8','九':'9'};
-  let r=s;
-  r=r.replace(/[一二三四五六七八九]十[一二三四五六七八九]/g,m=>String(+d[m[0]]*10+ +d[m[2]]));
-  r=r.replace(/[一二三四五六七八九]十/g,m=>String(+d[m[0]]*10));
-  r=r.replace(/十[一二三四五六七八九]/g,m=>String(10+ +d[m[1]]));
-  r=r.replace(/十/g,'10');
-  r=r.replace(/[一二三四五六七八九]/g,c=>d[c]);
+  const d={'零':0,'〇':0,'○':0,'一':1,'二':2,'兩':2,'两':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9};
+  const units={'十':10,'百':100,'千':1000};
+  const parseNum=t=>{
+    if(!/[十百千萬万]/.test(t))return t.replace(/[零〇○一二兩两三四五六七八九]/g,c=>String(d[c]));
+    let total=0, section=0, num=0;
+    [...t].forEach(c=>{
+      if(c in d){num=d[c];return;}
+      if(c in units){section+=(num||1)*units[c];num=0;return;}
+      if(c==='萬'||c==='万'){total+=(section+num||1)*10000;section=0;num=0;}
+    });
+    return String(total+section+num);
+  };
+  let r=String(s||'').normalize('NFKC');
+  r=r.replace(/(\d+(?:\.\d+)?)\s*[萬万]/g,(_,n)=>String(Number(n)*10000));
+  r=r.replace(/(\d+(?:\.\d+)?)\s*千/g,(_,n)=>String(Number(n)*1000));
+  r=r.replace(/(\d+(?:\.\d+)?)\s*百/g,(_,n)=>String(Number(n)*100));
+  r=r.replace(/[零〇○一二兩两三四五六七八九十百千萬万]+/g,parseNum);
   return r;
 }
 
@@ -833,7 +850,7 @@ function renderFill(){
       if(para[i]==='＿'){
         let b='';while(i<para.length&&para[i]==='＿'){b+=para[i];i++;}
         const lbl=String.fromCharCode(65+blankIdx);
-        ph+=`<input class="blank empty" id="fb_${blankIdx}" data-idx="${blankIdx}" data-ans="${esc((fillData.answers||[])[blankIdx]||'')}" style="min-width:${Math.max(b.length*1.1,2.5)}em" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="　"/><span class="blank-tag">${lbl}</span>`;
+        ph+=`<input class="blank empty" id="fb_${blankIdx}" data-idx="${blankIdx}" data-ans="${esc((fillData.answers||[])[blankIdx]||'')}" style="width:min(${Math.max(b.length*1.1,2.5)}em, 100%)" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="　"/><span class="blank-tag">${lbl}</span>`;
         blankIdx++;
       } else { ph+=esc(para[i]);i++; }
     }
@@ -846,7 +863,7 @@ function renderFill(){
       if(text[i]==='＿'){
         let b='';while(i<text.length&&text[i]==='＿'){b+=text[i];i++;}
         const lbl=String.fromCharCode(65+blankIdx);
-        ph+=`<input class="blank empty" id="fb_${blankIdx}" data-idx="${blankIdx}" data-ans="${esc((fillData.answers||[])[blankIdx]||'')}" style="min-width:${Math.max(b.length*1.1,2.5)}em" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="　"/><span class="blank-tag">${lbl}</span>`;
+        ph+=`<input class="blank empty" id="fb_${blankIdx}" data-idx="${blankIdx}" data-ans="${esc((fillData.answers||[])[blankIdx]||'')}" style="width:min(${Math.max(b.length*1.1,2.5)}em, 100%)" autocomplete="off" autocorrect="off" autocapitalize="none" spellcheck="false" placeholder="　"/><span class="blank-tag">${lbl}</span>`;
         blankIdx++;
       } else { ph+=esc(text[i]);i++; }
     }
@@ -873,7 +890,7 @@ function renderFill(){
     });
     inp.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();if(all[i+1])all[i+1].focus();else checkAnswers();}});
   });
-  if(box.querySelector('input'))box.querySelector('input').focus();
+  if(!isIOSReaderApp()&&box.querySelector('input'))box.querySelector('input').focus();
   hintsLeft=3;
   updateHintUI();
 }
