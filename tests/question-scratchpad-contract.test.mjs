@@ -92,3 +92,8 @@ test('answer lifecycle saves this question before any next-question path', () =>
   assert.match(quiz, /\/api\/me\/question-scratchpad/);
   assert.match(quiz, /尚未同步/);
 });
+
+test('an old question sync cannot overwrite the next question save status', () => {
+  assert.match(quiz, /identity\?\.questionId===identity\.questionId\)\{\s*_scratchpadState\.markSynced\(payload\.revision\);_setScratchpadStatus\('已儲存'\)/);
+  assert.match(quiz, /catch\(_error\)\{\s*if\(_scratchpadState\.identity\?\.questionId===identity\.questionId\)_setScratchpadStatus\('尚未同步'\)/);
+});

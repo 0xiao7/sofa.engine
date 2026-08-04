@@ -13,7 +13,7 @@
 ## File Map
 
 - `SoFa.Engine/migration/14_subject_attempts.sql`: subject-attempt schema, constraints, indexes, RLS, and ownership policies.
-- `SoFa.Engine/supabase/migrations/<generated>_question_scratchpads.sql`: private per-question vector scratchpad schema.
+- `SoFa.Engine/supabase/migrations/20260804152837_question_scratchpads.sql`: private per-question vector scratchpad schema.
 - `sofa-engine-api/api.py`: non-law answer endpoint, subject weakness aggregation, and study capability payload.
 - `sofa-engine-api/test_question_scratchpad_contract.py`: scratchpad validation, ownership, and bounded-payload contracts.
 - `sofa-engine-api/test_subject_attempts_contract.py`: schema and endpoint contract tests.
@@ -29,7 +29,7 @@
 
 **Files:**
 - Create: `SoFa.Engine/tests/test_question_scratchpads_schema.py`
-- Create: `SoFa.Engine/supabase/migrations/<generated>_question_scratchpads.sql`
+- Create: `SoFa.Engine/supabase/migrations/20260804152837_question_scratchpads.sql`
 - Create: `sofa-engine-api/test_question_scratchpad_contract.py`
 - Modify: `sofa-engine-api/api.py`
 - Create: `sofa.engine/question-scratchpad.js`

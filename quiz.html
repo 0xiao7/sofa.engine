@@ -911,9 +911,14 @@ async function syncScratchpadCloud(){
     })});
     if(!res.ok)throw new Error(`scratchpad ${res.status}`);
     const payload=await res.json();
-    if(_scratchpadState.identity?.questionId===identity.questionId)_scratchpadState.markSynced(payload.revision);
-    _setScratchpadStatus('已儲存');return true;
-  }catch(_error){_setScratchpadStatus('尚未同步');return false;}
+    if(_scratchpadState.identity?.questionId===identity.questionId){
+      _scratchpadState.markSynced(payload.revision);_setScratchpadStatus('已儲存');
+    }
+    return true;
+  }catch(_error){
+    if(_scratchpadState.identity?.questionId===identity.questionId)_setScratchpadStatus('尚未同步');
+    return false;
+  }
 }
 async function _loadScratchpadCloud(identity){
   if((!uid&&!tok)||uid==='PREVIEW'||isFree||!identity.questionId)return;
