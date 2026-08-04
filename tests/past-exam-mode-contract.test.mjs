@@ -150,6 +150,36 @@ test('past-exam answer ledger payload is emitted from the real helper', () => {
   });
 });
 
+test('accounting past-exam answers use the subject ledger without a fake article id', async () => {
+  const fn = extractFunction(activeQuiz, 'recordQuizAnswer');
+  const modeFn = extractFunction(activeQuiz, 'quizAnswerMode');
+  const sandbox = {
+    uid: 'USER-1', isFree: false, API: 'https://api.example.test', window: {},
+    crypto: {randomUUID: () => 'attempt-uuid'},
+    _authH: (headers) => ({...headers, Authorization: 'Bearer t'}),
+    fetch: async (url, init) => ({ok:true, json:async()=>({ok:true}), url, init}),
+  };
+  vm.runInNewContext(`${modeFn}; ${fn}; this.answerPromise=recordQuizAnswer(this.data={
+    _past_exam:true,
+    _past_exam_question_id:'question-1',
+    _past_exam_subject:'會計學概要',
+    question:'stem',options:['100','200','300','400']
+  }, '', false, 2, 1);`, sandbox);
+  const result = await sandbox.answerPromise;
+  assert.equal(result.ok, true);
+  assert.equal(result.url, 'https://api.example.test/api/me/subject-answer');
+  assert.deepEqual(JSON.parse(result.init.body), {
+    exam_key:'bookkeeper', subject:'會計學概要', exam_question_id:'question-1',
+    selected_answer:'C', idempotency_key:'bookkeeper:question-1:attempt-uuid',
+  });
+  assert.equal(sandbox.data._subject_attempt_idempotency_key, 'bookkeeper:question-1:attempt-uuid');
+});
+
+test('accounting answer sync failure is visible and never claims success', () => {
+  assert.match(activeQuiz, /作答已判分，但弱點紀錄尚未同步/);
+  assert.match(activeQuiz, /await\s+recordQuizAnswer/);
+});
+
 test('legacy exam set page uses the same past-exam answer source bucket', () => {
   assert.match(bookkeeper + quiz, /past-exam/);
   const exam = readFileSync(new URL('../exam.html', import.meta.url), 'utf8').replace(/<!--[\s\S]*?-->/g, '');

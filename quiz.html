@@ -2313,7 +2313,19 @@ function recordQuizAnswer(data,pageId,isCorrect,choiceIndex,correctIdx){
       elapsed_sec: Math.round(_elapsed || 0)
     });
   }
-  if(!pageId||!uid||uid==='PREVIEW'||isFree)return;
+  if(!uid||uid==='PREVIEW'||isFree)return {ok:true,skipped:true};
+  if(data?._past_exam&&data._past_exam_subject==='會計學概要'&&data._past_exam_question_id){
+    const attemptUuid=data._subject_attempt_idempotency_key||(
+      globalThis.crypto?.randomUUID?.()||`${Date.now()}-${Math.random().toString(16).slice(2)}`
+    );
+    data._subject_attempt_idempotency_key=attemptUuid.startsWith('bookkeeper:')
+      ? attemptUuid : `bookkeeper:${data._past_exam_question_id}:${attemptUuid}`;
+    return fetch(`${API}/api/me/subject-answer`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({
+        exam_key:'bookkeeper',subject:data._past_exam_subject,exam_question_id:data._past_exam_question_id,
+        selected_answer:['A','B','C','D'][choiceIndex]||'',idempotency_key:data._subject_attempt_idempotency_key
+      })}).then(res=>res.ok?res:{ok:false}).catch(()=>({ok:false}));
+  }
+  if(!pageId)return {ok:true,skipped:true};
   fetch(`${API}/api/me/answer`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({
     article_id:pageId,
     mode:quizAnswerMode(data),
@@ -2328,6 +2340,7 @@ function recordQuizAnswer(data,pageId,isCorrect,choiceIndex,correctIdx){
     exam_year:data._past_exam_year||'',
     exam_question_no:data._past_exam_question_no||''
   })}).catch(()=>{});
+  return {ok:true};
 }
 
 async function pickWrongReviewPageId(){
@@ -2634,7 +2647,7 @@ async function loadQuiz(){
         if(!isCorrect){wrong++;}else{right++;}
         cur.correct=isCorrect;
         updateScore();
-        recordQuizAnswer(data,pageId,isCorrect,i,correctIdx);
+        const answerRecord=await recordQuizAnswer(data,pageId,isCorrect,i,correctIdx);
         // 寫入練習紀錄
         if(pageId&&uid&&uid!=='PREVIEW'&&!isFree){
           fetch(`${API}/api/me/history`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({page_id:pageId,law_name:lawName,article:artTitle})}).catch(()=>{});
@@ -2643,7 +2656,8 @@ async function loadQuiz(){
         if(maybeAutoAdvanceCorrectAnswer(isCorrect)) return;
         // 顯示說明框
         const eb=document.querySelector('#explainBox .eb');
-        if(eb)eb.textContent=isCorrect?'✓ 答對了':'✗ 答錯了，正確答案已標綠';
+        if(eb)eb.textContent=(isCorrect?'✓ 答對了':'✗ 答錯了，正確答案已標綠')
+          +(answerRecord?.ok===false?' · 作答已判分，但弱點紀錄尚未同步':'');
         if(pageId){
           document.getElementById('sourceBox').querySelector('span').textContent='條文原文載入中';
           document.getElementById('sourceLink').textContent='展開原文 ↓';

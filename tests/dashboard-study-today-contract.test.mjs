@@ -197,10 +197,10 @@ test('dashboard fetches the authenticated study today endpoint', () => {
   assert.match(active, /\/api\/me\/study\/today\?track=bookkeeper/);
 });
 
-test('dashboard renders subject containers and seeded blocks', () => {
+test('dashboard renders subject containers and blocks from explicit capability data', () => {
   assert.match(active, /function renderStudyToday/);
-  assert.match(active, /implementation_status/);
-  assert.match(active, /seeded_moex_mcq/);
+  assert.match(active, /weakness_capability/);
+  assert.doesNotMatch(extractFunction(active, 'renderStudyToday'), /seeded_moex_mcq/);
   assert.match(active, /law_to_subject_mapping/);
 });
 
@@ -991,15 +991,28 @@ test('returning learners get a compact next card without onboarding-style extra 
 });
 
 test('study today uses learner-facing subject status wording, not seed jargon', () => {
+  const fn = extractFunction(active, 'renderStudyToday');
+  assert.match(fn, /weakness_capability/);
+  assert.match(fn, /subject_count/);
   assert.match(active, /弱點判讀已接/);
   assert.match(active, /弱點判讀/);
-  assert.match(active, /已接 ' \+ esc\(seededCount\) \+ ' 科/);
+  assert.match(active, /已接 ' \+ esc\(weaknessSubjectCount\) \+ ' 科/);
+  assert.doesNotMatch(fn, /implementation_status\s*===\s*['"]seeded_moex_mcq/);
   assert.doesNotMatch(active, /可練習 ' \+ esc\(seededCount\) \+ ' 科/);
   assert.doesNotMatch(active, /目前可練習 ' \+ seededCount \+ ' 科/);
   assert.doesNotMatch(active, /題庫準備中/);
   assert.doesNotMatch(active, /\d+\s*科\s*·\s*\d+\s*科可練習/);
   assert.doesNotMatch(active, /題庫準備中\s*'\s*\+\s*esc\(pendingCount\)/);
   assert.doesNotMatch(active, /待 seed/);
+});
+
+test('accounting weakness opens scoped accounting practice without a law link', () => {
+  const fn = extractFunction(active, 'renderStudyWeakBrief');
+  assert.match(fn, /subject_weakness|subjectWeakness/);
+  assert.match(fn, /exam=bookkeeper/);
+  assert.match(fn, /subject=/);
+  assert.match(fn, /會計學概要/);
+  assert.doesNotMatch(fn, /會計學概要[^\n]+quiz\.html\?law=/);
 });
 
 test('study today links weak laws and topic blocks into single-practice entry points', () => {
