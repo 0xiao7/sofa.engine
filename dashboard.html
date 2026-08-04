@@ -5225,6 +5225,7 @@ const API = 'https://sofa-engine-api.onrender.com';
 const QUIZ_WRONG_KEY = 'sofa_wrong_ids';
 const REMOTE_WEAK_ARTICLE_KEY = 'sofa_remote_weak_articles_v1';
 var _latestWeakLawItems = [];
+var _latestSubjectWeaknessItems = [];
 window._sofaAuthIssue = false;
 function isIOSReaderApp(){try{return !!(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='ios');}catch(e){return false;}}
 if(isIOSReaderApp()) document.documentElement.classList.add('ios-reader-app');
@@ -6026,22 +6027,32 @@ async function trySyncLocalStudyAfterLogin(){
   }
 }
 
-function renderStudyWeakBrief(items){
+function renderStudyWeakBrief(items, subjectWeakness){
   var list = document.getElementById('study-weak-brief-list');
   if(!list) return;
   var laws = Array.isArray(items) ? items.filter(function(x){ return x && x.law_name; }) : [];
-  if(!laws.length){
-    list.innerHTML = '<div class="study-weak-empty">答題後會列出最該補的法規。</div>';
+  var subjectRows = Array.isArray(subjectWeakness) ? subjectWeakness : _latestSubjectWeaknessItems;
+  var accounting = subjectRows.filter(function(x){ return x && x.subject === '會計學概要' && Number(x.wrong_count || 0) > 0; });
+  if(!laws.length && !accounting.length){
+    list.innerHTML = '<div class="study-weak-empty">答題後會列出最該補的科目與法規。</div>';
     scheduleActiveNavRefresh();
     return;
   }
-  list.innerHTML = laws.slice(0,3).map(function(law){
+  var subjectHTML = accounting.slice(0,1).map(function(subjectWeakness){
+    return '<a class="study-weak-brief-row" href="quiz.html?mode=past-exam&exam=bookkeeper&subject=' + encodeURIComponent('會計學概要') + '">'
+      + '<b>'+esc(subjectWeakness.subject)+'</b>'
+      + '<span>錯 '+esc(subjectWeakness.wrong_count || 0)+' 題</span>'
+      + '<span class="go">練習</span>'
+      + '</a>';
+  }).join('');
+  var lawHTML = laws.slice(0,3).map(function(law){
     return '<a class="study-weak-brief-row" href="quiz.html?law=' + encodeURIComponent(law.law_name || '') + '&drill=1">'
       + '<b>'+esc(law.law_name)+'</b>'
       + '<span>錯 '+esc(law.wrong_count || 0)+' 次</span>'
       + '<span class="go">練習</span>'
       + '</a>';
   }).join('');
+  list.innerHTML = subjectHTML + lawHTML;
   scheduleActiveNavRefresh();
 }
 
@@ -6049,7 +6060,9 @@ function renderStudyWeakState(items){
   var weakEl = document.getElementById('study-cockpit-weak-state');
   if(!weakEl) return;
   var laws = Array.isArray(items) ? items.filter(function(x){ return x && x.law_name; }) : [];
-  weakEl.textContent = laws.length ? '弱點已接入' : '弱點資料尚未累積';
+  var subjects = Array.isArray(_latestSubjectWeaknessItems)
+    ? _latestSubjectWeaknessItems.filter(function(x){ return x && Number(x.wrong_count || 0) > 0; }) : [];
+  weakEl.textContent = (laws.length || subjects.length) ? '弱點已接入' : '弱點資料尚未累積';
 }
 
 function renderStudyAuthIssue(){
@@ -8600,6 +8613,8 @@ function renderStudyToday(data){
     subjects: [],
     today: { blocks: [] },
     weak_law_bridge: { items: [] },
+    weakness_capability: { status: 'unavailable', subject_count: 0, subjects: [] },
+    subject_weakness: { status: 'unavailable', items: [] },
     scopeUnavailable: true
   };
   window.__studyTimeSummary = data && data.study_time ? data.study_time : window.__studyTimeSummary;
@@ -8607,16 +8622,19 @@ function renderStudyToday(data){
   var subjectMode = rules.law_to_subject_mapping === 'many_to_many' ? '法規可跨考科' : '考科模式';
   var subjects = Array.isArray(data.subjects) ? data.subjects : [];
   var blocks = data.today && Array.isArray(data.today.blocks) ? data.today.blocks : [];
-  var seededCount = subjects.filter(function(s){ return s.implementation_status === 'seeded_moex_mcq'; }).length;
+  var weaknessCapability = data.weakness_capability || {};
+  var weaknessReady = weaknessCapability.status === 'ready';
+  var weaknessSubjectCount = weaknessReady ? Number(weaknessCapability.subject_count || 0) : 0;
   if(summaryEl) summaryEl.textContent = data.scopeUnavailable
     ? '學習範圍暫時無法確認'
-    : (seededCount ? ('弱點判讀已接 ' + seededCount + ' 科') : '先做 1 題開始累積弱點');
+    : (!weaknessReady ? '科目狀態暫時無法確認' : (weaknessSubjectCount ? ('弱點判讀已接 ' + weaknessSubjectCount + ' 科') : '先做 1 題開始累積弱點'));
   var navStudy = document.getElementById('nav-ct-study');
-  if(navStudy) navStudy.textContent = seededCount ? String(seededCount) : '';
+  if(navStudy) navStudy.textContent = weaknessSubjectCount ? String(weaknessSubjectCount) : '';
   var bridgeItems = (data.weak_law_bridge && data.weak_law_bridge.items) || [];
   var weakItems = bridgeItems.length ? bridgeItems : _latestWeakLawItems;
-  renderStudyWeakBrief(weakItems);
-  renderStudyWeakState(weakItems);
+  _latestSubjectWeaknessItems = (data.subject_weakness && Array.isArray(data.subject_weakness.items)) ? data.subject_weakness.items : [];
+  renderStudyWeakBrief(weakItems, _latestSubjectWeaknessItems);
+  renderStudyWeakState(weakItems.concat(_latestSubjectWeaknessItems));
   renderStudyTimeSettings();
   renderStudyCloudState(data.personal_plan || null);
   trySyncLocalStudyAfterLogin();
@@ -8624,11 +8642,11 @@ function renderStudyToday(data){
   renderStudyPlanItems(_mergeStudyPlan(data.personal_plan || null));
   renderStudySuggestions(buildStudySuggestions(data, mergedPlan));
   updateStudySaveNudge();
-  subjectsEl.innerHTML = data.scopeUnavailable
+  subjectsEl.innerHTML = (data.scopeUnavailable || !weaknessReady)
     ? '<span class="study-subject study-subject-summary">科目狀態暫時無法確認</span>'
     : ('<span class="study-subject study-subject-summary">科目狀態</span>'
       + '<span class="study-subject seeded">弱點判讀</span>'
-      + '<span class="study-subject seeded">已接 ' + esc(seededCount) + ' 科</span>');
+      + '<span class="study-subject seeded">已接 ' + esc(weaknessSubjectCount) + ' 科</span>');
   blocksEl.innerHTML = blocks.length ? blocks.slice(0,6).map(function(b){
     var laws = Array.isArray(b.law_names) ? b.law_names.join('、') : '';
     var targetLaw = (Array.isArray(b.law_names) && b.law_names[0]) || b.display_name || '';
