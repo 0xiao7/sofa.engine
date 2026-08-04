@@ -158,6 +158,30 @@
     content:"✗ 你選的";position:absolute;top:18px;right:22px;
     font-family:var(--mono);font-size:11px;letter-spacing:.12em;color:var(--bad);font-weight:600;
   }
+  .question-scratchpad{display:none;margin-top:18px;border:1px solid var(--line);border-radius:6px;background:var(--navy-2);overflow:hidden}
+  .question-scratchpad.show{display:block}
+  .scratchpad-summary{width:100%;min-height:52px;padding:0 16px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:transparent;border:0;color:var(--cream);cursor:pointer;text-align:left}
+  .scratchpad-summary b{font-family:var(--serif);font-size:16px}
+  .scratchpad-summary small{font-family:var(--mono);font-size:10px;color:rgba(245,240,234,.52);letter-spacing:.08em}
+  .question-scratchpad.open .scratchpad-chevron{transform:rotate(180deg)}
+  .scratchpad-chevron{transition:transform .18s}
+  .scratchpad-body{display:none;border-top:1px solid var(--line);padding:12px}
+  .question-scratchpad.open .scratchpad-body{display:block}
+  .scratchpad-tools{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px}
+  .scratchpad-tools button,.scratchpad-tools select{min-height:44px;border:1px solid var(--line-2);border-radius:5px;background:rgba(245,240,234,.04);color:var(--cream);padding:0 12px;font-size:12px}
+  .scratchpad-tools button.on{background:var(--peach);border-color:var(--peach);color:var(--navy);font-weight:700}
+  .scratchpad-tools .danger{margin-left:auto;color:#efb3a6}
+  .scratchpad-canvas-wrap{height:360px;border-radius:4px;overflow:hidden;background:#fbfaf6;box-shadow:inset 0 0 0 1px rgba(31,56,72,.12)}
+  #scratchpad-canvas{display:block;width:100%;height:100%;touch-action:pan-x pan-y;background-image:linear-gradient(rgba(31,56,72,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(31,56,72,.055) 1px,transparent 1px);background-size:24px 24px}
+  .question-scratchpad.pen-active #scratchpad-canvas{touch-action:none}
+  .scratchpad-status{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:9px;font-family:var(--mono);font-size:10.5px;color:rgba(245,240,234,.52)}
+  .question-scratchpad.scratchpad-fullscreen{position:fixed;inset:calc(70px + env(safe-area-inset-top,0px)) 0 0;z-index:170;margin:0;border-radius:0;background:var(--navy-2);display:block}
+  .question-scratchpad.scratchpad-fullscreen .scratchpad-body{display:flex;flex-direction:column;height:calc(100% - 52px)}
+  .question-scratchpad.scratchpad-fullscreen .scratchpad-canvas-wrap{height:auto;flex:1;min-height:0}
+  @media(max-width:760px){
+    .scratchpad-canvas-wrap{height:300px}
+    .scratchpad-tools .danger{margin-left:0}
+  }
 
   /* explanation */
   .explain{
@@ -608,6 +632,26 @@
           <span><b>答對自動下一題</b><small>答錯停留看解析；可隨時關閉。</small></span>
         </label>
 
+        <section id="question-scratchpad" class="question-scratchpad" aria-label="本題計算紙">
+          <button type="button" class="scratchpad-summary" id="scratchpad-toggle" aria-expanded="false">
+            <span><b>計算紙</b> <small>一題一張 · Apple Pencil</small></span>
+            <span class="scratchpad-chevron">⌄</span>
+          </button>
+          <div class="scratchpad-body">
+            <div class="scratchpad-tools" aria-label="計算紙工具">
+              <button type="button" id="scratchpad-pen" class="on">筆</button>
+              <button type="button" id="scratchpad-eraser">橡皮擦</button>
+              <select id="scratchpad-width" aria-label="筆畫粗細"><option value="0.004">細</option><option value="0.008" selected>中</option><option value="0.014">粗</option></select>
+              <button type="button" id="scratchpad-undo">復原</button>
+              <button type="button" id="scratchpad-redo">重做</button>
+              <button type="button" id="scratchpad-fullscreen">全螢幕</button>
+              <button type="button" id="scratchpad-clear" class="danger">清空本題</button>
+            </div>
+            <div class="scratchpad-canvas-wrap"><canvas id="scratchpad-canvas"></canvas></div>
+            <div class="scratchpad-status"><span id="scratchpad-save-state">本機已儲存</span><span>送出後下一題會是空白計算紙</span></div>
+          </div>
+        </section>
+
         <div class="opts" id="optionsBox"></div>
 
         <div id="session-intro"><b>刷題模式</b>：先做完這組題目，再一次看結果。免費可先刷題；登入後才會保留完整紀錄與弱點統計。</div>
@@ -721,6 +765,7 @@
   </main>
 
 <script src="exam-data.js?v=2"></script>
+<script src="question-scratchpad.js?v=20260804"></script>
 <script>
 const API = 'https://sofa-engine-api.onrender.com';
 const _searchParams = new URLSearchParams(location.search);
@@ -813,6 +858,120 @@ function _authH(extra) {
   else if (uid) h['X-Sofa-UID'] = uid;
   return h;
 }
+
+const _scratchpadState = window.SoFaScratchpad ? new window.SoFaScratchpad.ScratchpadState({storage:localStorage}) : null;
+let _scratchpadTool='pen', _scratchpadDrawing=false, _scratchpadSaveTimer=null, _scratchpadInitialized=false;
+
+function _scratchpadEls(){
+  return {
+    root:document.getElementById('question-scratchpad'),canvas:document.getElementById('scratchpad-canvas'),
+    status:document.getElementById('scratchpad-save-state'),toggle:document.getElementById('scratchpad-toggle'),
+    pen:document.getElementById('scratchpad-pen'),eraser:document.getElementById('scratchpad-eraser'),
+    width:document.getElementById('scratchpad-width'),fullscreen:document.getElementById('scratchpad-fullscreen')
+  };
+}
+function _scratchpadUserId(){return String(uid||tok.slice(-16)||'guest');}
+function _scratchpadIdentity(data){
+  return {userId:_scratchpadUserId(),examKey:_resolvedPastExamKey()||'bookkeeper',questionId:String(data?._past_exam_question_id||'')};
+}
+function _setScratchpadStatus(text){const el=_scratchpadEls().status;if(el)el.textContent=text;}
+function _resizeScratchpadCanvas(){
+  const {canvas}= _scratchpadEls();if(!canvas)return;
+  const rect=canvas.getBoundingClientRect(),ratio=Math.min(2,window.devicePixelRatio||1);
+  const w=Math.max(1,Math.round(rect.width*ratio)),h=Math.max(1,Math.round(rect.height*ratio));
+  if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h;_renderScratchpad();}
+}
+function _renderScratchpad(){
+  const {canvas}= _scratchpadEls();if(!canvas||!_scratchpadState)return;
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,canvas.width,canvas.height);ctx.lineCap='round';ctx.lineJoin='round';
+  (_scratchpadState.document.strokes||[]).forEach(stroke=>{
+    const points=stroke.points||[];if(!points.length)return;
+    ctx.save();ctx.strokeStyle=stroke.color||'#173143';ctx.globalAlpha=stroke.tool==='highlighter'?0.32:1;
+    ctx.lineWidth=Math.max(1,(stroke.width||0.008)*Math.min(canvas.width,canvas.height));ctx.beginPath();
+    points.forEach((point,index)=>{const x=point[0]*canvas.width,y=point[1]*canvas.height;if(index===0)ctx.moveTo(x,y);else ctx.lineTo(x,y);});
+    if(points.length===1){ctx.lineTo(points[0][0]*canvas.width+.01,points[0][1]*canvas.height+.01);}ctx.stroke();ctx.restore();
+  });
+}
+function _scratchpadPoint(event){
+  const {canvas}= _scratchpadEls(),rect=canvas.getBoundingClientRect();
+  return {x:event.clientX-rect.left,y:event.clientY-rect.top,width:rect.width,height:rect.height,pressure:event.pressure||0.5};
+}
+function _scheduleScratchpadSync(){
+  _setScratchpadStatus((uid||tok)?'儲存中':'本機已儲存');
+  clearTimeout(_scratchpadSaveTimer);_scratchpadSaveTimer=setTimeout(()=>syncScratchpadCloud(),700);
+}
+async function syncScratchpadCloud(){
+  if(!_scratchpadState?.identity?.questionId)return false;
+  _scratchpadState.saveLocal({pending:true});
+  if((!uid&&!tok)||uid==='PREVIEW'||isFree){_setScratchpadStatus('本機已儲存');return true;}
+  const identity={..._scratchpadState.identity};
+  try{
+    const res=await fetch(`${API}/api/me/question-scratchpad`,{method:'PUT',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({
+      exam_key:identity.examKey,question_id:identity.questionId,document:_scratchpadState.document,revision:_scratchpadState.revision
+    })});
+    if(!res.ok)throw new Error(`scratchpad ${res.status}`);
+    const payload=await res.json();
+    if(_scratchpadState.identity?.questionId===identity.questionId){
+      _scratchpadState.markSynced(payload.revision);_setScratchpadStatus('已儲存');
+    }
+    return true;
+  }catch(_error){
+    if(_scratchpadState.identity?.questionId===identity.questionId)_setScratchpadStatus('尚未同步');
+    return false;
+  }
+}
+async function _loadScratchpadCloud(identity){
+  if((!uid&&!tok)||uid==='PREVIEW'||isFree||!identity.questionId)return;
+  const pending=_scratchpadState.dirty;
+  try{
+    const url=`${API}/api/me/question-scratchpad?exam_key=${encodeURIComponent(identity.examKey)}&question_id=${encodeURIComponent(identity.questionId)}`;
+    const res=await fetch(url,{headers:_authH()});if(!res.ok)return;
+    const payload=await res.json();
+    if(_scratchpadState.identity?.questionId!==identity.questionId||pending)return;
+    _scratchpadState.replace(payload.document,payload.revision,{pending:false});_renderScratchpad();_setScratchpadStatus(payload.status==='empty'?'本題尚未書寫':'已儲存');
+  }catch(_error){if(!_scratchpadState.document.strokes.length)_setScratchpadStatus('尚未同步');}
+}
+async function flushScratchpadBeforeAnswer(){
+  if(!_scratchpadState?.identity?.questionId)return true;
+  const localSaved=_scratchpadState.saveLocal({pending:true});
+  if(!localSaved){_setScratchpadStatus('本機儲存失敗');return false;}
+  await Promise.race([syncScratchpadCloud(),new Promise(resolve=>setTimeout(resolve,1800))]);
+  return true;
+}
+async function showScratchpadForQuestion(data){
+  const {root}= _scratchpadEls();if(!root||!_scratchpadState)return;
+  const supported=!!(data?._past_exam&&window.SoFaScratchpad.isScratchpadSubject(data._past_exam_subject)&&data._past_exam_question_id);
+  root.classList.toggle('show',supported);
+  if(!supported){root.classList.remove('open','scratchpad-fullscreen');return;}
+  const identity=_scratchpadIdentity(data);_scratchpadState.setIdentity(identity);_renderScratchpad();
+  _setScratchpadStatus(_scratchpadState.dirty?'尚未同步':(_scratchpadState.document.strokes.length?'本機已儲存':'本題尚未書寫'));
+  _resizeScratchpadCanvas();_loadScratchpadCloud(identity);
+}
+function _initScratchpad(){
+  if(_scratchpadInitialized||!_scratchpadState)return;_scratchpadInitialized=true;
+  const els=_scratchpadEls(),canvas=els.canvas;if(!els.root||!canvas)return;
+  els.toggle.addEventListener('click',()=>{const open=els.root.classList.toggle('open');els.toggle.setAttribute('aria-expanded',String(open));if(open)setTimeout(_resizeScratchpadCanvas,0);else syncScratchpadCloud();});
+  els.pen.addEventListener('click',()=>{_scratchpadTool='pen';els.pen.classList.add('on');els.eraser.classList.remove('on');});
+  els.eraser.addEventListener('click',()=>{_scratchpadTool='eraser';els.eraser.classList.add('on');els.pen.classList.remove('on');});
+  document.getElementById('scratchpad-undo').addEventListener('click',()=>{_scratchpadState.undo();_renderScratchpad();_scheduleScratchpadSync();});
+  document.getElementById('scratchpad-redo').addEventListener('click',()=>{_scratchpadState.redo();_renderScratchpad();_scheduleScratchpadSync();});
+  document.getElementById('scratchpad-clear').addEventListener('click',()=>{if(confirm('只清空這一題的計算紙？')){_scratchpadState.clear();_renderScratchpad();_scheduleScratchpadSync();}});
+  els.fullscreen.addEventListener('click',()=>{const on=els.root.classList.toggle('scratchpad-fullscreen');els.root.classList.add('open');els.toggle.setAttribute('aria-expanded','true');els.fullscreen.textContent=on?'離開全螢幕':'全螢幕';setTimeout(_resizeScratchpadCanvas,0);});
+  canvas.addEventListener('pointerdown',event=>{
+    if(event.pointerType==='touch')return;event.preventDefault();canvas.setPointerCapture(event.pointerId);_scratchpadDrawing=true;
+    const point=_scratchpadPoint(event);
+    if(_scratchpadTool==='eraser'){_scratchpadState.eraseAt({...point,radius:0.045});_renderScratchpad();return;}
+    _scratchpadState.beginStroke({...point,tool:'pen',strokeWidth:Number(els.width.value)||0.008});_renderScratchpad();
+  });
+  canvas.addEventListener('pointermove',event=>{
+    if(!_scratchpadDrawing||event.pointerType==='touch')return;event.preventDefault();const point=_scratchpadPoint(event);
+    if(_scratchpadTool==='eraser')_scratchpadState.eraseAt({...point,radius:0.045});else _scratchpadState.appendPoint(point);_renderScratchpad();
+  });
+  const finish=event=>{if(!_scratchpadDrawing)return;_scratchpadDrawing=false;if(_scratchpadTool!=='eraser')_scratchpadState.endStroke();_scheduleScratchpadSync();try{canvas.releasePointerCapture(event.pointerId);}catch(_error){}};
+  canvas.addEventListener('pointerup',finish);canvas.addEventListener('pointercancel',finish);
+  window.addEventListener('resize',_resizeScratchpadCanvas);window.addEventListener('pagehide',()=>{_scratchpadState.saveLocal({pending:_scratchpadState.dirty});syncScratchpadCloud();});
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',_initScratchpad,{once:true});else _initScratchpad();
 function _setPaid(v){
   window.__sofaPaid = !!v;
   window.__sofaPaidResolved = true;
@@ -1882,6 +2041,8 @@ function showSessionQuestion(num){
   captureCurrentQuestionView();
   currentQuestionNum=num;
   quizData=item.data;
+  syncScratchpadCloud();
+  showScratchpadForQuestion(quizData);
   answered=item.correct!==null;
   const view=storedView;
   const options=document.getElementById('optionsBox');
@@ -2128,6 +2289,7 @@ function _normalizePastExamQuestion(raw) {
     law_change_note: raw.law_change_note || '',
     verify_status: raw.verify_status || '',
     _past_exam: true,
+    _past_exam_question_id: raw.id || '',
     _past_exam_key: _pastExamQuestionKey(raw),
     _past_exam_subject: raw.subject || '',
     _past_exam_year: raw.roc_year || '',
@@ -2408,6 +2570,7 @@ async function loadQuiz(){
     }
     if(activeWrongReview)data._wrong_review=true;
     quizData=data;
+    showScratchpadForQuestion(data);
     if(typeof window.sofaTrack==='function'){
       sofaTrack('quiz_start', {mode: quizAnswerMode(data), free: isFree});
     }
@@ -2453,7 +2616,9 @@ async function loadQuiz(){
       const displayText=isNewFmt?opt:(opt.snippet||'');
       const isOptCorrect=isNewFmt?(opt===correctAnswer):!!opt.is_correct;
       btn.innerHTML=`<div class="key">${labels[i]}</div><div class="body">${esc(displayText)}</div>`;
-      const submitOption=()=>{
+      const submitOption=async()=>{
+        if(answered)return;
+        await flushScratchpadBeforeAnswer();
         if(answered)return;
         _stopCountdown();
         answered=true;
