@@ -13,7 +13,7 @@ The existing weakness bridge is law-oriented. Reusing it unchanged for accountin
 ## Product Contract
 
 1. Every trackable multiple-choice subject may accumulate subject-level weakness evidence.
-2. Accounting attempts contribute to `會計學概要` weakness totals using the canonical past-exam subject, year, question number, selected answer, and correctness already recorded by the answer ledger.
+2. Accounting attempts contribute to `會計學概要` weakness totals using the canonical past-exam subject, year, question number, selected answer, and correctness written to a subject-level answer ledger. The existing article ledger cannot be reused because it requires a real `article_id`.
 3. Law subjects retain their existing law- and article-level weakness analysis.
 4. Accounting does not receive fabricated law names or article identifiers.
 5. When an accounting question has a verified concept classification, the weakness response may group it by that concept.
@@ -23,6 +23,8 @@ The existing weakness bridge is law-oriented. Reusing it unchanged for accountin
 ## API Design
 
 The bookkeeper track seed will mark accounting as a trackable MCQ subject and use the live capability count rather than the historical zero-question placeholder. The study response will expose an explicit capability field for weakness participation instead of requiring the web client to infer support solely from `implementation_status`.
+
+A dedicated `subject_attempts` table will store non-law MCQ attempts with `user_id`, `exam_key`, canonical `subject`, `exam_question_id`, `roc_year`, `question_no`, selected answer, correctness, optional verified concept key, and timestamps. The table will enforce row-level ownership and a foreign key to `exam_questions`. Law attempts continue through the existing article-based `user_stats` and `quiz_sessions` path.
 
 The weakness payload will separate two levels:
 
@@ -47,7 +49,7 @@ When the study scope request fails, the dashboard renders `科目狀態暫時無
 - Incorrect and correct attempts remain distinguishable so weakness ranking is based on evidence rather than attempt volume alone.
 - Missing concept metadata is a supported state, not an error.
 - Missing article metadata is valid for accounting MCQs and invalid only where a law-level record claims an article relationship.
-- Duplicate attempt handling continues to follow the existing answer-ledger identity and aggregation rules.
+- Repeated attempts are retained as separate evidence rows; the API accepts an optional idempotency key so network retries do not create duplicate rows.
 
 ## Tests and Acceptance
 
