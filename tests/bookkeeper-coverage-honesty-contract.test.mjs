@@ -8,13 +8,13 @@ const radar = readFileSync(new URL('../past-exam-radar.html', import.meta.url), 
 test('bookkeeper public page hides unfinished subject capabilities', () => {
   assert.match(bookkeeper, /考科支援狀態/);
 
-  for (const subject of ['記帳相關法規概要', '稅務相關法規概要']) {
+  for (const subject of ['會計學概要', '記帳相關法規概要', '稅務相關法規概要']) {
     assert.match(bookkeeper, new RegExp(subject), `${subject} should be visible`);
   }
 
   assert.match(bookkeeper, /正式可練/);
   assert.match(bookkeeper, /目前正式可用科目/);
-  assert.doesNotMatch(bookkeeper, /會計學概要|國文|租稅申報實務|題目清單|備考清單|尚未上線|資料整理中/);
+  assert.doesNotMatch(bookkeeper, /國文|租稅申報實務|題目清單|備考清單|尚未上線|資料整理中/);
 });
 
 test('bookkeeper public page does not overclaim full replacement or guaranteed outcomes', () => {
@@ -34,10 +34,10 @@ test('bookkeeper public page does not overclaim full replacement or guaranteed o
 
 test('past-exam radar separates live service count from full-subject support', () => {
   assert.match(radar, /正式可練題數/);
-  assert.match(radar, /兩科先行/);
-  assert.match(radar, /其他考科不自動判分/);
+  assert.match(radar, /三科先行/);
+  assert.match(radar, /租稅申報實務屬於申論與計算題，不放進選擇題自動判分/);
   assert.match(radar, /國文只收題目/);
-  assert.match(radar, /未列入的科目先不做自動弱點判讀/);
-  assert.match(radar, /法條對應/);
+  assert.match(radar, /租稅申報實務屬於申論與計算題/);
+  assert.match(radar, /法規題維持法條追蹤/);
   assert.doesNotMatch(radar, /全考科已上線|記帳士全科已上線|live drift|不假造排行|全考科都已產品化|article_ids\s+\$\{articleCount\}|article_ids\s+\d/);
 });

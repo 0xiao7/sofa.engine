@@ -96,6 +96,7 @@
     font-family:var(--mono);font-size:10.5px;letter-spacing:.22em;color:rgba(245,240,234,.25);
   }
   .q-stem p{font-family:var(--serif);font-size:21px;line-height:1.85;color:var(--cream);letter-spacing:.02em}
+  #questionBox{font-family:var(--serif)!important;letter-spacing:.02em!important}
   .question-placeholder{
     font-family:var(--serif);
     font-size:clamp(17px, 2.3vw, 21px);
@@ -288,12 +289,15 @@
     color:var(--cream);font-family:var(--mono);font-size:12px;letter-spacing:.06em;text-decoration:none;cursor:pointer;
   }
   .session-actions .primary{background:var(--peach);border-color:var(--peach);color:var(--navy);font-weight:700}
-  .stats-panel{position:fixed;inset:0;z-index:120;background:radial-gradient(circle at 20% 0%,rgba(231,187,167,.16),transparent 30%),var(--navy);display:none;padding:28px;overflow:auto}
+  .stats-panel{position:fixed;inset:0;z-index:200;display:none;overflow-y:auto;height:100dvh;overscroll-behavior:contain;padding:calc(24px + env(safe-area-inset-top, 0px)) 16px calc(24px + env(safe-area-inset-bottom, 0px));background:radial-gradient(900px 480px at 50% -10%,rgba(231,187,167,.10),transparent 62%),radial-gradient(720px 420px at 100% 10%,rgba(26,46,61,.75),transparent 68%),var(--navy)}
+  html.stats-open, html.stats-open body{background:var(--navy);height:100%;overflow:hidden}
   .stats-panel.show{display:block}
   .stats-panel-shell{max-width:920px;margin:0 auto;background:rgba(26,46,61,.96);border:1px solid rgba(245,240,234,.16);border-radius:8px;padding:22px}
   .stats-tabs{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
   .stats-tabs button{min-height:44px;border:1px solid rgba(245,240,234,.2);background:transparent;color:var(--cream);border-radius:4px;padding:0 14px}
   .stats-tabs button.on{background:var(--peach);color:var(--navy);border-color:var(--peach)}
+  .stats-close{background:none;border:1px solid rgba(231,187,167,.4);color:var(--peach);border-radius:50%;width:44px;height:44px;cursor:pointer;font-size:16px;display:inline-flex;align-items:center;justify-content:center}
+  .quiz-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}.quiz-stat-card{background:var(--navy-2);border:1px solid rgba(245,240,234,.08);border-radius:8px;padding:16px;text-align:center}.quiz-stat-value{font:700 32px var(--serif);color:var(--peach-2)}.quiz-stat-label,.quiz-law-count{color:rgba(231,187,167,.9);font-size:12px}.quiz-stat-note{color:rgba(245,240,234,.58);font-size:11px}.quiz-law-stat{background:var(--navy-2);border:1px solid rgba(245,240,234,.08);border-radius:8px;padding:11px 12px;margin:8px 0}.quiz-law-row{display:flex;justify-content:space-between}.quiz-law-bar{height:4px;background:rgba(245,240,234,.1);margin-top:7px}.quiz-law-bar-fill{display:block;height:100%;background:rgba(231,187,167,.72)}.quiz-law-bar-fill.is-strong{background:rgba(159,184,159,.78)}.quiz-law-bar-fill.is-low{background:rgba(199,123,106,.72)}
   .weak-panel-guide{border:1px dashed rgba(231,187,167,.42);background:rgba(231,187,167,.08);padding:14px 16px;border-radius:4px;color:rgba(245,240,234,.82);line-height:1.8}
   .weak-card{border:1px solid rgba(245,240,234,.14);background:rgba(245,240,234,.04);border-radius:6px;padding:14px;margin-top:12px;color:var(--cream)}
   .weak-action-primary,.weak-action-soft{min-height:44px;display:inline-flex;align-items:center;justify-content:center;border-radius:4px;padding:0 14px;text-decoration:none;margin:8px 8px 0 0}
@@ -1757,6 +1761,7 @@ function appendCpiAdjustmentNote(wrapEl, article, sections){
   d.textContent=note;
   wrapEl.appendChild(d);
 }
+function cleanVisibleSpeechCueText(text){return String(text||'').replace(/[\[【（(]\s*(重音|強調|輕讀|慢讀|快讀)\s*[\]】）)]/g,'').replace(/[\[【（(]\s*停頓\s*[\]】）)]/g,'，').replace(/\[(\/?emphasis)\]/gi,'').replace(/\[break[^\]]*\]/gi,'，').replace(/<\s*\/?\s*(em|strong|mark)\s*>/gi,'').replace(/<\s*break[^>]*>/gi,'，').replace(/[，,]\s*[，,]+/g,'，').trim();}
 function formatSection(text, articleLawName){
   if(!text) return '';
   var lines=String(text).replace(/\r\n?/g,'\n').split('\n'),out='';
@@ -1766,7 +1771,7 @@ function formatSection(text, articleLawName){
     var bm=body.match(/^([•◦‣·▪])\s*/);
     if(bm){isSub=(bm[1]==='◦');body=body.slice(bm[0].length);}
     else if(lead.length>=2||/　/.test(lead)){isSub=true;}
-    body=body.trim();if(!body)return;
+    body=cleanVisibleSpeechCueText(body.trim());if(!body)return;
     var esc=body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     esc=esc.replace(/^([^：:]{1,14}[：:])/,'<b>$1</b>');
     esc=linkifyLawRefs(esc, articleLawName);
@@ -1833,6 +1838,22 @@ function _recentAnswerSourceLine(e){
 function _weakSourceLine(){
   return '資料來源：每日一題、LINE 作答、網頁選擇題、填空、打字練習、考古題、錯題重練';
 }
+const STATS_KEY='sofa_quiz_stats_v1';
+function _loadStats(){try{return JSON.parse(localStorage.getItem(STATS_KEY))||{};}catch(e){return {};}}
+function _buildQuizCalendar(s){
+  const days=[];for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);const key=d.toLocaleDateString('zh-TW',{timeZone:'Asia/Taipei',year:'numeric',month:'2-digit',day:'2-digit'}).replace(/\//g,'-');days.push({count:parseInt(localStorage.getItem(`sofa_quiz_daily_${key}`)||'0')});}
+  const hasActivity = days.some(d => d.count > 0);
+  return `<div class="quiz-calendar">${hasActivity?'':'<div class="quiz-calendar-empty">尚無近 30 日作答紀錄。答過一題後，這裡會顯示每天的熱度。</div>'}</div>`;
+}
+function _statsToneClass(pct){if(pct>=80)return 'is-strong';if(pct>=60)return 'is-ok';if(pct>0)return 'is-low';return 'is-empty';}
+function _renderStatsContent(s,sourceLabel){
+  const total=s.total||0,correct=s.correct||0,pct=total?Math.round(correct/total*100):0;
+  const avgSec = (s.timedQuestions||0) > 0 ? (s.totalTimeSec/s.timedQuestions).toFixed(1)+'s' : '尚無';
+  const laws=Object.entries(s.byLaw||{});const byLaw=laws.map(([name,d])=>{const p=Math.round(d.correct/d.total*100),tone=_statsToneClass(p);return `<div class="quiz-law-stat"><div class="quiz-law-row"><span>${esc(name)}</span><span class="quiz-law-count">${d.correct}/${d.total}</span></div><div class="quiz-law-bar"><span class="quiz-law-bar-fill ${tone}" style="width:${p}%"></span></div></div>`}).join('');
+  const panel=document.getElementById('stats-panel-body');if(panel)panel.innerHTML=`<div class="quiz-stat-grid"><div class="quiz-stat-card"><div class="quiz-stat-value">${pct}%</div><div class="quiz-stat-label">累計答對率</div></div><div class="quiz-stat-card"><div class="quiz-stat-value">${avgSec}</div><div class="quiz-stat-label">平均答題時間</div></div></div>${byLaw}${_buildQuizCalendar(s)}`;
+}
+function openStats(){_renderStatsContent(_loadStats(),'本機暫存');document.documentElement.classList.add('stats-open');const panel=document.getElementById('stats-panel');if(panel)panel.classList.add('show');}
+function closeStats(){document.documentElement.classList.remove('stats-open');const panel=document.getElementById('stats-panel');if(panel)panel.classList.remove('show');}
 let _statsPanelMode = 'weakness';
 function _statsPanelTitle(){
   return _statsPanelMode === 'wrong' ? '錯題清單' : '弱點分析';

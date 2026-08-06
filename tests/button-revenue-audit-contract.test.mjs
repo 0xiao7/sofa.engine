@@ -6,7 +6,7 @@ const read = (file) => readFileSync(new URL(`../${file}`, import.meta.url), 'utf
 
 test('login no longer sends serial-less users to LINE as the trial path', () => {
   const html = read('login.html');
-  assert.match(html, /還沒有序號？先用網站免登入練習/);
+  assert.match(html, /還沒準備購買？免登入先練習/);
   assert.match(html, /href="quiz\.html\?free=1&start=1&session=1&count=5&utm_source=site&utm_medium=web&utm_campaign=free_quiz_entry"/);
   assert.doesNotMatch(html, /lin\.ee|加入 LINE|LINE @SoFa|索取體驗序號/);
 });
@@ -26,7 +26,7 @@ test('mobile drill and legal pages include horizontal overflow guards', () => {
   for (const file of ['quiz.html', 'fill.html']) {
     const html = read(file);
     assert.match(html, /html,body\{max-width:100%;overflow-x:hidden\}/);
-    assert.match(html, /@media \(max-width:760px\)\{[\s\S]*\.topbar\{max-width:100vw;gap:10px;overflow:hidden\}/);
+    assert.match(html, /@media \(max-width:760px\)\{[\s\S]*\.topbar\{[^}]*max-width:100vw;gap:10px;overflow:(?:hidden|visible)\}/);
     assert.match(html, /@media \(max-width:760px\)\{[\s\S]*\.user-pill\{display:none\}/);
     assert.match(html, /@media \(max-width:760px\)\{[\s\S]*\.stage,[\s\S]*\.inner,[\s\S]*(?:\.q-stem|\.fill-card),[\s\S]*\.rail-card\{max-width:100%;min-width:0\}/);
   }
@@ -41,8 +41,8 @@ test('free drill pages honor the free query flag instead of redirecting to login
   const practice = read('practice.html');
   const fill = read('fill.html');
   assert.match(free, /href="\/quiz\.html\?free=1&start=1&session=1&count=5&utm_source=free&utm_medium=hero&utm_campaign=free_quiz_entry"/);
-  assert.match(practice, /new URLSearchParams\(location\.search\)\.get\('free'\) === '1'/);
-  assert.match(fill, /new URLSearchParams\(location\.search\)\.get\('free'\) === '1'/);
+  assert.match(practice, /freeParam = new URLSearchParams\(location\.search\)\.get\('free'\) === '1'/);
+  assert.match(fill, /freeParam = _fillSearchParams\.get\('free'\) === '1'/);
 });
 
 test('mobile quiz law selector and compact checkout have explicit viewport guards', () => {

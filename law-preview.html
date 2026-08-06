@@ -54,7 +54,7 @@ a{color:inherit;text-decoration:none}
 }
 .back-link:hover{color:var(--peach)}
 .brand{
-  font-family:var(--sans);font-size:11px;letter-spacing:.4em;
+  font-family:var(--sans);font-size:11px;letter-spacing:.04em;
   color:var(--cream-2);opacity:.6;text-transform:uppercase;
   margin-left:auto;
 }
@@ -668,6 +668,10 @@ function formatPreviewSectionBody(body, currentLawName){
     return `<span class="${cls}">${html}</span>`;
   }).join('');
 }
+function cleanVisibleSpeechCueText(text){return String(text||'').replace(/[\[【（(]\s*(重音|強調|輕讀|慢讀|快讀)\s*[\]】）)]/g,'').replace(/[\[【（(]\s*停頓\s*[\]】）)]/g,'，').replace(/\[(\/?emphasis)\]/gi,'').replace(/\[break[^\]]*\]/gi,'，').replace(/<\s*\/?\s*(em|strong|mark)\s*>/gi,'').replace(/<\s*break[^>]*>/gi,'，').replace(/[，,]\s*[，,]+/g,'，').trim();}
+function buildCpiAdjustmentNote(article,sections){
+  const law=String(article?.law_name||article?.law||lawName||'');let note='';if(law.includes('所得基本稅額條例'))note='113 年度起個人基本所得額扣除額已調整為 750 萬元。';else if(law.includes('遺產及贈與稅法'))note='條文原文、舊題數字和當年度公告額要分開看。\n115 / 114 現行：遺產稅免稅額 1,333 萬。\n職業工具條文舊基準 40 萬。';return note?'<div class="cpi-note">'+escapeHtml(note)+'</div>':'';
+}
 
 const PREVIEW_SECTION_NAMES = [
   '章節標題與戰略權重','規範意旨與條文解析','執業要點與考情提示','核心摘要與記憶策略',
@@ -681,6 +685,7 @@ const PREVIEW_LOCK_LEADS = {
 function renderPreviewSections(sections,currentLawName){
   return Object.entries(sections||{}).map(([label, body], idx)=>{
     const seg=idx+1;
+    const visibleText = cleanVisibleSpeechCueText(body || PREVIEW_LOCK_LEADS[seg] || '');
     if(shouldLockAdvancedSections() && seg >= 5){
       const preview=PREVIEW_LOCK_LEADS[label] || String(body||'').slice(0,90);
       return `<div class="section locked">
@@ -693,7 +698,7 @@ function renderPreviewSections(sections,currentLawName){
     const unlocked = seg >= 5 ? ' data-unlocked="true"' : '';
     return `<div class="section"${unlocked}>
       <div class="section-label">${escapeHtml(label)}</div>
-      <div class="section-body">${formatPreviewSectionBody(body,currentLawName)}</div>
+      <div class="section-body">${formatPreviewSectionBody(visibleText,currentLawName)}</div>
     </div>`;
   }).join('');
 }
@@ -742,6 +747,7 @@ function renderDetail(d){
   const artNo = d.article_no || d.articleNo || d.article || targetArticleNo || d.title?.match(/§\s*(\S+?)(?:｜|\s|$)/)?.[1] || '';
   updateCanonicalUrl(lawName, artNo, d.id || targetId || '');
   const sectionHtml = renderPreviewSections(sections, d.law_name || lawName);
+  const cpiHtml = buildCpiAdjustmentNote(d, sections);
   detail.innerHTML = `
     ${chapter}
     <h2>${escapeHtml(d.title || '')}</h2>
@@ -750,6 +756,7 @@ function renderDetail(d){
       <div class="original-label">條文原文</div>
       <div class="original-text">${escapeHtml(d.original_text || '')}</div>
     </div>
+    ${cpiHtml}
     ${sectionHtml}
   `;
   detail.scrollTo?.(0, 0);

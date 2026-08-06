@@ -23,9 +23,9 @@ test('dashboard candidate cockpit routes to real study actions without pretendin
   const block = active.slice(start, end);
 
   assert.match(block, /href="quiz\.html"[\s\S]*開始選擇題/);
-  assert.match(block, /href="quiz\.html\?open=weakness"[\s\S]*弱點分析/);
+  assert.match(block, /href="#weak-laws-recap"[\s\S]*弱點分析/);
   assert.match(block, /href="#review-due"[\s\S]*今日複習/);
-  assert.match(block, /重點朗讀/);
+  assert.match(block, /播放清單/);
   assert.match(block, /排課/);
   assert.match(block, /補紀錄/);
   assert.match(block, /補紀錄只補時間與進度，不會改答題正確率/);
