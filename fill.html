@@ -738,6 +738,11 @@ function linkifyLawRefs(text, articleLawName){
     (_,law,arts)=>arts.split(/[、,，]/).filter(Boolean).map(x=>hold(a(law,x,`${cleanCrossRefLawName(law)}第${x}條`))).join(''));
   return out.replace(/\uE000(\d+)\uE000/g,(_,i)=>anchors[Number(i)]||'');
 }
+function cleanVisibleSpeechCueText(text){return String(text||'').replace(/[\[【（(]\s*(重音|強調|輕讀|慢讀|快讀)\s*[\]】）)]/g,'').replace(/[\[【（(]\s*停頓\s*[\]】）)]/g,'，').replace(/\[(\/?emphasis)\]/gi,'').replace(/\[break[^\]]*\]/gi,'，').replace(/<\s*\/?\s*(em|strong|mark)\s*>/gi,'').replace(/<\s*break[^>]*>/gi,'，').replace(/[，,]\s*[，,]+/g,'，').trim();}
+function buildCpiAdjustmentNote(article,sections){
+  const law=String(article?.law_name||article?.law||'');if(law.includes('所得基本稅額條例'))return '113 年度起個人基本所得額扣除額已調整為 750 萬元。';
+  if(law.includes('遺產及贈與稅法'))return '條文原文、舊題數字和當年度公告額要分開看。\n115 / 114 現行：遺產稅免稅額 1,333 萬。\n職業工具條文舊基準 40 萬。';return '';
+}
 function formatSection(text, articleLawName){
   if(!text) return '';
   var lines=String(text).replace(/\r\n?/g,'\n').split('\n'),out='';
@@ -747,7 +752,7 @@ function formatSection(text, articleLawName){
     var bm=body.match(/^([•◦‣·▪])\s*/);
     if(bm){isSub=(bm[1]==='◦');body=body.slice(bm[0].length);}
     else if(lead.length>=2||/　/.test(lead)){isSub=true;}
-    body=body.trim();if(!body)return;
+    body=cleanVisibleSpeechCueText(body.trim());if(!body)return;
     var esc=body.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     esc=esc.replace(/^([^：:]{1,14}[：:])/,'<b>$1</b>');
     esc=linkifyLawRefs(esc, articleLawName);
@@ -762,6 +767,7 @@ function showFillSectionsLoading(panel){
 function renderFillSections(wrapEl, sections, isPaid, article, beforeEl){
   wrapEl.querySelectorAll('.sec-block,.sec-lock').forEach(e=>e.remove());
   wrapEl.innerHTML='<div class="sec-hd">條文解析</div>';
+  const cpiNote=buildCpiAdjustmentNote(article,sections);if(cpiNote){const n=document.createElement('div');n.className='cpi-note';n.textContent=cpiNote;wrapEl.appendChild(n);}
   const articleLawName=article?.law_name||article?.law||fillData?.law_name||'';
   let rendered=0;
   _FREE_SECS.forEach(name=>{
