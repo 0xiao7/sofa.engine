@@ -17,11 +17,11 @@
 - Create: `scripts/podcast-queue-lib.mjs`
 - Create: `data/podcast-law-queue.json`
 
-- [ ] **Step 1: Write failing tests** for exactly 30 unique episodes, sequential EP007–EP036 ids, unique GUID/campaign/source angle, allowed exam labels, official law URL, SoFa source API, CTA limit, and fail-closed status.
-- [ ] **Step 2: Run** `node --test tests/podcast-daily-queue.test.mjs` and confirm it fails because the queue/library do not exist.
-- [ ] **Step 3: Implement** schema validation and a 30-row queue whose rows initially remain `content_verified_audio_pending` unless complete approved assets exist.
-- [ ] **Step 4: Re-run** the focused test and confirm all assertions pass.
-- [ ] **Step 5: Commit** queue contract and data.
+- [x] **Step 1: Write failing tests** for exactly 30 unique episodes, sequential EP007–EP036 ids, unique GUID/campaign/source angle, allowed exam labels, official law URL, SoFa source API, CTA limit, and fail-closed status.
+- [x] **Step 2: Run** `node --test tests/podcast-daily-queue.test.mjs` and confirm it fails because the queue/library do not exist.
+- [x] **Step 3: Implement** schema validation and a 30-row queue whose rows initially remain `content_verified_audio_pending` unless complete approved assets exist.
+- [x] **Step 4: Re-run** the focused test and confirm all assertions pass.
+- [x] **Step 5: Commit** queue contract and data.
 
 ### Task 2: Deterministic release selection
 
