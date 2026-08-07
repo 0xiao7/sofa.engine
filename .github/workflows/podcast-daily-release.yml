@@ -1,6 +1,13 @@
 name: Podcast daily law release
 
 on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/podcast-daily-release.yml'
+      - 'data/podcast-law-*.json'
+      - 'scripts/*podcast*.mjs'
+      - 'tests/podcast-*.test.mjs'
   schedule:
     - cron: '0 13 * * *'
   workflow_dispatch:

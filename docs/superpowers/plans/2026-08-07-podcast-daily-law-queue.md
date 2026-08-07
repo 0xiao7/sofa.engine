@@ -60,4 +60,4 @@
 - [x] **Step 2: Run** the workflow test and confirm it fails because the workflow is absent.
 - [x] **Step 3: Implement** GitHub-hosted scheduled workflow and operational evidence document.
 - [x] **Step 4: Run** all Podcast tests, queue dry-run, JSON parse, XML parse, `git diff --check`, and source-link HTTP checks.
-- [ ] **Step 5: Commit**, push the branch, create a PR, and observe checks. Do not merge or claim public automation until checks and release authorization are verified.
+- [x] **Step 5: Commit**, push the branch, create a PR, and observe checks. Do not merge or claim public automation until checks and release authorization are verified.
