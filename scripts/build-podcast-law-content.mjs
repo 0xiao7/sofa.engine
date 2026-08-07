@@ -77,6 +77,7 @@ export function buildContentFromSource(row, source) {
     officialLawUrl: row.officialLawUrl,
     sourceOriginalTextSha256: createHash('sha256').update(originalText).digest('hex'),
     sourceAnalysisSha256: createHash('sha256').update(REQUIRED_SECTIONS.map(key => clean(source.sections[key])).join('\n')).digest('hex'),
+    originalText,
     segments,
     transcriptText,
     vtt: buildVtt(segments),

@@ -1,9 +1,13 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import test from 'node:test';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 import { selectDueEpisode, validateQueue } from '../scripts/podcast-queue-lib.mjs';
 import { buildContentFromSource } from '../scripts/build-podcast-law-content.mjs';
+import { assertEpisodeAssets } from '../scripts/release-due-podcast.mjs';
+import { renderEpisodeFiles } from '../scripts/render-podcast-release.mjs';
 
 const queue = JSON.parse(readFileSync(new URL('../data/podcast-law-queue.json', import.meta.url), 'utf8'));
 
@@ -56,4 +60,39 @@ test('content builder keeps law text and stored analysis as the only body source
   assert.match(content.transcriptText, /境內銷售、進口貨物/);
   assert.doesNotMatch(content.transcriptText, /產品|訂閱|優惠/);
   assert.match(content.vtt, /^WEBVTT/);
+});
+
+test('approved release assets must all exist and VTT must be valid', () => {
+  const root = join(tmpdir(), `sofa-podcast-assets-${process.pid}-${Date.now()}`);
+  mkdirSync(join(root, 'assets/audio'), { recursive: true });
+  const row = structuredClone(queue.episodes[0]);
+  row.status = 'approved_for_release';
+  row.assets = {
+    mp3: 'assets/audio/ep007.mp3',
+    m4a: 'assets/audio/ep007.m4a',
+    vtt: 'assets/audio/ep007.vtt',
+  };
+  row.listenApproval = { status: 'approved', approvedBy: 'Fay', approvedAt: '2026-08-07T12:00:00+08:00' };
+  writeFileSync(join(root, row.assets.mp3), Buffer.alloc(301_000));
+  writeFileSync(join(root, row.assets.m4a), Buffer.alloc(301_000));
+  writeFileSync(join(root, row.assets.vtt), 'this file is long enough but does not contain a valid caption header');
+  assert.throws(() => assertEpisodeAssets(row, root), /WEBVTT/);
+  writeFileSync(join(root, row.assets.vtt), `WEBVTT\n\n00:00:00.000 --> 00:00:01.000\n法條\n`);
+  assert.doesNotThrow(() => assertEpisodeAssets(row, root));
+});
+
+test('renderer appends one law episode to manifest, RSS and website', () => {
+  const root = join(tmpdir(), `sofa-podcast-render-${process.pid}-${Date.now()}`);
+  mkdirSync(root, { recursive: true });
+  writeFileSync(join(root, 'podcast-release.json'), JSON.stringify({ show: { artwork: 'assets/cover.jpg' }, episodes: [] }));
+  writeFileSync(join(root, 'podcast.xml'), '<rss><channel>\n  </channel></rss>');
+  writeFileSync(join(root, 'podcast.html'), '<div class="release-grid">\n    </div>\n  </section>\n\n  <section class="listening-stage">');
+  mkdirSync(join(root, 'assets/audio'), { recursive: true });
+  writeFileSync(join(root, 'assets/audio/ep007.m4a'), Buffer.alloc(301_000));
+  const row = { ...structuredClone(queue.episodes[0]), status: 'approved_for_release', duration: '00:01:10', pubDate: 'Sat, 08 Aug 2026 13:00:00 +0000', guid: 'sofa-podcast-ep007-v20260808-hana', assets: { mp3: 'assets/audio/ep007.mp3', m4a: 'assets/audio/ep007.m4a', vtt: 'assets/audio/ep007.vtt' } };
+  const content = { transcriptText: '法條逐字稿', originalText: '正式法條原文', sourceOriginalTextSha256: 'a'.repeat(64), sourceAnalysisSha256: 'b'.repeat(64) };
+  renderEpisodeFiles({ root, episode: row, content });
+  assert.match(readFileSync(join(root, 'podcast-release.json'), 'utf8'), /EP007/);
+  assert.match(readFileSync(join(root, 'podcast.xml'), 'utf8'), /sofa-podcast-ep007-v20260808-hana/);
+  assert.match(readFileSync(join(root, 'podcast.html'), 'utf8'), /id="episode-007"/);
 });

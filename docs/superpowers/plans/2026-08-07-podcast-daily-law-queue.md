@@ -30,11 +30,11 @@
 - Modify: `scripts/podcast-queue-lib.mjs`
 - Create: `scripts/release-due-podcast.mjs`
 
-- [ ] **Step 1: Add failing tests** proving only one approved due episode is selected in Asia/Taipei; missing assets, blocked head row, duplicates, and future dates stop publication.
-- [ ] **Step 2: Run** the focused test and confirm expected selection failures.
-- [ ] **Step 3: Implement** `selectDueEpisode`, asset checks, dry-run output, and atomic queue state updates.
-- [ ] **Step 4: Re-run** focused tests and existing Podcast contract tests.
-- [ ] **Step 5: Commit** deterministic release selection.
+- [x] **Step 1: Add failing tests** proving only one approved due episode is selected in Asia/Taipei; missing assets, blocked head row, duplicates, and future dates stop publication.
+- [x] **Step 2: Run** the focused test and confirm expected selection failures.
+- [x] **Step 3: Implement** `selectDueEpisode`, asset checks, dry-run output, and atomic queue state updates.
+- [x] **Step 4: Re-run** focused tests and existing Podcast contract tests.
+- [x] **Step 5: Commit** deterministic release selection.
 
 ### Task 3: Release rendering
 
@@ -43,11 +43,11 @@
 - Modify: `scripts/release-due-podcast.mjs`
 - Create: `scripts/render-podcast-release.mjs`
 
-- [ ] **Step 1: Add failing fixture tests** for appending one episode to `podcast-release.json`, RSS, and the website without changing released GUIDs or legacy assets.
-- [ ] **Step 2: Run** focused tests and confirm renderer absence causes failure.
-- [ ] **Step 3: Implement** deterministic JSON/RSS/page rendering with temp files and rename-on-success.
-- [ ] **Step 4: Run** queue tests, `podcast-contract.test.mjs`, `podcast-release-safety.test.mjs`, and `scripts/check-podcast-release.mjs`.
-- [ ] **Step 5: Commit** release renderer.
+- [x] **Step 1: Add failing fixture tests** for appending one episode to `podcast-release.json`, RSS, and the website without changing released GUIDs or legacy assets.
+- [x] **Step 2: Run** focused tests and confirm renderer absence causes failure.
+- [x] **Step 3: Implement** deterministic JSON/RSS/page rendering with temp files and rename-on-success.
+- [x] **Step 4: Run** queue tests, `podcast-contract.test.mjs`, `podcast-release-safety.test.mjs`, and `scripts/check-podcast-release.mjs`.
+- [x] **Step 5: Commit** release renderer.
 
 ### Task 4: Cloud schedule and safety gates
 
@@ -56,8 +56,8 @@
 - Create: `tests/podcast-daily-workflow.test.mjs`
 - Modify: `docs/2026-08-07-podcast-daily-law-release.md`
 
-- [ ] **Step 1: Write failing workflow test** for UTC 13:00 schedule, `workflow_dispatch` dry-run, concurrency lock, minimal write permission, no secret echo, focused tests, release checker, commit guard, and no local runner.
-- [ ] **Step 2: Run** the workflow test and confirm it fails because the workflow is absent.
-- [ ] **Step 3: Implement** GitHub-hosted scheduled workflow and operational evidence document.
-- [ ] **Step 4: Run** all Podcast tests, queue dry-run, JSON parse, XML parse, `git diff --check`, and source-link HTTP checks.
+- [x] **Step 1: Write failing workflow test** for UTC 13:00 schedule, `workflow_dispatch` dry-run, concurrency lock, minimal write permission, no secret echo, focused tests, release checker, commit guard, and no local runner.
+- [x] **Step 2: Run** the workflow test and confirm it fails because the workflow is absent.
+- [x] **Step 3: Implement** GitHub-hosted scheduled workflow and operational evidence document.
+- [x] **Step 4: Run** all Podcast tests, queue dry-run, JSON parse, XML parse, `git diff --check`, and source-link HTTP checks.
 - [ ] **Step 5: Commit**, push the branch, create a PR, and observe checks. Do not merge or claim public automation until checks and release authorization are verified.

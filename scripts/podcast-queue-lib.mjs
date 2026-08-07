@@ -49,6 +49,8 @@ export function validateQueue(queue) {
       if (row.listenApproval?.status !== 'approved' || !row.listenApproval.approvedBy || !row.listenApproval.approvedAt) {
         throw new Error(`${row.id} approved without listen approval`);
       }
+      if (!/^00:\d{2}:\d{2}$/.test(row.duration || '')) throw new Error(`${row.id} approved without duration`);
+      if (row.guid.endsWith('-pending')) throw new Error(`${row.id} approved with provisional GUID`);
     }
   });
 
