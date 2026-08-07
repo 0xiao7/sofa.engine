@@ -1,0 +1,71 @@
+name: Podcast daily law release
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/podcast-daily-release.yml'
+      - 'data/podcast-law-*.json'
+      - 'scripts/*podcast*.mjs'
+      - 'tests/podcast-*.test.mjs'
+  schedule:
+    - cron: '0 13 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Validate and preview without publishing
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: podcast-daily-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Validate source-locked queue
+        run: node --test tests/podcast-daily-queue.test.mjs tests/podcast-daily-workflow.test.mjs
+
+      - name: Verify live source records still match
+        run: node scripts/build-podcast-law-content.mjs data/podcast-law-queue.json /tmp/podcast-law-content.json
+
+      - name: Release one due approved episode
+        env:
+          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '1' || '0' }}
+        run: |
+          if [ "$DRY_RUN" = "1" ]; then
+            node scripts/release-due-podcast.mjs --dry-run
+          else
+            node scripts/release-due-podcast.mjs
+          fi
+
+      - name: Verify Podcast contracts
+        run: |
+          node --test tests/podcast-contract.test.mjs tests/podcast-release-safety.test.mjs tests/podcast-multi-episode-release.test.mjs
+          node scripts/check-podcast-release.mjs
+
+      - name: Commit release only when files changed
+        run: |
+          if git diff --quiet; then
+            echo "No approved Podcast episode is due."
+            exit 0
+          fi
+          git config user.name "sofa-podcast-release-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add podcast-release.json podcast.xml podcast.html data/podcast-law-queue.json
+          git diff --cached --check
+          git commit -m "release(podcast): publish due law episode"
+          git push origin HEAD:main
