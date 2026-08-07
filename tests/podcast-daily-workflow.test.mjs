@@ -5,6 +5,8 @@ import test from 'node:test';
 const workflow = readFileSync(new URL('../.github/workflows/podcast-daily-release.yml', import.meta.url), 'utf8');
 
 test('daily release uses GitHub-hosted cloud schedule and one concurrency lane', () => {
+  assert.match(workflow, /uses:\s*actions\/checkout@v7/);
+  assert.match(workflow, /uses:\s*actions\/setup-node@v7/);
   assert.match(workflow, /cron:\s*['"]0 13 \* \* \*['"]/);
   assert.match(workflow, /workflow_dispatch:/);
   assert.match(workflow, /runs-on:\s*ubuntu-latest/);
