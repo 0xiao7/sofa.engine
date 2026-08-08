@@ -1,5 +1,6 @@
 const EXAMS = new Set(['記帳士', '地政士', '國考']);
 const READY = 'approved_for_release';
+export const DAILY_RELEASE_LIMIT = 3;
 const PRC_TERMS = ['視頻', '信息', '軟件', '賬號', '打印', '質量'];
 
 function unique(rows, key) {
@@ -76,11 +77,18 @@ export function taipeiDate(isoInstant) {
   return `${value.year}-${value.month}-${value.day}`;
 }
 
-export function selectDueEpisode(queue, isoInstant = new Date().toISOString()) {
+export function selectDueEpisodes(queue, isoInstant = new Date().toISOString()) {
   validateQueue(queue);
   const released = new Set(queue.episodes.filter(row => row.status === 'released').map(row => row.id));
-  const head = queue.episodes.find(row => !released.has(row.id));
-  if (!head || head.scheduledDate > taipeiDate(isoInstant)) return null;
-  if (head.status !== READY) return null;
-  return head;
+  const selected = [];
+  for (const row of queue.episodes) {
+    if (released.has(row.id)) continue;
+    if (selected.length >= DAILY_RELEASE_LIMIT || row.scheduledDate > taipeiDate(isoInstant) || row.status !== READY) break;
+    selected.push(row);
+  }
+  return selected;
+}
+
+export function selectDueEpisode(queue, isoInstant = new Date().toISOString()) {
+  return selectDueEpisodes(queue, isoInstant)[0] || null;
 }

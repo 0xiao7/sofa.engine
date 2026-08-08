@@ -4,9 +4,9 @@ import test from 'node:test';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
-import { selectDueEpisode, validateQueue } from '../scripts/podcast-queue-lib.mjs';
+import { selectDueEpisode, selectDueEpisodes, validateQueue } from '../scripts/podcast-queue-lib.mjs';
 import { buildContentFromSource } from '../scripts/build-podcast-law-content.mjs';
-import { assertEpisodeAssets } from '../scripts/release-due-podcast.mjs';
+import { assertEpisodeAssets, releasePreview } from '../scripts/release-due-podcast.mjs';
 import { renderEpisodeFiles } from '../scripts/render-podcast-release.mjs';
 
 const queue = JSON.parse(readFileSync(new URL('../data/podcast-law-queue.json', import.meta.url), 'utf8'));
@@ -42,6 +42,36 @@ test('queue rejects product-led episodes and PRC wording', () => {
 
 test('release selection stops at a non-approved head episode', () => {
   assert.equal(selectDueEpisode(queue, '2026-08-31T13:00:00Z'), null);
+});
+
+test('release selection returns at most three consecutive due approved episodes', () => {
+  const candidate = structuredClone(queue);
+  for (const [index, row] of candidate.episodes.slice(0, 4).entries()) {
+    row.status = 'approved_for_release';
+    row.scheduledDate = '2026-08-09';
+    row.guid = `sofa-podcast-ep${String(index + 7).padStart(3, '0')}-v20260809-meijia`;
+    row.duration = '00:01:10';
+    row.assets = { mp3: `assets/audio/ep${index + 7}.mp3`, m4a: `assets/audio/ep${index + 7}.m4a`, vtt: `assets/audio/ep${index + 7}.vtt` };
+    row.listenApproval = { status: 'approved', approvedBy: 'Fay', approvedAt: '2026-08-09T20:00:00+08:00' };
+  }
+  assert.deepEqual(
+    selectDueEpisodes(candidate, '2026-08-09T13:00:00Z').map(row => row.id),
+    ['EP007', 'EP008', 'EP009'],
+  );
+});
+
+test('release selection stops before an unapproved second episode and never skips it', () => {
+  const candidate = structuredClone(queue);
+  for (const [index, row] of candidate.episodes.slice(0, 3).entries()) {
+    row.status = 'approved_for_release';
+    row.scheduledDate = '2026-08-09';
+    row.guid = `sofa-podcast-ep${String(index + 7).padStart(3, '0')}-v20260809-meijia`;
+    row.duration = '00:01:10';
+    row.assets = { mp3: `assets/audio/ep${index + 7}.mp3`, m4a: `assets/audio/ep${index + 7}.m4a`, vtt: `assets/audio/ep${index + 7}.vtt` };
+    row.listenApproval = { status: 'approved', approvedBy: 'Fay', approvedAt: '2026-08-09T20:00:00+08:00' };
+  }
+  candidate.episodes[1].status = 'content_verified_audio_pending';
+  assert.deepEqual(selectDueEpisodes(candidate, '2026-08-09T13:00:00Z').map(row => row.id), ['EP007']);
 });
 
 test('a ready accounting episode requires an explicit Taiwan pronunciation review', () => {
@@ -128,6 +158,26 @@ test('approved release scans the actual VTT for 會計 pronunciation review', ()
     terms: { '會計': 'ㄎㄨㄞˋ ㄐㄧˋ' },
   };
   assert.doesNotThrow(() => assertEpisodeAssets(row, root));
+});
+
+test('release preview reports all selected episode IDs for a three-episode batch', () => {
+  const root = join(tmpdir(), `sofa-podcast-three-release-${process.pid}-${Date.now()}`);
+  mkdirSync(join(root, 'assets/audio'), { recursive: true });
+  const candidate = structuredClone(queue);
+  for (const [index, row] of candidate.episodes.slice(0, 3).entries()) {
+    const number = String(index + 7).padStart(3, '0');
+    row.status = 'approved_for_release';
+    row.scheduledDate = '2026-08-09';
+    row.guid = `sofa-podcast-ep${number}-v20260809-meijia`;
+    row.duration = '00:01:10';
+    row.assets = { mp3: `assets/audio/ep${number}.mp3`, m4a: `assets/audio/ep${number}.m4a`, vtt: `assets/audio/ep${number}.vtt` };
+    row.listenApproval = { status: 'approved', approvedBy: 'Fay', approvedAt: '2026-08-09T20:00:00+08:00' };
+    writeFileSync(join(root, row.assets.mp3), Buffer.alloc(301_000));
+    writeFileSync(join(root, row.assets.m4a), Buffer.alloc(301_000));
+    writeFileSync(join(root, row.assets.vtt), 'WEBVTT\n\n00:00:00.000 --> 00:00:01.000\n法條內容\n');
+  }
+  const result = releasePreview(candidate, '2026-08-09T13:00:00Z', root);
+  assert.deepEqual(result.episodeIds, ['EP007', 'EP008', 'EP009']);
 });
 
 test('renderer appends one law episode to manifest, RSS and website', () => {

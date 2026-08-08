@@ -5,11 +5,11 @@
 - 30 集來源鎖定內容已建立：EP007–EP036，24 集記帳士、6 集地政士。
 - 每集保存正式法規網址、SoFa article ID/API、原文 SHA-256、解析 SHA-256、逐字稿及 VTT 草稿。
 - 全部仍為 `content_verified_audio_pending`；尚無一集取得完整 Hana 音檔與逐集聽感核准，因此目前不會自動公開。
-- GitHub Actions 每日 UTC 13:00（Asia/Taipei 21:00）執行；Mac 關機不影響 GitHub-hosted runner。
+- GitHub Actions 每日 UTC 13:00（Asia/Taipei 21:00）執行；Mac 關機不影響 GitHub-hosted runner。每次最多處理連續三集。
 
 ## Fail-closed release gate
 
-每日 workflow 只處理 queue 最前面尚未發布的一集。它必須同時符合：
+每日 workflow 從 queue 最前面尚未發布的一集起，最多處理三集連續、已到期且完整核准的集數。任何第二或第三集不符合條件，後面的集數一律停止，不跳過。每集必須同時符合：
 
 1. 日期已到。
 2. 狀態為 `approved_for_release`。
