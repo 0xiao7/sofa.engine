@@ -47,9 +47,9 @@ jobs:
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '1' || '0' }}
         run: |
           if [ "$DRY_RUN" = "1" ]; then
-            node scripts/release-due-podcast.mjs --dry-run
+            node scripts/release-due-podcast.mjs --content /tmp/podcast-law-content.json --dry-run
           else
-            node scripts/release-due-podcast.mjs
+            node scripts/release-due-podcast.mjs --content /tmp/podcast-law-content.json
           fi
 
       - name: Verify Podcast contracts

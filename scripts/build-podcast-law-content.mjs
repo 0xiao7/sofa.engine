@@ -14,6 +14,35 @@ function clean(text) {
     .trim();
 }
 
+export function validateOfficialSourceOverrides(queue, overrideDocument = { overrides: {} }) {
+  if (overrideDocument?.schemaVersion !== 1 || !overrideDocument?.overrides || typeof overrideDocument.overrides !== 'object') {
+    throw new Error('unsupported official source override document');
+  }
+  const episodeIds = new Set(queue.episodes.map(row => row.id));
+  for (const id of Object.keys(overrideDocument.overrides)) {
+    if (!episodeIds.has(id)) throw new Error(`official source override references unknown episode ${id}`);
+  }
+}
+
+export function applyOfficialSourceOverride(row, source, overrideDocument = { overrides: {} }) {
+  const override = overrideDocument?.overrides?.[row.id];
+  if (!override) return source;
+  const matchesQueue = override.law === row.law
+    && override.article === row.article
+    && override.sourceApi === row.sourceApi
+    && override.officialLawUrl === row.officialLawUrl
+    && override.verifiedAt
+    && override.sourceOriginalTextSha256;
+  if (!matchesQueue || !clean(override.originalText)) {
+    throw new Error(`${row.id} official source override does not match queue source identity`);
+  }
+  const sourceOriginalTextSha256 = createHash('sha256').update(clean(source?.original_text)).digest('hex');
+  if (sourceOriginalTextSha256 !== override.sourceOriginalTextSha256) {
+    throw new Error(`${row.id} source text no longer matches the recorded truncation`);
+  }
+  return { ...source, original_text: clean(override.originalText) };
+}
+
 function sourceLine(section, labels = []) {
   const lines = clean(section).split('\n').map(line => line.replace(/^[•◦\-\s]+/, '').trim()).filter(Boolean);
   for (const label of labels) {
@@ -85,12 +114,14 @@ export function buildContentFromSource(row, source) {
   };
 }
 
-export async function buildBatch(queue) {
+export async function buildBatch(queue, overrideDocument = { overrides: {} }) {
+  validateOfficialSourceOverrides(queue, overrideDocument);
   const contents = [];
   for (const row of queue.episodes) {
     const response = await fetch(row.sourceApi, { headers: { 'user-agent': 'sofa-podcast-law-queue/1.0' } });
     if (!response.ok) throw new Error(`${row.id} source API returned ${response.status}`);
-    contents.push(buildContentFromSource(row, await response.json()));
+    const source = applyOfficialSourceOverride(row, await response.json(), overrideDocument);
+    contents.push(buildContentFromSource(row, source));
   }
   return { schemaVersion: 1, builtAt: new Date().toISOString(), contents };
 }
@@ -99,7 +130,9 @@ async function main() {
   const queuePath = process.argv[2] || 'data/podcast-law-queue.json';
   const outputPath = process.argv[3] || 'data/podcast-law-content.json';
   const queue = JSON.parse(await readFile(queuePath, 'utf8'));
-  const result = await buildBatch(queue);
+  const overridePath = 'data/podcast-law-source-overrides.json';
+  const overrides = JSON.parse(await readFile(overridePath, 'utf8'));
+  const result = await buildBatch(queue, overrides);
   await writeFile(outputPath, `${JSON.stringify(result, null, 2)}\n`, 'utf8');
   console.log(`built ${result.contents.length} source-locked Podcast scripts: ${outputPath}`);
 }

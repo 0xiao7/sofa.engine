@@ -24,4 +24,5 @@ test('daily release is least-privilege and runs all fail-closed gates before com
   const commit = workflow.indexOf('git commit');
   assert.ok(queueGate >= 0 && releaseGate > queueGate && commit > releaseGate);
   assert.match(workflow, /git diff --quiet/);
+  assert.match(workflow, /node scripts\/release-due-podcast\.mjs --content \/tmp\/podcast-law-content\.json/);
 });
