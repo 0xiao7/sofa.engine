@@ -14,8 +14,22 @@ export function assertEpisodeAssets(episode, root = process.cwd()) {
     if (!existsSync(absolute)) throw new Error(`${episode.id} missing ${type} asset: ${relative}`);
     const minimum = type === 'vtt' ? 20 : 300_000;
     if (statSync(absolute).size < minimum) throw new Error(`${episode.id} ${type} asset too small`);
-    if (type === 'vtt' && !readFileSync(absolute, 'utf8').startsWith('WEBVTT')) {
-      throw new Error(`${episode.id} transcript must begin with WEBVTT`);
+    if (type === 'vtt') {
+      const transcript = readFileSync(absolute, 'utf8');
+      if (!transcript.startsWith('WEBVTT')) {
+        throw new Error(`${episode.id} transcript must begin with WEBVTT`);
+      }
+      if (transcript.includes('會計')) {
+        const review = episode.pronunciationReview;
+        if (
+          review?.status !== 'approved'
+          || !review.reviewedBy
+          || !review.reviewedAt
+          || review.terms?.['會計'] !== 'ㄎㄨㄞˋ ㄐㄧˋ'
+        ) {
+          throw new Error(`${episode.id} missing 會計 pronunciation review (ㄎㄨㄞˋ ㄐㄧˋ)`);
+        }
+      }
     }
   }
   return true;

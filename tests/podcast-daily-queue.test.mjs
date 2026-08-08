@@ -103,6 +103,33 @@ test('approved release assets must all exist and VTT must be valid', () => {
   assert.doesNotThrow(() => assertEpisodeAssets(row, root));
 });
 
+test('approved release scans the actual VTT for 會計 pronunciation review', () => {
+  const root = join(tmpdir(), `sofa-podcast-pronunciation-${process.pid}-${Date.now()}`);
+  mkdirSync(join(root, 'assets/audio'), { recursive: true });
+  const row = structuredClone(queue.episodes[0]);
+  row.status = 'approved_for_release';
+  row.guid = 'sofa-podcast-ep007-v20260808-hana';
+  row.assets = {
+    mp3: 'assets/audio/ep007.mp3',
+    m4a: 'assets/audio/ep007.m4a',
+    vtt: 'assets/audio/ep007.vtt',
+  };
+  row.listenApproval = { status: 'approved', approvedBy: 'Fay', approvedAt: '2026-08-08T22:40:00+08:00' };
+  writeFileSync(join(root, row.assets.mp3), Buffer.alloc(301_000));
+  writeFileSync(join(root, row.assets.m4a), Buffer.alloc(301_000));
+  writeFileSync(join(root, row.assets.vtt), 'WEBVTT\n\n00:00:00.000 --> 00:00:01.000\n本集說明會計處理。\n');
+
+  assert.throws(() => assertEpisodeAssets(row, root), /會計 pronunciation review/);
+
+  row.pronunciationReview = {
+    status: 'approved',
+    reviewedBy: 'Fay',
+    reviewedAt: '2026-08-08T22:40:00+08:00',
+    terms: { '會計': 'ㄎㄨㄞˋ ㄐㄧˋ' },
+  };
+  assert.doesNotThrow(() => assertEpisodeAssets(row, root));
+});
+
 test('renderer appends one law episode to manifest, RSS and website', () => {
   const root = join(tmpdir(), `sofa-podcast-render-${process.pid}-${Date.now()}`);
   mkdirSync(root, { recursive: true });
