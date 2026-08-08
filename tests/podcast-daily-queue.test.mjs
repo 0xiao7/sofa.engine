@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 import { selectDueEpisode, selectDueEpisodes, validateQueue } from '../scripts/podcast-queue-lib.mjs';
-import { buildContentFromSource } from '../scripts/build-podcast-law-content.mjs';
+import { applyOfficialSourceOverride, buildContentFromSource, validateOfficialSourceOverrides } from '../scripts/build-podcast-law-content.mjs';
 import { assertEpisodeAssets, releasePreview } from '../scripts/release-due-podcast.mjs';
 import { renderEpisodeFiles } from '../scripts/render-podcast-release.mjs';
 
@@ -112,6 +112,54 @@ test('content builder keeps law text and stored analysis as the only body source
   assert.match(content.transcriptText, /境內銷售、進口貨物/);
   assert.doesNotMatch(content.transcriptText, /產品|訂閱|優惠/);
   assert.match(content.vtt, /^WEBVTT/);
+});
+
+test('official source override only repairs the matching blocked episode', () => {
+  const source = {
+    original_text: '本法所稱加值型之營業稅，係指依',
+    sections: {
+      規範意旨與條文解析: '• 條文邏輯：依不同章節計算稅額。',
+      執業要點與考情提示: '• 出題焦點：區分加值型與非加值型。',
+      核心摘要與記憶策略: '• 專業口訣：第一節加值，第二節非加值。',
+    },
+  };
+  const row = queue.episodes[1];
+  const overrides = {
+    schemaVersion: 1,
+    overrides: {
+      EP008: {
+        law: row.law,
+        article: row.article,
+        sourceApi: row.sourceApi,
+        officialLawUrl: row.officialLawUrl,
+        verifiedAt: '2026-08-09T01:30:00+08:00',
+        sourceOriginalTextSha256: 'b53333faaae58e54fdb34fe16d3d2d621262537cc56fc1e116f4d24ca47f83ff',
+        originalText: '本法所稱加值型之營業稅，係指依第四章第一節計算稅額者；所稱非加值型之營業稅，係指依第四章第二節計算稅額者。',
+      },
+    },
+  };
+
+  const repaired = applyOfficialSourceOverride(row, source, overrides);
+  assert.equal(repaired.original_text, overrides.overrides.EP008.originalText);
+  assert.equal(applyOfficialSourceOverride(queue.episodes[0], source, overrides).original_text, source.original_text);
+
+  const mismatched = structuredClone(overrides);
+  mismatched.overrides.EP008.article = '02';
+  assert.throws(() => applyOfficialSourceOverride(row, source, mismatched), /does not match queue source identity/);
+
+  const wrongOfficialUrl = structuredClone(overrides);
+  wrongOfficialUrl.overrides.EP008.officialLawUrl = 'https://law.moj.gov.tw/LawClass/LawAll.aspx?pcode=G0340003';
+  assert.throws(() => applyOfficialSourceOverride(row, source, wrongOfficialUrl), /does not match queue source identity/);
+
+  const changedApiSource = { ...source, original_text: '本法所稱加值型之營業稅，係指依第四章第一節計算稅額者；所稱非加值型之營業稅，係指依第四章第二節計算稅額者。' };
+  assert.throws(() => applyOfficialSourceOverride(row, changedApiSource, overrides), /source text no longer matches the recorded truncation/);
+});
+
+test('source override document rejects an unknown episode key', () => {
+  assert.throws(
+    () => validateOfficialSourceOverrides(queue, { schemaVersion: 1, overrides: { EP080: {} } }),
+    /unknown episode EP080/,
+  );
 });
 
 test('approved release assets must all exist and VTT must be valid', () => {
