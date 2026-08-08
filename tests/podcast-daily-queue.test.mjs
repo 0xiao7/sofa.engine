@@ -44,6 +44,28 @@ test('release selection stops at a non-approved head episode', () => {
   assert.equal(selectDueEpisode(queue, '2026-08-31T13:00:00Z'), null);
 });
 
+test('a ready accounting episode requires an explicit Taiwan pronunciation review', () => {
+  const candidate = structuredClone(queue);
+  const row = candidate.episodes[0];
+  row.law = '商業會計法';
+  row.title = '記帳士｜商業會計法第01條：會計範圍';
+  row.status = 'approved_for_release';
+  row.guid = 'sofa-podcast-ep007-v20260808-hana';
+  row.duration = '00:01:10';
+  row.assets = { mp3: 'assets/audio/ep007.mp3', m4a: 'assets/audio/ep007.m4a', vtt: 'assets/audio/ep007.vtt' };
+  row.listenApproval = { status: 'approved', approvedBy: 'Fay', approvedAt: '2026-08-08T22:40:00+08:00' };
+
+  assert.throws(() => validateQueue(candidate), /會計 pronunciation review/);
+
+  row.pronunciationReview = {
+    status: 'approved',
+    reviewedBy: 'Fay',
+    reviewedAt: '2026-08-08T22:40:00+08:00',
+    terms: { '會計': 'ㄎㄨㄞˋ ㄐㄧˋ' },
+  };
+  assert.doesNotThrow(() => validateQueue(candidate));
+});
+
 test('content builder keeps law text and stored analysis as the only body source', () => {
   const row = queue.episodes[0];
   const source = {

@@ -51,6 +51,17 @@ export function validateQueue(queue) {
       }
       if (!/^00:\d{2}:\d{2}$/.test(row.duration || '')) throw new Error(`${row.id} approved without duration`);
       if (row.guid.endsWith('-pending')) throw new Error(`${row.id} approved with provisional GUID`);
+      if (`${row.law} ${row.title} ${row.summary}`.includes('會計')) {
+        const review = row.pronunciationReview;
+        if (
+          review?.status !== 'approved'
+          || !review.reviewedBy
+          || !review.reviewedAt
+          || review.terms?.['會計'] !== 'ㄎㄨㄞˋ ㄐㄧˋ'
+        ) {
+          throw new Error(`${row.id} missing 會計 pronunciation review (ㄎㄨㄞˋ ㄐㄧˋ)`);
+        }
+      }
     }
   });
 
