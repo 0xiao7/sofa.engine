@@ -3,7 +3,7 @@ import { existsSync, readFileSync, renameSync, statSync, writeFileSync } from 'n
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-import { selectDueEpisode, validateQueue } from './podcast-queue-lib.mjs';
+import { selectDueEpisodes, validateQueue } from './podcast-queue-lib.mjs';
 import { renderEpisodeFiles } from './render-podcast-release.mjs';
 
 export function assertEpisodeAssets(episode, root = process.cwd()) {
@@ -37,10 +37,15 @@ export function assertEpisodeAssets(episode, root = process.cwd()) {
 
 export function releasePreview(queue, now, root = process.cwd()) {
   validateQueue(queue);
-  const episode = selectDueEpisode(queue, now);
-  if (!episode) return { action: 'none', reason: 'head episode is not both due and approved' };
-  assertEpisodeAssets(episode, root);
-  return { action: 'release', episodeId: episode.id, scheduledDate: episode.scheduledDate };
+  const episodes = selectDueEpisodes(queue, now);
+  if (!episodes.length) return { action: 'none', reason: 'head episode is not both due and approved' };
+  episodes.forEach(episode => assertEpisodeAssets(episode, root));
+  return {
+    action: 'release',
+    episodeId: episodes[0].id,
+    episodeIds: episodes.map(episode => episode.id),
+    scheduledDate: episodes[0].scheduledDate,
+  };
 }
 
 function parseArgs(argv) {
@@ -61,19 +66,24 @@ async function main() {
   const result = releasePreview(queue, args.now);
   console.log(JSON.stringify({ ...result, dryRun: args.dryRun }));
   if (result.action === 'release' && !args.dryRun) {
-    const episode = queue.episodes.find(row => row.id === result.episodeId);
     const contents = JSON.parse(readFileSync(args.content, 'utf8'));
-    const content = contents.contents.find(row => row.id === episode.id);
-    if (!content) throw new Error(`${episode.id} missing source-locked content`);
+    const episodes = result.episodeIds.map(id => queue.episodes.find(row => row.id === id));
+    const releaseRows = episodes.map(episode => {
+      const content = contents.contents.find(row => row.id === episode.id);
+      if (!content) throw new Error(`${episode.id} missing source-locked content`);
+      return { episode, content };
+    });
     const releasedAt = new Date(args.now).toISOString();
-    episode.pubDate ||= new Date(args.now).toUTCString().replace('GMT', '+0000');
-    renderEpisodeFiles({ root: process.cwd(), episode, content });
-    episode.status = 'released';
-    episode.releasedAt = releasedAt;
+    for (const { episode, content } of releaseRows) {
+      episode.pubDate ||= new Date(args.now).toUTCString().replace('GMT', '+0000');
+      renderEpisodeFiles({ root: process.cwd(), episode, content });
+      episode.status = 'released';
+      episode.releasedAt = releasedAt;
+    }
     const temp = `${args.queue}.tmp`;
     writeFileSync(temp, `${JSON.stringify(queue, null, 2)}\n`, 'utf8');
     renameSync(temp, args.queue);
-    console.log(JSON.stringify({ action: 'released', episodeId: episode.id, releasedAt }));
+    console.log(JSON.stringify({ action: 'released', episodeIds: result.episodeIds, releasedAt }));
   }
 }
 

@@ -42,7 +42,7 @@ jobs:
       - name: Verify live source records still match
         run: node scripts/build-podcast-law-content.mjs data/podcast-law-queue.json /tmp/podcast-law-content.json
 
-      - name: Release one due approved episode
+      - name: Release up to three consecutive due approved episodes
         env:
           DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '1' || '0' }}
         run: |
