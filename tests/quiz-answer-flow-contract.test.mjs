@@ -421,7 +421,8 @@ test('quiz loaders reject concurrent loads so options cannot duplicate', () => {
   const loadFn = active.slice(loadStart, loadEnd);
   assert.match(loadFn, /if\(_quizLoading\) return/);
   assert.match(loadFn, /_quizLoading = true/);
-  assert.match(loadFn, /finally\{\s*_quizLoading = false;\s*\}/);
+  assert.match(loadFn, /finally\{\s*_quizLoading = false;/);
+  assert.match(loadFn, /if\(_pastExamReloadQueued\)\{\s*_pastExamReloadQueued = false;\s*loadQuiz\(\);\s*\}/);
 
   assert.match(active, /async function loadWrongQuiz\(\)\{\s*return loadQuiz\(\{wrongReview:true\}\)/);
   assert.match(active, /btnNew'\)\.addEventListener\('click',\(\)=>\{[\s\S]*?_quizManualRequested = true;/);
