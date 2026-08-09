@@ -576,12 +576,12 @@
         刷題模式
       </button>
       <a id="btn-open-weakness" href="dashboard.html#weak-laws-recap" title="看弱點分析" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;border:1px solid rgba(245,240,234,.18);border-radius:8px;padding:0 14px;color:rgba(245,240,234,.78);font-size:13px;text-decoration:none;">查看弱點分析</a>
-      <select id="pastExamSubject" onchange="_persistPastExamSelection();if(_pastExamMode) loadQuiz()"
+      <select id="pastExamSubject" onchange="_persistPastExamSelection();if(_pastExamMode) _requestPastExamReload()"
         style="display:none;background:var(--navy-3);border:1px solid rgba(231,187,167,0.35);
                border-radius:8px;color:var(--cream);font-size:12px;padding:6px 10px;min-height:44px;">
         <option value="">科目載入中</option>
       </select>
-      <select id="pastExamYear" onchange="_persistPastExamSelection();if(_pastExamMode) loadQuiz()"
+      <select id="pastExamYear" onchange="_persistPastExamSelection();if(_pastExamMode) _requestPastExamReload()"
         style="display:none;background:var(--navy-3);border:1px solid rgba(231,187,167,0.35);
                border-radius:8px;color:var(--cream);font-size:12px;padding:6px 10px;min-height:44px;">
         <option value="">全部年度</option>
@@ -1267,6 +1267,8 @@ function _applyInitialLawParam(sel){
 let _autoLoadQuizStarted = false;
 let _quizLoading = false;
 let _quizManualRequested = false;
+let _pastExamSelectionRevision = 0;
+let _pastExamReloadQueued = false;
 let _quizBootReady = false;
 // const QUIZ_RETURN_STATE_KEY = 'sofa_quiz_return_state_v1'
 // let sessionHistory=[]
@@ -1282,6 +1284,14 @@ function _autoLoadQuizOnce(){
   if(_autoLoadQuizStarted) return;
   if(_quizManualRequested || _quizLoading || total > 0) return;
   _autoLoadQuizStarted = true;
+  loadQuiz();
+}
+function _requestPastExamReload(){
+  _pastExamSelectionRevision++;
+  if(_quizLoading){
+    _pastExamReloadQueued = true;
+    return;
+  }
   loadQuiz();
 }
 
@@ -2512,6 +2522,7 @@ async function loadQuiz(){
   _clearQuizReturnState();
   captureCurrentQuestionView();
   const options=arguments[0]||{};
+  const pastExamSelectionRevision = _pastExamSelectionRevision;
   if(!_quizBootReady){
     _quizLoading = false;
     document.getElementById('questionBox').textContent='法規範圍載入中，馬上可以開始。';
@@ -2545,6 +2556,10 @@ async function loadQuiz(){
     if(_pastExamMode){
       data=await _fetchPastExamQuestion();
       law='';
+      if(pastExamSelectionRevision !== _pastExamSelectionRevision){
+        sessionHistory.pop(); total--; currentQuestionNum=total; updateScore();
+        return;
+      }
     }
     let pickedPageId='';
     if(!_pastExamMode && activeWrongReview){
@@ -2762,6 +2777,10 @@ async function loadQuiz(){
     sessionHistory.pop(); total--; currentQuestionNum=total; updateScore();
   }finally{
     _quizLoading = false;
+    if(_pastExamReloadQueued){
+      _pastExamReloadQueued = false;
+      loadQuiz();
+    }
   }
 }
 const _quizBootReadyContract = "if(!_quizBootReady){ document.getElementById('questionBox').textContent='法規範圍載入中，馬上可以開始。'";

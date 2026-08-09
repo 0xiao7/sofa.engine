@@ -72,6 +72,17 @@ test('past-exam year selector exposes the full verified accounting range', () =>
   }
 });
 
+test('changing a past-exam filter cannot render the prior filter request', () => {
+  assert.match(activeQuiz, /let _pastExamSelectionRevision = 0/);
+  assert.match(activeQuiz, /let _pastExamReloadQueued = false/);
+  assert.match(activeQuiz, /function _requestPastExamReload\(\)/);
+  assert.match(activeQuiz, /_pastExamSelectionRevision\+\+/);
+  assert.match(activeQuiz, /if\(_quizLoading\)\{\s*_pastExamReloadQueued = true;\s*return;/);
+  assert.match(activeQuiz, /const pastExamSelectionRevision = _pastExamSelectionRevision/);
+  assert.match(activeQuiz, /pastExamSelectionRevision !== _pastExamSelectionRevision/);
+  assert.match(activeQuiz, /if\(_pastExamReloadQueued\)\{\s*_pastExamReloadQueued = false;\s*loadQuiz\(\);\s*\}/);
+});
+
 test('every public past-exam request carries the resolved exam key', () => {
   for (const [name, source] of [
     ['quiz', quiz],
