@@ -1,0 +1,77 @@
+name: YouTube Podcast release
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - '.github/workflows/youtube-podcast-release.yml'
+      - 'data/podcast-law-queue.json'
+      - 'data/youtube-podcast-ledger.json'
+      - 'scripts/youtube-podcast-*.mjs'
+      - 'tests/youtube-podcast-*.test.mjs'
+  schedule:
+    - cron: '20 13 * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Provider action
+        required: true
+        type: choice
+        default: validate
+        options:
+          - validate
+          - upload_private
+          - publish
+      episode:
+        description: Exact episode ID, for example EP007
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: youtube-podcast-release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+
+      - name: Verify YouTube Podcast contracts
+        run: node --test tests/youtube-podcast-*.test.mjs
+
+      - name: Scheduled readiness validation only
+        if: github.event_name == 'schedule'
+        run: node scripts/youtube-podcast-release.mjs --mode validate --episode EP007
+
+      - name: Manual episode-scoped action
+        if: github.event_name == 'workflow_dispatch'
+        env:
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+          YOUTUBE_PODCAST_PLAYLIST_ID: ${{ secrets.YOUTUBE_PODCAST_PLAYLIST_ID }}
+        run: node scripts/youtube-podcast-release.mjs --mode "${{ inputs.mode }}" --episode "${{ inputs.episode }}"
+
+      - name: Commit provider ledger only
+        if: github.event_name == 'workflow_dispatch' && inputs.mode != 'validate'
+        run: |
+          if git diff --quiet -- data/youtube-podcast-ledger.json; then
+            echo "Provider ledger unchanged."
+            exit 0
+          fi
+          git config user.name "sofa-youtube-podcast-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add data/youtube-podcast-ledger.json
+          git diff --cached --check
+          git commit -m "release(podcast): update YouTube provider ledger"
+          git push origin HEAD:main
