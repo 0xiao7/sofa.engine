@@ -4,11 +4,33 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
 
+import { sha256File } from '../scripts/youtube-podcast-readiness.mjs';
 import {
   decideYoutubeAction,
   readYoutubeLedger,
   upsertYoutubeRecord,
 } from '../scripts/youtube-podcast-ledger.mjs';
+import { runYoutubePodcastRelease } from '../scripts/youtube-podcast-release.mjs';
+
+function releaseFixture() {
+  const root = join(tmpdir(), `yt-release-${process.pid}-${Date.now()}-${Math.random()}`);
+  mkdirSync(join(root, 'assets/audio'), { recursive: true });
+  const assets = { mp3: 'assets/audio/e.mp3', m4a: 'assets/audio/e.m4a', vtt: 'assets/audio/e.vtt', youtubeMp4: 'assets/audio/e.mp4' };
+  for (const [type, path] of Object.entries(assets)) writeFileSync(join(root, path), type === 'vtt' ? 'WEBVTT\n\n00:00:00.000 --> 00:00:01.000\n法條\n' : Buffer.alloc(301_000, type.length));
+  const episode = {
+    id: 'EP007', status: 'approved_for_release', exam: '記帳士', law: '營業稅法', article: '01',
+    title: '記帳士｜營業稅法第01條：課稅範圍', summary: '課稅範圍。',
+    officialLawUrl: 'https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=G0340080&flno=01',
+    utmCampaign: 'podcast_episode_007_law', duration: '00:01:10', guid: 'sofa-podcast-ep007-v20260817-hana', assets,
+    listenApproval: { status: 'approved', approvedBy: 'Fay', approvedAt: '2026-08-17T09:00:00+08:00' },
+  };
+  episode.assetSha256 = Object.fromEntries(Object.entries(assets).map(([type, path]) => [type, sha256File(join(root, path))]));
+  const queuePath = join(root, 'queue.json');
+  const ledgerPath = join(root, 'ledger.json');
+  writeFileSync(queuePath, JSON.stringify({ episodes: [episode] }));
+  writeFileSync(ledgerPath, '{"schemaVersion":1,"episodes":[]}\n');
+  return { root, episode, queuePath, ledgerPath };
+}
 
 test('ledger validates schema and accepts an empty v1 document', () => {
   const root = join(tmpdir(), `yt-ledger-${process.pid}-${Date.now()}`);
@@ -40,4 +62,39 @@ test('ledger upsert is atomic and unique by episode ID', () => {
   const ledger = JSON.parse(readFileSync(path, 'utf8'));
   assert.equal(ledger.episodes.length, 1);
   assert.equal(ledger.episodes[0].state, 'private_ready');
+});
+
+test('validate performs no provider mutation', async () => {
+  const fixture = releaseFixture();
+  let providerCalls = 0;
+  const result = await runYoutubePodcastRelease({ ...fixture, mode: 'validate', episodeId: 'EP007', clientFactory: () => { providerCalls += 1; } });
+  assert.equal(result.action, 'validated');
+  assert.equal(providerCalls, 0);
+});
+
+test('private upload persists video before playlist and partial retry does not upload twice', async () => {
+  const fixture = releaseFixture();
+  let uploads = 0;
+  let failPlaylist = true;
+  const client = {
+    uploadPrivate: async () => ({ videoId: `video${++uploads}` }),
+    findOrCreatePodcastPlaylist: async () => 'playlist1',
+    addVideoToPlaylist: async () => { if (failPlaylist) throw new Error('playlist failed'); },
+  };
+  await assert.rejects(() => runYoutubePodcastRelease({ ...fixture, mode: 'upload_private', episodeId: 'EP007', clientFactory: () => client }), /playlist failed/);
+  assert.equal(readYoutubeLedger(fixture.ledgerPath).episodes[0].youtubeVideoId, 'video1');
+  failPlaylist = false;
+  const result = await runYoutubePodcastRelease({ ...fixture, mode: 'upload_private', episodeId: 'EP007', clientFactory: () => client });
+  assert.equal(result.action, 'private_ready');
+  assert.equal(uploads, 1);
+});
+
+test('publish requires a private record and changes only the named episode', async () => {
+  const fixture = releaseFixture();
+  const client = { publishVideo: async ({ videoId }) => ({ videoId, privacyStatus: 'public', exactUrl: `https://www.youtube.com/watch?v=${videoId}` }) };
+  await assert.rejects(() => runYoutubePodcastRelease({ ...fixture, mode: 'publish', episodeId: 'EP007', clientFactory: () => client }), /private provider record/);
+  upsertYoutubeRecord({ path: fixture.ledgerPath, record: { episodeId: 'EP007', state: 'private_ready', youtubeVideoId: 'video1', privacyStatus: 'private' } });
+  const result = await runYoutubePodcastRelease({ ...fixture, mode: 'publish', episodeId: 'EP007', clientFactory: () => client });
+  assert.equal(result.action, 'published');
+  assert.equal(readYoutubeLedger(fixture.ledgerPath).episodes[0].privacyStatus, 'public');
 });
