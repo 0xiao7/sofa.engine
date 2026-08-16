@@ -13,7 +13,7 @@
 ## File map
 
 - Create `scripts/youtube-podcast-readiness.mjs`: validate one approved episode, assets, SHA-256, metadata and ledger-safe inputs.
-- Create `scripts/youtube-podcast-client.mjs`: OAuth refresh, resumable upload, video status update, playlist lookup/create/add.
+- Create `scripts/youtube-podcast-client.mjs`: OAuth refresh, resumable upload, video status update, podcast-enabled playlist lookup/add.
 - Create `scripts/youtube-podcast-ledger.mjs`: atomic JSON ledger reads/writes and idempotency decisions.
 - Create `scripts/youtube-podcast-release.mjs`: CLI for `validate`, `upload_private`, and `publish`.
 - Create `tests/youtube-podcast-readiness.test.mjs`: readiness and metadata contracts.
@@ -114,7 +114,7 @@ git commit -m "feat(podcast): add YouTube provider ledger"
 
 - [ ] **Step 1: Write failing client tests**
 
-Use injected `fetchImpl` to assert: refresh-token exchange never places secrets in URLs or errors; upload initializes a resumable session then sends bytes; playlist lookup reuses exact configured title; missing playlist creates one with `podcastStatus=enabled`; add-to-playlist uses the video ID; publish updates only `status.privacyStatus`; 401, 403 scope, 403 quota, and partial playlist failures map to stable safe error codes.
+Use injected `fetchImpl` to assert: refresh-token exchange never places secrets in URLs or errors; upload initializes a resumable session then sends bytes; playlist lookup accepts only the exact configured title with `podcastStatus=enabled`; a missing or incomplete playlist fails closed because YouTube requires a 1:1 playlist image before enabling Podcast status; add-to-playlist uses the video ID; publish preserves `selfDeclaredMadeForKids=false`; 401, 403 scope, 403 quota, and partial playlist failures map to stable safe error codes.
 
 - [ ] **Step 2: Verify RED**
 
@@ -131,7 +131,7 @@ export class YoutubeProviderError extends Error {}
 export function createYoutubeClient({ fetchImpl, clientId, clientSecret, refreshToken })
 ```
 
-The client exposes `uploadPrivate`, `findOrCreatePodcastPlaylist`, `addVideoToPlaylist`, and `publishVideo`. It must sanitize response bodies before throwing and never log credentials.
+The client exposes `uploadPrivate`, `findPodcastPlaylist`, `addVideoToPlaylist`, and `publishVideo`. It must sanitize response bodies before throwing and never log credentials.
 
 - [ ] **Step 4: Verify GREEN**
 
