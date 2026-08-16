@@ -36,7 +36,7 @@
 
 既有 `data/podcast-law-queue.json` 保留內容來源與發布狀態。每集只有在以下條件全部成立時才可成為 `approved_for_release`：
 
-- MP3、M4A、VTT 路徑存在且 SHA-256 與 manifest 一致。
+- MP3、M4A、VTT 與 16:9 YouTube MP4 路徑存在且 SHA-256 與 manifest 一致。
 - Hana 聲線版本符合核准基準。
 - 音訊 codec、sample rate、channels、duration、loudness 與 true peak 通過。
 - 正音清單與逐字稿一致。

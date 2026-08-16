@@ -17,10 +17,12 @@ function fixture() {
     mp3: 'assets/audio/ep007.mp3',
     m4a: 'assets/audio/ep007.m4a',
     vtt: 'assets/audio/ep007.vtt',
+    youtubeMp4: 'assets/audio/ep007-youtube.mp4',
   };
   writeFileSync(join(root, paths.mp3), Buffer.alloc(301_000, 1));
   writeFileSync(join(root, paths.m4a), Buffer.alloc(301_000, 2));
   writeFileSync(join(root, paths.vtt), 'WEBVTT\n\n00:00:00.000 --> 00:00:01.000\n正式法條內容\n');
+  writeFileSync(join(root, paths.youtubeMp4), Buffer.alloc(301_000, 3));
   const episode = {
     id: 'EP007', status: 'approved_for_release', exam: '記帳士',
     law: '加值型及非加值型營業稅法', article: '01',
@@ -49,6 +51,10 @@ test('readiness fails closed on approval, asset and hash gaps', () => {
   const missing = structuredClone(episode);
   missing.assets.mp3 = null;
   assert.throws(() => validateYoutubeEpisode({ episode: missing, root }), /missing mp3/);
+
+  const noVideo = structuredClone(episode);
+  noVideo.assets.youtubeMp4 = null;
+  assert.throws(() => validateYoutubeEpisode({ episode: noVideo, root }), /missing youtubeMp4/);
 
   const mismatch = structuredClone(episode);
   mismatch.assetSha256.m4a = '0'.repeat(64);

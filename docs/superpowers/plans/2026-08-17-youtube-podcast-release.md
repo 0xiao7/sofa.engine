@@ -31,7 +31,7 @@
 
 - [ ] **Step 1: Write failing readiness tests**
 
-Cover these exact behaviors with fixture files in a temporary directory: pending listen approval fails; missing MP3/M4A/VTT fails; SHA mismatch fails; `approved_for_release` with matching hashes succeeds; metadata contains exam/law/article, official source, one episode-specific UTM, `madeForKids=false`, and both required disclaimers; default privacy is `private`.
+Cover these exact behaviors with fixture files in a temporary directory: pending listen approval fails; missing MP3/M4A/VTT/16:9 YouTube MP4 fails; SHA mismatch fails; `approved_for_release` with matching hashes succeeds; metadata contains exam/law/article, official source, one episode-specific UTM, `madeForKids=false`, and both required disclaimers; default privacy is `private`.
 
 - [ ] **Step 2: Verify RED**
 
@@ -260,4 +260,3 @@ Confirm whether the three GitHub secrets and a usable YouTube account/playlist i
 - [ ] **Step 5: Commit any verification-only contract correction**
 
 Only when Step 1–4 exposed a real contract defect, commit that narrow correction with its regression test.
-

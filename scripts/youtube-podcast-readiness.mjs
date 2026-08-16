@@ -2,7 +2,7 @@ import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
-const ASSET_TYPES = ['mp3', 'm4a', 'vtt'];
+const ASSET_TYPES = ['mp3', 'm4a', 'vtt', 'youtubeMp4'];
 
 export function sha256File(path) {
   return createHash('sha256').update(readFileSync(path)).digest('hex');
