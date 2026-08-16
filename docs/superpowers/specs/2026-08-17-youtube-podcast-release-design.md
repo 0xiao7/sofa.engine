@@ -48,7 +48,7 @@
 
 新增獨立 adapter，職責只有：
 
-- 取得或建立固定 Podcast playlist。
+- 取得已具 1:1 圖像且 `podcastStatus=enabled` 的固定 Podcast playlist；找不到時 fail closed，不建立不完整的一般 playlist。
 - 依 episode ID／既有 provider record 判斷是否已上傳。
 - 上傳音訊對應的 16:9 靜態影像影片或已產出的影音容器。
 - 設定 title、description、tags、category、`madeForKids=false` 與 privacy status。

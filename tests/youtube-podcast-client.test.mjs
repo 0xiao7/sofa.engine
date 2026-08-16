@@ -30,23 +30,20 @@ test('client refreshes token without putting credentials in the URL and uploads 
   assert.match(calls[1].options.headers.Authorization, /^Bearer /);
 });
 
-test('client reuses or creates the exact podcast playlist and attaches a video', async () => {
+test('client reuses an exact podcast-enabled playlist and attaches a video', async () => {
   const requests = [];
   const fetchImpl = async (url, options = {}) => {
     requests.push({ url: String(url), options });
     if (String(url).includes('/token')) return response(200, { access_token: 'token' });
-    if (String(url).includes('/playlists?') && (!options.method || options.method === 'GET')) return response(200, { items: [] });
-    if (String(url).includes('/playlists?part=snippet%2Cstatus') && options.method === 'POST') return response(200, { id: 'playlist1' });
+    if (String(url).includes('/playlists?') && (!options.method || options.method === 'GET')) return response(200, { items: [{ id: 'playlist1', snippet: { title: 'SoFa Engine 國考 Podcast' }, status: { podcastStatus: 'enabled' } }] });
     if (String(url).includes('/playlistItems?part=snippet')) return response(200, { id: 'item1' });
     throw new Error(`unexpected ${url}`);
   };
   const client = createYoutubeClient({ fetchImpl, clientId: 'c', clientSecret: 's', refreshToken: 'r' });
-  const playlistId = await client.findOrCreatePodcastPlaylist({ title: 'SoFa Engine 國考 Podcast' });
+  const playlistId = await client.findPodcastPlaylist({ title: 'SoFa Engine 國考 Podcast' });
   await client.addVideoToPlaylist({ playlistId, videoId: 'video1' });
   assert.equal(playlistId, 'playlist1');
-  const createBody = JSON.parse(requests.find(row => row.options.method === 'POST' && row.url.includes('/playlists?')).options.body);
-  assert.equal(createBody.snippet.title, 'SoFa Engine 國考 Podcast');
-  assert.equal(createBody.status.podcastStatus, 'enabled');
+  assert.equal(requests.filter(row => row.options.method === 'POST' && row.url.includes('/playlists?')).length, 0);
 });
 
 test('publish changes only privacy status and provider errors are safely classified', async () => {
@@ -58,7 +55,7 @@ test('publish changes only privacy status and provider errors are safely classif
   };
   const client = createYoutubeClient({ fetchImpl: okFetch, clientId: 'c', clientSecret: 's', refreshToken: 'r' });
   await client.publishVideo({ videoId: 'video1' });
-  assert.deepEqual(bodies[0], { id: 'video1', status: { privacyStatus: 'public' } });
+  assert.deepEqual(bodies[0], { id: 'video1', status: { privacyStatus: 'public', selfDeclaredMadeForKids: false } });
 
   const quotaFetch = async url => String(url).includes('/token')
     ? response(200, { access_token: 'token' })

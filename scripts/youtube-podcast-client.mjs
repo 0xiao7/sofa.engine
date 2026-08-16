@@ -73,19 +73,12 @@ export function createYoutubeClient({ fetchImpl = fetch, clientId, clientSecret,
       return { videoId: payload.id };
     },
 
-    async findOrCreatePodcastPlaylist({ title }) {
+    async findPodcastPlaylist({ title }) {
       const query = new URLSearchParams({ part: 'snippet,status', mine: 'true', maxResults: '50' });
       const listed = await request(`${API}/playlists?${query}`);
-      const existing = (await safeJson(listed)).items?.find(item => item.snippet?.title === title);
+      const existing = (await safeJson(listed)).items?.find(item => item.snippet?.title === title && item.status?.podcastStatus === 'enabled');
       if (existing?.id) return existing.id;
-      const createQuery = new URLSearchParams({ part: 'snippet,status' });
-      const created = await request(`${API}/playlists?${createQuery}`, {
-        method: 'POST', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ snippet: { title }, status: { privacyStatus: 'public', podcastStatus: 'enabled' } }),
-      });
-      const payload = await safeJson(created);
-      if (!payload.id) throw new YoutubeProviderError('playlist_id_missing');
-      return payload.id;
+      throw new YoutubeProviderError('podcast_playlist_missing');
     },
 
     async addVideoToPlaylist({ playlistId, videoId }) {
@@ -101,7 +94,7 @@ export function createYoutubeClient({ fetchImpl = fetch, clientId, clientSecret,
       const query = new URLSearchParams({ part: 'status' });
       await request(`${API}/videos?${query}`, {
         method: 'PUT', headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ id: videoId, status: { privacyStatus: 'public' } }),
+        body: JSON.stringify({ id: videoId, status: { privacyStatus: 'public', selfDeclaredMadeForKids: false } }),
       });
       return { videoId, privacyStatus: 'public', exactUrl: `https://www.youtube.com/watch?v=${videoId}` };
     },

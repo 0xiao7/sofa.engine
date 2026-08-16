@@ -69,7 +69,7 @@ export async function runYoutubePodcastRelease({
       },
     });
   }
-  const resolvedPlaylistId = playlistId || await client.findOrCreatePodcastPlaylist({ title: playlistTitle });
+  const resolvedPlaylistId = playlistId || await client.findPodcastPlaylist({ title: playlistTitle });
   await client.addVideoToPlaylist({ playlistId: resolvedPlaylistId, videoId });
   const exactUrl = `https://www.youtube.com/watch?v=${videoId}`;
   upsertYoutubeRecord({

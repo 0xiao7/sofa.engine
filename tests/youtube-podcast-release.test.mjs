@@ -78,7 +78,7 @@ test('private upload persists video before playlist and partial retry does not u
   let failPlaylist = true;
   const client = {
     uploadPrivate: async () => ({ videoId: `video${++uploads}` }),
-    findOrCreatePodcastPlaylist: async () => 'playlist1',
+    findPodcastPlaylist: async () => 'playlist1',
     addVideoToPlaylist: async () => { if (failPlaylist) throw new Error('playlist failed'); },
   };
   await assert.rejects(() => runYoutubePodcastRelease({ ...fixture, mode: 'upload_private', episodeId: 'EP007', clientFactory: () => client }), /playlist failed/);
