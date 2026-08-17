@@ -31,12 +31,13 @@ jobs:
       - name: Install FFmpeg
         run: sudo apt-get update && sudo apt-get install --yes ffmpeg
 
+      - name: Install the EP001 voice renderer
+        run: python3 -m pip install edge-tts
+
       - name: Verify locked audio contract
-        run: node --test tests/podcast-voice-policy.test.mjs tests/google-tts-client.test.mjs tests/podcast-audio-master.test.mjs tests/podcast-audition.test.mjs
+        run: node --test tests/podcast-voice-policy.test.mjs tests/edge-tts-client.test.mjs tests/podcast-audio-master.test.mjs tests/podcast-audition.test.mjs
 
       - name: Build private audition
-        env:
-          GOOGLE_TTS_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_TTS_SERVICE_ACCOUNT_JSON }}
         run: >-
           node scripts/build-podcast-audition.mjs
           --episode "${{ inputs.episode }}"

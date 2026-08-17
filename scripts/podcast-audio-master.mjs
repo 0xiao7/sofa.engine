@@ -36,12 +36,15 @@ export function buildSilence({ output, seconds = 6 }) {
   ]);
 }
 
-export function buildCue({ output, hz = 880 }) {
+export function buildCue({ output, hz = [740, 988] }) {
+  const [first, second] = Array.isArray(hz) ? hz : [hz, hz];
   ffmpeg([
     '-f', 'lavfi',
-    '-i', `sine=frequency=${hz}:sample_rate=44100:duration=0.18`,
-    '-ac', '2',
-    '-af', 'volume=0.08',
+    '-i', `sine=frequency=${first}:sample_rate=44100:duration=0.13`,
+    '-f', 'lavfi',
+    '-i', `sine=frequency=${second}:sample_rate=44100:duration=0.10`,
+    '-filter_complex', '[0:a]volume=0.055,apad=pad_dur=0.03[a0];[1:a]volume=0.04[a1];[a0][a1]concat=n=2:v=0:a=1,aformat=channel_layouts=stereo[out]',
+    '-map', '[out]',
     '-c:a', 'pcm_s16le',
     output,
   ]);
@@ -52,7 +55,6 @@ export function assembleMaster({ concatList, output }) {
     '-f', 'concat',
     '-safe', '0',
     '-i', concatList,
-    '-af', 'loudnorm=I=-16:TP=-1.5:LRA=11',
     '-ar', '44100',
     '-ac', '2',
     '-c:a', 'pcm_s16le',

@@ -11,8 +11,9 @@ test('podcast audition workflow is manual, private, and artifact-only', () => {
   assert.match(workflow, /episode:\n\s+description:/);
   assert.match(workflow, /script:\n\s+description:/);
   assert.match(workflow, /contents: read/);
-  assert.match(workflow, /GOOGLE_TTS_SERVICE_ACCOUNT_JSON: \$\{\{ secrets\.GOOGLE_TTS_SERVICE_ACCOUNT_JSON \}\}/);
-  assert.match(workflow, /node --test tests\/podcast-voice-policy\.test\.mjs tests\/google-tts-client\.test\.mjs tests\/podcast-audio-master\.test\.mjs tests\/podcast-audition\.test\.mjs/);
+  assert.match(workflow, /python3 -m pip install edge-tts/);
+  assert.doesNotMatch(workflow, /GOOGLE_TTS|SERVICE_ACCOUNT|secrets\./);
+  assert.match(workflow, /node --test tests\/podcast-voice-policy\.test\.mjs tests\/edge-tts-client\.test\.mjs tests\/podcast-audio-master\.test\.mjs tests\/podcast-audition\.test\.mjs/);
   assert.match(workflow, /node scripts\/build-podcast-audition\.mjs/);
   assert.match(workflow, /actions\/upload-artifact@v4/);
   assert.match(workflow, /path: build\/podcast-audition-/);

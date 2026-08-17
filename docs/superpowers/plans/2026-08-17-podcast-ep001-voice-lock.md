@@ -1,5 +1,7 @@
 # Podcast EP001 Voice Lock Implementation Plan
 
+> Correction recorded 2026-08-17: live provider evidence showed that the EP001 A/C master used Microsoft Edge TTS `zh-TW-HsiaoChenNeural` (`-10%`, `-2Hz`) and `zh-TW-YunJheNeural` (`-10%`, `-3Hz`), not the proposed Google Chirp names. The implemented audition path follows the verified EP001 settings; the Google credential steps below are superseded and must not be executed.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Rebuild the SoFa Podcast audio pipeline so every new episode reproduces the approved EP001 production contract and one approved master is reused by the website, RSS, and YouTube.
