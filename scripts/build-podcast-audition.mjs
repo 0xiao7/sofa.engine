@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import {
@@ -30,6 +30,7 @@ function artifact(path) {
 }
 
 export async function buildAudition({ episode, outputDir, artwork, synthesize }) {
+  outputDir = resolve(outputDir);
   const policy = JSON.parse(readFileSync(POLICY_PATH, 'utf8'));
   if (episode?.voicePolicyId !== policy.id) {
     throw new Error(`Episode voice policy must be ${policy.id}`);

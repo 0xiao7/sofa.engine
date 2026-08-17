@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
-import { join } from 'node:path';
+import { join, relative } from 'node:path';
 import test from 'node:test';
 
 import { buildAudition } from '../scripts/build-podcast-audition.mjs';
@@ -24,7 +24,7 @@ test('audition builds one shared private master without publishing', async () =>
         { role: 'C', text: '答案是輕重先，先後次' },
       ],
     },
-    outputDir: join(root, 'output'),
+    outputDir: relative(process.cwd(), join(root, 'output')),
     artwork: join(process.cwd(), 'assets/podcast-cover-3000.png'),
     synthesize: async () => {
       calls += 1;
