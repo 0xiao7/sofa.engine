@@ -1211,6 +1211,7 @@
   });
 
   function isEmail(v){ return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v); }
+  const lineIdentity = (new URLSearchParams(location.search).get("line_identity") || "").trim();
 
   // ── Query string prefill：?plan=月費&email=xxx&exam_key=bookkeeper ─────
   // 從 LINE bot 帶過來的連結會自動選方案、考試目標與信箱，省去重輸
@@ -1315,6 +1316,7 @@
           plan: sel.plan,
           email,
           exam_key: examKey,
+          line_identity: lineIdentity,
           session_id: checkoutSessionId,
           page_path: location.pathname + location.search,
           attribution: checkoutAttribution()
