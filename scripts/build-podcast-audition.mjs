@@ -29,7 +29,27 @@ function artifact(path) {
   return { path, sha256: sha256(path), probe: probeAudio(path) };
 }
 
-export async function buildAudition({ episode, outputDir, artwork, synthesize }) {
+function fileArtifact(path) {
+  return { path, sha256: sha256(path) };
+}
+
+function vttTime(seconds) {
+  const milliseconds = Math.max(0, Math.round(seconds * 1000));
+  const hours = Math.floor(milliseconds / 3_600_000);
+  const minutes = Math.floor((milliseconds % 3_600_000) / 60_000);
+  const wholeSeconds = Math.floor((milliseconds % 60_000) / 1000);
+  const remainder = milliseconds % 1000;
+  return [hours, minutes, wholeSeconds].map(value => String(value).padStart(2, '0')).join(':') + `.${String(remainder).padStart(3, '0')}`;
+}
+
+export async function buildAudition({
+  episode,
+  outputDir,
+  artwork,
+  synthesize,
+  reportStatus = 'audition_pending_listen_approval',
+  provider = 'microsoft-edge-tts',
+}) {
   outputDir = resolve(outputDir);
   const policy = JSON.parse(readFileSync(POLICY_PATH, 'utf8'));
   if (episode?.voicePolicyId !== policy.id) {
@@ -44,6 +64,8 @@ export async function buildAudition({ episode, outputDir, artwork, synthesize })
   const workDir = join(outputDir, '.segments');
   mkdirSync(workDir, { recursive: true });
   const parts = [];
+  const captions = [];
+  let timelineSeconds = 0;
   let providerCallCount = 0;
 
   for (let index = 0; index < episode.segments.length; index += 1) {
@@ -53,6 +75,7 @@ export async function buildAudition({ episode, outputDir, artwork, synthesize })
       const output = join(workDir, `${stem}-silence.wav`);
       buildSilence({ output, seconds: segment.seconds ?? policy.media.thinkingPauseSeconds });
       parts.push(output);
+      timelineSeconds += probeAudio(output).duration;
       continue;
     }
 
@@ -67,10 +90,14 @@ export async function buildAudition({ episode, outputDir, artwork, synthesize })
     writeFileSync(providerPath, bytes);
     normalizeSegment({ input: providerPath, output: normalizedPath });
     parts.push(normalizedPath);
+    const segmentDuration = probeAudio(normalizedPath).duration;
+    captions.push({ start: timelineSeconds, end: timelineSeconds + segmentDuration, text: segment.text.trim() });
+    timelineSeconds += segmentDuration;
     if (segment.cue) {
       const cuePath = join(workDir, `${stem}-cue.wav`);
       buildCue({ output: cuePath, hz: policy.media.cueHz });
       parts.push(cuePath);
+      timelineSeconds += probeAudio(cuePath).duration;
     }
   }
 
@@ -81,13 +108,16 @@ export async function buildAudition({ episode, outputDir, artwork, synthesize })
   const mp3 = join(outputDir, `${prefix}.mp3`);
   const m4a = join(outputDir, `${prefix}.m4a`);
   const youtubeMp4 = join(outputDir, `${prefix}-youtube.mp4`);
+  const vtt = join(outputDir, `${prefix}.vtt`);
   assembleMaster({ concatList, output: master });
   encodeDerivatives({ master, mp3, m4a });
   muxYoutube({ m4a, artwork, output: youtubeMp4 });
+  writeFileSync(vtt, `WEBVTT\n\n${captions.map((caption, index) => `${index + 1}\n${vttTime(caption.start)} --> ${vttTime(caption.end)}\n${caption.text}\n`).join('\n')}`);
 
   const report = {
     episodeId: episode.episodeId,
-    status: 'audition_pending_listen_approval',
+    status: reportStatus,
+    provider,
     voicePolicyId: policy.id,
     sourceOriginalTextSha256: episode.sourceOriginalTextSha256,
     providerCallCount,
@@ -96,6 +126,7 @@ export async function buildAudition({ episode, outputDir, artwork, synthesize })
       mp3: artifact(mp3),
       m4a: artifact(m4a),
       youtubeMp4: artifact(youtubeMp4),
+      vtt: fileArtifact(vtt),
     },
   };
   writeFileSync(join(outputDir, 'report.json'), `${JSON.stringify(report, null, 2)}\n`);

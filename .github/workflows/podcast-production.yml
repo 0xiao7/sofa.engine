@@ -1,0 +1,53 @@
+name: Paid Azure Podcast Production Candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      episode:
+        description: Exact episode ID, for example EP003
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  production:
+    runs-on: ubuntu-latest
+    env:
+      SPEECH_KEY: ${{ secrets.AZURE_SPEECH_KEY }}
+      SPEECH_REGION: ${{ secrets.AZURE_SPEECH_REGION }}
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install --yes ffmpeg
+
+      - name: Verify official production contract
+        run: node --test tests/azure-speech-tts-client.test.mjs tests/podcast-production.test.mjs tests/podcast-audio-master.test.mjs tests/podcast-voice-policy.test.mjs
+
+      - name: Require paid Azure credentials
+        run: test -n "$SPEECH_KEY" && test -n "$SPEECH_REGION"
+
+      - name: Build approval-gated production candidate
+        run: |
+          episode="${{ inputs.episode }}"
+          episode_lower="$(printf '%s' "$episode" | tr '[:upper:]' '[:lower:]')"
+          node scripts/build-podcast-production.mjs \
+            --episode "$episode" \
+            --script "data/podcast-productions/${episode_lower}.json" \
+            --output-dir "build/podcast-production-${episode}"
+
+      - name: Upload private production artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: podcast-production-${{ inputs.episode }}
+          path: build/podcast-production-*
+          retention-days: 7
+          if-no-files-found: error
