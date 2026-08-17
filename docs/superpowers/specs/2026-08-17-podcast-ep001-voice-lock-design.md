@@ -16,13 +16,13 @@ Voice labels and manifest metadata alone are insufficient release evidence. The 
 
 Each episode must use the EP001 synthesis and editorial pattern:
 
-- Google Cloud Text-to-Speech under the `sofa-engine` project.
+- Microsoft Edge TTS using the exact EP001 voices `zh-TW-HsiaoChenNeural` and `zh-TW-YunJheNeural` for the private audition. Public production remains approval-gated.
 - The two Taiwan Mandarin voices recorded by the EP001 voice policy, alternating by the same semantic roles as EP001.
 - The EP001 speaking pace, prompt rhythm, cue placement, six-second thinking pause, and answer cadence.
 - No Hana, local macOS voice, browser TTS, or unapproved provider fallback.
 - Every provider speech segment is decoded and normalized before concatenation.
 - Each normalized segment is 44,100 Hz, two-channel stereo PCM during assembly.
-- The assembled master is loudness-normalized once, then encoded to the distribution formats.
+- The assembled master preserves the EP001 segment levels and is encoded to the distribution formats without an extra loudness pass.
 - MP3/M4A derivatives must preserve 44,100 Hz stereo output and identical program duration.
 - The YouTube MP4 must mux the approved M4A with static Podcast artwork. It must not resynthesize, time-stretch, or otherwise alter the audio.
 
@@ -31,11 +31,11 @@ The first implementation deliverable is a 30-60 second audition derived from an 
 ## Data Flow
 
 1. Load a source-locked episode script and the versioned EP001 voice policy.
-2. Synthesize each spoken segment once through Google Cloud TTS.
+2. Synthesize each spoken segment once with the exact EP001 Microsoft voices and settings.
 3. Decode each response to PCM and normalize it to 44.1 kHz stereo.
 4. Generate the cue tone and silence directly at 44.1 kHz stereo.
 5. Concatenate only normalized PCM segments.
-6. Apply one master loudness-normalization pass.
+6. Assemble the normalized segments without changing the approved EP001 voice levels.
 7. Encode the approved master to MP3 and M4A.
 8. Validate media properties, duration consistency, voice-policy ID, source hash, and listening-approval state.
 9. Reuse the approved M4A for the website/RSS release and YouTube MP4 mux.
@@ -44,7 +44,7 @@ The first implementation deliverable is a 30-60 second audition derived from an 
 
 Generation and publication are separate operations. A generated artifact cannot become public unless all gates pass:
 
-- Google provider call succeeded without fallback.
+- The exact EP001 Microsoft voice call succeeded without fallback.
 - The exact approved voice-policy version is present.
 - Every segment and final derivative are 44.1 kHz stereo.
 - MP3 and M4A durations differ by no more than 0.10 seconds.
@@ -58,7 +58,7 @@ Any failed or unavailable check returns a blocked state. The pipeline must not s
 
 ## Cost and Credentials
 
-The existing `sofa-engine` Google Cloud project has Cloud Text-to-Speech enabled and an active trial credit. Credentials must be provided to CI through a GitHub secret or a keyless Google workload identity. They must never be committed, logged, copied into Notion, or embedded in public artifacts.
+The EP001 master was produced with Microsoft Edge TTS voices, not Google Cloud TTS. Google Cloud trial credit cannot pay for these voices. The private audition workflow therefore uses no cloud credential. Public release remains blocked until Fay approves the audition and the production provider's commercial-use terms are recorded.
 
 One episode is synthesized once. Website, RSS, and YouTube distribution reuse the same encoded master, so additional plays or platforms do not incur additional TTS character charges.
 
@@ -83,4 +83,3 @@ The relevant existing Podcast and YouTube contract suite must remain green.
 3. Repeat sequentially for EP003-EP006; do not batch-approve listening.
 4. Only approved episodes may be made public and re-enter the marketing schedule.
 5. Keep the rejected 2026-08-17 A/C videos private as audit evidence until the corrected releases are verified.
-

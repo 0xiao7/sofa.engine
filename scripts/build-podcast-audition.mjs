@@ -12,7 +12,7 @@ import {
   normalizeSegment,
   probeAudio,
 } from './podcast-audio-master.mjs';
-import { getGoogleAccessToken, synthesizeSegment } from './google-tts-client.mjs';
+import { synthesizeSegment } from './edge-tts-client.mjs';
 
 const REPO_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const POLICY_PATH = join(REPO_ROOT, 'data', 'podcast-voice-policy-ep001-v1.json');
@@ -37,7 +37,7 @@ export async function buildAudition({ episode, outputDir, artwork, synthesize })
   if (!Array.isArray(episode.segments) || episode.segments.length === 0) {
     throw new Error('Episode must contain at least one segment');
   }
-  if (typeof synthesize !== 'function') throw new Error('A Google TTS synthesizer is required');
+  if (typeof synthesize !== 'function') throw new Error('The locked Edge TTS synthesizer is required');
 
   mkdirSync(outputDir, { recursive: true });
   const workDir = join(outputDir, '.segments');
@@ -58,11 +58,11 @@ export async function buildAudition({ episode, outputDir, artwork, synthesize })
     const voice = policy.voices.find((candidate) => candidate.role === segment.role);
     if (!voice) throw new Error(`No locked voice for role ${segment.role}`);
     if (!segment.text?.trim()) throw new Error(`Speech segment ${index} has no text`);
-    const providerPath = join(workDir, `${stem}-provider.wav`);
+    const providerPath = join(workDir, `${stem}-provider.mp3`);
     const normalizedPath = join(workDir, `${stem}-normalized.wav`);
     const bytes = await synthesize({ text: segment.text, voice });
     providerCallCount += 1;
-    if (!bytes?.length) throw new Error(`Google TTS returned empty audio for segment ${index}`);
+    if (!bytes?.length) throw new Error(`Edge TTS returned empty audio for segment ${index}`);
     writeFileSync(providerPath, bytes);
     normalizeSegment({ input: providerPath, output: normalizedPath });
     parts.push(normalizedPath);
@@ -113,22 +113,13 @@ async function main(args) {
   if (!episodeId || !scriptPath || !outputDir) {
     throw new Error('Required: --episode EP002 --script <path> --output-dir <path>');
   }
-  const rawCredentials = process.env.GOOGLE_TTS_SERVICE_ACCOUNT_JSON;
-  if (!rawCredentials) throw new Error('GOOGLE_TTS_SERVICE_ACCOUNT_JSON is required');
-  let credentials;
-  try {
-    credentials = JSON.parse(rawCredentials);
-  } catch {
-    throw new Error('GOOGLE_TTS_SERVICE_ACCOUNT_JSON is invalid JSON');
-  }
   const episode = JSON.parse(readFileSync(scriptPath, 'utf8'));
   if (episode.episodeId !== episodeId) throw new Error('Episode ID does not match audition script');
-  const accessToken = await getGoogleAccessToken({ credentials });
   const report = await buildAudition({
     episode,
     outputDir,
     artwork: join(REPO_ROOT, 'assets', 'podcast-cover-3000.png'),
-    synthesize: ({ text, voice }) => synthesizeSegment({ text, voice, accessToken }),
+    synthesize: ({ text, voice }) => synthesizeSegment({ text, voice }),
   });
   process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
 }
