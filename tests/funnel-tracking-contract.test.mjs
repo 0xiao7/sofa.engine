@@ -162,6 +162,11 @@ test('pricing and checkout expose plan selection, checkout start, and payment re
   assert.match(checkout, /const pagePath = location\.pathname \+ location\.search/);
   assert.match(checkout, /page_path: pagePath/);
   assert.match(checkout, /body: JSON\.stringify\(payload\)/);
+  assert.match(
+    checkout,
+    /fetch\(API_URL,[\s\S]*?body: JSON\.stringify\(\{[\s\S]*?session_id: checkoutSessionId,[\s\S]*?page_path: location\.pathname \+ location\.search,[\s\S]*?attribution: checkoutAttribution\(\)[\s\S]*?\}\)/,
+    'checkout order creation must persist the same session, page, and attribution used by funnel tracking'
+  );
   assert.doesNotMatch(checkout, /data-track-event="checkout_submit"/, 'checkout submit should not double-count through generic click tracking');
 });
 
