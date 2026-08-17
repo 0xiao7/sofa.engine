@@ -11,7 +11,9 @@ test('EP001 is the immutable public voice and media reference', () => {
     'zh-TW-HsiaoChenNeural',
     'zh-TW-YunJheNeural',
   ]);
-  assert.equal(policy.provider, 'microsoft-edge-tts');
+  assert.equal(policy.provider, 'microsoft-azure-speech-paid');
+  assert.equal(policy.privateAuditionProvider, 'microsoft-edge-tts');
+  assert.equal(policy.productionRights, 'paid-tier-commercial-output');
   assert.deepEqual(policy.voices.map(row => row.rate), ['-10%', '-10%']);
   assert.deepEqual(policy.voices.map(row => row.pitch), ['-2Hz', '-3Hz']);
   assert.equal(policy.media.sampleRate, 44100);

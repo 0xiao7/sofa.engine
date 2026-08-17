@@ -36,9 +36,12 @@ test('audition builds one shared private master without publishing', async () =>
   assert.equal(report.providerCallCount, 2);
   assert.equal(report.voicePolicyId, 'podcast-ep001-master-v1');
   assert.equal(report.publicUrl, undefined);
-  for (const type of ['master', 'mp3', 'm4a', 'youtubeMp4']) {
+  for (const type of ['master', 'mp3', 'm4a', 'youtubeMp4', 'vtt']) {
     assert.match(report.artifacts[type].sha256, /^[0-9a-f]{64}$/);
   }
+  assert.match(readFileSync(report.artifacts.vtt.path, 'utf8'), /^WEBVTT\n\n1\n00:00:00\.000 --> /);
+  assert.match(readFileSync(report.artifacts.vtt.path, 'utf8'), /先回答這一題/);
+  assert.match(readFileSync(report.artifacts.vtt.path, 'utf8'), /答案是輕重先，先後次/);
   assert.equal(report.artifacts.master.probe.sampleRate, 44100);
   assert.equal(report.artifacts.master.probe.channels, 2);
 });
