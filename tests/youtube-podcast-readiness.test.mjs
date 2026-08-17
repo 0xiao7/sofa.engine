@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -19,10 +20,10 @@ function fixture() {
     vtt: 'assets/audio/ep007.vtt',
     youtubeMp4: 'assets/audio/ep007-youtube.mp4',
   };
-  writeFileSync(join(root, paths.mp3), Buffer.alloc(301_000, 1));
-  writeFileSync(join(root, paths.m4a), Buffer.alloc(301_000, 2));
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=44100:duration=1', '-ac', '2', join(root, paths.mp3)]);
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=44100:duration=1', '-ac', '2', join(root, paths.m4a)]);
   writeFileSync(join(root, paths.vtt), 'WEBVTT\n\n00:00:00.000 --> 00:00:01.000\n正式法條內容\n');
-  writeFileSync(join(root, paths.youtubeMp4), Buffer.alloc(301_000, 3));
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=320x180:r=1:d=1', '-i', join(root, paths.m4a), '-c:v', 'libx264', '-c:a', 'copy', '-shortest', join(root, paths.youtubeMp4)]);
   const episode = {
     id: 'EP007', status: 'approved_for_release', exam: '記帳士',
     law: '加值型及非加值型營業稅法', article: '01',
@@ -30,16 +31,45 @@ function fixture() {
     summary: '先判斷交易是否落在課稅範圍。',
     officialLawUrl: 'https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=G0340080&flno=01',
     utmCampaign: 'podcast_episode_007_law', duration: '00:01:10',
-    guid: 'sofa-podcast-ep007-v20260817-hana', assets: paths,
+    guid: 'sofa-podcast-ep007-v20260817-ep001', assets: paths,
+    voicePolicyId: 'podcast-ep001-master-v1',
+    voiceMix: ['EP001 A', 'EP001 C'],
     listenApproval: { status: 'approved', approvedBy: 'Fay', approvedAt: '2026-08-17T09:00:00+08:00' },
   };
   episode.assetSha256 = Object.fromEntries(Object.entries(paths).map(([type, path]) => [type, sha256File(join(root, path))]));
+  episode.masterSha256 = episode.assetSha256.m4a;
   return { root, episode };
 }
 
 test('approved episode with matching assets passes readiness', () => {
   const { root, episode } = fixture();
   assert.equal(validateYoutubeEpisode({ episode, root }).episodeId, 'EP007');
+});
+
+test('readiness rejects media and master identities outside the EP001 contract', () => {
+  const wrongPolicy = fixture();
+  wrongPolicy.episode.voicePolicyId = 'voice-hana-seed-v1';
+  wrongPolicy.episode.voiceMix = ['Hana'];
+  assert.throws(() => validateYoutubeEpisode(wrongPolicy), /EP007 voicePolicyId/);
+
+  const hana = fixture();
+  hana.episode.voiceMix = ['Hana'];
+  assert.throws(() => validateYoutubeEpisode(hana), /EP007 voiceMix/);
+
+  const wrongMaster = fixture();
+  wrongMaster.episode.masterSha256 = '0'.repeat(64);
+  assert.throws(() => validateYoutubeEpisode(wrongMaster), /EP007 masterSha256/);
+
+  const mono = fixture();
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=330:sample_rate=24000:duration=1', '-ac', '1', join(mono.root, mono.episode.assets.m4a)]);
+  mono.episode.assetSha256.m4a = sha256File(join(mono.root, mono.episode.assets.m4a));
+  mono.episode.masterSha256 = mono.episode.assetSha256.m4a;
+  assert.throws(() => validateYoutubeEpisode(mono), /EP007 m4a media contract/);
+
+  const durationMismatch = fixture();
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=320x180:r=1:d=2', '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=44100:duration=2', '-ac', '2', '-c:v', 'libx264', '-c:a', 'aac', '-shortest', join(durationMismatch.root, durationMismatch.episode.assets.youtubeMp4)]);
+  durationMismatch.episode.assetSha256.youtubeMp4 = sha256File(join(durationMismatch.root, durationMismatch.episode.assets.youtubeMp4));
+  assert.throws(() => validateYoutubeEpisode(durationMismatch), /EP007 youtubeMp4 duration/);
 });
 
 test('readiness fails closed on approval, asset and hash gaps', () => {

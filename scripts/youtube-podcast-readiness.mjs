@@ -1,8 +1,10 @@
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
+import { probeAudio } from './podcast-audio-master.mjs';
 
 const ASSET_TYPES = ['mp3', 'm4a', 'vtt', 'youtubeMp4'];
+const VOICE_POLICY_ID = 'podcast-ep001-master-v1';
 
 export function sha256File(path) {
   return createHash('sha256').update(readFileSync(path)).digest('hex');
@@ -46,6 +48,12 @@ export function validateYoutubeEpisode({ episode, root = process.cwd() }) {
   if (approval?.status !== 'approved' || !approval.approvedBy || !approval.approvedAt) {
     throw new Error(`${episode.id} missing listen approval`);
   }
+  if (episode.voicePolicyId !== VOICE_POLICY_ID) {
+    throw new Error(`${episode.id} voicePolicyId must be ${VOICE_POLICY_ID}`);
+  }
+  if (!Array.isArray(episode.voiceMix) || episode.voiceMix.includes('Hana')) {
+    throw new Error(`${episode.id} voiceMix violates EP001 contract`);
+  }
   if (!/^00:\d{2}:\d{2}$/.test(episode.duration || '')) throw new Error(`${episode.id} missing duration`);
   if (!episode.guid || episode.guid.endsWith('-pending')) throw new Error(`${episode.id} has provisional GUID`);
   for (const type of ASSET_TYPES) {
@@ -56,6 +64,24 @@ export function validateYoutubeEpisode({ episode, root = process.cwd() }) {
     const expected = episode.assetSha256?.[type];
     if (!/^[0-9a-f]{64}$/.test(expected || '')) throw new Error(`${episode.id} missing ${type} SHA-256`);
     if (sha256File(absolute) !== expected) throw new Error(`${episode.id} ${type} SHA-256 mismatch`);
+  }
+  if (!/^[0-9a-f]{64}$/.test(episode.masterSha256 || '') || episode.masterSha256 !== episode.assetSha256.m4a) {
+    throw new Error(`${episode.id} masterSha256 does not match the shared M4A master`);
+  }
+  const media = Object.fromEntries(['mp3', 'm4a', 'youtubeMp4'].map((type) => [
+    type,
+    probeAudio(resolve(root, episode.assets[type])),
+  ]));
+  for (const type of ['mp3', 'm4a']) {
+    if (media[type].sampleRate !== 44100 || media[type].channels !== 2) {
+      throw new Error(`${episode.id} ${type} media contract requires 44100 Hz stereo`);
+    }
+  }
+  if (Math.abs(media.mp3.duration - media.m4a.duration) > 0.10) {
+    throw new Error(`${episode.id} mp3 duration differs from shared M4A master`);
+  }
+  if (Math.abs(media.youtubeMp4.duration - media.m4a.duration) > 0.10) {
+    throw new Error(`${episode.id} youtubeMp4 duration differs from shared M4A master`);
   }
   const metadata = buildYoutubeMetadata(episode);
   return {
