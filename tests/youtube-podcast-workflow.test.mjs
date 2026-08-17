@@ -4,6 +4,13 @@ import test from 'node:test';
 
 const workflow = readFileSync(new URL('../.github/workflows/youtube-podcast-release.yml', import.meta.url), 'utf8');
 
+test('workflow installs FFmpeg before media-contract tests', () => {
+  const install = workflow.indexOf('apt-get install --yes ffmpeg');
+  const verify = workflow.indexOf('node --test tests/youtube-podcast-*.test.mjs');
+  assert.ok(install >= 0, 'FFmpeg install step is required');
+  assert.ok(install < verify, 'FFmpeg must be installed before media-contract tests');
+});
+
 test('scheduled YouTube Podcast workflow validates only', () => {
   assert.match(workflow, /schedule:/);
   assert.match(workflow, /cron:\s*['"]20 13 \* \* \*['"]/);

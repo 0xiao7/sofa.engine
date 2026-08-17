@@ -46,6 +46,9 @@ jobs:
         with:
           node-version: '24'
 
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install --yes ffmpeg
+
       - name: Verify YouTube Podcast contracts
         run: node --test tests/youtube-podcast-*.test.mjs
 
