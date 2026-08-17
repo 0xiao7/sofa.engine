@@ -1311,7 +1311,14 @@
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan: sel.plan, email, exam_key: examKey })
+        body: JSON.stringify({
+          plan: sel.plan,
+          email,
+          exam_key: examKey,
+          session_id: checkoutSessionId,
+          page_path: location.pathname + location.search,
+          attribution: checkoutAttribution()
+        })
       });
       if (!res.ok){
         let msg = `付款服務暫時無法回應（${res.status}），請稍後再試一次。`;
