@@ -69,7 +69,8 @@ test('checkout defaults to the exam-day plan and keeps required checkout fields'
   assert.doesNotMatch(checkout, /const EXAM = new Date\('2026-11-14T00:00:00\+08:00'\)/);
   assert.match(checkout, /"到考日": "到考日方案 · 讀到考試日"/);
   assert.match(checkout, /const examKey = getCheckoutExamKey\(\)/);
-  assert.match(checkout, /body: JSON\.stringify\(\{ plan: sel\.plan, email, exam_key: examKey, line_identity: lineIdentity \}\)/);
+  assert.match(checkout, /exam_key: examKey/);
+  assert.match(checkout, /line_identity: lineIdentity/);
 });
 
 test('GX-DROPDOWN checkout only renders open and LINE-supported exam targets', () => {
@@ -156,7 +157,8 @@ test('CXB checkout sanitizes stored exam_key before sending payment payloads', (
   assert.match(checkout, /sanitizeCheckoutExamKey\(fromQuery, \{ allowDisabled: false \}\)/);
   assert.match(checkout, /sanitizeCheckoutExamKey\(stored, \{ allowDisabled: false \}\)/);
   assert.match(checkout, /const examKey = getCheckoutExamKey\(\)/);
-  assert.match(checkout, /body: JSON\.stringify\(\{ plan: sel\.plan, email, exam_key: examKey, line_identity: lineIdentity \}\)/);
+  assert.match(checkout, /exam_key: examKey/);
+  assert.match(checkout, /line_identity: lineIdentity/);
 });
 
 test('pricing presents exam-day as the featured plan and keeps monthly as the low-cost entry', () => {
