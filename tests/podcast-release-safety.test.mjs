@@ -35,7 +35,7 @@ test('podcast release notes record rights, voices, and the three content lanes',
   assert.equal(notes.show.title, 'SoFa 輕聲補一條');
   assert.equal(notes.show.artwork, 'assets/podcast-cover-3000-v20260721-close.jpg');
   assert.equal(notes.rights.aiVoiceDisclosure, true);
-  assert.deepEqual(notes.voicePolicy.primaryVoices, ['Hana']);
+  assert.deepEqual(notes.voicePolicy.primaryVoices, ['EP001 A', 'EP001 C']);
   assert.deepEqual(notes.contentLanes.map(lane => lane.id), [
     'context',
     'law-memory',
@@ -49,9 +49,9 @@ test('podcast release notes record rights, voices, and the three content lanes',
 
 test('podcast release notes pin a reusable voice policy version', () => {
   const notes = JSON.parse(readFileSync(new URL('podcast-release.json', root), 'utf8'));
-  assert.equal(notes.voicePolicy.version, 'voice-hana-seed-v1');
-  assert.equal(notes.voicePolicy.changeControl, 'Do not change provider, voiceName, mastering target, or script treatment without a new manifest version and Fay listening approval.');
-  assert.equal(notes.voicePolicy.lawFamilyRotation.tax, 'Hana');
-  assert.equal(notes.voicePolicy.lawFamilyRotation.land, 'Hana');
-  assert.equal(notes.voicePolicy.lawFamilyRotation.default, 'Hana');
+  assert.equal(notes.voicePolicy.version, 'voice-azure-ep001-v1');
+  assert.equal(notes.voicePolicy.provider, 'Microsoft Azure Speech paid tier');
+  assert.equal(notes.voicePolicy.variants['EP001 A'].voiceName, 'zh-TW-HsiaoChenNeural');
+  assert.equal(notes.voicePolicy.variants['EP001 C'].voiceName, 'zh-TW-YunJheNeural');
+  assert.equal(notes.voicePolicy.approval.status, 'approved-for-public-release');
 });
