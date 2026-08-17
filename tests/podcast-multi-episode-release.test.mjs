@@ -17,15 +17,14 @@ function assertLocalFile(path, minBytes) {
 
 test('podcast release publishes EP001 through EP006 with local audio and transcripts', () => {
   assert.deepEqual(release.episodes.map(episode => episode.id), expectedEpisodes);
-  assert.equal(release.voicePolicy.version, 'voice-hana-seed-v1');
-  assert.equal(release.voicePolicy.provider, 'Seed Audio');
-  assert.deepEqual(release.voicePolicy.primaryVoices, ['Hana']);
-  assert.equal(release.voicePolicy.variants.Hana.voiceName, 'Hana');
+  assert.equal(release.voicePolicy.version, 'voice-azure-ep001-v1');
+  assert.equal(release.voicePolicy.provider, 'Microsoft Azure Speech paid tier');
+  assert.deepEqual(release.voicePolicy.primaryVoices, ['EP001 A', 'EP001 C']);
 
   for (const episode of release.episodes) {
     assert.match(
       episode.guid,
-      /^sofa-podcast-ep001-v20260721-ac$|^sofa-podcast-ep00[2-6]-v20260724-hana$/,
+      /^sofa-podcast-ep001-v20260721-ac$|^sofa-podcast-ep00[2-6]-v20260818-azure$/,
     );
     assertLocalFile(episode.enclosure, 300_000);
     assertLocalFile(episode.siteAudio, 300_000);

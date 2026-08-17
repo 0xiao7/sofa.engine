@@ -23,10 +23,12 @@ test('manual mutation is episode-scoped and receives secrets without echoing the
   assert.match(workflow, /workflow_dispatch:/);
   assert.match(workflow, /mode:[\s\S]*upload_private[\s\S]*publish/);
   assert.match(workflow, /episode:/);
+  assert.match(workflow, /release_set:[\s\S]*daily[\s\S]*ep002-006-azure/);
   assert.match(workflow, /YOUTUBE_CLIENT_ID:\s*\$\{\{ secrets\.YOUTUBE_CLIENT_ID \}\}/);
   assert.match(workflow, /YOUTUBE_CLIENT_SECRET:\s*\$\{\{ secrets\.YOUTUBE_CLIENT_SECRET \}\}/);
   assert.match(workflow, /YOUTUBE_REFRESH_TOKEN:\s*\$\{\{ secrets\.YOUTUBE_REFRESH_TOKEN \}\}/);
   assert.match(workflow, /--episode "\$\{\{ inputs\.episode \}\}"/);
+  assert.match(workflow, /data\/podcast-replacements-ep002-006\.json/);
   assert.doesNotMatch(workflow, /echo.*YOUTUBE_|printenv|env\s*$/m);
 });
 

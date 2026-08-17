@@ -29,6 +29,7 @@ function fixture() {
     law: '加值型及非加值型營業稅法', article: '01',
     title: '記帳士｜加值型及非加值型營業稅法第01條：課稅範圍',
     summary: '先判斷交易是否落在課稅範圍。',
+    transcriptExcerpt: '先聽條文重點。\n這是公開的文字節錄。',
     officialLawUrl: 'https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=G0340080&flno=01',
     utmCampaign: 'podcast_episode_007_law', duration: '00:01:10',
     guid: 'sofa-podcast-ep007-v20260817-ep001', assets: paths,
@@ -101,4 +102,5 @@ test('YouTube metadata is private, non-child, source-backed and attributable', (
   assert.match(metadata.snippet.description, /utm_campaign=podcast_episode_007_law/);
   assert.match(metadata.snippet.description, /SoFa Engine 參考解析/);
   assert.match(metadata.snippet.description, /非考選部官方標準答案/);
+  assert.match(metadata.snippet.description, /本集文字節錄：\n先聽條文重點。\n這是公開的文字節錄。/);
 });

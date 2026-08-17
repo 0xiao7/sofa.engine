@@ -21,6 +21,7 @@ export function buildYoutubeMetadata(episode) {
   practiceUrl.searchParams.set('utm_campaign', episode.utmCampaign);
   const description = [
     episode.summary,
+    ...(episode.transcriptExcerpt ? ['', '本集文字節錄：', episode.transcriptExcerpt] : []),
     '',
     `正式法源：${episode.officialLawUrl}`,
     `聽完練這一條：${practiceUrl.toString()}`,

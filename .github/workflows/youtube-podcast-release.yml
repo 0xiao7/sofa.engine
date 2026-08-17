@@ -26,6 +26,14 @@ on:
         description: Exact episode ID, for example EP007
         required: true
         type: string
+      release_set:
+        description: Release source
+        required: true
+        type: choice
+        default: daily
+        options:
+          - daily
+          - ep002-006-azure
 
 permissions:
   contents: write
@@ -63,7 +71,15 @@ jobs:
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
           YOUTUBE_PODCAST_PLAYLIST_ID: ${{ secrets.YOUTUBE_PODCAST_PLAYLIST_ID }}
-        run: node scripts/youtube-podcast-release.mjs --mode "${{ inputs.mode }}" --episode "${{ inputs.episode }}"
+        run: |
+          queue="data/podcast-law-queue.json"
+          if [ "${{ inputs.release_set }}" = "ep002-006-azure" ]; then
+            queue="data/podcast-replacements-ep002-006.json"
+          fi
+          node scripts/youtube-podcast-release.mjs \
+            --mode "${{ inputs.mode }}" \
+            --episode "${{ inputs.episode }}" \
+            --queue "$queue"
 
       - name: Commit provider ledger only
         if: github.event_name == 'workflow_dispatch' && inputs.mode != 'validate'

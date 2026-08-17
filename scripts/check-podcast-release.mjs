@@ -50,8 +50,8 @@ const episode = release.episodes[0];
 
 assert.equal(release.show.title, 'SoFa 輕聲補一條');
 assert.equal(release.rights.aiVoiceDisclosure, true);
-assert.equal(release.voicePolicy.version, 'voice-hana-seed-v1');
-assert.equal(release.voicePolicy.changeControl, 'Do not change provider, voiceName, mastering target, or script treatment without a new manifest version and Fay listening approval.');
+assert.equal(release.voicePolicy.version, 'voice-azure-ep001-v1');
+assert.equal(release.voicePolicy.provider, 'Microsoft Azure Speech paid tier');
 assert.equal(enclosureType, 'audio/mp4');
 assert.equal(guid, episode.guid);
 assert.equal(enclosurePath, episode.enclosure);
@@ -75,7 +75,7 @@ for (const releasedEpisode of release.episodes.slice(1)) {
   assertAudioFile(releasedEpisode.transcript, 500);
 }
 
-assert.deepEqual(release.voicePolicy.primaryVoices, ['Hana']);
+assert.deepEqual(release.voicePolicy.primaryVoices, ['EP001 A', 'EP001 C']);
 for (const voiceKey of release.voicePolicy.primaryVoices) {
   const voice = release.voicePolicy.variants[voiceKey];
   assert.ok(voice.voiceName, `voice ${voiceKey} missing voiceName`);
