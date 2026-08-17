@@ -5,6 +5,14 @@ import { test } from 'node:test';
 const root = new URL('../', import.meta.url);
 const feed = readFileSync(new URL('podcast.xml', root), 'utf8');
 const page = readFileSync(new URL('podcast.html', root), 'utf8');
+const renderer = readFileSync(new URL('scripts/render-podcast-release.mjs', root), 'utf8');
+
+test('new releases record the EP001 master contract and cannot write Hana', () => {
+  assert.match(renderer, /voicePolicyId: episode\.voicePolicyId/);
+  assert.match(renderer, /masterSha256: episode\.masterSha256/);
+  assert.match(renderer, /voiceMix: \['EP001 A', 'EP001 C'\]/);
+  assert.doesNotMatch(renderer, /voiceMix: \['Hana'\]/);
+});
 
 test('podcast episode identity and enclosure are immutable for platform caches', () => {
   assert.match(feed, /<guid isPermaLink="false">sofa-podcast-ep001-v\d{8}-ac<\/guid>/);

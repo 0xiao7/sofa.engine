@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { execFileSync } from 'node:child_process';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -16,15 +17,20 @@ function releaseFixture() {
   const root = join(tmpdir(), `yt-release-${process.pid}-${Date.now()}-${Math.random()}`);
   mkdirSync(join(root, 'assets/audio'), { recursive: true });
   const assets = { mp3: 'assets/audio/e.mp3', m4a: 'assets/audio/e.m4a', vtt: 'assets/audio/e.vtt', youtubeMp4: 'assets/audio/e.mp4' };
-  for (const [type, path] of Object.entries(assets)) writeFileSync(join(root, path), type === 'vtt' ? 'WEBVTT\n\n00:00:00.000 --> 00:00:01.000\n法條\n' : Buffer.alloc(301_000, type.length));
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=44100:duration=1', '-ac', '2', join(root, assets.mp3)]);
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'sine=frequency=440:sample_rate=44100:duration=1', '-ac', '2', join(root, assets.m4a)]);
+  writeFileSync(join(root, assets.vtt), 'WEBVTT\n\n00:00:00.000 --> 00:00:01.000\n法條\n');
+  execFileSync('ffmpeg', ['-y', '-v', 'error', '-f', 'lavfi', '-i', 'color=c=black:s=320x180:r=1:d=1', '-i', join(root, assets.m4a), '-c:v', 'libx264', '-c:a', 'copy', '-shortest', join(root, assets.youtubeMp4)]);
   const episode = {
     id: 'EP007', status: 'approved_for_release', exam: '記帳士', law: '營業稅法', article: '01',
     title: '記帳士｜營業稅法第01條：課稅範圍', summary: '課稅範圍。',
     officialLawUrl: 'https://law.moj.gov.tw/LawClass/LawSingle.aspx?pcode=G0340080&flno=01',
-    utmCampaign: 'podcast_episode_007_law', duration: '00:01:10', guid: 'sofa-podcast-ep007-v20260817-hana', assets,
+    utmCampaign: 'podcast_episode_007_law', duration: '00:01:10', guid: 'sofa-podcast-ep007-v20260817-ep001', assets,
+    voicePolicyId: 'podcast-ep001-master-v1', voiceMix: ['EP001 A', 'EP001 C'],
     listenApproval: { status: 'approved', approvedBy: 'Fay', approvedAt: '2026-08-17T09:00:00+08:00' },
   };
   episode.assetSha256 = Object.fromEntries(Object.entries(assets).map(([type, path]) => [type, sha256File(join(root, path))]));
+  episode.masterSha256 = episode.assetSha256.m4a;
   const queuePath = join(root, 'queue.json');
   const ledgerPath = join(root, 'ledger.json');
   writeFileSync(queuePath, JSON.stringify({ episodes: [episode] }));

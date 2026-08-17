@@ -1,0 +1,52 @@
+name: Private Podcast Audio Audition
+
+on:
+  workflow_dispatch:
+    inputs:
+      episode:
+        description: Exact episode ID, for example EP002
+        required: true
+        type: string
+      script:
+        description: Source-locked audition JSON path
+        required: true
+        default: data/podcast-auditions/ep002-audition.json
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  audition:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install --yes ffmpeg
+
+      - name: Verify locked audio contract
+        run: node --test tests/podcast-voice-policy.test.mjs tests/google-tts-client.test.mjs tests/podcast-audio-master.test.mjs tests/podcast-audition.test.mjs
+
+      - name: Build private audition
+        env:
+          GOOGLE_TTS_SERVICE_ACCOUNT_JSON: ${{ secrets.GOOGLE_TTS_SERVICE_ACCOUNT_JSON }}
+        run: >-
+          node scripts/build-podcast-audition.mjs
+          --episode "${{ inputs.episode }}"
+          --script "${{ inputs.script }}"
+          --output-dir "build/podcast-audition-${{ inputs.episode }}"
+
+      - name: Upload private audition artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: podcast-audition-${{ inputs.episode }}
+          path: build/podcast-audition-*
+          retention-days: 7
+          if-no-files-found: error
