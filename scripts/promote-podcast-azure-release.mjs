@@ -8,6 +8,11 @@ const ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 const EPISODE_IDS = ['EP002', 'EP003', 'EP004', 'EP005', 'EP006'];
 const VERSION = 'v20260818-azure';
 
+function publicationDate(id) {
+  const episodeNumber = Number(id.slice(2));
+  return new Date(Date.UTC(2026, 7, 18, 4, episodeNumber, 0)).toUTCString().replace('GMT', '+0000');
+}
+
 function option(args, name) {
   const index = args.indexOf(name);
   return index >= 0 ? args[index + 1] : undefined;
@@ -78,6 +83,7 @@ function replaceFeedItem(feed, episode, production, qc) {
   const content = `<content:encoded><![CDATA[\n        <p>${html(episode.summary)}。SoFa 固定 Azure 雙聲線版本。</p>\n        <p><strong>現行法規核對原文：</strong>${html(qc.officialOriginalText)}</p>\n        <p><strong>本集文字節錄：</strong></p>\n        ${excerpt}\n        <p>本集使用 AI 合成語音；內容由 SoFa Engine 依現行法規核對，正式考試仍以主管機關與考選部公告為準。</p>\n        <p><a href="https://sofaengine.org/podcast.html?utm_source=podcast&amp;utm_medium=rss&amp;utm_campaign=episode_${String(number).padStart(3, '0')}#episode-${String(number).padStart(3, '0')}">到 SoFa 官網聽互動版</a></p>\n        <p><a href="${practice}">回 SoFa 練這一條</a></p>\n      ]]></content:encoded>`;
   let item = match
     .replace(/<guid isPermaLink="false">[^<]+<\/guid>/, `<guid isPermaLink="false">${episode.guid}</guid>`)
+    .replace(/<pubDate>[^<]+<\/pubDate>/, `<pubDate>${episode.pubDate}</pubDate>`)
     .replace(/<content:encoded><!\[CDATA\[[\s\S]*?\]\]><\/content:encoded>/, content)
     .replace(/<enclosure url="[^"]+" length="\d+" type="audio\/mp4"\/>/, `<enclosure url="https://sofaengine.org/${episode.enclosure}" length="${statSync(join(ROOT, episode.enclosure)).size}" type="audio/mp4"/>`)
     .replace(/<podcast:transcript url="[^"]+" type="text\/vtt" language="zh-TW" rel="captions"\/>/, `<podcast:transcript url="https://sofaengine.org/${episode.transcript}" type="text/vtt" language="zh-TW" rel="captions"/>`)
@@ -144,6 +150,7 @@ export function promote({ sourceRoot, root = ROOT }) {
     const previous = [episode.enclosure, episode.siteAudio, episode.transcript, ...(episode.legacyUrlsToKeep || [])]
       .filter(path => path && !Object.values(assets).includes(path));
     episode.version = VERSION;
+    episode.pubDate = publicationDate(id);
     episode.guid = stem;
     episode.enclosure = assets.m4a;
     episode.siteAudio = assets.mp3;
@@ -178,6 +185,7 @@ export function promote({ sourceRoot, root = ROOT }) {
       officialLawUrl: quality.officialLawUrl,
       utmCampaign: `podcast_episode_${id.slice(2)}_law`,
       guid: stem,
+      pubDate: episode.pubDate,
       duration: episode.duration,
       voicePolicyId: production.voicePolicyId,
       voiceMix: ['EP001 A', 'EP001 C'],
@@ -187,6 +195,15 @@ export function promote({ sourceRoot, root = ROOT }) {
       listenApproval: episode.approval,
     });
   }
+
+  const newestEpisodeAt = Math.max(...manifest.episodes.map(episode => Date.parse(episode.pubDate)));
+  const currentBuildDate = feed.match(/<lastBuildDate>([^<]+)<\/lastBuildDate>/)?.[1];
+  const currentBuildAt = Date.parse(currentBuildDate);
+  const lastBuildAt = Math.max(Number.isFinite(currentBuildAt) ? currentBuildAt : Number.NEGATIVE_INFINITY, newestEpisodeAt);
+  feed = feed.replace(
+    /<lastBuildDate>[^<]+<\/lastBuildDate>/,
+    `<lastBuildDate>${new Date(lastBuildAt).toUTCString().replace('GMT', '+0000')}</lastBuildDate>`,
+  );
 
   writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
   writeFileSync(pagePath, page);
