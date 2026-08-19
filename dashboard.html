@@ -4657,8 +4657,8 @@
               </div>
               <div class="study-playlist-progress">
                 <span id="study-playlist-current-time">0:00</span>
-                <input id="study-playlist-progress" type="range" min="0" max="1000" value="0" oninput="seekStudyPlaylistPlayer(this.value)" aria-label="播放進度">
-                <span id="study-playlist-duration">0:00</span>
+                <input id="study-playlist-progress" type="range" min="0" max="1000" value="0" oninput="seekStudyPlaylistPlayer(this.value)" aria-label="播放進度" disabled>
+                <span id="study-playlist-duration">--:--</span>
               </div>
               <div class="study-playlist-current-line" id="study-playlist-current-line">像音樂歌詞一樣，播放時這裡會跟著亮現在這一句。</div>
             </div>
@@ -9005,10 +9005,25 @@ function setStudyPlaylistPlayReady(ready, label){
 function _stopStudyPlaylistAudio(){
   if(!_studyPlaylistAudioEl) return;
   try{
+    _studyPlaylistAudioEl.onloadedmetadata = null;
+    _studyPlaylistAudioEl.ontimeupdate = null;
+    _studyPlaylistAudioEl.onplaying = null;
+    _studyPlaylistAudioEl.onpause = null;
+    _studyPlaylistAudioEl.onended = null;
+    _studyPlaylistAudioEl.onerror = null;
     _studyPlaylistAudioEl.pause();
     _studyPlaylistAudioEl.currentTime = 0;
   }catch(e){}
   _studyPlaylistAudioEl = null;
+}
+
+function _setStudyPlaylistPlayerState(state, message){
+  var player = document.getElementById('study-playlist-player');
+  var range = document.getElementById('study-playlist-progress');
+  state = String(state || 'idle');
+  if(player) player.dataset.audioState = state;
+  if(range) range.disabled = state !== 'ready' && state !== 'playing' && state !== 'paused';
+  if(message) _setStudyPlaylistStatus(message);
 }
 
 function _playStudyPlaylistAudioUrl(button, audioUrl, onDone, onError, meta){
@@ -9103,7 +9118,7 @@ function _updateStudyPlaylistProgress(current, duration){
   duration = Number(duration || 0) || 0;
   if(range) range.value = duration > 0 ? String(Math.max(0, Math.min(1000, Math.round(current / duration * 1000)))) : '0';
   if(cur) cur.textContent = _playlistTimeLabel(current);
-  if(dur) dur.textContent = _playlistTimeLabel(duration);
+  if(dur) dur.textContent = duration > 0 ? _playlistTimeLabel(duration) : '--:--';
 }
 
 function _syncStudyPlaylistLyricFromProgress(item, idx, current, duration){
@@ -9147,18 +9162,24 @@ function startStudyPlaylistPlayerAt(idx){
   if(audioUrl && 'Audio' in window){
     try{
       _stopStudyPlaylistAudio();
+      _setStudyPlaylistPlayerState('loading', '音檔準備中：' + _studyPlaylistItemLabel(item, idx));
       var audio = new Audio(audioUrl);
       _studyPlaylistAudioEl = audio;
       audio.onloadedmetadata = function(){
+        if(_studyPlaylistAudioEl !== audio) return;
         _updateStudyPlaylistProgress(audio.currentTime, audio.duration);
+        _setStudyPlaylistPlayerState('ready');
       };
       audio.ontimeupdate = function(){
+        if(_studyPlaylistAudioEl !== audio) return;
         _updateStudyPlaylistProgress(audio.currentTime, audio.duration);
         _syncStudyPlaylistLyricFromProgress(item, idx, audio.currentTime, audio.duration);
       };
       audio.onplaying = function(){
+        if(_studyPlaylistAudioEl !== audio) return;
         _studyPlaylistPlayer.playing = true;
         _updateStudyPlaylistPlayerUI(item, idx);
+        _setStudyPlaylistPlayerState('ready');
         _setStudyPlaylistStatus('正在播放：' + _studyPlaylistItemLabel(item, idx));
       };
       audio.onpause = function(){
@@ -9172,19 +9193,23 @@ function startStudyPlaylistPlayerAt(idx){
         studyPlaylistNext(true);
       };
       audio.onerror = function(){
+        if(_studyPlaylistAudioEl !== audio) return;
         if(_studyPlaylistAudioEl === audio) _studyPlaylistAudioEl = null;
         _studyPlaylistPlayer.playing = false;
         _updateStudyPlaylistPlayerUI(item, idx);
-        _setStudyPlaylistStatus('音訊沒有啟動；已改用裝置朗讀，或請再點一次播放。');
+        _updateStudyPlaylistProgress(0, 0);
+        _setStudyPlaylistPlayerState('fallback', '正式音檔暫時無法載入，改用裝置朗讀。');
         _speakStudyPlaylistSegments(document.getElementById('study-playlist-toggle'), _studyPlaylistSegments(item, idx), '播放', { index: idx, label: _studyPlaylistItemLabel(item, idx) });
       };
       var started = audio.play();
       if(started && typeof started.catch === 'function'){
         started.catch(function(){
+          if(_studyPlaylistAudioEl !== audio) return;
           if(_studyPlaylistAudioEl === audio) _studyPlaylistAudioEl = null;
           _studyPlaylistPlayer.playing = false;
           _updateStudyPlaylistPlayerUI(item, idx);
-          _setStudyPlaylistStatus('手機音訊沒有啟動；已改用裝置朗讀，或請再點一次播放。');
+          _updateStudyPlaylistProgress(0, 0);
+          _setStudyPlaylistPlayerState('fallback', '正式音檔暫時無法載入，改用裝置朗讀。');
           _speakStudyPlaylistSegments(document.getElementById('study-playlist-toggle'), _studyPlaylistSegments(item, idx), '播放', { index: idx, label: _studyPlaylistItemLabel(item, idx) });
         });
       }
@@ -9193,6 +9218,7 @@ function startStudyPlaylistPlayerAt(idx){
       _stopStudyPlaylistAudio();
     }
   }
+  _setStudyPlaylistPlayerState('fallback', '正式音檔暫時無法載入，改用裝置朗讀。');
   _speakStudyPlaylistSegments(document.getElementById('study-playlist-toggle'), _studyPlaylistSegments(item, idx), '播放', { index: idx, label: _studyPlaylistItemLabel(item, idx) });
 }
 
@@ -9819,6 +9845,10 @@ async function loadStudyPlaylist(options){
         text:fullText || '這條還沒有重點整理，先看原文。',
         audio_url:String(item.audio_url || item.audioUrl || ''),
         lazy_audio_url:String(item.lazy_audio_url || item.lazyAudioUrl || ''),
+        audio_status:String(item.audio_status || item.audioStatus || ''),
+        audio_version:String(item.audio_version || item.audioVersion || ''),
+        audio_duration_seconds:Number(item.audio_duration_seconds || item.audioDurationSeconds || 0),
+        tts_voices:item.tts_voices || item.ttsVoices || {},
         mode:String(item.mode || ''),
         prompt:String(item.prompt || ''),
         answer:String(item.answer || ''),
