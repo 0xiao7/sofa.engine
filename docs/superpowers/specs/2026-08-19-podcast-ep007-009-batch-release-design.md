@@ -1,7 +1,7 @@
 # Podcast EP007–EP009 Batch Release Design
 
-**Date:** 2026-08-19  
-**Status:** Approved design, pending written-spec confirmation  
+**Date:** 2026-08-19
+**Status:** Approved for implementation by Fay on 2026-08-19
 **Scope:** EP007, EP008, EP009 only
 
 ## Objective
