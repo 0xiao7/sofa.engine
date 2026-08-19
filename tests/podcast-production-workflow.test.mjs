@@ -14,5 +14,6 @@ test('production workflow uses paid Azure Speech and only emits approval-gated a
 });
 
 test('production workflow reuses runner FFmpeg before attempting package installation', () => {
-  assert.match(workflow, /command -v ffmpeg \|\| \(sudo apt-get update/);
+  assert.match(workflow, /command -v ffmpeg \|\| sudo apt-get install --yes ffmpeg/);
+  assert.doesNotMatch(workflow, /apt-get update/);
 });
