@@ -45,3 +45,20 @@ test('EP007-EP009 official text evidence is complete and self-hashing', () => {
     '本法所稱加值型之營業稅，係指依第四章第一節計算稅額者；所稱非加值型之營業稅，係指依第四章第二節計算稅額者。',
   );
 });
+
+test('EP007-EP009 production scripts preserve official text and the EP001 recall structure', () => {
+  for (const row of qc.episodes) {
+    const production = JSON.parse(readFileSync(new URL(`data/podcast-productions/${row.episodeId.toLowerCase()}.json`, root), 'utf8'));
+    assert.equal(production.episodeId, row.episodeId);
+    assert.equal(production.voicePolicyId, 'podcast-ep001-master-v1');
+    assert.equal(production.exam, '記帳士');
+    assert.equal(production.sourceOriginalTextSha256, row.officialOriginalTextSha256);
+    assert.deepEqual(production.segments.map(segment => segment.silence ? 'pause' : segment.role), ['A', 'C', 'A', 'pause', 'C', 'A', 'C']);
+    assert.equal(production.segments[1].text, row.officialOriginalText);
+    assert.deepEqual(production.segments[3], { silence: true, seconds: 6 });
+    assert.equal(production.segments[2].cue, true);
+    const spoken = production.segments.map(segment => segment.text).filter(Boolean);
+    assert.doesNotMatch(spoken.join('\n'), /Hana|Meijia|產品功能介紹|訂閱方案|限時優惠|立即購買|官方標準答案/);
+    assert.match(spoken.at(-1), /SoFa 官網練這一條/);
+  }
+});
