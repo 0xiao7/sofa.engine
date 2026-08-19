@@ -19,6 +19,16 @@ function feedItemForGuid(guid) {
   return item;
 }
 
+function feedItems() {
+  return (feed.match(/<item>[\s\S]*?<\/item>/g) || []).map(item => {
+    const pubDate = item.match(/<pubDate>([^<]+)<\/pubDate>/)?.[1];
+    const episode = Number(item.match(/<itunes:episode>(\d+)<\/itunes:episode>/)?.[1]);
+    assert.ok(pubDate, 'RSS item pubDate is missing');
+    assert.ok(Number.isInteger(episode), 'RSS item itunes:episode is missing');
+    return { episode, publishedAt: Date.parse(pubDate) };
+  });
+}
+
 test('RSS publication dates match the release manifest and never predate the version date', () => {
   for (const episode of release.episodes) {
     const publishedAt = Date.parse(episode.pubDate);
@@ -38,4 +48,12 @@ test('RSS lastBuildDate is not older than its newest episode', () => {
   assert.ok(match, 'RSS lastBuildDate is missing');
   const newestEpisodeAt = Math.max(...release.episodes.map(episode => Date.parse(episode.pubDate)));
   assert.ok(Date.parse(match[1]) >= newestEpisodeAt, `lastBuildDate ${match[1]} is older than the newest episode`);
+});
+
+test('RSS items are ordered newest-first with episode number as the stable tie-breaker', () => {
+  const items = feedItems();
+  assert.deepEqual(items.map(item => item.episode), [6, 5, 4, 3, 2, 1]);
+  for (let index = 1; index < items.length; index += 1) {
+    assert.ok(items[index - 1].publishedAt >= items[index].publishedAt);
+  }
 });

@@ -33,21 +33,25 @@ function assertAudioFile(path, minBytes) {
   assertTracked(path);
 }
 
-const enclosureUrl = matchOne(feed, /<enclosure url="([^"]+)"/, 'RSS enclosure');
-const enclosureLength = Number(matchOne(feed, /<enclosure url="[^"]+" length="(\d+)"/, 'RSS enclosure length'));
-const enclosureType = matchOne(feed, /<enclosure url="[^"]+" length="\d+" type="([^"]+)"/, 'RSS enclosure type');
-const guid = matchOne(feed, /<guid isPermaLink="false">([^<]+)<\/guid>/, 'RSS guid');
+const episode = release.episodes.find(row => row.id === 'EP001');
+assert.ok(episode, 'EP001 release metadata not found');
+const episodeFeedItem = (feed.match(/<item>[\s\S]*?<\/item>/g) || [])
+  .find(item => item.includes(`<guid isPermaLink="false">${episode.guid}</guid>`));
+assert.ok(episodeFeedItem, `RSS item not found for ${episode.guid}`);
+
+const enclosureUrl = matchOne(episodeFeedItem, /<enclosure url="([^"]+)"/, 'RSS enclosure');
+const enclosureLength = Number(matchOne(episodeFeedItem, /<enclosure url="[^"]+" length="(\d+)"/, 'RSS enclosure length'));
+const enclosureType = matchOne(episodeFeedItem, /<enclosure url="[^"]+" length="\d+" type="([^"]+)"/, 'RSS enclosure type');
+const guid = matchOne(episodeFeedItem, /<guid isPermaLink="false">([^<]+)<\/guid>/, 'RSS guid');
 const pageAudioTag = matchOne(page, /(<audio\b[^>]*id="episode-audio"[^>]*>)/, 'site episode audio tag');
 const pageAudio = matchOne(pageAudioTag, /\bsrc="([^"]+)"/, 'site audio src');
-const artworkUrl = matchOne(feed, /<itunes:image href="([^"]+)"\/>/, 'RSS artwork');
-const transcriptUrl = matchOne(feed, /<podcast:transcript url="([^"]+)" type="text\/vtt" language="zh-TW" rel="captions"\/>/, 'RSS transcript');
+const artworkUrl = matchOne(episodeFeedItem, /<itunes:image href="([^"]+)"\/>/, 'RSS artwork');
+const transcriptUrl = matchOne(episodeFeedItem, /<podcast:transcript url="([^"]+)" type="text\/vtt" language="zh-TW" rel="captions"\/>/, 'RSS transcript');
 
 const enclosurePath = localPathFromUrl(enclosureUrl);
 const pageAudioPath = localPathFromUrl(pageAudio);
 const artworkPath = localPathFromUrl(artworkUrl);
 const transcriptPath = localPathFromUrl(transcriptUrl);
-const episode = release.episodes[0];
-
 assert.equal(release.show.title, 'SoFa 輕聲補一條');
 assert.equal(release.rights.aiVoiceDisclosure, true);
 assert.equal(release.voicePolicy.version, 'voice-azure-ep001-v1');

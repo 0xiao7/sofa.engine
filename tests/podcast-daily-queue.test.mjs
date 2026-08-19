@@ -7,7 +7,7 @@ import { join } from 'node:path';
 import { selectDueEpisode, selectDueEpisodes, validateQueue } from '../scripts/podcast-queue-lib.mjs';
 import { applyOfficialSourceOverride, buildContentFromSource, validateOfficialSourceOverrides } from '../scripts/build-podcast-law-content.mjs';
 import { assertEpisodeAssets, releasePreview } from '../scripts/release-due-podcast.mjs';
-import { renderEpisodeFiles } from '../scripts/render-podcast-release.mjs';
+import { renderEpisodeFiles, sortFeedItemsLatestFirst } from '../scripts/render-podcast-release.mjs';
 
 const queue = JSON.parse(readFileSync(new URL('../data/podcast-law-queue.json', import.meta.url), 'utf8'));
 
@@ -232,7 +232,14 @@ test('renderer appends one law episode to manifest, RSS and website', () => {
   const root = join(tmpdir(), `sofa-podcast-render-${process.pid}-${Date.now()}`);
   mkdirSync(root, { recursive: true });
   writeFileSync(join(root, 'podcast-release.json'), JSON.stringify({ show: { artwork: 'assets/cover.jpg' }, episodes: [] }));
-  writeFileSync(join(root, 'podcast.xml'), '<rss><channel>\n  <lastBuildDate>Tue, 21 Jul 2026 14:42:00 +0000</lastBuildDate>\n  </channel></rss>');
+  writeFileSync(join(root, 'podcast.xml'), `<rss><channel>
+  <lastBuildDate>Tue, 21 Jul 2026 14:42:00 +0000</lastBuildDate>
+    <item>
+      <guid isPermaLink="false">sofa-podcast-ep001-v20260721-ac</guid>
+      <pubDate>Tue, 21 Jul 2026 14:42:00 +0000</pubDate>
+      <itunes:episode>1</itunes:episode>
+    </item>
+  </channel></rss>`);
   writeFileSync(join(root, 'podcast.html'), '<div class="release-grid">\n    </div>\n  </section>\n\n  <section class="listening-stage">');
   mkdirSync(join(root, 'assets/audio'), { recursive: true });
   writeFileSync(join(root, 'assets/audio/ep007.m4a'), Buffer.alloc(301_000));
@@ -242,6 +249,21 @@ test('renderer appends one law episode to manifest, RSS and website', () => {
   assert.match(readFileSync(join(root, 'podcast-release.json'), 'utf8'), /EP007/);
   const feed = readFileSync(join(root, 'podcast.xml'), 'utf8');
   assert.match(feed, /sofa-podcast-ep007-v20260808-hana/);
+  assert.ok(
+    feed.indexOf('sofa-podcast-ep007-v20260808-hana') < feed.indexOf('sofa-podcast-ep001-v20260721-ac'),
+    'newer episode must precede older episode',
+  );
   assert.match(feed, /<lastBuildDate>Sat, 08 Aug 2026 13:00:00 \+0000<\/lastBuildDate>/);
   assert.match(readFileSync(join(root, 'podcast.html'), 'utf8'), /id="episode-007"/);
+});
+
+test('RSS sorter rejects items without valid publication metadata', () => {
+  assert.throws(
+    () => sortFeedItemsLatestFirst('<rss><channel><item><itunes:episode>1</itunes:episode></item></channel></rss>'),
+    /RSS item pubDate is missing or invalid/,
+  );
+  assert.throws(
+    () => sortFeedItemsLatestFirst('<rss><channel><item><pubDate>Tue, 18 Aug 2026 04:00:00 +0000</pubDate></item></channel></rss>'),
+    /RSS item itunes:episode is missing/,
+  );
 });

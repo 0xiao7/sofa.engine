@@ -19,6 +19,30 @@ function episodeNumber(id) {
   return id.replace('EP', '').padStart(3, '0');
 }
 
+export function sortFeedItemsLatestFirst(feed) {
+  const itemPattern = /<item>[\s\S]*?<\/item>/g;
+  const items = (feed.match(itemPattern) || []).map(item => {
+    const pubDate = item.match(/<pubDate>([^<]+)<\/pubDate>/)?.[1];
+    const episode = Number(item.match(/<itunes:episode>(\d+)<\/itunes:episode>/)?.[1]);
+    const publishedAt = Date.parse(pubDate);
+    if (!pubDate || !Number.isFinite(publishedAt)) {
+      throw new Error('RSS item pubDate is missing or invalid');
+    }
+    if (!Number.isInteger(episode)) {
+      throw new Error('RSS item itunes:episode is missing');
+    }
+    return { episode, item, publishedAt };
+  });
+  const channelMarker = '  </channel>';
+  if (!feed.includes(channelMarker)) throw new Error('RSS channel marker missing');
+  const withoutItems = feed.replace(/^[ \t]*<item>[\s\S]*?^[ \t]*<\/item>[ \t]*\r?\n?/gm, '');
+  const ordered = items
+    .sort((left, right) => right.publishedAt - left.publishedAt || right.episode - left.episode)
+    .map(({ item }) => `    ${item}`)
+    .join('\n');
+  return withoutItems.replace(channelMarker, `${ordered}${ordered ? '\n' : ''}${channelMarker}`);
+}
+
 export function renderEpisodeFiles({ root, episode, content }) {
   const number = episodeNumber(episode.id);
   const manifestPath = join(root, 'podcast-release.json');
@@ -76,6 +100,7 @@ export function renderEpisodeFiles({ root, episode, content }) {
   }
   const item = `    <item>\n      <title>${xml(episode.title)}</title>\n      <link>https://sofaengine.org/podcast.html?utm_source=podcast&amp;utm_medium=rss_episode&amp;utm_campaign=episode_${number}#episode-${number}</link>\n      <guid isPermaLink="false">${xml(episode.guid)}</guid>\n      <pubDate>${xml(episode.pubDate)}</pubDate>\n      <description>${xml(episode.summary)}。全文逐字稿、法條原文與練習入口在 sofaengine.org。本集使用 AI 合成語音。</description>\n      <content:encoded><![CDATA[\n        <p>${html(episode.summary)}</p>\n        <p><strong>法條原文：</strong>${html(content.originalText)}</p>\n        <p>${html(content.transcriptText)}</p>\n        <p><a href="https://sofaengine.org/podcast.html?utm_source=podcast&amp;utm_medium=rss&amp;utm_campaign=episode_${number}#episode-${number}">到 SoFa 官網直接播放</a></p>\n      ]]></content:encoded>\n      <enclosure url="https://sofaengine.org/${xml(episode.assets.m4a)}" length="${statSync(join(root, episode.assets.m4a)).size}" type="audio/mp4"/>\n      <itunes:image href="https://sofaengine.org/${xml(manifest.show.artwork)}"/>\n      <podcast:transcript url="https://sofaengine.org/${xml(episode.assets.vtt)}" type="text/vtt" language="zh-TW" rel="captions"/>\n      <itunes:duration>${xml(episode.duration)}</itunes:duration>\n      <itunes:episode>${Number(number)}</itunes:episode>\n      <itunes:season>1</itunes:season>\n      <itunes:explicit>false</itunes:explicit>\n    </item>\n`;
   feed = feed.replace(feedMarker, `${item}${feedMarker}`);
+  feed = sortFeedItemsLatestFirst(feed);
 
   let page = readFileSync(pagePath, 'utf8');
   const pageMarker = '    </div>\n  </section>\n\n  <section class="listening-stage"';
