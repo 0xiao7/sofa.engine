@@ -12,3 +12,8 @@ test('production workflow uses paid Azure Speech and only emits approval-gated a
   assert.match(workflow, /actions\/upload-artifact@v4/);
   assert.doesNotMatch(workflow, /edge-tts|youtube-podcast-release|release-due-podcast|git push/);
 });
+
+test('production workflow reuses runner FFmpeg before attempting package installation', () => {
+  assert.match(workflow, /command -v ffmpeg \|\| sudo apt-get install --yes ffmpeg/);
+  assert.doesNotMatch(workflow, /apt-get update/);
+});

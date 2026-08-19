@@ -9,6 +9,8 @@ test('workflow installs FFmpeg before media-contract tests', () => {
   const verify = workflow.indexOf('node --test tests/youtube-podcast-*.test.mjs');
   assert.ok(install >= 0, 'FFmpeg install step is required');
   assert.ok(install < verify, 'FFmpeg must be installed before media-contract tests');
+  assert.match(workflow, /command -v ffmpeg \|\| sudo apt-get install --yes ffmpeg/);
+  assert.doesNotMatch(workflow, /apt-get update/);
 });
 
 test('scheduled YouTube Podcast workflow validates only', () => {

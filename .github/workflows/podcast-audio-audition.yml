@@ -29,7 +29,7 @@ jobs:
           node-version: 24
 
       - name: Install FFmpeg
-        run: sudo apt-get update && sudo apt-get install --yes ffmpeg
+        run: command -v ffmpeg || sudo apt-get install --yes ffmpeg
 
       - name: Install the EP001 voice renderer
         run: python3 -m pip install edge-tts
