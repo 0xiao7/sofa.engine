@@ -591,6 +591,29 @@ test('study playlist active recall prefers provider audio then falls back to dev
   assert.doesNotMatch(playAll, /var itemSegments = _studyPlaylistSegments\(item\)/);
 });
 
+test('study playlist exposes truthful audio loading duration and fallback states', () => {
+  assert.match(active, /id="study-playlist-duration">--:--<\/span>/);
+  assert.match(active, /function _setStudyPlaylistPlayerState/);
+  assert.match(extractFunction(active, '_setStudyPlaylistPlayerState'), /dataset\.audioState/);
+  assert.match(extractFunction(active, 'startStudyPlaylistPlayerAt'), /_setStudyPlaylistPlayerState\('loading'/);
+  assert.match(extractFunction(active, 'startStudyPlaylistPlayerAt'), /音檔準備中/);
+  assert.match(extractFunction(active, 'startStudyPlaylistPlayerAt'), /_setStudyPlaylistPlayerState\('ready'/);
+  assert.match(extractFunction(active, 'startStudyPlaylistPlayerAt'), /_setStudyPlaylistPlayerState\('fallback'/);
+  assert.match(active, /正式音檔暫時無法載入，改用裝置朗讀/);
+  assert.match(extractFunction(active, '_updateStudyPlaylistProgress'), /duration > 0 \? _playlistTimeLabel\(duration\) : '--:--'/);
+});
+
+test('study playlist keeps Azure audio metadata and prefers ready audio URL', () => {
+  const load = extractFunction(active, 'loadStudyPlaylist');
+  const start = extractFunction(active, 'startStudyPlaylistPlayerAt');
+  assert.match(load, /audio_status:String\(item\.audio_status \|\| item\.audioStatus \|\| ''\)/);
+  assert.match(load, /audio_version:String\(item\.audio_version \|\| item\.audioVersion \|\| ''\)/);
+  assert.match(load, /audio_duration_seconds:Number\(item\.audio_duration_seconds \|\| item\.audioDurationSeconds \|\| 0\)/);
+  assert.match(load, /tts_voices:item\.tts_voices \|\| item\.ttsVoices \|\| \{\}/);
+  assert.match(start, /item\.audio_url \|\| item\.audioUrl \|\| item\.lazy_audio_url/);
+  assert.match(start, /audio\.onloadedmetadata/);
+});
+
 test('study playlist explains soft caps instead of looking like missing laws', () => {
   const load = extractFunction(active, 'loadStudyPlaylist');
   assert.match(active, /function _studyPlaylistAccessNote/);
