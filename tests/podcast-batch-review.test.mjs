@@ -20,7 +20,8 @@ function sha256(content) {
 }
 
 function writeEpisode(root, episodeId) {
-  const directory = join(root, episodeId);
+  const episodeDirectory = join(root, episodeId);
+  const directory = join(episodeDirectory, `podcast-production-${episodeId}`);
   mkdirSync(directory, { recursive: true });
   const artifacts = {};
   for (const [type, nameFor] of Object.entries(artifactTypes)) {
@@ -56,7 +57,7 @@ test('batch review verifies the exact three paid Azure candidates', () => {
     /exactly EP007, EP008, EP009/,
   );
 
-  writeFileSync(join(root, 'EP009', 'ep009.mp3'), 'tampered');
+  writeFileSync(join(root, 'EP009', 'podcast-production-EP009', 'ep009.mp3'), 'tampered');
   assert.throws(
     () => buildBatchReview({ root, episodeIds: ['EP007', 'EP008', 'EP009'] }),
     /EP009 mp3 artifact hash mismatch/,

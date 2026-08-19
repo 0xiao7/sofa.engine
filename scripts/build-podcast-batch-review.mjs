@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto';
-import { readFileSync, renameSync, writeFileSync } from 'node:fs';
-import { basename, join, relative, resolve } from 'node:path';
+import { existsSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { basename, dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const REQUIRED_EPISODES = ['EP007', 'EP008', 'EP009'];
@@ -23,8 +23,12 @@ export function buildBatchReview({ root, episodeIds }) {
   requireExactEpisodes(episodeIds);
   const absoluteRoot = resolve(root);
   const episodes = episodeIds.map((episodeId) => {
-    const directory = join(absoluteRoot, episodeId);
-    const report = JSON.parse(readFileSync(join(directory, 'report.json'), 'utf8'));
+    const episodeDirectory = join(absoluteRoot, episodeId);
+    const directReport = join(episodeDirectory, 'report.json');
+    const nestedReport = join(episodeDirectory, `podcast-production-${episodeId}`, 'report.json');
+    const reportPath = existsSync(directReport) ? directReport : nestedReport;
+    const directory = dirname(reportPath);
+    const report = JSON.parse(readFileSync(reportPath, 'utf8'));
     if (report.episodeId !== episodeId) throw new Error(`${episodeId} report episode ID mismatch`);
     if (report.status !== REQUIRED_STATUS) throw new Error(`${episodeId} report status must be ${REQUIRED_STATUS}`);
     if (report.provider !== REQUIRED_PROVIDER) throw new Error(`${episodeId} provider must be ${REQUIRED_PROVIDER}`);
