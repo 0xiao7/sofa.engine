@@ -593,6 +593,7 @@ test('study playlist active recall prefers provider audio then falls back to dev
 
 test('study playlist exposes truthful audio loading duration and fallback states', () => {
   assert.match(active, /id="study-playlist-duration">--:--<\/span>/);
+  assert.match(active, /id="study-playlist-progress"[^>]*disabled/);
   assert.match(active, /function _setStudyPlaylistPlayerState/);
   assert.match(extractFunction(active, '_setStudyPlaylistPlayerState'), /dataset\.audioState/);
   assert.match(extractFunction(active, 'startStudyPlaylistPlayerAt'), /_setStudyPlaylistPlayerState\('loading'/);
