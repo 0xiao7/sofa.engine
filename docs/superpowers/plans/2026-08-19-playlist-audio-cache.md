@@ -2,11 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make the dashboard study playlist use durable, versioned `cmn-TW-Wavenet-A` MP3 files with truthful loading/duration UI and device speech only as an explicit fallback.
+**Goal:** Make the dashboard study playlist use durable, versioned Azure A/C MP3 files with truthful loading/duration UI and device speech only as an explicit fallback.
 
-**Architecture:** The API computes a content/version hash, stores generated MP3 plus metadata in a public Supabase Storage bucket, and returns stable audio state fields while preserving the lazy endpoint. The static dashboard consumes ready or lazy URLs through a small player state contract and never presents device speech as a seekable zero-duration audio track.
+**Architecture:** The API computes a content/version hash, synthesizes one Azure SSML document with A asking the question and C answering after six seconds, stores generated MP3 plus metadata in a public Supabase Storage bucket, and returns stable audio state fields while preserving the lazy endpoint. The static dashboard consumes ready or lazy URLs through a small player state contract and never presents device speech as a seekable zero-duration audio track.
 
-**Tech Stack:** FastAPI/Python, Google Cloud Text-to-Speech, Supabase Storage REST API, vanilla JavaScript, Python `unittest`, Node test runner, GitHub Pages, Render.
+**Tech Stack:** FastAPI/Python, Microsoft Azure Speech REST API, Supabase Storage REST API, vanilla JavaScript, Python `unittest`, Node test runner, GitHub Pages, Render.
 
 ---
 
@@ -20,9 +20,9 @@
 
 ### Task 1: Lock the official playlist voice and version contract
 
-- [ ] Add failing API tests asserting `cmn-TW-Wavenet-A`, stable version hashes for identical content, and different hashes when text, pause, voice or rate changes.
+- [ ] Add failing API tests asserting A=`zh-TW-HsiaoChenNeural` (`-10%`, `-2Hz`) and C=`zh-TW-YunJheNeural` (`-10%`, `-3Hz`), stable version hashes for identical content, and different hashes when text, pause, voice or prosody changes.
 - [ ] Run `python3 -m unittest -q test_playlist_contract.PlaylistContractTests` and confirm the new assertions fail because version helpers and fields do not exist.
-- [ ] Add `_playlist_audio_version_payload`, `_playlist_audio_version`, and response fields `audio_status`, `audio_version`, `audio_duration_seconds` with `cmn-TW-Wavenet-A` taken from `_google_tts_voice()`.
+- [ ] Add `_playlist_audio_version_payload`, `_playlist_audio_version`, and response fields `audio_status`, `audio_version`, `audio_duration_seconds` with the approved Azure A/C map.
 - [ ] Re-run the playlist test class and confirm green.
 - [ ] Commit API changes as `feat: version playlist audio artifacts`.
 
@@ -31,7 +31,7 @@
 - [ ] Add failing tests for durable cache hit before TTS, upload after valid generation, invalid/empty output rejection, and storage failure returning fallback without a false ready state.
 - [ ] Run the focused tests and confirm red for missing durable storage helpers.
 - [ ] Implement Storage REST helpers using existing `SUPABASE_URL` and `SUPABASE_SERVICE_KEY`, bucket env `PLAYLIST_AUDIO_BUCKET` defaulting to `playlist-audio`, deterministic object names `<version>.mp3`, and public object URLs.
-- [ ] Protect same-version generation with an in-process per-version lock; check storage again after acquiring the lock before calling Google TTS.
+- [ ] Protect same-version generation with an in-process per-version lock; check storage again after acquiring the lock before calling Azure Speech.
 - [ ] Validate MP3 bytes as non-empty MPEG data, derive duration from MP3 frame data or a bounded parser helper, upload atomically, and return `ready` only after successful readback metadata.
 - [ ] Preserve the current in-memory cache only as a short process-local accelerator; durable storage is authoritative.
 - [ ] Re-run focused and full API tests: `python3 -m unittest -q test_playlist_contract.py` and `python3 -m unittest -q`.
@@ -42,7 +42,7 @@
 - [ ] Add failing endpoint contract tests: ready items expose stable `audio_url`; deferred items expose `preparing` plus `lazy_audio_url`; lazy success includes ETag/cache headers; generation failure returns 503 without HTML/audio confusion.
 - [ ] Run focused tests and confirm red.
 - [ ] Update `_playlist_item_from_article`, `_playlist_apply_google_tts`, `playlist_audio`, and `playlist_lazy_audio` to use durable version metadata and response headers.
-- [ ] Ensure `audio_provider=google_tts` and `tts_voice=cmn-TW-Wavenet-A` only when a real provider MP3 is ready; device fallback uses `fallback_only` and an empty provider voice.
+- [ ] Ensure `audio_provider=microsoft-azure-speech-paid` and the approved A/C voice map appear only when a real provider MP3 is ready; device fallback uses `fallback_only` and no provider voice map.
 - [ ] Re-run the API playlist and full suites, then `python3 -m py_compile api.py` and `git diff --check`.
 - [ ] Commit API changes as `fix: expose truthful playlist audio state`.
 
@@ -67,8 +67,8 @@
 ### Task 6: Publish API and web safely
 
 - [ ] Push the API branch, open a PR, verify CI, merge only with clean checks, and verify the Render deployment is running the merged SHA.
-- [ ] Set or verify `PLAYLIST_AUDIO_BUCKET=playlist-audio` and public-read bucket policy using existing deployment credentials; do not expose service keys.
-- [ ] Probe production playlist JSON and five lazy/ready URLs; verify HTTP 200 audio/mpeg, non-zero bytes, positive duration, voice `cmn-TW-Wavenet-A`, stable version/ETag and second-request cache hit.
+- [ ] Set or verify `PLAYLIST_AUDIO_BUCKET=playlist-audio`, public-read bucket policy, `AZURE_SPEECH_KEY`, and `AZURE_SPEECH_REGION` using existing deployment credentials; do not expose service keys.
+- [ ] Probe production playlist JSON and five lazy/ready URLs; verify HTTP 200 audio/mpeg, non-zero bytes, positive duration, approved Azure A/C voices, stable version/ETag and second-request cache hit.
 - [ ] Push the web branch, open a PR, verify CI, merge, and verify GitHub Pages production with a cache-busting query.
 - [ ] Verify production iPhone-equivalent WebKit behavior and capture the exact commercial-accounting-law §2 result that replaces unexplained `0:00 / 0:00`.
 - [ ] If provider or deployment evidence is unavailable, stop at `未確認`; do not call the feature complete.

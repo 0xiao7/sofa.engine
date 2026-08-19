@@ -5,7 +5,7 @@
 
 ## 目標
 
-讓 `dashboard.html` 的「今日複習／播放清單」在 iPhone Safari 與一般瀏覽器中，以可重複取得、可顯示真實時長、可連續播放的正式 MP3 為主要播放來源。裝置內建朗讀只作故障備援，不再是正常路徑。
+讓 `dashboard.html` 的「今日複習／播放清單」在 iPhone Safari 與一般瀏覽器中，以可重複取得、可顯示真實時長、可連續播放的正式 Azure A/C MP3 為主要播放來源。裝置內建朗讀只作故障備援，不再是正常路徑。
 
 本工作只處理官網複習播放清單，不修改 Podcast、YouTube Podcast、社群排程或其他內容發布流程。
 
@@ -26,6 +26,13 @@
 5. 生成成功後以原子方式寫入持久儲存與 metadata，之後所有請求直接命中。
 6. 生成失敗時不寫入損壞或零長度檔案，回傳可辨識的錯誤；前端才啟用裝置朗讀備援。
 
+正式聲線固定沿用 2026-08-18 已核可的 Azure A/C 品牌聲音：
+
+- A（問題）：`zh-TW-HsiaoChenNeural`，rate `-10%`、pitch `-2Hz`。
+- C（答案）：`zh-TW-YunJheNeural`，rate `-10%`、pitch `-3Hz`。
+- 結構：A 問題 → 6 秒無聲停頓 → C 答案。
+- Provider：Microsoft Azure Speech paid tier。
+
 不採完全即時生成，因其無法解決首次延遲與裝置差異；也不採一次生成全法規，因範圍、成本與失效重建量過大。
 
 ## 音檔版本鍵
@@ -37,7 +44,7 @@
 - 實際送入 TTS 的分段文字
 - `content_layer`
 - 問題後停頓秒數
-- provider 與 voice ID
+- provider、A/C voice ID 與各自 prosody
 - 語速、音高、取樣率與編碼設定
 - 音檔格式版本
 
@@ -52,7 +59,7 @@
 - `audio_version`：版本鍵或其不可逆縮寫。
 - `audio_duration_seconds`：已驗證音檔的真實時長；未知時為 `null`。
 - `lazy_audio_url`：未就緒時的生成／取得入口，保留向下相容。
-- `audio_provider` 與 `tts_voice`：實際產製來源，不得把備援裝置朗讀標成正式音檔 provider。
+- `audio_provider` 與 `tts_voices`：實際 Azure 產製來源與 A/C voice map，不得把備援裝置朗讀標成正式音檔 provider。
 
 音檔端點必須：
 
