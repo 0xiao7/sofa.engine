@@ -64,6 +64,16 @@ export function renderEpisodeFiles({ root, episode, content }) {
   let feed = readFileSync(feedPath, 'utf8');
   const feedMarker = '  </channel>';
   if (!feed.includes(feedMarker)) throw new Error('RSS channel marker missing');
+  const publishedAt = Date.parse(episode.pubDate);
+  if (!Number.isFinite(publishedAt)) throw new Error(`${episode.id} has invalid pubDate: ${episode.pubDate}`);
+  const buildDateMatch = feed.match(/<lastBuildDate>([^<]+)<\/lastBuildDate>/);
+  const currentBuildAt = buildDateMatch ? Date.parse(buildDateMatch[1]) : Number.NEGATIVE_INFINITY;
+  const nextBuildDate = new Date(Math.max(currentBuildAt, publishedAt)).toUTCString().replace('GMT', '+0000');
+  if (buildDateMatch) {
+    feed = feed.replace(/<lastBuildDate>[^<]+<\/lastBuildDate>/, `<lastBuildDate>${nextBuildDate}</lastBuildDate>`);
+  } else {
+    feed = feed.replace(/<channel>\s*/, `<channel>\n    <lastBuildDate>${nextBuildDate}</lastBuildDate>\n`);
+  }
   const item = `    <item>\n      <title>${xml(episode.title)}</title>\n      <link>https://sofaengine.org/podcast.html?utm_source=podcast&amp;utm_medium=rss_episode&amp;utm_campaign=episode_${number}#episode-${number}</link>\n      <guid isPermaLink="false">${xml(episode.guid)}</guid>\n      <pubDate>${xml(episode.pubDate)}</pubDate>\n      <description>${xml(episode.summary)}。全文逐字稿、法條原文與練習入口在 sofaengine.org。本集使用 AI 合成語音。</description>\n      <content:encoded><![CDATA[\n        <p>${html(episode.summary)}</p>\n        <p><strong>法條原文：</strong>${html(content.originalText)}</p>\n        <p>${html(content.transcriptText)}</p>\n        <p><a href="https://sofaengine.org/podcast.html?utm_source=podcast&amp;utm_medium=rss&amp;utm_campaign=episode_${number}#episode-${number}">到 SoFa 官網直接播放</a></p>\n      ]]></content:encoded>\n      <enclosure url="https://sofaengine.org/${xml(episode.assets.m4a)}" length="${statSync(join(root, episode.assets.m4a)).size}" type="audio/mp4"/>\n      <itunes:image href="https://sofaengine.org/${xml(manifest.show.artwork)}"/>\n      <podcast:transcript url="https://sofaengine.org/${xml(episode.assets.vtt)}" type="text/vtt" language="zh-TW" rel="captions"/>\n      <itunes:duration>${xml(episode.duration)}</itunes:duration>\n      <itunes:episode>${Number(number)}</itunes:episode>\n      <itunes:season>1</itunes:season>\n      <itunes:explicit>false</itunes:explicit>\n    </item>\n`;
   feed = feed.replace(feedMarker, `${item}${feedMarker}`);
 

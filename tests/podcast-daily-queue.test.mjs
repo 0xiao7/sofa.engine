@@ -232,7 +232,7 @@ test('renderer appends one law episode to manifest, RSS and website', () => {
   const root = join(tmpdir(), `sofa-podcast-render-${process.pid}-${Date.now()}`);
   mkdirSync(root, { recursive: true });
   writeFileSync(join(root, 'podcast-release.json'), JSON.stringify({ show: { artwork: 'assets/cover.jpg' }, episodes: [] }));
-  writeFileSync(join(root, 'podcast.xml'), '<rss><channel>\n  </channel></rss>');
+  writeFileSync(join(root, 'podcast.xml'), '<rss><channel>\n  <lastBuildDate>Tue, 21 Jul 2026 14:42:00 +0000</lastBuildDate>\n  </channel></rss>');
   writeFileSync(join(root, 'podcast.html'), '<div class="release-grid">\n    </div>\n  </section>\n\n  <section class="listening-stage">');
   mkdirSync(join(root, 'assets/audio'), { recursive: true });
   writeFileSync(join(root, 'assets/audio/ep007.m4a'), Buffer.alloc(301_000));
@@ -240,6 +240,8 @@ test('renderer appends one law episode to manifest, RSS and website', () => {
   const content = { transcriptText: '法條逐字稿', originalText: '正式法條原文', sourceOriginalTextSha256: 'a'.repeat(64), sourceAnalysisSha256: 'b'.repeat(64) };
   renderEpisodeFiles({ root, episode: row, content });
   assert.match(readFileSync(join(root, 'podcast-release.json'), 'utf8'), /EP007/);
-  assert.match(readFileSync(join(root, 'podcast.xml'), 'utf8'), /sofa-podcast-ep007-v20260808-hana/);
+  const feed = readFileSync(join(root, 'podcast.xml'), 'utf8');
+  assert.match(feed, /sofa-podcast-ep007-v20260808-hana/);
+  assert.match(feed, /<lastBuildDate>Sat, 08 Aug 2026 13:00:00 \+0000<\/lastBuildDate>/);
   assert.match(readFileSync(join(root, 'podcast.html'), 'utf8'), /id="episode-007"/);
 });
