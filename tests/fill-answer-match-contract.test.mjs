@@ -38,5 +38,8 @@ test('fill answers accept Arabic digits for Chinese legal numerals', () => {
   assert.equal(answerMatch('30日', '三十日'), true);
   assert.equal(answerMatch('120日', '一百二十日'), true);
   assert.equal(answerMatch('1000萬元', '一千萬元'), true);
+  assert.equal(answerMatch('1%', '百分之一'), true);
+  assert.equal(answerMatch('1', '百分之一'), true);
+  assert.equal(answerMatch('10', '十日'), true);
+  assert.equal(answerMatch('1', '百分之二'), false);
 });
-

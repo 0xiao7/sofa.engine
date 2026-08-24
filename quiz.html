@@ -311,6 +311,8 @@
     color:rgba(245,240,234,.78);font-size:13px;line-height:1.75;
   }
   #session-intro b{color:var(--cream);font-weight:600}
+  .session-error-review{display:block;width:100%;min-height:44px;padding:8px 0;border:0;background:transparent;color:rgba(245,240,234,.58);font:inherit;line-height:1.8;text-align:left;cursor:pointer}
+  .session-error-review:hover,.session-error-review:focus-visible{color:var(--peach);outline:none}
 
   /* section analysis */
   .sec-block{margin-top:16px;padding-top:14px;border-top:1px dashed rgba(31,56,72,.15)}
@@ -662,7 +664,7 @@
 
         <div class="opts" id="optionsBox"></div>
 
-        <div id="session-intro"><b>刷題模式</b>：先做完這組題目，再一次看結果。免費可先刷題；登入後才會保留完整紀錄與弱點統計。</div>
+        <div id="session-intro"><span id="session-intro-copy"><b>刷題模式</b>：先做完這組題目，再一次看結果。免費可先刷題；登入後才會保留完整紀錄與弱點統計。</span></div>
 
         <div id="quiz-answer-actions" aria-label="答題後行動">
           <span id="quiz-citation" style="display:none"></span>
@@ -707,15 +709,15 @@
         <section id="session-summary" aria-live="polite">
           <div class="eyebrow">SOFA ENGINE · 刷題模式</div>
           <h2 id="session-summary-title">這組刷題完成</h2>
-          <p>先做完這組題目，再一次看結果。免費可先刷題；登入後才會保留完整紀錄與弱點統計。</p>
+          <p id="session-summary-copy">先做完這組題目，再一次看結果。免費可先刷題；登入後才會保留完整紀錄與弱點統計。</p>
           <div id="session-summary-stats"></div>
           <div class="session-actions">
             <button type="button" onclick="restartSessionMode()">再刷一組</button>
             <button type="button" id="sumOpenWeaknessMain" onclick="_openWeakness()">看弱點分析</button>
-            <a class="primary" href="pricing.html?utm_source=web_quiz&utm_medium=session_summary&utm_campaign=quiz_session_upgrade"
+            <a class="primary" href="pricing.html?utm_source=web_quiz&utm_medium=session_summary&utm_campaign=quiz_session_upgrade" id="session-upgrade-action"
                data-track-event="quiz_session_pricing_click"
                data-track-label="quiz_session_pricing">保留這輪錯題與弱點 →</a>
-            <a href="login.html?utm_source=web_quiz&utm_medium=session_summary&utm_campaign=quiz_session_save"
+            <a id="session-login-action" href="login.html?utm_source=web_quiz&utm_medium=session_summary&utm_campaign=quiz_session_save"
                data-track-event="quiz_session_save_click"
                data-track-label="quiz_session_save">已有序號？登入保存</a>
           </div>
@@ -1174,8 +1176,25 @@ function _restorePastExamSelection(){
   if(yearEl&&[...yearEl.options].some(o=>o.value===year))yearEl.value=year;
 }
 
+function updateSessionMemberUI(){
+  const intro=document.getElementById('session-intro-copy');
+  const summary=document.getElementById('session-summary-copy');
+  const upgrade=document.getElementById('session-upgrade-action');
+  const login=document.getElementById('session-login-action');
+  if(isFree){
+    if(intro)intro.innerHTML='<b>刷題模式</b>：先做完這組題目，再一次看結果。免費可先刷題；登入後才會保留完整紀錄與弱點統計。';
+    if(summary)summary.textContent='先做完這組題目，再一次看結果。免費可先刷題；登入後才會保留完整紀錄與弱點統計。';
+    if(upgrade)upgrade.style.display='inline-flex';
+    if(login)login.style.display='inline-flex';
+  }else{
+    if(intro)intro.innerHTML='<b>會員模式</b>：本輪作答會自動保存；刷完後可點錯題查看正確答案與解析。';
+    if(summary)summary.textContent='本輪作答、錯題與弱點統計已保存。點右側錯題或題號，可查看正確答案與解析。';
+    if(upgrade)upgrade.style.display='none';
+    if(login)login.style.display='none';
+  }
+}
+
 if(_sessionMode){
-  trackQuizSessionEvent('quiz_session_start', {target_count: _sessionTargetCount});
   const btn=document.getElementById('btnSession');
   if(btn){
     btn.textContent=`刷題模式 ${_sessionTargetCount} 題`;
@@ -1185,6 +1204,7 @@ if(_sessionMode){
   }
   const intro=document.getElementById('session-intro');
   if(intro) intro.style.display='block';
+  updateSessionMemberUI();
 }
 
 function _lawParamFromUrl(){ return _searchParams.get('law') || _searchParams.get('q') || ''; }
@@ -1483,6 +1503,31 @@ async function fetchQuizWithRecentGuard(url,opts){
     if(pageSpecific || !isRecentQuizArticleId(pid) || i===2)return data;
   }
   return fetch(url,opts).then(r=>r.json());
+}
+
+function quizPayloadUsable(data){
+  if(!data||typeof data.question!=='string'||!data.question.trim())return false;
+  const options=Array.isArray(data.options)?data.options:[];
+  if(options.length<2)return false;
+  if(typeof options[0]==='object')return options.some(option=>!!option?.is_correct);
+  return typeof data.answer==='string'&&options.includes(data.answer);
+}
+
+async function fetchQuizAcrossExamScope(opts){
+  const names=(_quizExamLaws||[]).map(item=>item&&item.name).filter(Boolean);
+  if(!names.length)return {detail:'目前無法載入所選考科範圍，請稍後再試'};
+  const candidates=[...names].sort(()=>Math.random()-.5);
+  let lastError={detail:'目前考科範圍內找不到可作答的數字題'};
+  for(const candidate of candidates){
+    try{
+      const data=await fetchQuizWithRecentGuard(`${API}/api/quiz?law=${encodeURIComponent(candidate)}`,opts);
+      if(quizPayloadUsable(data))return data;
+      if(data&&(data.detail||data.error))lastError=data;
+    }catch(e){
+      lastError={detail:'題目載入暫時失敗，請稍後再試'};
+    }
+  }
+  return lastError;
 }
 
 function normalizeArticleCore(raw){
@@ -2090,6 +2135,53 @@ function captureCurrentQuestionView(){
   });
 }
 
+async function loadSessionReviewExplanation(item, explanation, correctLine){
+  let detail=String(item?.data?.explanation||'').trim();
+  const pageId=item?.data?.page_id||item?.data?.correct_id||item?.data?.article_id||'';
+  if(!detail&&pageId){
+    try{
+      const article=await fetch(`${API}/api/article/${pageId}`,{headers:_authH()}).then(r=>r.ok?r.json():null);
+      const sections=article&&article.sections||{};
+      detail=String(
+        sections['規範意旨與條文解析']||sections['條文解析']||sections['考點整理']||
+        sections['核心摘要與記憶策略']||article?.explanation||''
+      ).trim();
+    }catch(e){}
+  }
+  if(quizData!==item.data||!explanation)return;
+  explanation.textContent=detail
+    ?`${correctLine}\n${detail}`
+    :`${correctLine}\n解析暫時無法載入，請點「查看法條」核對原文。`;
+}
+
+function revealSessionQuestionAnswer(item){
+  if(!item||!item.data)return;
+  const options=[...document.querySelectorAll('#optionsBox .opt')];
+  options.forEach((option,index)=>{
+    option.style.pointerEvents='none';
+    option.style.cursor='default';
+    option.classList.remove('right','wrong');
+    if(index===item.correctIndex)option.classList.add('right');
+    if(index===item.selectedIndex&&index!==item.correctIndex)option.classList.add('wrong');
+  });
+  const labels=['A','B','C','D'];
+  const rawOptions=item.data.options||[];
+  const correctOption=rawOptions[item.correctIndex];
+  const correctText=typeof correctOption==='object'?(correctOption.snippet||''):String(correctOption||'');
+  const explanation=document.getElementById('answerExplain');
+  if(explanation){
+    const correctLine=`正確答案：${labels[item.correctIndex]||''}${correctText?` · ${correctText}`:''}`;
+    explanation.textContent=`${correctLine}\n解析載入中…`;
+    explanation.style.display='block';
+    explanation.style.whiteSpace='pre-line';
+    loadSessionReviewExplanation(item, explanation, correctLine);
+  }
+  const eyebrow=document.querySelector('#explainBox .eb');
+  if(eyebrow)eyebrow.textContent=item.correct?'✓ 你答對了':'✗ 答錯了，正確答案已標綠';
+  document.getElementById('explainBox').style.display='block';
+  showQuizAnswerActions();
+}
+
 function showSessionQuestion(num){
   if(_sessionMode&&!sessionFinished)return false;
   const item=sessionHistory.find(q=>q.num===num);
@@ -2122,6 +2214,7 @@ function showSessionQuestion(num){
   const flagButton=document.getElementById('btnFlag');
   flagButton.classList.toggle('flagged',!!item.flagged);
   flagButton.textContent=item.flagged?'⚑ 已標記':'⚑ 標記';
+  if(sessionFinished) revealSessionQuestionAnswer(item);
   updateScore();
   focusCurrentQuestion();
   return true;
@@ -2132,6 +2225,10 @@ function showPreviousQuestion(){
 }
 
 function showNextQuestion(){
+  if(_sessionMode&&sessionFinished){
+    if(currentQuestionNum<total)showSessionQuestion(currentQuestionNum+1);
+    return;
+  }
   if(currentQuestionNum<total && showSessionQuestion(currentQuestionNum+1))return;
   wrongMode ? loadWrongQuiz() : loadQuiz();
 }
@@ -2142,9 +2239,13 @@ function rebuildErrorList(){
     return;
   }
   const errors=sessionHistory.filter(q=>q.correct===false);
-  document.getElementById('errorList').innerHTML=errors.length
-    ?errors.map(e=>`<div>Q${e.num}${e.law?' · '+e.law:''}${e.title?' '+e.title:''}</div>`).join('')
+  const list=document.getElementById('errorList');
+  list.innerHTML=errors.length
+    ?errors.map(e=>`<button type="button" class="session-error-review" data-question-num="${e.num}">Q${e.num}${e.law?' · '+e.law:''}${e.title?' '+e.title:''} · 查看答案</button>`).join('')
     :'<span style="color:rgba(245,240,234,.3)">—</span>';
+  list.querySelectorAll('.session-error-review').forEach(button=>{
+    button.addEventListener('click',()=>showSessionQuestion(Number(button.dataset.questionNum)));
+  });
 }
 
 function updateScore(){
@@ -2196,7 +2297,6 @@ function restartSessionMode(){
   sessionQuestionViews.clear();
   hideSessionSummary();
   updateScore();
-  trackQuizSessionEvent('quiz_session_start', {target_count: _sessionTargetCount, restarted: true});
   loadQuiz();
 }
 
@@ -2235,6 +2335,7 @@ function onAnswerDone(isCorrect, loader){
 
 function showSessionSummary(){
   sessionFinished=true;
+  updateSessionMemberUI();
   hideQuizAnswerActions();
   document.getElementById('explainBox').style.display='none';
   const answered_n=sessionHistory.filter(q=>q.correct!==null).length;
@@ -2432,7 +2533,11 @@ function _startCountdown(seconds){
     const pageId = quizData.page_id || quizData.correct_id || null;
     const cur=sessionHistory[sessionHistory.length-1];
     wrong++;
-    if(cur)cur.correct=false;
+    if(cur){
+      cur.correct=false;
+      cur.selectedIndex=-1;
+      cur.correctIndex=correctIdx;
+    }
     updateScore();
     document.querySelectorAll('#optionsBox .opt').forEach((b,j)=>{
       b.style.pointerEvents='none';b.style.cursor='default';
@@ -2530,12 +2635,9 @@ async function loadQuiz(){
     return;
   }
   _stopCountdown();
-  answered=false; total++; currentQuestionNum=total;
+  answered=false;
   const activeWrongReview = !!(options.wrongReview || wrongMode);
   if(!sessionFinished) hideSessionSummary();
-  // 新增到 sessionHistory
-  sessionHistory.push({num:total, correct:null, flagged:false, law:'', title:'', data:null});
-  startSessionTimer();
 
   document.getElementById('questionBox').textContent='載入中…';
   document.getElementById('questionBox').style.opacity='.45';
@@ -2545,11 +2647,11 @@ async function loadQuiz(){
   const answerExplain = document.getElementById('answerExplain');
   if(answerExplain){ answerExplain.style.display='none'; answerExplain.textContent=''; }
   document.getElementById('qSrc').innerHTML='—';
-  updateScore();
 
   let law=document.getElementById('lawSelect').value;
   try{
     let data;
+    let useExamScopeFallback=false;
     const cachedArticles = law ? await _ensureArticleCache(law) : [];
     const urlArticle = await _findArticleByUrlParam(law);
     const urlPageId = _pageIdParamFromUrl();
@@ -2557,7 +2659,6 @@ async function loadQuiz(){
       data=await _fetchPastExamQuestion();
       law='';
       if(pastExamSelectionRevision !== _pastExamSelectionRevision){
-        sessionHistory.pop(); total--; currentQuestionNum=total; updateScore();
         return;
       }
     }
@@ -2568,7 +2669,7 @@ async function loadQuiz(){
       if(!pickedPageId){
         document.getElementById('questionBox').textContent='目前沒有可複習的錯題';
         document.getElementById('questionBox').style.opacity='1';
-        sessionHistory.pop(); total--; currentQuestionNum=total; updateScore(); return;
+        return;
       }
     } else if(!_pastExamMode && law==='__starred__'){
       const sl=await fetch(`${API}/api/starred?min_stars=5`,{headers:_authH()}).then(r=>r.json());
@@ -2638,20 +2739,33 @@ async function loadQuiz(){
       const pick=filtered[Math.floor(Math.random()*filtered.length)];
       url=`${API}/api/quiz?page_id=${encodeURIComponent(pick.id)}`;
     } else {
-      law=_quizScopedLaw(law);
-      url=law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`;
+      if(!law&&_curPrChip==='all'){
+        useExamScopeFallback=true;
+      }else{
+        law=_quizScopedLaw(law);
+        url=law?`${API}/api/quiz?law=${encodeURIComponent(law)}`:`${API}/api/quiz`;
+      }
       var _subVal=(document.getElementById('prSubSel')||{}).value||'';
-      if(!law && _curPrChip!=='all' && _subVal){
+      if(url&&!law && _curPrChip!=='all' && _subVal){
         url+=(url.indexOf('?')>=0?'&':'?')+'chip='+encodeURIComponent(_curPrChip)+'&sub='+encodeURIComponent(_subVal);
       }
     }
-    if(!_pastExamMode) data=await fetchQuizWithRecentGuard(url,{headers:_authH()});
-    // Fallback:
-    if(data.error||data.detail){
-      document.getElementById('questionBox').textContent=formatQuizLoadErrorMessage(data.error||data.detail);
-      document.getElementById('questionBox').style.opacity='1';
-      sessionHistory.pop(); total--; currentQuestionNum=total; updateScore(); return;
+    if(!_pastExamMode){
+      if(useExamScopeFallback)data=await fetchQuizAcrossExamScope({headers:_authH()});
+      else data=await fetchQuizWithRecentGuard(url,{headers:_authH()});
     }
+    // Fallback:
+    if(!quizPayloadUsable(data)){
+      const reason=data&&(data.error||data.detail)||'目前找不到完整可作答的題目，請稍後再試';
+      document.getElementById('questionBox').textContent=formatQuizLoadErrorMessage(reason);
+      document.getElementById('questionBox').style.opacity='1';
+      return;
+    }
+    total++; currentQuestionNum=total;
+    sessionHistory.push({num:total, correct:null, flagged:false, law:'', title:'', data:null, selectedIndex:null, correctIndex:null});
+    startSessionTimer();
+    if(_sessionMode && total===1) trackQuizSessionEvent('quiz_session_start', {target_count: _sessionTargetCount});
+    updateScore();
     if(activeWrongReview)data._wrong_review=true;
     quizData=data;
     showScratchpadForQuestion(data);
@@ -2717,6 +2831,8 @@ async function loadQuiz(){
         else if(!isCorrect) btn.classList.add('wrong');
         if(!isCorrect){wrong++;}else{right++;}
         cur.correct=isCorrect;
+        cur.selectedIndex=i;
+        cur.correctIndex=correctIdx;
         updateScore();
         const answerRecord=await recordQuizAnswer(data,pageId,isCorrect,i,correctIdx);
         // 寫入練習紀錄
@@ -2774,7 +2890,6 @@ async function loadQuiz(){
   }catch(e){
     document.getElementById('questionBox').textContent='載入失敗，請稍後再試';
     document.getElementById('questionBox').style.opacity='1';
-    sessionHistory.pop(); total--; currentQuestionNum=total; updateScore();
   }finally{
     _quizLoading = false;
     if(_pastExamReloadQueued){
@@ -2816,6 +2931,7 @@ document.getElementById('btnPrev').addEventListener('click',showPreviousQuestion
 document.getElementById('autoNextCorrectToggle').addEventListener('change',e=>{ setAutoNextCorrect(e.target.checked); });
 if(_startQuizParam) setTimeout(_focusQuizQuestionStart, 80);
 document.addEventListener('keydown',e=>{
+  if(e.target.closest('button,a,input,select,textarea,[role="button"],[contenteditable="true"]'))return;
   if(e.key==='Enter'){ showNextQuestion(); }
   if(e.key.toLowerCase()==='f'){doFlag();return;}
   const idx={'a':0,'b':1,'c':2,'d':3}[e.key.toLowerCase()];
