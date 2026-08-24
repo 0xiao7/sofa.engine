@@ -156,7 +156,15 @@ test('finished session errors are buttons that reopen the question with its answ
 });
 
 test('keyboard next shortcut does not override focused controls', () => {
-  assert.match(active, /if\(e\.target\.closest\('button,a,input,select,textarea,\[contenteditable="true"\]'\)\)return/);
+  assert.match(active, /if\(e\.target\.closest\('button,a,input,select,textarea,\[role="button"\],\[contenteditable="true"\]'\)\)return/);
+});
+
+test('completed bounded sessions navigate only among stored questions', () => {
+  const next = extractFunction(active, 'showNextQuestion');
+  assert.match(next, /if\(_sessionMode&&sessionFinished\)/);
+  assert.match(next, /showSessionQuestion\(currentQuestionNum\+1\)/);
+  const finishedBranch = next.slice(next.indexOf('if(_sessionMode&&sessionFinished)'));
+  assert.match(finishedBranch, /return/);
 });
 
 test('paid members see saved-session copy without upgrade or login prompts', () => {

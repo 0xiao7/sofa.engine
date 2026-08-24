@@ -2225,6 +2225,10 @@ function showPreviousQuestion(){
 }
 
 function showNextQuestion(){
+  if(_sessionMode&&sessionFinished){
+    if(currentQuestionNum<total)showSessionQuestion(currentQuestionNum+1);
+    return;
+  }
   if(currentQuestionNum<total && showSessionQuestion(currentQuestionNum+1))return;
   wrongMode ? loadWrongQuiz() : loadQuiz();
 }
@@ -2927,7 +2931,7 @@ document.getElementById('btnPrev').addEventListener('click',showPreviousQuestion
 document.getElementById('autoNextCorrectToggle').addEventListener('change',e=>{ setAutoNextCorrect(e.target.checked); });
 if(_startQuizParam) setTimeout(_focusQuizQuestionStart, 80);
 document.addEventListener('keydown',e=>{
-  if(e.target.closest('button,a,input,select,textarea,[contenteditable="true"]'))return;
+  if(e.target.closest('button,a,input,select,textarea,[role="button"],[contenteditable="true"]'))return;
   if(e.key==='Enter'){ showNextQuestion(); }
   if(e.key.toLowerCase()==='f'){doFlag();return;}
   const idx={'a':0,'b':1,'c':2,'d':3}[e.key.toLowerCase()];
