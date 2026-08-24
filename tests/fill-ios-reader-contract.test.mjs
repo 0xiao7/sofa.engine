@@ -7,7 +7,7 @@ const active = html.replace(/<!--[\s\S]*?-->/g, '');
 const css = readFileSync(new URL('../sofa.css', import.meta.url), 'utf8');
 
 test('native iOS fill owns the status bar safe area', () => {
-  assert.match(html, /<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" \/>/);
+  assert.match(html, /<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover" \/>/);
   assert.match(active, /document\.documentElement\.classList\.add\('ios-reader-app'\)/);
   assert.match(css, /html\.ios-reader-app\s+\.topbar\{[\s\S]*padding-top:calc\(16px \+ env\(safe-area-inset-top, 0px\)\)/);
 });

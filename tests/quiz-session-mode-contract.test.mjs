@@ -90,3 +90,85 @@ test('session mode tracks start and completion as a measurable funnel', () => {
   assert.match(active, /wrong: wrong/);
   assert.match(active, /accuracy: acc/);
 });
+
+test('quiz session starts only after the first valid question is loaded', () => {
+  const loadQuiz = extractFunction(active, 'loadQuiz');
+  const fetchIndex = loadQuiz.indexOf('fetchQuizWithRecentGuard');
+  const incrementIndex = loadQuiz.indexOf('total++; currentQuestionNum=total');
+  const timerIndex = loadQuiz.indexOf('startSessionTimer()');
+  assert.ok(fetchIndex >= 0, 'quiz must fetch a question');
+  assert.ok(incrementIndex > fetchIndex, 'question count must increment after a valid response');
+  assert.ok(timerIndex > fetchIndex, 'timer must start after a valid response');
+  assert.doesNotMatch(
+    active.slice(active.indexOf('if(_sessionMode){'), active.indexOf('function _lawParamFromUrl')),
+    /trackQuizSessionEvent\('quiz_session_start'/,
+  );
+  assert.match(loadQuiz, /if\(_sessionMode && total===1\)\s*trackQuizSessionEvent\('quiz_session_start'/);
+  assert.match(loadQuiz, /if\(!quizPayloadUsable\(data\)\)/);
+  const usable = extractFunction(active, 'quizPayloadUsable');
+  assert.match(usable, /options\.length/);
+  assert.match(usable, /data\.question/);
+  assert.match(usable, /data\.answer/);
+  assert.match(usable, /is_correct/);
+});
+
+test('all-laws quiz retries other laws inside the selected exam scope', () => {
+  assert.match(active, /async function fetchQuizAcrossExamScope\(/);
+  const helper = extractFunction(active, 'fetchQuizAcrossExamScope');
+  assert.match(helper, /_quizExamLaws/);
+  assert.match(helper, /fetchQuizWithRecentGuard/);
+  assert.match(helper, /for\(const candidate of candidates\)/);
+  assert.match(helper, /if\(!names\.length\)return/);
+  assert.doesNotMatch(helper, /_BOOKKEEPER_LAWS/);
+  assert.doesNotMatch(helper, /fetchQuizWithRecentGuard\(`\$\{API\}\/api\/quiz`/);
+
+  const loadQuiz = extractFunction(active, 'loadQuiz');
+  assert.match(loadQuiz, /data=await fetchQuizAcrossExamScope\(\{headers:_authH\(\)\}\)/);
+});
+
+test('finished session errors are buttons that reopen the question with its answer', () => {
+  const rebuildErrors = extractFunction(active, 'rebuildErrorList');
+  assert.match(rebuildErrors, /class="session-error-review"/);
+  assert.match(rebuildErrors, /data-question-num/);
+  assert.match(rebuildErrors, /showSessionQuestion\(Number\(button\.dataset\.questionNum\)\)/);
+
+  const showQuestion = extractFunction(active, 'showSessionQuestion');
+  assert.match(showQuestion, /if\(sessionFinished\) revealSessionQuestionAnswer\(item\)/);
+
+  const reveal = extractFunction(active, 'revealSessionQuestionAnswer');
+  assert.match(reveal, /item\.selectedIndex/);
+  assert.match(reveal, /item\.correctIndex/);
+  assert.match(reveal, /classList\.add\('right'\)/);
+  assert.match(reveal, /classList\.add\('wrong'\)/);
+  assert.match(reveal, /\u6b63\u78ba\u7b54\u6848/);
+
+  const loadQuiz = extractFunction(active, 'loadQuiz');
+  assert.match(loadQuiz, /cur\.selectedIndex=i/);
+  assert.match(loadQuiz, /cur\.correctIndex=correctIdx/);
+
+  const timeout = extractFunction(active, '_startCountdown');
+  assert.match(timeout, /cur\.selectedIndex=-1/);
+  assert.match(timeout, /cur\.correctIndex=correctIdx/);
+  assert.match(reveal, /loadSessionReviewExplanation\(item/);
+  const explanation = extractFunction(active, 'loadSessionReviewExplanation');
+  assert.match(explanation, /\/api\/article\/\$\{pageId\}/);
+  assert.match(explanation, /sections/);
+});
+
+test('keyboard next shortcut does not override focused controls', () => {
+  assert.match(active, /if\(e\.target\.closest\('button,a,input,select,textarea,\[contenteditable="true"\]'\)\)return/);
+});
+
+test('paid members see saved-session copy without upgrade or login prompts', () => {
+  assert.match(active, /id="session-intro-copy"/);
+  assert.match(active, /id="session-summary-copy"/);
+  assert.match(active, /id="session-upgrade-action"/);
+  assert.match(active, /id="session-login-action"/);
+  const update = extractFunction(active, 'updateSessionMemberUI');
+  assert.match(update, /if\(isFree\)/);
+  assert.match(update, /\u6703\u54e1\u6a21\u5f0f/);
+  assert.match(update, /\u672c\u8f2a\u4f5c\u7b54\u3001\u932f\u984c\u8207\u5f31\u9ede\u7d71\u8a08\u5df2\u4fdd\u5b58/);
+  assert.match(update, /upgrade\.style\.display='none'/);
+  assert.match(update, /login\.style\.display='none'/);
+  assert.match(active, /showSessionSummary\(\)[\s\S]*updateSessionMemberUI\(\)/);
+});

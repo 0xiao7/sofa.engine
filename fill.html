@@ -10,7 +10,7 @@
 <script src="sofa-analytics.js?v=20260802-attribution-v2" defer></script>
 <link rel="icon" href="favicon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
@@ -18,6 +18,7 @@
 <style>
   :root{--tool-topbar-offset:74px}
   html,body{max-width:100%;overflow-x:hidden}
+  html,body{touch-action:pan-x pan-y pinch-zoom}
   body{padding-top:var(--tool-topbar-offset)}
   html.ios-reader-app .stage{padding-bottom:calc(96px + env(safe-area-inset-bottom, 0px))}
   .topbar{position:fixed;top:0;left:0;right:0;z-index:80}
@@ -68,7 +69,8 @@
     mask-image:radial-gradient(ellipse 60% 50% at 50% 0%, #000 30%, transparent 70%);
     pointer-events:none;
   }
-  .inner{max-width:1080px;margin:0 auto;position:relative;display:grid;grid-template-columns:1fr 300px;gap:32px}
+  .inner{max-width:1080px;margin:0 auto;position:relative;display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:32px}
+  .fill-main{min-width:0}
 
   .ar-head{margin-bottom:24px}
   .ar-head .eb{
@@ -98,7 +100,7 @@
     padding:42px 48px;
     font-family:var(--serif);font-size:21px;line-height:2.15;
     color:var(--cream);letter-spacing:.02em;position:relative;
-    word-break:keep-all;overflow-wrap:break-word;
+    word-break:normal;overflow-wrap:anywhere;
   }
   .fill-card::before{
     content:attr(data-label);
@@ -150,6 +152,7 @@
     color:rgba(245,240,234,.6);
   }
   .fill-card .but b{color:var(--peach);font-weight:600}
+  .answer-correction{color:var(--good);font-size:.78rem;font-family:var(--mono);margin-left:.3rem;overflow-wrap:anywhere}
 
   .fill-actions{
     margin-top:28px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap;
@@ -248,12 +251,12 @@
   .sec-lock-cta{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:8px;padding:10px 16px;font-size:12.5px;color:rgba(31,56,72,.72);background:rgba(231,187,167,.1);border:1px dashed rgba(213,154,120,.4);border-radius:4px}
   .sec-lock-cta a{font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.06em;color:var(--peach);text-decoration:none;padding:5px 14px;border:1px solid rgba(213,154,120,.4);border-radius:2px;white-space:nowrap}
 
-  @media (max-width:1100px){
+  @media (max-width:1180px){
     .pr-bar{padding:14px 24px}
     .stage{padding:36px 32px 72px}
     .inner{grid-template-columns:1fr}
-    .rail{position:static;flex-direction:row;flex-wrap:wrap}
-    .rail-card{flex:1;min-width:240px}
+    .rail{position:static;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-self:stretch}
+    .rail-card{min-width:0}
   }
   @media (max-width:760px){
     :root{--tool-topbar-offset:72px}
@@ -274,7 +277,7 @@
     .blank{font-size:17px;min-width:4.5em;padding:2px 10px}
     .fill-actions{flex-direction:column;align-items:stretch}
     .fill-actions .r{flex-direction:column}
-    .rail{flex-direction:column}
+    .rail{grid-template-columns:1fr}
   }
   h1,h2,h3,h4{text-wrap:balance;}
   p{text-wrap:pretty;}
@@ -347,7 +350,7 @@
   <main class="stage">
     <div class="inner">
 
-      <div>
+      <div class="fill-main">
         <div class="ar-head">
           <span class="eb">FILL-IN · 關鍵字填空</span>
           <h2><span class="n" id="artNum">—</span><span id="artTitle">選擇法規後點「開始填空」開始</span></h2>
@@ -376,6 +379,7 @@
             <button class="btn btn-sec" id="btnReset">重來</button>
             <button class="btn btn-ghost" id="btnReveal">看答案</button>
             <button class="btn btn-pri" id="btnCheck">提交 <span class="k">↵</span></button>
+            <button class="btn btn-pri" id="btnNextInline" type="button" style="display:none">下一題</button>
           </div>
         </div>
 
@@ -494,12 +498,12 @@ function normLegalNum(s){
     });
     return String(total+section+num);
   };
-  let r=String(s||'').normalize('NFKC');
+  let r=String(s||'').normalize('NFKC').replace(/百分之/g,'__SOFA_PERCENT__');
   r=r.replace(/(\d+(?:\.\d+)?)\s*[萬万]/g,(_,n)=>String(Number(n)*10000));
   r=r.replace(/(\d+(?:\.\d+)?)\s*千/g,(_,n)=>String(Number(n)*1000));
   r=r.replace(/(\d+(?:\.\d+)?)\s*百/g,(_,n)=>String(Number(n)*100));
   r=r.replace(/[零〇○一二兩两三四五六七八九十百千萬万]+/g,parseNum);
-  return r;
+  return r.replace(/__SOFA_PERCENT__/g,'百分之');
 }
 
 // ── 計時器 ──────────────────────────────────────────
@@ -918,24 +922,37 @@ function updateBlankList(){
 
 function answerMatch(val, ans){
   const v=val.trim(), a=ans.trim();
-  return v===a || normLegalNum(v)===normLegalNum(a);
+  if(v===a || normLegalNum(v)===normLegalNum(a))return true;
+  const normalizedValue=normLegalNum(v).replace(/\s+/g,'');
+  const normalizedAnswer=normLegalNum(a).replace(/\s+/g,'');
+  if(/^\d+(?:\.\d+)?$/.test(normalizedValue)){
+    const percent=normalizedAnswer.match(/^\u767e\u5206\u4e4b(\d+(?:\.\d+)?)$/);
+    if(percent&&normalizedValue===percent[1])return true;
+    const measured=normalizedAnswer.match(/^(\d+(?:\.\d+)?)(?:\u65e5|\u5929|\u500b?\u6708|\u5e74|\u4eba|\u6b21|\u9805|\u6b3e|\u540d|\u4efd|\u4ef6)$/);
+    if(measured&&normalizedValue===measured[1])return true;
+  }
+  const percentValue=normalizedValue.match(/^(\d+(?:\.\d+)?)%$/);
+  const percentAnswer=normalizedAnswer.match(/^\u767e\u5206\u4e4b(\d+(?:\.\d+)?)$/);
+  return !!(percentValue&&percentAnswer&&percentValue[1]===percentAnswer[1]);
 }
 
 function checkAnswers(){
   const box=document.getElementById('fillText');
   const inputs=[...box.querySelectorAll('input')];
   if(!inputs.length)return;
+  box.querySelectorAll('.answer-correction').forEach(el=>el.remove());
   let cor=0;
   inputs.forEach((inp,i)=>{
     const ans=(fillData.answers||[])[i]||'';
     inp.disabled=true;
     if(answerMatch(inp.value,ans)){inp.classList.add('ok');cor++;}
-    else{inp.classList.add('bad');const sp=document.createElement('span');sp.textContent=`（${ans}）`;sp.style.cssText='color:var(--good);font-size:.78rem;font-family:var(--mono);margin-left:.3rem;';inp.after(sp);}
+    else{inp.classList.add('bad');const sp=document.createElement('span');sp.className='answer-correction';sp.textContent=`（${ans}）`;inp.after(sp);}
   });
   const msg=document.getElementById('resultMsg');
   msg.style.display='block';
   msg.style.color=cor===inputs.length?'var(--good)':'var(--warn)';
   msg.textContent=cor===inputs.length?`✓ 全對！${cor}/${inputs.length}`:`${cor}/${inputs.length} 正確`;
+  document.getElementById('btnNextInline').style.display='inline-flex';
   _lastFillPerfect = cor === inputs.length && inputs.length > 0;
   document.getElementById('scoreDisplay').textContent=cor+'/'+inputs.length;
   document.getElementById('accDisplay').textContent=Math.round(cor/inputs.length*100)+'%';
@@ -1019,6 +1036,7 @@ async function loadNew(){
   _lastFillPerfect=false;
   fillTimerReset();
   document.getElementById('btnNext').textContent = '下一篇';
+  document.getElementById('btnNextInline').style.display='none';
   document.getElementById('fillText').innerHTML='<span style="font-family:var(--mono);font-size:12px;color:rgba(245,240,234,.4);letter-spacing:.1em">載入中…</span>';
   document.getElementById('artNum').textContent='—';
   document.getElementById('artTitle').textContent='載入中…';
@@ -1135,10 +1153,13 @@ document.getElementById('hintReveal').addEventListener('click',()=>useHint(()=>{
 }));
 document.getElementById('btnCheck').addEventListener('click',checkAnswers);
 document.getElementById('btnNext').addEventListener('click',loadNew);
+document.getElementById('btnNextInline').addEventListener('click',loadNew);
 document.getElementById('btnReset').addEventListener('click',()=>{
+  document.getElementById('fillText').querySelectorAll('.answer-correction').forEach(el=>el.remove());
   document.getElementById('fillText').querySelectorAll('input').forEach(inp=>{inp.disabled=false;inp.value='';inp.classList.remove('ok','bad');inp.classList.add('empty');});
   document.getElementById('resultMsg').style.display='none';
   document.getElementById('sourceBox').style.display='none';
+  document.getElementById('btnNextInline').style.display='none';
   updateBlankList();
   const first=document.getElementById('fillText').querySelector('input');
   if(first)first.focus();
