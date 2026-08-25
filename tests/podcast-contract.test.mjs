@@ -128,6 +128,25 @@ test('podcast transcript is available in Apple-compatible VTT and on the website
   assert.match(transcript, /回到 SoFa Engine，可以直接練習這條附近的題目。/);
 });
 
+test('released episode cards expose a prominent readable transcript control', () => {
+  for (const number of ['002', '003', '004', '005', '006']) {
+    const card = page.match(
+      new RegExp(`<article class="release-card" id="episode-${number}">([\\s\\S]*?)<\\/article>`),
+    )?.[1] || '';
+    assert.match(
+      card,
+      new RegExp(`<details class="transcript-details" id="transcript-${number}">\\s*<summary>閱讀全文逐字稿<\\/summary>`),
+    );
+    assert.match(
+      card,
+      new RegExp(`href="#transcript-${number}"[^>]+data-transcript-target[^>]*>閱讀全文逐字稿<\\/a>`),
+    );
+  }
+  assert.match(page, /\.transcript-details>summary\{[^}]*border-color:var\(--peach\)/);
+  assert.doesNotMatch(page, />VTT 逐字稿<\/a>/);
+  assert.match(page, />下載字幕檔 \(VTT\)<\/a>/);
+});
+
 test('podcast page separates the three audio lanes without loading the short episode with long ads', () => {
   assert.match(page, /情境脈絡/);
   assert.match(page, /毒法條 \/ 記憶入口/);
