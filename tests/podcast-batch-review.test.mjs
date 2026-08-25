@@ -54,12 +54,26 @@ test('batch review verifies the exact three paid Azure candidates', () => {
   assert.ok(manifest.episodes.every(row => row.voicePolicyId === 'podcast-ep001-master-v1'));
   assert.throws(
     () => buildBatchReview({ root, episodeIds: ['EP007', 'EP008'] }),
-    /exactly EP007, EP008, EP009/,
+    /exactly three consecutive episodes/,
   );
 
   writeFileSync(join(root, 'EP009', 'podcast-production-EP009', 'ep009.mp3'), 'tampered');
   assert.throws(
     () => buildBatchReview({ root, episodeIds: ['EP007', 'EP008', 'EP009'] }),
     /EP009 mp3 artifact hash mismatch/,
+  );
+});
+
+test('batch review accepts the next exact consecutive batch without weakening hash checks', () => {
+  const root = mkdtempSync(join(tmpdir(), 'sofa-podcast-next-batch-review-'));
+  for (const episodeId of ['EP010', 'EP011', 'EP012']) writeEpisode(root, episodeId);
+
+  const manifest = buildBatchReview({ root, episodeIds: ['EP010', 'EP011', 'EP012'] });
+  assert.equal(manifest.batchId, 'ep010-012');
+  assert.deepEqual(manifest.episodes.map(row => row.episodeId), ['EP010', 'EP011', 'EP012']);
+
+  assert.throws(
+    () => buildBatchReview({ root, episodeIds: ['EP010', 'EP012', 'EP011'] }),
+    /exactly three consecutive episodes/,
   );
 });
