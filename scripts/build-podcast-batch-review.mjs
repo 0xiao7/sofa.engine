@@ -14,9 +14,15 @@ function sha256(path) {
 }
 
 function requireExactEpisodes(episodeIds) {
-  if (JSON.stringify(episodeIds) !== JSON.stringify(REQUIRED_EPISODES)) {
-    throw new Error('Batch review requires exactly EP007, EP008, EP009 in order');
-  }
+  const numbers = episodeIds.map((episodeId) => {
+    const match = /^EP(\d{3})$/.exec(episodeId);
+    return match ? Number(match[1]) : Number.NaN;
+  });
+  const consecutive = numbers.length === 3
+    && numbers.every(Number.isInteger)
+    && numbers[1] === numbers[0] + 1
+    && numbers[2] === numbers[1] + 1;
+  if (!consecutive) throw new Error('Batch review requires exactly three consecutive episodes in order');
 }
 
 export function buildBatchReview({ root, episodeIds }) {
@@ -60,7 +66,7 @@ export function buildBatchReview({ root, episodeIds }) {
 
   return {
     schemaVersion: 1,
-    batchId: 'ep007-009',
+    batchId: `${episodeIds[0].toLowerCase()}-${episodeIds[2].slice(2)}`,
     status: 'pending_listen_approval',
     createdAt: new Date().toISOString(),
     episodes,
@@ -75,8 +81,12 @@ function option(args, name) {
 function main(args) {
   const inputRoot = option(args, '--input-root');
   const output = option(args, '--output');
+  const episodeOption = option(args, '--episodes');
   if (!inputRoot || !output) throw new Error('Required: --input-root <dir> --output <file>');
-  const manifest = buildBatchReview({ root: inputRoot, episodeIds: REQUIRED_EPISODES });
+  const episodeIds = episodeOption
+    ? episodeOption.split(',').map(value => value.trim()).filter(Boolean)
+    : REQUIRED_EPISODES;
+  const manifest = buildBatchReview({ root: inputRoot, episodeIds });
   const temporaryOutput = `${output}.tmp`;
   writeFileSync(temporaryOutput, `${JSON.stringify(manifest, null, 2)}\n`);
   renameSync(temporaryOutput, output);
