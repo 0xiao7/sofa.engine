@@ -19,6 +19,19 @@ function episodeNumber(id) {
   return id.replace('EP', '').padStart(3, '0');
 }
 
+function transcriptExcerpt(value) {
+  return String(value)
+    .split(/\n+/)
+    .map(line => line.trim())
+    .filter(Boolean)
+    .slice(0, 3)
+    .join(' ');
+}
+
+function transcriptUrl(number) {
+  return `https://sofaengine.org/podcast.html?utm_source=podcast&amp;utm_medium=rss_transcript&amp;utm_campaign=episode_${number}#transcript-${number}`;
+}
+
 export function sortFeedItemsLatestFirst(feed) {
   const itemPattern = /<item>[\s\S]*?<\/item>/g;
   const items = (feed.match(itemPattern) || []).map(item => {
@@ -45,6 +58,8 @@ export function sortFeedItemsLatestFirst(feed) {
 
 export function renderEpisodeFiles({ root, episode, content }) {
   const number = episodeNumber(episode.id);
+  const websiteTranscriptUrl = transcriptUrl(number);
+  const showNoteExcerpt = transcriptExcerpt(content.transcriptText);
   const manifestPath = join(root, 'podcast-release.json');
   const feedPath = join(root, 'podcast.xml');
   const pagePath = join(root, 'podcast.html');
@@ -98,14 +113,14 @@ export function renderEpisodeFiles({ root, episode, content }) {
   } else {
     feed = feed.replace(/<channel>\s*/, `<channel>\n    <lastBuildDate>${nextBuildDate}</lastBuildDate>\n`);
   }
-  const item = `    <item>\n      <title>${xml(episode.title)}</title>\n      <link>https://sofaengine.org/podcast.html?utm_source=podcast&amp;utm_medium=rss_episode&amp;utm_campaign=episode_${number}#episode-${number}</link>\n      <guid isPermaLink="false">${xml(episode.guid)}</guid>\n      <pubDate>${xml(episode.pubDate)}</pubDate>\n      <description>${xml(episode.summary)}。全文逐字稿、法條原文與練習入口在 sofaengine.org。本集使用 AI 合成語音。</description>\n      <content:encoded><![CDATA[\n        <p>${html(episode.summary)}</p>\n        <p><strong>法條原文：</strong>${html(content.originalText)}</p>\n        <p>${html(content.transcriptText)}</p>\n        <p><a href="https://sofaengine.org/podcast.html?utm_source=podcast&amp;utm_medium=rss&amp;utm_campaign=episode_${number}#episode-${number}">到 SoFa 官網直接播放</a></p>\n      ]]></content:encoded>\n      <enclosure url="https://sofaengine.org/${xml(episode.assets.m4a)}" length="${statSync(join(root, episode.assets.m4a)).size}" type="audio/mp4"/>\n      <itunes:image href="https://sofaengine.org/${xml(manifest.show.artwork)}"/>\n      <podcast:transcript url="https://sofaengine.org/${xml(episode.assets.vtt)}" type="text/vtt" language="zh-TW" rel="captions"/>\n      <itunes:duration>${xml(episode.duration)}</itunes:duration>\n      <itunes:episode>${Number(number)}</itunes:episode>\n      <itunes:season>1</itunes:season>\n      <itunes:explicit>false</itunes:explicit>\n    </item>\n`;
+  const item = `    <item>\n      <title>${xml(episode.title)}</title>\n      <link>https://sofaengine.org/podcast.html?utm_source=podcast&amp;utm_medium=rss_episode&amp;utm_campaign=episode_${number}#episode-${number}</link>\n      <guid isPermaLink="false">${xml(episode.guid)}</guid>\n      <pubDate>${xml(episode.pubDate)}</pubDate>\n      <description>${xml(episode.summary)}。本集文字節錄：${xml(showNoteExcerpt)}。完整逐字稿：${websiteTranscriptUrl}。本集使用 AI 合成語音。</description>\n      <content:encoded><![CDATA[\n        <p>${html(episode.summary)}</p>\n        <p><strong>法條原文：</strong>${html(content.originalText)}</p>\n        <p><strong>本集文字節錄：</strong>${html(showNoteExcerpt)}</p>\n        <p><a href="${websiteTranscriptUrl}">閱讀完整逐字稿、法條原文與練習入口</a></p>\n      ]]></content:encoded>\n      <enclosure url="https://sofaengine.org/${xml(episode.assets.m4a)}" length="${statSync(join(root, episode.assets.m4a)).size}" type="audio/mp4"/>\n      <itunes:image href="https://sofaengine.org/${xml(manifest.show.artwork)}"/>\n      <podcast:transcript url="https://sofaengine.org/${xml(episode.assets.vtt)}" type="text/vtt" language="zh-TW" rel="captions"/>\n      <itunes:duration>${xml(episode.duration)}</itunes:duration>\n      <itunes:episode>${Number(number)}</itunes:episode>\n      <itunes:season>1</itunes:season>\n      <itunes:explicit>false</itunes:explicit>\n    </item>\n`;
   feed = feed.replace(feedMarker, `${item}${feedMarker}`);
   feed = sortFeedItemsLatestFirst(feed);
 
   let page = readFileSync(pagePath, 'utf8');
   const pageMarker = '    </div>\n  </section>\n\n  <section class="listening-stage"';
   if (!page.includes(pageMarker)) throw new Error('Podcast release-grid marker missing');
-  const card = `      <article class="release-card" id="episode-${number}">\n        <div class="meta">法條主線 · ${html(episode.exam)} · ${html(episode.law)} · § ${html(episode.article)}</div>\n        <h3>${html(episode.title)}</h3>\n        <p class="summary">${html(episode.summary)}</p>\n        <audio controls preload="metadata" src="/${html(episode.assets.mp3)}" data-track-audio="podcast_native_audio_${number}">\n          <track kind="captions" srclang="zh-TW" src="/${html(episode.assets.vtt)}" label="逐字稿">\n        </audio>\n        <div class="release-actions">\n          <a class="btn primary" href="${html(practiceUrl).replaceAll('&amp;', '&amp;')}" data-track="podcast_episode_practice_${number}">練這一條</a>\n          <a class="btn" href="/${html(episode.assets.vtt)}" data-track="podcast_transcript_${number}">VTT 逐字稿</a>\n        </div>\n        <details><summary>法條原文</summary><p class="law-original">${html(content.originalText)}</p></details>\n        <details><summary>本集逐字稿</summary><p class="transcript-text">${html(content.transcriptText)}</p></details>\n      </article>\n`;
+  const card = `      <article class="release-card" id="episode-${number}">\n        <div class="meta">法條主線 · ${html(episode.exam)} · ${html(episode.law)} · § ${html(episode.article)}</div>\n        <h3>${html(episode.title)}</h3>\n        <p class="summary">${html(episode.summary)}</p>\n        <audio controls preload="metadata" src="/${html(episode.assets.mp3)}" data-track-audio="podcast_native_audio_${number}">\n          <track kind="captions" srclang="zh-TW" src="/${html(episode.assets.vtt)}" label="逐字稿">\n        </audio>\n        <div class="release-actions">\n          <a class="btn primary" href="${html(practiceUrl).replaceAll('&amp;', '&amp;')}" data-track="podcast_episode_practice_${number}">練這一條</a>\n          <a class="btn" href="#transcript-${number}" data-transcript-target data-track="podcast_transcript_${number}">閱讀全文逐字稿</a>\n          <a class="btn" href="/${html(episode.assets.vtt)}" data-track="podcast_transcript_vtt_${number}">下載字幕檔 (VTT)</a>\n        </div>\n        <details><summary>法條原文</summary><p class="law-original">${html(content.originalText)}</p></details>\n        <details class="transcript-details" id="transcript-${number}"><summary>閱讀全文逐字稿</summary><p class="transcript-text">${html(content.transcriptText)}</p></details>\n      </article>\n`;
   page = page.replace(pageMarker, `${card}${pageMarker}`);
 
   atomicWrite(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);

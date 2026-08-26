@@ -49,6 +49,19 @@ function transcriptText(production) {
     .replace(/\n{3,}/g, '\n\n');
 }
 
+function transcriptExcerpt(production) {
+  return production.segments
+    .filter(segment => segment.text)
+    .slice(0, 3)
+    .map(segment => segment.text.trim())
+    .join(' ');
+}
+
+function transcriptUrl(number) {
+  const padded = String(number).padStart(3, '0');
+  return `https://sofaengine.org/podcast.html?utm_source=podcast&amp;utm_medium=rss_transcript&amp;utm_campaign=episode_${padded}#transcript-${padded}`;
+}
+
 function replaceEpisodeArticle(page, episode, production, qc) {
   const number = episode.id.slice(2);
   const articleRegex = new RegExp(`<article class="release-card" id="episode-${number}">[\\s\\S]*?</article>`);
@@ -75,15 +88,18 @@ function replaceEpisodeArticle(page, episode, production, qc) {
 
 function replaceFeedItem(feed, episode, production, qc) {
   const number = Number(episode.id.slice(2));
+  const showNoteExcerpt = transcriptExcerpt(production);
+  const websiteTranscriptUrl = transcriptUrl(number);
   const match = (feed.match(/<item>[\s\S]*?<\/item>/g) || [])
     .find(item => item.includes(`<itunes:episode>${number}</itunes:episode>`));
   if (!match) throw new Error(`${episode.id} RSS item not found`);
   const practice = `https://sofaengine.org/quiz.html?law=${encodeURIComponent(episode.law)}&amp;article=${encodeURIComponent(episode.article)}&amp;start=1&amp;utm_source=podcast&amp;utm_medium=rss&amp;utm_campaign=episode_${String(number).padStart(3, '0')}`;
   const excerpt = production.segments.filter(segment => segment.text).slice(0, 3).map(segment => `<p>${html(segment.text)}</p>`).join('\n        ');
-  const content = `<content:encoded><![CDATA[\n        <p>${html(episode.summary)}。SoFa 固定 Azure 雙聲線版本。</p>\n        <p><strong>現行法規核對原文：</strong>${html(qc.officialOriginalText)}</p>\n        <p><strong>本集文字節錄：</strong></p>\n        ${excerpt}\n        <p>本集使用 AI 合成語音；內容由 SoFa Engine 依現行法規核對，正式考試仍以主管機關與考選部公告為準。</p>\n        <p><a href="https://sofaengine.org/podcast.html?utm_source=podcast&amp;utm_medium=rss&amp;utm_campaign=episode_${String(number).padStart(3, '0')}#episode-${String(number).padStart(3, '0')}">到 SoFa 官網聽互動版</a></p>\n        <p><a href="${practice}">回 SoFa 練這一條</a></p>\n      ]]></content:encoded>`;
+  const content = `<content:encoded><![CDATA[\n        <p>${html(episode.summary)}。SoFa 固定 Azure 雙聲線版本。</p>\n        <p><strong>現行法規核對原文：</strong>${html(qc.officialOriginalText)}</p>\n        <p><strong>本集文字節錄：</strong></p>\n        ${excerpt}\n        <p>本集使用 AI 合成語音；內容由 SoFa Engine 依現行法規核對，正式考試仍以主管機關與考選部公告為準。</p>\n        <p><a href="${websiteTranscriptUrl}">閱讀完整逐字稿、法條原文與練習入口</a></p>\n        <p><a href="${practice}">回 SoFa 練這一條</a></p>\n      ]]></content:encoded>`;
   let item = match
     .replace(/<guid isPermaLink="false">[^<]+<\/guid>/, `<guid isPermaLink="false">${episode.guid}</guid>`)
     .replace(/<pubDate>[^<]+<\/pubDate>/, `<pubDate>${episode.pubDate}</pubDate>`)
+    .replace(/<description>[^<]*<\/description>/, `<description>${xml(episode.summary)}。本集文字節錄：${xml(showNoteExcerpt)}。完整逐字稿：${websiteTranscriptUrl}。本集使用 AI 合成語音。</description>`)
     .replace(/<content:encoded><!\[CDATA\[[\s\S]*?\]\]><\/content:encoded>/, content)
     .replace(/<enclosure url="[^"]+" length="\d+" type="audio\/mp4"\/>/, `<enclosure url="https://sofaengine.org/${episode.enclosure}" length="${statSync(join(ROOT, episode.enclosure)).size}" type="audio/mp4"/>`)
     .replace(/<podcast:transcript url="[^"]+" type="text\/vtt" language="zh-TW" rel="captions"\/>/, `<podcast:transcript url="https://sofaengine.org/${episode.transcript}" type="text/vtt" language="zh-TW" rel="captions"/>`)

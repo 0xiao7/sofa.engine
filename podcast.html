@@ -150,6 +150,8 @@ audio{width:100%;height:42px}
 .release-card details{border:1px solid rgba(245,240,234,.1);border-radius:7px;background:rgba(245,240,234,.035);padding:12px 14px;margin-top:12px}
 .release-card summary{cursor:pointer;color:var(--cream);font-weight:800}
 .release-card .transcript-details{border-color:rgba(231,187,167,.58);background:rgba(231,187,167,.08)}
+.transcript-details,.transcript-anchor{scroll-margin-top:88px}
+.transcript-anchor{display:block}
 .transcript-details>summary{border-color:var(--peach);color:var(--peach);letter-spacing:.03em}
 .release-card .law-original{white-space:pre-wrap;color:rgba(245,240,234,.78)}
 .release-card .transcript-text{white-space:pre-wrap;color:rgba(245,240,234,.64);font-size:15px}
@@ -598,7 +600,7 @@ audio{width:100%;height:42px}
         <p>題目先出來，停一下，再回到條文看怎麼解。</p>
       </article>
     </div>
-    <div class="transcript" id="transcript"><strong>逐字稿</strong>
+    <div class="transcript" id="transcript"><span class="transcript-anchor" id="transcript-001" aria-hidden="true"></span><strong>逐字稿</strong>
 
 SoFa 輕聲補一條。
 
@@ -814,10 +816,22 @@ document.querySelector('[data-action="stop"]').addEventListener('click', stopPla
 document.querySelectorAll('[data-track]').forEach(el => el.addEventListener('click', () => {
   trackPodcast(el.getAttribute('data-track') || 'podcast_click', { href: el.getAttribute('href') || '' });
 }));
+function openTranscriptTarget(target){
+  if(!target) return;
+  const details = target.tagName === 'DETAILS' ? target : target.closest('details');
+  if(details) details.open = true;
+  requestAnimationFrame(() => target.scrollIntoView({block:'start'}));
+}
+function openTranscriptFromHash(){
+  if(!/^#transcript-\d{3}$/.test(window.location.hash)) return;
+  openTranscriptTarget(document.querySelector(window.location.hash));
+}
 document.querySelectorAll('[data-transcript-target]').forEach(link => link.addEventListener('click', () => {
-  const target = document.querySelector(link.getAttribute('href'));
-  if (target && target.tagName === 'DETAILS') target.open = true;
+  openTranscriptTarget(document.querySelector(link.getAttribute('href')));
 }));
+window.addEventListener('hashchange', openTranscriptFromHash);
+openTranscriptFromHash();
+window.addEventListener('load', () => setTimeout(openTranscriptFromHash, 80), {once:true});
 document.querySelectorAll('[data-track-audio]').forEach(el => {
   var eventName = el.getAttribute('data-track-audio') || 'podcast_native_audio';
   el.addEventListener('play', () => trackPodcast(eventName + '_play', { medium:'native_audio' }));

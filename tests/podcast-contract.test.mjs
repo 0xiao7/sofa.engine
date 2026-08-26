@@ -74,7 +74,8 @@ test('podcast practice CTA goes to the exact article with podcast attribution', 
   assert.match(page, /quiz\.html\?law=%E7%A8%85%E6%8D%90%E7%A8%BD%E5%BE%B5%E6%B3%95&article=01%E4%B9%8B1&start=1&utm_source=podcast&utm_medium=episode&utm_campaign=episode_001/);
   assert.match(feed, /utm_source=podcast&amp;utm_medium=rss&amp;utm_campaign=episode_001/);
   assert.match(feed, /utm_source=podcast&amp;utm_medium=rss_episode&amp;utm_campaign=episode_001/);
-  assert.match(feed, /到 SoFa 官網聽互動版/);
+  assert.match(feed, /閱讀完整逐字稿、法條原文與練習入口/);
+  assert.match(feed, /utm_medium=rss_transcript&amp;utm_campaign=episode_001#transcript-001/);
   assert.doesNotMatch(page, /[?&]free=1/);
   assert.doesNotMatch(feed, /[?&]amp;free=1|[?&]free=1/);
 });
