@@ -29,6 +29,7 @@
 
 - [x] Update `linkifyLawRefs()` so subsequent `、第 N 條` references inherit the most recently matched law name without changing unrelated plain text.
 - [x] Update `linkifyLawRefs()` so bracketed database references and hyphenated sub-articles are tappable in the quiz explanation.
+- [x] Extract law recognition and article-number normalization into `law-crossref.js`, then make both dashboard search and quiz explanation delegate to that single rule engine.
 - [x] Update the base `.topbar` padding to include the top safe-area inset at tablet and desktop viewport widths.
 - [x] Update the quiz article panel top inset to include the same safe-area inset.
 - [x] Ensure backdrop click and Escape retain the existing close behavior without navigation.
