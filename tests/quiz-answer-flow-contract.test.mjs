@@ -27,8 +27,8 @@ function extractFunction(source, name) {
 }
 
 test('quiz and dashboard use one shared law-reference rule engine', () => {
-  assert.match(html, /<script src="law-crossref\.js\?v=[^"]+"><\/script>/);
-  assert.match(dashboardHtml, /<script src="law-crossref\.js\?v=[^"]+"><\/script>/);
+  assert.match(html, /<script src="law-crossref\.js\?v=20260827-citation-v2"><\/script>/);
+  assert.match(dashboardHtml, /<script src="law-crossref\.js\?v=20260827-citation-v2"><\/script>/);
   assert.match(extractFunction(active, 'linkifyLawRefs'), /SoFaLawRefs\.linkify/);
   assert.match(extractFunction(dashboardHtml, '_linkifyLaw'), /SoFaLawRefs\.linkify/);
   assert.doesNotMatch(lawCrossRefSource, /\b(?:fetch|XMLHttpRequest|POST|PATCH|PUT|DELETE)\b/);
