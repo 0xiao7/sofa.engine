@@ -2,7 +2,8 @@
   'use strict';
 
   var LAW_TYPES = '(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)';
-  var ARTICLE_NO = '[0-9０-９一二三四五六七八九十百千零兩两]+(?:\\s*(?:條?之|-)\\s*[0-9０-９一二三四五六七八九十百千零兩两]+)?';
+  var ARTICLE_DIGITS = '[0-9０-９一二三四五六七八九十百千零兩两]+';
+  var ARTICLE_NO = ARTICLE_DIGITS + '(?:\\s*(?:之|-)\\s*' + ARTICLE_DIGITS + ')?';
   var LAW_NAME = '[^，。、；：\\s《》〈〉()（）<>;；]{1,40}' + LAW_TYPES;
 
   function cleanLawName(raw){
@@ -29,6 +30,16 @@
     }).join('之');
   }
 
+  function formatArticleLabel(raw){
+    var article = normalizeArticle(raw);
+    var parts = article.split('之');
+    return '第' + parts[0] + '條' + (parts.length > 1 ? '之' + parts.slice(1).join('之') : '');
+  }
+
+  function formatLawCitation(law, article, includeLaw){
+    return (includeLaw ? '《' + law + '》' : '') + formatArticleLabel(article);
+  }
+
   function linkify(text, currentLawName, renderAnchor){
     var output = String(text || '');
     var lastLaw = cleanLawName(currentLawName);
@@ -44,6 +55,23 @@
     }
 
     var lawPattern = '(?:《([^》]+)》|〈([^〉]+)〉|(' + LAW_NAME + '))';
+    var formalSubArticle = new RegExp('(?:《([^》]+)》|〈([^〉]+)〉|(同法|本法)|(' + LAW_NAME + '))?\\s*第?\\s*(' + ARTICLE_DIGITS + ')\\s*條\\s*之\\s*(' + ARTICLE_DIGITS + ')(?![0-9０-９一二三四五六七八九十百千零兩两項款目])', 'g');
+    output = output.replace(formalSubArticle, function(match, bookLaw, angleLaw, sameLaw, plainLaw, baseArticle, subArticle){
+      var rawLaw = bookLaw || angleLaw || plainLaw || '';
+      var law = cleanLawName(rawLaw);
+      var prefix = '';
+      if(law){
+        lastLaw = law;
+        if(plainLaw) prefix = prefixFor(rawLaw, law);
+      }else if(sameLaw){
+        law = lastLaw || cleanLawName(currentLawName);
+      }else{
+        law = lastLaw || cleanLawName(currentLawName);
+      }
+      if(!law) return match;
+      return prefix + stash(law, baseArticle + '之' + subArticle, formatLawCitation(law, baseArticle + '之' + subArticle, Boolean(rawLaw || sameLaw)));
+    });
+
     var compactSeries = new RegExp(lawPattern + '\\s*第?\\s*(' + ARTICLE_NO + '(?:\\s*(?:、|,|，|及|和|與)\\s*第?\\s*' + ARTICLE_NO + ')+)\\s*條', 'g');
     output = output.replace(compactSeries, function(match, bookLaw, angleLaw, plainLaw, numbers){
       var rawLaw = bookLaw || angleLaw || plainLaw || '';
@@ -55,7 +83,7 @@
       var linked = String(numbers).split(/(、|,|，|及|和|與)/).map(function(token){
         if(/^(、|,|，|及|和|與)$/.test(token)) return token;
         var art = normalizeArticle(token);
-        var label = first ? law + '第' + art + '條' : '第' + art + '條';
+        var label = formatLawCitation(law, art, first);
         first = false;
         return stash(law, art, label);
       }).join('');
@@ -67,20 +95,21 @@
       var rawLaw = bookLaw || angleLaw || plainLaw || '';
       var law = cleanLawName(rawLaw);
       var prefix = '';
-      var label = match;
+      var includeLaw = false;
       if(law){
         lastLaw = law;
+        includeLaw = true;
         if(plainLaw){
           prefix = prefixFor(rawLaw, law);
-          label = match.slice(prefix.length);
         }
       }else if(sameLaw){
         law = lastLaw || cleanLawName(currentLawName);
+        includeLaw = true;
       }else{
         law = lastLaw || cleanLawName(currentLawName);
       }
       if(!law) return match;
-      return prefix + stash(law, article, label);
+      return prefix + stash(law, article, formatLawCitation(law, article, includeLaw));
     });
 
     return output.replace(/@@SOFA_LAW_REF_(\d+)@@/g, function(match, index){
@@ -91,6 +120,8 @@
   root.SoFaLawRefs = {
     cleanLawName: cleanLawName,
     normalizeArticle: normalizeArticle,
+    formatArticleLabel: formatArticleLabel,
+    formatLawCitation: formatLawCitation,
     linkify: linkify
   };
 })(typeof window !== 'undefined' ? window : globalThis);
