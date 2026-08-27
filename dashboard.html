@@ -676,6 +676,13 @@
   .srs-limit:focus{border-color:var(--peach)}
   .srs-save{background:var(--peach);color:var(--navy);border-radius:3px;padding:9px 14px;font-family:var(--mono);font-size:11px;font-weight:600;letter-spacing:.08em}
   .srs-state{font-family:var(--mono);font-size:10.5px;color:rgba(245,240,234,.45);letter-spacing:.06em;min-width:54px}
+  .web-push-settings{grid-column:1/-1;display:flex;align-items:center;justify-content:space-between;gap:18px;padding:14px 16px;border:1px solid rgba(231,187,167,.2);border-radius:5px;background:rgba(231,187,167,.045)}
+  .web-push-copy{min-width:0;display:grid;gap:3px;font-size:12px;color:rgba(245,240,234,.55)}
+  .web-push-copy b{font-family:var(--serif);font-size:14px;font-weight:500;color:var(--cream)}
+  .web-push-actions{display:flex;align-items:center;gap:9px;flex-wrap:wrap;justify-content:flex-end}
+  .web-push-button{min-height:44px;padding:9px 14px;border:1px solid var(--peach);border-radius:3px;color:var(--navy);background:var(--peach);font-size:12px;font-weight:600}
+  .web-push-button.secondary{color:var(--cream);background:transparent;border-color:var(--line-2)}
+  .web-push-button[hidden]{display:none}
   .study-panel{padding:18px 22px;display:grid;gap:18px}
   .study-summary{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
   .study-copy{font-size:13px;color:rgba(245,240,234,.62);line-height:1.7;max-width:620px}
@@ -2353,6 +2360,9 @@
       justify-content:flex-start;
       align-items:stretch;
     }
+    .web-push-settings{align-items:flex-start;flex-direction:column}
+    .web-push-actions{justify-content:flex-start;width:100%}
+    .web-push-button{flex:1}
     .srs-toggle,.srs-save,.srs-state{min-height:40px;align-items:center}
     .srs-limit{min-height:40px}
     .study-blocks{grid-template-columns:1fr}
@@ -4738,6 +4748,16 @@
               </select>
               <button class="srs-save" id="srs-save" type="button" onclick="saveSrsSettings()">儲存</button>
               <span class="srs-state" id="srs-save-state"></span>
+            </div>
+            <div class="web-push-settings" id="web-push-settings">
+              <div class="web-push-copy">
+                <b>裝置複習提醒</b>
+                <span id="web-push-state" aria-live="polite">正在確認這台裝置…</span>
+              </div>
+              <div class="web-push-actions">
+                <button class="web-push-button" id="web-push-enable" type="button" hidden>開啟裝置提醒</button>
+                <button class="web-push-button secondary" id="web-push-disable" type="button" hidden>關閉這台裝置</button>
+              </div>
             </div>
           </div>
         </div>
@@ -12002,6 +12022,12 @@ ch.on('presence', { event: 'sync' }, () => {
     renderWeakLaws([]);
   }
 })();
+</script>
+<script src="web-push.js"></script>
+<script>
+if(window.SoFaWebPush){
+  window.SoFaWebPush.init({apiBase:'https://sofa-engine-api.onrender.com'});
+}
 </script>
 </body>
 </html>
