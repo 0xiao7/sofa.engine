@@ -6,6 +6,7 @@ import vm from 'node:vm';
 const html = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
 const active = html.replace(/<!--[\s\S]*?-->/g, '');
 const lawCrossRefSource = readFileSync(new URL('../law-crossref.js', import.meta.url), 'utf8');
+const stripTags = (value) => String(value || '').replace(/<[^>]*>/g, '');
 
 function extractFunction(source, name) {
   const start = source.indexOf(`function ${name}`);
@@ -146,11 +147,11 @@ test('law drawer analysis linkifies sixth-section law references', () => {
   assert.match(linkedMemoryLead, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=35&amp;/);
   assert.match(linkedMemoryLead, /data-cross-law="記帳士法"/);
   assert.match(linkedMemoryLead, /data-cross-art="35"/);
-  assert.match(linkedMemoryLead, />記帳士法第35條</);
+  assert.match(linkedMemoryLead, />《記帳士法》第35條</);
   assert.doesNotMatch(linkedMemoryLead, /熟記本條與記帳士法/);
 
   const linkedPrefixedLaw = sandbox.linkify('搭配公司法第29條經理人任免規定', '商業會計法');
-  assert.match(linkedPrefixedLaw, />公司法第29條</);
+  assert.match(linkedPrefixedLaw, />《公司法》第29條</);
   assert.doesNotMatch(linkedPrefixedLaw, />搭配公司法第29條</);
 
   const linkedArticleSeries = sandbox.linkify('刑法317、318、319條;地政士法26條(地政士守密義務)', '記帳士法');
@@ -165,6 +166,26 @@ test('law drawer analysis linkifies sixth-section law references', () => {
   assert.match(linkedDatabaseRefs, /data-cross-law="所得基本稅額條例" data-cross-art="3"/);
   assert.match(linkedDatabaseRefs, /data-cross-law="所得稅法" data-cross-art="4之1"/);
   assert.match(linkedDatabaseRefs, /data-cross-law="所得稅法" data-cross-art="73之1"/);
+
+  const canonicalHyphen = sandbox.linkify('《所得稅法》第4-1條', '所得稅法');
+  assert.match(canonicalHyphen, />《所得稅法》第4條之1<\/a>/);
+  assert.match(canonicalHyphen, /data-cross-art="4之1"/);
+  const canonicalFormal = sandbox.linkify('《所得稅法》第4條之1', '所得稅法');
+  assert.match(canonicalFormal, />《所得稅法》第4條之1<\/a>/);
+  assert.match(canonicalFormal, /data-cross-art="4之1"/);
+  const canonicalSeries = sandbox.linkify('《所得稅法》第3條、第4-1條、第8條', '所得稅法');
+  assert.equal(stripTags(canonicalSeries), '《所得稅法》第3條、第4條之1、第8條');
+  assert.equal((canonicalSeries.match(/class="crossref"/g) || []).length, 3);
+  const subArticle = sandbox.linkify('《某法》第4條之九', '某法');
+  assert.match(subArticle, /data-cross-art="4之九"/);
+  assert.equal(stripTags(subArticle), '《某法》第4條之九');
+  const itemText = sandbox.linkify('《某法》第4條之九款', '某法');
+  assert.doesNotMatch(itemText, /data-cross-art="4之九"/);
+  assert.match(itemText, /data-cross-art="4"/);
+  assert.equal(stripTags(itemText), '《某法》第4條之九款');
+  const paragraphItem = sandbox.linkify('《某法》第4條第2項第9款', '某法');
+  assert.match(paragraphItem, /data-cross-art="4"/);
+  assert.equal(stripTags(paragraphItem), '《某法》第4條第2項第9款');
 
   const linkedProfessionalLaw = sandbox.linkify('會計師法43條等專業守密規定並列', '記帳士法');
   assert.match(linkedProfessionalLaw, /law=%E6%9C%83%E8%A8%88%E5%B8%AB%E6%B3%95&amp;art=43&amp;/);
