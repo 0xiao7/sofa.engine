@@ -16,7 +16,7 @@
 - Modify: `tests/quiz-answer-flow-contract.test.mjs`
 - Modify: `tests/dashboard-study-today-contract.test.mjs`
 
-- [ ] **Step 1: Add quiz assertions for canonical labels**
+- [x] **Step 1: Add quiz assertions for canonical labels**
 
 Extend the existing `quiz analysis linkifies...` test with these inputs and requirements:
 
@@ -34,7 +34,7 @@ assert.equal(stripTags(canonicalSeries), '《所得稅法》第3條、第4條之
 assert.equal((canonicalSeries.match(/class="crossref"/g) || []).length, 3);
 ```
 
-- [ ] **Step 2: Add hierarchy and data-loss assertions**
+- [x] **Step 2: Add hierarchy and data-loss assertions**
 
 Add a local `stripTags()` helper and verify:
 
@@ -53,15 +53,15 @@ assert.match(paragraphItem, /data-art="4"/);
 assert.equal(stripTags(paragraphItem), '《某法》第4條第2項第9款');
 ```
 
-- [ ] **Step 3: Add dashboard parity assertions**
+- [x] **Step 3: Add dashboard parity assertions**
 
 Run the same canonical and hierarchy inputs through `sandbox.linkify()` and require identical visible text and `data-cross-art` values.
 
-- [ ] **Step 4: Add a read-only source contract**
+- [x] **Step 4: Add a read-only source contract**
 
 Assert that `law-crossref.js` contains no `fetch`, `XMLHttpRequest`, `POST`, `PATCH`, `PUT`, or `DELETE` calls.
 
-- [ ] **Step 5: Run focused tests and verify RED**
+- [x] **Step 5: Run focused tests and verify RED**
 
 Run:
 
@@ -76,7 +76,7 @@ Expected: failures showing `第4-1條` is still displayed and `第4條之九` is
 **Files:**
 - Modify: `law-crossref.js`
 
-- [ ] **Step 1: Add canonical article label formatting**
+- [x] **Step 1: Add canonical article label formatting**
 
 Add a pure helper equivalent to:
 
@@ -92,19 +92,19 @@ function formatLawCitation(law, rawArticle, includeLaw){
 }
 ```
 
-- [ ] **Step 2: Recognize formal sub-articles without consuming item levels**
+- [x] **Step 2: Recognize formal sub-articles without consuming item levels**
 
 Before the general article matcher, recognize `第4條之九` only when the suffix is not followed by `項`, `款`, or `目`. Route the match through the same placeholder and anchor callback with canonical article `4之九`.
 
-- [ ] **Step 3: Canonicalize all generated link labels**
+- [x] **Step 3: Canonicalize all generated link labels**
 
 Use `formatLawCitation()` for bracketed, plain-law, same-law, and compact-series references. Explicit law references include `《法規》`; subsequent bare references in the same sequence display only their canonical article label.
 
-- [ ] **Step 4: Keep structure text outside the anchor**
+- [x] **Step 4: Keep structure text outside the anchor**
 
 For `第4條之九款` and `第4條第2項第9款`, link only the reliably identified article portion and leave `之九款` or `第2項第9款` untouched after the anchor.
 
-- [ ] **Step 5: Run focused tests and verify GREEN**
+- [x] **Step 5: Run focused tests and verify GREEN**
 
 Run:
 
@@ -114,7 +114,7 @@ node --test tests/quiz-answer-flow-contract.test.mjs tests/dashboard-study-today
 
 Expected: all focused tests pass with no failures.
 
-- [ ] **Step 6: Commit the implementation**
+- [x] **Step 6: Commit the implementation**
 
 ```bash
 git add law-crossref.js tests/quiz-answer-flow-contract.test.mjs tests/dashboard-study-today-contract.test.mjs
@@ -126,7 +126,7 @@ git commit -m "fix: canonicalize law citation display safely"
 **Files:**
 - Modify: `docs/superpowers/plans/2026-08-27-canonical-law-citation-display.md`
 
-- [ ] **Step 1: Run JavaScript syntax and diff safety checks**
+- [x] **Step 1: Run JavaScript syntax and diff safety checks**
 
 ```bash
 node --check law-crossref.js
@@ -135,7 +135,7 @@ git diff --check
 
 Expected: both commands exit successfully with no output.
 
-- [ ] **Step 2: Run the full contract suite**
+- [x] **Step 2: Run the full contract suite**
 
 ```bash
 node --test tests/*.mjs
@@ -143,11 +143,11 @@ node --test tests/*.mjs
 
 Expected: zero failed tests.
 
-- [ ] **Step 3: Run local browser verification at both iPad sizes**
+- [x] **Step 3: Run local browser verification at both iPad sizes**
 
 At 1280×960 and 768×1024, inject the approved citations, require canonical visible labels and exact `data-art`, open one article modal, close with × and backdrop, and verify the URL and source text remain unchanged.
 
-- [ ] **Step 4: Review and commit plan completion state**
+- [x] **Step 4: Review and commit plan completion state**
 
 Mark completed checkboxes, run `git diff --check`, and commit only plan-state changes.
 
