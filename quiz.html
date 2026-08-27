@@ -213,7 +213,7 @@
   .free-quiz-notice a{min-height:44px}
   .art-inline{margin-top:14px;padding:16px 20px;background:rgba(31,56,72,.06);border-radius:3px;max-height:none;overflow-y:visible;font-family:var(--serif);font-size:clamp(1rem, 3vw, 1.08rem);line-height:2;color:rgba(31,56,72,.82);white-space:pre-wrap;overflow-wrap:anywhere;display:none}
   .quiz-article-panel{
-    position:fixed;inset:76px 28px 28px;z-index:150;display:none;
+    position:fixed;inset:calc(76px + env(safe-area-inset-top, 0px)) 28px 28px;z-index:150;display:none;
     align-items:center;justify-content:center;background:rgba(4,13,20,.58);padding:0;
   }
   .quiz-article-panel.show{display:flex}
@@ -696,7 +696,7 @@
           </div>
         </div>
 
-        <section id="quiz-article-panel" class="quiz-article-panel" role="dialog" aria-modal="true" aria-labelledby="quiz-article-panel-title" hidden>
+        <section id="quiz-article-panel" class="quiz-article-panel" role="dialog" aria-modal="true" aria-labelledby="quiz-article-panel-title" onclick="if(event.target===this) closeQuizArticlePanel()" hidden>
           <div class="quiz-article-shell">
             <div class="quiz-article-head">
               <b id="quiz-article-panel-title">法條解析</b>
@@ -1773,6 +1773,12 @@ function linkifyLawRefs(text, articleLawName){
   function a(law,art,label){const cleanLaw=cleanCrossRefLawName(law||articleLawName);const clean=cleanArt(art);return `<a class="crossref" href="${href(cleanLaw,clean)}" data-law="${attr(cleanLaw)}" data-art="${attr(clean)}">${label}</a>`;}
   out=out.replace(/(同法|本法)第?([0-9一二三四五六七八九十百千零兩]+(?:之[0-9一二三四五六七八九十百千零兩]+)?)條/g,
     (_,lead,art)=>hold(a(articleLawName,art,`${lead}第${art}條`)));
+  out=out.replace(/(?:搭配|交叉記憶可看|與)?([\u4e00-\u9fa5]{1,16}(?:法|條例|準則|辦法|規則))第?([0-9一二三四五六七八九十百千零兩]+)條((?:[、,，]\s*第?[0-9一二三四五六七八九十百千零兩]+條)+)/g,
+    (_,law,firstArt,rest)=>{
+      const cleanLaw=cleanCrossRefLawName(law);
+      const following=[...rest.matchAll(/第?([0-9一二三四五六七八九十百千零兩]+)條/g)].map(m=>m[1]);
+      return [firstArt,...following].map((art,index)=>hold(a(cleanLaw,art,index===0?`${cleanLaw}第${art}條`:`第${art}條`))).join('、');
+    });
   out=out.replace(/(?:搭配|交叉記憶可看|與)?([\u4e00-\u9fa5]{1,16}(?:法|條例|準則|辦法|規則))第?([0-9一二三四五六七八九十百千零兩]+)條及第?([0-9一二三四五六七八九十百千零兩]+)條/g,
     (_,law,art1,art2)=>hold(a(law,art1,`${cleanCrossRefLawName(law)}第${art1}條`)) + '及' + hold(a(law,art2,`第${art2}條`)));
   out=out.replace(/(?:搭配|交叉記憶可看|與)?([\u4e00-\u9fa5]{1,16}(?:法|條例|準則|辦法|規則))第?([0-9一二三四五六七八九十百千零兩、,，]+)條/g,

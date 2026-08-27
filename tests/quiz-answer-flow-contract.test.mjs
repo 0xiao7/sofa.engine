@@ -338,6 +338,7 @@ test('quiz view-article opens an in-page article dialog with exact article fallb
   assert.match(active, /role="dialog"/);
   assert.match(active, /aria-modal="true"/);
   assert.match(active, /onclick="closeQuizArticlePanel\(\)"/);
+  assert.match(active, /onclick="if\(event\.target===this\) closeQuizArticlePanel\(\)"/);
   assert.match(active, /\.quiz-article-panel\{/);
   assert.match(active, /@media \(max-width:760px\)\{[\s\S]*\.quiz-article-panel\{inset:0/);
   assert.match(active, /function openQuizArticlePanelByTarget/);
@@ -783,6 +784,10 @@ test('quiz analysis linkifies sixth-section law references to the in-page articl
   assert.match(linkedNamedLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=13/);
   assert.match(linkedNamedLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=15/);
   assert.match(linkedNamedLaw, /data-law="記帳士法"/);
+  const linkedCommaSeries = helpers.linkifyLawRefs('所得稅法第34條、第51條（折舊）', '所得稅法');
+  assert.match(linkedCommaSeries, /data-law="所得稅法" data-art="34"/);
+  assert.match(linkedCommaSeries, /data-law="所得稅法" data-art="51"/);
+  assert.equal((linkedCommaSeries.match(/class="crossref"/g) || []).length, 2);
   const linkedPrefixedLaw = helpers.linkifyLawRefs('搭配公司法第29條經理人任免規定', '商業會計法');
   assert.match(linkedPrefixedLaw, />公司法第29條</);
   assert.match(linkedPrefixedLaw, /&from=quiz&back=quiz\.html/);
