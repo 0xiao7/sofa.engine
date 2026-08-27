@@ -5,6 +5,8 @@ import vm from 'node:vm';
 
 const html = readFileSync(new URL('../quiz.html', import.meta.url), 'utf8');
 const active = html.replace(/<!--[\s\S]*?-->/g, '');
+const dashboardHtml = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
+const lawCrossRefSource = readFileSync(new URL('../law-crossref.js', import.meta.url), 'utf8');
 
 function extractFunction(source, name) {
   let start = source.indexOf(`function ${name}`);
@@ -22,6 +24,13 @@ function extractFunction(source, name) {
   }
   throw new Error(`${name} function did not close`);
 }
+
+test('quiz and dashboard use one shared law-reference rule engine', () => {
+  assert.match(html, /<script src="law-crossref\.js\?v=[^"]+"><\/script>/);
+  assert.match(dashboardHtml, /<script src="law-crossref\.js\?v=[^"]+"><\/script>/);
+  assert.match(extractFunction(active, 'linkifyLawRefs'), /SoFaLawRefs\.linkify/);
+  assert.match(extractFunction(dashboardHtml, '_linkifyLaw'), /SoFaLawRefs\.linkify/);
+});
 
 test('post-answer actions place next question next to view article', () => {
   assert.match(active, /id="quiz-answer-actions"/);
@@ -159,6 +168,21 @@ test('article citation helper preserves sub-articles in labels and links', () =>
   assert.equal(helpers.formatArticleCitation('第十三條之一', '記帳士法'), '第 十三 條之一 ｜ 記帳士法');
   assert.equal(helpers.getArticleCitationNo('第十三條之一'), '十三之一');
   assert.equal(helpers.formatArticleCitation('§ 第13條之1｜附註', '記帳士法'), '第 13 條之1 ｜ 記帳士法');
+});
+
+test('quiz article resolver matches hyphenated references to zero-padded database titles', () => {
+  const source = [
+    extractFunction(active, '_articleParamCore'),
+    extractFunction(active, 'normalizeArticleCore'),
+    extractFunction(active, '_articleIdentityKey'),
+    extractFunction(active, '_articleNoMatches')
+  ].join('\n');
+  const helpers = vm.runInNewContext(`${lawCrossRefSource};${source};({_articleParamCore,_articleNoMatches})`);
+
+  assert.equal(helpers._articleParamCore('§ 04之1｜證券交易所得停止課徵'), '4之1');
+  assert.equal(helpers._articleParamCore('4-1'), '4之1');
+  assert.equal(helpers._articleNoMatches({title:'§ 04之1｜證券交易所得停止課徵'}, '4-1'), true);
+  assert.equal(helpers._articleNoMatches({title:'§ 73之1｜國際金融業務分行授信收入申報'}, '73-1'), true);
 });
 
 test('drill law deep links do not overwrite the learner default law', () => {
@@ -338,6 +362,7 @@ test('quiz view-article opens an in-page article dialog with exact article fallb
   assert.match(active, /role="dialog"/);
   assert.match(active, /aria-modal="true"/);
   assert.match(active, /onclick="closeQuizArticlePanel\(\)"/);
+  assert.match(active, /onclick="if\(event\.target===this\) closeQuizArticlePanel\(\)"/);
   assert.match(active, /\.quiz-article-panel\{/);
   assert.match(active, /@media \(max-width:760px\)\{[\s\S]*\.quiz-article-panel\{inset:0/);
   assert.match(active, /function openQuizArticlePanelByTarget/);
@@ -766,7 +791,7 @@ test('quiz analysis linkifies sixth-section law references to the in-page articl
   const start = active.indexOf('function cleanCrossRefLawName');
   const end = active.indexOf('function formatSection', start);
   assert.ok(start >= 0 && end > start, 'law reference helper must be extractable before formatSection');
-  const helpers = vm.runInNewContext(`${active.slice(start, end)};({linkifyLawRefs,cleanCrossRefLawName})`);
+  const helpers = vm.runInNewContext(`${lawCrossRefSource};${active.slice(start, end)};({linkifyLawRefs,cleanCrossRefLawName})`);
 
   const linkedSameLaw = helpers.linkifyLawRefs('同法第13條、本法第15條', '記帳士法');
   assert.match(linkedSameLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=13/);
@@ -783,6 +808,23 @@ test('quiz analysis linkifies sixth-section law references to the in-page articl
   assert.match(linkedNamedLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=13/);
   assert.match(linkedNamedLaw, /law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&art=15/);
   assert.match(linkedNamedLaw, /data-law="記帳士法"/);
+  const linkedCommaSeries = helpers.linkifyLawRefs('所得稅法第34條、第51條（折舊）', '所得稅法');
+  assert.match(linkedCommaSeries, /data-law="所得稅法" data-art="34"/);
+  assert.match(linkedCommaSeries, /data-law="所得稅法" data-art="51"/);
+  assert.equal((linkedCommaSeries.match(/class="crossref"/g) || []).length, 2);
+  const linkedDatabaseRefs = helpers.linkifyLawRefs([
+    '《所得基本稅額條例》第3條',
+    '《所得基本稅額條例》第8條',
+    '《所得稅法》第4-1條',
+    '《所得稅法》第73-1條',
+    '《國際金融業務條例》第13條'
+  ].join('\n'), '所得基本稅額條例');
+  assert.equal((linkedDatabaseRefs.match(/class="crossref"/g) || []).length, 5);
+  assert.match(linkedDatabaseRefs, /data-law="所得基本稅額條例" data-art="3"/);
+  assert.match(linkedDatabaseRefs, /data-law="所得基本稅額條例" data-art="8"/);
+  assert.match(linkedDatabaseRefs, /data-law="所得稅法" data-art="4之1"/);
+  assert.match(linkedDatabaseRefs, /data-law="所得稅法" data-art="73之1"/);
+  assert.match(linkedDatabaseRefs, /data-law="國際金融業務條例" data-art="13"/);
   const linkedPrefixedLaw = helpers.linkifyLawRefs('搭配公司法第29條經理人任免規定', '商業會計法');
   assert.match(linkedPrefixedLaw, />公司法第29條</);
   assert.match(linkedPrefixedLaw, /&from=quiz&back=quiz\.html/);

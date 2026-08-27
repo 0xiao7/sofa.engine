@@ -9,6 +9,7 @@
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-G81F9D4YJ3"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-G81F9D4YJ3');</script>
 <script src="sofa-analytics.js?v=20260802-attribution-v2" defer></script>
+<script src="law-crossref.js?v=20260827-unified"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <link rel="manifest" href="/manifest.json">
   <meta name="theme-color" content="#1F3848">
@@ -6689,19 +6690,8 @@ function formatLawText(raw){
 }
 
 function _linkifyLaw(escapedText, currentLawName){
-  var lastLaw = null;
-  var linkedAnchors = [];
-  function cleanLawName(lawName){
-    return String(lawName || '')
-      .replace(/^.*?(?:熟記本條與|熟記本條及|熟記本條|本條與|本條及)/, '')
-      .replace(/^.*?(?:可看|請看|請參照|請見|另參照|另見)/, '')
-      .replace(/^(搭配|參照|依|按|見|與|及)+/, '')
-      .replace(/^[，。、；：\s]+|[，。、；：\s]+$/g, '')
-      .trim();
-  }
-  function splitLawPrefix(rawLaw, law){
-    var raw = String(rawLaw || '');
-    return raw.endsWith(law) ? raw.slice(0, raw.length - law.length) : '';
+  function attrEscape(value){
+    return String(value || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
   }
   function articleHref(law, art){
     var back = 'dashboard.html';
@@ -6710,53 +6700,9 @@ function _linkifyLaw(escapedText, currentLawName){
       + '&amp;art=' + encodeURIComponent(art)
       + '&amp;from=dashboard&amp;back=' + encodeURIComponent(back);
   }
-  function attrEscape(value){
-    return String(value || '').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-  }
-  function crossRefAnchor(law, art, label){
+  return SoFaLawRefs.linkify(escapedText, currentLawName, function(law, art, label){
     return '<a class="crossref" href="'+articleHref(law, art)+'" data-cross-law="'+attrEscape(law)+'" data-cross-art="'+attrEscape(art)+'" onclick="return openDashboardCrossRef(event,this)">'+label+'</a>';
-  }
-  function normalizeArtLabel(value){
-    return String(value || '').replace(/\s+/g, '').replace(/條?之/g, '之').replace(/-/g, '之').replace(/^第/, '').replace(/條$/, '');
-  }
-  function stashLinked(html){
-    var key = '@@SOFA_XREF_' + linkedAnchors.length + '@@';
-    linkedAnchors.push(html);
-    return key;
-  }
-  var lawTypes = '(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)';
-  var lawPat = '(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\\s《》()（）;；]{1,40}' + lawTypes + '))';
-  var numPat = '[0-9０-９一二三四五六七八九十百千零兩两]+(?:\\s*(?:條?之|-)\\s*[0-9０-９一二三四五六七八九十百千零兩两]+)?';
-  var articleSeq = new RegExp(lawPat + '第?\\s*(' + numPat + '(?:\\s*(?:、|,|，|及|和|與)\\s*第?\\s*' + numPat + ')+)\\s*條', 'g');
-  var sequenced = String(escapedText || '').replace(articleSeq, function(match, bracketLaw, plainLaw, nums){
-    var rawLaw = bracketLaw || plainLaw || '';
-    var law = cleanLawName(rawLaw);
-    if(!law || law === '同法' || law === '本法') return match;
-    lastLaw = law;
-    var prefix = bracketLaw ? '' : splitLawPrefix(rawLaw, law);
-    var tokens = String(nums || '').split(/(、|,|，|及|和|與)/);
-    var first = true;
-    var linked = tokens.map(function(token){
-      if(/^(、|,|，|及|和|與)$/.test(token)) return token;
-      var art = normalizeArtLabel(token);
-      if(!art) return token;
-      var label = first ? law + (String(token).trim().startsWith('第') ? String(token).trim() : art) + '條' : (String(token).trim().startsWith('第') ? String(token).trim() : art + '條');
-      first = false;
-      return crossRefAnchor(law, art, label);
-    }).join('');
-    return prefix + stashLinked(linked);
   });
-  return sequenced.replace(/(?:《([^》]+)》|(?:搭配|參照|依|按|見|與)?([^，。、；：\s《》()（）;；]{1,40}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則)))?(同法|本法)?第?(\d+)條(?:之(\d+))?/g, function(match, bracketLaw, plainLaw, sameLaw, art, sub){
-    var law = cleanLawName(bracketLaw || plainLaw || '');
-    if(law && law !== '同法' && law !== '本法') lastLaw = law;
-    else if((sameLaw || law === '同法' || law === '本法') && (lastLaw || currentLawName)) lastLaw = lastLaw || currentLawName;
-    if(!lastLaw) return match;
-    var fullArt = art + (sub ? '之' + sub : '');
-    var prefixMatch = match.match(/^(.+?(?:熟記本條與|熟記本條及|熟記本條|本條與|本條及|可看|請看|請參照|請見|另參照|另見)|搭配|參照|依|按|見|與|及)(.+)$/);
-    var prefix = prefixMatch ? prefixMatch[1] : '';
-    var label = prefixMatch ? prefixMatch[2] : match;
-    return prefix + crossRefAnchor(lastLaw, fullArt, label);
-  }).replace(/@@SOFA_XREF_(\d+)@@/g, function(match, idx){ return linkedAnchors[Number(idx)] || match; });
 }
 
 function formatSection(text, currentLawName){

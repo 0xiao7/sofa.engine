@@ -21,3 +21,11 @@ test('shared mobile nav styles expose the hidden top-mid menu', () => {
   assert.match(css, /body\.mobile-nav-open \.top-mid\{[\s\S]*position:absolute/);
   assert.match(css, /\.menu-btn\[aria-expanded="true"\]/);
 });
+
+test('shared topbar reserves the iPad status bar safe area at tablet widths', () => {
+  const topbarStart = css.indexOf('.topbar{');
+  const firstResponsiveRule = css.indexOf('@media', topbarStart);
+  assert.ok(topbarStart >= 0 && firstResponsiveRule > topbarStart, 'base topbar rule must precede responsive overrides');
+  const baseTopbar = css.slice(topbarStart, firstResponsiveRule);
+  assert.match(baseTopbar, /padding:calc\(18px \+ env\(safe-area-inset-top, 0px\)\) 40px 18px/);
+});

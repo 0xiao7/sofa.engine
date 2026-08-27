@@ -14,6 +14,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
 <link rel="stylesheet" href="sofa.css" />
+<script src="law-crossref.js?v=20260827-unified"></script>
 <script src="sofa-analytics.js?v=20260802-attribution-v2" defer></script>
 <style>
   :root{--tool-topbar-offset:74px}
@@ -213,7 +214,7 @@
   .free-quiz-notice a{min-height:44px}
   .art-inline{margin-top:14px;padding:16px 20px;background:rgba(31,56,72,.06);border-radius:3px;max-height:none;overflow-y:visible;font-family:var(--serif);font-size:clamp(1rem, 3vw, 1.08rem);line-height:2;color:rgba(31,56,72,.82);white-space:pre-wrap;overflow-wrap:anywhere;display:none}
   .quiz-article-panel{
-    position:fixed;inset:76px 28px 28px;z-index:150;display:none;
+    position:fixed;inset:calc(76px + env(safe-area-inset-top, 0px)) 28px 28px;z-index:150;display:none;
     align-items:center;justify-content:center;background:rgba(4,13,20,.58);padding:0;
   }
   .quiz-article-panel.show{display:flex}
@@ -696,7 +697,7 @@
           </div>
         </div>
 
-        <section id="quiz-article-panel" class="quiz-article-panel" role="dialog" aria-modal="true" aria-labelledby="quiz-article-panel-title" hidden>
+        <section id="quiz-article-panel" class="quiz-article-panel" role="dialog" aria-modal="true" aria-labelledby="quiz-article-panel-title" onclick="if(event.target===this) closeQuizArticlePanel()" hidden>
           <div class="quiz-article-shell">
             <div class="quiz-article-head">
               <b id="quiz-article-panel-title">法條解析</b>
@@ -1372,8 +1373,7 @@ async function _ensureArticleCache(law){
 }
 
 function _articleParamCore(raw){
-  return String(raw||'').replace(/^§\s*/,'').split(/[｜|]/)[0].trim()
-    .replace(/^第/,'').replace(/條之/g,'之').replace(/條.*$/,'').replace(/-/g,'之');
+  return SoFaLawRefs.normalizeArticle(raw);
 }
 
 function _findArticleByUrlParam(law){
@@ -1757,29 +1757,14 @@ const _LOCKED_SECS=[
   {name:'相關法規及注意事項',label:'相關法規及注意事項'}
 ];
 function cleanCrossRefLawName(raw){
-  return String(raw||'')
-    .replace(/^(搭配|交叉記憶可看|可看|請看|請參照|請見|另參照|另見|參照|依|按|見|熟記本條(?:與|及)?|本條(?:與|及)?|與|及|並列)+/,'')
-    .replace(/[（(].*$/,'')
-    .replace(/^[，。、；：\s]+|[，。、；：\s]+$/g,'')
-    .trim();
+  return SoFaLawRefs.cleanLawName(raw);
 }
 function linkifyLawRefs(text, articleLawName){
-  let out=String(text||'');
-  const anchors=[];
-  function hold(html){const key=`\uE000${anchors.length}\uE000`;anchors.push(html);return key;}
-  function cleanArt(art){return String(art||'').replace(/^第/,'').replace(/條.*$/,'');}
   function attr(raw){return String(raw||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
-  function href(law,art){return `law-preview.html?law=${encodeURIComponent(cleanCrossRefLawName(law||articleLawName))}&art=${encodeURIComponent(cleanArt(art))}&from=quiz&back=quiz.html`;}
-  function a(law,art,label){const cleanLaw=cleanCrossRefLawName(law||articleLawName);const clean=cleanArt(art);return `<a class="crossref" href="${href(cleanLaw,clean)}" data-law="${attr(cleanLaw)}" data-art="${attr(clean)}">${label}</a>`;}
-  out=out.replace(/(同法|本法)第?([0-9一二三四五六七八九十百千零兩]+(?:之[0-9一二三四五六七八九十百千零兩]+)?)條/g,
-    (_,lead,art)=>hold(a(articleLawName,art,`${lead}第${art}條`)));
-  out=out.replace(/(?:搭配|交叉記憶可看|與)?([\u4e00-\u9fa5]{1,16}(?:法|條例|準則|辦法|規則))第?([0-9一二三四五六七八九十百千零兩]+)條及第?([0-9一二三四五六七八九十百千零兩]+)條/g,
-    (_,law,art1,art2)=>hold(a(law,art1,`${cleanCrossRefLawName(law)}第${art1}條`)) + '及' + hold(a(law,art2,`第${art2}條`)));
-  out=out.replace(/(?:搭配|交叉記憶可看|與)?([\u4e00-\u9fa5]{1,16}(?:法|條例|準則|辦法|規則))第?([0-9一二三四五六七八九十百千零兩、,，]+)條/g,
-    (_,law,arts)=>arts.split(/[、,，]/).filter(Boolean).map(x=>hold(a(law,x,`${cleanCrossRefLawName(law)}第${x}條`))).join(''));
-  out=out.replace(/(?:搭配|交叉記憶可看|與)?([\u4e00-\u9fa5]{1,16}(?:法|條例|準則|辦法|規則))([0-9一二三四五六七八九十百千零兩、,，]+)條/g,
-    (_,law,arts)=>arts.split(/[、,，]/).filter(Boolean).map(x=>hold(a(law,x,`${cleanCrossRefLawName(law)}第${x}條`))).join(''));
-  return out.replace(/\uE000(\d+)\uE000/g,(_,i)=>anchors[Number(i)]||'');
+  return SoFaLawRefs.linkify(text, articleLawName, (law,art,label)=>{
+    const href=`law-preview.html?law=${encodeURIComponent(law)}&art=${encodeURIComponent(art)}&from=quiz&back=quiz.html`;
+    return `<a class="crossref" href="${href}" data-law="${attr(law)}" data-art="${attr(art)}">${label}</a>`;
+  });
 }
 function openCrossRefArticleInline(ev){
   const link=ev.target.closest('a.crossref, a.weak-article-link');

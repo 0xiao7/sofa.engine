@@ -5,6 +5,7 @@ import vm from 'node:vm';
 
 const html = readFileSync(new URL('../dashboard.html', import.meta.url), 'utf8');
 const active = html.replace(/<!--[\s\S]*?-->/g, '');
+const lawCrossRefSource = readFileSync(new URL('../law-crossref.js', import.meta.url), 'utf8');
 
 function extractFunction(source, name) {
   const start = source.indexOf(`function ${name}`);
@@ -120,7 +121,7 @@ test('law drawer analysis linkifies sixth-section law references', () => {
   const source = extractFunction(active, '_linkifyLaw');
   const sandbox = {};
   vm.createContext(sandbox);
-  vm.runInContext(`${source}; this.linkify = _linkifyLaw;`, sandbox);
+  vm.runInContext(`${lawCrossRefSource};${source}; this.linkify = _linkifyLaw;`, sandbox);
 
   const linkedSameLaw = sandbox.linkify('同法第13條、本法第15條', '記帳士法');
   assert.match(linkedSameLaw, /href="law-preview\.html\?law=%E8%A8%98%E5%B8%B3%E5%A3%AB%E6%B3%95&amp;art=13&amp;/);
@@ -158,6 +159,12 @@ test('law drawer analysis linkifies sixth-section law references', () => {
   assert.match(linkedArticleSeries, /law=%E5%88%91%E6%B3%95&amp;art=319&amp;/);
   assert.match(linkedArticleSeries, /law=%E5%9C%B0%E6%94%BF%E5%A3%AB%E6%B3%95&amp;art=26&amp;/);
   assert.doesNotMatch(linkedArticleSeries, /law=.*%E5%9C%B0%E6%94%BF%E5%A3%AB%E5%AE%88%E5%AF%86/);
+
+  const linkedDatabaseRefs = sandbox.linkify('《所得基本稅額條例》第3條；《所得稅法》第4-1條；《所得稅法》第73-1條', '所得稅法');
+  assert.equal((linkedDatabaseRefs.match(/class="crossref"/g) || []).length, 3);
+  assert.match(linkedDatabaseRefs, /data-cross-law="所得基本稅額條例" data-cross-art="3"/);
+  assert.match(linkedDatabaseRefs, /data-cross-law="所得稅法" data-cross-art="4之1"/);
+  assert.match(linkedDatabaseRefs, /data-cross-law="所得稅法" data-cross-art="73之1"/);
 
   const linkedProfessionalLaw = sandbox.linkify('會計師法43條等專業守密規定並列', '記帳士法');
   assert.match(linkedProfessionalLaw, /law=%E6%9C%83%E8%A8%88%E5%B8%AB%E6%B3%95&amp;art=43&amp;/);
