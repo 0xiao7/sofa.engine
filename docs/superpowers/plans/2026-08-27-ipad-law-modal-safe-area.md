@@ -17,6 +17,7 @@
 - Modify: `tests/tool-mobile-nav-contract.test.mjs`
 
 - [x] Add a test that executes `linkifyLawRefs()` with `所得稅法第34條、第51條` and requires two anchors with `data-law="所得稅法"` and article values `34` and `51`.
+- [x] Add a test covering the five database-backed `《法規》第 N 條` references from the iPad screenshot, including `4-1` and `73-1` sub-articles.
 - [x] Add a test requiring the base `.topbar` rule, before responsive media queries, to include `env(safe-area-inset-top, 0px)`.
 - [x] Run `node --test tests/quiz-answer-flow-contract.test.mjs tests/tool-mobile-nav-contract.test.mjs` and confirm the new assertions fail for the missing behavior.
 
@@ -27,6 +28,7 @@
 - Modify: `sofa.css`
 
 - [x] Update `linkifyLawRefs()` so subsequent `、第 N 條` references inherit the most recently matched law name without changing unrelated plain text.
+- [x] Update `linkifyLawRefs()` so bracketed database references and hyphenated sub-articles are tappable in the quiz explanation.
 - [x] Update the base `.topbar` padding to include the top safe-area inset at tablet and desktop viewport widths.
 - [x] Update the quiz article panel top inset to include the same safe-area inset.
 - [x] Ensure backdrop click and Escape retain the existing close behavior without navigation.

@@ -1373,7 +1373,8 @@ async function _ensureArticleCache(law){
 
 function _articleParamCore(raw){
   return String(raw||'').replace(/^§\s*/,'').split(/[｜|]/)[0].trim()
-    .replace(/^第/,'').replace(/條之/g,'之').replace(/條.*$/,'').replace(/-/g,'之');
+    .replace(/^第/,'').replace(/條之/g,'之').replace(/條.*$/,'').replace(/-/g,'之')
+    .split('之').map(part=>/^\d+$/.test(part)?String(Number(part)):part).join('之');
 }
 
 function _findArticleByUrlParam(law){
@@ -1767,10 +1768,12 @@ function linkifyLawRefs(text, articleLawName){
   let out=String(text||'');
   const anchors=[];
   function hold(html){const key=`\uE000${anchors.length}\uE000`;anchors.push(html);return key;}
-  function cleanArt(art){return String(art||'').replace(/^第/,'').replace(/條.*$/,'');}
+  function cleanArt(art){return String(art||'').replace(/\s+/g,'').replace(/^第/,'').replace(/條?之/g,'之').replace(/條$/,'');}
   function attr(raw){return String(raw||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
   function href(law,art){return `law-preview.html?law=${encodeURIComponent(cleanCrossRefLawName(law||articleLawName))}&art=${encodeURIComponent(cleanArt(art))}&from=quiz&back=quiz.html`;}
   function a(law,art,label){const cleanLaw=cleanCrossRefLawName(law||articleLawName);const clean=cleanArt(art);return `<a class="crossref" href="${href(cleanLaw,clean)}" data-law="${attr(cleanLaw)}" data-art="${attr(clean)}">${label}</a>`;}
+  out=out.replace(/[《〈]([^》〉]{1,40}(?:法|條例|規則|辦法|標準|準則|細則|規程|通則))[》〉]\s*第?\s*([0-9０-９一二三四五六七八九十百千零兩两]+(?:\s*(?:條?之|-)\s*[0-9０-９一二三四五六七八九十百千零兩两]+)?)\s*條/g,
+    (match,law,art)=>hold(a(law,art,match)));
   out=out.replace(/(同法|本法)第?([0-9一二三四五六七八九十百千零兩]+(?:之[0-9一二三四五六七八九十百千零兩]+)?)條/g,
     (_,lead,art)=>hold(a(articleLawName,art,`${lead}第${art}條`)));
   out=out.replace(/(?:搭配|交叉記憶可看|與)?([\u4e00-\u9fa5]{1,16}(?:法|條例|準則|辦法|規則))第?([0-9一二三四五六七八九十百千零兩]+)條((?:[、,，]\s*第?[0-9一二三四五六七八九十百千零兩]+條)+)/g,

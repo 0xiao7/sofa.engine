@@ -161,6 +161,21 @@ test('article citation helper preserves sub-articles in labels and links', () =>
   assert.equal(helpers.formatArticleCitation('§ 第13條之1｜附註', '記帳士法'), '第 13 條之1 ｜ 記帳士法');
 });
 
+test('quiz article resolver matches hyphenated references to zero-padded database titles', () => {
+  const source = [
+    extractFunction(active, '_articleParamCore'),
+    extractFunction(active, 'normalizeArticleCore'),
+    extractFunction(active, '_articleIdentityKey'),
+    extractFunction(active, '_articleNoMatches')
+  ].join('\n');
+  const helpers = vm.runInNewContext(`${source};({_articleParamCore,_articleNoMatches})`);
+
+  assert.equal(helpers._articleParamCore('§ 04之1｜證券交易所得停止課徵'), '4之1');
+  assert.equal(helpers._articleParamCore('4-1'), '4之1');
+  assert.equal(helpers._articleNoMatches({title:'§ 04之1｜證券交易所得停止課徵'}, '4-1'), true);
+  assert.equal(helpers._articleNoMatches({title:'§ 73之1｜國際金融業務分行授信收入申報'}, '73-1'), true);
+});
+
 test('drill law deep links do not overwrite the learner default law', () => {
   assert.match(active, /const _drillParam = _searchParams\.get\('drill'\) === '1'/);
   assert.match(active, /if\(!_drillParam\) localStorage\.setItem\('sofa_last_law', opt\.value\)/);
@@ -788,6 +803,19 @@ test('quiz analysis linkifies sixth-section law references to the in-page articl
   assert.match(linkedCommaSeries, /data-law="所得稅法" data-art="34"/);
   assert.match(linkedCommaSeries, /data-law="所得稅法" data-art="51"/);
   assert.equal((linkedCommaSeries.match(/class="crossref"/g) || []).length, 2);
+  const linkedDatabaseRefs = helpers.linkifyLawRefs([
+    '《所得基本稅額條例》第3條',
+    '《所得基本稅額條例》第8條',
+    '《所得稅法》第4-1條',
+    '《所得稅法》第73-1條',
+    '《國際金融業務條例》第13條'
+  ].join('\n'), '所得基本稅額條例');
+  assert.equal((linkedDatabaseRefs.match(/class="crossref"/g) || []).length, 5);
+  assert.match(linkedDatabaseRefs, /data-law="所得基本稅額條例" data-art="3"/);
+  assert.match(linkedDatabaseRefs, /data-law="所得基本稅額條例" data-art="8"/);
+  assert.match(linkedDatabaseRefs, /data-law="所得稅法" data-art="4-1"/);
+  assert.match(linkedDatabaseRefs, /data-law="所得稅法" data-art="73-1"/);
+  assert.match(linkedDatabaseRefs, /data-law="國際金融業務條例" data-art="13"/);
   const linkedPrefixedLaw = helpers.linkifyLawRefs('搭配公司法第29條經理人任免規定', '商業會計法');
   assert.match(linkedPrefixedLaw, />公司法第29條</);
   assert.match(linkedPrefixedLaw, /&from=quiz&back=quiz\.html/);
