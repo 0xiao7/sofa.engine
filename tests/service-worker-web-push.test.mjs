@@ -25,3 +25,10 @@ test('service worker rejects arbitrary cross-origin notification targets', () =>
   assert.match(source, /url\.pathname !== ['"]\/dashboard\.html['"]/);
   assert.match(source, /url\.hash !== ['"]#review-due['"]/);
 });
+
+test('service worker allowlists both member review and anonymous free practice', () => {
+  assert.match(source, /\/dashboard\.html#review-due/);
+  assert.match(source, /\/quiz\.html\?free=1/);
+  assert.match(source, /safeNotificationUrl/);
+  assert.match(source, /sofa-free-practice-/);
+});
