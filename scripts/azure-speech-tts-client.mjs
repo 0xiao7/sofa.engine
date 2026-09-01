@@ -1,3 +1,5 @@
+import { PODCAST_PRONUNCIATION_POLICY } from './podcast-pronunciation-policy.mjs';
+
 function xml(value) {
   return String(value)
     .replaceAll('&', '&amp;')
@@ -7,8 +9,24 @@ function xml(value) {
     .replaceAll("'", '&apos;');
 }
 
+function regex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+export function applyPronunciationSsml(text, policy = PODCAST_PRONUNCIATION_POLICY) {
+  const entries = Object.entries(policy.terms ?? {})
+    .sort(([left], [right]) => right.length - left.length);
+  if (entries.length === 0) return xml(text);
+  const lookup = new Map(entries);
+  const matcher = new RegExp(`(${entries.map(([term]) => regex(term)).join('|')})`, 'gu');
+  return String(text).split(matcher).map((part) => {
+    const rule = lookup.get(part);
+    return rule ? `<sub alias="${xml(rule.alias)}">${xml(part)}</sub>` : xml(part);
+  }).join('');
+}
+
 export function buildSsml({ text, voice }) {
-  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="zh-TW"><voice name="${xml(voice.name)}"><prosody rate="${xml(voice.rate)}" pitch="${xml(voice.pitch)}">${xml(text)}</prosody></voice></speak>`;
+  return `<speak version="1.0" xmlns="http://www.w3.org/2001/10/synthesis" xml:lang="zh-TW"><voice name="${xml(voice.name)}"><prosody rate="${xml(voice.rate)}" pitch="${xml(voice.pitch)}">${applyPronunciationSsml(text)}</prosody></voice></speak>`;
 }
 
 export async function synthesizeAzureSegment({

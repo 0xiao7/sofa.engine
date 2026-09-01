@@ -1,14 +1,18 @@
-import { readFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { synthesizeAzureSegment } from './azure-speech-tts-client.mjs';
 import { buildAudition } from './build-podcast-audition.mjs';
+import {
+  PODCAST_PRONUNCIATION_POLICY,
+  PODCAST_PRONUNCIATION_POLICY_SHA256,
+} from './podcast-pronunciation-policy.mjs';
 
 const REPO_ROOT = dirname(dirname(fileURLToPath(import.meta.url)));
 
-export function buildProduction({ episode, outputDir, artwork, synthesize }) {
-  return buildAudition({
+export async function buildProduction({ episode, outputDir, artwork, synthesize }) {
+  const report = await buildAudition({
     episode,
     outputDir,
     artwork,
@@ -16,6 +20,10 @@ export function buildProduction({ episode, outputDir, artwork, synthesize }) {
     reportStatus: 'production_pending_listen_approval',
     provider: 'microsoft-azure-speech-paid',
   });
+  report.pronunciationPolicyId = PODCAST_PRONUNCIATION_POLICY.id;
+  report.pronunciationPolicySha256 = PODCAST_PRONUNCIATION_POLICY_SHA256;
+  writeFileSync(join(resolve(outputDir), 'report.json'), `${JSON.stringify(report, null, 2)}\n`);
+  return report;
 }
 
 function option(args, name) {

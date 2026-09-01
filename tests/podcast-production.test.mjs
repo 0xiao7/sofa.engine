@@ -24,6 +24,8 @@ test('public production candidate uses the paid Azure provider and stays approva
   });
   assert.equal(report.provider, 'microsoft-azure-speech-paid');
   assert.equal(report.status, 'production_pending_listen_approval');
+  assert.equal(report.pronunciationPolicyId, 'podcast-tw-pronunciation-v1');
+  assert.match(report.pronunciationPolicySha256, /^[0-9a-f]{64}$/);
   assert.equal(report.publicUrl, undefined);
   assert.match(report.artifacts.vtt.sha256, /^[0-9a-f]{64}$/);
 });
