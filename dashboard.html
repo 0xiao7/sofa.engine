@@ -8011,7 +8011,7 @@ function _readArticle(btn, text) {
     _fetchJSON(API+'/api/me/review-due',{ headers: H }),
     _fetchJSON(API+'/api/me/entitlements',{ headers: H }),
     _fetchJSON(API+'/api/me/study/today?track=bookkeeper',{ headers: H }),
-  ]).then(function(results){
+  ]).then(async function(results){
     window.__dashboardDataLoaded = true;
     var profile   = results[0];
     var progress  = results[1];
@@ -8021,6 +8021,28 @@ function _readArticle(btn, text) {
     var dueRes     = results[5];
     var entitlementRes = results[6];
     var studyTodayRes = results[7];
+
+    // Recover only an exam the user explicitly selected locally. Never persist
+    // the countdown's automatic default as if it were a completed selection.
+    if(profile && !profile.exam_key){
+      var explicitLocalExam = '';
+      try { explicitLocalExam = localStorage.getItem('sofa_exam_key') || ''; } catch(e) {}
+      var supportedLocalExam = typeof _EXAM_KEY_TO_NAME !== 'undefined'
+        && explicitLocalExam !== 'all'
+        && !!_EXAM_KEY_TO_NAME[explicitLocalExam];
+      if(supportedLocalExam){
+        try{
+          var savedExam = await _fetchJSON(API + '/api/me/profile', {
+            method: 'PATCH',
+            headers: _authH({'Content-Type':'application/json'}),
+            body: JSON.stringify({exam_key: explicitLocalExam})
+          });
+          if(savedExam && savedExam.exam_key === explicitLocalExam){
+            profile.exam_key = explicitLocalExam;
+          }
+        }catch(e){}
+      }
+    }
 
     _entitlementState.profile = profile || null;
     _entitlementState.data = entitlementRes && !entitlementRes.error ? entitlementRes : null;
