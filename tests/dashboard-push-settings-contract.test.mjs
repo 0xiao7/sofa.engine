@@ -54,7 +54,7 @@ test('mobile dashboard does not expose the desktop fixed-sidebar control', () =>
 
 test('dashboard saves push preferences through the authenticated settings API', () => {
   assert.match(active, /push_enabled:\s*!!/);
-  assert.match(active, /exam_key:\s*examKey/);
+  assert.match(active, /exam_key:\s*window\.SoFaExamTargets \? window\.SoFaExamTargets\.toApiKey\(examKey\) : examKey/);
   assert.match(active, /push_law_name:\s*pushLaw/);
   assert.match(active, /push_order:\s*pushOrder/);
   assert.match(active, /API\+'\/api\/me\/srs-settings'/);

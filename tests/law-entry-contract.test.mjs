@@ -265,7 +265,8 @@ test('law preview names the return path for tree readers', () => {
 test('law preview article fetches keep paid member auth', () => {
   assert.match(preview, /function _authH\(extra\)/);
   assert.match(preview, /if\(tok\) h\.Authorization='Bearer '\+tok/);
-  assert.match(preview, /else if\(uid\) h\['X-Sofa-UID'\]=uid/);
+  assert.match(preview, /if\(tok\) h\.Authorization='Bearer '\+tok/);
+  assert.doesNotMatch(preview, /X-Sofa-UID/);
   assert.match(preview, /async function fetchJSON\(url\)\{/);
   assert.match(preview, /fetch\(url, \{headers:_authH\(\), credentials:'include'\}\)/);
   assert.match(preview, /fetchJSON\(`\$\{API\}\/api\/article\/\$\{id\}`\)/);
@@ -352,7 +353,7 @@ test('law preview teases paid fifth and sixth sections instead of hiding the val
 test('law preview only locks advanced sections for explicitly free readers', () => {
   assert.match(preview, /const uid = localStorage\.getItem\('sofa_uid'\) \|\| ''/);
   assert.match(preview, /const tok = localStorage\.getItem\('sofa_token'\) \|\| ''/);
-  assert.match(preview, /let readerPaid = !!\(uid \|\| tok\)/);
+  assert.match(preview, /let readerPaid = !!tok/);
   assert.match(preview, /function readerModeLabel/);
   assert.match(preview, /readerPaid \? '法本閱讀' : '法本試讀'/);
   assert.match(preview, /document\.title = `\$\{lawName\} · SoFa \$\{readerModeLabel\(\)\}`/);

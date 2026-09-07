@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
+<script src="account-storage.js?v=20260908-account-isolation"></script>
 <meta charset="utf-8" />
 <title>SoFa Engine — 私人筆記庫</title>
 <meta name="robots" content="noindex,nofollow" />
@@ -126,11 +127,11 @@
   var _uid = localStorage.getItem('sofa_uid');
   var _tok = localStorage.getItem('sofa_token') || '';
   var _explicitFree = (!_uid && localStorage.getItem('sofa_free') === 'FREE');
-  window.__notesPaid = !_explicitFree;        // fail-open 初值
-  window.__notesPaidResolved = !_uid;          // 未登入沒得查
-  function _authHeaders(){ var h={}; if(_tok) h['Authorization']='Bearer '+_tok; else if(_uid) h['X-Sofa-UID']=_uid; return h; }
+  window.__notesPaid = !!_tok && !_explicitFree;
+  window.__notesPaidResolved = !_tok;
+  function _authHeaders(){ var h={}; if(_tok) h['Authorization']='Bearer '+_tok; return h; }
   function _confirmNotesPaid(cb){
-    if(!_uid){ cb(window.__notesPaid); return; }
+    if(!_tok){ cb(window.__notesPaid); return; }
     var done=false;
     var ctrl = (typeof AbortController!=='undefined') ? new AbortController() : null;
     var timer = ctrl ? setTimeout(function(){ ctrl.abort(); }, 6000) : null;

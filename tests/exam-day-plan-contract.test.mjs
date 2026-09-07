@@ -22,30 +22,28 @@ test('checkout defaults to the exam-day plan and keeps required checkout fields'
   assert.match(checkout, /POST https:\/\/sofa-engine-api\.onrender\.com\/api\/checkout|const API_URL = "https:\/\/sofa-engine-api\.onrender\.com\/api\/checkout"/);
   assert.match(checkout, /class="plan selected" data-plan="到考日" data-amount="1280"/);
   assert.doesNotMatch(checkout, /一次付清,用到 2026\/11\/30\(考後\)/);
-  assert.match(checkout, /<script src="exam-targets\.js\?v=20260714-registration-window"><\/script>/);
+  assert.match(checkout, /<script src="exam-targets\.js\?v=20260908-canonical-catalog"><\/script>/);
   assert.match(examTargets, /const TARGETS = \{/);
   assert.match(examTargets, /DEFAULT_EXAM_DAY_REGISTRATION_LEAD_LABEL = '報名前一個月'/);
   assert.doesNotMatch(examTargets, /DEFAULT_EXAM_DAY_SALE_OPEN_DAYS = 180/);
-  for (const key of ['bookkeeper', 'landadmin', 'realestate', 'tax-admin', 'tax-law', 'elem-admin', 'post-acc']) {
+  for (const key of ['bookkeeper', 'landadmin', 'real_estate_broker', 'tax-admin', 'tax-law', 'elem-admin', 'post-acc']) {
     assert.match(examTargets, new RegExp(`${key}:|["']${key}["']:`));
   }
   for (const [key, date] of [
     ['bookkeeper', '2026-11-14T00:00:00+08:00'],
-    ['realestate', '2026-11-14T00:00:00+08:00'],
+    ['real_estate_broker', '2026-11-14T00:00:00+08:00'],
   ]) {
     const targetBlock = new RegExp(`key:\\s*'${key}'[\\s\\S]*?examDate:\\s*'${date.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`);
     assert.match(examTargets, targetBlock);
     assert.match(examTargets, new RegExp(`key:\\s*'${key}'[\\s\\S]*?registrationStart:\\s*'2026-08-04T00:00:00\\+08:00'`));
-    assert.match(examTargets, new RegExp(`key:\\s*'${key}'[\\s\\S]*?registrationDisplay:\\s*'2026 / 08 / 04'`));
+    assert.match(examTargets, new RegExp(`key:\\s*'${key}'[\\s\\S]*?registrationDisplay:\\s*'2026 / 08 / 04–08 / 13'`));
     assert.match(examTargets, new RegExp(`key:\\s*'${key}'[\\s\\S]*?saleOpenDate:\\s*'2026-07-04T00:00:00\\+08:00'`));
   }
   for (const key of ['landadmin', 'tax-admin', 'tax-law', 'elem-admin', 'post-acc']) {
-    const block = new RegExp(`key:\\s*'${key}'[\\s\\S]*?(?=\\n    [a-z'"]|\\n  \\};)`);
-    const match = examTargets.match(block);
-    assert.ok(match, `${key} target exists`);
-    assert.doesNotMatch(match[0], /examDate:\s*'2026-(01|06|07)-/);
-    assert.match(match[0], /examDisplay:\s*'下一期未公告'/);
+    if (key === 'elem-admin') assert.match(examTargets, /'elem-admin': Object\.assign\(unverified\('elem-admin'/);
+    else assert.match(examTargets, new RegExp(`unverified\\('${key}'`));
   }
+  assert.doesNotMatch(examTargets, /examDate:\s*'2026-(01|06|07)-/);
   assert.match(checkout, /NT\$1280 是到考日方案固定價/);
   assert.match(checkout, /報名前一個月內/);
   assert.doesNotMatch(checkout, /考前 180 天內/);
@@ -69,7 +67,7 @@ test('checkout defaults to the exam-day plan and keeps required checkout fields'
   assert.doesNotMatch(checkout, /const EXAM = new Date\('2026-11-14T00:00:00\+08:00'\)/);
   assert.match(checkout, /"到考日": "到考日方案 · 讀到考試日"/);
   assert.match(checkout, /const examKey = getCheckoutExamKey\(\)/);
-  assert.match(checkout, /exam_key: examKey/);
+  assert.match(checkout, /exam_key: apiExamKey/);
   assert.match(checkout, /line_identity: lineIdentity/);
 });
 
@@ -82,7 +80,7 @@ test('GX-DROPDOWN checkout only renders open and LINE-supported exam targets', (
   const api = sandbox.window.SoFaExamTargets;
   const purchasable = Object.keys(api.TARGETS).filter((key) => api.examDayPlanState(api.TARGETS[key], '2026-07-15T00:00:00+08:00').canBuy);
 
-  assert.deepEqual(purchasable, ['bookkeeper', 'realestate']);
+  assert.deepEqual(purchasable, ['bookkeeper', 'real_estate_broker']);
   assert.match(checkout, /const available = getCheckoutPurchasableTargets\(\)/);
   assert.match(checkout, /examTargetEl\.innerHTML = `<option value="">請先選你的考試目標<\/option>\$\{options\}`/);
   assert.doesNotMatch(checkout, /暫不販售<\/option>/);
@@ -104,7 +102,7 @@ test('exam-day plan opens from the registration window, not the exam countdown',
 });
 
 test('CXA keeps elem-admin explicitly disabled until LINE bot supports the paid service', () => {
-  assert.match(examTargets, /'elem-admin': \{/);
+  assert.match(examTargets, /'elem-admin': Object\.assign\(/);
   assert.match(examTargets, /purchaseStatus:\s*'disabled'/);
   assert.match(examTargets, /LINE 推播尚未支援完整服務/);
   assert.match(checkout, /if\(state\.state === "purchase_disabled"\) return "暫不販售"/);
@@ -131,7 +129,7 @@ test('CXB frontend exam and plan contract stays aligned with canonical JSON', ()
   vm.runInNewContext(examTargets, sandbox);
   const api = sandbox.window.SoFaExamTargets;
 
-  assert.deepEqual(Object.keys(api.TARGETS), examPlanContract.exam_keys);
+  assert.deepEqual(Object.keys(api.TARGETS), examPlanContract.exam_keys.map((key) => examPlanContract.exams[key].canonical_key));
   assert.deepEqual(examPlanContract.plans.map((plan) => plan.name), ['月費', '季費', '到考日', '買斷']);
   assert.deepEqual(examPlanContract.plans.map((plan) => plan.amount_env), [
     'ECPAY_AMT_MONTHLY',
@@ -142,7 +140,7 @@ test('CXB frontend exam and plan contract stays aligned with canonical JSON', ()
 
   for (const key of examPlanContract.exam_keys) {
     const expected = examPlanContract.exams[key];
-    const actual = api.TARGETS[key];
+    const actual = api.TARGETS[expected.canonical_key];
     assert.equal(actual.label, expected.label, `${key} label`);
     if (expected.exam_date) assert.equal(actual.examDate.slice(0, 10), expected.exam_date, `${key} exam_date`);
     if (expected.registration_start) assert.equal(actual.registrationStart.slice(0, 10), expected.registration_start, `${key} registration_start`);
@@ -157,7 +155,7 @@ test('CXB checkout sanitizes stored exam_key before sending payment payloads', (
   assert.match(checkout, /sanitizeCheckoutExamKey\(fromQuery, \{ allowDisabled: false \}\)/);
   assert.match(checkout, /sanitizeCheckoutExamKey\(stored, \{ allowDisabled: false \}\)/);
   assert.match(checkout, /const examKey = getCheckoutExamKey\(\)/);
-  assert.match(checkout, /exam_key: examKey/);
+  assert.match(checkout, /exam_key: apiExamKey/);
   assert.match(checkout, /line_identity: lineIdentity/);
 });
 

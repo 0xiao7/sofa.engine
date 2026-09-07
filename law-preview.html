@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
+<script src="account-storage.js?v=20260908-account-isolation"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex, follow">
@@ -387,7 +388,7 @@ const returnFrom = params.get('from') || '';
 const backTarget = params.get('back') || '';
 const uid = localStorage.getItem('sofa_uid') || '';
 const tok = localStorage.getItem('sofa_token') || '';
-let readerPaid = !!(uid || tok);
+let readerPaid = !!tok;
 const PAID_READER_PLANS = new Set(['月費','季費','買斷','體驗','Admin','monthly','quarterly','trial']);
 const FREE_READER_PLANS = new Set(['免費','free']);
 
@@ -401,7 +402,6 @@ const listLabel = document.getElementById('listLabel');
 function _authH(extra){
   const h=extra?{...extra}:{};
   if(tok) h.Authorization='Bearer '+tok;
-  else if(uid) h['X-Sofa-UID']=uid;
   return h;
 }
 

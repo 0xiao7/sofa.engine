@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
+<script src="account-storage.js?v=20260908-account-isolation"></script>
+<script src="exam-targets.js?v=20260908-canonical-catalog"></script>
 <meta charset="utf-8" />
 <title>SoFa Engine — 考古題</title>
 <link rel="canonical" href="https://sofaengine.org/exam.html" />
@@ -84,19 +86,15 @@ function esc(s){return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;"
 function authHeaders(extra){
   const h = extra ? {...extra} : {};
   if (tok) h.Authorization = "Bearer " + tok;
-  else if (uid) h["X-Sofa-UID"] = uid;
   return h;
 }
 let questions = [];
 let idx = 0;
 let answered = false;
 const answer_source = "past_exam";
-const examKey = (
-  new URLSearchParams(location.search).get("exam")
-  || localStorage.getItem("sofa_exam_key")
-  || localStorage.getItem("sofa.dash.exam.pick")
-  || ""
-).trim();
+const examKey = window.SoFaExamTargets
+  ? window.SoFaExamTargets.resolveTarget().key
+  : (new URLSearchParams(location.search).get("exam") || "").trim();
 
 async function loadMeta(){
   if(!examKey){

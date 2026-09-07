@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
+<script src="account-storage.js?v=20260908-account-isolation"></script>
 <meta charset="utf-8" />
 <title>SoFa Engine — 結帳</title>
 <link rel="canonical" href="https://sofaengine.org/checkout.html" />
@@ -950,7 +951,7 @@
   </div>
 </div>
 
-<script src="exam-targets.js?v=20260714-registration-window"></script>
+<script src="exam-targets.js?v=20260908-canonical-catalog"></script>
 <script>
 (function(){
   const API_URL = "https://sofa-engine-api.onrender.com/api/checkout";
@@ -1116,7 +1117,10 @@
   }
 
   function sanitizeCheckoutExamKey(key, options){
-    const raw = (key || "").trim();
+    const rawInput = (key || "").trim();
+    const raw = window.SoFaExamTargets?.normalizeTargetKey
+      ? window.SoFaExamTargets.normalizeTargetKey(rawInput)
+      : rawInput;
     if (!raw || !window.SoFaExamTargets?.TARGETS?.[raw]) return "";
     const opts = options || {};
     if (opts.allowDisabled) return raw;
@@ -1309,13 +1313,14 @@
 
     try {
       const examKey = getCheckoutExamKey();
+      const apiExamKey = window.SoFaExamTargets ? window.SoFaExamTargets.toApiKey(examKey) : examKey;
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           plan: sel.plan,
           email,
-          exam_key: examKey,
+          exam_key: apiExamKey,
           line_identity: lineIdentity,
           session_id: checkoutSessionId,
           page_path: location.pathname + location.search,
