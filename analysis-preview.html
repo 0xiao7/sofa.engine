@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
+  <script src="account-storage.js?v=20260908-account-isolation"></script>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>進度雷達預覽｜SoFa Engine</title>
@@ -304,13 +305,12 @@
       const uid = localStorage.getItem('sofa_uid') || '';
       const headers = {};
       if(token) headers.Authorization = `Bearer ${token}`;
-      if(uid) headers['X-Sofa-UID'] = uid;
       return headers;
     }
 
     async function loadRemoteAnalysis(){
       const headers = authHeaders();
-      if(!headers.Authorization && !headers['X-Sofa-UID']) return null;
+      if(!headers.Authorization) return null;
       const examKey = selectedExamKey();
       const res = await fetch(`${API_BASE}/api/me/analysis?exam_key=${encodeURIComponent(examKey)}`, { headers });
       if(!res.ok) return null;

@@ -35,16 +35,12 @@
     try { localStorage.setItem(TOMB, JSON.stringify(obj)); } catch (e) { /* ignore */ }
   }
   function _loggedIn() {
-    var tok = localStorage.getItem('sofa_token');
-    var uid = localStorage.getItem('sofa_uid');
-    return !!(tok || (uid && uid !== 'FREE'));
+    return !!localStorage.getItem('sofa_token');
   }
   function _authH() {
     var h = { 'Content-Type': 'application/json' };
     var tok = localStorage.getItem('sofa_token') || '';
-    var uid = localStorage.getItem('sofa_uid') || '';
     if (tok) h['Authorization'] = 'Bearer ' + tok;
-    else if (uid) h['X-Sofa-UID'] = uid;
     return h;
   }
   function _strictNewer(a, b) {
@@ -113,8 +109,8 @@
       _cloudDelete(id);
     },
 
-    /** 拉雲端 → 與本地依 updatedAt 合併（新者贏）；本地較新者回推雲端
-        （首次登入＝雲端為空，等同把舊筆記一次上推）。回傳 Promise。 */
+    /** 拉雲端 → 與目前帳號命名空間依 updatedAt 合併（新者贏）。
+        ownerless legacy 只存在 account-storage quarantine，不會進入這裡。 */
     sync: function () {
       if (!_loggedIn()) return Promise.resolve(false);
       return fetch(API + '/api/me/article-notes', { headers: _authH() })

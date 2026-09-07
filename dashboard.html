@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
+<script src="account-storage.js?v=20260908-account-isolation"></script>
+<script src="exam-targets.js?v=20260908-canonical-catalog"></script>
 <meta charset="utf-8" />
 <title>SoFa Engine — 會員中心</title>
 <link rel="canonical" href="https://sofaengine.org/dashboard.html" />
@@ -4617,7 +4619,7 @@
                     <option value="all">全部考科</option>
                     <option value="bookkeeper">記帳士</option>
                     <option value="landadmin">地政士</option>
-                    <option value="realestate">不動產經紀人</option>
+                    <option value="real_estate_broker">不動產經紀人</option>
                     <option value="tax-admin">財稅行政</option>
                     <option value="tax-law">財稅法務</option>
                     <option value="elem-admin">初等行政</option>
@@ -4725,7 +4727,7 @@
                 <option value="">跟隨會員目標</option>
                 <option value="bookkeeper">記帳士</option>
                 <option value="landadmin">地政士</option>
-                <option value="realestate">不動產經紀人</option>
+                <option value="real_estate_broker">不動產經紀人</option>
                 <option value="tax-admin">稅務行政</option>
                 <option value="tax-law">稅務相關法規</option>
                 <option value="elem-admin">初等一般行政</option>
@@ -4794,7 +4796,7 @@
               <div id="mc-exam-picker">
                 <span class="ep-chip" data-key="bookkeeper" onclick="pickExam('bookkeeper')">記帳士</span>
                 <span class="ep-chip" data-key="landadmin" onclick="pickExam('landadmin')">地政士</span>
-                <span class="ep-chip" data-key="realestate" onclick="pickExam('realestate')">不動產</span>
+                <span class="ep-chip" data-key="real_estate_broker" onclick="pickExam('real_estate_broker')">不動產</span>
                 <span class="ep-chip" data-key="tax-admin" onclick="pickExam('tax-admin')">財稅行政</span>
                 <span class="ep-chip" data-key="tax-law" onclick="pickExam('tax-law')">財稅法務</span>
                 <span class="ep-chip" data-key="elem-admin" onclick="pickExam('elem-admin')">初等行政</span>
@@ -5482,15 +5484,12 @@ function _highlightText(text, query){
     '<mark style="background:rgba(231,187,167,0.22);color:var(--peach-2);border-radius:2px;padding:0 1px">$1</mark>'
   );
 }
-// 過渡期：有 sofa_token 用 Bearer，否則 fallback X-Sofa-UID / FREE
 function _authH(extra) {
   const h = extra ? {...extra} : {};
   const _tok = localStorage.getItem('sofa_token') || '';
   const _uid = localStorage.getItem('sofa_uid') || '';
   const _free = !_uid && localStorage.getItem('sofa_free') === 'FREE';
   if (_tok) h['Authorization'] = 'Bearer ' + _tok;
-  else if (_uid) h['X-Sofa-UID'] = _uid;
-  else if (_free) h['X-Sofa-UID'] = 'FREE';
   return h;
 }
 
@@ -8032,12 +8031,13 @@ function _readArticle(btn, text) {
         && !!_EXAM_KEY_TO_NAME[explicitLocalExam];
       if(supportedLocalExam){
         try{
+          var apiExamKey = window.SoFaExamTargets ? window.SoFaExamTargets.toApiKey(explicitLocalExam) : explicitLocalExam;
           var savedExam = await _fetchJSON(API + '/api/me/profile', {
             method: 'PATCH',
             headers: _authH({'Content-Type':'application/json'}),
-            body: JSON.stringify({exam_key: explicitLocalExam})
+            body: JSON.stringify({exam_key: apiExamKey})
           });
-          if(savedExam && savedExam.exam_key === explicitLocalExam){
+          if(savedExam && (!window.SoFaExamTargets || window.SoFaExamTargets.normalizeTargetKey(savedExam.exam_key) === explicitLocalExam)){
             profile.exam_key = explicitLocalExam;
           }
         }catch(e){}
@@ -8104,8 +8104,9 @@ function _readArticle(btn, text) {
 
       // 套用個人考科偏好
       if(profile.exam_key && typeof applyExamFilter === 'function'){
-        try { localStorage.setItem('sofa_exam_key', profile.exam_key); } catch(e) {}
-        applyExamFilter(profile.exam_key);
+        var canonicalProfileExam = window.SoFaExamTargets ? window.SoFaExamTargets.normalizeTargetKey(profile.exam_key) : profile.exam_key;
+        try { localStorage.setItem('sofa_exam_key', canonicalProfileExam); } catch(e) {}
+        applyExamFilter(canonicalProfileExam);
       } else if(typeof renderExamGoalState === 'function') {
         renderExamGoalState('all');
       }
@@ -8497,7 +8498,7 @@ function saveSrsSettings(){
   _fetchJSON(API+'/api/me/srs-settings', {
     method:'POST',
     headers: Object.assign({'Content-Type':'application/json'}, H),
-    body: JSON.stringify({ freeze_mode: !!(freeze && freeze.checked), daily_review_limit:n, push_enabled: !!(!pushEnabled || pushEnabled.checked), exam_key: examKey, push_law_name: pushLaw, push_order: pushOrder })
+    body: JSON.stringify({ freeze_mode: !!(freeze && freeze.checked), daily_review_limit:n, push_enabled: !!(!pushEnabled || pushEnabled.checked), exam_key: window.SoFaExamTargets ? window.SoFaExamTargets.toApiKey(examKey) : examKey, push_law_name: pushLaw, push_order: pushOrder })
   }).then(function(res){
     if(res && res.settings){
       renderSrsSettings(res.settings);
@@ -8875,8 +8876,9 @@ function _studyPlaylistNormalizeTrack(value){
     'land_agent':'landadmin',
     'land-admin':'landadmin',
     'land_admin':'landadmin',
-    'real-estate':'realestate',
-    'real_estate':'realestate',
+    'real-estate':'real_estate_broker',
+    'real_estate':'real_estate_broker',
+    'realestate':'real_estate_broker',
     'tax_admin':'tax-admin',
     'tax_law':'tax-law',
     'elem_admin':'elem-admin',
@@ -10541,70 +10543,41 @@ function saveNickname(){
   setInterval(tick, 1000);
 })();
 
-// ── 多考科動態倒數 ─────────────────────────────────
-// 新增考科：在 EXAMS 加一行 { key, name, date:'YYYY-MM-DD' } 即可
+// ── 多考科動態倒數：唯一來源 exam-targets.js ─────────────
 (function(){
-  const EXAMS = [
-    { key: 'bookkeeper', name: '記帳士',   date: '2026-11-14', reg_end: '2026-08-13' },
-    { key: 'landadmin',  name: '地政士',   date: '2026-06-06', reg_end: '2026-03-05' },
-    { key: 'realestate', name: '不動產',   date: '2026-11-14', reg_end: '2026-08-13' },
-    { key: 'tax-admin',  name: '財稅行政', date: '2026-07-03', reg_end: '2026-03-19' },
-    { key: 'tax-law',    name: '財稅法務', date: '2026-07-03', reg_end: '2026-03-19' },
-    { key: 'elem-admin', name: '初等行政', date: '2026-01-10', reg_end: '2025-11-06' },
-    { key: 'post-acc',   name: '中華郵政', date: '2026-07-19', reg_end: '2026-06-10' },
-  ];
-  // 把 reg_end 暴露給外部（給 applyExamFilter 用）
+  const catalog = window.SoFaExamTargets;
+  if(!catalog) return;
+  const EXAMS = catalog.listAvailable();
   window._EXAM_REG_END = {};
-  EXAMS.forEach(function(e){ if(e.reg_end) window._EXAM_REG_END[e.key] = e.reg_end; });
+  EXAMS.forEach(function(e){ if(e.registrationEnd) window._EXAM_REG_END[e.key] = e.registrationEnd.slice(0,10); });
   const PICK_KEY = 'sofa.dash.exam.pick';
 
-  function _nextFutureIdx(){
-    const now = Date.now();
-    const future = EXAMS.filter(e => new Date(e.date+'T00:00:00+08:00') > now);
-    if(!future.length) return 0;
-    const next = future.reduce((a,b)=>new Date(a.date)<new Date(b.date)?a:b);
-    return EXAMS.indexOf(next);
-  }
-
   function loadIdx(){
-    const now = Date.now();
     try{
-      const k = localStorage.getItem(PICK_KEY);
+      const k = catalog.normalizeTargetKey(localStorage.getItem(PICK_KEY));
       if(k){
         const i = EXAMS.findIndex(e=>e.key===k);
-        // 儲存的考科還沒過就用，過了就跳下一個
-        if(i>=0 && new Date(EXAMS[i].date+'T00:00:00+08:00') > now) return i;
+        if(i>=0) return i;
         try{ localStorage.removeItem(PICK_KEY); }catch(e){}
       }
     }catch(e){}
-    return _nextFutureIdx();
+    return 0;
   }
 
   let _idx = loadIdx();
 
-  function examDate(){ return new Date(EXAMS[_idx].date+'T00:00:00+08:00'); }
-  function calcDays(){ return Math.max(Math.ceil((examDate()-Date.now())/86400000),0); }
-
   function renderExam(){
-    // 倒數歸零後自動跳下一個，並同步 examInput 顯示
-    if(examDate() <= Date.now()){
-      const ni = _nextFutureIdx();
-      if(ni !== _idx){
-        _idx = ni;
-        try{ localStorage.removeItem(PICK_KEY); }catch(e){}
-        var examInp = document.getElementById('examInput');
-        if(examInp && typeof _EXAM_KEY_TO_NAME !== 'undefined'){
-          examInp.value = EXAMS[_idx].key === 'all' ? '' : (_EXAM_KEY_TO_NAME[EXAMS[_idx].key] || '');
-        }
-      }
-    }
+    if(!EXAMS.length) return;
     const e = EXAMS[_idx];
     const nameEl = document.getElementById('cd-exam-name');
     const dateEl = document.getElementById('cd-exam-date');
     const numEl  = document.querySelector('.cd-num');
-    const d = calcDays();
-    if(nameEl) nameEl.textContent = e.name;
-    if(dateEl) dateEl.textContent = e.date.split('-').join(' / ');
+    const d = catalog.daysUntil(e);
+    if(nameEl) nameEl.textContent = e.label;
+    if(dateEl){
+      dateEl.textContent = e.examDisplay;
+      dateEl.title = e.sourceLabel + '；查核 ' + e.checkedAt;
+    }
     if(numEl)  numEl.textContent  = d;
     document.querySelectorAll('.greet-days').forEach(el=>el.textContent=d);
   }
@@ -10612,15 +10585,17 @@ function saveNickname(){
   window.cycleExam = function(){
     if(EXAMS.length<=1) return;
     _idx = (_idx+1) % EXAMS.length;
-    try{ localStorage.setItem(PICK_KEY, EXAMS[_idx].key); localStorage.setItem('sofa_exam_key', EXAMS[_idx].key); }catch(e){}
+    catalog.selectTarget(EXAMS[_idx].key);
+    if(typeof applyExamFilter === 'function') applyExamFilter(EXAMS[_idx].key);
     renderExam();
   };
 
   window.setExamByKey = function(key){
+    key = catalog.normalizeTargetKey(key);
     var i = EXAMS.findIndex(function(e){ return e.key === key; });
     if(i >= 0 && i !== _idx){
       _idx = i;
-      try{ localStorage.setItem(PICK_KEY, key); localStorage.setItem('sofa_exam_key', key); }catch(e){}
+      catalog.selectTarget(key);
       renderExam();
     }
   };
@@ -10659,7 +10634,7 @@ var _curChip    = 'all';
 var _curLawName = '';
 var _examFilter = 'all';
 var _EXAM_NODE  = {
-  bookkeeper: 'n72', landadmin: 'n74', realestate: 'n83',
+  bookkeeper: 'n72', landadmin: 'n74', real_estate_broker: 'n83',
   'tax-admin': 'n79', 'tax-law': 'n43', 'elem-admin': 'n23', 'post-acc': 'n89'
 };
 function _examLawSet(key){
@@ -10672,11 +10647,11 @@ function _examLawSet(key){
 }
 var _EXAM_KEY_TO_NAME = {
   'all':'全部','bookkeeper':'記帳士','landadmin':'地政士',
-  'realestate':'不動產','tax-admin':'財稅行政','tax-law':'財稅法務',
+  'real_estate_broker':'不動產','tax-admin':'財稅行政','tax-law':'財稅法務',
   'elem-admin':'初等行政','post-acc':'中華郵政'
 };
 var _EXAM_KEY_TO_YEAR = {
-  'bookkeeper':'2026','landadmin':'2026','realestate':'2026',
+  'bookkeeper':'2026','landadmin':'2026','real_estate_broker':'2026',
   'tax-admin':'2026','tax-law':'2026','elem-admin':'2026','post-acc':'2026'
 };
 var _EXAM_NAME_TO_KEY = (function(){
@@ -10732,6 +10707,7 @@ function renderExamGoalState(key){
 }
 
 function applyExamFilter(key){
+  if(window.SoFaExamTargets) key = window.SoFaExamTargets.normalizeTargetKey(key);
   key = key || 'all';
   _examFilter = key;
   var label = _EXAM_KEY_TO_NAME[key] || '全部';
@@ -10790,7 +10766,7 @@ function _saveExamKey(key){
     fetch(API + '/api/me/profile', {
       method: 'PATCH',
       headers: _authH({'Content-Type':'application/json'}),
-      body: JSON.stringify({exam_key: key}),
+      body: JSON.stringify({exam_key: window.SoFaExamTargets ? window.SoFaExamTargets.toApiKey(key) : key}),
     }).catch(function(){});
   }, 800);
 }
@@ -12000,8 +11976,8 @@ ch.on('presence', { event: 'sync' }, () => {
   //    只有真的有伺服器答題紀錄（total>0）才覆寫，避免純網頁用戶被歸零。
   var _tok = localStorage.getItem('sofa_token')||'';
   var _uid = localStorage.getItem('sofa_uid')||'';
-  if(_tok || _uid){
-    var H = {}; if(_tok) H['Authorization']='Bearer '+_tok; else H['X-Sofa-UID']=_uid;
+  if(_tok){
+    var H = {'Authorization':'Bearer '+_tok};
     fetch(API + '/api/me/quiz-stats', { headers: H })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){

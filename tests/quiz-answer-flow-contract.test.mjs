@@ -261,7 +261,7 @@ test('free start entry defaults to bookkeeper scope instead of all laws', () => 
   assert.match(active, /if \(examKey \|\| !_startQuizParam \|\| _lawParamFromUrl\(\) \|\| _articleParamFromUrl\(\) \|\| _drillParam \|\| _pastExamMode\) return examKey/);
   assert.match(active, /return 'bookkeeper'/);
   assert.match(active, /examKey = _defaultExamForQuizStart\(examKey\)/);
-  assert.match(active, /if\(examKey\) localStorage\.setItem\('sofa_exam_key', examKey\)/);
+  assert.match(active, /window\.SoFaExamTargets\.selectTarget\(examKey\)/);
 });
 
 test('free start entry chooses a quiz-ready bookkeeper law first', () => {

@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
+<script src="account-storage.js?v=20260908-account-isolation"></script>
+<script src="exam-targets.js?v=20260908-canonical-catalog"></script>
 <meta charset="utf-8" />
 <title>SoFa Engine — 打字練習</title>
 <link rel="canonical" href="https://sofaengine.org/practice.html" />
@@ -485,7 +487,6 @@ function isPreviewHost(){
 }
 const uid = localStorage.getItem('sofa_uid') || (isPreviewHost() ? 'PREVIEW' : null);
 const tok = localStorage.getItem('sofa_token') || '';
-// 過渡期：有 token 用 Bearer，否則 fallback X-Sofa-UID
 function formatLawText(raw){
   if(!raw) return '';
   let t=String(raw).replace(/\r\n?/g,'\n').trim();
@@ -498,7 +499,6 @@ function formatLawText(raw){
 function _authH(extra) {
   const h = extra ? {...extra} : {};
   if (tok) h['Authorization'] = 'Bearer ' + tok;
-  else if (uid) h['X-Sofa-UID'] = uid;
   return h;
 }
 const freeParam = new URLSearchParams(location.search).get('free') === '1';
@@ -526,7 +526,7 @@ if(isFree){
 var _PRACTICE_LEGACY_EXAM_NODE = {
   bookkeeper: 'n72',
   landadmin: 'n74',
-  realestate: 'n83',
+  real_estate_broker: 'n83',
   'tax-admin': 'n79',
   'tax-law': 'n43',
   'elem-admin': 'n23',
@@ -571,6 +571,7 @@ function _practiceStoredExamKey(){
   var key = '';
   try{
     key = localStorage.getItem('sofa_practice_exam_key') || localStorage.getItem('sofa_exam_key') || localStorage.getItem('sofa.dash.exam.pick') || '';
+    if(window.SoFaExamTargets) key = window.SoFaExamTargets.normalizeTargetKey(key);
   }catch(e){}
   return _normalizePracticeExamKey(key);
 }
@@ -665,7 +666,8 @@ function setPracticeExamKey(examKey, options){
     localStorage.setItem('sofa_practice_exam_key', examKey);
     var legacyKey = _PRACTICE_NODE_TO_LEGACY[examKey];
     if(legacyKey){
-      localStorage.setItem('sofa_exam_key', legacyKey);
+      if(window.SoFaExamTargets) window.SoFaExamTargets.selectTarget(examKey);
+      else localStorage.setItem('sofa_exam_key', legacyKey);
       localStorage.setItem('sofa.dash.exam.pick', legacyKey);
     }
     if(!opts.keepLaw) localStorage.removeItem('sofa_practice_law');

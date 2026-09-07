@@ -1,6 +1,8 @@
 <!doctype html>
 <html lang="zh-Hant">
 <head>
+<script src="account-storage.js?v=20260908-account-isolation"></script>
+<script src="exam-targets.js?v=20260908-canonical-catalog"></script>
 <meta charset="utf-8" />
 <title>SoFa Engine — 選擇題</title>
 <link rel="canonical" href="https://sofaengine.org/quiz.html" />
@@ -868,7 +870,6 @@ async function fetchQuizJsonWithRetry(url, opts, attempts, delayMs){
 function _authH(extra) {
   const h = extra ? {...extra} : {};
   if (tok) h['Authorization'] = 'Bearer ' + tok;
-  else if (uid) h['X-Sofa-UID'] = uid;
   return h;
 }
 
@@ -1125,6 +1126,7 @@ function _persistPastExamSelection(){
   try{
     localStorage.setItem('sofa_past_exam_subject', subject);
     localStorage.setItem('sofa_past_exam_year', year);
+    if(window.SoFaExamTargets && subject) window.SoFaExamTargets.selectSubject(subject);
   }catch(e){}
   const u=new URL(location.href);
   u.searchParams.set('mode','past-exam');
@@ -1259,7 +1261,7 @@ function _quizScopedLaw(law){
 
 function _filterLawsForExam(laws, examKey){
   const legacy={
-    bookkeeper:'n72',landadmin:'n74',land_agent:'n74',realestate:'n83',real_estate_broker:'n83',
+    bookkeeper:'n72',landadmin:'n74',land_agent:'n74',real_estate_broker:'n83',
     'tax-admin':'n79','tax-law':'n43','elem-admin':'n23','post-acc':'n89'
   };
   const node=(typeof NODES!=='undefined'&&NODES[legacy[examKey]||examKey])||null;
@@ -1341,7 +1343,10 @@ function _focusQuizQuestionStart(){
   }
   let examKey = _resolvedQuestionExamKey();
   examKey = _defaultExamForQuizStart(examKey);
-  if(examKey) localStorage.setItem('sofa_exam_key', examKey);
+  if(examKey){
+    if(window.SoFaExamTargets) window.SoFaExamTargets.selectTarget(examKey);
+    else localStorage.setItem('sofa_exam_key', examKey);
+  }
   if(_shouldShowQzExamBanner(examKey)) _showQzExamBanner();
   try{
     const d=await fetch(`${API}/api/laws`).then(r=>r.json());
