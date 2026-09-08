@@ -1024,25 +1024,24 @@ async function resolveQuizEntitlement(){
     _quizProfileExamState=result.profileState;
     if(result.profileState==='failed'){
       _quizProfileExamKey='';
-      _setPaid(true);
+      _setPaid(false);
       return false;
     }
     _quizProfileExamKey = String((d&&d.exam_key)||'').trim();
-    const plan=String(d.plan||d.member_status||d.status||'').trim();
-    if(['免費','free'].includes(plan)) _setPaid(false);
-    else _setPaid(true); // 未知 plan 字串
+    const policy=(d&&d.access_policy)||{};
+    _setPaid(policy.tier==='paid' && policy.paid===true);
     return true;
   }catch(e){
     // catch(() => { if(timer) clearTimeout(timer); _setPaid(true); }
     if(timer) clearTimeout(timer);
     _quizProfileExamKey='';
     _quizProfileExamState='failed';
-    _setPaid(true);
+    _setPaid(false);
     return false;
   }
 }
-const isFree = !(uid || tok) && (freeParam || localStorage.getItem('sofa_free') === 'FREE');
-if (!(uid || tok) && !isFree) { window.location.href = 'login.html?redirect=quiz.html'; }
+if(!(uid || tok)) localStorage.setItem('sofa_free', 'FREE');
+const isFree = !(uid || tok);
 window.__sofaPaid = !isFree;
 window.__sofaPaidResolved = !(uid || tok);
 if(/(iPhone|iPad|iPod)/i.test(navigator.userAgent||'')){

@@ -11,10 +11,20 @@
     groupEnd: '2026-11-16'
   };
   const TARGET_ALIASES = {
+    n72: 'bookkeeper',
+    n74: 'landadmin',
+    'land-agent': 'landadmin',
+    land_agent: 'landadmin',
+    'land-admin': 'landadmin',
+    land_admin: 'landadmin',
     realestate: 'real_estate_broker',
     'real-estate': 'real_estate_broker',
     real_estate: 'real_estate_broker',
-    n83: 'real_estate_broker'
+    n83: 'real_estate_broker',
+    n79: 'tax-admin',
+    n43: 'tax-law',
+    n23: 'elem-admin',
+    n89: 'post-acc'
   };
   const API_KEY_ALIASES = { real_estate_broker: 'real_estate_broker' };
   const TARGETS = {

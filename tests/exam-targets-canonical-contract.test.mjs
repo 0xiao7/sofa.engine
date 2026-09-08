@@ -21,6 +21,18 @@ test('real estate broker uses one canonical key and legacy URLs normalize to it'
   assert.equal(api.toApiKey('real_estate_broker'), 'real_estate_broker');
 });
 
+test('all production legacy node ids are projected without changing their target', () => {
+  const { api } = catalog();
+  const expected = {
+    n72:'bookkeeper', n74:'landadmin', n83:'real_estate_broker',
+    n79:'tax-admin', n43:'tax-law', n23:'elem-admin', n89:'post-acc'
+  };
+  for (const [legacy, canonical] of Object.entries(expected)) {
+    assert.equal(api.normalizeTargetKey(legacy), canonical, legacy);
+    assert.equal(api.getTarget(legacy).key, canonical, legacy);
+  }
+});
+
 test('official group window and actual class window are source-dated', () => {
   const { api } = catalog();
   assert.equal(api.OFFICIAL_SOURCE.groupStart, '2026-11-14');

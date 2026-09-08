@@ -46,12 +46,9 @@ test('study room retain modal hides external LINE and trial-email paths in nativ
   assert.match(retainModal, /btn-serial/);
 });
 
-test('study room trial email reuse explains existing identity instead of implying another free serial', () => {
-  assert.match(room, /const issuedNewSerial = d\.issued_new_serial === true;/);
-  assert.match(room, /const existingIdentity = d\.serial_scope === 'existing_identity'/);
-  assert.match(room, /d\.identity_status === 'active_member'/);
-  assert.match(room, /d\.next_action === 'login_existing_serial'/);
-  assert.match(room, /existingIdentity \? '沿用既有序號' : '你的序號'/);
-  assert.match(room, /btn\.textContent = existingIdentity \? '沿用既有序號' : '已寄出'/);
-  assert.doesNotMatch(room, /已有序號/);
+test('study room sends login secrets only to the requested mailbox', () => {
+  assert.match(room, /登入資料會寄到信箱/);
+  assert.match(room, /btn\.textContent = '請查看信箱'/);
+  assert.doesNotMatch(room, /d\.serial/);
+  assert.doesNotMatch(room, /innerHTML = `✓/);
 });

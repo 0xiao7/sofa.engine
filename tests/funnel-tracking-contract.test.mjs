@@ -181,7 +181,7 @@ test('internal monetization links carry CTA-level attribution instead of becomin
     [dashboard, /pricing\.html\?utm_source=dashboard&utm_medium=locked_analysis&utm_campaign=dashboard_pricing/],
     [dashboard, /pricing\.html\?utm_source=dashboard&utm_medium=member_card_free&utm_campaign=dashboard_pricing/],
     [dashboard, /pricing\.html\?utm_source=dashboard&utm_medium=free_nudge&utm_campaign=dashboard_pricing/],
-    [dashboard, /\/pricing\.html\?utm_source=dashboard&utm_medium=expired_modal&utm_campaign=renew_pricing/],
+    [dashboard, /pricing\.html\?utm_source=dashboard&utm_medium=signed_in_free&utm_campaign=renew_pricing/],
     [fill, /pricing\.html\?utm_source=fill&utm_medium=free_bar&utm_campaign=fill_pricing/],
     [fill, /pricing\.html\?utm_source=fill&utm_medium=locked_section&utm_campaign=fill_pricing/],
     [practice, /pricing\.html\?utm_source=practice&utm_medium=free_bar&utm_campaign=practice_pricing/],
@@ -276,14 +276,11 @@ test('public free-quiz entry links carry a measurable campaign path', () => {
   }
 });
 
-test('expired learner recovery choices are measurable before renewal', () => {
-  assert.match(dashboard, /data-track-event="expire_feedback_click"/);
-  assert.match(dashboard, /data-track-label="feedback_10_days"/);
-  assert.match(dashboard, /data-track-event="expire_share_click"/);
-  assert.match(dashboard, /data-track-label="share_10_days"/);
-  assert.match(dashboard, /data-track-event="expire_renew_click"/);
-  assert.match(dashboard, /data-track-label="renew_pricing"/);
-  assert.match(dashboard, /data-track-event="expire_free_switch"/);
+test('expired learner stays inside the measured dashboard renewal path', () => {
+  assert.doesNotMatch(dashboard, /id="expire-overlay"/);
+  assert.match(dashboard, /utm_medium=signed_in_free&utm_campaign=renew_pricing/);
+  assert.match(dashboard, /id="free-retention-pricing"/);
+  assert.match(dashboard, /openEntitlementPanel/);
 });
 
 test('podcast page forwards owned-audio traffic into the server funnel', () => {

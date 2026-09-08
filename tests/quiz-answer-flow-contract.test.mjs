@@ -634,15 +634,15 @@ test('native iOS free quiz explanations still tease locked advanced sections', (
   assert.doesNotMatch(iosBranch, /pricing\.html/);
 });
 
-test('signed-in learners are not treated as free while entitlement is uncertain', () => {
+test('signed-in learners keep identity while paid content fails closed until confirmed', () => {
   assert.match(active, /window\.__sofaPaid = !isFree/);
-  assert.match(active, /const isFree = !\(uid \|\| tok\) && \(freeParam \|\| localStorage\.getItem\('sofa_free'\) === 'FREE'\)/);
-  assert.match(active, /if \(!\(uid \|\| tok\) && !isFree\)/);
+  assert.match(active, /const isFree = !\(uid \|\| tok\)/);
+  assert.match(active, /if\(!\(uid \|\| tok\)\) localStorage\.setItem\('sofa_free', 'FREE'\)/);
   assert.match(active, /window\.__sofaPaidResolved = !\(uid \|\| tok\)/);
   assert.match(active, /resolveExamKeyWithProfile/);
   assert.match(active, /_quizProfileExamState=result\.profileState/);
   assert.match(active, /if\(result\.profileState==='failed'\)/);
-  assert.match(active, /_setPaid\(true\); \/\/ 未知 plan 字串/);
+  assert.match(active, /_setPaid\(policy\.tier==='paid' && policy\.paid===true\)/);
   assert.match(active, /if\(!r\.ok\) throw new Error/);
   assert.match(active, /function articleSectionsArePaid\(article\)/);
   assert.match(active, /if\(window\.__sofaPaid !== false && !isFree\) return true/);
@@ -713,6 +713,7 @@ test('random backend quiz fallback retries when it returns recently shown articl
     "const RECENT_QUIZ_ARTICLES_KEY = 'sofa_recent_quiz_articles_v1';",
     extractFunction(active, 'recentQuizArticleIds'),
     extractFunction(active, 'isRecentQuizArticleId'),
+    extractFunction(active, '_quizScopedApiUrl'),
     extractFunction(active, 'fetchQuizWithRecentGuard'),
   ].join('\n');
   const calls = [];
@@ -722,6 +723,9 @@ test('random backend quiz fallback retries when it returns recently shown articl
     { page_id: 'fresh-c' },
   ];
   const sandbox = {
+    _resolvedQuestionExamKey: () => 'bookkeeper',
+    URL,
+    location: { href: 'https://sofaengine.org/quiz.html' },
     localStorage: {
       getItem(key) {
         assert.equal(key, 'sofa_recent_quiz_articles_v1');
@@ -748,9 +752,13 @@ test('page-specific quiz requests do not retry and API errors return immediately
     "const RECENT_QUIZ_ARTICLES_KEY = 'sofa_recent_quiz_articles_v1';",
     extractFunction(active, 'recentQuizArticleIds'),
     extractFunction(active, 'isRecentQuizArticleId'),
+    extractFunction(active, '_quizScopedApiUrl'),
     extractFunction(active, 'fetchQuizWithRecentGuard'),
   ].join('\n');
   const sandbox = {
+    _resolvedQuestionExamKey: () => 'bookkeeper',
+    URL,
+    location: { href: 'https://sofaengine.org/quiz.html' },
     localStorage: { getItem: () => JSON.stringify(['recent-a']) },
     fetch: async () => ({ json: async () => ({ page_id: 'recent-a' }) }),
   };

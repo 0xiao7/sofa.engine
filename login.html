@@ -930,6 +930,7 @@ function normalizeSerialQueryValue(value) {
     }
     localStorage.setItem('sofa_uid', data.uid);
     if(data.token) localStorage.setItem('sofa_token', data.token);
+    if(data.access_policy) localStorage.setItem('sofa_access_policy', JSON.stringify(data.access_policy));
     if(window.sofaTrack) sofaTrack('serial_verify_success', { method: 'magic' });
     markStudyLocalProgressForLogin();
     // 清掉 URL 上的 token 避免被分享 / 留在瀏覽紀錄
@@ -969,6 +970,7 @@ async function doLogin() {
     if (!res.ok) { showErr(data.detail || '序號無效，請確認後再試'); return; }
     localStorage.setItem('sofa_uid', data.uid);
     if (data.token) localStorage.setItem('sofa_token', data.token);
+    if (data.access_policy) localStorage.setItem('sofa_access_policy', JSON.stringify(data.access_policy));
     if(window.sofaTrack) sofaTrack('serial_verify_success', { method: 'serial' });
     markStudyLocalProgressForLogin();
     window.location.href = dashboardTargetAfterLogin();

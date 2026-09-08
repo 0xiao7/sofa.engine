@@ -638,23 +638,11 @@ test('dashboard article open URLs land on the article reader instead of the sear
   assert.doesNotMatch(fn, /scrollIntoView\(\{behavior:'smooth', block:'start'\}\)/);
 });
 
-test('expire overlay explains feedback and sharing extension rules', () => {
-  assert.match(html, /id="expire-overlay"/);
-  assert.match(html, /謝謝你花時間體驗 SoFa/);
-  assert.match(html, /給我們一次改進的機會/);
-  assert.match(html, /卡、煩、不清楚/);
-  assert.match(html, /黎明前最暗的那段/);
-  assert.match(html, /回饋缺點 \+10 天/);
-  assert.match(html, /分享標記 \+10 天/);
-  assert.match(html, /兩個都可以做，不衝突/);
-  assert.match(html, /回饋每個帳號限一次/);
-  assert.match(html, /幾個帳號就加幾次/);
-  assert.match(html, /你的 SoFa 帳號/);
-  assert.match(html, /隔天依信任制自動補登體驗天數/);
-  assert.match(html, /data-track-event="expire_entitlement_detail_click"/);
-  assert.match(html, /查看期限明細/);
-  assert.match(html, /function openExpireEntitlementPanel/);
-  assert.match(html, /openExpireEntitlementPanel\(\)\{[\s\S]*expire-overlay[\s\S]*style\.display='none'[\s\S]*openEntitlementPanel\(\)/);
+test('expired access stays inside the dashboard with inline locks', () => {
+  assert.doesNotMatch(html, /id="expire-overlay"/);
+  assert.match(html, /id="free-retention-strip"/);
+  assert.match(html, /進階功能會在原位置顯示鎖定/);
+  assert.match(html, /data-paid-feature="study-plan"/);
 });
 
 test('member card surfaces renewal before expiry without hiding payment', () => {
@@ -680,8 +668,8 @@ test('expired members can read their membership card from entitlement data when 
 });
 
 test('expiry copy reassures records continue after renewal', () => {
-  assert.match(html, /答題紀錄、弱點分析與今日複習不會消失/);
-  assert.match(html, /續用後會直接接回你的進度/);
+  assert.match(html, /方案已到期；帳號與紀錄完整保留/);
+  assert.match(html, /進階功能會在原位置顯示鎖定/);
 });
 
 test('mobile daily bar prioritizes the exam-pass loop', () => {

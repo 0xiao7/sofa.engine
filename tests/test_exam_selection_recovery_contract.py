@@ -6,10 +6,10 @@ DASHBOARD = pathlib.Path(__file__).parents[1].joinpath('dashboard.html').read_te
 
 
 class ExamSelectionRecoveryContractTest(unittest.TestCase):
-    def test_authenticated_dashboard_recovers_explicit_local_exam(self):
-        self.assertIn("explicitLocalExam = localStorage.getItem('sofa_exam_key') || '';", DASHBOARD)
-        self.assertIn("method: 'PATCH'", DASHBOARD)
-        self.assertIn("savedExam.exam_key === explicitLocalExam", DASHBOARD)
+    def test_authenticated_dashboard_does_not_rewrite_legacy_exam_on_read(self):
+        self.assertNotIn("if(profile && !profile.exam_key)", DASHBOARD)
+        self.assertNotIn("savedExam.exam_key", DASHBOARD)
+        self.assertIn("profile.exam_key", DASHBOARD)
 
 
 if __name__ == '__main__':
