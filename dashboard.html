@@ -2056,6 +2056,8 @@
     cursor:pointer;
   }
   .study-plan-state{font-size:12px;color:rgba(245,240,234,.55)}
+  [data-paid-feature].paid-feature-locked{opacity:.62;cursor:not-allowed;border-color:rgba(231,187,167,.38) !important}
+  .paid-lock-note{color:var(--peach);font-size:12px;line-height:1.5}
   .study-save-nudge{
     display:none;
     border:1px solid rgba(231,187,167,.24);
@@ -4206,8 +4208,8 @@ function _currentExamTrack(){
   <div class="free-retention-strip" id="free-retention-strip" aria-live="polite">
     <div class="free-retention-inner">
       <div class="free-retention-copy">
-        <span class="free-retention-kicker">FREE MODE</span>
-        <span class="free-retention-text">免費版可以先試做；要保留答題、弱點和讀書計畫，請輸入序號。</span>
+        <span class="free-retention-kicker" id="free-retention-kicker">FREE MODE</span>
+        <span class="free-retention-text" id="free-retention-text">免費版可在會員中心查法條、基本練習與每日一題；登入後可跨裝置保留紀錄。</span>
       </div>
       <div class="free-retention-actions">
         <a class="free-retention-btn primary" id="free-retention-login" href="login.html">輸入序號保留進度</a>
@@ -4352,8 +4354,8 @@ function _currentExamTrack(){
               <div class="study-action-group secondary">
                 <span class="study-action-label">安排</span>
                 <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="playlist" aria-expanded="false" onclick="openStudyPlaylistPanel()">播放清單</button>
-                <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="plan" aria-expanded="false" onclick="openStudyPlanPanel()">排課</button>
-                <button class="study-action-link study-action-button" type="button" data-study-panel-trigger="record" aria-expanded="false" onclick="openStudyRecordPanel()">補紀錄</button>
+                <button class="study-action-link study-action-button" type="button" data-paid-feature="study-plan" data-study-panel-trigger="plan" aria-expanded="false" onclick="openStudyPlanPanel()">排課</button>
+                <button class="study-action-link study-action-button" type="button" data-paid-feature="study-plan" data-study-panel-trigger="record" aria-expanded="false" onclick="openStudyRecordPanel()">補紀錄</button>
               </div>
             </div>
             <div class="study-status-strip" id="study-status-strip" aria-label="今日讀書狀態">
@@ -4420,8 +4422,8 @@ function _currentExamTrack(){
                       <small id="study-time-outcome">可先看建議。</small>
                     </span>
                     <span class="study-time-actions">
-                      <button class="primary" type="button" data-study-panel-trigger="timer" aria-expanded="false" onclick="openStudyTimerPanel(true)">開始計時</button>
-                      <button type="button" data-study-panel-trigger="record" aria-expanded="false" onclick="openStudyRecordPanel(true)">補紀錄</button>
+                      <button class="primary" type="button" data-paid-feature="study-plan" data-study-panel-trigger="timer" aria-expanded="false" onclick="openStudyTimerPanel(true)">開始計時</button>
+                      <button type="button" data-paid-feature="study-plan" data-study-panel-trigger="record" aria-expanded="false" onclick="openStudyRecordPanel(true)">補紀錄</button>
                       <button class="study-time-edit-btn" type="button" aria-expanded="false" onclick="toggleStudyTimeEditor()">修改時間</button>
                     </span>
                   </div>
@@ -4456,7 +4458,7 @@ function _currentExamTrack(){
                     </div>
                     <div class="study-recommend-actions">
                       <button type="button" onclick="previewStudyWeekRecommendation()">預覽本週排法</button>
-                      <button class="primary" type="button" onclick="saveStudyRecommendedWeek()">排入本週計畫</button>
+                      <button class="primary" type="button" data-paid-feature="study-plan" onclick="saveStudyRecommendedWeek()">排入本週計畫</button>
                     </div>
                   </summary>
                   <div class="study-recommend-list" id="study-recommend-list">
@@ -4517,7 +4519,7 @@ function _currentExamTrack(){
                 </div>
               </div>
               <div class="study-plan-row">
-                <button class="study-plan-save" id="study-plan-save" type="button" onclick="saveStudySeries()">排入讀書計畫</button>
+                <button class="study-plan-save" id="study-plan-save" type="button" data-paid-feature="study-plan" onclick="saveStudySeries()">排入讀書計畫</button>
                 <span class="study-plan-state" id="study-plan-state">適合課程、模考、固定複習或自訂任務。</span>
               </div>
               <div class="study-import">
@@ -4528,7 +4530,7 @@ function _currentExamTrack(){
                 <textarea id="study-plan-import" placeholder="例如：7/3 19:00 商業會計法複習；7/5 10:00 租稅申報實務練題"></textarea>
                 <div class="study-import-actions">
                   <button type="button" onclick="previewStudyPlanImport()">預覽</button>
-                  <button class="primary" type="button" onclick="saveStudyPlanImport()">匯入私人計畫</button>
+                  <button class="primary" type="button" data-paid-feature="study-plan" onclick="saveStudyPlanImport()">匯入私人計畫</button>
                   <span class="study-plan-state" id="study-plan-import-state">貼上後先預覽；看得懂再匯入。</span>
                 </div>
               </div>
@@ -4587,7 +4589,7 @@ function _currentExamTrack(){
                 </div>
               </div>
               <div class="study-plan-row">
-                <button class="study-plan-save" id="study-record-save" type="button" onclick="saveStudyRecordLocal()">儲存補紀錄</button>
+                <button class="study-plan-save" id="study-record-save" type="button" data-paid-feature="study-plan" onclick="saveStudyRecordLocal()">儲存補紀錄</button>
                 <span class="study-plan-state" id="study-record-state">登入後會同步讀書時數；離線先存在本機。</span>
               </div>
             </div>
@@ -5257,6 +5259,67 @@ const REMOTE_WEAK_ARTICLE_KEY = 'sofa_remote_weak_articles_v1';
 var _latestWeakLawItems = [];
 var _latestSubjectWeaknessItems = [];
 window._sofaAuthIssue = false;
+window.__sofaAccessPolicy = null;
+function isPaidFeatureLocked(feature){
+  var policy = window.__sofaAccessPolicy || {};
+  return !!(policy.authenticated && policy.tier !== 'paid' && feature === 'study-plan');
+}
+function paidFeatureLockMessage(){
+  return '付費鎖定：讀書計畫編輯需要有效方案；既有資料與帳號仍保留。';
+}
+function applyPaidFeatureLocks(policy){
+  policy = policy || window.__sofaAccessPolicy || {};
+  var locked = !!(policy.authenticated && policy.tier !== 'paid');
+  document.querySelectorAll('[data-paid-feature="study-plan"]').forEach(function(control){
+    if(!control.dataset.unlockedLabel) control.dataset.unlockedLabel = control.textContent.trim();
+    control.disabled = locked;
+    control.setAttribute('aria-disabled', locked ? 'true' : 'false');
+    control.classList.toggle('paid-feature-locked', locked);
+    control.textContent = locked ? ('付費鎖定 · ' + control.dataset.unlockedLabel) : control.dataset.unlockedLabel;
+    control.title = locked ? '續訂有效方案後即可使用；帳號與既有紀錄不會消失。' : '';
+  });
+  var state = document.getElementById('study-plan-state');
+  if(state && !state.dataset.unlockedCopy) state.dataset.unlockedCopy = state.textContent;
+  if(state && locked){
+    state.classList.add('paid-lock-note');
+    state.textContent = paidFeatureLockMessage();
+  }else if(state){
+    state.classList.remove('paid-lock-note');
+    state.textContent = state.dataset.unlockedCopy || state.textContent;
+  }
+}
+function applyDashboardAccessPolicy(policy){
+  policy = policy || {};
+  window.__sofaAccessPolicy = policy;
+  try { localStorage.setItem('sofa_access_policy', JSON.stringify(policy)); } catch(e) {}
+  var signedInFree = policy.authenticated && policy.tier !== 'paid';
+  document.body.classList.toggle('signed-in-free', !!signedInFree);
+  document.documentElement.dataset.accessTier = policy.tier || 'anonymous';
+  applyPaidFeatureLocks(policy);
+  if(!signedInFree) return;
+  var strip = document.getElementById('free-retention-strip');
+  var kicker = document.getElementById('free-retention-kicker');
+  var copy = document.getElementById('free-retention-text');
+  var primary = document.getElementById('free-retention-login');
+  var secondary = document.getElementById('free-retention-pricing');
+  document.body.classList.add('free-retention-on');
+  if(strip) strip.classList.add('on');
+  if(kicker) kicker.textContent = policy.state === 'expired_serial' ? 'SIGNED IN · EXPIRED' : (policy.state === 'invalid_entitlement' ? 'SIGNED IN · CHECKING' : 'SIGNED IN · FREE');
+  if(copy) copy.textContent = policy.state === 'invalid_entitlement'
+    ? '帳號與紀錄完整保留；方案期限需要確認。查法條、基本練習與每日一題仍可用，進階功能暫時鎖定。'
+    : '方案已到期；帳號與紀錄完整保留。查法條、基本練習與每日一題仍可用，進階功能會在原位置顯示鎖定。';
+  if(primary){
+    primary.textContent = '續訂完整功能';
+    primary.href = 'pricing.html?utm_source=dashboard&utm_medium=signed_in_free&utm_campaign=renew_pricing';
+  }
+  if(secondary){
+    secondary.textContent = '查看期限明細';
+    secondary.href = '#member';
+    secondary.onclick = function(event){ event.preventDefault(); openEntitlementPanel(); };
+  }
+  var pill = document.querySelector('.user-pill');
+  if(pill) pill.innerHTML = '<span class="live"></span>免費會員';
+}
 function isIOSReaderApp(){try{return !!(window.Capacitor&&Capacitor.getPlatform&&Capacitor.getPlatform()==='ios');}catch(e){return false;}}
 if(isIOSReaderApp()) document.documentElement.classList.add('ios-reader-app');
 function applyIOSReaderAppReviewGuards(){
@@ -5543,8 +5606,13 @@ function _studySaveMessage(res, fallback){
     return '功能準備中：這筆會等資料表上線後才能儲存，先不要重複送出。';
   }
   if(res && res.__http_status === 401) return '先登入或輸入序號後，才能存到你的帳號。';
+  if(res && res.__http_status === 403) return '付費鎖定：此操作需要有效方案；帳號與既有紀錄仍保留。';
   if(res && res.__network_error) return '網路暫時不穩，稍後再試。';
   return fallback;
+}
+
+function isStudyPaidLockResponse(res){
+  return !!(res && res.__http_status === 403);
 }
 
 var STUDY_LOCAL_KEY = 'sofa.study.localPlan.v1';
@@ -5787,6 +5855,10 @@ async function logCompletedStudyItemHours(item){
 }
 
 async function updateStudyItemStatus(key, status, shiftDays){
+  if(isPaidFeatureLocked('study-plan')){
+    setStudyPlanActionMessage(paidFeatureLockMessage());
+    return;
+  }
   var item = _findStudyPlanItem(key);
   var token = localStorage.getItem('sofa_token') || '';
   var uid = localStorage.getItem('sofa_uid') || '';
@@ -5802,6 +5874,10 @@ async function updateStudyItemStatus(key, status, shiftDays){
             headers: _authH({'Content-Type':'application/json'}),
             body: JSON.stringify({ scheduled_date:movedDate, scheduled_time:item.scheduled_time || '', scope:'single' })
           });
+          if(isStudyPaidLockResponse(moved)){
+            setStudyPlanActionMessage(paidFeatureLockMessage());
+            return;
+          }
           if(!moved || !moved.ok) throw new Error('reschedule failed');
         }
         var res = await _fetchStudyJSON(API + '/api/me/study/plan-item/' + encodeURIComponent(item.id) + '/status', {
@@ -5814,6 +5890,10 @@ async function updateStudyItemStatus(key, status, shiftDays){
           var latest = await _fetchJSON(API + '/api/me/study/today?track=' + encodeURIComponent(_currentExamTrack()), { headers: _authH({}) }, 1);
           renderStudyToday(latest || null);
           focusStudyPlanItems();
+          return;
+        }
+        if(isStudyPaidLockResponse(res)){
+          setStudyPlanActionMessage(paidFeatureLockMessage());
           return;
         }
         throw new Error('status failed');
@@ -5853,6 +5933,10 @@ function toggleStudyItemReschedule(key){
 }
 
 async function rescheduleStudyItemToInput(key){
+  if(isPaidFeatureLocked('study-plan')){
+    setStudyPlanActionMessage(paidFeatureLockMessage());
+    return;
+  }
   var dateEl = document.querySelector('[data-study-reschedule-date="' + _cssAttrEscape(key) + '"]');
   var timeEl = document.querySelector('[data-study-reschedule-time="' + _cssAttrEscape(key) + '"]');
   var date = dateEl ? String(dateEl.value || '').trim() : '';
@@ -5874,6 +5958,10 @@ async function rescheduleStudyItemToInput(key){
           headers:_authH({'Content-Type':'application/json'}),
           body: JSON.stringify({ scheduled_date:date, scheduled_time:time, scope:'single' })
         });
+        if(isStudyPaidLockResponse(moved)){
+          setStudyPlanActionMessage(paidFeatureLockMessage());
+          return;
+        }
         if(!moved || !moved.ok) throw new Error('reschedule failed');
         setStudyPlanActionMessage('已改到 ' + date + (time ? ' ' + time : '') + '。');
         var latest = await _fetchJSON(API + '/api/me/study/today?track=' + encodeURIComponent(_currentExamTrack()), { headers: _authH({}) }, 1);
@@ -6630,6 +6718,10 @@ function previewStudyWeekRecommendation(){
 }
 
 async function saveStudyRecommendedWeek(){
+  if(isPaidFeatureLocked('study-plan')){
+    setStudyRecommendMessage('<span class="warn">' + paidFeatureLockMessage() + ' <a href="pricing.html?utm_source=dashboard&utm_medium=study_lock">查看方案</a></span>');
+    return;
+  }
   var rec = window.__studyWeekRecommendation;
   if(!rec || !Array.isArray(rec.items)) {
     previewStudyWeekRecommendation();
@@ -6650,6 +6742,10 @@ async function saveStudyRecommendedWeek(){
       if(res && (res.ok || Array.isArray(res.items))){
         _addLocalStudyItems(Array.isArray(res.items) ? res.items : items);
         setStudyRecommendMessage('已同步 ' + esc(res.count || items.length) + ' 筆到你的私人讀書計畫。');
+        return;
+      }
+      if(isStudyPaidLockResponse(res)){
+        setStudyRecommendMessage('<span class="warn">' + paidFeatureLockMessage() + '</span>');
         return;
       }
       throw new Error('bulk create failed');
@@ -7842,9 +7938,7 @@ function _readArticle(btn, text) {
     }
     var progCard = document.querySelector('.prog-card');
     if(progCard){
-      progCard.innerHTML = isIOSReaderApp()
-        ? '<div style="padding:32px 24px;text-align:center;opacity:.72;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">進階內容，訂閱者可見<br><a href="login.html" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;color:var(--peach);margin-top:8px;">已有序號就登入保存 →</a></div>'
-        : '<div style="padding:32px 24px;text-align:center;opacity:.72;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">免費版不儲存學習紀錄<br><span style="opacity:.72;font-size:.8em;">已有序號就登入保存；沒有序號再看方案。</span><br><a href="login.html" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;color:var(--peach);margin-top:8px;">已有序號就登入保存 →</a></div>';
+      progCard.innerHTML = '<div style="padding:32px 24px;text-align:center;opacity:.72;font-family:var(--sans);font-size:.9rem;letter-spacing:.04em;">此裝置的免費練習可繼續使用<br><span style="opacity:.72;font-size:.8em;">登入後會以同一帳號跨裝置保留紀錄。</span><br><a href="login.html" style="min-height:44px;display:inline-flex;align-items:center;justify-content:center;color:var(--peach);margin-top:8px;">登入保留進度 →</a></div>';
     }
 
     // ── 免費版 30 天 nudge banner ────────────────────
@@ -7861,7 +7955,7 @@ function _readArticle(btn, text) {
         'background:#1B2B4B;color:#F5F0EA;text-align:center;padding:10px 16px;'+
         'font-family:var(--sans);font-size:.85rem;display:flex;align-items:center;'+
         'justify-content:center;gap:12px;';
-      nudge.innerHTML = '你已使用免費版 '+daysSince+' 天，升級解鎖完整學習紀錄與全段內容。'+
+      nudge.innerHTML = '你已使用免費版 '+daysSince+' 天；基本功能仍可用，升級可解鎖進階排程與全段內容。'+
         '<a href="pricing.html?utm_source=dashboard&utm_medium=free_nudge&utm_campaign=dashboard_pricing" style="min-height:44px;display:inline-flex;align-items:center;color:var(--peach-3);font-weight:600;white-space:nowrap;">查看方案 →</a>'+
         '<button onclick="this.parentNode.remove()" style="background:none;border:none;'+
         'color:rgba(245,240,234,.5);cursor:pointer;font-size:1rem;line-height:1;">✕</button>';
@@ -7880,6 +7974,14 @@ function _readArticle(btn, text) {
     renderStudyToday(null);
     return; // 免費版不拉個人資料，但保留今日工具入口
   }
+
+  var storedPolicy = null;
+  try { storedPolicy = JSON.parse(localStorage.getItem('sofa_access_policy') || 'null'); } catch(e) {}
+  applyDashboardAccessPolicy(
+    storedPolicy && storedPolicy.authenticated
+      ? storedPolicy
+      : {state:'invalid_entitlement', tier:'restricted', authenticated:true, paid:false}
+  );
 
   const API = 'https://sofa-engine-api.onrender.com';
   const H = _authH();
@@ -7988,6 +8090,7 @@ function _readArticle(btn, text) {
       plan: plan,
       expire: expire,
       serial: suffix,
+      access_policy: data.access_policy || {},
       entitlement_only: true
     };
   }
@@ -8027,32 +8130,15 @@ function _readArticle(btn, text) {
     var entitlementRes = results[6];
     var studyTodayRes = results[7];
 
-    // Recover only an exam the user explicitly selected locally. Never persist
-    // the countdown's automatic default as if it were a completed selection.
-    if(profile && !profile.exam_key){
-      var explicitLocalExam = '';
-      try { explicitLocalExam = localStorage.getItem('sofa_exam_key') || ''; } catch(e) {}
-      var supportedLocalExam = typeof _EXAM_KEY_TO_NAME !== 'undefined'
-        && explicitLocalExam !== 'all'
-        && !!_EXAM_KEY_TO_NAME[explicitLocalExam];
-      if(supportedLocalExam){
-        try{
-          var apiExamKey = window.SoFaExamTargets ? window.SoFaExamTargets.toApiKey(explicitLocalExam) : explicitLocalExam;
-          var savedExam = await _fetchJSON(API + '/api/me/profile', {
-            method: 'PATCH',
-            headers: _authH({'Content-Type':'application/json'}),
-            body: JSON.stringify({exam_key: apiExamKey})
-          });
-          if(savedExam && (!window.SoFaExamTargets || window.SoFaExamTargets.normalizeTargetKey(savedExam.exam_key) === explicitLocalExam)){
-            profile.exam_key = explicitLocalExam;
-          }
-        }catch(e){}
-      }
-    }
-
     _entitlementState.profile = profile || null;
     _entitlementState.data = entitlementRes && !entitlementRes.error ? entitlementRes : null;
     _entitlementState.error = entitlementRes && entitlementRes.error ? entitlementRes.detail || entitlementRes.error : null;
+    applyDashboardAccessPolicy(
+      (profile && profile.access_policy)
+      || (entitlementRes && entitlementRes.access_policy)
+      || window.__sofaAccessPolicy
+      || {state:'invalid_entitlement', tier:'restricted', authenticated:true, paid:false}
+    );
     refreshEntitlementPanelIfOpen();
     renderStudyToday(studyTodayRes || null);
     var memberCardProfile = profile || profileFromEntitlementData(_entitlementState.data);
@@ -8065,7 +8151,8 @@ function _readArticle(btn, text) {
     if(memberCardProfile){
       var plan   = memberCardProfile.plan || '';
       var expire = memberCardProfile.expire || '';
-      var isExpired = expire && new Date(expire) < new Date();
+      var accessPolicy = memberCardProfile.access_policy || (entitlementRes && entitlementRes.access_policy) || {};
+      var isExpired = accessPolicy.state === 'expired_serial' || (expire && new Date(expire) < new Date());
       var entitlementOnly = !!memberCardProfile.entitlement_only;
 
       // 方案 → 代稱
@@ -8090,10 +8177,7 @@ function _readArticle(btn, text) {
       setText('mc-who', (name || '—').toUpperCase());
       renderMembershipRenewalNudge(memberCardProfile, isExpired);
 
-      // P0-C：已到期且非 Admin → 顯示覆蓋層
-      if(isExpired && plan !== 'Admin' && !isIOSReaderApp()){
-        setTimeout(showExpireOverlay, 800); // 讓 UI 先渲染完再蓋上
-      }
+      // 到期只降級付費能力；會員中心、身份與既有資料保持可用。
 
       // Email
       if(profile.email){
@@ -10027,14 +10111,14 @@ function renderStudyPlanItems(plan){
       ? '<span class="study-plan-reschedule" data-study-reschedule-key="' + esc(key) + '" hidden>'
         + '<input type="date" value="' + esc(item.scheduled_date || _todayInputValue()) + '" data-study-reschedule-date="' + esc(key) + '" aria-label="新的讀書日期">'
         + '<input type="time" value="' + esc(item.scheduled_time || '') + '" data-study-reschedule-time="' + esc(key) + '" aria-label="新的讀書時間">'
-        + '<button type="button" data-study-action-kind="reschedule-save" data-study-action-key="' + esc(key) + '">儲存時間</button>'
+        + '<button type="button" data-paid-feature="study-plan" data-study-action-kind="reschedule-save" data-study-action-key="' + esc(key) + '">儲存時間</button>'
         + '</span>'
       : '';
     var editActions = canEdit
-      ? '<button class="primary" type="button" data-study-action-kind="done" data-study-action-key="' + esc(key) + '">完成</button>'
-        + '<button type="button" data-study-action-kind="postpone" data-study-action-key="' + esc(key) + '">改下週</button>'
-        + '<button type="button" data-study-action-kind="reschedule-open" data-study-action-key="' + esc(key) + '">改時間</button>'
-        + '<button class="warn" type="button" data-study-action-kind="cancel" data-study-action-key="' + esc(key) + '">取消</button>'
+      ? '<button class="primary" type="button" data-paid-feature="study-plan" data-study-action-kind="done" data-study-action-key="' + esc(key) + '">完成</button>'
+        + '<button type="button" data-paid-feature="study-plan" data-study-action-kind="postpone" data-study-action-key="' + esc(key) + '">改下週</button>'
+        + '<button type="button" data-paid-feature="study-plan" data-study-action-kind="reschedule-open" data-study-action-key="' + esc(key) + '">改時間</button>'
+        + '<button class="warn" type="button" data-paid-feature="study-plan" data-study-action-kind="cancel" data-study-action-key="' + esc(key) + '">取消</button>'
       : '';
     var actionHtml = learningActions || editActions
       ? '<span class="study-plan-actions">' + learningActions + editActions + '</span>' + reschedulePanel
@@ -10047,6 +10131,7 @@ function renderStudyPlanItems(plan){
       + actionHtml
       + '</div>';
   }).join('') + completedHtml;
+  applyPaidFeatureLocks(window.__sofaAccessPolicy || {});
   scheduleActiveNavRefresh();
 }
 
@@ -10093,8 +10178,9 @@ function renderStudyNextPlan(items){
     el.innerHTML = '<span class="study-next-plan-copy"><span class="k">今日任務</span><b>下一項：' + esc(title) + '</b><span>'
       + esc(meta || timeLine)
       + '</span></span><span class="study-next-plan-actions">'
-      + '<button type="button" data-study-action-kind="done" data-next-study-key="' + esc(key) + '" data-study-action-key="' + esc(key) + '" aria-label="完成這項讀書安排">完成這項</button>'
+      + '<button type="button" data-paid-feature="study-plan" data-study-action-kind="done" data-next-study-key="' + esc(key) + '" data-study-action-key="' + esc(key) + '" aria-label="完成這項讀書安排">完成這項</button>'
       + '</span>';
+    applyPaidFeatureLocks(window.__sofaAccessPolicy || {});
     return;
   }
   el.innerHTML = '<span class="study-next-plan-copy"><span class="k">今日任務</span><b>先做一題</b><span>答完更新弱點。</span></span><span class="study-next-plan-actions">'
@@ -10243,6 +10329,11 @@ function _studySeriesItems(body){
 }
 
 async function saveStudyRecordLocal(){
+  if(isPaidFeatureLocked('study-plan')){
+    var lockedState = document.getElementById('study-record-state');
+    if(lockedState) lockedState.textContent = paidFeatureLockMessage();
+    return;
+  }
   var state = document.getElementById('study-record-state');
   function tell(msg){ if(state) state.textContent = msg; }
   var date = _studyVal('study-record-date') || _todayInputValue();
@@ -10288,6 +10379,10 @@ async function saveStudyRecordLocal(){
         record.notes = '雲端補紀錄';
         saveLocalRecord(record, '已同步補紀錄到讀書時數；下方最近完成會留下狀態。');
         tell('已同步到你的讀書時數；答題正確率不會被補紀錄改動。');
+        return;
+      }
+      if(isStudyPaidLockResponse(res)){
+        tell(paidFeatureLockMessage());
         return;
       }
       saveLocalRecord(record, '已先保存補紀錄；帳號同步稍後再試。');
@@ -10336,6 +10431,11 @@ function previewStudyPlanImport(){
 }
 
 async function saveStudyPlanImport(){
+  if(isPaidFeatureLocked('study-plan')){
+    var lockedState = document.getElementById('study-plan-import-state');
+    if(lockedState) lockedState.textContent = paidFeatureLockMessage();
+    return;
+  }
   var state = document.getElementById('study-plan-import-state');
   function tell(msg){ if(state) state.textContent = msg; }
   var uid = localStorage.getItem('sofa_uid') || '';
@@ -10371,6 +10471,9 @@ async function saveStudyPlanImport(){
       setStudyPanelMode('closed');
       var latest = await _fetchJSON(API + '/api/me/study/today?track=' + encodeURIComponent(_currentExamTrack()), { headers: _authH({}) }, 1);
       renderStudyToday(latest || null);
+    } else if(isStudyPaidLockResponse(res)) {
+      tell(paidFeatureLockMessage());
+      return;
     } else {
       setStudyPlanActionMessage('已先匯入本機；帳號同步稍後再試。');
       _addLocalStudyItems(items);
@@ -10384,6 +10487,11 @@ async function saveStudyPlanImport(){
 }
 
 async function saveStudySeries(){
+  if(isPaidFeatureLocked('study-plan')){
+    var lockedState = document.getElementById('study-plan-state');
+    if(lockedState) lockedState.textContent = paidFeatureLockMessage();
+    return;
+  }
   var state = document.getElementById('study-plan-state');
   var saveBtn = document.getElementById('study-plan-save');
   function tell(msg){ if(state) state.textContent = msg; }
@@ -10433,6 +10541,9 @@ async function saveStudySeries(){
       var panel = document.getElementById('study-plan-panel');
       if(panel) panel.classList.remove('on');
       setStudyPanelMode('closed');
+    } else if(isStudyPaidLockResponse(res)) {
+      tell(paidFeatureLockMessage());
+      return;
     } else {
       setStudyPlanActionMessage('已先排入本機；帳號同步稍後再試。');
       _addLocalStudyItems(localItems);
@@ -11542,83 +11653,6 @@ window.addEventListener('resize', updateActiveNavFromScroll);
 window.addEventListener('hashchange', function(){ setTimeout(updateActiveNavFromScroll, 120); });
 setupActiveNavObserver();
 updateActiveNavFromScroll();
-</script>
-
-<!-- ── P0-C 到期覆蓋層 ───────────────────────────────────── -->
-<div id="expire-overlay" style="display:none;position:fixed;inset:0;z-index:9999;
-  background:rgba(13,28,40,0.97);
-  display:none;align-items:center;justify-content:center;flex-direction:column;
-  font-family:var(--serif);color:var(--cream);text-align:center;padding:2rem;overflow-y:auto;">
-  <div style="max-width:420px;width:100%;max-height:calc(100vh - 3rem);overflow-y:auto;">
-    <div style="font-size:2.4rem;margin-bottom:1rem;">⏳</div>
-    <h2 style="font-size:1.4rem;font-weight:700;margin:0 0 0.6rem;">
-      你的方案已到期
-    </h2>
-    <p style="font-size:0.95rem;opacity:0.8;line-height:1.6;margin:0 0 2rem;">
-      你的備考旅程還沒結束。<br>
-      答題紀錄、弱點分析與今日複習不會消失；<br>
-      續用後會直接接回你的進度。
-    </p>
-    <div style="text-align:left;background:rgba(231,187,167,0.08);border:1px solid rgba(231,187,167,0.22);
-      border-radius:10px;padding:1rem 1.05rem;margin:0 0 1rem;color:rgba(245,240,234,0.82);font-family:var(--sans);
-      font-size:0.86rem;line-height:1.7;">
-      <b style="display:block;color:var(--peach);font-family:var(--serif);font-size:1rem;margin-bottom:0.35rem;">也可以先延長體驗</b>
-      謝謝你花時間體驗 SoFa。如果你願意，也希望給我們一次改進的機會。<br>
-      告訴我們你使用時覺得卡、煩、不清楚，或最希望改好的地方，我們會再送你 10 天體驗。<br>
-      備考路上很長，也常常像黎明前最暗的那段；希望 SoFa 能陪你一起撐過去。覺得好，也歡迎分享給正在備考的人。
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.55rem;margin-top:0.8rem;">
-        <a href="mailto:hi@sofaengine.org?subject=SoFa%20回饋%20延長10天體驗" data-track-event="expire_feedback_click" data-track-label="feedback_10_days" style="display:block;text-align:center;border:1px solid rgba(231,187,167,0.48);
-          border-radius:8px;padding:0.6rem 0.5rem;color:var(--peach);text-decoration:none;font-weight:700;">
-          回饋缺點 +10 天
-        </a>
-        <a href="https://lin.ee/zUeMwo4" target="_blank" rel="noopener" data-track-event="expire_share_click" data-track-label="share_10_days" style="display:block;text-align:center;border:1px solid rgba(231,187,167,0.48);
-          border-radius:8px;padding:0.6rem 0.5rem;color:var(--peach);text-decoration:none;font-weight:700;">
-          分享標記 +10 天
-        </a>
-      </div>
-      <div style="margin-top:0.55rem;color:rgba(245,240,234,0.56);font-size:0.78rem;">
-        兩個都可以做，不衝突。回饋每個帳號限一次；分享或標記按你提供的帳號數累加，幾個帳號就加幾次。完成後把你的 SoFa 帳號和分享帳號傳給我們，隔天依信任制自動補登體驗天數。
-      </div>
-    </div>
-    <a href="/pricing.html?utm_source=dashboard&utm_medium=expired_modal&utm_campaign=renew_pricing" data-track-event="expire_renew_click" data-track-label="renew_pricing" style="display:block;background:var(--peach);color:var(--navy-4);
-      border-radius:8px;padding:0.85rem 1.5rem;font-size:1rem;font-weight:700;
-      text-decoration:none;margin-bottom:0.75rem;">
-      立即續訂
-    </a>
-    <button onclick="openExpireEntitlementPanel()" data-track-event="expire_entitlement_detail_click" data-track-label="ledger_detail" style="display:block;width:100%;
-      background:rgba(245,240,234,0.06);border:1px solid rgba(231,187,167,0.44);color:var(--peach);
-      border-radius:8px;padding:0.75rem 1.5rem;font-size:0.9rem;font-weight:700;cursor:pointer;margin-bottom:0.75rem;">
-      查看期限明細
-    </button>
-    <button onclick="switchToFree()" data-track-event="expire_free_switch" data-track-label="switch_free" style="display:block;width:100%;
-      background:transparent;border:1px solid rgba(245,240,234,0.35);color:#F5F0EA;
-      border-radius:8px;padding:0.75rem 1.5rem;font-size:0.9rem;cursor:pointer;">
-      切換免費版（不保留查詢紀錄）
-    </button>
-  </div>
-</div>
-<script>
-function showExpireOverlay(){
-  if(isIOSReaderApp()) return;
-  var el=document.getElementById('expire-overlay');
-  if(el){ el.style.display='flex'; }
-}
-function openExpireEntitlementPanel(){
-  var el=document.getElementById('expire-overlay');
-  if(el) el.style.display='none';
-  openEntitlementPanel();
-}
-function switchToFree(){
-  localStorage.removeItem('sofa_uid');
-  localStorage.removeItem('sofa_plan');
-  localStorage.removeItem('sofa_expire');
-  localStorage.removeItem('sofa_token');
-  localStorage.setItem('sofa_free','FREE');
-  if(!localStorage.getItem('sofa_free_since')){
-    localStorage.setItem('sofa_free_since', new Date().toISOString().slice(0,10));
-  }
-  window.location.href='/';
-}
 </script>
 
 <!-- 繼續練習 CTA -->

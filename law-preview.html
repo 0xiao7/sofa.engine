@@ -388,7 +388,7 @@ const returnFrom = params.get('from') || '';
 const backTarget = params.get('back') || '';
 const uid = localStorage.getItem('sofa_uid') || '';
 const tok = localStorage.getItem('sofa_token') || '';
-let readerPaid = !!tok;
+let readerPaid = false;
 const PAID_READER_PLANS = new Set(['月費','季費','買斷','體驗','Admin','monthly','quarterly','trial']);
 const FREE_READER_PLANS = new Set(['免費','free']);
 
@@ -477,14 +477,12 @@ async function resolveReaderEntitlement(){
   const url = `${API}/api/me/profile`;
   const d = await fetch(url, { headers:_authH() })
     .then(r=>r.ok?r.json():null)
-    .catch(() => { if(timer) clearTimeout(timer); return readerPaid || true; });
+    .catch(() => { if(timer) clearTimeout(timer); return null; });
   try{
     if(timer) clearTimeout(timer);
-    if(!d){ readerPaid = true; return; }
-    const plan = String(d.plan || d.member_status || d.status || '').trim();
-    if(PAID_READER_PLANS.has(plan)) readerPaid = true;
-    else if(FREE_READER_PLANS.has(plan)) readerPaid = false;
-    else readerPaid = true;
+    if(!d){ readerPaid = false; return; }
+    const policy = d.access_policy || {};
+    readerPaid = policy.tier === 'paid' && policy.paid === true;
   }finally{
     updateReaderTitle();
   }

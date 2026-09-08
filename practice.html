@@ -509,11 +509,10 @@ function practiceUrlPageIdParam(){ return _practiceSearchParams.get('id') || _pr
 let _practiceUrlTargetPending = !!(practiceUrlPageIdParam() || (practiceUrlLawParam() && practiceUrlArticleParam()));
 let _practiceUrlTargetResolving = false;
 let _skipPracticeLawPersistOnce = false;
-if (freeParam && !uid && !tok) {
+if (!uid && !tok) {
   localStorage.setItem('sofa_free', 'FREE');
 }
-const isFree = !uid && (freeParam || localStorage.getItem('sofa_free') === 'FREE');
-if (!uid && !isFree) { window.location.href = 'login.html?redirect=practice.html'; }
+const isFree = !(uid || tok);
 document.getElementById('navUid').textContent = isFree ? '免費版' : (localStorage.getItem('sofa_nickname') || uid);
 if(isFree){
   const bar=document.createElement('div');

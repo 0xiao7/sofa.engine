@@ -117,17 +117,14 @@
   function esc(s){ return (s==null?'':String(s)).replace(/[&<>"']/g, function(c){
     return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
-  // ── 全域付費判定（keystone，fail-OPEN）────────────────────────────
-  // 私人筆記庫整頁為升級內容；判定不確定一律「不鎖」，絕不擋付費會員。
-  //   · 明確免費（無 uid 且 sofa_free=FREE）→ 鎖（顯示升級 CTA 取代清單）。
-  //   · 已登入 → 預設付費（fail-open），非同步向 /api/me/profile 確認；
-  //     只有「明確回免費 plan」才降為鎖，其餘（200付費/4xx/5xx/逾時/parse失敗）維持不鎖。
+  // ── 全域付費判定（keystone，未知狀態 fail-closed）─────────────────
+  // 私人筆記庫整頁為升級內容；只有 API 明確回 paid 才解鎖。
   var _PAID_PLANS = {'月費':1,'季費':1,'買斷':1,'體驗':1,'Admin':1,'monthly':1,'quarterly':1,'trial':1};
   var _FREE_PLANS = {'免費':1,'free':1,'':1};
   var _uid = localStorage.getItem('sofa_uid');
   var _tok = localStorage.getItem('sofa_token') || '';
   var _explicitFree = (!_uid && localStorage.getItem('sofa_free') === 'FREE');
-  window.__notesPaid = !!_tok && !_explicitFree;
+  window.__notesPaid = false;
   window.__notesPaidResolved = !_tok;
   function _authHeaders(){ var h={}; if(_tok) h['Authorization']='Bearer '+_tok; return h; }
   function _confirmNotesPaid(cb){
@@ -139,24 +136,14 @@
     fetch(API + '/api/me/profile', { headers: _authHeaders(), signal: ctrl ? ctrl.signal : undefined })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){
-        if(!d){ finish(true); return; }                 // 4xx/5xx → fail-open
-        if(d.is_admin){ finish(true); return; }
-        var plan = (d.plan||'').trim();
-        if(_PAID_PLANS[plan]){
-          // 過期付費仍全開的漏：付費 plan 但到期日已過 → 視為免費。
-          // fail-open：只有到期日格式正確且嚴格早於今天才鎖；缺/壞/今天/未來日皆不鎖。
-          var _exp = (d.expire||'').slice(0,10);
-          if(/^\d{4}-\d{2}-\d{2}$/.test(_exp)){
-            var _n = new Date();
-            var _today = _n.getFullYear()+'-'+String(_n.getMonth()+1).padStart(2,'0')+'-'+String(_n.getDate()).padStart(2,'0');
-            if(_exp < _today){ finish(false); return; }  // 到期日已過 → 鎖
-          }
-          finish(true); return;                          // 有效 / 無到期日 / 格式異常 → fail-open
+        if(!d){ finish(false); return; }
+        var policy = d.access_policy || {};
+        if(policy.tier === 'paid' && policy.paid === true){
+          finish(true); return;
         }
-        if(_FREE_PLANS.hasOwnProperty(plan)){ finish(false); return; } // 明確免費
-        finish(true);                                    // 未知 plan → fail-open
+        finish(false);
       })
-      .catch(function(){ finish(true); });               // 逾時/網路錯 → fail-open
+      .catch(function(){ finish(false); });
   }
 
   function renderUpgradeGate(){

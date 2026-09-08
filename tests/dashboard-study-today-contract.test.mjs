@@ -1027,6 +1027,8 @@ test('study next plan card can mark the next item complete without hunting the l
   assert.match(nextFn, /_studyItemKey\(next\)/);
   assert.match(nextFn, /data-next-study-key/);
   assert.match(nextFn, /data-study-action-kind="done"/);
+  assert.match(nextFn, /data-paid-feature="study-plan"/);
+  assert.match(nextFn, /applyPaidFeatureLocks/);
   assert.match(active, /if\(kind === 'done'\) completeStudyItem\(key\)/);
   assert.match(nextFn, /完成這項/);
   assert.match(nextFn, /aria-label="完成這項讀書安排"/);
@@ -1197,8 +1199,8 @@ test('free dashboard retention entry is promoted before the main dashboard', () 
   const shellIndex = active.indexOf('<div class="shell">');
   assert.ok(stripIndex > 0, 'free retention strip must exist');
   assert.ok(shellIndex > stripIndex, 'free retention strip must sit above the main shell');
-  assert.match(active, /免費版可以先試做/);
-  assert.match(active, /輸入序號保留進度/);
+  assert.match(active, /免費版可在會員中心查法條、基本練習與每日一題/);
+  assert.match(active, /登入後可跨裝置保留紀錄/);
   assert.match(active, /id="free-retention-login" href="login\.html"/);
   assert.match(active, /if\(isIOSReaderApp\(\)\)\{[\s\S]*freeRetentionPricing[\s\S]*style\.display = 'none'/);
   assert.match(active, /if\(freeRetentionStrip\)\{[\s\S]*freeRetentionStrip\.classList\.add\('on'\)/);
@@ -1257,10 +1259,10 @@ test('study planning nudges local users to preserve progress after real action',
 });
 
 test('free dashboard surfaces serial login before paid upgrade for retention', () => {
-  assert.match(active, /免費版 · 完整會員資訊/);
+  assert.match(active, /免費版 · 完整會員資訊在升級後解鎖/);
   assert.match(active, /login\.html[\s\S]*輸入序號保留進度/);
-  assert.match(active, /免費版不儲存學習紀錄/);
-  assert.match(active, /login\.html[\s\S]*已有序號就登入保存/);
+  assert.doesNotMatch(active, /免費版不儲存學習紀錄/);
+  assert.match(active, /login\.html[\s\S]*登入保留進度/);
   assert.match(active, /pricing\.html[\s\S]*查看方案/);
 });
 
