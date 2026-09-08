@@ -2,6 +2,7 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8">
+<script src="account-storage.js?v=20260907-account-scope-v1"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>進度雷達預覽｜SoFa Engine</title>
   <meta name="description" content="SoFa Engine 進度雷達：用答題紀錄整理今天最該先補的科目與條文。">
@@ -300,17 +301,13 @@
     }
 
     function authHeaders(){
-      const token = localStorage.getItem('sofa_token') || '';
-      const uid = localStorage.getItem('sofa_uid') || '';
-      const headers = {};
-      if(token) headers.Authorization = `Bearer ${token}`;
-      if(uid) headers['X-Sofa-UID'] = uid;
-      return headers;
-    }
+    const token = localStorage.getItem('sofa_token') || '';
+    return token ? {'Authorization': 'Bearer ' + token} : {};
+  }
 
     async function loadRemoteAnalysis(){
       const headers = authHeaders();
-      if(!headers.Authorization && !headers['X-Sofa-UID']) return null;
+      if(!headers.Authorization) return null;
       const examKey = selectedExamKey();
       const res = await fetch(`${API_BASE}/api/me/analysis?exam_key=${encodeURIComponent(examKey)}`, { headers });
       if(!res.ok) return null;

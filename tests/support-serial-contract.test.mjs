@@ -28,7 +28,7 @@ test('support serial page calls the guarded admin identity endpoint without stor
   const html = page();
   assert.match(html, /\/api\/admin\/serial-identity/);
   assert.match(html, /X-Admin-Secret/);
-  assert.match(html, /X-Sofa-UID/);
+  assert.doesNotMatch(html, /X-Sofa-UID/);
   assert.doesNotMatch(html, /localStorage\.(setItem|getItem)/);
   assert.doesNotMatch(html, /sessionStorage\.(setItem|getItem)/);
   assert.doesNotMatch(html, /SCHEDULER_SECRET|SUPABASE_SERVICE|SERVICE_KEY|ADMIN_UID/);

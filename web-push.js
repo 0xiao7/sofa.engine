@@ -25,10 +25,7 @@
 
   function authHeaders(storage){
     var token = storage && storage.getItem('sofa_token');
-    var uid = storage && storage.getItem('sofa_uid');
-    if(token) return {Authorization:'Bearer ' + token};
-    if(uid) return {'X-Sofa-UID':uid};
-    return null;
+    return token ? {Authorization: 'Bearer ' + token} : null;
   }
 
   function pushMode(storage){

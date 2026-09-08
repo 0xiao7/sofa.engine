@@ -2,6 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8" />
+<script src="account-storage.js?v=20260907-account-scope-v1"></script>
 <title>SoFa Engine — 填空練習</title>
 <link rel="canonical" href="https://sofaengine.org/fill.html" />
 <!-- Google tag (gtag.js) -->
@@ -456,11 +457,9 @@ function formatLawText(raw){
   return t.replace(/^\n+/,'').replace(/\n{2,}/g,'\n').trim();
 }
 function _authH(extra) {
-  const h = extra ? {...extra} : {};
-  if (tok) h['Authorization'] = 'Bearer ' + tok;
-  else if (uid) h['X-Sofa-UID'] = uid;
-  return h;
-}
+    const token = localStorage.getItem('sofa_token') || '';
+    return token ? {'Authorization': 'Bearer ' + token} : {};
+  }
 const _fillSearchParams = new URLSearchParams(location.search);
 const freeParam = _fillSearchParams.get('free') === '1';
 function fillUrlLawParam(){ return _fillSearchParams.get('law') || _fillSearchParams.get('q') || ''; }
@@ -514,7 +513,7 @@ let _fillExamLaws=[];
 function _fillExamNode(){
   let key='';
   try{key=localStorage.getItem('sofa_exam_key')||localStorage.getItem('sofa.dash.exam.pick')||'bookkeeper';}catch(e){}
-  const legacy={bookkeeper:'n72',landadmin:'n74',realestate:'n83','tax-admin':'n79','post-acc':'n89'};
+  const legacy={bookkeeper:'n72',landadmin:'n74',real_estate_broker:'n83','tax-admin':'n79','post-acc':'n89'};
   return (typeof NODES!=='undefined'&&(NODES[legacy[key]||key]||NODES.n72))||null;
 }
 function _fillScopedLaw(law){

@@ -35,17 +35,13 @@
     try { localStorage.setItem(TOMB, JSON.stringify(obj)); } catch (e) { /* ignore */ }
   }
   function _loggedIn() {
-    var tok = localStorage.getItem('sofa_token');
-    var uid = localStorage.getItem('sofa_uid');
-    return !!(tok || (uid && uid !== 'FREE'));
+    return !!(global.SoFaAccountStorage &&
+      global.SoFaAccountStorage.currentOwner() &&
+      localStorage.getItem('sofa_token'));
   }
   function _authH() {
-    var h = { 'Content-Type': 'application/json' };
-    var tok = localStorage.getItem('sofa_token') || '';
-    var uid = localStorage.getItem('sofa_uid') || '';
-    if (tok) h['Authorization'] = 'Bearer ' + tok;
-    else if (uid) h['X-Sofa-UID'] = uid;
-    return h;
+    const token = localStorage.getItem('sofa_token') || '';
+    return token ? {'Authorization': 'Bearer ' + token} : {};
   }
   function _strictNewer(a, b) {
     // a 嚴格晚於 b？缺值視為最舊。平手回 false（不回推、不覆蓋，減少無謂寫入）

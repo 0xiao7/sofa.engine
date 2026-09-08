@@ -265,7 +265,7 @@ test('law preview names the return path for tree readers', () => {
 test('law preview article fetches keep paid member auth', () => {
   assert.match(preview, /function _authH\(extra\)/);
   assert.match(preview, /if\(tok\) h\.Authorization='Bearer '\+tok/);
-  assert.match(preview, /else if\(uid\) h\['X-Sofa-UID'\]=uid/);
+  assert.doesNotMatch(preview, /X-Sofa-UID/);
   assert.match(preview, /async function fetchJSON\(url\)\{/);
   assert.match(preview, /fetch\(url, \{headers:_authH\(\), credentials:'include'\}\)/);
   assert.match(preview, /fetchJSON\(`\$\{API\}\/api\/article\/\$\{id\}`\)/);

@@ -399,9 +399,9 @@ const crumb = document.getElementById('crumb');
 const listLabel = document.getElementById('listLabel');
 
 function _authH(extra){
-  const h=extra?{...extra}:{};
+  const h=Object.assign({},extra||{});
+  const tok=localStorage.getItem('sofa_token')||'';
   if(tok) h.Authorization='Bearer '+tok;
-  else if(uid) h['X-Sofa-UID']=uid;
   return h;
 }
 

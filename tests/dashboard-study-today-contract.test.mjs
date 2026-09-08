@@ -222,7 +222,9 @@ test('dashboard cross reference click calls the inline article opener', () => {
 });
 
 test('dashboard fetches the authenticated study today endpoint', () => {
-  assert.match(active, /\/api\/me\/study\/today\?track=bookkeeper/);
+  assert.match(active, /function _currentExamTrack\(\)/);
+  assert.match(active, /\/api\/me\/study\/today\?track=' \+ encodeURIComponent\(_currentExamTrack\(\)\)/);
+  assert.doesNotMatch(active, /\/api\/me\/study\/today\?track=bookkeeper/);
 });
 
 test('dashboard renders subject containers and blocks from explicit capability data', () => {

@@ -2,6 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8" />
+<script src="account-storage.js?v=20260907-account-scope-v1"></script>
 <title>SoFa Engine — 選擇題</title>
 <link rel="canonical" href="https://sofaengine.org/quiz.html" />
 <!-- Google tag (gtag.js) -->
@@ -866,11 +867,9 @@ async function fetchQuizJsonWithRetry(url, opts, attempts, delayMs){
   return lastData || {detail:'題目暫時載入失敗'};
 }
 function _authH(extra) {
-  const h = extra ? {...extra} : {};
-  if (tok) h['Authorization'] = 'Bearer ' + tok;
-  else if (uid) h['X-Sofa-UID'] = uid;
-  return h;
-}
+    const token = localStorage.getItem('sofa_token') || '';
+    return token ? {'Authorization': 'Bearer ' + token} : {};
+  }
 
 const _scratchpadState = window.SoFaScratchpad ? new window.SoFaScratchpad.ScratchpadState({storage:localStorage}) : null;
 let _scratchpadTool='pen', _scratchpadDrawing=false, _scratchpadSaveTimer=null, _scratchpadInitialized=false;
@@ -1259,7 +1258,7 @@ function _quizScopedLaw(law){
 
 function _filterLawsForExam(laws, examKey){
   const legacy={
-    bookkeeper:'n72',landadmin:'n74',land_agent:'n74',realestate:'n83',real_estate_broker:'n83',
+    bookkeeper:'n72',landadmin:'n74',land_agent:'n74',real_estate_broker:'n83',
     'tax-admin':'n79','tax-law':'n43','elem-admin':'n23','post-acc':'n89'
   };
   const node=(typeof NODES!=='undefined'&&NODES[legacy[examKey]||examKey])||null;

@@ -2,6 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8" />
+<script src="account-storage.js?v=20260907-account-scope-v1"></script>
 <title>SoFa Engine — 打字練習</title>
 <link rel="canonical" href="https://sofaengine.org/practice.html" />
 <!-- Google tag (gtag.js) -->
@@ -485,7 +486,7 @@ function isPreviewHost(){
 }
 const uid = localStorage.getItem('sofa_uid') || (isPreviewHost() ? 'PREVIEW' : null);
 const tok = localStorage.getItem('sofa_token') || '';
-// 過渡期：有 token 用 Bearer，否則 fallback X-Sofa-UID
+// 私人 API 僅使用伺服器可驗證的 Bearer token。
 function formatLawText(raw){
   if(!raw) return '';
   let t=String(raw).replace(/\r\n?/g,'\n').trim();
@@ -496,11 +497,9 @@ function formatLawText(raw){
   return t.replace(/^\n+/,'').replace(/\n{2,}/g,'\n').trim();
 }
 function _authH(extra) {
-  const h = extra ? {...extra} : {};
-  if (tok) h['Authorization'] = 'Bearer ' + tok;
-  else if (uid) h['X-Sofa-UID'] = uid;
-  return h;
-}
+    const token = localStorage.getItem('sofa_token') || '';
+    return token ? {'Authorization': 'Bearer ' + token} : {};
+  }
 const freeParam = new URLSearchParams(location.search).get('free') === '1';
 const _practiceSearchParams = new URLSearchParams(location.search);
 function practiceUrlLawParam(){ return _practiceSearchParams.get('law') || ''; }
@@ -526,7 +525,7 @@ if(isFree){
 var _PRACTICE_LEGACY_EXAM_NODE = {
   bookkeeper: 'n72',
   landadmin: 'n74',
-  realestate: 'n83',
+  real_estate_broker: 'n83',
   'tax-admin': 'n79',
   'tax-law': 'n43',
   'elem-admin': 'n23',

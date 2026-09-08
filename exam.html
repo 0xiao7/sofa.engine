@@ -82,11 +82,9 @@ const isFree = !uid && localStorage.getItem("sofa_free") === "FREE";
 if (!uid && !isFree) window.location.href = "login.html?redirect=exam.html";
 function esc(s){return String(s ?? "").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
 function authHeaders(extra){
-  const h = extra ? {...extra} : {};
-  if (tok) h.Authorization = "Bearer " + tok;
-  else if (uid) h["X-Sofa-UID"] = uid;
-  return h;
-}
+    const token = localStorage.getItem('sofa_token') || '';
+    return token ? {'Authorization': 'Bearer ' + token} : {};
+  }
 let questions = [];
 let idx = 0;
 let answered = false;

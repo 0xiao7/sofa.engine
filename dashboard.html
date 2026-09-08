@@ -2,6 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8" />
+<script src="account-storage.js?v=20260907-account-scope-v1"></script>
 <title>SoFa Engine — 會員中心</title>
 <link rel="canonical" href="https://sofaengine.org/dashboard.html" />
 <meta name="robots" content="noindex,nofollow" />
@@ -4163,8 +4164,16 @@
   }
 </style>
 <link rel="stylesheet" href="compass-widget.css?v=3">
+<script src="exam-targets.js?v=20260908-canonical-schedule-v1"></script>
 </head>
 <body data-screen-label="01 Dashboard">
+<script>
+function _currentExamTrack(){
+  if(window.SoFaExamTargets) return window.SoFaExamTargets.resolveTarget().key;
+  return localStorage.getItem('sofa_exam_key') || 'bookkeeper';
+}
+</script>
+<a data-exam-source href="https://wwwc.moex.gov.tw/main/Exam/wFrmExamDetail.aspx?c=115180" target="_blank" rel="noopener" style="display:block;margin:8px auto;padding:0 16px;max-width:1180px;text-align:right;font-size:11px;color:inherit;opacity:.62;text-decoration:underline">考選部｜2026-09-08 查核</a>
 
   <!-- ============ TOP BAR ============ -->
   <header class="topbar">
@@ -4617,7 +4626,7 @@
                     <option value="all">全部考科</option>
                     <option value="bookkeeper">記帳士</option>
                     <option value="landadmin">地政士</option>
-                    <option value="realestate">不動產經紀人</option>
+                    <option value="real_estate_broker">不動產經紀人</option>
                     <option value="tax-admin">財稅行政</option>
                     <option value="tax-law">財稅法務</option>
                     <option value="elem-admin">初等行政</option>
@@ -4725,7 +4734,7 @@
                 <option value="">跟隨會員目標</option>
                 <option value="bookkeeper">記帳士</option>
                 <option value="landadmin">地政士</option>
-                <option value="realestate">不動產經紀人</option>
+                <option value="real_estate_broker">不動產經紀人</option>
                 <option value="tax-admin">稅務行政</option>
                 <option value="tax-law">稅務相關法規</option>
                 <option value="elem-admin">初等一般行政</option>
@@ -4794,7 +4803,7 @@
               <div id="mc-exam-picker">
                 <span class="ep-chip" data-key="bookkeeper" onclick="pickExam('bookkeeper')">記帳士</span>
                 <span class="ep-chip" data-key="landadmin" onclick="pickExam('landadmin')">地政士</span>
-                <span class="ep-chip" data-key="realestate" onclick="pickExam('realestate')">不動產</span>
+                <span class="ep-chip" data-key="real_estate_broker" onclick="pickExam('real_estate_broker')">不動產</span>
                 <span class="ep-chip" data-key="tax-admin" onclick="pickExam('tax-admin')">財稅行政</span>
                 <span class="ep-chip" data-key="tax-law" onclick="pickExam('tax-law')">財稅法務</span>
                 <span class="ep-chip" data-key="elem-admin" onclick="pickExam('elem-admin')">初等行政</span>
@@ -5482,17 +5491,11 @@ function _highlightText(text, query){
     '<mark style="background:rgba(231,187,167,0.22);color:var(--peach-2);border-radius:2px;padding:0 1px">$1</mark>'
   );
 }
-// 過渡期：有 sofa_token 用 Bearer，否則 fallback X-Sofa-UID / FREE
+// 私人 API 僅使用伺服器可驗證的 Bearer token。
 function _authH(extra) {
-  const h = extra ? {...extra} : {};
-  const _tok = localStorage.getItem('sofa_token') || '';
-  const _uid = localStorage.getItem('sofa_uid') || '';
-  const _free = !_uid && localStorage.getItem('sofa_free') === 'FREE';
-  if (_tok) h['Authorization'] = 'Bearer ' + _tok;
-  else if (_uid) h['X-Sofa-UID'] = _uid;
-  else if (_free) h['X-Sofa-UID'] = 'FREE';
-  return h;
-}
+    const token = localStorage.getItem('sofa_token') || '';
+    return token ? {'Authorization': 'Bearer ' + token} : {};
+  }
 
 // 冷啟動容錯：Render 閒置後第一拍常回 500/503，前端自動重試（指數退避），
 // 避免會員資訊/學習進度等區塊永遠卡在「載入中…」。4xx 不重試（503/429/網路錯才重試）。
@@ -5806,7 +5809,7 @@ async function updateStudyItemStatus(key, status, shiftDays){
         });
         if(res && res.ok){
           if(status === 'done' && item) await logCompletedStudyItemHours(item);
-          var latest = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
+          var latest = await _fetchJSON(API + '/api/me/study/today?track=' + encodeURIComponent(_currentExamTrack()), { headers: _authH({}) }, 1);
           renderStudyToday(latest || null);
           focusStudyPlanItems();
           return;
@@ -5814,7 +5817,7 @@ async function updateStudyItemStatus(key, status, shiftDays){
         throw new Error('status failed');
       }catch(e){
         setStudyPlanActionMessage('同步失敗，這筆雲端計畫還沒改動；請稍後再試。');
-        var latestFallback = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
+        var latestFallback = await _fetchJSON(API + '/api/me/study/today?track=' + encodeURIComponent(_currentExamTrack()), { headers: _authH({}) }, 1);
         var fallbackItems = latestFallback && latestFallback.personal_plan ? latestFallback.personal_plan : { items: window.__studyPlanItemCache || [] };
         renderStudyPlanItems(_mergeStudyPlan(fallbackItems));
         focusStudyPlanItems();
@@ -5871,7 +5874,7 @@ async function rescheduleStudyItemToInput(key){
         });
         if(!moved || !moved.ok) throw new Error('reschedule failed');
         setStudyPlanActionMessage('已改到 ' + date + (time ? ' ' + time : '') + '。');
-        var latest = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
+        var latest = await _fetchJSON(API + '/api/me/study/today?track=' + encodeURIComponent(_currentExamTrack()), { headers: _authH({}) }, 1);
         renderStudyToday(latest || null);
         focusStudyPlanItems();
         return;
@@ -8010,7 +8013,7 @@ function _readArticle(btn, text) {
     _fetchJSON(API+'/api/me/mastery',   { headers: H }),
     _fetchJSON(API+'/api/me/review-due',{ headers: H }),
     _fetchJSON(API+'/api/me/entitlements',{ headers: H }),
-    _fetchJSON(API+'/api/me/study/today?track=bookkeeper',{ headers: H }),
+    _fetchJSON(API+'/api/me/study/today?track=' + encodeURIComponent(_currentExamTrack()),{ headers: H }),
   ]).then(async function(results){
     window.__dashboardDataLoaded = true;
     var profile   = results[0];
@@ -8875,8 +8878,8 @@ function _studyPlaylistNormalizeTrack(value){
     'land_agent':'landadmin',
     'land-admin':'landadmin',
     'land_admin':'landadmin',
-    'real-estate':'realestate',
-    'real_estate':'realestate',
+    'real-estate':'real_estate_broker',
+    'real_estate':'real_estate_broker',
     'tax_admin':'tax-admin',
     'tax_law':'tax-law',
     'elem_admin':'elem-admin',
@@ -10361,7 +10364,7 @@ async function saveStudyPlanImport(){
       var remotePanel = document.getElementById('study-plan-panel');
       if(remotePanel) remotePanel.classList.remove('on');
       setStudyPanelMode('closed');
-      var latest = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
+      var latest = await _fetchJSON(API + '/api/me/study/today?track=' + encodeURIComponent(_currentExamTrack()), { headers: _authH({}) }, 1);
       renderStudyToday(latest || null);
     } else {
       setStudyPlanActionMessage('已先匯入本機；帳號同步稍後再試。');
@@ -10544,15 +10547,14 @@ function saveNickname(){
 // ── 多考科動態倒數 ─────────────────────────────────
 // 新增考科：在 EXAMS 加一行 { key, name, date:'YYYY-MM-DD' } 即可
 (function(){
-  const EXAMS = [
-    { key: 'bookkeeper', name: '記帳士',   date: '2026-11-14', reg_end: '2026-08-13' },
-    { key: 'landadmin',  name: '地政士',   date: '2026-06-06', reg_end: '2026-03-05' },
-    { key: 'realestate', name: '不動產',   date: '2026-11-14', reg_end: '2026-08-13' },
-    { key: 'tax-admin',  name: '財稅行政', date: '2026-07-03', reg_end: '2026-03-19' },
-    { key: 'tax-law',    name: '財稅法務', date: '2026-07-03', reg_end: '2026-03-19' },
-    { key: 'elem-admin', name: '初等行政', date: '2026-01-10', reg_end: '2025-11-06' },
-    { key: 'post-acc',   name: '中華郵政', date: '2026-07-19', reg_end: '2026-06-10' },
-  ];
+  const EXAMS = window.SoFaExamTargets.activeTargets().map(function (target) {
+      return {
+        key: target.key,
+        name: target.label,
+        date: target.examDate.slice(0, 10),
+        reg_end: target.registrationEnd ? target.registrationEnd.slice(0, 10) : ''
+      };
+    })
   // 把 reg_end 暴露給外部（給 applyExamFilter 用）
   window._EXAM_REG_END = {};
   EXAMS.forEach(function(e){ if(e.reg_end) window._EXAM_REG_END[e.key] = e.reg_end; });
@@ -10659,7 +10661,7 @@ var _curChip    = 'all';
 var _curLawName = '';
 var _examFilter = 'all';
 var _EXAM_NODE  = {
-  bookkeeper: 'n72', landadmin: 'n74', realestate: 'n83',
+  bookkeeper: 'n72', landadmin: 'n74', real_estate_broker: 'n83',
   'tax-admin': 'n79', 'tax-law': 'n43', 'elem-admin': 'n23', 'post-acc': 'n89'
 };
 function _examLawSet(key){
@@ -10672,11 +10674,11 @@ function _examLawSet(key){
 }
 var _EXAM_KEY_TO_NAME = {
   'all':'全部','bookkeeper':'記帳士','landadmin':'地政士',
-  'realestate':'不動產','tax-admin':'財稅行政','tax-law':'財稅法務',
+  'real_estate_broker':'不動產','tax-admin':'財稅行政','tax-law':'財稅法務',
   'elem-admin':'初等行政','post-acc':'中華郵政'
 };
 var _EXAM_KEY_TO_YEAR = {
-  'bookkeeper':'2026','landadmin':'2026','realestate':'2026',
+  'bookkeeper':'2026','landadmin':'2026','real_estate_broker':'2026',
   'tax-admin':'2026','tax-law':'2026','elem-admin':'2026','post-acc':'2026'
 };
 var _EXAM_NAME_TO_KEY = (function(){
@@ -12001,7 +12003,7 @@ ch.on('presence', { event: 'sync' }, () => {
   var _tok = localStorage.getItem('sofa_token')||'';
   var _uid = localStorage.getItem('sofa_uid')||'';
   if(_tok || _uid){
-    var H = {}; if(_tok) H['Authorization']='Bearer '+_tok; else H['X-Sofa-UID']=_uid;
+    var H = {}; if(_tok) H['Authorization']='Bearer '+_tok;
     fetch(API + '/api/me/quiz-stats', { headers: H })
       .then(function(r){ return r.ok ? r.json() : null; })
       .then(function(d){

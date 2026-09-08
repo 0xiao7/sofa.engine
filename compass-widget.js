@@ -12,7 +12,7 @@
   const TARGET_TO_NODE = {
     'bookkeeper':  'n72',  // 記帳士
     'landadmin':   'n74',  // 地政士
-    'realestate':  'n83',  // 不動產經紀人
+    'real_estate_broker': 'n83',  // 不動產經紀人
     'tax-admin':   'n79',  // 財稅行政
     'tax-law':     'n43',  // 財稅法務
     'elem-admin':  'n23',  // 初等考試一般行政

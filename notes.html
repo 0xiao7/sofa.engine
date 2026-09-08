@@ -2,6 +2,7 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="utf-8" />
+<script src="account-storage.js?v=20260907-account-scope-v1"></script>
 <title>SoFa Engine — 私人筆記庫</title>
 <meta name="robots" content="noindex,nofollow" />
 <!-- Google tag (gtag.js) -->
@@ -128,7 +129,10 @@
   var _explicitFree = (!_uid && localStorage.getItem('sofa_free') === 'FREE');
   window.__notesPaid = !_explicitFree;        // fail-open 初值
   window.__notesPaidResolved = !_uid;          // 未登入沒得查
-  function _authHeaders(){ var h={}; if(_tok) h['Authorization']='Bearer '+_tok; else if(_uid) h['X-Sofa-UID']=_uid; return h; }
+  function _authHeaders(){
+    const token = localStorage.getItem('sofa_token') || '';
+    return token ? {'Authorization': 'Bearer ' + token} : {};
+  }
   function _confirmNotesPaid(cb){
     if(!_uid){ cb(window.__notesPaid); return; }
     var done=false;
