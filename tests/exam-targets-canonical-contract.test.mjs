@@ -18,7 +18,7 @@ test('real estate broker uses one canonical key and legacy URLs normalize to it'
   assert.equal(api.TARGETS.realestate, undefined);
   assert.equal(api.resolveTarget().key, 'real_estate_broker');
   assert.equal(values.get('sofa_exam_key'), 'real_estate_broker');
-  assert.equal(api.toApiKey('real_estate_broker'), 'realestate');
+  assert.equal(api.toApiKey('real_estate_broker'), 'real_estate_broker');
 });
 
 test('official group window and actual class window are source-dated', () => {
@@ -54,5 +54,9 @@ test('dashboard login index and share consume the shared catalog without exam da
     const html = fs.readFileSync(page, 'utf8');
     assert.match(html, /exam-targets\.js/);
     assert.doesNotMatch(html, /2026-11-1[456]/);
+    if(page === 'dashboard.html') {
+      assert.match(html, /function _currentExamTrack\(\)/);
+      assert.doesNotMatch(html, /\/api\/me\/study\/today\?track=bookkeeper/);
+    }
   }
 });
