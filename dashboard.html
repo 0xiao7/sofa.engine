@@ -4167,6 +4167,12 @@
 <link rel="stylesheet" href="compass-widget.css?v=3">
 </head>
 <body data-screen-label="01 Dashboard">
+<script>
+function _currentExamTrack(){
+  if(window.SoFaExamTargets) return window.SoFaExamTargets.resolveTarget().key;
+  return localStorage.getItem('sofa_exam_key') || 'bookkeeper';
+}
+</script>
 
   <!-- ============ TOP BAR ============ -->
   <header class="topbar">
@@ -5805,7 +5811,7 @@ async function updateStudyItemStatus(key, status, shiftDays){
         });
         if(res && res.ok){
           if(status === 'done' && item) await logCompletedStudyItemHours(item);
-          var latest = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
+          var latest = await _fetchJSON(API + '/api/me/study/today?track=' + encodeURIComponent(_currentExamTrack()), { headers: _authH({}) }, 1);
           renderStudyToday(latest || null);
           focusStudyPlanItems();
           return;
@@ -5813,7 +5819,7 @@ async function updateStudyItemStatus(key, status, shiftDays){
         throw new Error('status failed');
       }catch(e){
         setStudyPlanActionMessage('同步失敗，這筆雲端計畫還沒改動；請稍後再試。');
-        var latestFallback = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
+        var latestFallback = await _fetchJSON(API + '/api/me/study/today?track=' + encodeURIComponent(_currentExamTrack()), { headers: _authH({}) }, 1);
         var fallbackItems = latestFallback && latestFallback.personal_plan ? latestFallback.personal_plan : { items: window.__studyPlanItemCache || [] };
         renderStudyPlanItems(_mergeStudyPlan(fallbackItems));
         focusStudyPlanItems();
@@ -5870,7 +5876,7 @@ async function rescheduleStudyItemToInput(key){
         });
         if(!moved || !moved.ok) throw new Error('reschedule failed');
         setStudyPlanActionMessage('已改到 ' + date + (time ? ' ' + time : '') + '。');
-        var latest = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
+        var latest = await _fetchJSON(API + '/api/me/study/today?track=' + encodeURIComponent(_currentExamTrack()), { headers: _authH({}) }, 1);
         renderStudyToday(latest || null);
         focusStudyPlanItems();
         return;
@@ -8009,7 +8015,7 @@ function _readArticle(btn, text) {
     _fetchJSON(API+'/api/me/mastery',   { headers: H }),
     _fetchJSON(API+'/api/me/review-due',{ headers: H }),
     _fetchJSON(API+'/api/me/entitlements',{ headers: H }),
-    _fetchJSON(API+'/api/me/study/today?track=bookkeeper',{ headers: H }),
+    _fetchJSON(API+'/api/me/study/today?track=' + encodeURIComponent(_currentExamTrack()),{ headers: H }),
   ]).then(async function(results){
     window.__dashboardDataLoaded = true;
     var profile   = results[0];
@@ -10363,7 +10369,7 @@ async function saveStudyPlanImport(){
       var remotePanel = document.getElementById('study-plan-panel');
       if(remotePanel) remotePanel.classList.remove('on');
       setStudyPanelMode('closed');
-      var latest = await _fetchJSON(API + '/api/me/study/today?track=bookkeeper', { headers: _authH({}) }, 1);
+      var latest = await _fetchJSON(API + '/api/me/study/today?track=' + encodeURIComponent(_currentExamTrack()), { headers: _authH({}) }, 1);
       renderStudyToday(latest || null);
     } else {
       setStudyPlanActionMessage('已先匯入本機；帳號同步稍後再試。');

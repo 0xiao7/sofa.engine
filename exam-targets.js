@@ -16,7 +16,7 @@
     real_estate: 'real_estate_broker',
     n83: 'real_estate_broker'
   };
-  const API_KEY_ALIASES = { real_estate_broker: 'realestate' };
+  const API_KEY_ALIASES = { real_estate_broker: 'real_estate_broker' };
   const TARGETS = {
     bookkeeper: {
       key: 'bookkeeper', label: '記帳士',
