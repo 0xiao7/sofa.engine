@@ -6,7 +6,8 @@ const html = readFileSync(new URL('../quiz.html', import.meta.url), 'utf8');
 const active = html.replace(/<!--[\s\S]*?-->/g, '');
 
 function extractFunction(source, name) {
-  const start = source.indexOf(`function ${name}`);
+  const match = new RegExp(`\\b(?:async\\s+)?function\\s+${name}\\s*\\(`).exec(source);
+  const start = match ? match.index : -1;
   assert.ok(start >= 0, `${name} must exist`);
   const open = source.indexOf('{', start);
   let depth = 0;
@@ -151,8 +152,10 @@ test('finished session errors are buttons that reopen the question with its answ
   assert.match(timeout, /cur\.correctIndex=correctIdx/);
   assert.match(reveal, /loadSessionReviewExplanation\(item/);
   const explanation = extractFunction(active, 'loadSessionReviewExplanation');
-  assert.match(explanation, /\/api\/article\/\$\{pageId\}/);
-  assert.match(explanation, /sections/);
+  assert.match(explanation, /loadQuizArticleAnalysis\(pageId\)/);
+  const sharedAnalysis = extractFunction(active, 'loadQuizArticleAnalysis');
+  assert.match(sharedAnalysis, /\/api\/article\/\$\{encodeURIComponent\(pageId\)\}/);
+  assert.match(sharedAnalysis, /buildSections\(art\.sections/);
 });
 
 test('keyboard next shortcut does not override focused controls', () => {

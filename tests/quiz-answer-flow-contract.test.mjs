@@ -10,7 +10,8 @@ const lawCrossRefSource = readFileSync(new URL('../law-crossref.js', import.meta
 const stripTags = (value) => String(value || '').replace(/<[^>]*>/g, '');
 
 function extractFunction(source, name) {
-  let start = source.indexOf(`function ${name}`);
+  const match = new RegExp(`\\bfunction\\s+${name}\\s*\\(`).exec(source);
+  let start = match ? match.index : -1;
   assert.ok(start >= 0, `${name} must exist`);
   const asyncStart = source.lastIndexOf('async ', start);
   if (asyncStart >= 0 && source.slice(asyncStart + 6, start) === '') start = asyncStart;
@@ -37,8 +38,8 @@ test('quiz and dashboard use one shared law-reference rule engine', () => {
 test('post-answer actions place next question next to view article', () => {
   assert.match(active, /id="quiz-answer-actions"/);
   const start = active.indexOf('id="quiz-answer-actions"');
-  const end = active.indexOf('id="explainBox"', start);
-  assert.ok(start >= 0 && end > start, 'quiz answer action row must exist before explanation box');
+  const end = active.indexOf('id="quiz-article-panel"', start);
+  assert.ok(start >= 0 && end > start, 'quiz answer action row must be bounded before the article panel');
   const actionRow = active.slice(start, end);
   assert.match(actionRow, /id="view-article-btn"/);
   assert.match(actionRow, /id="view-weakness-btn"/);
@@ -52,10 +53,17 @@ test('post-answer actions place next question next to view article', () => {
   assert.doesNotMatch(active.slice(footStart, footEnd), /id="btnFlag"/, 'do not leave a second flag button below the fold');
 });
 
+test('answer feedback and rich analysis stay before follow-up actions', () => {
+  const explain = active.indexOf('id="explainBox"');
+  const actions = active.indexOf('id="quiz-answer-actions"');
+  assert.ok(explain >= 0 && actions >= 0, 'answer feedback and follow-up actions must exist');
+  assert.ok(explain < actions, 'learners should read the answer analysis before follow-up actions');
+});
+
 test('post-answer retention prompt is compact and only shown for free learners', () => {
   const start = active.indexOf('id="quiz-answer-actions"');
-  const end = active.indexOf('id="explainBox"', start);
-  assert.ok(start >= 0 && end > start, 'quiz answer action row must exist before explanation box');
+  const end = active.indexOf('id="quiz-article-panel"', start);
+  assert.ok(start >= 0 && end > start, 'quiz answer action row must be bounded before the article panel');
   const actionRow = active.slice(start, end);
 
   assert.match(actionRow, /id="post-answer-retention"/);
@@ -82,14 +90,18 @@ test('post-answer action buttons keep mobile tap targets', () => {
   assert.match(active, /#post-answer-retention a\s*\{[\s\S]*min-height:\s*44px/);
 });
 
-test('every answered question shows its correct answer and an honest explanation state', () => {
+test('ordinary answered questions show a source-honest answer and explanation state', () => {
   const helper = vm.runInNewContext(
     `${extractFunction(active, 'answerExplanationText')};answerExplanationText`,
   );
 
   assert.equal(
-    helper({ explanation: '' }, 3),
+    helper({ explanation: '', _past_exam: true, official_answer: 'D' }, 3),
     '正確答案：D\n本題目前只有考選部官方答案；SoFa Engine 解析尚在補齊，題目與官方答案仍可正常作答。',
+  );
+  assert.equal(
+    helper({ explanation: '' }, 0),
+    '正確答案：A\n本題解析尚在補齊；正確答案仍可正常查看。',
   );
   assert.equal(
     helper({ explanation: '購入成本包含直接可歸屬交易成本。' }, 3),
@@ -98,9 +110,19 @@ test('every answered question shows its correct answer and an honest explanation
 
   assert.match(active, /renderAnswerExplanation\(data,correctIdx\)/);
   assert.doesNotMatch(active, /if\(answerExplain && data\.explanation\)/);
+
+  const answerStart = active.indexOf('const answerRecord=await recordQuizAnswer');
+  const answerFlow = active.slice(answerStart, answerStart + 1500);
+  assert.ok(answerStart > -1, 'answer submit flow must exist');
+  assert.ok(
+    answerFlow.indexOf('renderAnswerExplanation(data,correctIdx)')
+      < answerFlow.indexOf('if(onAnswerDone(isCorrect, loadQuiz)) return'),
+    'ordinary answers must render before session/auto-next early returns',
+  );
+  assert.match(answerFlow, /if\(!_sessionMode\)\{[\s\S]*renderAnswerExplanation\(data,correctIdx\)/);
 });
 
-test('view-article action is exposed only when the current question has an exact article id', () => {
+test('view-article action is exposed only for a normalized scalar article id', () => {
   const elements = {
     'quiz-answer-actions': { classList: { add() {} }, scrollIntoView() {} },
     'view-article-btn': { style: {} },
@@ -113,16 +135,92 @@ test('view-article action is exposed only when the current question has an exact
     isFree: false,
     window: {},
   };
-  const show = vm.runInNewContext(
-    `${extractFunction(active, 'showQuizAnswerActions')};showQuizAnswerActions`,
+  const helpers = vm.runInNewContext(
+    `${extractFunction(active, 'normalizeQuizArticlePageId')};${extractFunction(active, 'showQuizAnswerActions')};({normalizeQuizArticlePageId,showQuizAnswerActions})`,
     sandbox,
   );
 
-  show();
+  helpers.showQuizAnswerActions();
+  assert.equal(elements['view-article-btn'].style.display, 'none');
+  sandbox._currentPageId = '   ';
+  helpers.showQuizAnswerActions();
+  assert.equal(elements['view-article-btn'].style.display, 'none');
+  sandbox._currentPageId = { id: 'article-123' };
+  helpers.showQuizAnswerActions();
   assert.equal(elements['view-article-btn'].style.display, 'none');
   sandbox._currentPageId = 'article-123';
-  show();
+  helpers.showQuizAnswerActions();
   assert.equal(elements['view-article-btn'].style.display, 'inline-flex');
+  assert.equal(helpers.normalizeQuizArticlePageId(' article-123 '), 'article-123');
+  assert.equal(helpers.normalizeQuizArticlePageId({ id: 'article-123' }), '');
+});
+
+test('ordinary answer flow only loads article analysis for a valid article id', () => {
+  const answerStart = active.indexOf('const answerRecord=await recordQuizAnswer');
+  const answerFlow = active.slice(answerStart, answerStart + 2600);
+  assert.ok(answerStart > -1, 'answer submit flow must exist');
+  assert.match(answerFlow, /sourceBox\.style\.display=pageId\?'flex':'none'/);
+  assert.match(answerFlow, /if\(pageId\)loadQuizArticleAnalysis\(pageId\)/);
+});
+
+test('new questions clear every prior rich-analysis node before rendering', () => {
+  const removed = [];
+  const elements = {
+    explainBox: {
+      querySelectorAll: selector => {
+        assert.equal(selector, '.sec-block,.sec-lock,.cpi-note');
+        return [{ remove: () => removed.push('section') }, { remove: () => removed.push('note') }];
+      },
+    },
+    artInline: { textContent: 'old article', style: { display: 'block' } },
+    sourceBox: {
+      style: { display: 'flex' },
+      querySelector: () => ({ textContent: 'old status' }),
+    },
+    sourceLink: { textContent: 'old action', style: { display: 'none' } },
+  };
+  const reset = vm.runInNewContext(
+    `${extractFunction(active, 'clearQuizAnswerDetailNodes')};${extractFunction(active, 'resetQuizAnswerAnalysis')};resetQuizAnswerAnalysis`,
+    {
+      stopInlineFallback() {},
+      document: { getElementById: id => elements[id] },
+    },
+  );
+  reset();
+  assert.deepEqual([...removed], ['section', 'note']);
+  assert.equal(elements.artInline.textContent, '');
+  assert.equal(elements.artInline.style.display, 'none');
+  assert.equal(elements.sourceBox.style.display, 'none');
+  assert.equal(elements.sourceLink.textContent, '展開原文 ↓');
+
+  const loadQuiz = extractFunction(active, 'loadQuiz');
+  assert.match(loadQuiz, /_currentPageId='';[\s\S]*resetQuizAnswerAnalysis\(\)/);
+  assert.match(loadQuiz, /resetQuizAnswerAnalysis\(\)/);
+});
+
+test('normal and completed-session answers use the same rich article renderer', () => {
+  const loader = extractFunction(active, 'loadQuizArticleAnalysis');
+  assert.match(loader, /normalizeQuizArticlePageId\(rawPageId\)/);
+  assert.match(loader, /normalizeQuizArticlePageId\(_currentPageId\)!==pageId/);
+  assert.match(loader, /buildSections\(art\.sections\|\|\{\},articleSectionsArePaid\(art\)/);
+  assert.match(loader, /catch\(e\)\{[\s\S]*clearQuizAnswerDetailNodes\(\)/);
+  assert.match(loader, /法條資料暫時無法載入/);
+
+  assert.match(extractFunction(active, 'loadSessionReviewExplanation'), /loadQuizArticleAnalysis\(pageId\)/);
+  assert.match(active, /if\(pageId\)loadQuizArticleAnalysis\(pageId\)/);
+});
+
+test('quiz payload validation fails closed unless exactly one answer is verifiable', () => {
+  const usable = vm.runInNewContext(
+    `${extractFunction(active, 'quizPayloadUsable')};quizPayloadUsable`,
+  );
+  assert.equal(usable({ question: 'Q', options: ['A', 'B'], answer: 'A' }), true);
+  assert.equal(usable({ question: 'Q', options: ['A', 'A'], answer: 'A' }), false);
+  assert.equal(usable({ question: 'Q', options: ['A', 'B'], answer: 'C' }), false);
+  assert.equal(
+    usable({ question: 'Q', options: [{ is_correct: true }, { is_correct: true }] }),
+    false,
+  );
 });
 
 test('normal quiz can auto-advance only after correct answers when the learner opts in', () => {
@@ -144,7 +242,7 @@ test('normal quiz can auto-advance only after correct answers when the learner o
 
   const answerStart = active.indexOf('recordQuizAnswer(data,pageId,isCorrect,i,correctIdx)');
   assert.ok(answerStart > -1, 'answer submit flow must record answer');
-  const answerFlow = active.slice(answerStart, answerStart + 900);
+  const answerFlow = active.slice(answerStart, answerStart + 1800);
   assert.match(answerFlow, /if\(onAnswerDone\(isCorrect, loadQuiz\)\) return/);
   assert.match(answerFlow, /if\(maybeAutoAdvanceCorrectAnswer\(isCorrect\)\) return/);
   assert.ok(
@@ -632,7 +730,7 @@ test('answer explanation shows article text before analysis sections', () => {
   assert.match(active, /原文還在載入。可以先按上方「查看法條」開完整條文/);
   assert.match(active, /stopInlineFallback\(\)/);
   assert.match(active, /const hasInlineText=showInlineArticleText\(art\.original_text\)/);
-  assert.match(active, /hasInlineText\?'條文原文已放在上方':'暫時沒有原文；可按上方查看法條'/);
+  assert.match(active, /hasInlineText\?'條文原文已放在上方':'暫時沒有原文；可按下方查看法條'/);
   assert.match(active, /hasInlineText\?'收起原文 ↑':'收起提示 ↑'/);
   assert.match(active, /暫時沒有原文/);
   assert.match(active, /\.art-inline\{[\s\S]*max-height:none/);
@@ -985,7 +1083,7 @@ test('CPI-adjusted article answers always show a visible adjustment warning', ()
   assert.match(active, /題目仍可考條文基準或比例/);
 
   const callCount = (active.match(/buildSections\(art\.sections\|\|\{\},articleSectionsArePaid\(art\),\s*document\.getElementById\('explainBox'\),document\.getElementById\('sourceBox'\),\s*art\)/g) || []).length;
-  assert.equal(callCount, 2, 'normal quiz and wrong-review quiz should both pass article metadata into buildSections');
+  assert.equal(callCount, 1, 'all quiz modes should share one article-analysis renderer');
 });
 
 test('session mode advances quickly after each answer without changing normal mode', () => {
