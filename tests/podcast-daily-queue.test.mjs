@@ -244,7 +244,12 @@ test('renderer appends one law episode to manifest, RSS and website', () => {
   mkdirSync(join(root, 'assets/audio'), { recursive: true });
   writeFileSync(join(root, 'assets/audio/ep007.m4a'), Buffer.alloc(301_000));
   const row = { ...structuredClone(queue.episodes[0]), status: 'approved_for_release', duration: '00:01:10', pubDate: 'Sat, 08 Aug 2026 13:00:00 +0000', guid: 'sofa-podcast-ep007-v20260808-hana', assets: { mp3: 'assets/audio/ep007.mp3', m4a: 'assets/audio/ep007.m4a', vtt: 'assets/audio/ep007.vtt' } };
-  const content = { transcriptText: '法條逐字稿', originalText: '正式法條原文', sourceOriginalTextSha256: 'a'.repeat(64), sourceAnalysisSha256: 'b'.repeat(64) };
+  const content = {
+    transcriptText: '法條逐字稿第一段。\n\n題目看到 A < B 時，先判斷條件。\n最後記住收入 & 費用的界線。',
+    originalText: '正式法條原文',
+    sourceOriginalTextSha256: 'a'.repeat(64),
+    sourceAnalysisSha256: 'b'.repeat(64),
+  };
   renderEpisodeFiles({ root, episode: row, content });
   assert.match(readFileSync(join(root, 'podcast-release.json'), 'utf8'), /EP007/);
   const feed = readFileSync(join(root, 'podcast.xml'), 'utf8');
@@ -254,6 +259,19 @@ test('renderer appends one law episode to manifest, RSS and website', () => {
     'newer episode must precede older episode',
   );
   assert.match(feed, /<lastBuildDate>Sat, 08 Aug 2026 13:00:00 \+0000<\/lastBuildDate>/);
+  assert.match(feed, /本集完整逐字稿：/);
+  assert.match(feed, /法條逐字稿第一段。/);
+  assert.match(feed, /題目看到 A &lt; B 時，先判斷條件。/);
+  assert.match(feed, /最後記住收入 &amp; 費用的界線。/);
+  assert.match(feed, /<p>題目看到 A &lt; B 時，先判斷條件。<\/p>/);
+  assert.match(
+    feed,
+    /https:\/\/sofaengine\.org\/podcast\.html\?utm_source=podcast&amp;utm_medium=rss_transcript&amp;utm_campaign=episode_007#transcript-007/,
+  );
+  assert.match(
+    feed,
+    /https:\/\/sofaengine\.org\/quiz\.html\?law=.*?&amp;article=.*?&amp;start=1&amp;utm_source=podcast&amp;utm_medium=rss&amp;utm_campaign=episode_007/,
+  );
   assert.match(readFileSync(join(root, 'podcast.html'), 'utf8'), /id="episode-007"/);
 });
 
