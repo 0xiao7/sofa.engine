@@ -19,17 +19,55 @@ function episodeNumber(id) {
   return id.replace('EP', '').padStart(3, '0');
 }
 
-function transcriptExcerpt(value) {
+export function normalizeTranscript(value) {
   return String(value)
     .split(/\n+/)
     .map(line => line.trim())
     .filter(Boolean)
-    .slice(0, 3)
-    .join(' ');
+    .join('\n\n');
 }
 
 function transcriptUrl(number) {
-  return `https://sofaengine.org/podcast.html?utm_source=podcast&amp;utm_medium=rss_transcript&amp;utm_campaign=episode_${number}#transcript-${number}`;
+  return `https://sofaengine.org/podcast.html?utm_source=podcast&utm_medium=rss_transcript&utm_campaign=episode_${number}#transcript-${number}`;
+}
+
+function rssPracticeUrl(episode, number) {
+  return `https://sofaengine.org/quiz.html?law=${encodeURIComponent(episode.law)}&article=${encodeURIComponent(episode.article)}&start=1&utm_source=podcast&utm_medium=rss&utm_campaign=episode_${number}`;
+}
+
+export function renderPodcastShowNotes({ summary, originalText, transcriptText, websiteTranscriptUrl, practiceUrl, originalLabel = '法條原文：', extraNotes = [], disclosure = '本集使用 AI 合成語音；正式考試仍以主管機關與考選部公告為準。' }) {
+  const transcript = normalizeTranscript(transcriptText);
+  if (!transcript) throw new Error('Podcast show notes require a complete transcript');
+  const normalizedSummary = String(summary).trim();
+  const normalizedOriginalText = String(originalText)
+    .split(/\n+/)
+    .map(line => line.trim())
+    .filter(Boolean)
+    .join(' ');
+  const normalizedExtraNotes = extraNotes.map(note => String(note).trim()).filter(Boolean);
+  const transcriptHtml = transcript
+    .split(/\n\n+/)
+    .map(paragraph => `        <p>${html(paragraph)}</p>`)
+    .join('\n');
+  const description = [
+    normalizedSummary,
+    `本集完整逐字稿：\n${transcript}`,
+    ...normalizedExtraNotes,
+    `官網該集全文／播放器：${websiteTranscriptUrl}`,
+    `該條法規練習入口：${practiceUrl}`,
+    disclosure,
+  ].map(xml).join('\n\n');
+  const content = `<content:encoded><![CDATA[
+        <p>${html(normalizedSummary)}</p>
+        <p><strong>${html(originalLabel)}</strong>${html(normalizedOriginalText)}</p>
+        <p><strong>本集完整逐字稿：</strong></p>
+${transcriptHtml}
+${normalizedExtraNotes.map(note => `        <p>${html(note)}</p>`).join('\n')}
+        <p><a href="${html(websiteTranscriptUrl)}">開啟官網該集全文與播放器</a></p>
+        <p><a href="${html(practiceUrl)}">練習本集法規</a></p>
+        <p>${html(disclosure)}</p>
+      ]]></content:encoded>`;
+  return { description, content };
 }
 
 export function sortFeedItemsLatestFirst(feed) {
@@ -59,7 +97,7 @@ export function sortFeedItemsLatestFirst(feed) {
 export function renderEpisodeFiles({ root, episode, content }) {
   const number = episodeNumber(episode.id);
   const websiteTranscriptUrl = transcriptUrl(number);
-  const showNoteExcerpt = transcriptExcerpt(content.transcriptText);
+  const feedPracticeUrl = rssPracticeUrl(episode, number);
   const manifestPath = join(root, 'podcast-release.json');
   const feedPath = join(root, 'podcast.xml');
   const pagePath = join(root, 'podcast.html');
@@ -113,7 +151,14 @@ export function renderEpisodeFiles({ root, episode, content }) {
   } else {
     feed = feed.replace(/<channel>\s*/, `<channel>\n    <lastBuildDate>${nextBuildDate}</lastBuildDate>\n`);
   }
-  const item = `    <item>\n      <title>${xml(episode.title)}</title>\n      <link>https://sofaengine.org/podcast.html?utm_source=podcast&amp;utm_medium=rss_episode&amp;utm_campaign=episode_${number}#episode-${number}</link>\n      <guid isPermaLink="false">${xml(episode.guid)}</guid>\n      <pubDate>${xml(episode.pubDate)}</pubDate>\n      <description>${xml(episode.summary)}。本集文字節錄：${xml(showNoteExcerpt)}。完整逐字稿：${websiteTranscriptUrl}。本集使用 AI 合成語音。</description>\n      <content:encoded><![CDATA[\n        <p>${html(episode.summary)}</p>\n        <p><strong>法條原文：</strong>${html(content.originalText)}</p>\n        <p><strong>本集文字節錄：</strong>${html(showNoteExcerpt)}</p>\n        <p><a href="${websiteTranscriptUrl}">閱讀完整逐字稿、法條原文與練習入口</a></p>\n      ]]></content:encoded>\n      <enclosure url="https://sofaengine.org/${xml(episode.assets.m4a)}" length="${statSync(join(root, episode.assets.m4a)).size}" type="audio/mp4"/>\n      <itunes:image href="https://sofaengine.org/${xml(manifest.show.artwork)}"/>\n      <podcast:transcript url="https://sofaengine.org/${xml(episode.assets.vtt)}" type="text/vtt" language="zh-TW" rel="captions"/>\n      <itunes:duration>${xml(episode.duration)}</itunes:duration>\n      <itunes:episode>${Number(number)}</itunes:episode>\n      <itunes:season>1</itunes:season>\n      <itunes:explicit>false</itunes:explicit>\n    </item>\n`;
+  const showNotes = renderPodcastShowNotes({
+    summary: episode.summary,
+    originalText: content.originalText,
+    transcriptText: content.transcriptText,
+    websiteTranscriptUrl,
+    practiceUrl: feedPracticeUrl,
+  });
+  const item = `    <item>\n      <title>${xml(episode.title)}</title>\n      <link>${html(`https://sofaengine.org/podcast.html?utm_source=podcast&utm_medium=rss_episode&utm_campaign=episode_${number}#episode-${number}`)}</link>\n      <guid isPermaLink="false">${xml(episode.guid)}</guid>\n      <pubDate>${xml(episode.pubDate)}</pubDate>\n      <description>${showNotes.description}</description>\n      ${showNotes.content}\n      <enclosure url="https://sofaengine.org/${xml(episode.assets.m4a)}" length="${statSync(join(root, episode.assets.m4a)).size}" type="audio/mp4"/>\n      <itunes:image href="https://sofaengine.org/${xml(manifest.show.artwork)}"/>\n      <podcast:transcript url="https://sofaengine.org/${xml(episode.assets.vtt)}" type="text/vtt" language="zh-TW" rel="captions"/>\n      <itunes:duration>${xml(episode.duration)}</itunes:duration>\n      <itunes:episode>${Number(number)}</itunes:episode>\n      <itunes:season>1</itunes:season>\n      <itunes:explicit>false</itunes:explicit>\n    </item>\n`;
   feed = feed.replace(feedMarker, `${item}${feedMarker}`);
   feed = sortFeedItemsLatestFirst(feed);
 
