@@ -49,31 +49,50 @@ export function promotePodcastLawRelease({
 }) {
   if (!sourceRoot) throw new Error('source root is required');
   let approval = null;
+  let approvalRows = [];
+  let episodeIds = IDS;
   if (!validateOnly) {
     if (!approvalPath || !existsSync(approvalPath)) throw new Error('listen approval file is required');
     approval = json(approvalPath);
-    if (
-      approval.schemaVersion !== 1
-      || approval.batchId !== 'ep007-009'
-      || approval.status !== 'approved'
-      || approval.approvedBy !== 'Fay'
-      || !/^\d{4}-\d{2}-\d{2}T/.test(approval.approvedAt || '')
-    ) throw new Error('batch is not approved by Fay with an exact timestamp');
-    exactIds(approval.episodes, 'listen approval');
+    if (approval.schemaVersion === 1) {
+      if (
+        approval.batchId !== 'ep007-009'
+        || approval.status !== 'approved'
+        || approval.approvedBy !== 'Fay'
+        || !/^\d{4}-\d{2}-\d{2}T/.test(approval.approvedAt || '')
+      ) throw new Error('batch is not approved by Fay with an exact timestamp');
+      exactIds(approval.episodes, 'listen approval');
+      approvalRows = approval.episodes.map(episodeId => ({
+        episodeId,
+        status: approval.status,
+        approvedBy: approval.approvedBy,
+        approvedAt: approval.approvedAt,
+      }));
+    } else if (approval.schemaVersion === 2 && approval.source === 'fay-bot-mobile-review') {
+      approvalRows = approval.approvals || [];
+      episodeIds = approvalRows.map(row => row.episodeId);
+      if (
+        episodeIds.length < 1
+        || new Set(episodeIds).size !== episodeIds.length
+        || approvalRows.some(row => row.status !== 'approved' || row.approvedBy !== 'Fay' || !/^\d{4}-\d{2}-\d{2}T/.test(row.approvedAt || ''))
+      ) throw new Error('mobile approvals must be unique, approved by Fay, and timestamped');
+    } else {
+      throw new Error('unsupported listen approval evidence');
+    }
   }
 
   const review = json(reviewManifestPath);
-  if (review.schemaVersion !== 1 || review.batchId !== 'ep007-009' || review.status !== 'pending_listen_approval') {
+  if (review.schemaVersion !== 1 || review.status !== 'pending_listen_approval') {
     throw new Error('review manifest batch or status mismatch');
   }
-  exactIds(review.episodes?.map(row => row.episodeId), 'review manifest');
+  if (validateOnly || approval?.schemaVersion === 1) exactIds(review.episodes?.map(row => row.episodeId), 'review manifest');
   const queue = json(queuePath);
-  const version = approval ? `v${approval.approvedAt.slice(0, 10).replaceAll('-', '')}-azure` : 'validation-only';
   const candidates = [];
 
-  for (const id of IDS) {
+  for (const id of episodeIds) {
     const row = queue.episodes?.find(episode => episode.id === id);
     const evidence = review.episodes.find(episode => episode.episodeId === id);
+    const rowApproval = approvalRows.find(candidate => candidate.episodeId === id);
     if (!row || !evidence) throw new Error(`${id} missing queue or review evidence`);
     if (row.status !== 'content_verified_audio_pending' || row.listenApproval?.status !== 'pending') {
       throw new Error(`${id} is not in the expected pending state`);
@@ -96,8 +115,16 @@ export function promotePodcastLawRelease({
       || report.sourceOriginalTextSha256 !== production.sourceOriginalTextSha256
     ) throw new Error(`${id} source or voice policy evidence mismatch`);
 
+    if (approval?.schemaVersion === 2) {
+      const expectedM4aSha = evidence.artifacts?.m4a?.sha256;
+      const expectedReviewId = `podcast-${id}-${expectedM4aSha?.slice(0, 12)}`;
+      if (rowApproval.approvedAssetSha256 !== expectedM4aSha) throw new Error(`${id} approved audio SHA-256 mismatch`);
+      if (rowApproval.reviewId !== expectedReviewId) throw new Error(`${id} mobile review ID mismatch`);
+    }
+
     const paths = {};
     const hashes = {};
+    const version = approval ? `v${rowApproval.approvedAt.slice(0, 10).replaceAll('-', '')}-azure` : 'validation-only';
     for (const type of REVIEW_TYPES) {
       const source = join(sourceDir, sourceFilename(id, type));
       const expected = evidence.artifacts?.[type]?.sha256;
@@ -108,10 +135,10 @@ export function promotePodcastLawRelease({
       paths[type] = type === 'youtubeMp4' ? `assets/youtube/${stem}-youtube.mp4` : `assets/audio/${stem}.${type}`;
       hashes[type] = expected;
     }
-    candidates.push({ id, row, production, report, sourceDir, paths, hashes });
+    candidates.push({ id, row, approval: rowApproval, production, report, sourceDir, paths, hashes, version });
   }
 
-  if (validateOnly) return { validated: IDS, status: 'pending_listen_approval', mutated: false };
+  if (validateOnly) return { validated: episodeIds, status: 'pending_listen_approval', mutated: false };
 
   mkdirSync(join(root, 'assets', 'audio'), { recursive: true });
   mkdirSync(join(root, 'assets', 'youtube'), { recursive: true });
@@ -119,7 +146,7 @@ export function promotePodcastLawRelease({
     for (const type of TYPES) copyFileSync(join(candidate.sourceDir, sourceFilename(candidate.id, type)), join(root, candidate.paths[type]));
     Object.assign(candidate.row, {
       status: 'approved_for_release',
-      guid: `sofa-podcast-${candidate.id.toLowerCase()}-${version}`,
+      guid: `sofa-podcast-${candidate.id.toLowerCase()}-${candidate.version}`,
       duration: duration(candidate.report.artifacts.m4a.probe?.duration),
       voicePolicyId: 'podcast-ep001-master-v1',
       voiceMix: ['EP001 A', 'EP001 C'],
@@ -127,14 +154,26 @@ export function promotePodcastLawRelease({
       assets: candidate.paths,
       assetSha256: candidate.hashes,
       masterSha256: candidate.hashes.m4a,
-      listenApproval: { status: 'approved', approvedBy: approval.approvedBy, approvedAt: approval.approvedAt },
+      listenApproval: approval.schemaVersion === 2
+        ? {
+            status: 'approved',
+            approvedBy: candidate.approval.approvedBy,
+            approvedAt: candidate.approval.approvedAt,
+            source: approval.source,
+            reviewId: candidate.approval.reviewId,
+            approvedAssetSha256: candidate.approval.approvedAssetSha256,
+          }
+        : { status: 'approved', approvedBy: candidate.approval.approvedBy, approvedAt: candidate.approval.approvedAt },
     });
   }
 
   const temporaryQueue = `${queuePath}.tmp-${process.pid}`;
   writeFileSync(temporaryQueue, `${JSON.stringify(queue, null, 2)}\n`);
   renameSync(temporaryQueue, queuePath);
-  return { promoted: IDS, version };
+  return {
+    promoted: episodeIds,
+    ...(new Set(candidates.map(candidate => candidate.version)).size === 1 ? { version: candidates[0].version } : {}),
+  };
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === process.argv[1]) {
