@@ -79,11 +79,18 @@ export function taipeiDate(isoInstant) {
 
 export function selectDueEpisodes(queue, isoInstant = new Date().toISOString()) {
   validateQueue(queue);
+  const releaseDate = taipeiDate(isoInstant);
   const released = new Set(queue.episodes.filter(row => row.status === 'released').map(row => row.id));
+  const releasedToday = queue.episodes.filter(row => (
+    row.status === 'released'
+    && row.releasedAt
+    && taipeiDate(row.releasedAt) === releaseDate
+  )).length;
+  const remainingDailyCapacity = Math.max(0, DAILY_RELEASE_LIMIT - releasedToday);
   const selected = [];
   for (const row of queue.episodes) {
     if (released.has(row.id)) continue;
-    if (selected.length >= DAILY_RELEASE_LIMIT || row.scheduledDate > taipeiDate(isoInstant) || row.status !== READY) break;
+    if (selected.length >= remainingDailyCapacity || row.scheduledDate > releaseDate || row.status !== READY) break;
     selected.push(row);
   }
   return selected;
