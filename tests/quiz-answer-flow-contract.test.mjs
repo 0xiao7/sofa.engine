@@ -82,6 +82,49 @@ test('post-answer action buttons keep mobile tap targets', () => {
   assert.match(active, /#post-answer-retention a\s*\{[\s\S]*min-height:\s*44px/);
 });
 
+test('every answered question shows its correct answer and an honest explanation state', () => {
+  const helper = vm.runInNewContext(
+    `${extractFunction(active, 'answerExplanationText')};answerExplanationText`,
+  );
+
+  assert.equal(
+    helper({ explanation: '' }, 3),
+    '正確答案：D\n本題目前只有考選部官方答案；SoFa Engine 解析尚在補齊，題目與官方答案仍可正常作答。',
+  );
+  assert.equal(
+    helper({ explanation: '購入成本包含直接可歸屬交易成本。' }, 3),
+    '正確答案：D\n購入成本包含直接可歸屬交易成本。',
+  );
+
+  assert.match(active, /renderAnswerExplanation\(data,correctIdx\)/);
+  assert.doesNotMatch(active, /if\(answerExplain && data\.explanation\)/);
+});
+
+test('view-article action is exposed only when the current question has an exact article id', () => {
+  const elements = {
+    'quiz-answer-actions': { classList: { add() {} }, scrollIntoView() {} },
+    'view-article-btn': { style: {} },
+    'view-weakness-btn': { style: {} },
+  };
+  const sandbox = {
+    _currentPageId: '',
+    document: { getElementById: id => elements[id] },
+    updatePostAnswerRetention() {},
+    isFree: false,
+    window: {},
+  };
+  const show = vm.runInNewContext(
+    `${extractFunction(active, 'showQuizAnswerActions')};showQuizAnswerActions`,
+    sandbox,
+  );
+
+  show();
+  assert.equal(elements['view-article-btn'].style.display, 'none');
+  sandbox._currentPageId = 'article-123';
+  show();
+  assert.equal(elements['view-article-btn'].style.display, 'inline-flex');
+});
+
 test('normal quiz can auto-advance only after correct answers when the learner opts in', () => {
   assert.match(active, /id="autoNextCorrectToggle"/);
   assert.match(active, /答對自動下一題/);

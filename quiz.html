@@ -2389,10 +2389,28 @@ function hideQuizAnswerActions(){
   if(actions)actions.classList.remove('show');
 }
 
+function answerExplanationText(data, correctIdx){
+  const labels=['A','B','C','D'];
+  const correctLine=`正確答案：${labels[correctIdx]||'—'}`;
+  const detail=String(data?.explanation||'').trim();
+  return detail
+    ?`${correctLine}\n${detail}`
+    :`${correctLine}\n本題目前只有考選部官方答案；SoFa Engine 解析尚在補齊，題目與官方答案仍可正常作答。`;
+}
+
+function renderAnswerExplanation(data, correctIdx){
+  const answerExplain=document.getElementById('answerExplain');
+  if(!answerExplain)return;
+  answerExplain.textContent=answerExplanationText(data, correctIdx);
+  answerExplain.style.display='block';
+  answerExplain.style.whiteSpace='pre-line';
+}
+
 function showQuizAnswerActions(){
   const actions=document.getElementById('quiz-answer-actions');
   if(!actions)return;
-  document.getElementById('view-article-btn').style.display = 'inline-flex';
+  if(_currentPageId) document.getElementById('view-article-btn').style.display = 'inline-flex';
+  else document.getElementById('view-article-btn').style.display = 'none';
   document.getElementById('view-weakness-btn').style.display = 'inline-flex';
   updatePostAnswerRetention();
   actions.classList.add('show');
@@ -2857,10 +2875,7 @@ async function loadQuiz(){
           document.getElementById('sourceBox').querySelector('span').textContent='條文原文載入中';
           document.getElementById('sourceLink').textContent='展開原文 ↓';
         }
-        if(answerExplain && data.explanation){
-          answerExplain.textContent=data.explanation;
-          answerExplain.style.display='block';
-        }
+        renderAnswerExplanation(data,correctIdx);
         document.getElementById('artInline').style.display='none';
         startInlineArticleLoadingFallback();
         showQuizAnswerActions();
