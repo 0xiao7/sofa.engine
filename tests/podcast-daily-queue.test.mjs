@@ -41,7 +41,11 @@ test('queue rejects product-led episodes and PRC wording', () => {
 });
 
 test('release selection stops at a non-approved head episode', () => {
-  assert.equal(selectDueEpisode(queue, '2026-08-31T13:00:00Z'), null);
+  const candidate = structuredClone(queue);
+  const head = candidate.episodes.find(row => row.id === 'EP008');
+  head.status = 'content_verified_audio_pending';
+  head.listenApproval = { status: 'pending', approvedBy: null, approvedAt: null };
+  assert.equal(selectDueEpisode(candidate, '2026-08-31T13:00:00Z'), null);
 });
 
 test('release selection returns at most three consecutive due approved episodes', () => {

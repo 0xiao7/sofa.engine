@@ -27,13 +27,12 @@ test('EP007-EP009 keep corrected official permalinks while only hash-approved ep
     assert.equal(row.officialLawUrl, contract.url);
     if (id === 'EP007') {
       assert.equal(row.status, 'released');
-      assert.equal(row.listenApproval.status, 'approved');
-      assert.equal(row.listenApproval.source, 'fay-bot-mobile-review');
-      assert.equal(row.listenApproval.approvedAssetSha256, row.assetSha256.m4a);
     } else {
-      assert.equal(row.status, 'content_verified_audio_pending');
-      assert.equal(row.listenApproval.status, 'pending');
+      assert.equal(row.status, 'approved_for_release');
     }
+    assert.equal(row.listenApproval.status, 'approved');
+    assert.equal(row.listenApproval.source, 'fay-bot-mobile-review');
+    assert.equal(row.listenApproval.approvedAssetSha256, row.assetSha256.m4a);
   }
   assert.equal(overrides.overrides.EP008.officialLawUrl, expected.EP008.url);
 });

@@ -26,3 +26,8 @@ test('daily release is least-privilege and runs all fail-closed gates before com
   assert.match(workflow, /git diff --quiet/);
   assert.match(workflow, /node scripts\/release-due-podcast\.mjs --content \/tmp\/podcast-law-content\.json/);
 });
+
+test('pull requests can validate only and can never publish or push main', () => {
+  assert.match(workflow, /github\.event_name == 'pull_request'.*'1'.*'0'/);
+  assert.match(workflow, /if:\s*github\.event_name != 'pull_request'/);
+});

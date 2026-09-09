@@ -44,7 +44,7 @@ jobs:
 
       - name: Release up to three consecutive due approved episodes
         env:
-          DRY_RUN: ${{ github.event_name == 'workflow_dispatch' && inputs.dry_run && '1' || '0' }}
+          DRY_RUN: ${{ (github.event_name == 'pull_request' || (github.event_name == 'workflow_dispatch' && inputs.dry_run)) && '1' || '0' }}
         run: |
           if [ "$DRY_RUN" = "1" ]; then
             node scripts/release-due-podcast.mjs --content /tmp/podcast-law-content.json --dry-run
@@ -58,6 +58,7 @@ jobs:
           node scripts/check-podcast-release.mjs
 
       - name: Commit release only when files changed
+        if: github.event_name != 'pull_request'
         run: |
           if git diff --quiet; then
             echo "No approved Podcast episode is due."
