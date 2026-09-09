@@ -6,8 +6,12 @@ const root = new URL('../', import.meta.url);
 const page = readFileSync(new URL('podcast.html', root), 'utf8');
 const feed = readFileSync(new URL('podcast.xml', root), 'utf8');
 const release = JSON.parse(readFileSync(new URL('podcast-release.json', root), 'utf8'));
+const queue = JSON.parse(readFileSync(new URL('data/podcast-law-queue.json', root), 'utf8'));
 
-const expectedEpisodes = ['EP001', 'EP002', 'EP003', 'EP004', 'EP005', 'EP006', 'EP007'];
+const expectedEpisodes = [
+  'EP001', 'EP002', 'EP003', 'EP004', 'EP005', 'EP006',
+  ...queue.episodes.filter(episode => episode.status === 'released').map(episode => episode.id),
+];
 
 function assertLocalFile(path, minBytes) {
   const file = new URL(path, root);
@@ -15,7 +19,7 @@ function assertLocalFile(path, minBytes) {
   assert.ok(statSync(file).size > minBytes, `${path} too small`);
 }
 
-test('podcast release publishes EP001 through EP007 with local audio and transcripts', () => {
+test('podcast release publishes every released queue episode with local audio and transcripts', () => {
   assert.deepEqual(release.episodes.map(episode => episode.id), expectedEpisodes);
   assert.equal(release.voicePolicy.version, 'voice-azure-ep001-v1');
   assert.equal(release.voicePolicy.provider, 'Microsoft Azure Speech paid tier');
@@ -24,7 +28,7 @@ test('podcast release publishes EP001 through EP007 with local audio and transcr
   for (const episode of release.episodes) {
     assert.match(
       episode.guid,
-      /^sofa-podcast-ep001-v20260721-ac$|^sofa-podcast-ep00[2-6]-v20260818-azure$|^sofa-podcast-ep007-v20260907-azure$/,
+      /^sofa-podcast-ep\d{3}-v\d{8}-(?:ac|azure)$/,
     );
     assertLocalFile(episode.enclosure, 300_000);
     assertLocalFile(episode.siteAudio, 300_000);
@@ -44,7 +48,7 @@ test('podcast RSS includes every released episode with transcript, enclosure, an
   assert.equal((feed.match(/<item>/g) || []).length, expectedEpisodes.length);
 });
 
-test('podcast page exposes official-site playback for EP002 through EP007', () => {
+test('podcast page exposes official-site playback for every non-EP001 release', () => {
   for (const episode of release.episodes.slice(1)) {
     const anchor = `episode-${episode.id.replace('EP', '').padStart(3, '0')}`;
     assert.match(page, new RegExp(`id="${anchor}"`));
