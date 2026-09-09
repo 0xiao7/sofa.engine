@@ -64,6 +64,22 @@ test('release selection returns at most three consecutive due approved episodes'
   );
 });
 
+test('release selection subtracts episodes already published on the same Taipei date', () => {
+  const candidate = structuredClone(queue);
+  const day = '2026-09-10T13:00:00Z';
+  candidate.episodes[0].status = 'released';
+  candidate.episodes[0].releasedAt = '2026-09-10T01:00:00Z';
+  for (const row of candidate.episodes.slice(1, 5)) {
+    row.status = 'approved_for_release';
+    row.scheduledDate = '2026-08-09';
+    row.guid = `${row.id}-ready`;
+    row.duration = '00:01:10';
+    row.assets = { mp3: `${row.id}.mp3`, m4a: `${row.id}.m4a`, vtt: `${row.id}.vtt` };
+    row.listenApproval = { status: 'approved', approvedBy: 'Fay', approvedAt: '2026-09-09T01:00:00Z' };
+  }
+  assert.deepEqual(selectDueEpisodes(candidate, day).map(row => row.id), ['EP008', 'EP009']);
+});
+
 test('release selection stops before an unapproved second episode and never skips it', () => {
   const candidate = structuredClone(queue);
   for (const [index, row] of candidate.episodes.slice(0, 3).entries()) {
