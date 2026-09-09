@@ -669,6 +669,16 @@
 
         <div id="session-intro"><span id="session-intro-copy"><b>刷題模式</b>：先做完這組題目，再一次看結果。免費可先刷題；登入後才會保留完整紀錄與弱點統計。</span></div>
 
+        <div class="explain" id="explainBox" style="display:none">
+          <span class="eb">答對了</span>
+          <p id="answerExplain" style="display:none"></p>
+          <div class="art-inline" id="artInline"></div>
+          <div class="src" id="sourceBox">
+            <span>—</span>
+            <button id="sourceLink">展開原文 ↓</button>
+          </div>
+        </div>
+
         <div id="quiz-answer-actions" aria-label="答題後行動">
           <span id="quiz-citation" style="display:none"></span>
           <button type="button" id="view-article-btn" style="display:none" onclick="_openArticleReader()">查看法條</button>
@@ -686,16 +696,6 @@
                  data-track-event="post_answer_pricing_click"
                  data-track-label="quiz_post_answer_pricing">輸入序號保留紀錄 →</a>
             </span>
-          </div>
-        </div>
-
-        <div class="explain" id="explainBox" style="display:none">
-          <span class="eb">答對了</span>
-          <p id="answerExplain" style="display:none"></p>
-          <div class="art-inline" id="artInline"></div>
-          <div class="src" id="sourceBox">
-            <span>—</span>
-            <button id="sourceLink">展開原文 ↓</button>
           </div>
         </div>
 
@@ -1532,8 +1532,8 @@ function quizPayloadUsable(data){
   if(!data||typeof data.question!=='string'||!data.question.trim())return false;
   const options=Array.isArray(data.options)?data.options:[];
   if(options.length<2)return false;
-  if(typeof options[0]==='object')return options.some(option=>!!option?.is_correct);
-  return typeof data.answer==='string'&&options.includes(data.answer);
+  if(typeof options[0]==='object')return options.filter(option=>!!option?.is_correct).length===1;
+  return typeof data.answer==='string'&&!!data.answer.trim()&&options.filter(option=>option===data.answer).length===1;
 }
 
 async function fetchQuizAcrossExamScope(opts){
@@ -1580,6 +1580,9 @@ function renderQuizCitation(artTitle,lawName){
 }
 
 let _currentLawName='', _currentArtNo='', _currentPageId='';
+function normalizeQuizArticlePageId(value){
+  return typeof value==='string' ? value.trim() : '';
+}
 const QUIZ_RETURN_STATE_KEY = 'sofa_quiz_return_state_v1';
 function _currentQuizReturnTarget(){
   return 'quiz.html' + (location.search || '');
@@ -1849,7 +1852,7 @@ function articleSectionsArePaid(article){
 }
 function buildSections(sections,isPaid,wrapEl,beforeEl,article){
   const articleLawName=(article&&article.law_name)||_currentLawName||'';
-  wrapEl.querySelectorAll('.sec-block,.sec-lock').forEach(e=>e.remove());
+  wrapEl.querySelectorAll('.sec-block,.sec-lock,.cpi-note').forEach(e=>e.remove());
   _FREE_SECS.forEach(name=>{
     if(!sections[name])return;
     const d=document.createElement('div');d.className='sec-block';
@@ -2144,26 +2147,18 @@ function captureCurrentQuestionView(){
 }
 
 async function loadSessionReviewExplanation(item, explanation, correctLine){
-  let detail=String(item?.data?.explanation||'').trim();
-  const pageId=item?.data?.page_id||item?.data?.correct_id||item?.data?.article_id||'';
-  if(!detail&&pageId){
-    try{
-      const article=await fetch(`${API}/api/article/${pageId}`,{headers:_authH()}).then(r=>r.ok?r.json():null);
-      const sections=article&&article.sections||{};
-      detail=String(
-        sections['規範意旨與條文解析']||sections['條文解析']||sections['考點整理']||
-        sections['核心摘要與記憶策略']||article?.explanation||''
-      ).trim();
-    }catch(e){}
-  }
+  const detail=String(item?.data?.explanation||'').trim();
+  const pageId=normalizeQuizArticlePageId(item?.data?.page_id||item?.data?.correct_id||item?.data?.article_id);
   if(quizData!==item.data||!explanation)return;
   explanation.textContent=detail
     ?`${correctLine}\n${detail}`
-    :`${correctLine}\n解析暫時無法載入，請點「查看法條」核對原文。`;
+    :answerExplanationText(item.data,item.correctIndex);
+  if(pageId)await loadQuizArticleAnalysis(pageId);
 }
 
 function revealSessionQuestionAnswer(item){
   if(!item||!item.data)return;
+  resetQuizAnswerAnalysis();
   const options=[...document.querySelectorAll('#optionsBox .opt')];
   options.forEach((option,index)=>{
     option.style.pointerEvents='none';
@@ -2389,15 +2384,100 @@ function hideQuizAnswerActions(){
   if(actions)actions.classList.remove('show');
 }
 
+function answerExplanationText(data, correctIdx){
+  const labels=['A','B','C','D'];
+  const correctLine=`正確答案：${labels[correctIdx]||'—'}`;
+  const detail=String(data?.explanation||'').trim();
+  const officialAnswer=String(data?.official_answer||'').trim().toUpperCase();
+  const isOfficialPastExam=data?._past_exam===true && /^[A-D]$/.test(officialAnswer);
+  return detail
+    ?`${correctLine}\n${detail}`
+    :isOfficialPastExam
+      ?`${correctLine}\n本題目前只有考選部官方答案；SoFa Engine 解析尚在補齊，題目與官方答案仍可正常作答。`
+      :`${correctLine}\n本題解析尚在補齊；正確答案仍可正常查看。`;
+}
+
+function clearQuizAnswerDetailNodes(){
+  const explain=document.getElementById('explainBox');
+  if(explain)explain.querySelectorAll('.sec-block,.sec-lock,.cpi-note').forEach(node=>node.remove());
+}
+
+function resetQuizAnswerAnalysis(){
+  stopInlineFallback();
+  clearQuizAnswerDetailNodes();
+  const answerExplain=document.getElementById('answerExplain');
+  if(answerExplain){answerExplain.textContent='';answerExplain.style.display='none';}
+  const inline=document.getElementById('artInline');
+  if(inline){inline.textContent='';inline.style.display='none';}
+  const source=document.getElementById('sourceBox');
+  if(source){
+    source.style.display='none';
+    const status=source.querySelector('span');
+    if(status)status.textContent='—';
+  }
+  const sourceLink=document.getElementById('sourceLink');
+  if(sourceLink){sourceLink.textContent='展開原文 ↓';sourceLink.style.display='';}
+}
+
+async function loadQuizArticleAnalysis(rawPageId){
+  const pageId=normalizeQuizArticlePageId(rawPageId);
+  if(!pageId)return false;
+  const sourceBox=document.getElementById('sourceBox');
+  const sourceLink=document.getElementById('sourceLink');
+  const inline=document.getElementById('artInline');
+  if(!sourceBox||!sourceLink||!inline)return false;
+  sourceBox.style.display='flex';
+  sourceBox.querySelector('span').textContent='條文原文載入中';
+  sourceLink.textContent='展開原文 ↓';
+  sourceLink.style.display='';
+  inline.style.display='none';
+  startInlineArticleLoadingFallback();
+  try{
+    const payload=await fetch(`${API}/api/article/${encodeURIComponent(pageId)}`,{headers:_authH()}).then(r=>{
+      if(!r.ok)throw new Error('article load failed');
+      return r.json();
+    });
+    if(normalizeQuizArticlePageId(_currentPageId)!==pageId)return false;
+    const art=(payload&&payload.article)||(payload&&payload.item)||payload||{};
+    stopInlineFallback();
+    clearQuizAnswerDetailNodes();
+    const hasInlineText=showInlineArticleText(art.original_text);
+    sourceBox.querySelector('span').textContent=hasInlineText?'條文原文已放在上方':'暫時沒有原文；可按下方查看法條';
+    sourceLink.textContent=hasInlineText?'收起原文 ↑':'收起提示 ↑';
+    buildSections(art.sections||{},articleSectionsArePaid(art),
+      document.getElementById('explainBox'),document.getElementById('sourceBox'),
+      art);
+    return true;
+  }catch(e){
+    if(normalizeQuizArticlePageId(_currentPageId)!==pageId)return false;
+    stopInlineFallback();
+    clearQuizAnswerDetailNodes();
+    inline.textContent='';
+    inline.style.display='none';
+    sourceBox.querySelector('span').textContent='法條資料暫時無法載入；可按下方「查看法條」重試';
+    sourceLink.style.display='none';
+    return false;
+  }
+}
+
+function renderAnswerExplanation(data, correctIdx){
+  const answerExplain=document.getElementById('answerExplain');
+  if(!answerExplain)return;
+  answerExplain.textContent=answerExplanationText(data, correctIdx);
+  answerExplain.style.display='block';
+  answerExplain.style.whiteSpace='pre-line';
+}
+
 function showQuizAnswerActions(){
   const actions=document.getElementById('quiz-answer-actions');
   if(!actions)return;
-  document.getElementById('view-article-btn').style.display = 'inline-flex';
+  if(normalizeQuizArticlePageId(_currentPageId)) document.getElementById('view-article-btn').style.display = 'inline-flex';
+  else document.getElementById('view-article-btn').style.display = 'none';
   document.getElementById('view-weakness-btn').style.display = 'inline-flex';
   updatePostAnswerRetention();
   actions.classList.add('show');
   if(typeof window.sofaTrack==='function') window.sofaTrack('post_answer_value_viewed',{surface:'quiz',free:isFree});
-  actions.scrollIntoView({block:'center', behavior:'auto'});
+  (document.getElementById('explainBox')||actions).scrollIntoView({block:'start', behavior:'auto'});
 }
 function _applyOptionLayout(texts){
   const box=document.getElementById('optionsBox');
@@ -2538,7 +2618,7 @@ function _startCountdown(seconds){
     const correctIdx = isNewFmt
       ? (quizData.options||[]).findIndex(opt=>opt===correctAnswer)
       : (quizData.options||[]).findIndex(opt=>!!opt?.is_correct);
-    const pageId = quizData.page_id || quizData.correct_id || null;
+    const pageId = normalizeQuizArticlePageId(quizData.page_id || quizData.correct_id);
     const cur=sessionHistory[sessionHistory.length-1];
     wrong++;
     if(cur){
@@ -2566,11 +2646,17 @@ function _startCountdown(seconds){
         explanation:quizData.explanation||''
       })}).catch(()=>{});
     }
+    if(!_sessionMode){
+      resetQuizAnswerAnalysis();
+      const eb=document.querySelector('#explainBox .eb');
+      if(eb)eb.textContent='時間到，已記為答錯';
+      renderAnswerExplanation(quizData,correctIdx);
+      document.getElementById('sourceBox').style.display=pageId?'flex':'none';
+      document.getElementById('explainBox').style.display='block';
+    }
     if(onAnswerDone(false, wrongMode ? loadWrongQuiz : loadQuiz))return;
-    const eb=document.querySelector('#explainBox .eb');
-    if(eb)eb.textContent='時間到，已記為答錯';
     showQuizAnswerActions();
-    document.getElementById('explainBox').style.display='block';
+    if(pageId)loadQuizArticleAnalysis(pageId);
   }, sec*1000);
 }
 
@@ -2651,9 +2737,9 @@ async function loadQuiz(){
   document.getElementById('questionBox').style.opacity='.45';
   document.getElementById('optionsBox').innerHTML='';
   document.getElementById('explainBox').style.display='none';
+  _currentPageId='';
+  resetQuizAnswerAnalysis();
   hideQuizAnswerActions();
-  const answerExplain = document.getElementById('answerExplain');
-  if(answerExplain){ answerExplain.style.display='none'; answerExplain.textContent=''; }
   document.getElementById('qSrc').innerHTML='—';
 
   let law=document.getElementById('lawSelect').value;
@@ -2787,7 +2873,7 @@ async function loadQuiz(){
     const isNewFmt = typeof (data.options||[])[0] !== 'object';
     const correctAnswer = isNewFmt ? data.answer : null;
     const correctIdx = isNewFmt ? (data.options||[]).findIndex(opt=>opt===correctAnswer) : (data.options||[]).findIndex(opt=>!!opt?.is_correct);
-    const pageId = data.page_id || data.correct_id || null;
+    const pageId = normalizeQuizArticlePageId(data.page_id || data.correct_id);
     rememberRecentQuizArticle(pageId);
     rememberRecentQuizArticles(quizArticleIdentityAliases(data, pickedPageId));
 
@@ -2796,7 +2882,7 @@ async function loadQuiz(){
     const cur=sessionHistory[sessionHistory.length-1];
     cur.law=lawName; cur.title=artTitle;
     cur.data=data;
-    _currentLawName=lawName; _currentArtNo=getArticleCitationNo(artTitle); _currentPageId=pageId||'';
+    _currentLawName=lawName; _currentArtNo=getArticleCitationNo(artTitle); _currentPageId=pageId;
     renderQuizCitation(artTitle, lawName);
 
     // 顯示法規來源
@@ -2847,41 +2933,20 @@ async function loadQuiz(){
         if(pageId&&uid&&uid!=='PREVIEW'&&!isFree){
           fetch(`${API}/api/me/history`,{method:'POST',headers:_authH({'Content-Type':'application/json'}),body:JSON.stringify({page_id:pageId,law_name:lawName,article:artTitle})}).catch(()=>{});
         }
+        const eb=document.querySelector('#explainBox .eb');
+        const sourceBox=document.getElementById('sourceBox');
+        if(!_sessionMode){
+          if(eb)eb.textContent=(isCorrect?'✓ 答對了':'✗ 答錯了，正確答案已標綠')
+            +(answerRecord?.ok===false?' · 作答已判分，但弱點紀錄尚未同步':'');
+          renderAnswerExplanation(data,correctIdx);
+          sourceBox.style.display=pageId?'flex':'none';
+          document.getElementById('artInline').style.display='none';
+          document.getElementById('explainBox').style.display='block';
+        }
         if(onAnswerDone(isCorrect, loadQuiz)) return;
         if(maybeAutoAdvanceCorrectAnswer(isCorrect)) return;
-        // 顯示說明框
-        const eb=document.querySelector('#explainBox .eb');
-        if(eb)eb.textContent=(isCorrect?'✓ 答對了':'✗ 答錯了，正確答案已標綠')
-          +(answerRecord?.ok===false?' · 作答已判分，但弱點紀錄尚未同步':'');
-        if(pageId){
-          document.getElementById('sourceBox').querySelector('span').textContent='條文原文載入中';
-          document.getElementById('sourceLink').textContent='展開原文 ↓';
-        }
-        if(answerExplain && data.explanation){
-          answerExplain.textContent=data.explanation;
-          answerExplain.style.display='block';
-        }
-        document.getElementById('artInline').style.display='none';
-        startInlineArticleLoadingFallback();
         showQuizAnswerActions();
-        document.getElementById('explainBox').style.display='block';
-        // 載入條文解析 sections
-        if(pageId){
-          (async()=>{
-            try{
-              const h=_authH();
-              const art=await fetch(`${API}/api/article/${pageId}`,{headers:h}).then(r=>r.json());
-              stopInlineFallback();
-              const hasInlineText=showInlineArticleText(art.original_text);
-              document.getElementById('sourceBox').querySelector('span').textContent=hasInlineText?'條文原文已放在上方':'暫時沒有原文；可按上方查看法條';
-              document.getElementById('sourceLink').textContent=hasInlineText?'收起原文 ↑':'收起提示 ↑';
-              buildSections(art.sections||{},articleSectionsArePaid(art),
-                document.getElementById('explainBox'),document.getElementById('sourceBox'),
-                art);
-              const _wrongReviewCpiContract = "buildSections(art.sections||{},articleSectionsArePaid(art), document.getElementById('explainBox'),document.getElementById('sourceBox'), art)";
-            }catch(e){}
-          })();
-        }
+        if(pageId)loadQuizArticleAnalysis(pageId);
       };
       btn.addEventListener('click',submitOption);
       btn.addEventListener('keydown',(ev)=>{

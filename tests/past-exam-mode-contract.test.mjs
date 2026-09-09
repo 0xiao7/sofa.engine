@@ -14,7 +14,8 @@ const activeRadar = radar.replace(/<!--[\s\S]*?-->/g, '');
 const activeBookkeeper = bookkeeper.replace(/<!--[\s\S]*?-->/g, '');
 
 function extractFunction(source, name) {
-  let start = source.indexOf(`function ${name}`);
+  const match = new RegExp(`\\b(?:async\\s+)?function\\s+${name}\\s*\\(`).exec(source);
+  let start = match ? match.index : -1;
   assert.ok(start >= 0, `${name} must exist`);
   const brace = source.indexOf('{', start);
   let depth = 0;
@@ -200,10 +201,7 @@ test('legacy exam set page uses the same past-exam answer source bucket', () => 
 });
 
 test('loadQuiz routes to past-exam questions before generated law questions', () => {
-  const start = activeQuiz.indexOf('async function loadQuiz');
-  assert.ok(start > -1, 'loadQuiz must exist');
-  const end = activeQuiz.indexOf('async function loadWrongQuiz', start);
-  const fn = activeQuiz.slice(start, end > start ? end : start + 6000);
+  const fn = extractFunction(activeQuiz, 'loadQuiz');
 
   assert.match(fn, /if\(_pastExamMode\)\{/);
   assert.match(fn, /data=await _fetchPastExamQuestion\(\)/);
