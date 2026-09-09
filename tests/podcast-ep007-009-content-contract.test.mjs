@@ -18,15 +18,22 @@ function digest(text) {
   return createHash('sha256').update(text).digest('hex');
 }
 
-test('EP007-EP009 use corrected official permalinks and remain unreleased', () => {
+test('EP007-EP009 keep corrected official permalinks while only hash-approved episodes may advance', () => {
   for (const [id, contract] of Object.entries(expected)) {
     const row = queue.episodes.find(episode => episode.id === id);
     assert.equal(row.exam, '記帳士');
     assert.equal(row.law, '加值型及非加值型營業稅法');
     assert.equal(row.article, contract.article);
     assert.equal(row.officialLawUrl, contract.url);
-    assert.equal(row.status, 'content_verified_audio_pending');
-    assert.equal(row.listenApproval.status, 'pending');
+    if (id === 'EP007') {
+      assert.equal(row.status, 'released');
+      assert.equal(row.listenApproval.status, 'approved');
+      assert.equal(row.listenApproval.source, 'fay-bot-mobile-review');
+      assert.equal(row.listenApproval.approvedAssetSha256, row.assetSha256.m4a);
+    } else {
+      assert.equal(row.status, 'content_verified_audio_pending');
+      assert.equal(row.listenApproval.status, 'pending');
+    }
   }
   assert.equal(overrides.overrides.EP008.officialLawUrl, expected.EP008.url);
 });

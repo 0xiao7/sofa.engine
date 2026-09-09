@@ -132,3 +132,60 @@ test('approved promotion stages exact assets and queue metadata without publishi
   assert.equal(existsSync(join(f.root, 'podcast.xml')), false);
   assert.equal(existsSync(join(f.root, 'data', 'youtube-podcast-ledger.json')), false);
 });
+
+test('hash-bound mobile approval promotes only the approved episode without losing later pending rows', () => {
+  const f = fixture();
+  const ep007Review = JSON.parse(readFileSync(f.reviewManifestPath, 'utf8')).episodes[0];
+  writeFileSync(f.approvalPath, JSON.stringify({
+    schemaVersion: 2,
+    source: 'fay-bot-mobile-review',
+    approvals: [{
+      episodeId: 'EP007',
+      reviewId: `podcast-EP007-${ep007Review.artifacts.m4a.sha256.slice(0, 12)}`,
+      status: 'approved',
+      approvedBy: 'Fay',
+      approvedAt: '2026-09-07T06:55:09.364223+00:00',
+      approvedAssetSha256: ep007Review.artifacts.m4a.sha256,
+    }],
+  }));
+
+  const result = promotePodcastLawRelease(f);
+  assert.deepEqual(result.promoted, ['EP007']);
+  const queue = JSON.parse(readFileSync(f.queuePath, 'utf8'));
+  assert.equal(queue.episodes[0].status, 'approved_for_release');
+  assert.deepEqual(queue.episodes[0].listenApproval, {
+    status: 'approved',
+    approvedBy: 'Fay',
+    approvedAt: '2026-09-07T06:55:09.364223+00:00',
+    source: 'fay-bot-mobile-review',
+    reviewId: `podcast-EP007-${ep007Review.artifacts.m4a.sha256.slice(0, 12)}`,
+    approvedAssetSha256: ep007Review.artifacts.m4a.sha256,
+  });
+  for (const row of queue.episodes.slice(1)) {
+    assert.equal(row.status, 'content_verified_audio_pending');
+    assert.deepEqual(row.listenApproval, { status: 'pending', approvedBy: null, approvedAt: null });
+  }
+  assert.ok(existsSync(join(f.root, queue.episodes[0].assets.m4a)));
+  assert.equal(existsSync(join(f.root, 'assets', 'audio', 'sofa-podcast-ep008-v20260907-azure.m4a')), false);
+});
+
+test('mobile approval rejects a different audio hash before writing queue or assets', () => {
+  const f = fixture();
+  writeFileSync(f.approvalPath, JSON.stringify({
+    schemaVersion: 2,
+    source: 'fay-bot-mobile-review',
+    approvals: [{
+      episodeId: 'EP007',
+      reviewId: 'podcast-EP007-deadbeefdead',
+      status: 'approved',
+      approvedBy: 'Fay',
+      approvedAt: '2026-09-07T06:55:09.364223+00:00',
+      approvedAssetSha256: 'deadbeef'.repeat(8),
+    }],
+  }));
+  const before = readFileSync(f.queuePath, 'utf8');
+
+  assert.throws(() => promotePodcastLawRelease(f), /approved audio SHA-256 mismatch/);
+  assert.equal(readFileSync(f.queuePath, 'utf8'), before);
+  assert.equal(existsSync(join(f.root, 'assets', 'audio')), false);
+});

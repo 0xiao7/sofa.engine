@@ -52,7 +52,11 @@ test('RSS lastBuildDate is not older than its newest episode', () => {
 
 test('RSS items are ordered newest-first with episode number as the stable tie-breaker', () => {
   const items = feedItems();
-  assert.deepEqual(items.map(item => item.episode), [6, 5, 4, 3, 2, 1]);
+  const expectedOrder = release.episodes
+    .map(episode => ({ episode: Number(episode.id.replace('EP', '')), publishedAt: Date.parse(episode.pubDate) }))
+    .sort((left, right) => right.publishedAt - left.publishedAt || right.episode - left.episode)
+    .map(item => item.episode);
+  assert.deepEqual(items.map(item => item.episode), expectedOrder);
   for (let index = 1; index < items.length; index += 1) {
     assert.ok(items[index - 1].publishedAt >= items[index].publishedAt);
   }
