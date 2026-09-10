@@ -425,6 +425,18 @@
     margin-top:10px;font-family:var(--mono);font-size:10.5px;
     letter-spacing:.05em;color:rgba(245,240,234,.55);line-height:1.6;
   }
+  .exam-target-card .target-lock-notice{
+    margin-top:12px;padding:11px 12px;border-left:3px solid var(--peach);
+    background:rgba(231,187,167,.10);color:var(--cream);
+    font-size:12.5px;font-weight:600;line-height:1.65;
+  }
+  .exam-target-card .target-lock-notice[hidden]{display:none}
+  .summary-lock{
+    margin-top:10px;padding:11px 14px;border:1px solid rgba(231,187,167,.55);
+    background:rgba(231,187,167,.08);color:var(--cream);
+    font-size:12.5px;font-weight:600;line-height:1.65;
+  }
+  .summary-lock[hidden]{display:none}
 
   /* === summary line === */
   .summary{
@@ -507,6 +519,11 @@
     font-weight:700;
     letter-spacing:.04em;
   }
+  .ck-compact-pay-note .ck-compact-lock{
+    display:block;margin-top:4px;color:var(--peach);
+    font-weight:600;line-height:1.55;
+  }
+  .ck-compact-pay-note .ck-compact-lock[hidden]{display:none}
   .sticky-pay .trust{
     display:block;margin-top:6px;text-align:center;
     font-family:var(--mono);font-size:10px;letter-spacing:.08em;
@@ -863,9 +880,10 @@
         </div>
         <div class="exam-target-card">
           <div class="target-title">到考日依你的考試計算。</div>
-          <p class="target-copy">NT$1280 是到考日方案固定價；結帳下拉只顯示目前可購買且 LINE 端已支援的考科：正式考期與報名日已公告、進入報名前一個月內。</p>
+          <p class="target-copy">NT$1280 是到考日方案固定價；結帳下拉只顯示目前可購買且 LINE 端已支援的考科：正式考期與報名日已公告，購買期間為報名截止日前一個月起，至報名截止日止。</p>
           <select id="ck-exam-target" aria-label="考試目標"></select>
           <div class="target-hint" id="ck-exam-target-hint">請先選考試目標；系統會依正式考期判斷是否可買到考日方案。</div>
+          <div class="target-lock-notice" id="ck-exam-lock-notice">付款前請確認：NT$1280 到考日方案付款後會鎖定所選考科至方案期限，期間不可更換。</div>
         </div>
       </div>
 
@@ -906,12 +924,14 @@
             <div class="n"><span class="c">NT$</span><span id="ck-sum-amount">1280</span></div>
           </div>
         </div>
+        <div class="summary-lock" id="ck-sum-lock">付款後將鎖定所選考科至方案期限，期間不可更換考科。</div>
 
         <div class="sticky-pay">
           <div class="ck-compact-pay-note">
             <b id="ck-compact-plan">到考日方案 · 讀到考試日</b>
             <span class="amount">NT$<span id="ck-compact-amount">1280</span></span>
             <span> · 綠界付款，序號寄到信箱。</span>
+            <span class="ck-compact-lock" id="ck-compact-lock">付款前請確認：付款後鎖定所選考科至方案期限，期間不可更換。</span>
           </div>
           <button class="ck-cta" id="ck-submit" type="button">立即前往付款 <span class="arrow">⟶</span></button>
           <span class="trust">綠界刷卡 · 不儲存信用卡 · 序號寄到信箱</span>
@@ -963,11 +983,14 @@
   const sumAmount = document.getElementById("ck-sum-amount");
   const compactPlan = document.getElementById("ck-compact-plan");
   const compactAmount = document.getElementById("ck-compact-amount");
+  const compactLock = document.getElementById("ck-compact-lock");
   const emailEl   = document.getElementById("ck-email-input");
   const hintEl    = document.getElementById("ck-email-hint");
   const examTargetSection = document.getElementById("ck-exam-target-section");
   const examTargetEl = document.getElementById("ck-exam-target");
   const examTargetHintEl = document.getElementById("ck-exam-target-hint");
+  const examLockNoticeEl = document.getElementById("ck-exam-lock-notice");
+  const sumLock = document.getElementById("ck-sum-lock");
   const submitBtn = document.getElementById("ck-submit");
   const errorEl   = document.getElementById("ck-error");
   const queryParams = new URLSearchParams(location.search);
@@ -1156,6 +1179,18 @@
     return `${target.label || "目標考試"} · ${target.examDisplay || "下一期未公告"}`;
   }
 
+  function getCheckoutTargetIdentity(){
+    const api = window.SoFaExamTargets;
+    const target = api && api.TARGETS ? api.TARGETS[getCheckoutExamKey()] : null;
+    if (!target) return null;
+    return {
+      capabilityId: target.capabilityId || "",
+      eventId: target.eventId || "",
+      trackId: target.trackId || "",
+      catalogRevision: target.catalogRevision || ""
+    };
+  }
+
   function isCheckoutExamTargetConfigured(){
     const api = window.SoFaExamTargets;
     const target = api && api.TARGETS ? api.TARGETS[getCheckoutExamKey()] : null;
@@ -1187,7 +1222,17 @@
     const s = getSelected();
     const examMode = s.plan === "到考日";
     if (examTargetSection) examTargetSection.hidden = !examMode;
+    if (examLockNoticeEl) examLockNoticeEl.hidden = !examMode;
+    if (sumLock) sumLock.hidden = !examMode;
+    if (compactLock) compactLock.hidden = !examMode;
     updateExamTargetHint();
+    const target = window.SoFaExamTargets?.TARGETS?.[getCheckoutExamKey()] || null;
+    if (sumLock) sumLock.textContent = target
+      ? `付款後將鎖定「${target.label || "所選考科"}」至方案期限，期間不可更換考科。`
+      : "請先選定考科；付款後將鎖定該考科至方案期限，期間不可更換考科。";
+    if (compactLock) compactLock.textContent = target
+      ? `付款前請確認：付款後將鎖定「${target.label || "所選考科"}」至方案期限，期間不可更換。`
+      : "付款前請確認：請先選定考科；付款後鎖定至方案期限，期間不可更換。";
     const summaryPlan = examMode ? `${PLAN_TEXT[s.plan]} · ${getCheckoutExamLabel()}` : (PLAN_TEXT[s.plan] || s.plan);
     sumPlan.textContent = summaryPlan;
     if (compactPlan) compactPlan.textContent = summaryPlan;
@@ -1314,6 +1359,9 @@
     try {
       const examKey = getCheckoutExamKey();
       const apiExamKey = window.SoFaExamTargets ? window.SoFaExamTargets.toApiKey(examKey) : examKey;
+      const targetIdentity = sel.plan === "到考日"
+        ? getCheckoutTargetIdentity()
+        : { capabilityId: "", eventId: "", trackId: "", catalogRevision: "" };
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1321,6 +1369,10 @@
           plan: sel.plan,
           email,
           exam_key: apiExamKey,
+          capability_id: targetIdentity.capabilityId,
+          event_id: targetIdentity.eventId,
+          track_id: targetIdentity.trackId,
+          catalog_revision: targetIdentity.catalogRevision,
           line_identity: lineIdentity,
           session_id: checkoutSessionId,
           page_path: location.pathname + location.search,
