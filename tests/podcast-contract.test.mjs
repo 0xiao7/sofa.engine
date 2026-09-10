@@ -118,7 +118,7 @@ test('podcast transcript is available in Apple-compatible VTT and on the website
   assert.match(page, /有利可以往回，不利通常往後/);
   assert.match(page, /\.note\.law-text\{grid-column:1\/-1\}/);
   assert.match(page, /<h3>法條原文<\/h3>/);
-  assert.match(page, /SoFa 法規資料庫整理版：§ 01之1｜解釋函令之效力與變更/);
+  assert.match(page, /SoFa 法規資料庫整理版：§1之1｜解釋函令之效力與變更/);
   assert.match(page, /2 財政部發布解釋函令/);
   assert.match(feed, /SoFa 法規資料庫整理版原文/);
   assert.doesNotMatch(page, /來源：全國法規資料庫/);
