@@ -67,6 +67,9 @@ test('release selection returns at most three consecutive due approved episodes'
 test('release selection subtracts episodes already published on the same Taipei date', () => {
   const candidate = structuredClone(queue);
   const day = '2026-09-10T13:00:00Z';
+  for (const row of candidate.episodes) {
+    if (row.status === 'released') row.releasedAt = '2026-09-09T01:00:00Z';
+  }
   candidate.episodes[0].status = 'released';
   candidate.episodes[0].releasedAt = '2026-09-10T01:00:00Z';
   for (const row of candidate.episodes.slice(1, 5)) {
