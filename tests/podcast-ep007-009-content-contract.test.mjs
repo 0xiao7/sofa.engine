@@ -18,18 +18,15 @@ function digest(text) {
   return createHash('sha256').update(text).digest('hex');
 }
 
-test('EP007-EP009 keep corrected official permalinks while only hash-approved episodes may advance', () => {
+test('EP007-EP009 keep corrected official permalinks and released hash approvals', () => {
   for (const [id, contract] of Object.entries(expected)) {
     const row = queue.episodes.find(episode => episode.id === id);
     assert.equal(row.exam, '記帳士');
     assert.equal(row.law, '加值型及非加值型營業稅法');
     assert.equal(row.article, contract.article);
     assert.equal(row.officialLawUrl, contract.url);
-    if (id === 'EP007') {
-      assert.equal(row.status, 'released');
-    } else {
-      assert.equal(row.status, 'approved_for_release');
-    }
+    assert.equal(row.status, 'released');
+    assert.ok(Number.isFinite(Date.parse(row.releasedAt)));
     assert.equal(row.listenApproval.status, 'approved');
     assert.equal(row.listenApproval.source, 'fay-bot-mobile-review');
     assert.equal(row.listenApproval.approvedAssetSha256, row.assetSha256.m4a);

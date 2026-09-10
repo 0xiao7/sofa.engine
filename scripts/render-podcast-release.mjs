@@ -19,6 +19,16 @@ function episodeNumber(id) {
   return id.replace('EP', '').padStart(3, '0');
 }
 
+export function normalizePublicLegalCitation(value) {
+  return String(value)
+    .replace(/第0*(\d+)(?:之0*(\d+))?條/g, (_match, article, subarticle) => (
+      `第${Number(article)}條${subarticle === undefined ? '' : `之${Number(subarticle)}`}`
+    ))
+    .replace(/§\s*0+(\d+)(?:之0*(\d+))?/g, (_match, article, subarticle) => (
+      `§${Number(article)}${subarticle === undefined ? '' : `之${Number(subarticle)}`}`
+    ));
+}
+
 export function normalizeTranscript(value) {
   return String(value)
     .split(/\n+/)
@@ -36,15 +46,15 @@ function rssPracticeUrl(episode, number) {
 }
 
 export function renderPodcastShowNotes({ summary, originalText, transcriptText, websiteTranscriptUrl, practiceUrl, originalLabel = '法條原文：', extraNotes = [], disclosure = '本集使用 AI 合成語音；正式考試仍以主管機關與考選部公告為準。' }) {
-  const transcript = normalizeTranscript(transcriptText);
+  const transcript = normalizeTranscript(normalizePublicLegalCitation(transcriptText));
   if (!transcript) throw new Error('Podcast show notes require a complete transcript');
-  const normalizedSummary = String(summary).trim();
-  const normalizedOriginalText = String(originalText)
+  const normalizedSummary = normalizePublicLegalCitation(summary).trim();
+  const normalizedOriginalText = normalizePublicLegalCitation(originalText)
     .split(/\n+/)
     .map(line => line.trim())
     .filter(Boolean)
     .join(' ');
-  const normalizedExtraNotes = extraNotes.map(note => String(note).trim()).filter(Boolean);
+  const normalizedExtraNotes = extraNotes.map(note => normalizePublicLegalCitation(note).trim()).filter(Boolean);
   const transcriptHtml = transcript
     .split(/\n\n+/)
     .map(paragraph => `        <p>${html(paragraph)}</p>`)
@@ -106,10 +116,13 @@ export function renderEpisodeFiles({ root, episode, content }) {
     throw new Error(`${episode.id} is already released`);
   }
   const practiceUrl = `/quiz.html?law=${encodeURIComponent(episode.law)}&article=${encodeURIComponent(episode.article)}&start=1&utm_source=podcast&utm_medium=site&utm_campaign=episode_${number}`;
+  const publicTitle = normalizePublicLegalCitation(episode.title);
+  const publicSummary = normalizePublicLegalCitation(episode.summary);
+  const publicTranscript = normalizePublicLegalCitation(content.transcriptText);
   manifest.episodes.push({
     id: episode.id,
     version: episode.guid.replace(`sofa-podcast-ep${number}-`, ''),
-    title: episode.title,
+    title: publicTitle,
     exam: episode.exam,
     law: episode.law,
     article: episode.article,
@@ -132,9 +145,9 @@ export function renderEpisodeFiles({ root, episode, content }) {
     plannedDate: episode.scheduledDate,
     pubDate: episode.pubDate,
     practiceUrl,
-    summary: episode.summary,
+    summary: publicSummary,
     originalText: content.originalText,
-    transcriptText: content.transcriptText,
+    transcriptText: publicTranscript,
     ctaPolicy: 'Short ending CTA only; law content is the episode mainline.',
   });
 
@@ -152,20 +165,20 @@ export function renderEpisodeFiles({ root, episode, content }) {
     feed = feed.replace(/<channel>\s*/, `<channel>\n    <lastBuildDate>${nextBuildDate}</lastBuildDate>\n`);
   }
   const showNotes = renderPodcastShowNotes({
-    summary: episode.summary,
+    summary: publicSummary,
     originalText: content.originalText,
-    transcriptText: content.transcriptText,
+    transcriptText: publicTranscript,
     websiteTranscriptUrl,
     practiceUrl: feedPracticeUrl,
   });
-  const item = `    <item>\n      <title>${xml(episode.title)}</title>\n      <link>${html(`https://sofaengine.org/podcast.html?utm_source=podcast&utm_medium=rss_episode&utm_campaign=episode_${number}#episode-${number}`)}</link>\n      <guid isPermaLink="false">${xml(episode.guid)}</guid>\n      <pubDate>${xml(episode.pubDate)}</pubDate>\n      <description>${showNotes.description}</description>\n      ${showNotes.content}\n      <enclosure url="https://sofaengine.org/${xml(episode.assets.m4a)}" length="${statSync(join(root, episode.assets.m4a)).size}" type="audio/mp4"/>\n      <itunes:image href="https://sofaengine.org/${xml(manifest.show.artwork)}"/>\n      <podcast:transcript url="https://sofaengine.org/${xml(episode.assets.vtt)}" type="text/vtt" language="zh-TW" rel="captions"/>\n      <itunes:duration>${xml(episode.duration)}</itunes:duration>\n      <itunes:episode>${Number(number)}</itunes:episode>\n      <itunes:season>1</itunes:season>\n      <itunes:explicit>false</itunes:explicit>\n    </item>\n`;
+  const item = `    <item>\n      <title>${xml(publicTitle)}</title>\n      <link>${html(`https://sofaengine.org/podcast.html?utm_source=podcast&utm_medium=rss_episode&utm_campaign=episode_${number}#episode-${number}`)}</link>\n      <guid isPermaLink="false">${xml(episode.guid)}</guid>\n      <pubDate>${xml(episode.pubDate)}</pubDate>\n      <description>${showNotes.description}</description>\n      ${showNotes.content}\n      <enclosure url="https://sofaengine.org/${xml(episode.assets.m4a)}" length="${statSync(join(root, episode.assets.m4a)).size}" type="audio/mp4"/>\n      <itunes:image href="https://sofaengine.org/${xml(manifest.show.artwork)}"/>\n      <podcast:transcript url="https://sofaengine.org/${xml(episode.assets.vtt)}" type="text/vtt" language="zh-TW" rel="captions"/>\n      <itunes:duration>${xml(episode.duration)}</itunes:duration>\n      <itunes:episode>${Number(number)}</itunes:episode>\n      <itunes:season>1</itunes:season>\n      <itunes:explicit>false</itunes:explicit>\n    </item>\n`;
   feed = feed.replace(feedMarker, `${item}${feedMarker}`);
   feed = sortFeedItemsLatestFirst(feed);
 
   let page = readFileSync(pagePath, 'utf8');
   const pageMarker = '    </div>\n  </section>\n\n  <section class="listening-stage"';
   if (!page.includes(pageMarker)) throw new Error('Podcast release-grid marker missing');
-  const card = `      <article class="release-card" id="episode-${number}">\n        <div class="meta">法條主線 · ${html(episode.exam)} · ${html(episode.law)} · § ${html(episode.article)}</div>\n        <h3>${html(episode.title)}</h3>\n        <p class="summary">${html(episode.summary)}</p>\n        <audio controls preload="metadata" src="/${html(episode.assets.mp3)}" data-track-audio="podcast_native_audio_${number}">\n          <track kind="captions" srclang="zh-TW" src="/${html(episode.assets.vtt)}" label="逐字稿">\n        </audio>\n        <div class="release-actions">\n          <a class="btn primary" href="${html(practiceUrl).replaceAll('&amp;', '&amp;')}" data-track="podcast_episode_practice_${number}">練這一條</a>\n          <a class="btn" href="#transcript-${number}" data-transcript-target data-track="podcast_transcript_${number}">閱讀全文逐字稿</a>\n          <a class="btn" href="/${html(episode.assets.vtt)}" data-track="podcast_transcript_vtt_${number}">下載字幕檔 (VTT)</a>\n        </div>\n        <details><summary>法條原文</summary><p class="law-original">${html(content.originalText)}</p></details>\n        <details class="transcript-details" id="transcript-${number}"><summary>閱讀全文逐字稿</summary><p class="transcript-text">${html(content.transcriptText)}</p></details>\n      </article>\n`;
+  const card = `      <article class="release-card" id="episode-${number}">\n        <div class="meta">法條主線 · ${html(episode.exam)} · ${html(episode.law)} · § ${html(episode.article)}</div>\n        <h3>${html(publicTitle)}</h3>\n        <p class="summary">${html(publicSummary)}</p>\n        <audio controls preload="metadata" src="/${html(episode.assets.mp3)}" data-track-audio="podcast_native_audio_${number}">\n          <track kind="captions" srclang="zh-TW" src="/${html(episode.assets.vtt)}" label="逐字稿">\n        </audio>\n        <div class="release-actions">\n          <a class="btn primary" href="${html(practiceUrl).replaceAll('&amp;', '&amp;')}" data-track="podcast_episode_practice_${number}">練這一條</a>\n          <a class="btn" href="#transcript-${number}" data-transcript-target data-track="podcast_transcript_${number}">閱讀全文逐字稿</a>\n          <a class="btn" href="/${html(episode.assets.vtt)}" data-track="podcast_transcript_vtt_${number}">下載字幕檔 (VTT)</a>\n        </div>\n        <details><summary>法條原文</summary><p class="law-original">${html(content.originalText)}</p></details>\n        <details class="transcript-details" id="transcript-${number}"><summary>閱讀全文逐字稿</summary><p class="transcript-text">${html(publicTranscript)}</p></details>\n      </article>\n`;
   page = page.replace(pageMarker, `${card}${pageMarker}`);
 
   atomicWrite(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
