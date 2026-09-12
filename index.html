@@ -710,6 +710,74 @@
     letter-spacing:.06em;
   }
 
+  /* ---------- Product walkthrough (real in-product recording) ---------- */
+  .walkthrough-stage{
+    position:relative;
+    overflow:hidden;
+    padding:120px 0;
+    background:
+      radial-gradient(ellipse 700px 520px at 76% 42%, rgba(179,139,167,.18), transparent 68%),
+      radial-gradient(ellipse 520px 360px at 18% 18%, rgba(231,187,167,.12), transparent 70%),
+      var(--navy-3);
+    color:var(--cream);
+  }
+  .walkthrough-stage::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background-image:
+      linear-gradient(rgba(245,240,234,.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,240,234,.025) 1px, transparent 1px);
+    background-size:72px 72px;
+    mask-image:radial-gradient(ellipse 86% 72% at 50% 50%, #000 25%, transparent 82%);
+  }
+  .walkthrough-grid{
+    position:relative;z-index:1;
+    display:grid;grid-template-columns:minmax(0,.78fr) minmax(320px,1.22fr);
+    gap:72px;align-items:center;
+  }
+  .walkthrough-kicker{
+    display:inline-flex;align-items:center;gap:10px;
+    font-family:var(--mono);font-size:11px;font-weight:600;
+    color:var(--peach);letter-spacing:.18em;text-transform:uppercase;
+  }
+  .walkthrough-kicker::before{content:"";width:24px;height:1px;background:var(--peach)}
+  .walkthrough-copy h2{
+    margin-top:22px;font-family:var(--serif);font-size:50px;font-weight:600;
+    line-height:1.22;letter-spacing:.005em;color:var(--cream);
+  }
+  .walkthrough-copy h2 em{font-style:normal;color:var(--peach)}
+  .walkthrough-copy p{
+    max-width:540px;margin-top:24px;font-size:16px;line-height:1.9;
+    color:rgba(245,240,234,.78);
+  }
+  .walkthrough-tags{display:flex;flex-wrap:wrap;gap:8px;margin-top:28px}
+  .walkthrough-tags span{
+    border:1px solid rgba(231,187,167,.34);border-radius:100px;
+    padding:6px 12px;font-family:var(--mono);font-size:10px;
+    letter-spacing:.06em;color:var(--cream-2);
+  }
+  .walkthrough-action{
+    display:inline-flex;align-items:center;gap:12px;min-height:48px;
+    margin-top:32px;padding:12px 20px;border-radius:2px;
+    background:var(--peach);color:var(--navy);text-decoration:none;
+    font-size:14px;font-weight:700;transition:transform .2s,background .2s;
+  }
+  .walkthrough-action:hover{transform:translateY(-2px);background:var(--peach-2)}
+  .walkthrough-media{
+    position:relative;padding:12px;border:1px solid rgba(231,187,167,.45);
+    border-radius:18px;background:rgba(13,28,40,.72);
+    box-shadow:0 38px 90px rgba(0,0,0,.4);
+  }
+  .walkthrough-media::before{
+    content:"25.88 SEC · REAL PRODUCT";position:absolute;z-index:2;
+    top:-13px;right:20px;padding:6px 10px;border-radius:100px;
+    background:var(--peach);color:var(--navy);
+    font-family:var(--mono);font-size:9px;font-weight:700;letter-spacing:.1em;
+  }
+  .walkthrough-video{
+    display:block;width:100%;max-width:100%;height:auto;aspect-ratio:9/16;
+    max-height:660px;object-fit:contain;background:#080f15;border-radius:10px;
+  }
+
   /* ---------- Showcase article card (compact, no phone frame) ---------- */
   .article{padding:120px 0;background:var(--navy);color:var(--cream);position:relative;overflow:hidden}
   .article .grid-bg{
@@ -1190,7 +1258,7 @@
     .stats-strip .v{font-size:26px}
 
     .sec-title{font-size:44px}
-    .modes,.article,.manifesto,.how,.pricing,.faq,.final{padding:96px 0}
+    .modes,.walkthrough-stage,.article,.manifesto,.how,.pricing,.faq,.final{padding:96px 0}
     .mode{padding:32px 30px 28px;min-height:300px}
     .mode-name{font-size:26px}
 
@@ -1268,7 +1336,12 @@
     .sec-head .right .idx{font-size:36px;display:inline-block;margin-right:10px;margin-bottom:0;vertical-align:middle}
     .sec-title{font-size:36px}
 
-    .modes,.article,.manifesto,.how,.pricing,.faq,.final{padding:72px 0}
+    .modes,.walkthrough-stage,.article,.manifesto,.how,.pricing,.faq,.final{padding:72px 0}
+
+    .walkthrough-grid{grid-template-columns:1fr;gap:44px}
+    .walkthrough-copy h2{font-size:38px}
+    .walkthrough-copy p{max-width:680px}
+    .walkthrough-media{width:min(100%,520px);margin:0 auto}
 
     /* modes: 1 col */
     .mode-grid{grid-template-columns:1fr;gap:14px}
@@ -1371,7 +1444,15 @@
     .sec-head{margin-bottom:32px}
     .sec-head .right .idx{font-size:30px}
 
-    .modes,.article,.manifesto,.how,.pricing,.faq,.final{padding:56px 0}
+    .modes,.walkthrough-stage,.article,.manifesto,.how,.pricing,.faq,.final{padding:56px 0}
+
+    .walkthrough-grid{gap:36px}
+    .walkthrough-copy h2{font-size:30px;margin-top:18px}
+    .walkthrough-copy p{font-size:14.5px;margin-top:18px}
+    .walkthrough-tags{margin-top:22px}
+    .walkthrough-action{width:100%;justify-content:center;margin-top:26px}
+    .walkthrough-media{padding:8px;border-radius:14px}
+    .walkthrough-media::before{right:12px}
 
     .mode{padding:24px 22px 22px}
     .mode-name{font-size:22px}
@@ -1805,6 +1886,32 @@
           </div>
         </a>
 
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ REAL PRODUCT WALKTHROUGH ============ -->
+  <section class="walkthrough-stage" id="walkthrough" data-screen-label="Walkthrough">
+    <div class="container">
+      <div class="walkthrough-grid">
+        <div class="walkthrough-copy reveal">
+          <span class="walkthrough-kicker">記帳士國考 · 真實操作</span>
+          <h2>一題做完，<br><em>弱點與法條</em>接著走。</h2>
+          <p>25.88 秒真實操作：直接看 SoFa 的實際作答、正誤結果與法條解析。畫面來自產品實際流程，不是示意動畫；影片就在這一頁播放，不會把你帶到別的頁面。</p>
+          <div class="walkthrough-tags" aria-label="影片內容">
+            <span>實際作答</span>
+            <span>正誤結果</span>
+            <span>法條解析</span>
+            <span>頁內直接播放</span>
+          </div>
+          <a class="walkthrough-action" href="quiz.html?free=1&amp;start=1&amp;exam=bookkeeper&amp;utm_source=website&amp;utm_medium=homepage_video&amp;utm_campaign=202609_homepage_walkthrough" data-track-event="free_practice_start" data-track-label="homepage_walkthrough">開始免費練習 <span aria-hidden="true">→</span></a>
+        </div>
+        <div class="walkthrough-media reveal" aria-label="SoFa 記帳士國考實際作答影片">
+          <video class="walkthrough-video" controls playsinline webkit-playsinline preload="metadata" poster="https://github.com/0xiao7/sofa-media/releases/download/product-walkthrough-20260802/sofa_product_walkthrough_quiz_v5_cover.png">
+            <source src="https://github.com/0xiao7/sofa-media/releases/download/product-walkthrough-20260802/sofa_product_walkthrough_quiz_v5_refined.mp4" type="video/mp4">
+            你的瀏覽器不支援頁內影片播放。
+          </video>
+        </div>
       </div>
     </div>
   </section>
@@ -2271,6 +2378,18 @@ document.querySelectorAll('.qa').forEach(function(qa){
     }
   });
   if(cue)cue.addEventListener('click',dismissEntryIntro);
+})();
+</script>
+<script>
+(function(){
+  var video=document.querySelector('.walkthrough-video');
+  if(!video)return;
+  video.addEventListener('play',function(){
+    if(window.sofaTrack)window.sofaTrack('homepage_walkthrough_play',{video:'quiz_v5_refined'});
+  },{once:true});
+  video.addEventListener('ended',function(){
+    if(window.sofaTrack)window.sofaTrack('homepage_walkthrough_complete',{video:'quiz_v5_refined'});
+  },{once:true});
 })();
 </script>
 </body></html>
