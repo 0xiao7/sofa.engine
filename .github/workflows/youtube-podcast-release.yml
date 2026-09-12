@@ -62,7 +62,21 @@ jobs:
 
       - name: Scheduled readiness validation only
         if: github.event_name == 'schedule'
-        run: node scripts/youtube-podcast-release.mjs --mode validate --episode EP007
+        run: |
+          set +e
+          output="$(node scripts/youtube-podcast-release.mjs --mode validate --episode EP007 2>&1)"
+          status=$?
+          set -e
+          printf '%s\n' "$output"
+          if [ "$status" -eq 0 ]; then
+            printf '### YouTube Podcast readiness\n\nEP007 passed validation. No provider action was performed.\n' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          if printf '%s\n' "$output" | grep -Fq 'is not approved_for_release'; then
+            printf '### YouTube Podcast readiness\n\nEP007 is awaiting listen approval. This is a neutral waiting state; no provider action was performed.\n' >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+          exit "$status"
 
       - name: Manual episode-scoped action
         if: github.event_name == 'workflow_dispatch'

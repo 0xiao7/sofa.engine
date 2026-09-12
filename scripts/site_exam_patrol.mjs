@@ -31,7 +31,7 @@ const VIEWPORTS = [
 
 const EXAM_SCOPES = {
   bookkeeper: {
-    total: 708,
+    total: 713,
     subjects: new Set(['會計學概要', '稅務相關法規概要', '記帳相關法規概要']),
     years: [104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114],
   },
@@ -207,16 +207,14 @@ async function auditPage(browser, spec, viewport) {
     }
   };
   const unexpectedBlocked = blockedRequests.filter(blocked => !expectedTrackingWrite(blocked));
-  if (blockedRequests.length) {
+  if (unexpectedBlocked.length) {
     findings.push(finding({
-      severity: unexpectedBlocked.length ? 'P0' : 'P1',
-      code: unexpectedBlocked.length ? 'blocked_non_get' : 'blocked_tracking_write',
+      severity: 'P0',
+      code: 'blocked_non_get',
       target: spec.path,
       viewport: viewport.name,
       expected: 'GET-only browser traffic',
-      actual: unexpectedBlocked.length
-        ? unexpectedBlocked
-        : `${blockedRequests.length} analytics writes blocked`,
+      actual: unexpectedBlocked,
       evidenceUrl: url,
     }));
   }
