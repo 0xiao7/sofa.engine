@@ -16,9 +16,13 @@ test('workflow installs FFmpeg before media-contract tests', () => {
 test('scheduled YouTube Podcast workflow validates only', () => {
   assert.match(workflow, /schedule:/);
   assert.match(workflow, /cron:\s*['"]20 13 \* \* \*['"]/);
-  const scheduled = workflow.match(/if:\s*github\.event_name == 'schedule'[\s\S]*?run:\s*([^\n]+)/)?.[1] || '';
+  const scheduled = workflow.match(/- name: Scheduled readiness validation only[\s\S]*?(?=\n\s+- name:)/)?.[0] || '';
   assert.match(scheduled, /--mode validate/);
   assert.doesNotMatch(scheduled, /upload_private|--mode publish/);
+  assert.match(scheduled, /GITHUB_STEP_SUMMARY/);
+  assert.match(scheduled, /not approved_for_release/);
+  assert.match(scheduled, /exit 0/);
+  assert.match(scheduled, /exit "\$status"/);
 });
 
 test('manual mutation is episode-scoped and receives secrets without echoing them', () => {
