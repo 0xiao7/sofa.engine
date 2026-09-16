@@ -1,7 +1,7 @@
 (function(){
   const ATTR_KEY = 'sofa_attribution_v1';
   const SESSION_KEY = 'sofa_session_v1';
-  const TRACKING_VERSION = '20260802-attribution-v2';
+  const TRACKING_VERSION = '20260917-homepage-walkthrough-v1';
   const FUNNEL_ENDPOINT = 'https://sofa-engine-api.onrender.com/api/funnel-event';
   const ATTR_KEYS = ['utm_source','utm_medium','utm_campaign','utm_content','utm_term','gclid','fbclid'];
   const SERVER_EVENT_MAP = new Map([
@@ -45,7 +45,9 @@
     ['podcast_native_audio_play', 'podcast_native_audio_play'],
     ['podcast_native_audio_ended', 'podcast_native_audio_ended'],
     ['podcast_site_intro', 'podcast_site_intro'],
-    ['podcast_episode_practice', 'podcast_episode_practice']
+    ['podcast_episode_practice', 'podcast_episode_practice'],
+    ['homepage_walkthrough_play', 'homepage_walkthrough_play'],
+    ['homepage_walkthrough_complete', 'homepage_walkthrough_complete']
   ]);
   // Keep campaign attribution in storage and event payloads. Only decorate
   // monetization hand-offs; copying an old campaign onto study navigation
