@@ -138,7 +138,7 @@ test('blind spots use weak laws and wrong articles, with mastery at most auxilia
 });
 
 test('analysis tracking is forwarded server-side and page loads the bridge', () => {
-  assert.match(analysis, /sofa-analytics\.js\?v=20260802-attribution-v2/);
+  assert.match(analysis, /sofa-analytics\.js\?v=20260917-homepage-walkthrough-v1/);
   assert.match(analysis, /sofaTrack\('analysis_view'/);
   assert.match(analytics, /\['analysis_view', 'analysis_view'\]/);
   assert.match(analytics, /\['analysis_checkout_click', 'analysis_checkout_click'\]/);

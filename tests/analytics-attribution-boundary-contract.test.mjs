@@ -17,9 +17,9 @@ test('external campaign attribution is stored but not copied onto study navigati
 });
 
 test('pages request the current analytics bundle so the attribution fix is not masked by cache', () => {
-  assert.match(analytics, /TRACKING_VERSION = '20260802-attribution-v2'/);
+  assert.match(analytics, /TRACKING_VERSION = '20260917-homepage-walkthrough-v1'/);
   htmlFiles.forEach(file => {
     const html = readFileSync(new URL(`../${file}`, import.meta.url), 'utf8');
-    assert.match(html, /sofa-analytics\.js\?v=20260802-attribution-v2/, file);
+    assert.match(html, /sofa-analytics\.js\?v=20260917-homepage-walkthrough-v1/, file);
   });
 });

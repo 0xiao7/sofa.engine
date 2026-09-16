@@ -23,14 +23,14 @@ const blogToolsComparison = readFileSync(new URL('../blog/bookkeeper-exam-tools-
 
 test('core funnel pages load the shared analytics bridge', () => {
   for (const html of [index, dashboard, login, quiz, fill, practice, free, pricing, checkout]) {
-    assert.match(html, /<script src="sofa-analytics\.js\?v=20260802-attribution-v2" defer><\/script>/);
+    assert.match(html, /<script src="sofa-analytics\.js\?v=20260917-homepage-walkthrough-v1" defer><\/script>/);
   }
 });
 
 test('analytics bridge preserves attribution and falls back safely when gtag is unavailable', () => {
   assert.match(analytics, /const ATTR_KEY = 'sofa_attribution_v1'/);
   assert.match(analytics, /const SESSION_KEY = 'sofa_session_v1'/);
-  assert.match(analytics, /const TRACKING_VERSION = '20260802-attribution-v2'/);
+  assert.match(analytics, /const TRACKING_VERSION = '20260917-homepage-walkthrough-v1'/);
   assert.match(analytics, /tracking_version: TRACKING_VERSION/);
   assert.match(analytics, /const FUNNEL_ENDPOINT = 'https:\/\/sofa-engine-api\.onrender\.com\/api\/funnel-event'/);
   assert.match(analytics, /utm_source/);
@@ -82,6 +82,8 @@ test('server-side funnel forwarding is limited to revenue, recovery, and entry e
   assert.match(analytics, /\['podcast_native_audio_ended', 'podcast_native_audio_ended'\]/);
   assert.match(analytics, /\['podcast_site_intro', 'podcast_site_intro'\]/);
   assert.match(analytics, /\['podcast_episode_practice', 'podcast_episode_practice'\]/);
+  assert.match(analytics, /\['homepage_walkthrough_play', 'homepage_walkthrough_play'\]/);
+  assert.match(analytics, /\['homepage_walkthrough_complete', 'homepage_walkthrough_complete'\]/);
   assert.doesNotMatch(analytics, /SERVER_EVENT_MAP[\s\S]*answer_submitted/);
 });
 
