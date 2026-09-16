@@ -5,6 +5,10 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/podcast-daily-release.yml'
+      - 'podcast-release.json'
+      - 'podcast.html'
+      - 'podcast.xml'
+      - 'assets/audio/*.vtt'
       - 'data/podcast-law-*.json'
       - 'scripts/*podcast*.mjs'
       - 'tests/podcast-*.test.mjs'
@@ -54,7 +58,7 @@ jobs:
 
       - name: Verify Podcast contracts
         run: |
-          node --test tests/podcast-contract.test.mjs tests/podcast-release-safety.test.mjs tests/podcast-multi-episode-release.test.mjs tests/podcast-public-transcript-vtt-parity.test.mjs
+          node --test tests/podcast-contract.test.mjs tests/podcast-release-safety.test.mjs tests/podcast-multi-episode-release.test.mjs tests/podcast-public-transcript-vtt-parity.test.mjs tests/podcast-public-transcript-sync.test.mjs
           node scripts/check-podcast-release.mjs
 
       - name: Commit release only when files changed

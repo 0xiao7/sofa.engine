@@ -14,6 +14,14 @@ test('daily release uses GitHub-hosted cloud schedule and one concurrency lane',
   assert.match(workflow, /concurrency:/);
   assert.match(workflow, /group:\s*podcast-daily-release/);
   assert.match(workflow, /cancel-in-progress:\s*false/);
+  for (const publicSurface of [
+    'podcast-release.json',
+    'podcast.html',
+    'podcast.xml',
+    'assets/audio/*.vtt',
+  ]) {
+    assert.match(workflow, new RegExp(`- '${publicSurface.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}'`));
+  }
 });
 
 test('daily release is least-privilege and runs all fail-closed gates before commit', () => {
@@ -21,9 +29,16 @@ test('daily release is least-privilege and runs all fail-closed gates before com
   assert.doesNotMatch(workflow, /pull-requests:\s*write|actions:\s*write/);
   const queueGate = workflow.indexOf('podcast-daily-queue.test.mjs');
   const transcriptParityGate = workflow.indexOf('podcast-public-transcript-vtt-parity.test.mjs');
+  const transcriptSyncGate = workflow.indexOf('podcast-public-transcript-sync.test.mjs');
   const releaseGate = workflow.indexOf('check-podcast-release.mjs');
   const commit = workflow.indexOf('git commit');
-  assert.ok(queueGate >= 0 && transcriptParityGate > queueGate && releaseGate > transcriptParityGate && commit > releaseGate);
+  assert.ok(
+    queueGate >= 0
+    && transcriptParityGate > queueGate
+    && transcriptSyncGate > transcriptParityGate
+    && releaseGate > transcriptSyncGate
+    && commit > releaseGate,
+  );
   assert.match(workflow, /git diff --quiet/);
   assert.match(workflow, /node scripts\/release-due-podcast\.mjs --content \/tmp\/podcast-law-content\.json/);
 });

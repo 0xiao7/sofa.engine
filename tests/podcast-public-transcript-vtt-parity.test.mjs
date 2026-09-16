@@ -25,17 +25,28 @@ function normalize(value) {
     .replace(/[，,。．、；;：:！？!?「」『』【】（）()]/g, '');
 }
 
-function spokenCues(vtt) {
+function spokenTranscript(vtt) {
   return vtt
     .replace(/^\uFEFF?WEBVTT[^\n]*\n/, '')
     .split(/\r?\n\r?\n+/)
     .map(block => block.split(/\r?\n/))
     .filter(lines => lines.some(line => line.includes('-->')))
     .map(lines => lines.filter(line => line && !line.includes('-->') && !/^\d+$/.test(line)).join(' '))
-    .filter(Boolean);
+    .filter(Boolean)
+    .join('\n\n');
 }
 
-test('EP007-EP017 website transcripts contain every spoken VTT cue', () => {
+function rssTranscript(item) {
+  const content = item.match(/<content:encoded><!\[CDATA\[([\s\S]*?)\]\]><\/content:encoded>/)?.[1];
+  assert.ok(content, 'RSS content:encoded is missing');
+  const transcript = content.match(
+    /<p><strong>本集完整逐字稿：<\/strong><\/p>\s*([\s\S]*?)(?=\s*<p><a href=)/,
+  )?.[1];
+  assert.ok(transcript, 'RSS complete transcript section is missing');
+  return transcript;
+}
+
+test('EP007-EP017 public transcript surfaces exactly equal the spoken VTT transcript', () => {
   const episodes = release.episodes.filter(episode => {
     const number = Number(episode.id.replace('EP', ''));
     return number >= 7 && number <= 17;
@@ -53,17 +64,12 @@ test('EP007-EP017 website transcripts contain every spoken VTT cue', () => {
     const surfaces = {
       manifest: normalize(episode.transcriptText),
       website: normalize(pageTranscript),
-      rss: normalize(feedItem),
+      rss: normalize(rssTranscript(feedItem)),
     };
-    const cues = spokenCues(readFileSync(new URL(episode.transcript, root), 'utf8'));
-    assert.ok(cues.length > 0, `${episode.id} has no spoken VTT cues`);
-    for (const [index, cue] of cues.entries()) {
-      for (const [surface, transcript] of Object.entries(surfaces)) {
-        assert.ok(
-          transcript.includes(normalize(cue)),
-          `${episode.id} ${surface} transcript is missing VTT cue ${index + 1}: ${cue}`,
-        );
-      }
+    const expected = normalize(spokenTranscript(readFileSync(new URL(episode.transcript, root), 'utf8')));
+    assert.ok(expected, `${episode.id} has no spoken VTT transcript`);
+    for (const [surface, transcript] of Object.entries(surfaces)) {
+      assert.equal(transcript, expected, `${episode.id} ${surface} transcript differs from VTT`);
     }
   }
 });

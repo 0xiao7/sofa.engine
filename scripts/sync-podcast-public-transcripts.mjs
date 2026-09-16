@@ -85,6 +85,12 @@ export function syncPodcastPublicTranscripts({ root = ROOT, firstEpisode = 7, la
     const updatedItem = item
       .replace(/<description>[^<]*<\/description>/, `<description>${notes.description}</description>`)
       .replace(/<content:encoded><!\[CDATA\[[\s\S]*?\]\]><\/content:encoded>/, notes.content);
+    if (!updatedItem.includes(`<description>${notes.description}</description>`)) {
+      throw new Error(`${id} RSS description replacement failed`);
+    }
+    if (!updatedItem.includes(notes.content)) {
+      throw new Error(`${id} RSS content:encoded replacement failed`);
+    }
     feed = feed.replace(item, updatedItem);
     synced.push(id);
   }
