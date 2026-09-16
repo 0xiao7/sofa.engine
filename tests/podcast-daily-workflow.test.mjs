@@ -20,9 +20,10 @@ test('daily release is least-privilege and runs all fail-closed gates before com
   assert.match(workflow, /contents:\s*write/);
   assert.doesNotMatch(workflow, /pull-requests:\s*write|actions:\s*write/);
   const queueGate = workflow.indexOf('podcast-daily-queue.test.mjs');
+  const transcriptParityGate = workflow.indexOf('podcast-public-transcript-vtt-parity.test.mjs');
   const releaseGate = workflow.indexOf('check-podcast-release.mjs');
   const commit = workflow.indexOf('git commit');
-  assert.ok(queueGate >= 0 && releaseGate > queueGate && commit > releaseGate);
+  assert.ok(queueGate >= 0 && transcriptParityGate > queueGate && releaseGate > transcriptParityGate && commit > releaseGate);
   assert.match(workflow, /git diff --quiet/);
   assert.match(workflow, /node scripts\/release-due-podcast\.mjs --content \/tmp\/podcast-law-content\.json/);
 });
