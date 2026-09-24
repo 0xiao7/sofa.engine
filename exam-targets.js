@@ -1,7 +1,7 @@
 (function(){
   'use strict';
 
-  const DEFAULT_EXAM_DAY_REGISTRATION_LEAD_LABEL = '報名前一個月';
+  const DEFAULT_EXAM_DAY_REGISTRATION_LEAD_LABEL = '報名截止日前一個月';
   const OFFICIAL_SOURCE = {
     label: '考選部 115 年建築師、技師、不動產經紀人及記帳士考試',
     url: 'https://wwwc.moex.gov.tw/main/Exam/wFrmExamDetail.aspx?c=115180',
@@ -30,13 +30,18 @@
   const TARGETS = {
     bookkeeper: {
       key: 'bookkeeper', label: '記帳士',
+      capabilityId: 'n72',
+      eventId: '115180',
+      trackId: '115180:bookkeeper',
+      catalogRevision: '2026-09-11-event-deadline-sale-window',
       examDate: '2026-11-14T00:00:00+08:00',
       examEndDate: '2026-11-15T23:59:59+08:00',
       examDisplay: '2026 / 11 / 14–11 / 15',
       registrationStart: '2026-08-04T00:00:00+08:00',
       registrationEnd: '2026-08-13T17:00:00+08:00',
       registrationDisplay: '2026 / 08 / 04–08 / 13',
-      saleOpenDate: '2026-07-04T00:00:00+08:00',
+      saleOpenDate: '2026-07-13T00:00:00+08:00',
+      saleCloseDate: '2026-08-13T23:59:59.999+08:00',
       verificationStatus: 'verified', verificationLabel: '已確認',
       sourceLabel: OFFICIAL_SOURCE.label, sourceUrl: OFFICIAL_SOURCE.detailUrl,
       checkedAt: OFFICIAL_SOURCE.checkedAt,
@@ -52,13 +57,18 @@
     },
     real_estate_broker: {
       key: 'real_estate_broker', label: '不動產經紀人',
+      capabilityId: 'n83',
+      eventId: '115180',
+      trackId: '115180:real_estate_broker',
+      catalogRevision: '2026-09-11-event-deadline-sale-window',
       examDate: '2026-11-14T00:00:00+08:00',
       examEndDate: '2026-11-15T23:59:59+08:00',
       examDisplay: '2026 / 11 / 14–11 / 15',
       registrationStart: '2026-08-04T00:00:00+08:00',
       registrationEnd: '2026-08-13T17:00:00+08:00',
       registrationDisplay: '2026 / 08 / 04–08 / 13',
-      saleOpenDate: '2026-07-04T00:00:00+08:00',
+      saleOpenDate: '2026-07-13T00:00:00+08:00',
+      saleCloseDate: '2026-08-13T23:59:59.999+08:00',
       verificationStatus: 'verified', verificationLabel: '已確認',
       sourceLabel: OFFICIAL_SOURCE.label, sourceUrl: OFFICIAL_SOURCE.detailUrl,
       checkedAt: OFFICIAL_SOURCE.checkedAt,
@@ -83,6 +93,24 @@
 
   function unverified(key, label, laws, articles, highlight){
     return { key, label, examDisplay:'未確認', verificationStatus:'unverified', verificationLabel:'未確認', checkedAt:OFFICIAL_SOURCE.checkedAt, lineBotSupported:true, laws, articles, highlight, subjects:[] };
+  }
+  function saleWindowFromRegistrationEnd(registrationEnd){
+    const match = String(registrationEnd || '').match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if(!match) return null;
+    const year = Number(match[1]);
+    const month = Number(match[2]);
+    const day = Number(match[3]);
+    const parsed = new Date(Date.UTC(year, month - 1, day));
+    if(parsed.getUTCFullYear() !== year || parsed.getUTCMonth() !== month - 1 || parsed.getUTCDate() !== day) return null;
+    const openYear = month === 1 ? year - 1 : year;
+    const openMonth = month === 1 ? 12 : month - 1;
+    const lastOpenDay = new Date(Date.UTC(openYear, openMonth, 0)).getUTCDate();
+    const openDay = Math.min(day, lastOpenDay);
+    const pad = value => String(value).padStart(2, '0');
+    return {
+      saleOpenDate: `${openYear}-${pad(openMonth)}-${pad(openDay)}T00:00:00+08:00`,
+      saleCloseDate: `${year}-${pad(month)}-${pad(day)}T23:59:59.999+08:00`
+    };
   }
   function normalizeTargetKey(value){
     const raw = String(value || '').trim();
@@ -135,7 +163,11 @@
     return stored && TARGETS[stored] ? TARGETS[stored] : UNKNOWN_TARGET;
   }
   function hasExamDate(target){ return !!(target && target.examDate && target.examEndDate && target.examDisplay); }
-  function hasRegistrationWindow(target){ return !!(target && target.registrationStart && target.registrationDisplay && target.saleOpenDate); }
+  function hasRegistrationWindow(target){
+    if(!(target && target.registrationStart && target.registrationEnd && target.registrationDisplay && target.saleOpenDate && target.saleCloseDate)) return false;
+    const expected = saleWindowFromRegistrationEnd(target.registrationEnd);
+    return !!expected && target.saleOpenDate === expected.saleOpenDate && target.saleCloseDate === expected.saleCloseDate;
+  }
   function rawDaysUntil(target, now){
     const t = typeof target === 'string' ? getTarget(target) : (target || resolveTarget());
     if(!hasExamDate(t)) return null;
@@ -157,6 +189,10 @@
     const t = target || resolveTarget(); if(!hasRegistrationWindow(t)) return null;
     return Math.ceil((new Date(t.saleOpenDate) - (now ? new Date(now) : new Date())) / 86400000);
   }
+  function rawDaysUntilSaleClose(target, now){
+    const t = target || resolveTarget(); if(!hasRegistrationWindow(t)) return null;
+    return Math.ceil((new Date(t.saleCloseDate) - (now ? new Date(now) : new Date())) / 86400000);
+  }
   function examDayPlanState(target, now){
     const t = target || resolveTarget();
     if(!t || !t.key) return {state:'missing_target',canBuy:false,reason:'請先選你的考試目標。'};
@@ -166,9 +202,12 @@
     if(isExpired(t, now)) return {state:'closed',canBuy:false,daysUntil:rawDaysUntil(t,now),reason:'這個考期已結束。'};
     if(!hasRegistrationWindow(t)) return {state:'unconfigured',canBuy:false,reason:'正式報名日未確認，暫不開放到考日方案。'};
     const daysUntilSaleOpen = rawDaysUntilSaleOpen(t, now);
+    const daysUntilSaleClose = rawDaysUntilSaleClose(t, now);
     const daysUntilRegistration = rawDaysUntilRegistration(t, now);
-    if(daysUntilSaleOpen > 0) return {state:'not_open',canBuy:false,daysUntil:daysUntil(t,now),daysUntilRegistration,daysUntilSaleOpen,saleOpenDate:t.saleOpenDate,reason:`還有 ${daysUntilSaleOpen} 天，${DEFAULT_EXAM_DAY_REGISTRATION_LEAD_LABEL}才開放到考日方案。`};
-    return {state:'open',canBuy:true,daysUntil:daysUntil(t,now),daysUntilRegistration,saleOpenDate:t.saleOpenDate,reason:`已進入${DEFAULT_EXAM_DAY_REGISTRATION_LEAD_LABEL}窗口。`};
+    if(daysUntilSaleOpen > 0) return {state:'not_open',canBuy:false,daysUntil:daysUntil(t,now),daysUntilRegistration,daysUntilSaleOpen,saleOpenDate:t.saleOpenDate,saleCloseDate:t.saleCloseDate,reason:`還有 ${daysUntilSaleOpen} 天，${DEFAULT_EXAM_DAY_REGISTRATION_LEAD_LABEL}才開放到考日方案。`};
+    const currentTime = now ? new Date(now) : new Date();
+    if(currentTime > new Date(t.saleCloseDate)) return {state:'registration_closed',canBuy:false,daysUntil:daysUntil(t,now),daysUntilRegistration,daysUntilSaleClose,saleOpenDate:t.saleOpenDate,saleCloseDate:t.saleCloseDate,reason:'報名已截止，到考日方案本期停止販售。'};
+    return {state:'open',canBuy:true,daysUntil:daysUntil(t,now),daysUntilRegistration,daysUntilSaleClose,saleOpenDate:t.saleOpenDate,saleCloseDate:t.saleCloseDate,reason:`已進入${DEFAULT_EXAM_DAY_REGISTRATION_LEAD_LABEL}至報名截止日的窗口。`};
   }
   function normalizeSubjectKey(value, target){
     const raw = String(value || '').trim();
@@ -207,5 +246,5 @@
     return target;
   }
 
-  window.SoFaExamTargets = { TARGETS, TARGET_ALIASES, OFFICIAL_SOURCE, UNKNOWN_TARGET, DEFAULT_EXAM_DAY_REGISTRATION_LEAD_LABEL, normalizeTargetKey, toApiKey, getTarget, resolveTarget, selectTarget, hasExamDate, hasRegistrationWindow, isExpired, listAvailable, daysUntil, rawDaysUntil, rawDaysUntilRegistration, rawDaysUntilSaleOpen, examDayPlanState, normalizeSubjectKey, resolveSubject, selectSubject, textForDays, renderCountdown };
+  window.SoFaExamTargets = { TARGETS, TARGET_ALIASES, OFFICIAL_SOURCE, UNKNOWN_TARGET, DEFAULT_EXAM_DAY_REGISTRATION_LEAD_LABEL, saleWindowFromRegistrationEnd, normalizeTargetKey, toApiKey, getTarget, resolveTarget, selectTarget, hasExamDate, hasRegistrationWindow, isExpired, listAvailable, daysUntil, rawDaysUntil, rawDaysUntilRegistration, rawDaysUntilSaleOpen, rawDaysUntilSaleClose, examDayPlanState, normalizeSubjectKey, resolveSubject, selectSubject, textForDays, renderCountdown };
 })();

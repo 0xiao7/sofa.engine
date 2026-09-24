@@ -412,19 +412,61 @@
     font-size:12.5px;line-height:1.65;color:rgba(245,240,234,.62);
     margin-bottom:12px;
   }
-  .exam-target-card select{
+  .exam-target-picker input{
     width:100%;background:var(--navy-2);border:1px solid var(--line-2);
     color:var(--cream);border-radius:3px;padding:13px 14px;
     font-family:var(--sans);font-size:14.5px;outline:none;
   }
-  .exam-target-card select:focus{
+  .exam-target-picker input:focus{
     border-color:var(--peach);
     box-shadow:0 0 0 3px rgba(231,187,167,.14);
+  }
+  .exam-target-picker input::placeholder{color:rgba(245,240,234,.42)}
+  .exam-target-results{
+    display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;
+    margin-top:10px;max-height:270px;overflow:auto;
+  }
+  .exam-target-result{
+    appearance:none;text-align:left;background:rgba(245,240,234,.035);
+    border:1px solid var(--line);border-radius:3px;padding:10px 12px;
+    color:var(--cream);cursor:pointer;transition:.18s;min-width:0;
+  }
+  .exam-target-result:hover,.exam-target-result:focus-visible{
+    border-color:var(--peach);background:rgba(231,187,167,.09);outline:none;
+  }
+  .exam-target-result b{display:block;font-size:13.5px;font-weight:600}
+  .exam-target-result span{
+    display:block;margin-top:3px;font-family:var(--mono);font-size:9.5px;
+    color:rgba(245,240,234,.5);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .selected-exam{
+    display:flex;align-items:center;justify-content:space-between;gap:12px;
+    padding:13px 14px;background:rgba(231,187,167,.08);
+    border:1px solid rgba(231,187,167,.42);border-radius:3px;
+  }
+  .selected-exam[hidden],.exam-target-picker[hidden]{display:none}
+  .selected-exam strong{display:block;font-size:16px;color:var(--cream)}
+  .selected-exam span{display:block;margin-top:3px;font-size:11px;color:rgba(245,240,234,.58)}
+  .selected-exam button{
+    flex:0 0 auto;background:transparent;color:var(--peach);border:1px solid rgba(231,187,167,.5);
+    border-radius:3px;padding:8px 10px;min-height:44px;font:600 11px var(--sans);cursor:pointer;
   }
   .exam-target-card .target-hint{
     margin-top:10px;font-family:var(--mono);font-size:10.5px;
     letter-spacing:.05em;color:rgba(245,240,234,.55);line-height:1.6;
   }
+  .exam-target-card .target-lock-notice{
+    margin-top:12px;padding:11px 12px;border-left:3px solid var(--peach);
+    background:rgba(231,187,167,.10);color:var(--cream);
+    font-size:12.5px;font-weight:600;line-height:1.65;
+  }
+  .exam-target-card .target-lock-notice[hidden]{display:none}
+  .summary-lock{
+    margin-top:10px;padding:11px 14px;border:1px solid rgba(231,187,167,.55);
+    background:rgba(231,187,167,.08);color:var(--cream);
+    font-size:12.5px;font-weight:600;line-height:1.65;
+  }
+  .summary-lock[hidden]{display:none}
 
   /* === summary line === */
   .summary{
@@ -507,6 +549,11 @@
     font-weight:700;
     letter-spacing:.04em;
   }
+  .ck-compact-pay-note .ck-compact-lock{
+    display:block;margin-top:4px;color:var(--peach);
+    font-weight:600;line-height:1.55;
+  }
+  .ck-compact-pay-note .ck-compact-lock[hidden]{display:none}
   .sticky-pay .trust{
     display:block;margin-top:6px;text-align:center;
     font-family:var(--mono);font-size:10px;letter-spacing:.08em;
@@ -652,7 +699,7 @@
     .exam-target-card{padding:10px 12px}
     .exam-target-card .target-title{font-size:15px;margin-bottom:4px}
     .exam-target-card .target-copy{display:none}
-    .exam-target-card select{padding:9px 11px;font-size:14px}
+    .exam-target-picker input{padding:9px 11px;font-size:14px}
     .exam-target-card .target-hint{margin-top:6px;font-size:10px;line-height:1.45}
     .email-card{padding:14px 16px}
     .email-card .ask{margin:6px 0 10px;font-size:16px}
@@ -696,7 +743,8 @@
     .exam-target-card{padding:12px 14px}
     .exam-target-card .target-title{font-size:15px;margin-bottom:4px}
     .exam-target-card .target-copy{display:none}
-    .exam-target-card select{padding:10px 12px;font-size:14px}
+    .exam-target-picker input{padding:10px 12px;font-size:14px}
+    .exam-target-results{grid-template-columns:1fr;max-height:240px}
     .exam-target-card .target-hint{margin-top:6px;font-size:10px;line-height:1.45}
     .email-card{padding:16px 18px 14px;animation:none}
     .email-card .ask{font-size:16px;margin:4px 0 10px}
@@ -862,10 +910,18 @@
           <span class="num">02</span><span>考試目標</span><span class="line"></span>
         </div>
         <div class="exam-target-card">
-          <div class="target-title">到考日依你的考試計算。</div>
-          <p class="target-copy">NT$1280 是到考日方案固定價；結帳下拉只顯示目前可購買且 LINE 端已支援的考科：正式考期與報名日已公告、進入報名前一個月內。</p>
-          <select id="ck-exam-target" aria-label="考試目標"></select>
+          <div class="target-title">先選考科，再確認到考日方案。</div>
+          <p class="target-copy">NT$1280 是到考日方案固定價；172 個考科都可以先選。只有正式考期與報名日已確認、且仍在販售期間的考科能購買；販售期間為報名截止日前一個月起，至報名截止日止。</p>
+          <div class="selected-exam" id="ck-selected-exam" hidden>
+            <div><strong id="ck-selected-exam-name">尚未選擇</strong><span id="ck-selected-exam-meta"></span></div>
+            <button type="button" id="ck-change-exam">重新選考科</button>
+          </div>
+          <div class="exam-target-picker" id="ck-exam-target-picker">
+            <input id="ck-exam-target-search" type="search" autocomplete="off" placeholder="搜尋 172 個考科，例如：會計、地政、司法" aria-label="搜尋考試目標">
+            <div class="exam-target-results" id="ck-exam-target-results" role="listbox" aria-label="考科搜尋結果"></div>
+          </div>
           <div class="target-hint" id="ck-exam-target-hint">請先選考試目標；系統會依正式考期判斷是否可買到考日方案。</div>
+          <div class="target-lock-notice" id="ck-exam-lock-notice">付款前請確認：NT$1280 到考日方案付款後會鎖定所選考科至方案期限，期間不可更換。</div>
         </div>
       </div>
 
@@ -906,12 +962,14 @@
             <div class="n"><span class="c">NT$</span><span id="ck-sum-amount">1280</span></div>
           </div>
         </div>
+        <div class="summary-lock" id="ck-sum-lock">付款後將鎖定所選考科至方案期限，期間不可更換考科。</div>
 
         <div class="sticky-pay">
           <div class="ck-compact-pay-note">
             <b id="ck-compact-plan">到考日方案 · 讀到考試日</b>
             <span class="amount">NT$<span id="ck-compact-amount">1280</span></span>
             <span> · 綠界付款，序號寄到信箱。</span>
+            <span class="ck-compact-lock" id="ck-compact-lock">付款前請確認：付款後鎖定所選考科至方案期限，期間不可更換。</span>
           </div>
           <button class="ck-cta" id="ck-submit" type="button">立即前往付款 <span class="arrow">⟶</span></button>
           <span class="trust">綠界刷卡 · 不儲存信用卡 · 序號寄到信箱</span>
@@ -951,6 +1009,7 @@
   </div>
 </div>
 
+<script src="exam-data.js?v=20260924-exam-day-picker"></script>
 <script src="exam-targets.js?v=20260908-canonical-catalog"></script>
 <script>
 (function(){
@@ -963,14 +1022,25 @@
   const sumAmount = document.getElementById("ck-sum-amount");
   const compactPlan = document.getElementById("ck-compact-plan");
   const compactAmount = document.getElementById("ck-compact-amount");
+  const compactLock = document.getElementById("ck-compact-lock");
   const emailEl   = document.getElementById("ck-email-input");
   const hintEl    = document.getElementById("ck-email-hint");
   const examTargetSection = document.getElementById("ck-exam-target-section");
-  const examTargetEl = document.getElementById("ck-exam-target");
+  const examTargetPicker = document.getElementById("ck-exam-target-picker");
+  const examTargetSearch = document.getElementById("ck-exam-target-search");
+  const examTargetResults = document.getElementById("ck-exam-target-results");
+  const selectedExam = document.getElementById("ck-selected-exam");
+  const selectedExamName = document.getElementById("ck-selected-exam-name");
+  const selectedExamMeta = document.getElementById("ck-selected-exam-meta");
+  const changeExamBtn = document.getElementById("ck-change-exam");
   const examTargetHintEl = document.getElementById("ck-exam-target-hint");
+  const examLockNoticeEl = document.getElementById("ck-exam-lock-notice");
+  const sumLock = document.getElementById("ck-sum-lock");
   const submitBtn = document.getElementById("ck-submit");
   const errorEl   = document.getElementById("ck-error");
   const queryParams = new URLSearchParams(location.search);
+  let checkoutExamKey = "";
+  let checkoutCapabilityId = "";
   const checkoutSessionId = (() => {
     const key = "sofa_checkout_session";
     try {
@@ -1077,34 +1147,6 @@
   };
   const DEFAULT_HINT = "付款後序號寄到這裡；登入後可接回錯題、弱點與今日複習。";
 
-  function initExamTargetSelect(){
-    if (!examTargetEl || !window.SoFaExamTargets) return;
-    const targets = window.SoFaExamTargets.TARGETS || {};
-    const selectedKey = getExplicitCheckoutExamKey();
-    const available = getCheckoutPurchasableTargets();
-    const options = available.map(({ key, target: t, state }) => {
-      const date = t.examDisplay || "下一期未公告";
-      const stateLabel = checkoutExamTargetStateLabel(state);
-      return `<option value="${key}">${t.label || key} · ${date} · ${stateLabel}</option>`;
-    }).join("");
-    examTargetEl.innerHTML = `<option value="">請先選你的考試目標</option>${options}`;
-    if (targets[selectedKey]) {
-      const state = window.SoFaExamTargets.examDayPlanState ? window.SoFaExamTargets.examDayPlanState(targets[selectedKey]) : null;
-      if (state && state.canBuy) examTargetEl.value = selectedKey;
-    }
-    updateExamTargetHint();
-  }
-
-  function getCheckoutPurchasableTargets(){
-    if (!window.SoFaExamTargets) return [];
-    const targets = window.SoFaExamTargets.TARGETS || {};
-    return Object.keys(targets).map((key) => {
-      const target = targets[key] || {};
-      const state = window.SoFaExamTargets.examDayPlanState ? window.SoFaExamTargets.examDayPlanState(target) : null;
-      return { key, target, state };
-    }).filter(({ state }) => state && state.canBuy);
-  }
-
   function checkoutExamTargetStateLabel(state){
     if(!state) return "狀態未確認";
     if(state.canBuy) return "可購買";
@@ -1116,44 +1158,69 @@
     return "不可購買";
   }
 
-  function sanitizeCheckoutExamKey(key, options){
-    const rawInput = (key || "").trim();
-    const raw = window.SoFaExamTargets?.normalizeTargetKey
-      ? window.SoFaExamTargets.normalizeTargetKey(rawInput)
-      : rawInput;
-    if (!raw || !window.SoFaExamTargets?.TARGETS?.[raw]) return "";
-    const opts = options || {};
-    if (opts.allowDisabled) return raw;
+  function escapeCheckoutHtml(value){
+    return String(value || "").replace(/[&<>"']/g, (char) => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    })[char]);
+  }
+
+  function resolveCheckoutCapabilityId(value){
+    const raw = String(value || "").trim();
+    if (!raw) return "";
+    const nodes = window.NODES || {};
+    if (nodes[raw]) return raw;
     const api = window.SoFaExamTargets;
-    const state = api.examDayPlanState ? api.examDayPlanState(api.TARGETS[raw]) : null;
-    return state && state.canBuy ? raw : "";
+    const key = api?.normalizeTargetKey ? api.normalizeTargetKey(raw) : raw;
+    const target = api?.TARGETS?.[key];
+    if (target?.capabilityId && nodes[target.capabilityId]) return target.capabilityId;
+    const byName = Object.values(nodes).find((node) => node.name === raw);
+    return byName?.id || "";
   }
 
   function getExplicitCheckoutExamKey(){
-    const fromQuery = (queryParams.get("exam_key") || queryParams.get("target") || "").trim();
-    if (fromQuery) return sanitizeCheckoutExamKey(fromQuery, { allowDisabled: false });
+    const fromQuery = (
+      queryParams.get("capability_id") || queryParams.get("exam_key") ||
+      queryParams.get("target") || queryParams.get("exam_target") || ""
+    ).trim();
+    if (fromQuery) return fromQuery;
     try {
       const stored = (
         localStorage.getItem("sofa_exam_target") ||
         localStorage.getItem("sofa.target") ||
+        localStorage.getItem("sofa_exam_capability_id") ||
         ""
       ).trim();
-      return sanitizeCheckoutExamKey(stored, { allowDisabled: false });
+      return stored;
     } catch (_) {}
     return "";
   }
 
+  function selectedCheckoutCapability(){
+    return (window.NODES || {})[checkoutCapabilityId] || null;
+  }
+
   function getCheckoutExamKey(){
-    if (examTargetEl && examTargetEl.value) return sanitizeCheckoutExamKey(examTargetEl.value, { allowDisabled: false });
-    if (examTargetEl) return examTargetEl.value || "";
-    return getExplicitCheckoutExamKey();
+    return checkoutExamKey;
   }
 
   function getCheckoutExamLabel(){
     const api = window.SoFaExamTargets;
     const target = api && api.TARGETS ? api.TARGETS[getCheckoutExamKey()] : null;
-    if (!target) return "請先選你的考試目標";
-    return `${target.label || "目標考試"} · ${target.examDisplay || "下一期未公告"}`;
+    const capability = selectedCheckoutCapability();
+    if (!capability) return "請先選你的考試目標";
+    return `${capability.name} · ${target?.examDisplay || "到考日尚未開放"}`;
+  }
+
+  function getCheckoutTargetIdentity(){
+    const api = window.SoFaExamTargets;
+    const target = api && api.TARGETS ? api.TARGETS[getCheckoutExamKey()] : null;
+    if (!target) return null;
+    return {
+      capabilityId: target.capabilityId || "",
+      eventId: target.eventId || "",
+      trackId: target.trackId || "",
+      catalogRevision: target.catalogRevision || ""
+    };
   }
 
   function isCheckoutExamTargetConfigured(){
@@ -1163,19 +1230,76 @@
     return !!(state && state.canBuy);
   }
 
+  function renderCheckoutCapabilityResults(query){
+    if (!examTargetResults) return;
+    const needle = String(query || "").trim().toLowerCase();
+    const matches = Object.values(window.NODES || {}).filter((node) => {
+      if (!needle) return true;
+      return [node.name, node.section, node.source, node.id].some((value) => String(value || "").toLowerCase().includes(needle));
+    }).slice(0, 12);
+    examTargetResults.innerHTML = matches.length ? matches.map((node) => (
+      `<button type="button" class="exam-target-result" role="option" data-capability-id="${escapeCheckoutHtml(node.id)}">` +
+      `<b>${escapeCheckoutHtml(node.name)}</b><span>${escapeCheckoutHtml(node.section || node.source || "考試目標")}</span></button>`
+    )).join("") : '<div class="target-hint">找不到符合的考科，請換一個關鍵字。</div>';
+  }
+
+  function renderSelectedCheckoutCapability(){
+    const capability = selectedCheckoutCapability();
+    if (selectedExam) selectedExam.hidden = !capability;
+    if (examTargetPicker) examTargetPicker.hidden = !!capability;
+    if (!capability) return;
+    const api = window.SoFaExamTargets;
+    const target = api?.TARGETS?.[getCheckoutExamKey()];
+    const state = api?.examDayPlanState ? api.examDayPlanState(target) : null;
+    if (selectedExamName) selectedExamName.textContent = capability.name;
+    if (selectedExamMeta) selectedExamMeta.textContent = `${capability.section || "考試目標"} · ${checkoutExamTargetStateLabel(state)}`;
+  }
+
+  function selectCheckoutCapability(capabilityId){
+    const capability = (window.NODES || {})[capabilityId];
+    if (!capability) return;
+    const api = window.SoFaExamTargets;
+    const normalized = api?.normalizeTargetKey ? api.normalizeTargetKey(capabilityId) : capabilityId;
+    checkoutCapabilityId = capabilityId;
+    checkoutExamKey = api?.TARGETS?.[normalized] ? normalized : capabilityId;
+    try {
+      localStorage.setItem("sofa_exam_capability_id", capabilityId);
+      localStorage.setItem("sofa_exam_target", checkoutExamKey);
+      localStorage.setItem("sofa.target", checkoutExamKey);
+    } catch (_) {}
+    renderSelectedCheckoutCapability();
+    updateExamTargetHint();
+    refreshSummary();
+    clearError();
+    trackCheckout("checkout_exam_target_changed", { exam_key: getCheckoutExamKey(), capability_id: capabilityId });
+    trackCheckout("checkout_exam_target_select", { exam_key: getCheckoutExamKey(), capability_id: capabilityId });
+  }
+
+  function initExamTargetPicker(){
+    renderCheckoutCapabilityResults("");
+    const explicit = resolveCheckoutCapabilityId(getExplicitCheckoutExamKey());
+    if (explicit) {
+      const api = window.SoFaExamTargets;
+      const normalized = api?.normalizeTargetKey ? api.normalizeTargetKey(explicit) : explicit;
+      checkoutCapabilityId = explicit;
+      checkoutExamKey = api?.TARGETS?.[normalized] ? normalized : explicit;
+    }
+    renderSelectedCheckoutCapability();
+    updateExamTargetHint();
+  }
+
   function updateExamTargetHint(){
     if (!examTargetHintEl || !window.SoFaExamTargets) return;
     const api = window.SoFaExamTargets;
     const target = api.TARGETS[getCheckoutExamKey()];
     const state = api.examDayPlanState ? api.examDayPlanState(target) : null;
-    if (!getCheckoutExamKey()) {
+    const capability = selectedCheckoutCapability();
+    if (!capability) {
       examTargetHintEl.textContent = "請先選你的考試目標；到考日不會預設成記帳士。";
     } else if (state && state.canBuy) {
-      examTargetHintEl.textContent = `${target.label || "目標考試"} · ${target.examDisplay}，${state.reason} 實際可用期限由後端考期設定計算。`;
-    } else if (state && state.state === "not_open") {
-      examTargetHintEl.textContent = `${target.label || "目標考試"} · ${target.examDisplay}，${state.reason}`;
+      examTargetHintEl.textContent = `${capability.name} · ${target.examDisplay}，${state.reason} 實際可用期限由後端考期設定計算。`;
     } else {
-      examTargetHintEl.textContent = state?.reason || "下一期正式考日尚未公告：這個考試的到考日方案尚未開放，請先選月費或季費。";
+      examTargetHintEl.textContent = `這個考科目前不能購買到考日方案：${state?.reason || "尚無已確認且可購買的考試案。"} 你仍可改選其他考科，或使用月費／季費。`;
     }
   }
 
@@ -1187,11 +1311,28 @@
     const s = getSelected();
     const examMode = s.plan === "到考日";
     if (examTargetSection) examTargetSection.hidden = !examMode;
+    if (examLockNoticeEl) examLockNoticeEl.hidden = !examMode;
+    if (sumLock) sumLock.hidden = !examMode;
+    if (compactLock) compactLock.hidden = !examMode;
+    renderSelectedCheckoutCapability();
     updateExamTargetHint();
+    const target = window.SoFaExamTargets?.TARGETS?.[getCheckoutExamKey()] || null;
+    const capability = selectedCheckoutCapability();
+    if (sumLock) sumLock.textContent = target
+      ? `付款後將鎖定「${capability?.name || target.label || "所選考科"}」至方案期限，期間不可更換考科。`
+      : "請先選定考科；付款後將鎖定該考科至方案期限，期間不可更換考科。";
+    if (compactLock) compactLock.textContent = target
+      ? `付款前請確認：付款後將鎖定「${capability?.name || target.label || "所選考科"}」至方案期限，期間不可更換。`
+      : "付款前請確認：請先選定考科；付款後鎖定至方案期限，期間不可更換。";
     const summaryPlan = examMode ? `${PLAN_TEXT[s.plan]} · ${getCheckoutExamLabel()}` : (PLAN_TEXT[s.plan] || s.plan);
     sumPlan.textContent = summaryPlan;
     if (compactPlan) compactPlan.textContent = summaryPlan;
     if (compactAmount) compactAmount.textContent = s.amount;
+    const examUnavailable = examMode && !isCheckoutExamTargetConfigured();
+    submitBtn.disabled = examUnavailable;
+    submitBtn.innerHTML = examUnavailable
+      ? (capability ? '此考科目前未開放' : '先選考科')
+      : '立即前往付款 <span class="arrow">⟶</span>';
     if (sumAmount.textContent !== s.amount){
       sumAmount.textContent = s.amount;
       const totEl = sumAmount.parentElement;
@@ -1229,7 +1370,6 @@
     };
     const planParam = planAliases[rawPlanParam.toLowerCase()] || rawPlanParam;
     const emailParam = (qs.get("email") || "").trim();
-    const examKeyParam = (qs.get("exam_key") || qs.get("target") || "").trim();
     if (planParam) {
       const target = plansEl.querySelector('.plan[data-plan="' + planParam.replace(/"/g, '') + '"]');
       if (target && !target.classList.contains("selected")) {
@@ -1240,12 +1380,6 @@
     }
     if (emailParam && isEmail(emailParam) && !emailEl.value) {
       emailEl.value = emailParam;
-    }
-    const safeExamKeyParam = sanitizeCheckoutExamKey(examKeyParam, { allowDisabled: false });
-    if (safeExamKeyParam && examTargetEl) {
-      examTargetEl.value = safeExamKeyParam;
-      updateExamTargetHint();
-      refreshSummary();
     }
   })();
   function showError(msg){ errorEl.textContent = msg; errorEl.classList.add("show"); }
@@ -1261,20 +1395,20 @@
     emailEl.dataset.focusTracked = "1";
     trackCheckout("checkout_email_focus");
   });
-  if (examTargetEl) {
-    examTargetEl.addEventListener("change", () => {
-      try {
-        if (examTargetEl.value) {
-          localStorage.setItem("sofa_exam_target", examTargetEl.value);
-          localStorage.setItem("sofa.target", examTargetEl.value);
-        }
-      } catch (_) {}
-      updateExamTargetHint();
-      refreshSummary();
-      trackCheckout("checkout_exam_target_changed", { exam_key: getCheckoutExamKey() });
-      trackCheckout("checkout_exam_target_select", { exam_key: getCheckoutExamKey() });
-    });
-  }
+  examTargetSearch?.addEventListener("input", () => renderCheckoutCapabilityResults(examTargetSearch.value));
+  examTargetResults?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-capability-id]");
+    if (button) selectCheckoutCapability(button.dataset.capabilityId);
+  });
+  changeExamBtn?.addEventListener("click", () => {
+    if (examTargetPicker) examTargetPicker.hidden = false;
+    if (selectedExam) selectedExam.hidden = true;
+    if (examTargetSearch) {
+      examTargetSearch.value = "";
+      renderCheckoutCapabilityResults("");
+      examTargetSearch.focus();
+    }
+  });
 
   submitBtn.addEventListener("click", async () => {
     clearError();
@@ -1314,6 +1448,9 @@
     try {
       const examKey = getCheckoutExamKey();
       const apiExamKey = window.SoFaExamTargets ? window.SoFaExamTargets.toApiKey(examKey) : examKey;
+      const targetIdentity = sel.plan === "到考日"
+        ? getCheckoutTargetIdentity()
+        : { capabilityId: "", eventId: "", trackId: "", catalogRevision: "" };
       const res = await fetch(API_URL, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -1321,6 +1458,10 @@
           plan: sel.plan,
           email,
           exam_key: apiExamKey,
+          capability_id: targetIdentity.capabilityId,
+          event_id: targetIdentity.eventId,
+          track_id: targetIdentity.trackId,
+          catalog_revision: targetIdentity.catalogRevision,
           line_identity: lineIdentity,
           session_id: checkoutSessionId,
           page_path: location.pathname + location.search,
@@ -1344,7 +1485,7 @@
     }
   });
 
-  initExamTargetSelect();
+  initExamTargetPicker();
   refreshSummary();
   observeCheckoutSignal(document.querySelector(".email-card"), "checkout_form_visible", { threshold: 0.2, minPixels: 36 });
   observeCheckoutSignal(submitBtn, "checkout_cta_viewed", { threshold: 0.25, minPixels: 36 });

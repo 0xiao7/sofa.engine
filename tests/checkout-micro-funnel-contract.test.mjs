@@ -12,7 +12,7 @@ test('checkout records pre-payment visibility and selection micro-funnel events'
   assert.match(checkout, /observeCheckoutSignal\(document\.querySelector\("\.email-card"\), "checkout_form_visible", \{ threshold: 0\.2, minPixels: 36 \}\)/);
   assert.match(checkout, /observeCheckoutSignal\(submitBtn, "checkout_cta_viewed", \{ threshold: 0\.25, minPixels: 36 \}\)/);
   assert.match(checkout, /trackCheckout\("checkout_plan_changed", \{ from_plan: prevPlan, to_plan: c\.dataset\.plan \}\)/);
-  assert.match(checkout, /trackCheckout\("checkout_exam_target_changed", \{ exam_key: getCheckoutExamKey\(\) \}\)/);
+  assert.match(checkout, /trackCheckout\("checkout_exam_target_changed", \{ exam_key: getCheckoutExamKey\(\), capability_id: capabilityId \}\)/);
 });
 
 test('checkout visibility events happen before checkout start is counted as a page-load baseline', () => {
