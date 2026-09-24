@@ -53,11 +53,11 @@ test('checkout defaults to the exam-day plan and keeps required checkout fields'
   assert.match(checkout, /付款前請確認：NT\$1280 到考日方案付款後會鎖定所選考科至方案期限，期間不可更換/);
   assert.match(checkout, /id="ck-sum-lock"/);
   assert.match(checkout, /id="ck-compact-lock"/);
-  assert.match(checkout, /付款後將鎖定「\$\{target\.label[^}]*\}」至方案期限，期間不可更換考科/);
+  assert.match(checkout, /付款後將鎖定「\$\{capability\?\.name \|\| target\.label[^}]*\}」至方案期限，期間不可更換考科/);
   assert.match(checkout, /examLockNoticeEl\.hidden = !examMode/);
   assert.match(checkout, /sumLock\.hidden = !examMode/);
   assert.match(checkout, /compactLock\.hidden = !examMode/);
-  assert.match(checkout, /付款前請確認：付款後將鎖定「\$\{target\.label[^}]*\}」至方案期限，期間不可更換/);
+  assert.match(checkout, /付款前請確認：付款後將鎖定「\$\{capability\?\.name \|\| target\.label[^}]*\}」至方案期限，期間不可更換/);
   assert.doesNotMatch(checkout, /考前 180 天內/);
   assert.match(checkout, /<script src="exam-data\.js\?v=20260924-exam-day-picker"><\/script>/);
   assert.match(checkout, /id="ck-exam-target-picker"/);
@@ -242,10 +242,11 @@ test('CXB frontend exam and plan contract stays aligned with canonical JSON', ()
   }
 });
 
-test('CXB checkout sanitizes stored exam_key before sending payment payloads', () => {
-  assert.match(checkout, /function sanitizeCheckoutExamKey\(key, options\)/);
-  assert.match(checkout, /sanitizeCheckoutExamKey\(fromQuery, \{ allowDisabled: false \}\)/);
-  assert.match(checkout, /sanitizeCheckoutExamKey\(stored, \{ allowDisabled: false \}\)/);
+test('CXB checkout resolves stored capability separately from purchase eligibility', () => {
+  assert.match(checkout, /function resolveCheckoutCapabilityId\(value\)/);
+  assert.match(checkout, /localStorage\.getItem\("sofa_exam_capability_id"\)/);
+  assert.match(checkout, /checkoutCapabilityId = explicit/);
+  assert.match(checkout, /examUnavailable = examMode && !isCheckoutExamTargetConfigured\(\)/);
   assert.match(checkout, /const examKey = getCheckoutExamKey\(\)/);
   assert.match(checkout, /exam_key: apiExamKey/);
   assert.match(checkout, /line_identity: lineIdentity/);
