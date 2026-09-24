@@ -45,23 +45,28 @@ test('checkout defaults to the exam-day plan and keeps required checkout fields'
   }
   assert.doesNotMatch(examTargets, /examDate:\s*'2026-(01|06|07)-/);
   assert.match(checkout, /NT\$1280 是到考日方案固定價/);
-  assert.match(checkout, /報名前一個月內/);
+  assert.match(checkout, /報名截止日前一個月起，至報名截止日止/);
   assert.doesNotMatch(checkout, /考前 180 天內/);
-  assert.match(checkout, /只顯示目前可購買且 LINE 端已支援的考科/);
-  assert.match(checkout, /id="ck-exam-target"/);
-  assert.match(checkout, /function getCheckoutPurchasableTargets\(\)/);
-  assert.match(checkout, /\.filter\(\(\{ state \}\) => state && state\.canBuy\)/);
-  assert.doesNotMatch(checkout, /const disabled = state && !state\.canBuy \? ' disabled' : ''/);
-  assert.doesNotMatch(checkout, /<option value="\$\{key\}"\$\{disabled\}>/);
+  assert.match(checkout, /<script src="exam-data\.js\?v=20260924-exam-day-picker"><\/script>/);
+  assert.match(checkout, /id="ck-exam-target-picker"/);
+  assert.match(checkout, /id="ck-exam-target-search"/);
+  assert.match(checkout, /id="ck-exam-target-results"/);
+  assert.match(checkout, /id="ck-selected-exam"/);
+  assert.match(checkout, /id="ck-change-exam"/);
+  assert.doesNotMatch(checkout, /<select[^>]+id="ck-exam-target"/);
+  assert.doesNotMatch(checkout, /function getCheckoutPurchasableTargets\(\)/);
+  assert.doesNotMatch(checkout, /請先選你的考試目標<\/option>/);
   assert.match(checkout, /window\.SoFaExamTargets/);
   assert.match(checkout, /function getCheckoutExamKey\(\)/);
-  assert.match(checkout, /if \(examTargetEl\) return examTargetEl\.value \|\| ""/);
+  assert.match(checkout, /let checkoutExamKey = ""/);
   assert.match(checkout, /function getExplicitCheckoutExamKey\(\)/);
   assert.match(checkout, /function isCheckoutExamTargetConfigured\(\)/);
   assert.match(checkout, /function updateExamTargetHint\(\)/);
-  assert.match(checkout, /function checkoutExamTargetStateLabel\(state\)/);
   assert.match(checkout, /checkout_exam_target_unavailable/);
   assert.match(checkout, /exam_key: getCheckoutExamKey\(\)/);
+  assert.match(checkout, /id="ck-exam-lock-notice"/);
+  assert.match(checkout, /id="ck-sum-lock"/);
+  assert.match(checkout, /付款前請確認：NT\$1280 到考日方案付款後會鎖定所選考科至方案期限，期間不可更換/);
   assert.match(checkout, /依你選的考試目標計算/);
   assert.match(checkout, /到考日不會預設成記帳士/);
   assert.doesNotMatch(checkout, /const EXAM = new Date\('2026-11-14T00:00:00\+08:00'\)/);
@@ -71,7 +76,7 @@ test('checkout defaults to the exam-day plan and keeps required checkout fields'
   assert.match(checkout, /line_identity: lineIdentity/);
 });
 
-test('GX-DROPDOWN checkout only renders open and LINE-supported exam targets', () => {
+test('checkout uses the 172-capability picker and keeps purchase eligibility separate', () => {
   const sandbox = { window: {}, URLSearchParams };
   sandbox.window.location = { search: '' };
   sandbox.window.localStorage = { getItem: () => '', setItem: () => {} };
@@ -81,12 +86,15 @@ test('GX-DROPDOWN checkout only renders open and LINE-supported exam targets', (
   const purchasable = Object.keys(api.TARGETS).filter((key) => api.examDayPlanState(api.TARGETS[key], '2026-07-15T00:00:00+08:00').canBuy);
 
   assert.deepEqual(purchasable, ['bookkeeper', 'real_estate_broker']);
-  assert.match(checkout, /const available = getCheckoutPurchasableTargets\(\)/);
-  assert.match(checkout, /examTargetEl\.innerHTML = `<option value="">請先選你的考試目標<\/option>\$\{options\}`/);
-  assert.doesNotMatch(checkout, /暫不販售<\/option>/);
+  assert.match(checkout, /Object\.values\(window\.NODES \|\| \{\}\)/);
+  assert.match(checkout, /\.slice\(0, 12\)/);
+  assert.match(checkout, /function selectCheckoutCapability\(capabilityId\)/);
+  assert.match(checkout, /data-capability-id/);
+  assert.match(checkout, /這個考科目前不能購買到考日方案/);
+  assert.doesNotMatch(checkout, /available\.map\(\(\{ key, target: t, state \}\)/);
 });
 
-test('exam-day plan opens from the registration window, not the exam countdown', () => {
+test('exam-day plan opens one calendar month before registration closes and closes at the deadline', () => {
   const sandbox = { window: {}, URLSearchParams };
   sandbox.window.location = { search: '' };
   sandbox.window.localStorage = { getItem: () => '', setItem: () => {} };
@@ -95,10 +103,13 @@ test('exam-day plan opens from the registration window, not the exam countdown',
   const api = sandbox.window.SoFaExamTargets;
   const bookkeeper = api.TARGETS.bookkeeper;
 
-  assert.equal(api.examDayPlanState(bookkeeper, '2026-07-03T00:00:00+08:00').canBuy, false);
-  assert.equal(api.examDayPlanState(bookkeeper, '2026-07-04T00:00:00+08:00').canBuy, true);
-  assert.equal(api.examDayPlanState(bookkeeper, '2026-07-14T00:00:00+08:00').canBuy, true);
-  assert.match(api.examDayPlanState(bookkeeper, '2026-07-14T00:00:00+08:00').reason, /報名前一個月/);
+  assert.equal(api.examDayPlanState(bookkeeper, '2026-07-12T23:59:59.999+08:00').canBuy, false);
+  assert.equal(api.examDayPlanState(bookkeeper, '2026-07-13T00:00:00+08:00').canBuy, true);
+  assert.equal(api.examDayPlanState(bookkeeper, '2026-08-13T23:59:59.999+08:00').canBuy, true);
+  const closed = api.examDayPlanState(bookkeeper, '2026-08-14T00:00:00+08:00');
+  assert.equal(closed.canBuy, false);
+  assert.equal(closed.state, 'registration_closed');
+  assert.match(closed.reason, /報名已截止/);
 });
 
 test('CXA keeps elem-admin explicitly disabled until LINE bot supports the paid service', () => {
